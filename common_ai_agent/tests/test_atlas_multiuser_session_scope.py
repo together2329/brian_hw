@@ -240,6 +240,25 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
     assert Path(health_data["workspace_root"]).resolve() == workspace_root.resolve()
     assert Path(health_data["session_dir"]).resolve() == session_dir.resolve()
 
+    (workspace_root / "NEWIP_MCTP" / "yaml").mkdir(parents=True, exist_ok=True)
+    (workspace_root / "NEWIP_MCTP" / "yaml" / "NEWIP_MCTP.ssot.yaml").write_text(
+        "ip: NEWIP_MCTP\n",
+        encoding="utf-8",
+    )
+    ip_list = client.get("/api/ip/list?session_id=alice/s1/NEWIP_MCTP/ssot-gen")
+    assert ip_list.status_code == 200, ip_list.text
+    assert {item["name"] for item in ip_list.json()["items"]} == {"NEWIP_MCTP"}
+    files = client.get(
+        "/api/files",
+        params={
+            "path": "NEWIP_MCTP",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert files.status_code == 200, files.text
+    assert files.json()["path"] == "NEWIP_MCTP"
+    assert {entry["name"] for entry in files.json()["entries"]} == {"yaml"}
+
 
 def test_orchestrator_session_state_includes_ip_chat_ledger(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui

@@ -321,6 +321,47 @@ def test_pipeline_state_db_failed_propagates_error_summary(tmp_path: Path, monke
     assert lint_stage["source"] == "db"
 
 
+def test_pipeline_state_preserves_blocked_db_row_as_blocked(tmp_path: Path, monkeypatch) -> None:
+    """A workflow_runs row with status=blocked must map to pipeline state
+    'blocked' (NOT 'failed') and surface its error_summary, so owner-routing
+    stays actionable in the UI. See Task 3 of the orchestrator stabilization
+    plan: blocked != failed."""
+    import os
+    from core.atlas_db import AtlasDB
+
+    ip = "db_blocked_ip"
+    (tmp_path / ip).mkdir()  # IP dir exists, but no rtl/ artifacts
+
+    db_path = tmp_path / "atlas.db"
+    os.environ["ATLAS_DB_PATH"] = str(db_path)
+    with AtlasDB(str(db_path)) as db:
+        ws = db.upsert_workspace(tmp_path.name or "default", local_path=str(tmp_path))
+        ipb = db.upsert_ip_block(ws["id"], ip)
+        run = db.start_workflow_run(
+            session_id="default",
+            workspace_id=ws["id"],
+            ip_id=ipb["id"],
+            workflow="rtl-gen",
+            mode="pipeline",
+            model_profile="gpt-5.3-codex",
+            reasoning_effort="high",
+            trigger="test",
+        )
+        db.finish_workflow_run(
+            run["id"], status="blocked", error_summary="blocked: SSOT not found"
+        )
+
+    client = _make_client(tmp_path, monkeypatch)
+    resp = client.get(f"/api/pipeline/state?ip={ip}")
+    assert resp.status_code == 200, resp.text
+
+    data = resp.json()
+    rtl_stage = data["stages"]["rtl"]
+    assert rtl_stage["state"] == "blocked", f"expected blocked, got {rtl_stage['state']}"
+    assert "SSOT not found" in (rtl_stage["error_summary"] or "")
+    assert rtl_stage["source"] == "db"
+
+
 def test_pipeline_state_locked_reason_names_missing_upstream(tmp_path: Path, monkeypatch) -> None:
     """A locked stage should populate locked_reason like 'needs ssot'."""
     ip = "locked_ip"

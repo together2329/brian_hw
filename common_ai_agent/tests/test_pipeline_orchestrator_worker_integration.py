@@ -121,6 +121,188 @@ class _MockWorkerState:
         return ""
 
 
+_VALID_RTL_MODULE = (
+    "module {ip}(\n"
+    "    input logic clk,\n"
+    "    input logic rst_n,\n"
+    "    output logic done\n"
+    ");\n"
+    "    logic done_q;\n"
+    "    always @(posedge clk or negedge rst_n) begin\n"
+    "        if (!rst_n) begin\n"
+    "            done_q <= 1'b0;\n"
+    "        end else begin\n"
+    "            done_q <= 1'b1;\n"
+    "        end\n"
+    "    end\n"
+    "    assign done = done_q;\n"
+    "endmodule\n"
+)
+
+
+def _write_minimal_valid_ssot_rtl_fixture(ip_dir: Path, ip: str) -> None:
+    """Write the smallest on-disk artifact set that the deterministic RTL
+    completion-evidence contract accepts.
+
+    This is the disk-artifact half of the positive-path fixture. It makes
+    ``_rtl_current_completion_evidence_passes`` return True (valid filelist,
+    placeholder-free RTL, passing compile + lint, a closed rtl_todo_plan gate)
+    and writes a ``logs/stage_engine/ssot-rtl.json`` with ``status=pass``.
+
+    IMPORTANT (verified against the production gate): the strict gate in
+    ``_enforce_completion_evidence_gate`` calls ``_refresh_completed_stage_evidence``
+    which re-runs the REAL ``WorkflowStageEngine.run_stage("ssot-rtl")`` and the
+    real ``check_rtl_disk.sh`` disk validator against this fixture. With only a
+    minimal SSOT (no function_model/cycle_model) the engine rewrites
+    ``rtl/rtl_todo_plan.json`` to a blocked gate and the disk validator rejects a
+    trivial module. So positive green tests MUST pair this fixture with the
+    rtl recovery/failure monkeypatch (see ``_patch_rtl_gate_for_fixture``), the
+    same pattern ``test_full_ip_pipeline_can_complete_all_stages_across_two_workers``
+    already uses. All fixture files live under ``tmp_path``; never write into
+    tracked IP directories.
+    """
+    def write(rel: str, text: str) -> None:
+        path = ip_dir / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    # SSOT with enough function_model/cycle_model shape that ssot-rtl does not
+    # short-circuit to "SSOT not found" / "missing locked truth".
+    write(
+        f"yaml/{ip}.ssot.yaml",
+        (
+            f"ip: {ip}\n"
+            "sections:\n"
+            "  - name: interface\n"
+            "    description: minimal valid fixture\n"
+            "function_model:\n"
+            "  summary: done asserts one cycle after reset deasserts\n"
+            "cycle_model:\n"
+            "  summary: single-cycle latency\n"
+            "requirements:\n"
+            "  - id: REQ_DONE\n"
+            "    text: done must assert after reset\n"
+        ),
+    )
+    write(f"rtl/{ip}.sv", _VALID_RTL_MODULE.format(ip=ip))
+    # Local validators expect the filelist to reference the source with the
+    # rtl/<ip>.sv path convention.
+    write(f"list/{ip}.f", f"rtl/{ip}.sv\n")
+    write("rtl/rtl_compile.json", '{"passed":true,"errors":0,"diagnostics":0,"returncode":0}\n')
+    write("lint/dut_lint.json", '{"passed":true,"errors":0,"warnings":0,"pyslang":[],"verilator":[]}\n')
+    write(
+        "rtl/rtl_todo_plan.json",
+        json.dumps(
+            {
+                "gate": {
+                    "status": "pass",
+                    "all_required_todos_pass": True,
+                    "open_required_todos": 0,
+                    "static_missing": 0,
+                    "blocking_questions": 0,
+                },
+                "todo_completion": {
+                    "all_required_todos_pass": True,
+                    "open_required_tasks": 0,
+                },
+                "todos": [],
+            }
+        )
+        + "\n",
+    )
+    write(
+        "logs/stage_engine/ssot-rtl.json",
+        json.dumps(
+            {
+                "stage": "ssot-rtl",
+                "status": "pass",
+                "headline": "[ssot-rtl] PASS: RTL evidence closed",
+                "metadata": {
+                    "rtl_todo_plan": {
+                        "gate": {
+                            "status": "pass",
+                            "all_required_todos_pass": True,
+                            "open_required_todos": 0,
+                            "static_missing": 0,
+                            "blocking_questions": 0,
+                        }
+                    }
+                },
+            }
+        )
+        + "\n",
+    )
+
+
+def _write_blocked_ssot_rtl_fixture(ip_dir: Path, ip: str, reason: str) -> None:
+    """Write a stage-engine ``ssot-rtl.json`` with ``status=blocked`` plus a
+    matching blocked rtl_todo_plan gate, simulating a stage that cannot proceed
+    (e.g. missing locked truth / open human gate). Used by negative tests that
+    assert the owning job becomes ``blocked`` (not ``error``)."""
+    def write(rel: str, text: str) -> None:
+        path = ip_dir / rel
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+    write(f"rtl/{ip}.sv", _VALID_RTL_MODULE.format(ip=ip))
+    write(f"list/{ip}.f", f"rtl/{ip}.sv\n")
+    blocked_gate = {
+        "status": "blocked",
+        "all_required_todos_pass": False,
+        "open_required_todos": 2,
+        "static_missing": 0,
+        "blocking_questions": 1,
+    }
+    write(
+        "rtl/rtl_todo_plan.json",
+        json.dumps({"gate": blocked_gate, "todos": []}) + "\n",
+    )
+    write(
+        "logs/stage_engine/ssot-rtl.json",
+        json.dumps(
+            {
+                "stage": "ssot-rtl",
+                "status": "blocked",
+                "headline": f"[ssot-rtl] blocked: {reason}",
+                "metadata": {"rtl_todo_plan": {"gate": blocked_gate}},
+            }
+        )
+        + "\n",
+    )
+
+
+def _patch_rtl_gate_for_fixture(monkeypatch, jobs_module, ip: str, tmp_path: Path) -> None:
+    """Pair the on-disk valid fixture with the rtl recovery/failure monkeypatch
+    so the strict gate's engine re-run cannot clobber the fixture into blocked.
+
+    This mirrors ``test_full_ip_pipeline_can_complete_all_stages_across_two_workers``:
+    the gate calls ``_refresh_completed_stage_evidence`` (real engine) before
+    ``_job_artifact_failure``/``_job_artifact_recovery``; by stubbing the rtl
+    failure to (False, "") and rtl recovery to (True, ...) the gate passes on the
+    fixture evidence regardless of what the engine rewrites on disk. Non-rtl
+    stages still run their real validators."""
+    real_recovery = jobs_module._job_artifact_recovery
+    real_failure = jobs_module._job_artifact_failure
+
+    def _mock_recovery(job: dict, project_root: Path) -> tuple[bool, str]:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        workflow = str(job.get("workflow") or "")
+        if stage == "rtl" or workflow == "rtl-gen":
+            compile_path = tmp_path / ip / "rtl" / "rtl_compile.json"
+            return compile_path.is_file(), "test mock validated artifact: rtl/rtl_compile.json"
+        return real_recovery(job, project_root)
+
+    def _mock_failure(job: dict, project_root: Path) -> tuple[bool, str]:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        workflow = str(job.get("workflow") or "")
+        if stage == "rtl" or workflow == "rtl-gen":
+            return False, ""
+        return real_failure(job, project_root)
+
+    monkeypatch.setattr(jobs_module, "_job_artifact_recovery", _mock_recovery)
+    monkeypatch.setattr(jobs_module, "_job_artifact_failure", _mock_failure)
+
+
 def _write_mock_stage_artifact(payload: dict) -> None:
     project_root = Path(str(payload.get("project_root") or ""))
     ip = str(payload.get("ip") or "").strip()
@@ -144,28 +326,11 @@ def _write_mock_stage_artifact(payload: dict) -> None:
     elif stage == "equivalence":
         write("verify/equivalence_goals.json", '{"status":"pass"}\n')
     elif stage == "rtl" or workflow == "rtl-gen":
-        write(
-            f"rtl/{ip}.sv",
-            (
-                f"module {ip}(\n"
-                "    input logic clk,\n"
-                "    input logic rst_n,\n"
-                "    output logic done\n"
-                ");\n"
-                "    logic done_q;\n"
-                "    always @(posedge clk or negedge rst_n) begin\n"
-                "        if (!rst_n) begin\n"
-                "            done_q <= 1'b0;\n"
-                "        end else begin\n"
-                "            done_q <= 1'b1;\n"
-                "        end\n"
-                "    end\n"
-                "    assign done = done_q;\n"
-                "endmodule\n"
-            ),
-        )
-        write(f"list/{ip}.f", f"rtl/{ip}.sv\n")
-        write("rtl/rtl_compile.json", '{"errors":0,"diagnostics":0,"returncode":0}\n')
+        # Write the full minimal-valid RTL evidence set (Task 2) so the strict
+        # completion-evidence gate accepts it. Paired with
+        # _patch_rtl_gate_for_fixture in positive tests, since the gate's engine
+        # re-run + check_rtl_disk.sh would otherwise clobber/reject a cheap fixture.
+        _write_minimal_valid_ssot_rtl_fixture(ip_dir, ip)
     elif stage == "lint" or workflow == "lint":
         write("lint/dut_lint.json", '{"errors":0,"warnings":0,"pyslang":[],"verilator":[]}\n')
     elif stage == "tb" or workflow == "tb-gen":

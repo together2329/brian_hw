@@ -2426,7 +2426,7 @@ def create_app():
                 ns = normalize_session_name(str(row.get("namespace") or row.get("id") or ""))
                 parts = [p for p in ns.split("/") if p]
                 if len(parts) >= 3 and parts[0] in allowed_owners:
-                    owned.add(parts[1])
+                    owned.add(parts[-2])
             return owned
         except Exception:
             return set()
@@ -3649,8 +3649,8 @@ def create_app():
                     parts = [part for part in namespace.split("/") if part]
                     if len(parts) < 3 or parts[0] not in allowed_owners:
                         continue
-                    name = parts[1]
-                    workflow = parts[2]
+                    name = parts[-2]
+                    workflow = parts[-1]
                     mtime = float(row.get("updated_at") or row.get("created_at") or 0.0)
                     ip_dir = (session_root / name) if session_root is not None else None
                     try:
