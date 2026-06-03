@@ -550,8 +550,8 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
             } else if (serverParts[0] === serverUser) {
               tail = serverParts.slice(1);
             }
-            if (tail.length < 2) tail = ['default', 'default'];
-            const seedNs = [serverUser, ...tail.slice(0, 2)].join('/');
+            if (tail.length < 3) tail = ['default', 'default', 'default'];
+            const seedNs = [serverUser, ...tail.slice(0, 3)].join('/');
             localStorage.setItem('atlasActiveSession', seedNs);
             w.ACTIVE_SESSION = seedNs;
             window.dispatchEvent(new CustomEvent('atlas-session-loaded', {
@@ -575,6 +575,14 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
       const effectiveSession = healthOverride ? browserSession : (healthSession || browserSession);
       const acceptHealthCounters = healthCountersMatchBrowserRoute(d);
       const effectiveRoute = routeSessionInfo(effectiveSession);
+      const effectiveParts = effectiveSession.split('/').filter(Boolean);
+      const workspaceSession = normalizeSessionName(
+        d.workspace_session || (effectiveParts.length >= 4 ? effectiveParts[1] : '')
+      );
+      if (workspaceSession) {
+        (w as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+        try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
+      }
       const activeWorkflow = activeWorkflowFromSession(effectiveSession);
       const backendWorkspace = normalizeSessionName(d.workspace || '');
       if (typeof d.chat_feed_summary === 'boolean') {

@@ -5576,6 +5576,15 @@ def register_jobs_routes(
             if running_job:
                 state = "running"
                 source = "db" if db_state is not None else "memory"
+            elif sid in failed_stages and db_state == "blocked":
+                # The FS heuristic (_job_artifact_failure) lumps stage-engine
+                # blocked evidence in with genuine failures, but the latest DB
+                # row reflects the gate's deterministic blocked-vs-error verdict.
+                # Honor blocked so owner-routing stays actionable (Task 3/4):
+                # blocked must not be collapsed into failed just because a
+                # blocked stage log is on disk.
+                state = "blocked"
+                source = "db"
             elif sid in failed_stages:
                 state = "failed"  # explicit artifact failure overrides stale/optimistic DB success
                 source = "fs"

@@ -203,11 +203,16 @@ const w = window as any;
       try { return normalizeSessionName(localStorage.getItem('atlasUserSessionId')); }
       catch (_) { return ''; }
     })();
+    const storedWorkspace = (() => {
+      try { return normalizeSessionName(localStorage.getItem('atlasWorkspaceSessionId')); }
+      catch (_) { return ''; }
+    })();
     const baseOwner = owner || storedOwner || normalizeSessionName(w.ATLAS_USER_SESSION_ID || '') || 'default';
-    if (ip && wf) return `${baseOwner}/${ip}/${wf}`;
-    if (ip) return `${baseOwner}/${ip}/${DEFAULT_WORKFLOW}`;
-    if (wf) return `${baseOwner}/${DEFAULT_WORKFLOW}/${wf}`;
-    if (owner) return `${owner}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
+    const baseWorkspace = normalizeSessionName(params.get('workspace_session') || params.get('workspace') || storedWorkspace) || 'default';
+    if (ip && wf) return `${baseOwner}/${baseWorkspace}/${ip}/${wf}`;
+    if (ip) return `${baseOwner}/${baseWorkspace}/${ip}/${DEFAULT_WORKFLOW}`;
+    if (wf) return `${baseOwner}/${baseWorkspace}/${DEFAULT_WORKFLOW}/${wf}`;
+    if (owner) return `${owner}/${baseWorkspace}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
     return '';
   }
 
@@ -274,7 +279,7 @@ const w = window as any;
   try {
     const storedActive = URL_ACTIVE_SESSION || normalizeSessionName(localStorage.getItem('atlasActiveSession'));
     if (!storedActive || storedActive === 'default') {
-      setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
+      setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/default/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
     } else {
       const parts = storedActive.split('/').filter(Boolean);
       if (parts.length === 2 && String(parts[1] || '').toLowerCase() === DEFAULT_WORKFLOW) {
@@ -300,7 +305,7 @@ const w = window as any;
     }
   } catch (_) {
     if (!w.ACTIVE_SESSION || w.ACTIVE_SESSION === 'default') {
-      setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
+      setActiveSessionName(`${w.ATLAS_USER_SESSION_ID}/default/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`);
     }
   }
 
@@ -310,6 +315,10 @@ const w = window as any;
     let scope = normalizeSessionName(scopePath || '');
     const wf = normalizeSessionName(String(workflow || '').replace(/^\/+|\/+$/g, ''));
     const userSession = normalizeSessionName(w.ATLAS_USER_SESSION_ID || '') || '';
+    const workspaceSession = normalizeSessionName((w as any).ATLAS_WORKSPACE_SESSION_ID || (() => {
+      try { return localStorage.getItem('atlasWorkspaceSessionId') || ''; }
+      catch (_) { return ''; }
+    })()) || 'default';
     if (scope === 'default') scope = '';
     const scopeParts = scope.split('/').filter(Boolean);
     const joinSessionParts = (parts: string[]) => parts.filter(Boolean).join('/');
@@ -354,10 +363,10 @@ const w = window as any;
     // navigate. owner defaults to 'default' when no per-user session
     // is set (multi-user mode is opt-in via ATLAS_MULTI_USER).
     const owner = userSession || 'default';
-    if (scope && wf) return `${owner}/${scope}/${wf}`;
-    if (scope)      return `${owner}/${scope}/${DEFAULT_WORKFLOW}`;
-    if (wf)         return `${owner}/${DEFAULT_WORKFLOW}/${wf}`;
-    return `${owner}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
+    if (scope && wf) return `${owner}/${workspaceSession}/${scope}/${wf}`;
+    if (scope)      return `${owner}/${workspaceSession}/${scope}/${DEFAULT_WORKFLOW}`;
+    if (wf)         return `${owner}/${workspaceSession}/${DEFAULT_WORKFLOW}/${wf}`;
+    return `${owner}/${workspaceSession}/${DEFAULT_WORKFLOW}/${DEFAULT_WORKFLOW}`;
   }
 
   // Public API for workspace.jsx so it can pull a fresh slice on demand.

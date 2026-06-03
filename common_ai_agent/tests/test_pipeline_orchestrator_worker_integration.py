@@ -1474,6 +1474,88 @@ def test_worker_completion_without_stage_evidence_is_not_marked_green(
         jobs._jobs.clear()
 
 
+def test_worker_reported_completed_with_blocked_stage_engine_blocks_downstream(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Task 4 + Task 1 #3: when the worker reports `completed` but the
+    deterministic stage engine explicitly reports the owning stage as
+    `blocked` (e.g. ssot-rtl cannot proceed without locked truth / a human
+    gate), the owning job must become `blocked` (NOT `error`), downstream
+    pending jobs must become `blocked`, and the DB rows must mirror both."""
+    import atlas_api_jobs as jobs
+    from core.atlas_db import AtlasDB
+
+    ip = "blocked_engine_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir(parents=True)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    # Simulate the real ssot-rtl engine reporting blocked: write the blocked
+    # stage log + todo gate and stamp job['stage_evidence_status']='blocked',
+    # which is exactly what WorkflowStageEngine.run_stage('ssot-rtl') does when
+    # it can't proceed. This drives the gate's blocked branch without needing
+    # the real workflow/ scripts. The gate itself is unchanged.
+    def _blocked_refresh(job: dict, pr) -> None:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        workflow = str(job.get("workflow") or "")
+        if stage == "rtl" or workflow == "rtl-gen":
+            _write_blocked_ssot_rtl_fixture(ip_dir, ip, "SSOT not found")
+            job["stage_evidence_status"] = "blocked"
+            job["stage_evidence_summary"] = "[ssot-rtl] blocked: SSOT not found"
+
+    monkeypatch.setattr(jobs, "_refresh_completed_stage_evidence", _blocked_refresh)
+
+    with _mock_worker("pipeline") as (worker_url, _worker):
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+        monkeypatch.setenv("WORKER_URL_DEFAULT", worker_url)
+        client = _make_client(tmp_path, monkeypatch)
+
+        dispatch = client.post("/api/pipeline/dispatch", json={
+            "ip": ip,
+            "stages": ["rtl", "lint"],
+            "schedule": "auto",
+            "exec_mode": "orchestrator",
+        })
+        assert dispatch.status_code == 200, dispatch.text
+        pipeline_id = dispatch.json()["pipeline_id"]
+
+        rows = []
+        for _ in range(20):
+            jobs_resp = client.get("/api/jobs")
+            assert jobs_resp.status_code == 200, jobs_resp.text
+            rows = jobs_resp.json()["jobs"]
+            by_stage = {row["stage_id"]: row for row in rows}
+            if by_stage.get("rtl", {}).get("status") == "blocked" and by_stage.get("lint", {}).get("status") == "blocked":
+                break
+            time.sleep(0.1)
+
+        by_stage = {row["stage_id"]: row for row in rows}
+        assert by_stage["rtl"]["status"] == "blocked", by_stage.get("rtl")
+        assert "stage evidence failed" in by_stage["rtl"]["error"]
+        assert by_stage["lint"]["status"] == "blocked"
+        assert all(row["pipeline_run_id"] == pipeline_id for row in rows)
+
+        # Pipeline state must preserve blocked distinctly from failed.
+        state = client.get(f"/api/pipeline/state?ip={ip}")
+        assert state.status_code == 200, state.text
+        assert state.json()["stages"]["rtl"]["state"] == "blocked"
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            run_rows = db._fetchall(
+                "SELECT workflow, status FROM workflow_runs ORDER BY started_at ASC"
+            )
+            assert [(row["workflow"], row["status"]) for row in run_rows] == [
+                ("rtl-gen", "blocked"),
+                ("lint", "blocked"),
+            ]
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
 def test_rtl_stage_evidence_gate_rejects_placeholder_sources(tmp_path: Path) -> None:
     import atlas_api_jobs as jobs
 

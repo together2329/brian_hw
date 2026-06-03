@@ -343,10 +343,15 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     ) || 'default';
     const parts = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
     const owner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || parts[0] || 'default';
+    const workspaceSession = (
+      (parts.length >= 4 && parts[0] === owner ? parts[1] : '')
+      || normalizeUiSession((w as any).ATLAS_WORKSPACE_SESSION_ID || '')
+      || 'default'
+    );
     return resolveSession(
       (w.atlasData && w.atlasData.sessionFor)
         ? w.atlasData.sessionFor(ipName, workflowName)
-        : `${owner}/${ipName}/${workflowName}`,
+        : `${owner}/${workspaceSession}/${ipName}/${workflowName}`,
     );
   }, [activeNamespace, activeSession, resolveSession]);
   const setOrchestratorInputRoute = useCallback((ip: any = '') => {
@@ -666,15 +671,20 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
 
   const handleSwitchSession = useCallback(async (sessionId: any) => {
     const owner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || sessionId;
+    const workspaceSession = normalizeUiSession(sessionId || (w as any).ATLAS_WORKSPACE_SESSION_ID || '') || 'default';
     const current = normalizeUiSession(activeSession || w.ACTIVE_SESSION || '');
-    const suffix = current.split('/').slice(1).join('/');
-    const newNamespace = suffix ? `${owner}/${suffix}` : owner;
+    const curParts = current.split('/').filter(Boolean);
+    const ip = routeSessionIp(current) || curParts[curParts.length - 2] || 'default';
+    const workflow = workflowFromSession(current) || curParts[curParts.length - 1] || 'default';
+    const newNamespace = `${owner}/${workspaceSession}/${ip}/${workflow}`;
 
     try {
       await fetch('/api/sessions/' + encodeURIComponent(owner) + '/activate', { method: 'POST' });
     } catch (_) {}
 
-    window.history.replaceState(null, '', '/?session_id=' + encodeURIComponent(owner));
+    (w as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+    try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
+    window.history.replaceState(null, '', '/?session_id=' + encodeURIComponent(owner) + '&session=' + encodeURIComponent(newNamespace));
 
     if (w.backend) {
       if (w.backend.switchSession) w.backend.switchSession(newNamespace);
@@ -816,6 +826,7 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     const sid = activateSession(routeIp, next);
     const parts = (sid || activeSession || w.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || parts[0] || 'default';
+    const workspaceSession = parts.length >= 4 && parts[0] === owner ? parts[1] : 'default';
     const ip = routeSessionIp(sid) || routeIp || parts[1] || 'default';
     w.ACTIVE_IP = ip;
     setWorkflowDispatchInputRoute(next, ip);
@@ -838,6 +849,7 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           owner,
+          workspace_session: workspaceSession,
           ip: ip,
           workflow: next,
         }),
