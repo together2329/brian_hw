@@ -1,10 +1,13 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-02T04:25:07Z",
+  "generated_at": "2026-06-03T02:49:46Z",
   "root": "doc/wiki",
-  "node_count": 124,
-  "edge_count": 525,
+  "node_count": 126,
+  "edge_count": 538,
   "tags": {
+    "admin": [
+      "admin-operational-dashboard-db-snapshot-20260603"
+    ],
     "atcdmac100": [
       "atcdmac100-document-flow-ui-honesty-20260518"
     ],
@@ -13,7 +16,9 @@
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17"
     ],
     "atlas": [
+      "admin-operational-dashboard-db-snapshot-20260603",
       "atlas-dag-ip-flow-runbook",
+      "atlas-db-router-runtime-sharding-20260602",
       "atlas-e2e-validation-20260519",
       "orchestrator-singleworker-e2e-20260526",
       "sim-debug-feature-review-2026-05-31",
@@ -57,6 +62,13 @@
     ],
     "dag": [
       "atlas-dag-ip-flow-runbook"
+    ],
+    "dashboard": [
+      "admin-operational-dashboard-db-snapshot-20260603"
+    ],
+    "db": [
+      "admin-operational-dashboard-db-snapshot-20260603",
+      "atlas-db-router-runtime-sharding-20260602"
     ],
     "db-sync": [
       "ssot-rtl-flow-verify-20260519"
@@ -137,6 +149,9 @@
     "mctp": [
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531"
+    ],
+    "multi-user": [
+      "atlas-db-router-runtime-sharding-20260602"
     ],
     "multi-worker": [
       "orchestrator-chat-only-product-plan",
@@ -238,10 +253,17 @@
       "pl330-real-orchestrator-ui-lessons-20260517",
       "ssot-rtl-flow-verify-20260519"
     ],
+    "runtime-db": [
+      "atlas-db-router-runtime-sharding-20260602"
+    ],
     "scoreboard": [
       "atcwdt200-flow-debugging-lessons",
       "hardcoded-strip-honest-baseline-20260520",
       "silent-pass-exposure-tb-stimulus-gap-20260520"
+    ],
+    "session-queue": [
+      "admin-operational-dashboard-db-snapshot-20260603",
+      "atlas-db-router-runtime-sharding-20260602"
     ],
     "signoff": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -265,6 +287,9 @@
     ],
     "single-worker": [
       "orchestrator-singleworker-e2e-20260526"
+    ],
+    "sqlite": [
+      "atlas-db-router-runtime-sharding-20260602"
     ],
     "ssot": [
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
@@ -305,6 +330,9 @@
     "to-ssot": [
       "ssot-conversion-flow-20260519"
     ],
+    "usage": [
+      "admin-operational-dashboard-db-snapshot-20260603"
+    ],
     "ux": [
       "orchestrator-singleworker-e2e-20260526"
     ],
@@ -339,9 +367,15 @@
     "worker-dispatch": [
       "atlas-e2e-validation-20260519"
     ],
+    "worker-ipc": [
+      "atlas-db-router-runtime-sharding-20260602"
+    ],
     "workflow": [
       "atlas-pipeline-worker-workspace-jump",
       "ssot-conversion-flow-20260519"
+    ],
+    "workflow-runs": [
+      "admin-operational-dashboard-db-snapshot-20260603"
     ],
     "workspace": [
       "atlas-pipeline-worker-workspace-jump",
@@ -357,6 +391,7 @@
       "workspace-jsx-decomposition-plan"
     ],
     "reference": [
+      "admin-operational-dashboard-db-snapshot-20260603",
       "agent-autonomous-ip-implementation-pattern",
       "andes-rtl-db-wiki-20260527",
       "apb-uart-enhanced-signoff-20260527",
@@ -368,8 +403,10 @@
       "atcwdt200-flow-debugging-lessons",
       "atcwdt200-pipeline-run-20260517",
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
+      "atlas-auth-recovery-email-review-20260603",
       "atlas-browser-control-runbook",
       "atlas-dag-ip-flow-runbook",
+      "atlas-db-router-runtime-sharding-20260602",
       "atlas-modular-refactor-status-20260528",
       "atlas-new-ip-recipe",
       "atlas-pipeline-db-state",
@@ -458,7 +495,6 @@
       "tauri-desktop-shell",
       "tech-direction-recommendation-20260529",
       "testing-methodology",
-      "trace-jsonl-rotation-20260519",
       "triple-llm-rv32i-experiment",
       "truth-coverage-gate",
       "uart-tx-end-to-end-findings-20260530",
@@ -485,6 +521,41 @@
     ]
   },
   "nodes": [
+    {
+      "id": "admin-operational-dashboard-db-snapshot-20260603",
+      "title": "Admin Operational Dashboard DB Snapshot",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "admin",
+        "dashboard",
+        "db",
+        "usage",
+        "session-queue",
+        "workflow-runs"
+      ],
+      "related": [
+        "atlas-pipeline-db-state",
+        "provider-and-llm-call-accounting",
+        "atlas-db-router-runtime-sharding-20260602",
+        "pipeline-progress-debugging"
+      ],
+      "outgoing": [
+        "atlas-pipeline-db-state",
+        "provider-and-llm-call-accounting",
+        "atlas-db-router-runtime-sharding-20260602",
+        "pipeline-progress-debugging"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03",
+      "summary": "This page records what the admin dashboard should prioritize based on the real local Atlas operating DB, not a generic SaaS user-management model.",
+      "path": "doc/wiki/admin-operational-dashboard-db-snapshot-20260603.md",
+      "size_bytes": 8349
+    },
     {
       "id": "agent-autonomous-ip-implementation-pattern",
       "title": "에이전트 자율 IP 구현 패턴 — \"Wiki만 보고 DMA 끝까지 완주한 이야기\"",
@@ -793,6 +864,23 @@
       "size_bytes": 4722
     },
     {
+      "id": "atlas-auth-recovery-email-review-20260603",
+      "title": "ATLAS Auth Recovery and Email Send Review - 2026-06-03",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "auth-cookie-expiry-20260519",
+        "atlas-test-feature-coverage"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Related: [[auth-cookie-expiry-20260519]] · [[atlas-test-feature-coverage]]",
+      "path": "doc/wiki/atlas-auth-recovery-email-review-20260603.md",
+      "size_bytes": 8260
+    },
+    {
       "id": "atlas-browser-control-runbook",
       "title": "ATLAS Browser Control Runbook",
       "type": "reference",
@@ -839,6 +927,42 @@
       "summary": "DAG means **Directed Acyclic Graph**.",
       "path": "doc/wiki/atlas-dag-ip-flow-runbook.md",
       "size_bytes": 5036
+    },
+    {
+      "id": "atlas-db-router-runtime-sharding-20260602",
+      "title": "Atlas DB Router Runtime Sharding",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "db",
+        "sqlite",
+        "multi-user",
+        "worker-ipc",
+        "session-queue",
+        "runtime-db"
+      ],
+      "related": [
+        "multi-user-worker-isolation",
+        "multi-user-worker-conflicts",
+        "db-concurrent-write-race-20260519",
+        "atlas-pipeline-db-state",
+        "provider-and-llm-call-accounting"
+      ],
+      "outgoing": [
+        "multi-user-worker-isolation",
+        "multi-user-worker-conflicts",
+        "db-concurrent-write-race-20260519",
+        "atlas-pipeline-db-state",
+        "provider-and-llm-call-accounting"
+      ],
+      "incoming": [
+        "admin-operational-dashboard-db-snapshot-20260603"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03",
+      "summary": "This page records the concept for making Atlas DB ownership safer under multi-user and multi-worker use.",
+      "path": "doc/wiki/atlas-db-router-runtime-sharding-20260602.md",
+      "size_bytes": 16808
     },
     {
       "id": "atlas-e2e-validation-20260519",
@@ -925,6 +1049,8 @@
         "ui-design-references"
       ],
       "incoming": [
+        "admin-operational-dashboard-db-snapshot-20260603",
+        "atlas-db-router-runtime-sharding-20260602",
         "atlas-pipeline-screen",
         "atlas-pipeline-worker-workspace-jump",
         "index",
@@ -1115,6 +1241,7 @@
         "mutation-baseline-2026-05-23"
       ],
       "incoming": [
+        "atlas-auth-recovery-email-review-20260603",
         "atlas-test-hardening-2026-05-23",
         "atlas-ui-playwright-screenshot-recipe-2026-05-23",
         "index",
@@ -1198,6 +1325,7 @@
       "related": [],
       "outgoing": [],
       "incoming": [
+        "atlas-auth-recovery-email-review-20260603",
         "index"
       ],
       "broken_refs": [],
@@ -1289,7 +1417,9 @@
       "tags": [],
       "related": [],
       "outgoing": [],
-      "incoming": [],
+      "incoming": [
+        "atlas-db-router-runtime-sharding-20260602"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "`AtlasDB._connect()` was opening SQLite connections in the default `delete` (rollback-journal) mode with no `busy_timeout`. Under concurrent writes from 10 threads this poses a risk: a second writer can receive `sqlite3.OperationalError: database is locked` immediately instead of queuing.",
@@ -1882,6 +2012,7 @@
         "babel-retirement-cutover-20260529",
         "local-iproot-thin-llm-server-arch-20260529",
         "run-mode-and-provenance-policy",
+        "admin-operational-dashboard-db-snapshot-20260603",
         "arm-m0-min-current-status",
         "multi-user-worker-isolation",
         "multi-user-worker-conflicts",
@@ -1955,7 +2086,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 27107
+      "size_bytes": 27589
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2058,6 +2189,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "admin-operational-dashboard-db-snapshot-20260603",
         "sim-debug-requirements-2026-06-01",
         "sim-debug-feature-review-2026-05-31",
         "sim-debug-waveform-renderer-2026-05-31",
@@ -2096,9 +2228,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[sim-debug-requirements-2026-06-01]] as the user-raised Sim Debug requirements ledger: four-pane loading and preload behavior, source/signal multi-select, exact bit-slice handling, waveform delete/reorder/group/radix/RC controls, A/B cursor delta/frequency, tool-call VCD+pyslang lookup, and remaining browser-drag/performance follow-ups.",
+      "summary": "- Added [[admin-operational-dashboard-db-snapshot-20260603]] from the real `~/.common_ai_agent/atlas.db` admin audit: 641 users, 89.9% never logged in, 63%+ unattributed LLM cost, all queue rows unprocessed, stale running workflows, and identity/context integrity gaps. The page records dashboard priority order and avoids copying raw user-identifying rows.",
       "path": "doc/wiki/log.md",
-      "size_bytes": 79444
+      "size_bytes": 79826
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -2201,6 +2333,7 @@
       ],
       "incoming": [
         "atcuart100-pipeline-run",
+        "atlas-db-router-runtime-sharding-20260602",
         "index",
         "octa-ddr-spi-orch-run-20260517",
         "orchestrator-llm-loop-phase3",
@@ -2226,6 +2359,7 @@
       "incoming": [
         "agent-autonomous-ip-implementation-pattern",
         "atcuart100-pipeline-run",
+        "atlas-db-router-runtime-sharding-20260602",
         "atlas-pipeline-worker-workspace-jump",
         "flow-fixes-r2-verify-20260519",
         "index",
@@ -2703,6 +2837,7 @@
         "wiki-curation-policy"
       ],
       "incoming": [
+        "admin-operational-dashboard-db-snapshot-20260603",
         "agent-autonomous-ip-implementation-pattern",
         "apb-uart-enhanced-signoff-20260527",
         "apb-uart-real-uart-signoff-20260527",
@@ -2894,8 +3029,10 @@
         "full-flow-pipeline"
       ],
       "incoming": [
+        "admin-operational-dashboard-db-snapshot-20260603",
         "agent-autonomous-ip-implementation-pattern",
         "arm-m0-min-pipeline-run",
+        "atlas-db-router-runtime-sharding-20260602",
         "common-ai-agent-map",
         "deterministic-emit-stages",
         "flow-fixes-r2-verify-20260519",
@@ -3504,20 +3641,6 @@
       "summary": "> 핵심 교훈(2026-05-30, 비싸게 배움): **빌드/타입/유닛이 전부 green이어도 실제 앱은 흰화면·무응답일 수 있다.** 조각 테스트는 \"부품 OK\"만 보장하지, \"사용자가 실제로 쓸 수 있다\"를 보장하지 않는다. 그래서 **최상층(실브라우저 E2E)** 이 반드시 필요하다.",
       "path": "doc/wiki/testing-methodology.md",
       "size_bytes": 3973
-    },
-    {
-      "id": "trace-jsonl-rotation-20260519",
-      "title": "trace.jsonl Growth + Rotation Audit (2026-05-19)",
-      "type": "reference",
-      "tags": [],
-      "related": [],
-      "outgoing": [],
-      "incoming": [],
-      "broken_refs": [],
-      "updated": "",
-      "summary": "`core/orchestrator_trace.py` writes an append-only `trace.jsonl` per IP under `<ip>/orchestrator/trace.jsonl`. There is **no rotation policy** in the current implementation. This audit measures actual growth rates and assesses risk.",
-      "path": "doc/wiki/trace-jsonl-rotation-20260519.md",
-      "size_bytes": 3507
     },
     {
       "id": "triple-llm-rv32i-experiment",

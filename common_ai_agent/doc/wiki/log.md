@@ -1,5 +1,13 @@
 # Wiki Log
 
+## 2026-06-03
+
+- Added [[admin-operational-dashboard-db-snapshot-20260603]] from the real
+  `~/.common_ai_agent/atlas.db` admin audit: 641 users, 89.9% never logged in,
+  63%+ unattributed LLM cost, all queue rows unprocessed, stale running
+  workflows, and identity/context integrity gaps. The page records dashboard
+  priority order and avoids copying raw user-identifying rows.
+
 ## 2026-06-01
 
 - Added [[sim-debug-requirements-2026-06-01]] as the user-raised Sim Debug

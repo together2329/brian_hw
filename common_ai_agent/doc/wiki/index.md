@@ -38,6 +38,7 @@ This section is additive; it does not replace the reading order below.
 | Babel/legacy-jsx retirement cutover — PAUSED progress + resume plan (Step1 flip done; Round1 partial; 4 decisions; Rounds 2–4) | [[babel-retirement-cutover-20260529]] |
 | Local IP-root + thin LLM-license server (desktop-app arch): already half-built via --root, Tauri = delivery not enabler; + remote-brain/local-hands variant | [[local-iproot-thin-llm-server-arch-20260529]] |
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
+| Admin operational dashboard priorities from the real local DB snapshot: inactivity, unattributed cost, queue backlog, stale workflows, identity gaps | [[admin-operational-dashboard-db-snapshot-20260603]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
 | Multi-user or shared-worker collision risk | [[multi-user-worker-isolation]] + [[multi-user-worker-conflicts]] |
@@ -136,6 +137,7 @@ be loaded on a different machine and inspected without recreating the DB.
 
 ## Debugging And Operations
 
+- [[admin-operational-dashboard-db-snapshot-20260603]] — first stop for what the Atlas admin home screen should prioritize from the real `~/.common_ai_agent/atlas.db`: unattributed LLM cost, queue backlog, stale workflows/sessions, inactive users, and identity integrity.
 - [[pipeline-progress-debugging]] — first stop for "is it really running?", "is worker or LLM stuck?", and "where is progress recorded?"
 - [[atlas-browser-control-runbook]] — first stop for "use the web browser so I can see it", visible mouse/keyboard interaction, and browser reload after backend code changes.
 - [[multi-user-worker-isolation]] — first stop for "could this worker belong to another user/IP/session?"
