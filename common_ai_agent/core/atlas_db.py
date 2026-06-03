@@ -986,8 +986,20 @@ class AtlasDB:
             AtlasDB._TLS.conns = cache
         conn = cache.get(self.db_path)
         if conn is not None:
-            self._conn = conn
-            return conn
+            # Liveness probe: a cross-thread close() (e.g. strict single-active-owner
+            # owner-slot termination evicting another thread's handle) can close the
+            # underlying connection while it is still cached in THIS thread's TLS.
+            # `in_transaction` raises ProgrammingError("Cannot operate on a closed
+            # database.") on a dead connection but is side-effect-free and ~free on a
+            # live one. Self-heal by dropping the stale handle and reopening.
+            try:
+                _ = conn.in_transaction  # probe; raises ProgrammingError if closed
+                self._conn = conn
+                return conn
+            except sqlite3.ProgrammingError:
+                cache.pop(self.db_path, None)
+                self._conn = None
+                conn = None
         try:
             timeout_s = float(os.environ.get("ATLAS_SQLITE_TIMEOUT", "30") or 30)
         except Exception:
