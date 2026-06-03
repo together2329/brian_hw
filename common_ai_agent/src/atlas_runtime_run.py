@@ -39,6 +39,7 @@ from core.atlas_exec_policy import (
     current_exec_mode,
     normalize_exec_mode,
 )
+from core.atlas_context import default_atlas_root
 
 
 def _hydrate_atlas_ui_globals() -> None:
@@ -1010,8 +1011,8 @@ def main() -> None:
                          "Use 0.0.0.0 only when admin should be LAN-reachable.")
     ap.add_argument("--root", default=None,
                     help="Project root directory the backend serves "
-                         "(.session/, IPs, file tree, …). Defaults to the "
-                         "current working directory.")
+                         "(.session/, IPs, file tree, …). Defaults to "
+                         "ATLAS_ROOT or ~/ATLAS.")
     ap.add_argument("--workflow-root", "--workflow_root", dest="workflow_root", default=None,
                     help="Directory containing workflow families such as "
                          "ssot-gen/ and rtl-gen/. Defaults to "
@@ -1110,12 +1111,19 @@ def main() -> None:
             os.chdir(str(ip_root_target))
             PROJECT_ROOT = ip_root_target
             _aui.PROJECT_ROOT = ip_root_target
+    else:
+        target = default_atlas_root(os.environ)
+        target.mkdir(parents=True, exist_ok=True)
+        os.chdir(str(target))
+        PROJECT_ROOT = target
+        _aui.PROJECT_ROOT = target
     # Same back-write for WORKFLOW_ROOT (mutated earlier in this function).
     _aui.WORKFLOW_ROOT = WORKFLOW_ROOT
     # Always export PROJECT_ROOT to the env so workers, sub-agents, and
     # the system-prompt header injector resolve to the same path the UI
     # serves files from — even when the user launches without --root and
     # relies on the cwd default.
+    os.environ["ATLAS_ROOT"] = str(PROJECT_ROOT)
     os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
     os.environ.setdefault("ATLAS_WORKFLOW_ROOT", str(WORKFLOW_ROOT))
     # Seed environment so all path resolvers see the canonical 3-part string.
