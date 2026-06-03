@@ -2,6 +2,16 @@
 
 ## 2026-06-04
 
+- Documented the orchestrator supervisor IPC runtime shipped in commit
+  `a96dbf29` in [[orchestrator-worker-handoff]]. The route now resolves
+  `get_orchestrator_runtime`, keeps legacy `thread` transport available, and
+  uses IPC supervisor subprocesses for orchestrator mode. The wiki records the
+  route/runtime/subprocess chain, `.session/orchestrators-ipc/<run_id>/`
+  control files, file-backed wake events for user replies and child job
+  completion, job/process watcher lifecycle, project-root scoping rule, and the
+  verification evidence (`11 passed` targeted supervisor/runtime tests,
+  `19 passed` legacy route/runner regressions, py_compile pass, manual
+  supervisor runtime smoke, Computer Use QA, and unavailable `ruff`).
 - Added [[atlas-context-root-deep-test-plan-20260604]] for the
   `feat/atlas-context-root-model` verification handoff. The plan fixes the
   expected canonical path model, requires Browser Web UI plus Computer Use
@@ -1010,6 +1020,13 @@
 
 ## 2026-06-04
 
+- Implemented the semantic contract overlay for MCTP v3. `contract-check` now
+  runs `semantic_contract_overlay` before the legacy goal overlay, supports
+  `vcd_event_order`, `row_passed_with_fl_expected`, and
+  `observed_equals_fl_expected`. `REQ_MCTP_V3_SC_SINGLE_ASSEMBLY_001` now closes
+  its three semantic obligations with FL-derived expected values plus VCD
+  predicates. Fresh full-IP result after rerun is pass: reflection 4/4,
+  evidence 105/105.
 - ATLAS context-root final6 refresh recorded in
   [[atlas-context-root-model-20260603]]. Fixed an order-dependent stale
   `ATLAS_ROOT` leak from `/api/session/activate` into job/pipeline-state
@@ -1024,4 +1041,14 @@
   `src-tauri` unit tests pass, but this refresh is not a fresh Web+Desktop E2E
   pass; do not merge to `main` from this refresh without a successful Desktop
   rerun or explicit acceptance of the earlier corrected C003 Desktop proof.
+- ATLAS session/IP dropdown isolation follow-up recorded in
+  [[atlas-context-root-model-20260603]]. `activateNamespace()` now clears
+  stale IP options immediately on user/session scope changes, and
+  `refreshTopTargets()` ignores late roster responses from older scopes.
+  Regression tests cover the held `/api/ip/list?session_id=alice/s2` response,
+  auth owner rebinding (`alice -> bob`), and backend context switching while an
+  old roster response is still in flight. Computer Use verified
+  `brian/hi/jjj -> brian/default/default -> brian/hi` switching in the live
+  Chrome UI. Same-session IPs like `real_ip`/`uart` remain visible only because
+  they physically exist under `ATLAS_ROOT/brian/hi/`.
 - Phase 3 of `[[orchestrator-chat-only-product-plan]]` landed — the right-side Pipeline chat at `POST /api/pipeline/orchestrator/chat` no longer parses keywords; it persists the user message, then `OrchestratorRunner.submit_or_attach(user_id, ip_id, ...)` either starts a fresh `orchestrator_run` row or appends a `user_reply` step to the existing active run for that `(user_id, ip_id)` (single-flight). The background `ThreadPoolExecutor(max_workers=4)` drives `OrchestratorLoop.run()` which iterates one LLM tool call at a time over 8 tools (`read_pipeline_state`, `dispatch_workflow`, `wait_job` non-blocking, `read_artifact`, `classify_failure`, `ask_user`, `write_handoff`, `mark_downstream_stale`) and writes one `orchestrator_steps` row per iteration with `decision_json` + `evidence_read_json` + `verdict`. Hard caps: 50 steps / 30 min → `final_state="cap_exceeded"`. Terminal states (`completed/blocked/error/paused`) all close the run with `ended_at`. New DB: `orchestrator_runs`, `orchestrator_steps` plus `orchestrator_run_id`/`trigger_source` columns on `workflow_runs` and `artifacts`. New owner-routing extracted from `workflow/orchestrator/system_prompt.md` prose into `src/orchestrator/classify.py::classify_failure(stage, evidence, error_text)` returning `{owner, next_workflow, reason, confidence}`. Two new read endpoints: `GET /api/orchestrator/runs/{run_id}` (run + all steps) and `GET /api/orchestrator/active_run?ip=X` (active run + latest step, used by the new "Human decision waiting" banner in `frontend/atlas/pipeline.jsx`). StageCard gained an `orch` pill when `data.trigger_source === "orchestrator_chat"`. Test coverage: 54 new pytest cases across `tests/test_atlas_db_orchestrator.py`, `test_orchestrator_classify.py`, `test_orchestrator_tools.py`, `test_orchestrator_loop.py`, `test_orchestrator_runner.py`, `test_orchestrator_route.py` — all green with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`. Slop-decisions intentionally locked: no env-gated keyword fallback (LLM is the only truth, errors surface as `status=error/final_state=llm_error`), `import_document` excluded from the tool set (deferred to Phase 2 — no placeholder), `wait_job` is non-blocking (loop yields and resumes on the next iteration instead of holding the thread). Five legacy tests in `tests/test_pipeline_orchestrator_worker_integration.py` that asserted the keyword-dispatch contract are decorated `@_PHASE3_SKIP` with a pointer to the new async contract; they need a rewrite (stub LLM caller + poll `/api/orchestrator/runs/{run_id}`) before they re-enter the suite. Full record: `[[orchestrator-llm-loop-phase3]]`.

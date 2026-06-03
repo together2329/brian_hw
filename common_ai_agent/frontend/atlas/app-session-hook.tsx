@@ -15,7 +15,7 @@
 //
 // Typed in the same permissive house style as app-helpers.tsx; the deps bag is
 // typed loosely (the App closures it carries are dynamically shaped).
-import { useCallback, useMemo, useEffect } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 import type { MutableRefObject, Dispatch, SetStateAction } from 'react';
 import { atlasShouldHoldDashboardActivation } from './app-helpers';
 
@@ -59,8 +59,26 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     () => new Set(['soc', 'user', ...TOP_WORKFLOWS]),
     [TOP_WORKFLOWS]
   );
+  const refreshEpochRef = useRef(0);
+  const rosterScopeFor = useCallback((namespace: unknown): string => {
+    const parsed = splitSessionNamespace(normalizeSession(namespace || ''));
+    const owner = normalizeSession(parsed.sessionId || '');
+    const workspaceSession = normalizeSession(parsed.workspaceSession || '') || 'default';
+    return owner ? `${owner}/${workspaceSession}` : '';
+  }, [normalizeSession, splitSessionNamespace]);
+  const resetIpRoster = useCallback(() => {
+    const fallback = [WORKFLOW_DEFAULT];
+    setIpOptions(fallback);
+    window.IP_OPTIONS = fallback;
+  }, [WORKFLOW_DEFAULT, setIpOptions]);
+  const invalidateRosterRefreshes = useCallback(() => {
+    refreshEpochRef.current += 1;
+  }, []);
 
   const refreshTopTargets = useCallback(async () => {
+    const refreshEpoch = refreshEpochRef.current + 1;
+    refreshEpochRef.current = refreshEpoch;
+    const isCurrentRefresh = () => refreshEpoch === refreshEpochRef.current;
     const currentUserSession = loggedInOwner()
       || normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
     const ownerScopedRoster = authState === 'authed' && !!currentUserSession;
@@ -79,14 +97,23 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       || (window as any).ATLAS_WORKSPACE_SESSION_ID
       || 'default'
     ) || 'default';
+    const refreshRosterScope = currentUserSession ? `${currentUserSession}/${workspaceSessionForRoster}` : '';
+    const isCurrentRosterScope = () => {
+      if (!refreshRosterScope) return true;
+      const liveScope = rosterScopeFor(window.ACTIVE_SESSION || activeNamespace || '');
+      return !liveScope || liveScope === refreshRosterScope;
+    };
+    const isCurrentScopedRefresh = () => isCurrentRefresh() && isCurrentRosterScope();
     if (rememberedParts.workspaceSession) nextSessionIds.add(rememberedParts.workspaceSession);
     const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
     if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
     if (!ownerScopedRoster && acceptIp(activeIp)) nextIps.add(activeIp);
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
+      if (!isCurrentScopedRefresh()) return;
       if (r.ok) {
         const d = await r.json();
+        if (!isCurrentScopedRefresh()) return;
         for (const row of (Array.isArray(d.sessions) ? d.sessions : [])) {
           const raw = (row && row.session) || '';
           const segments = String(raw).split('/').filter(Boolean);
@@ -121,9 +148,11 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       );
       const ipUrl = '/api/ip/list' + (ipScope ? `?session_id=${encodeURIComponent(ipScope)}` : '');
       const r2 = await fetch(ipUrl, { cache: 'no-store' });
+      if (!isCurrentScopedRefresh()) return;
       if (r2.ok) {
         ipListOk = true;
         const d2 = await r2.json();
+        if (!isCurrentScopedRefresh()) return;
         for (const it of (Array.isArray(d2.items) ? d2.items : [])) {
           const name = normalizeSession(it && it.name);
           if (acceptIp(name)) {
@@ -140,6 +169,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       if (!ownerScopedRoster) return true;
       return ipListOk && backendIps.has(ip);
     };
+    if (!isCurrentScopedRefresh()) return;
 
     let liveNamespace = holdActivation
       ? ''
@@ -239,12 +269,14 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     setActiveSessionId(currentUserSession || parsedLive.sessionId || 'default');
     setActiveNamespace(liveNamespace);
     setActiveIp(parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT));
-  }, [activeIp, activeNamespace, activeSessionId, authState, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, authState, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, rosterScopeFor, splitSessionNamespace]);
 
   useEffect(() => {
     let timer: any = null;
     const syncCurrent = (ev: any) => {
       if (atlasShouldHoldDashboardActivation()) {
+        invalidateRosterRefreshes();
+        resetIpRoster();
         const authOwner = normalizeSession(
           (window.ATLAS_USER && window.ATLAS_USER.username) ||
           window.ATLAS_USER_SESSION_ID ||
@@ -271,6 +303,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       ) {
         return;
       }
+      const scopeBeforeSync = rosterScopeFor(window.ACTIVE_SESSION || activeNamespace || '');
       const ctx = window.CONTEXT || {};
       const ctxSession = normalizeSession(ctx.active_session || ctx.activeSession || '');
       // refreshHealth periodic poll → backend is the ground truth.
@@ -357,6 +390,11 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       const wfSeg = parsed.workflow || WORKFLOW_DEFAULT;
       const ownerScope = parsed.workspaceSession ? `${owner}/${parsed.workspaceSession}` : owner;
       const canonicalNamespace = namespaceFor(ownerScope, ipSeg, wfSeg);
+      const scopeAfterSync = rosterScopeFor(canonicalNamespace);
+      if (scopeBeforeSync && scopeAfterSync && scopeBeforeSync !== scopeAfterSync) {
+        invalidateRosterRefreshes();
+        resetIpRoster();
+      }
       if (canonicalNamespace && canonicalNamespace !== window.ACTIVE_SESSION) {
         window.ACTIVE_SESSION = canonicalNamespace;
         try { localStorage.setItem('atlasActiveSession', canonicalNamespace); } catch (_) {}
@@ -396,7 +434,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       window.removeEventListener('atlas-conversation-loaded', syncCurrent);
       window.removeEventListener('atlas-data-changed', syncCurrent);
     };
-  }, [activeIp, activeNamespace, activeSessionId, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace]);
+  }, [activeIp, activeNamespace, activeSessionId, applySessionMeta, currentWorkflow, invalidateRosterRefreshes, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, resetIpRoster, rosterScopeFor, splitSessionNamespace]);
 
   useEffect(() => {
     // Don't fire the URL/localStorage → backend handshake before we
@@ -441,6 +479,12 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       const nextNamespace = currentNamespace && parsed.workflow === nextWorkflow
         ? currentNamespace
         : namespaceFor(owner, nextIp, nextWorkflow);
+      const previousScope = rosterScopeFor(window.ACTIVE_SESSION || activeNamespace || '');
+      const nextScope = rosterScopeFor(nextNamespace);
+      if (previousScope && nextScope && previousScope !== nextScope) {
+        invalidateRosterRefreshes();
+        resetIpRoster();
+      }
       setActiveSessionId(owner);
       setActiveNamespace(nextNamespace);
       setActiveIp(nextIp);
@@ -460,7 +504,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     };
     window.addEventListener('atlas-session-switched', onSwitch);
     return () => window.removeEventListener('atlas-session-switched', onSwitch);
-  }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
+  }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, invalidateRosterRefreshes, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, resetIpRoster, rosterScopeFor, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
 
   return { refreshTopTargets };
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-03T22:33:31Z",
+  "generated_at": "2026-06-03T23:21:49Z",
   "root": "doc/wiki",
   "node_count": 136,
   "edge_count": 611,
@@ -1015,7 +1015,7 @@
       "updated": "",
       "summary": "Date: 2026-06-03 Branch: `feat/atlas-context-root-model`",
       "path": "doc/wiki/atlas-context-root-model-20260603.md",
-      "size_bytes": 52664
+      "size_bytes": 56235
     },
     {
       "id": "atlas-dag-ip-flow-runbook",
@@ -1588,7 +1588,7 @@
       "updated": "2026-06-03",
       "summary": "This page captures the next design layer after `truth_coverage` and `evidence_contract`: every important contract item must be reflected through FL, CL, RTL, TB, and simulation evidence with the same stable ID.",
       "path": "doc/wiki/contract-reflection-workflow.md",
-      "size_bytes": 35034
+      "size_bytes": 38628
     },
     {
       "id": "cross-user-permission-20260519",
@@ -2541,6 +2541,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "orchestrator-worker-handoff",
         "atlas-context-root-deep-test-plan-20260604",
         "atlas-context-root-model-20260603",
         "tauri-desktop-shell",
@@ -2568,7 +2569,6 @@
         "run-mode-and-provenance-policy",
         "index",
         "multi-user-worker-isolation",
-        "orchestrator-worker-handoff",
         "orchestrator-worker-handoff-review",
         "gpio-serial-pipeline-run",
         "workflow-ownership-and-boundaries",
@@ -2589,9 +2589,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[atlas-context-root-deep-test-plan-20260604]] for the `feat/atlas-context-root-model` verification handoff. The plan fixes the expected canonical path model, requires Browser Web UI plus Computer Use Desktop evidence, covers DB/session/IP/job-log/tool-cwd/Perforce/LSP checks, and blocks merge to `main` unless both UI E2E paths pass. - Closed the…",
+      "summary": "- Documented the orchestrator supervisor IPC runtime shipped in commit `a96dbf29` in [[orchestrator-worker-handoff]]. The route now resolves `get_orchestrator_runtime`, keeps legacy `thread` transport available, and uses IPC supervisor subprocesses for orchestrator mode. The wiki records the route/runtime/subprocess chain,…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 96887
+      "size_bytes": 98787
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -3111,7 +3111,7 @@
       "updated": "",
       "summary": "This page defines the control-plane concept for cross-workflow repair and pipeline execution.",
       "path": "doc/wiki/orchestrator-worker-handoff.md",
-      "size_bytes": 22352
+      "size_bytes": 26142
     },
     {
       "id": "orchestrator-worker-handoff-review",

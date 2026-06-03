@@ -32,6 +32,7 @@ export interface AtlasAuthGateDeps {
   setActiveSessionId: (v: string) => void;
   setActiveNamespace: (v: string) => void;
   setActiveIp: (v: string) => void;
+  setIpOptions: Dispatch<SetStateAction<string[]>>;
   setRunMode: (v: string) => void;
   setExecMode: (v: string) => void;
 }
@@ -41,8 +42,14 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
     WORKFLOW_DEFAULT, authState, execMode, authRequiredProbeRef,
     normalizeSession, splitSessionNamespace,
     setBootSteps, setAuthState, setActiveSessionId, setActiveNamespace,
-    setActiveIp, setRunMode, setExecMode,
+    setActiveIp, setIpOptions, setRunMode, setExecMode,
   } = deps;
+
+  const resetIpRoster = () => {
+    const fallback = [WORKFLOW_DEFAULT];
+    setIpOptions(fallback);
+    window.IP_OPTIONS = fallback;
+  };
 
   useEffect(() => {
     const onAuthRequired = () => {
@@ -85,6 +92,7 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           const sourceNs = currentBelongsToUser
             ? currentNs
             : `${username}/${WORKFLOW_DEFAULT}/${WORKFLOW_DEFAULT}/${defaultWorkflow}`;
+          if (!currentBelongsToUser) resetIpRoster();
           const sourceParts = splitSessionNamespace(sourceNs);
           const workspaceSession = normalizeSession(sourceParts.workspaceSession || '') || WORKFLOW_DEFAULT;
           const recoveredNs = `${username}/${workspaceSession}/${sourceParts.ipId || WORKFLOW_DEFAULT}/${sourceParts.workflow || defaultWorkflow}`;
@@ -185,6 +193,12 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
             const nextIp = requestedIp || (!ownerMismatch ? currentParts.ipId : '') || WORKFLOW_DEFAULT;
             const nextWf = requestedWf || savedWorkflow || defaultWorkflow;
             const nextNs = `${username}/${nextWorkspace}/${nextIp}/${nextWf}`;
+            const currentWorkspace = normalizeSession(currentParts.workspaceSession || '') || WORKFLOW_DEFAULT;
+            const currentScope = currentParts.sessionId ? `${currentParts.sessionId}/${currentWorkspace}` : '';
+            const nextScope = `${username}/${nextWorkspace}`;
+            if (!currentNs || currentNs === 'default' || ownerMismatch || (currentScope && currentScope !== nextScope)) {
+              resetIpRoster();
+            }
             window.ACTIVE_SESSION = nextNs;
             (window as any).ATLAS_WORKSPACE_SESSION_ID = nextWorkspace;
             localStorage.setItem('atlasActiveSession', nextNs);

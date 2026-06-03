@@ -375,7 +375,7 @@ const App = () => {
     WORKFLOW_DEFAULT, authState, execMode, authRequiredProbeRef,
     normalizeSession, splitSessionNamespace,
     setBootSteps, setAuthState, setActiveSessionId, setActiveNamespace,
-    setActiveIp, setRunMode, setExecMode,
+    setActiveIp, setIpOptions, setRunMode, setExecMode,
   });
 
   const workflowForExecMode = useCallback((workflow: unknown) => {
@@ -519,6 +519,19 @@ const App = () => {
     const namespace = namespaceFor(`${owner}/${workspaceSession}`, ip, wf);
     const prev = window.ACTIVE_SESSION || '';
     const prevParts = splitSessionNamespace(prev || '');
+    const prevWorkspaceSession = normalizeSession(prevParts.workspaceSession || '') || 'default';
+    const rosterScopeChanged = !!(
+      prev &&
+      (
+        (prevParts.sessionId && prevParts.sessionId !== owner) ||
+        prevWorkspaceSession !== workspaceSession
+      )
+    );
+    if (rosterScopeChanged) {
+      const scopedFallbackIps = [WORKFLOW_DEFAULT];
+      setIpOptions(scopedFallbackIps);
+      window.IP_OPTIONS = scopedFallbackIps;
+    }
     const prevWf = prevParts.workflow || WORKFLOW_DEFAULT;
     const workflowChanged = !!(prev && prev !== namespace && prevWf !== wf);
     if (workflowChanged) {
@@ -603,7 +616,7 @@ const App = () => {
     };
     _activateAndDispatch();
     return namespace;
-  }, [activateBackendWorkflow, applySessionMeta, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
+  }, [activateBackendWorkflow, applySessionMeta, loggedInOwner, namespaceFor, normalizeSession, setAgentRunningState, setIpOptions, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
 
   useEffect(() => {
     window.activateAtlasNamespace = activateNamespace;
@@ -675,10 +688,7 @@ const App = () => {
     const owner = `${authOwner}/${workspaceSession}`;
     (window as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
     try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
-    const parsed = splitActiveNamespace();
-    const ip = (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : parsed.ipId) || activeIp || WORKFLOW_DEFAULT;
-    const wf = parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
-    activateNamespace(owner, ip, wf, true);
+    activateNamespace(owner, WORKFLOW_DEFAULT, WORKFLOW_DEFAULT, true);
   };
 
   const selectIp = (rawIp: string) => {
@@ -797,6 +807,9 @@ const App = () => {
       || (window as any).ATLAS_WORKSPACE_SESSION_ID
       || ''
     ) || 'default';
+    const activeNamespaceForCreate = normalizeSession((window as any).ACTIVE_SESSION || activeNamespace || '');
+    const sessionHintForCreate = activeNamespaceForCreate
+      || `${me}/${workspaceSessionForCreate}/${WORKFLOW_DEFAULT}/${WORKFLOW_DEFAULT}`;
     let createPayload: any = {};
     try {
       const createResponse = await fetch('/api/ip/create', {
@@ -808,6 +821,8 @@ const App = () => {
           exec_mode: requestedExecMode,
           workflow: requestedWorkflow,
           workspace_session: workspaceSessionForCreate,
+          session_id: sessionHintForCreate,
+          user_name: me,
         }),
       });
       try { createPayload = await createResponse.json(); } catch (_) { createPayload = {}; }
