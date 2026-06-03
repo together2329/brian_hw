@@ -3029,11 +3029,20 @@ class AtlasDB:
         # the (still-present) runtime file/manifest is not orphaned. This is the
         # ONLY case that aborts the control delete; central_mode / no_manifest /
         # successful runtime delete all proceed.
-        if (
-            not force
-            and runtime_outcome.get("skipped_reason") == "queue_non_empty"
+        # Delete control rows ONLY when the runtime side left nothing to orphan:
+        # the runtime delete SUCCEEDED, or there was no runtime file to begin with
+        # (central mode / no manifest). A non-empty queue without force (recoverable
+        # -> force_required) OR a runtime cleanup ERROR (review #2 gap2: the
+        # delete_session_runtime call raised and was caught above) must BLOCK the
+        # control delete so the still-present runtime file/manifest is never
+        # orphaned behind a deleted control session.
+        skipped = runtime_outcome.get("skipped_reason")
+        if not (
+            runtime_outcome.get("deleted")
+            or skipped in ("central_mode", "no_manifest")
         ):
-            runtime_outcome["force_required"] = True
+            if skipped == "queue_non_empty" and not force:
+                runtime_outcome["force_required"] = True
             return {
                 "session_id": session_id,
                 "deleted": False,

@@ -9670,12 +9670,15 @@ def create_app():
     async def api_admin_delete_session(session_id: str, request: Request):
         if _admin_required(request) is None:
             return _admin_denied(request)
+        # Propagate the runtime delete outcome (review #2 gap1): pending runtime
+        # queue without ?force=1 -> 409 / deleted=False (no orphaned runtime file).
+        from atlas_session_delete import force_delete_requested, session_delete_response
         try:
             with AtlasDB() as db:
                 if db.get_session(session_id) is None:
                     return JSONResponse({"error": "session not found"}, status_code=404)
-                db.delete_session(session_id)
-                return JSONResponse({"deleted": True})
+                result = db.delete_session(session_id, force=force_delete_requested(request))
+                return session_delete_response(result)
         except Exception as e:
             print(f"api_admin_delete_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)

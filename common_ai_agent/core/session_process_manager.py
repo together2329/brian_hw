@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from core.atlas_db import AtlasDB
-from core.atlas_db_router import AtlasDBRouter
+from core.atlas_db_router import AtlasDBRouter, RuntimeDBError
 
 
 class SessionProcessManager:
@@ -178,7 +178,7 @@ class SessionProcessManager:
         db.init_db()
         return db
 
-    def _get_runtime_db(self, session_id: str, db_path: Optional[str] = None) -> AtlasDB:
+    def _get_runtime_db(self, session_id: str, db_path: Optional[str] = None, create: bool = True) -> AtlasDB:
         """Return a long-lived AtlasDB handle for *session_id*'s runtime DB.
 
         Hot-path connection reuse (plan §2.6 / R2): we cache one AtlasDB per
@@ -204,7 +204,7 @@ class SessionProcessManager:
           flip the manifest ``status='error'`` on the control DB, and RE-RAISE so
           the failure surfaces. We do NOT hide corruption behind empty results.
         """
-        resolved = self._resolve_runtime_db_path(session_id, db_path=db_path)
+        resolved = self._resolve_runtime_db_path(session_id, db_path=db_path, create=create)
         key = (threading.get_ident(), resolved)
         with self._db_handles_lock:
             db = self._db_handles.get(key)
@@ -678,7 +678,13 @@ class SessionProcessManager:
         """
         # Reuse the long-lived runtime handle; no close() on this hot poll path
         # (plan §2.6 / R2). SAME-DB invariant with send_input / latest_output_id.
-        db = self._get_runtime_db(session_id)
+        # READ path: resolve with create=False so a cold-cache first poll never
+        # upserts session_runtime_dbs / moves updated_at (review #1). A session
+        # with no runtime DB yet (no manifest) has nothing to poll -> [].
+        try:
+            db = self._get_runtime_db(session_id, create=False)
+        except RuntimeDBError:
+            return []
         return db.poll_messages(
             session_id, "out", since_id, limit, on_absent_cursor=on_absent_cursor
         )
@@ -692,7 +698,12 @@ class SessionProcessManager:
         Reuses the long-lived runtime handle (R2); SAME-DB invariant. See
         :meth:`core.atlas_db.AtlasDB.reseed_output_cursor` (plan §2.4 / R5).
         """
-        db = self._get_runtime_db(session_id)
+        # READ path: create=False so a cold first call never upserts the
+        # manifest / moves updated_at (review #1); no runtime DB yet -> None.
+        try:
+            db = self._get_runtime_db(session_id, create=False)
+        except RuntimeDBError:
+            return None
         return db.reseed_output_cursor(session_id, "out")
 
     def latest_output_id(self, session_id: str) -> Optional[str]:
@@ -703,8 +714,12 @@ class SessionProcessManager:
         ``created_at DESC`` could return either of two rows sharing a wall-clock
         timestamp, so the seed cursor could skip the genuinely-last row.
         """
-        # Reuse the long-lived runtime handle (R2); SAME-DB invariant.
-        db = self._get_runtime_db(session_id)
+        # Reuse the long-lived runtime handle (R2); SAME-DB invariant. READ path:
+        # create=False so a cold first call never upserts the manifest (review #1).
+        try:
+            db = self._get_runtime_db(session_id, create=False)
+        except RuntimeDBError:
+            return None
         row = db._fetchone(
             """
             SELECT id FROM session_queue

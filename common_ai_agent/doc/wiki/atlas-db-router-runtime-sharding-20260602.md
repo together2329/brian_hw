@@ -204,38 +204,118 @@ Task 10 should add a steady-state assertion that Control DB writes remain zero
 while active sessions are being polled. Queue placement and latency checks are
 necessary but not sufficient for the 100-user claim.
 
-## Feedback Resolution - 2026-06-03
+## Feedback Resolution Review - 2026-06-03
 
-All four items above are resolved on `feat/runtime-db-100users` (each fix is
-regression-proven: reverting the fix makes its new test fail).
+Current review of `feat/runtime-db-100users` shows real progress, but not a full
+pass yet. Items #3 and #4 are fixed. Items #1 and #2 remain partial. The #2 gap
+has narrowed: the user delete endpoint now propagates the runtime gate, but the
+admin delete paths and runtime cleanup exception path still need closing.
 
-1. **Hot poll path control write — FIXED.** `SessionProcessManager._runtime_path_cache`
+1. **Hot poll path control write - PARTIAL.** `SessionProcessManager._runtime_path_cache`
    memoizes `session_id -> runtime_db_path`; a warm `poll_output()` resolves from
-   the cache and never calls `runtime_route(create=True)`, so `session_runtime_dbs`
-   is no longer upserted per poll (upsert happens only on activation / first
-   resolve). Proof: a steady-state test asserts `session_runtime_dbs.updated_at`
-   does not change and control-DB upsert writes == 0 across many broadcaster
-   passes (teeth-checked: forcing re-resolve per poll makes it fail).
-2. **Delete gate ordering — FIXED.** `AtlasDB.delete_session` now runs the runtime
-   queue-depth gate (`delete_session_runtime`) BEFORE deleting any control row. A
-   non-empty runtime queue with `force=False` aborts the control delete and
-   returns `{deleted:False, runtime:{skipped_reason:'queue_non_empty',
-   force_required:True}}` so the API can surface 409; `force=True` removes both +
-   writes an audit row. Central mode unchanged.
-3. **Delivered-marking order — FIXED.** `mark_outputs_delivered` resolves
+   the cache and does not call `runtime_route(create=True)`, so the steady-state
+   fanout test now proves `session_runtime_dbs.updated_at` stays flat after
+   warm-up.
+
+   Remaining gap: the read paths still default to `create=True` on a cold cache.
+   A fresh `SessionProcessManager.poll_output(session_id)` can call
+   `runtime_db_path(... create=True)`, upsert `session_runtime_dbs`, and change
+   `updated_at`. The same `_get_runtime_db()` path is used by `poll_output`,
+   `reseed_output_cursor`, and `latest_output_id`. The existing negative control
+   also demonstrates this by clearing `_runtime_path_cache` and observing fresh
+   `upsert_session_runtime_db` calls.
+
+   Required fix: hot/read-only paths should resolve with `create=False` or use a
+   path cached at activation/spawn time. Manifest upsert should remain limited to
+   activation, spawn, explicit create, or first runtime materialization.
+
+   Verification: add a cold-manager read-path test asserting first
+   `poll_output()`, `reseed_output_cursor()`, and `latest_output_id()` do not call
+   `upsert_session_runtime_db` and do not move `session_runtime_dbs.updated_at`.
+
+2. **Delete gate/API propagation - PARTIAL.** `AtlasDB.delete_session` now runs
+   `delete_session_runtime` before deleting control rows, and the direct core
+   pending-queue test correctly returns `deleted=False` with
+   `runtime.force_required=True`. `DELETE /api/sessions/{id}` also now threads
+   `force`, returns the full delete result, and maps a pending runtime queue to
+   HTTP 409.
+
+   Remaining gap 1: admin delete endpoints still discard the return value and
+   always return `{"deleted": true}`. Affected call sites:
+   `src/atlas_admin.py` and `src/atlas_ui.py`.
+
+   Remaining gap 2: if `delete_session_runtime()` raises, `AtlasDB.delete_session`
+   catches the exception and proceeds to delete control rows anyway, leaving the
+   manifest/runtime file orphaned. Runtime cleanup errors should block control
+   delete unless central mode or no manifest/no runtime file is proven.
+
+   Required fix: propagate `deleted=False` / `runtime.force_required` through the
+   admin delete APIs as a non-deleted response, preferably HTTP 409 for pending
+   runtime queue. Treat runtime cleanup errors as delete failure, not permission
+   to delete control rows.
+
+   Verification: keep the user API pending-queue delete test, add admin
+   pending-queue delete tests for both admin route modules, plus a direct
+   `delete_session_runtime()` exception test proving the control session remains
+   intact.
+
+3. **Delivered-marking order - FIXED.** `mark_outputs_delivered` resolves
    `up_to_id` to its `(created_at, rowid)` boundary and marks with the matching
    tuple predicate `delivered_at IS NULL AND (created_at < :c OR (created_at = :c
    AND rowid <= :r))`, consistent with the `(created_at, rowid)` poll order — a
    backward wall-clock step no longer marks an undelivered row.
-4. **Live streaming flush — FIXED.** `_OutputBatcher._add` checks the monotonic
+
+4. **Live streaming flush - FIXED.** `_OutputBatcher._add` checks the monotonic
    clock on the emit/add path and flushes the open buffer once `>= 50ms` has
    elapsed since its first chunk, so a long same-type token stream flushes mid-
    stream (not only at 4KB / event boundary / stream end). Uses the injectable
    `monotonic_fn` seam.
 
-Tests: `tests/test_runtime_delete_and_delivery_order.py` (#2, #3),
-`tests/test_output_coalescing.py` (#4 live timer),
-`tests/test_runtime_db_100_user_scale.py` (#1 steady-state zero control writes).
+Review verification:
+
+- `tests/test_runtime_delete_and_delivery_order.py`,
+  `tests/test_output_coalescing.py`, `tests/test_runtime_db_100_user_scale.py`,
+  and `tests/test_e2e_api.py` pass together: `33 passed, 1 skipped`.
+- The passing `tests/test_e2e_api.py` coverage includes the user
+  `DELETE /api/sessions/{id}` pending-queue HTTP 409 case.
+- Static review still finds non-propagating admin delete paths in
+  `src/atlas_admin.py` and `src/atlas_ui.py`, and
+  `AtlasDB.delete_session` still treats a `delete_session_runtime()` exception as
+  permission to continue with control-row deletion.
+
+### Follow-up Resolution - 2026-06-03 (#1 and #2 now CLOSED)
+
+The two PARTIAL items above were completed (each fix regression-proven; the broad
+central+session suites stay green — 134 touched-surface + 202 central/DB tests).
+
+- **#1 hot poll write — CLOSED.** The hot READ paths now resolve with
+  `create=False`: `SessionProcessManager.poll_output` / `reseed_output_cursor` /
+  `latest_output_id` call `_get_runtime_db(session_id, create=False)`, so a
+  COLD-cache first read never calls `runtime_route(create=True)` and never upserts
+  `session_runtime_dbs` (defense in depth on top of `_runtime_path_cache`). A
+  session with no manifest yet reads empty (no crash, no upsert). Manifest upsert
+  is now limited to the write/activation path (`send_input`, `create=True`).
+  Tests: `test_router_feedback_followups.py::test_cold_manager_read_paths_do_not_upsert_manifest`
+  (+ no-manifest-empty); the Task-10 steady-state teeth was upgraded to force a
+  `create=True` read so it stays load-bearing.
+- **#2 delete gate — CLOSED.**
+  - Gap1 (API propagation): `src/atlas_admin.py` and `src/atlas_ui.py` admin
+    delete endpoints now use `force_delete_requested` + `session_delete_response`
+    (mirroring the user endpoint), so a pending runtime queue returns **409 /
+    deleted=False** instead of a misleading `200 {"deleted": true}`.
+  - Gap2 (exception swallow): `AtlasDB.delete_session` deletes control rows ONLY
+    when the runtime side left nothing to orphan (runtime `deleted` OR
+    `skipped_reason in {central_mode, no_manifest}`); a `delete_session_runtime()`
+    EXCEPTION (or `queue_non_empty`) now BLOCKS the control delete and preserves
+    the session. `session_delete_response` maps the outcome to honest codes
+    (200 deleted / 409 force-required / 500 runtime error).
+  Tests: `test_router_feedback_followups.py::test_runtime_cleanup_error_blocks_control_delete`,
+  `::test_session_delete_response_status_codes`.
+- Finding B (`core/session_manager.py:1108`) is N/A: that path uses
+  `SessionStorage` (thread mode), not `AtlasDB` — no per-session runtime DB to
+  orphan.
+
+Status: all four review items (#1–#4) are now FIXED.
 
 ## Policy
 

@@ -19,6 +19,7 @@ from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
 from core.atlas_exec_policy import EXEC_MODE_SINGLE, current_exec_mode
+from atlas_session_delete import force_delete_requested, session_delete_response
 from src.atlas_workflow_switch import (
     WorkflowCheckpointRequest,
     schedule_workflow_checkpoint,
@@ -1198,8 +1199,12 @@ def register_sessions_routes(
                 # runtime .db/-wal/-shm + manifest/rollup/offset rows are scrubbed
                 # in session mode (T9 R12). Central mode = no-op.
                 manager = getattr(bridge, "_process_manager", None)
-                db.delete_session(session["id"], process_manager=manager)
-                return JSONResponse({"deleted": True})
+                result = db.delete_session(
+                    session["id"],
+                    force=force_delete_requested(request),
+                    process_manager=manager,
+                )
+                return session_delete_response(result)
         except Exception as e:
             print(f"api_delete_session error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)

@@ -315,11 +315,15 @@ def create_admin_app(project_root: Path):
     async def api_admin_delete_session(session_id: str, request: Request):
         if _admin_required(request) is None:
             return _admin_denied(request)
+        # Propagate the runtime delete outcome (review #2 gap1): a pending runtime
+        # queue without ?force=1 must return 409 / deleted=False, not a misleading
+        # 200 {"deleted": true} that orphans the runtime file/manifest.
+        from atlas_session_delete import force_delete_requested, session_delete_response
         with AtlasDB() as db:
             if db.get_session(session_id) is None:
                 return JSONResponse({"error": "session not found"}, status_code=404)
-            db.delete_session(session_id)
-        return JSONResponse({"deleted": True})
+            result = db.delete_session(session_id, force=force_delete_requested(request))
+        return session_delete_response(result)
 
     @app.get("/api/admin/usage")
     async def api_admin_usage(request: Request):

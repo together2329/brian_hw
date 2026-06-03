@@ -867,12 +867,13 @@ def test_steady_state_polling_does_not_write_control_db(session_mode_env):
         f"(want flat): {dict(list(changed.items())[:5])}"
     )
 
-    # -- Negative control (teeth): force create=True per poll, exactly like the
-    # un-fixed code, and confirm the SAME two signals now TRIP. We model the
-    # broken behavior by clearing _runtime_path_cache before each poll so
-    # _resolve_runtime_db_path misses the cache and calls runtime_route(create=
-    # True), re-upserting the manifest. This proves the assertion above is
-    # load-bearing; the test is LEFT asserting the correct (zero-write) behavior.
+    # -- Negative control (teeth): model the UN-FIXED hot READ path, which
+    # resolved with create=True and re-upserted the manifest on a cold cache.
+    # The read paths are now create=False (defense in depth ON TOP OF the path
+    # cache, review #1 follow-up), so merely clearing the cache no longer trips an
+    # upsert — we must force the old create=True read to prove the steady-state
+    # assertion above is load-bearing. The test is LEFT asserting the correct
+    # (zero-write) behavior.
     forced_before = _control_manifest_updated_at(control_path)
     teeth_calls = {"n": 0}
 
@@ -880,16 +881,25 @@ def test_steady_state_polling_does_not_write_control_db(session_mode_env):
         teeth_calls["n"] += 1
         return real_upsert(self, *args, **kwargs)
 
+    mgr_cls = type(manager)
+    real_get_runtime_db = mgr_cls._get_runtime_db
+
+    def _create_true_get_runtime_db(self, session_id, db_path=None, create=True):
+        # simulate the pre-fix read path: resolve with create=True
+        return real_get_runtime_db(self, session_id, db_path=db_path, create=True)
+
     AtlasDB.upsert_session_runtime_db = _counting_upsert_teeth
+    mgr_cls._get_runtime_db = _create_true_get_runtime_db
     try:
         for _ in range(3):
             with manager._db_handles_lock:
-                manager._runtime_path_cache.clear()  # force cache miss == create=True
+                manager._runtime_path_cache.clear()  # force cache miss
             bridge._poll_process_outputs()
             for sid in session_ids:
                 _drain_outbox(bridge.get_session(sid))
     finally:
         AtlasDB.upsert_session_runtime_db = real_upsert
+        mgr_cls._get_runtime_db = real_get_runtime_db
     forced_after = _control_manifest_updated_at(control_path)
     forced_changed = sum(
         1 for sid in session_ids
