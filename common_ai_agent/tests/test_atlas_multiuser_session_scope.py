@@ -262,6 +262,7 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
 
 def test_healthz_session_hint_selects_v2_workspace_session(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("ATLAS_MULTI_USER", "1")
@@ -298,10 +299,60 @@ def test_healthz_session_hint_selects_v2_workspace_session(tmp_path, monkeypatch
     assert data["active_ip"] == "NEWIP_MCTP"
     assert data["active_workflow"] == "default"
     assert data["workspace_session"] == "s1"
+    assert data["tokens_in"] == 0
+    assert data["cost_usd"] == 0.0
     assert Path(data["project_root"]).resolve() == (tmp_path / "alice" / "s1").resolve()
     assert Path(data["session_dir"]).resolve() == (
         tmp_path / "alice" / "s1" / ".session" / "NEWIP_MCTP" / "default"
     ).resolve()
+
+    with AtlasDB() as db:
+        user = db.get_user_by_username("alice")
+        assert user is not None
+        db.upsert_runtime_session(
+            "alice/NEWIP_MCTP/default",
+            user["id"],
+            owner="alice",
+            ip="NEWIP_MCTP",
+            workflow="default",
+        )
+        db.record_llm_call(
+            session_id="alice/NEWIP_MCTP/default",
+            ip_id="NEWIP_MCTP",
+            workflow="default",
+            tokens_input=999,
+            tokens_output=99,
+            cost_usd=9.99,
+        )
+        db.record_llm_call(
+            session_id="alice/s2/NEWIP_MCTP/default",
+            ip_id="NEWIP_MCTP",
+            workflow="default",
+            tokens_input=77,
+            tokens_output=7,
+            cost_usd=0.77,
+        )
+
+    hinted_again = client.get(
+        "/healthz",
+        params={"session_id": "alice/s1/NEWIP_MCTP/default"},
+    )
+    assert hinted_again.status_code == 200, hinted_again.text
+    assert hinted_again.json()["active_session"] == "alice/s1/NEWIP_MCTP/default"
+    assert hinted_again.json()["cost_ip"] == "NEWIP_MCTP"
+    assert hinted_again.json()["tokens_in"] == 0
+    assert hinted_again.json()["tokens_out"] == 0
+    assert hinted_again.json()["cost_usd"] == 0.0
+
+    s2_cost = client.get(
+        "/healthz",
+        params={"session_id": "alice/s2/NEWIP_MCTP/default"},
+    )
+    assert s2_cost.status_code == 200, s2_cost.text
+    assert s2_cost.json()["active_session"] == "alice/s2/NEWIP_MCTP/default"
+    assert s2_cost.json()["tokens_in"] == 77
+    assert s2_cost.json()["tokens_out"] == 7
+    assert s2_cost.json()["cost_usd"] == 0.77
 
 
 def test_v2_session_history_state_and_todos_use_workspace_session_root(tmp_path, monkeypatch):
