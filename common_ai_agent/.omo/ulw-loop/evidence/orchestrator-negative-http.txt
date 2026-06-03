@@ -1,11 +1,372 @@
 COMMAND: PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_pipeline_orchestrator_worker_integration.py::test_worker_completion_without_stage_evidence_is_not_marked_green tests/test_pipeline_orchestrator_worker_integration.py::test_worker_reported_completed_with_blocked_stage_engine_blocks_downstream tests/test_pipeline_orchestrator_worker_integration.py::test_rtl_stage_evidence_gate_rejects_placeholder_sources tests/test_pipeline_orchestrator_worker_integration.py::test_rtl_scaffold_without_verdict_is_not_marked_failed -q
 ....                                                                     [100%]
-4 passed in 1.68s
+4 passed in 1.76s
 COMMAND: TestClient negative orchestrator evidence HTTP transcript
 [opencode-oauth] no credential — run `python -m src.opencode_backend login`
 [atlas] Multi-user enabled (process_per_session=off)
-20:29:00 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
-20:29:00 [dispatch] FAIL job=fa0e03785ab6 workflow=rtl-gen worker=http://127.0.0.1:5623 error=<urlopen error [Errno 61] Connection refused>
+20:29:54 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+20:29:54 [dispatch] job=7f7a1a5054d2 workflow=rtl-gen -> http://127.0.0.1:50787 run_id=pipeline-run-1
 [atlas] Multi-user enabled (process_per_session=off)
-20:29:01 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
-20:29:01 [dispatch] FAIL job=8c59fcfe5c4c workflow=rtl-gen worker=http://127.0.0.1:5623 error=<urlopen error [Errno 61] Connection refused>
+20:29:54 [rehydrate] 0 jobs reconciled (rescued=0, marked-error=0)
+20:29:54 [dispatch] job=29b076230c74 workflow=rtl-gen -> http://127.0.0.1:50795 run_id=pipeline-run-1
+{
+  "negative_cases": [
+    {
+      "case": "missing_required_evidence",
+      "cleanup": {
+        "exists_before_context_exit": true,
+        "tempdir": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp"
+      },
+      "db_rows": [
+        {
+          "error_summary": "missing required evidence for rtl; worker reported completed but no stage artifact was found",
+          "status": "error",
+          "workflow": "rtl-gen"
+        },
+        {
+          "error_summary": "blocked by rtl-gen error",
+          "status": "blocked",
+          "workflow": "lint"
+        }
+      ],
+      "dispatch": {
+        "body": {
+          "exec_mode": "orchestrator",
+          "ip": "ulw_missing_evidence_ip",
+          "jobs": [
+            {
+              "attempt": 1,
+              "created_at": 1780486194.191137,
+              "db_ip_id": "02b48fb4cb91427a969c77cd3c66856d",
+              "db_session_id": "b551c3bab8114f8daf367dea54b93f59",
+              "db_user_id": "4e1c17f211a7413ea3ae8ce9506cc4d1",
+              "db_workspace_id": "661e109001624bbbab4e4596d9deb786",
+              "depends_on": [],
+              "error": "",
+              "exec_mode": "orchestrator",
+              "files_modified": [],
+              "idempotency_key": "7f7a1a5054d2",
+              "ip": "ulw_missing_evidence_ip",
+              "iterations": 0,
+              "job_id": "7f7a1a5054d2",
+              "max_attempts": 1,
+              "model": "gpt-5.5",
+              "orchestrator_run_id": "",
+              "pipeline_id": "d840f8b38799",
+              "pipeline_index": 0,
+              "pipeline_run_id": "d840f8b38799",
+              "pipeline_schedule": "serial",
+              "previous_run_ids": [],
+              "project_root": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ulw_missing_evidence_ip\n- workflow: rtl-gen\n- stage_id: rtl\n- pipeline_id: d840f8b38799\n- pipeline_run_id: d840f8b38799\n- session_namespace: .session/u/ulw_missing_evidence_ip/pipeline/d840f8b38799/01-rtl-gen\n- project_root: /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: orchestrator\n- model: gpt-5.5\n- reasoning_effort: (default)\n- scope_path: ulw_missing_evidence_ip\n- write_boundary: only modify files under ulw_missing_evidence_ip/, except workflow-owned status/session files under .session/u/ulw_missing_evidence_ip/pipeline/d840f8b38799/01-rtl-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nrun /ssot-rtl ulw_missing_evidence_ip; regenerate RTL from yaml/ulw_missing_evidence_ip.ssot.yaml in the active IP root and close dynamic RTL TODOs, compile, and lint gates. If you edit RTL after the first stage-driver run or after sim-debug evidence, rerun /ssot-rtl ulw_missing_evidence_ip as the final validation step; do not report DONE from standalone compile/lint evidence alone\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: orchestrator",
+              "queue_reason": "",
+              "queued_at": 1780486194.191137,
+              "reasoning_effort": "",
+              "result_summary": "",
+              "retry_count": 0,
+              "rtl_version_id": "",
+              "run_id": "pipeline-run-1",
+              "run_mode": "starter",
+              "scope_path": "ulw_missing_evidence_ip",
+              "session": "u/ulw_missing_evidence_ip/pipeline/d840f8b38799/01-rtl-gen",
+              "session_dir": ".session/u/ulw_missing_evidence_ip/pipeline/d840f8b38799/01-rtl-gen",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "stage_id": "rtl",
+              "started_at": 1780486194.195901,
+              "status": "running",
+              "template": "",
+              "toolchain": "",
+              "trigger_source": "pipeline_button",
+              "user_id": "u",
+              "worker": "http://127.0.0.1:50787",
+              "worker_command": "cd /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp && ATLAS_PROJECT_ROOT=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/src/main.py --serve --port 50787 --workflow rtl-gen --worker-name rtl-gen --session u/ulw_missing_evidence_ip/pipeline/d840f8b38799/01-rtl-gen --model gpt-5.5",
+              "worker_owner": "u",
+              "worker_partition": "4e1c17f211a7413ea3ae8ce9506cc4d1_u_ulw_missing_evidence_ip_pipeline_d840f8b38799_01-rtl-gen",
+              "worker_transport": "http",
+              "workflow": "rtl-gen",
+              "workflow_run_id": "f4a57ff80063463bac76616e66e5f472"
+            },
+            {
+              "attempt": 1,
+              "created_at": 1780486194.19644,
+              "db_ip_id": "02b48fb4cb91427a969c77cd3c66856d",
+              "db_session_id": "b551c3bab8114f8daf367dea54b93f59",
+              "db_user_id": "4e1c17f211a7413ea3ae8ce9506cc4d1",
+              "db_workspace_id": "661e109001624bbbab4e4596d9deb786",
+              "depends_on": "7f7a1a5054d2",
+              "error": "",
+              "exec_mode": "orchestrator",
+              "files_modified": [],
+              "idempotency_key": "20baa70340a1",
+              "ip": "ulw_missing_evidence_ip",
+              "iterations": 0,
+              "job_id": "20baa70340a1",
+              "max_attempts": 1,
+              "model": "gpt-5.5",
+              "orchestrator_run_id": "",
+              "pipeline_id": "d840f8b38799",
+              "pipeline_index": 1,
+              "pipeline_run_id": "d840f8b38799",
+              "pipeline_schedule": "serial",
+              "previous_run_ids": [],
+              "project_root": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ulw_missing_evidence_ip\n- workflow: lint\n- stage_id: lint\n- pipeline_id: d840f8b38799\n- pipeline_run_id: d840f8b38799\n- session_namespace: .session/u/ulw_missing_evidence_ip/pipeline/d840f8b38799/02-lint\n- project_root: /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: orchestrator\n- model: gpt-5.5\n- reasoning_effort: (default)\n- scope_path: ulw_missing_evidence_ip\n- write_boundary: only modify files under ulw_missing_evidence_ip/, except workflow-owned status/session files under .session/u/ulw_missing_evidence_ip/pipeline/d840f8b38799/02-lint/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nrun /lint-ip ulw_missing_evidence_ip; report and fix root-cause RTL lint errors and warnings\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: orchestrator",
+              "queue_reason": "dependency_wait",
+              "queued_at": 1780486194.19644,
+              "reasoning_effort": "",
+              "result_summary": "",
+              "retry_count": 0,
+              "rtl_version_id": "",
+              "run_id": "",
+              "run_mode": "starter",
+              "scope_path": "ulw_missing_evidence_ip",
+              "session": "u/ulw_missing_evidence_ip/pipeline/d840f8b38799/02-lint",
+              "session_dir": ".session/u/ulw_missing_evidence_ip/pipeline/d840f8b38799/02-lint",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "stage_id": "lint",
+              "started_at": 0.0,
+              "status": "queued",
+              "template": "lint-fix",
+              "toolchain": "pyslang + verilator",
+              "trigger_source": "pipeline_button",
+              "user_id": "u",
+              "worker": "http://127.0.0.1:50787",
+              "worker_command": "cd /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp && ATLAS_PROJECT_ROOT=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_missing_kf74drmp EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/src/main.py --serve --port 50787 --workflow lint --worker-name lint --session u/ulw_missing_evidence_ip/pipeline/d840f8b38799/02-lint --model gpt-5.5",
+              "worker_owner": "u",
+              "worker_partition": "4e1c17f211a7413ea3ae8ce9506cc4d1_u_ulw_missing_evidence_ip_pipeline_d840f8b38799_02-lint",
+              "worker_transport": "http",
+              "workflow": "lint",
+              "workflow_run_id": "960a479704da43bbbc69c37ab7e4a58f"
+            }
+          ],
+          "ok": true,
+          "pipeline_id": "d840f8b38799",
+          "pipeline_run_id": "d840f8b38799",
+          "requested_schedule": "auto",
+          "run_mode": "starter",
+          "schedule": "serial",
+          "stages": [
+            {
+              "id": "rtl",
+              "label": "RTL gen",
+              "workflow": "rtl-gen"
+            },
+            {
+              "id": "lint",
+              "label": "Lint",
+              "workflow": "lint"
+            }
+          ],
+          "user_id": "u"
+        },
+        "status_code": 200
+      },
+      "jobs": [
+        {
+          "error": "missing required evidence for rtl; worker reported completed but no stage artifact was found",
+          "stage_id": "rtl",
+          "status": "error",
+          "worker": "http://127.0.0.1:50787",
+          "workflow": "rtl-gen"
+        },
+        {
+          "error": "blocked by rtl-gen error",
+          "stage_id": "lint",
+          "status": "blocked",
+          "worker": "http://127.0.0.1:50787",
+          "workflow": "lint"
+        }
+      ],
+      "pipeline_state": {
+        "lint": {
+          "error_summary": "blocked by rtl-gen error",
+          "state": "blocked"
+        },
+        "rtl": {
+          "error_summary": "missing required evidence for rtl; worker reported completed but no stage artifact was found",
+          "state": "failed"
+        }
+      }
+    },
+    {
+      "case": "stage_engine_blocked",
+      "cleanup": {
+        "exists_before_context_exit": true,
+        "tempdir": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx"
+      },
+      "db_rows": [
+        {
+          "error_summary": "stage evidence failed: ulw_blocked_engine_ip/logs/stage_engine/ssot-rtl.json gate status=blocked open_required_todos=2 blocking_questions=1",
+          "status": "blocked",
+          "workflow": "rtl-gen"
+        },
+        {
+          "error_summary": "blocked by rtl-gen blocked",
+          "status": "blocked",
+          "workflow": "lint"
+        }
+      ],
+      "dispatch": {
+        "body": {
+          "exec_mode": "orchestrator",
+          "ip": "ulw_blocked_engine_ip",
+          "jobs": [
+            {
+              "attempt": 1,
+              "created_at": 1780486194.790543,
+              "db_ip_id": "a36979ba1f37461ea7ff74bf5afdfcbe",
+              "db_session_id": "bfde2560742e4a81b64891271bcf2c75",
+              "db_user_id": "2bffee3848f34286b7d73633c7cd76eb",
+              "db_workspace_id": "cd96d9cbec474183b094c022df637bb8",
+              "depends_on": [],
+              "error": "",
+              "exec_mode": "orchestrator",
+              "files_modified": [],
+              "idempotency_key": "29b076230c74",
+              "ip": "ulw_blocked_engine_ip",
+              "iterations": 0,
+              "job_id": "29b076230c74",
+              "max_attempts": 1,
+              "model": "gpt-5.5",
+              "orchestrator_run_id": "",
+              "pipeline_id": "68ef4db74cb6",
+              "pipeline_index": 0,
+              "pipeline_run_id": "68ef4db74cb6",
+              "pipeline_schedule": "serial",
+              "previous_run_ids": [],
+              "project_root": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ulw_blocked_engine_ip\n- workflow: rtl-gen\n- stage_id: rtl\n- pipeline_id: 68ef4db74cb6\n- pipeline_run_id: 68ef4db74cb6\n- session_namespace: .session/u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/01-rtl-gen\n- project_root: /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: orchestrator\n- model: gpt-5.5\n- reasoning_effort: (default)\n- scope_path: ulw_blocked_engine_ip\n- write_boundary: only modify files under ulw_blocked_engine_ip/, except workflow-owned status/session files under .session/u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/01-rtl-gen/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nrun /ssot-rtl ulw_blocked_engine_ip; regenerate RTL from yaml/ulw_blocked_engine_ip.ssot.yaml in the active IP root and close dynamic RTL TODOs, compile, and lint gates. If you edit RTL after the first stage-driver run or after sim-debug evidence, rerun /ssot-rtl ulw_blocked_engine_ip as the final validation step; do not report DONE from standalone compile/lint evidence alone\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: orchestrator",
+              "queue_reason": "",
+              "queued_at": 1780486194.790543,
+              "reasoning_effort": "",
+              "result_summary": "",
+              "retry_count": 0,
+              "rtl_version_id": "",
+              "run_id": "pipeline-run-1",
+              "run_mode": "starter",
+              "scope_path": "ulw_blocked_engine_ip",
+              "session": "u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/01-rtl-gen",
+              "session_dir": ".session/u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/01-rtl-gen",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "stage_id": "rtl",
+              "started_at": 1780486194.7932649,
+              "status": "running",
+              "template": "",
+              "toolchain": "",
+              "trigger_source": "pipeline_button",
+              "user_id": "u",
+              "worker": "http://127.0.0.1:50795",
+              "worker_command": "cd /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx && ATLAS_PROJECT_ROOT=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/src/main.py --serve --port 50795 --workflow rtl-gen --worker-name rtl-gen --session u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/01-rtl-gen --model gpt-5.5",
+              "worker_owner": "u",
+              "worker_partition": "2bffee3848f34286b7d73633c7cd76eb_u_ulw_blocked_engine_ip_pipeline_68ef4db74cb6_01-rtl-gen",
+              "worker_transport": "http",
+              "workflow": "rtl-gen",
+              "workflow_run_id": "8f1bc4bcbf6e4e5f9831b612380c4f96"
+            },
+            {
+              "attempt": 1,
+              "created_at": 1780486194.79376,
+              "db_ip_id": "a36979ba1f37461ea7ff74bf5afdfcbe",
+              "db_session_id": "bfde2560742e4a81b64891271bcf2c75",
+              "db_user_id": "2bffee3848f34286b7d73633c7cd76eb",
+              "db_workspace_id": "cd96d9cbec474183b094c022df637bb8",
+              "depends_on": "29b076230c74",
+              "error": "",
+              "exec_mode": "orchestrator",
+              "files_modified": [],
+              "idempotency_key": "538b0c91c2b4",
+              "ip": "ulw_blocked_engine_ip",
+              "iterations": 0,
+              "job_id": "538b0c91c2b4",
+              "max_attempts": 1,
+              "model": "gpt-5.5",
+              "orchestrator_run_id": "",
+              "pipeline_id": "68ef4db74cb6",
+              "pipeline_index": 1,
+              "pipeline_run_id": "68ef4db74cb6",
+              "pipeline_schedule": "serial",
+              "previous_run_ids": [],
+              "project_root": "/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx",
+              "prompt": "[ATLAS ARCHITECT WORKFLOW CONTEXT]\n- ip: ulw_blocked_engine_ip\n- workflow: lint\n- stage_id: lint\n- pipeline_id: 68ef4db74cb6\n- pipeline_run_id: 68ef4db74cb6\n- session_namespace: .session/u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/02-lint\n- project_root: /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n- run_mode: starter\n- exec_mode: orchestrator\n- model: gpt-5.5\n- reasoning_effort: (default)\n- scope_path: ulw_blocked_engine_ip\n- write_boundary: only modify files under ulw_blocked_engine_ip/, except workflow-owned status/session files under .session/u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/02-lint/. Do not edit other IP directories or unrelated workflows.\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\n\nrun /lint-ip ulw_blocked_engine_ip; report and fix root-cause RTL lint errors and warnings\n\n[ATLAS RUN POLICY]\n- run_mode: starter\n- exec_mode: orchestrator",
+              "queue_reason": "dependency_wait",
+              "queued_at": 1780486194.79376,
+              "reasoning_effort": "",
+              "result_summary": "",
+              "retry_count": 0,
+              "rtl_version_id": "",
+              "run_id": "",
+              "run_mode": "starter",
+              "scope_path": "ulw_blocked_engine_ip",
+              "session": "u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/02-lint",
+              "session_dir": ".session/u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/02-lint",
+              "source_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+              "stage_id": "lint",
+              "started_at": 0.0,
+              "status": "queued",
+              "template": "lint-fix",
+              "toolchain": "pyslang + verilator",
+              "trigger_source": "pipeline_button",
+              "user_id": "u",
+              "worker": "http://127.0.0.1:50795",
+              "worker_command": "cd /var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx && ATLAS_PROJECT_ROOT=/var/folders/wf/16zr1k491x39fms5rp4p1zgc0000gn/T/atlas_orch_negative_blocked_m9e0vexx EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/src/main.py --serve --port 50795 --workflow lint --worker-name lint --session u/ulw_blocked_engine_ip/pipeline/68ef4db74cb6/02-lint --model gpt-5.5",
+              "worker_owner": "u",
+              "worker_partition": "2bffee3848f34286b7d73633c7cd76eb_u_ulw_blocked_engine_ip_pipeline_68ef4db74cb6_02-lint",
+              "worker_transport": "http",
+              "workflow": "lint",
+              "workflow_run_id": "c69e4cd741b54a0ea020f3122546ecf1"
+            }
+          ],
+          "ok": true,
+          "pipeline_id": "68ef4db74cb6",
+          "pipeline_run_id": "68ef4db74cb6",
+          "requested_schedule": "auto",
+          "run_mode": "starter",
+          "schedule": "serial",
+          "stages": [
+            {
+              "id": "rtl",
+              "label": "RTL gen",
+              "workflow": "rtl-gen"
+            },
+            {
+              "id": "lint",
+              "label": "Lint",
+              "workflow": "lint"
+            }
+          ],
+          "user_id": "u"
+        },
+        "status_code": 200
+      },
+      "jobs": [
+        {
+          "error": "stage evidence failed: ulw_blocked_engine_ip/logs/stage_engine/ssot-rtl.json gate status=blocked open_required_todos=2 blocking_questions=1",
+          "stage_id": "rtl",
+          "status": "blocked",
+          "worker": "http://127.0.0.1:50795",
+          "workflow": "rtl-gen"
+        },
+        {
+          "error": "blocked by rtl-gen blocked",
+          "stage_id": "lint",
+          "status": "blocked",
+          "worker": "http://127.0.0.1:50795",
+          "workflow": "lint"
+        }
+      ],
+      "pipeline_state": {
+        "lint": {
+          "error_summary": "blocked by rtl-gen blocked",
+          "state": "blocked"
+        },
+        "rtl": {
+          "error_summary": "stage evidence failed: ulw_blocked_engine_ip/logs/stage_engine/ssot-rtl.json gate status=blocked open_required_todos=2 blocking_questions=1",
+          "state": "blocked"
+        }
+      }
+    }
+  ]
+}
+{
+  "cleanup": "temporary directories are removed after their TemporaryDirectory context exits; per-case exists_before_context_exit proves paths were temp-owned during capture"
+}
