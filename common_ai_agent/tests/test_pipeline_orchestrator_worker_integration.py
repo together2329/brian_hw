@@ -532,13 +532,9 @@ def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
 
     ip = "worker_pipe_ip"
     ip_dir = tmp_path / ip
-    (ip_dir / "rtl").mkdir(parents=True)
-    (ip_dir / "list").mkdir(parents=True)
-    (ip_dir / "rtl" / f"{ip}.sv").write_text(
-        f"module {ip}(input logic clk, output logic done); assign done = clk; endmodule\n",
-        encoding="utf-8",
-    )
-    (ip_dir / "list" / f"{ip}.f").write_text(f"../rtl/{ip}.sv\n", encoding="utf-8")
+    # Minimal valid SSOT/RTL evidence so the strict completion gate accepts the
+    # rtl stage (Task 2). Paired with _patch_rtl_gate_for_fixture below.
+    _write_minimal_valid_ssot_rtl_fixture(ip_dir, ip)
 
     handoff = {
         "schema": hq.SCHEMA,
@@ -554,6 +550,8 @@ def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, tmp_path)
 
     with _mock_worker("rtl") as (rtl_url, rtl_worker), _mock_worker("other") as (other_url, other_worker):
         monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
@@ -615,19 +613,21 @@ def test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints(
 
     ip = "real_worker_pipe_ip"
     ip_dir = tmp_path / ip
-    (ip_dir / "rtl").mkdir(parents=True)
-    (ip_dir / "list").mkdir(parents=True)
-    (ip_dir / "rtl" / f"{ip}.sv").write_text(
-        f"module {ip}(input logic clk, output logic done); assign done = clk; endmodule\n",
-        encoding="utf-8",
-    )
-    (ip_dir / "list" / f"{ip}.f").write_text(f"../rtl/{ip}.sv\n", encoding="utf-8")
+    # Minimal valid SSOT/RTL evidence created before dispatch so the strict
+    # completion gate accepts the rtl stage (Task 5). The agent-server worker
+    # re-writes the same valid evidence after /run via _write_mock_stage_artifact.
+    _write_minimal_valid_ssot_rtl_fixture(ip_dir, ip)
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
 
+    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, tmp_path)
+
     worker_calls: list[dict] = []
     with _agent_server_worker(monkeypatch, worker_calls) as rtl_url, _agent_server_worker(monkeypatch, worker_calls) as lint_url:
+        # Orchestrator mode so the DAG schedule fans out across owner workers
+        # (single-worker mode routes everything to the single-main-loop port).
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
         monkeypatch.setenv("WORKER_URL_DEFAULT", rtl_url)
         monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
         monkeypatch.setenv("WORKER_URL_LINT", lint_url)
