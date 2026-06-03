@@ -55,6 +55,31 @@ their own working copy).
   user, now blocked awaiting a tunneled tool result). See
   [[local-iproot-thin-llm-server-arch-20260529]] §"Two variants".
 
+## Recommendation (2026-06-03): run the loop LOCAL
+
+The pivotal question is **where the agent loop runs** (it is glued to the DB + LLM +
+tool dispatch). Recommendation: **loop LOCAL** for the desktop app, with the existing
+web UI keeping a server-side loop as a thin fallback. It is not a global either/or —
+the same backend runs either place.
+
+| Factor | loop **LOCAL** ✅ | loop on SERVER (Variant B) |
+|---|---|---|
+| 30-worker ceiling | **gone** (no server worker/user; server = stateless LLM gateway + control DB) | **stays** (a server loop per active user, now also blocked on tunneled tools) |
+| Latency | tools **in-process** (zero round-trip); only LLM remote | every tool round-trips server↔client (chatty ReAct = many/turn) |
+| Security | loop+tools on the user's own machine — no server-dispatched RCE | server tells client to `run_command` → needs permission/sandbox |
+| Resilience | works if the server blips (except LLM) | dead without the server |
+| Local footprint | needs local Python backend (PyInstaller + EDA bundle) | **zero local Python** (Rust executor) — B's one real win |
+
+The only reason to pick loop-on-server is the **thinnest possible client** (no local
+Python, central updates, weak machines). For a chip-design org the opposite holds:
+users already have beefy workstations and often local EDA, so a local loop + local
+tools fits the environment, and packaging is bounded (PyInstaller + pyslang/iverilog
+bundle, verilator preinstalled).
+
+**Net: loop LOCAL (desktop) + control DB & LLM on the server + web UI as a
+server-loop fallback** for the few who can't install. This is the only split that
+delivers the 100-user goal while keeping the DB and LLM centrally managed.
+
 ## The dispatch seam (verified 2026-06-03)
 
 Confirmed in code: **`core/tool_dispatcher.py` `dispatch_tool()` is the single
