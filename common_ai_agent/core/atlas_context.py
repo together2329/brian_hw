@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
 import re
 import uuid
 
@@ -17,7 +16,7 @@ import uuid
 _SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_.-]*$")
 
 
-def _safe_segment(value: Any, default: str = "default") -> str:
+def _safe_segment(value: object | None, default: str = "default") -> str:
     text = str(value or "").strip().strip("/")
     if not text:
         return default
@@ -28,7 +27,7 @@ def _safe_segment(value: Any, default: str = "default") -> str:
     return text
 
 
-def _validated_segment(value: Any, *, field_name: str) -> str:
+def _validated_segment(value: object, *, field_name: str) -> str:
     text = str(value)
     if "/" in text:
         raise ValueError(f"{field_name} must not contain '/'")
@@ -54,7 +53,7 @@ class SessionContext:
     stage_id: str = ""
     todo_id: str = ""
     rtl_version_id: str = ""
-    project_root: Path | str = Path(".")
+    project_root: Path | str = "."
     correlation_id: str = ""
 
     def __post_init__(self) -> None:
@@ -76,7 +75,7 @@ class SessionContext:
         workspace_id: str = "",
         workspace_name: str = "",
         ip_id: str = "",
-        project_root: Path | str = Path("."),
+        project_root: Path | str = ".",
         correlation_id: str = "",
     ) -> "SessionContext":
         parts = [_safe_segment(part) for part in str(session_key or "").split("/") if part]
@@ -127,7 +126,7 @@ class SessionContext:
     def with_rtl_version(self, rtl_version_id: str) -> "SessionContext":
         return replace(self, rtl_version_id=rtl_version_id or "")
 
-    def trace_fields(self) -> dict[str, Any]:
+    def trace_fields(self) -> dict[str, str]:
         return {
             "session_id": self.session_id,
             "workspace_id": self.workspace_id,
@@ -148,7 +147,7 @@ class AtlasContext:
     workspace_session: str
     ip_name: str
     workflow: str
-    atlas_root: Path | str = Path(".")
+    atlas_root: Path | str = "."
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -178,7 +177,7 @@ class AtlasContext:
         cls,
         session_key: str,
         *,
-        atlas_root: Path | str = Path("."),
+        atlas_root: Path | str = ".",
     ) -> "AtlasContext":
         parts = str(session_key).split("/")
         if len(parts) != 4:
