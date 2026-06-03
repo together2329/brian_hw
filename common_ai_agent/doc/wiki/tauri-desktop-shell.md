@@ -110,6 +110,11 @@ rather than executing `Contents/MacOS/atlas-desktop` directly. Direct binary
 execution can create a window without driving the WebView through the normal
 LaunchServices app path.
 
+`scripts/run_atlas_desktop.sh --prod` uses the same LaunchServices path and
+blocks with `open -W -na` so its backend cleanup trap still runs when the app
+exits. The `.app` path must be absolute for `open` to treat it as a bundle path
+rather than an application name.
+
 Status interpretation:
 
 - `Backend disconnected` means the page/backend transport is missing, closed, or
@@ -118,6 +123,16 @@ Status interpretation:
   but the active interactive session worker is not live.
 - `Agent responding` means a live `agent_state running` event is active and takes
   priority over stale worker-status polling.
+
+2026-06-03 launcher verification:
+
+- `scripts/run_atlas_desktop.sh --prod --root /tmp/atlas-desktop-launcher-qa --ip QA_IP --workspace-session qa --session-id qa_user --workflow default --port 3046`
+  started a backend at `127.0.0.1:3046` with project root
+  `/private/tmp/atlas-desktop-launcher-qa`.
+- The launched process was
+  `atlas-desktop --backend-url http://127.0.0.1:3046/?ip=QA_IP&workflow=default&session_id=qa_user&workspace_session=qa&session=qa_user%2Fqa%2FQA_IP%2Fdefault`.
+- After that app process exited, `127.0.0.1:3046/healthz` was closed, proving
+  the launcher backend cleanup trap ran.
 
 > `bundle.targets` is `["app"]` (not `dmg`): the `.app` is the runnable artifact.
 > `tauri build`'s `.dmg` step (`bundle_dmg.sh`) needs a GUI Finder/AppleScript

@@ -1511,12 +1511,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
   // Auto-focus the ask_user prompt area when one opens.
   useEffect(() => {
-    if (pendingQcard) {
-      setTimeout(() => {
-        const el = document.querySelector('.ask-prompt') as any;
-        el?.focus();
-      }, 30);
-    }
+    if (!pendingQcard) return undefined;
+    const id = setTimeout(() => {
+      const el = typeof document !== 'undefined'
+        ? document.querySelector<HTMLElement>('.ask-prompt')
+        : null;
+      el?.focus();
+    }, 30);
+    return () => clearTimeout(id);
   }, [pendingQcard?.flowId]);
 
   // ── @ file completion ───────────────────────────────────────────

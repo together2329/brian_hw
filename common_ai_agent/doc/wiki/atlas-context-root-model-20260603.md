@@ -196,20 +196,30 @@ ready`. The intended priority is:
 6. idle ready.
 
 This matches the right-side Agent panel: if `/api/session/worker/status` returns
-no live worker for the active owner slot, the footer should show `Agent worker
-failed · session worker failed`, not a green ready state. A live
-`agent_state running` event still takes precedence so stale worker-status polling
-does not hide `Agent responding`.
+`worker: null` for the active owner slot, the footer should show `Agent worker
+failed · session worker failed`, not a green ready state. The endpoint's
+`active_count` is global, so it must not make the current session look ready
+when another user's worker is alive. A live `agent_state running` event still
+takes precedence so stale worker-status polling does not hide `Agent
+responding`.
 
 Verification recorded for this follow-up:
 
-- `npm test -- __tests__/workspace-render-smoke.test.tsx` -> 28 passed.
+- `npm test -- __tests__/workspace-render-smoke.test.tsx` -> 29 passed.
+- Added a regression where `/api/session/worker/status` returns
+  `active_count: 1` and `worker: null`; the footer still shows session-worker
+  failure because the current owner slot has no live worker.
 - `npx tsc --noEmit` -> pass.
 - `npm run build` -> pass.
 - `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest -q tests/test_atlas_multiuser_session_scope.py tests/test_production_parity.py::test_atlas_ui_direct_script_bootstraps_from_external_cwd` -> 44 passed.
 - Web E2E on `127.0.0.1:3030`: idle failed footer appears, synthetic
   `agent_state running` shows `Agent responding`, and the old connected seed
   is absent.
-- Desktop E2E with `open -na /Applications/ATLAS.app --args --backend-url ...`:
-  login succeeds and the footer shows the same session-worker failure as the
-  right rail.
+- Desktop launcher E2E with
+  `scripts/run_atlas_desktop.sh --prod --root /tmp/atlas-desktop-launcher-qa --ip QA_IP --workspace-session qa --session-id qa_user --workflow default --port 3046`:
+  launcher starts backend at `127.0.0.1:3046`, opens the absolute
+  `ATLAS.app` path via `open -W -na ... --args --backend-url`, and the backend
+  is cleaned up after the app process exits.
+- Computer Use E2E on the ATLAS Desktop window: footer and right rail both show
+  `Agent worker failed · session worker failed`, confirming the UI no longer
+  reports a false green ready state.
