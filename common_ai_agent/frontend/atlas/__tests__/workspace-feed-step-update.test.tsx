@@ -92,4 +92,29 @@ describe('workspace step update feed cards', () => {
     expect(screen.getByText('pending → blocked')).toBeTruthy();
     expect(screen.getByText(/todo_update.*blocked in plan mode/i)).toBeTruthy();
   });
+
+  it('renders todo status reads as snapshots instead of pending task transitions', () => {
+    render(
+      <ToolCard
+        action={{ kind: 'action', tool: 'todo_status', text: '▶ todo_status', createdAt: Date.now() }}
+        obs={{
+          kind: 'obs',
+          tool: 'todo_status',
+          text: [
+            '── PLAN & PROGRESS ──',
+            '👀 1. [Review] [HIGH]',
+            'Draft project outline',
+          ].join('\n'),
+          createdAt: Date.now(),
+        }}
+        summaryMode
+      />,
+    );
+
+    expect(screen.getByText('step_status')).toBeTruthy();
+    expect(screen.getByText('snapshot')).toBeTruthy();
+    expect(screen.getByText('1 completed')).toBeTruthy();
+    expect(screen.queryByText('Task')).toBeNull();
+    expect(screen.queryByText('pending')).toBeNull();
+  });
 });

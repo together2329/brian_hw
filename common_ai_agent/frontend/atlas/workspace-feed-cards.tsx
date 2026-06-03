@@ -307,12 +307,14 @@ export const HandoffRow = ({ label, children }: any) => (
 
 export const TodoStepUpdateCard = ({ action, obs, tool, info }: any) => {
   const theme = _toolTheme(tool);
-  const meta = atlasStatusMeta(info?.toStatus || 'pending');
+  const isStatusRead = info?.operation === 'status';
+  const displayStatus = isStatusRead ? 'review' : (info?.toStatus || 'pending');
+  const meta = atlasStatusMeta(displayStatus);
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
-  const target = info?.index ? `Task #${info.index}` : 'Task';
+  const target = !isStatusRead ? (info?.index ? `Task #${info.index}` : 'Task') : '';
   const fromLabel = info?.fromStatus ? _formatTodoStepStatus(info.fromStatus) : '';
   const toLabel = info?.toStatus ? _formatTodoStepStatus(info.toStatus) : '';
-  const transition = fromLabel && toLabel && fromLabel !== toLabel ? `${fromLabel} → ${toLabel}` : toLabel;
+  const transition = !isStatusRead && fromLabel && toLabel && fromLabel !== toLabel ? `${fromLabel} → ${toLabel}` : (!isStatusRead ? toLabel : '');
   const hasBody = !!(info?.title || info?.reason || info?.note || info?.next || info?.tally || info?.rawSummary);
   return (
     <div className="tool-card step-update-card has-hover-affordance" style={{ borderLeftColor: meta.color || theme.color }}>
@@ -320,8 +322,8 @@ export const TodoStepUpdateCard = ({ action, obs, tool, info }: any) => {
       <div className="tool-card-head step-update-head">
         <span className="tool-card-glyph" style={{ color: 'var(--fg)' }}>{theme.glyph}</span>
         <span className="tool-card-tool">{_toolDisplay(tool)}</span>
-        <AtlasStatusBadge status={info?.toStatus || 'pending'} compact />
-        <span className="step-update-target">{target}</span>
+        <AtlasStatusBadge status={displayStatus} label={isStatusRead ? 'snapshot' : undefined} compact />
+        {target && <span className="step-update-target">{target}</span>}
         {transition && <span className="step-update-transition">{transition}</span>}
       </div>
       {hasBody && (
