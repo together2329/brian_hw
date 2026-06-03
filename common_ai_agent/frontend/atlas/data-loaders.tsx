@@ -511,7 +511,11 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
 
   async function refreshHealth(): Promise<void> {
     try {
-      const r = await fetch('/healthz');
+      const activeSession = normalizeSessionName(w.ACTIVE_SESSION || URL_ACTIVE_SESSION || '');
+      const healthUrl = activeSession
+        ? `/healthz?session_id=${encodeURIComponent(activeSession)}`
+        : '/healthz';
+      const r = await fetch(healthUrl);
       if (!r.ok) return;
       const d = await r.json();
       if (!healthMatchesCurrentUser(d)) return;

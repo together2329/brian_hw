@@ -238,6 +238,12 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
     }
     return merged;
   };
+  const healthzUrl = (): string => {
+    const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
+    return activeSession
+      ? `/healthz?session_id=${encodeURIComponent(activeSession)}`
+      : '/healthz';
+  };
   useEffect(() => {
     let alive = true;
     const syncContext = (extra?: Partial<LiveContext>) => {
@@ -246,7 +252,7 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
     };
     const poll = () => {
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
-      fetch('/healthz', { cache: 'no-store' })
+      fetch(healthzUrl(), { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
 	        .then((j: HealthzResponse | null) => {
 	          if (!j || !healthMatchesCurrentUser(j)) return;

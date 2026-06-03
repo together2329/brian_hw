@@ -1912,6 +1912,13 @@ def create_app():
         include_cost = str(request.query_params.get("cost", "1") or "1").strip().lower() not in {
             "0", "false", "no", "lite",
         }
+        query_active_session = normalize_session_name(
+            str(
+                request.query_params.get("session_id")
+                or request.query_params.get("session")
+                or ""
+            )
+        )
         request_active_session = ""
         if username_norm:
             try:
@@ -2015,7 +2022,8 @@ def create_app():
 
             if username_norm:
                 active_session = (
-                    _owned_healthz_session(request_active_session)
+                    _owned_healthz_session(query_active_session)
+                    or _owned_healthz_session(request_active_session)
                     or _owned_healthz_session(_active_session_value())
                 )
                 if not active_session:
