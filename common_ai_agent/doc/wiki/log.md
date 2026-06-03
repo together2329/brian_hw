@@ -2,6 +2,15 @@
 
 ## 2026-06-03
 
+- Fixed ATLAS Workspace footer status honesty for the Desktop/Web worker-state
+  issue. The footer now distinguishes backend transport health from interactive
+  session-worker health: backend closed -> `Backend disconnected`, backend open
+  but no live session worker -> `Agent worker failed · session worker failed`,
+  and live `agent_state running` -> `Agent responding`. Desktop launch guidance
+  now documents using `open -na ... --args --backend-url` for installed macOS
+  apps and explains why a LAN-bound server plus default `localhost:3000` can
+  show a white window. See [[atlas-context-root-model-20260603]] and
+  [[tauri-desktop-shell]].
 - Added [[admin-operational-dashboard-db-snapshot-20260603]] from the real
   `~/.common_ai_agent/atlas.db` admin audit: 641 users, 89.9% never logged in,
   63%+ unattributed LLM cost, all queue rows unprocessed, stale running
