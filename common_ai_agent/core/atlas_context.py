@@ -28,6 +28,15 @@ def _safe_segment(value: Any, default: str = "default") -> str:
     return text
 
 
+def _validated_segment(value: Any, *, field_name: str) -> str:
+    text = str(value)
+    if "/" in text:
+        raise ValueError(f"{field_name} must not contain '/'")
+    if not _SAFE_SEGMENT_RE.fullmatch(text):
+        raise ValueError(f"{field_name} must be a non-empty safe path segment")
+    return text
+
+
 @dataclass(frozen=True)
 class SessionContext:
     """Immutable identity for one ATLAS execution scope."""
@@ -130,4 +139,111 @@ class SessionContext:
             "rtl_version_id": self.rtl_version_id,
             "actor_user_id": self.user_id,
             "correlation_id": self.correlation_id,
+        }
+
+
+@dataclass(frozen=True)
+class AtlasContext:
+    user_name: str
+    workspace_session: str
+    ip_name: str
+    workflow: str
+    atlas_root: Path | str = Path(".")
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "user_name",
+            _validated_segment(self.user_name, field_name="user_name"),
+        )
+        object.__setattr__(
+            self,
+            "workspace_session",
+            _validated_segment(self.workspace_session, field_name="workspace_session"),
+        )
+        object.__setattr__(
+            self,
+            "ip_name",
+            _validated_segment(self.ip_name, field_name="ip_name"),
+        )
+        object.__setattr__(
+            self,
+            "workflow",
+            _validated_segment(self.workflow, field_name="workflow"),
+        )
+        object.__setattr__(self, "atlas_root", Path(self.atlas_root).resolve())
+
+    @classmethod
+    def from_session_key(
+        cls,
+        session_key: str,
+        *,
+        atlas_root: Path | str = Path("."),
+    ) -> "AtlasContext":
+        parts = str(session_key).split("/")
+        if len(parts) != 4:
+            raise ValueError("session_key must contain user/session/ip/workflow")
+        user_name, workspace_session, ip_name, workflow = parts
+        return cls(
+            user_name=user_name,
+            workspace_session=workspace_session,
+            ip_name=ip_name,
+            workflow=workflow,
+            atlas_root=atlas_root,
+        )
+
+    @property
+    def context_key(self) -> str:
+        return (
+            f"{self.user_name}/"
+            f"{self.workspace_session}/"
+            f"{self.ip_name}/"
+            f"{self.workflow}"
+        )
+
+    @property
+    def session_key(self) -> str:
+        return self.context_key
+
+    @property
+    def workspace_root(self) -> Path:
+        return Path(self.atlas_root) / self.user_name / self.workspace_session
+
+    @property
+    def project_root(self) -> Path:
+        return self.workspace_root
+
+    @property
+    def ip_root(self) -> Path:
+        return self.workspace_root / self.ip_name
+
+    @property
+    def session_dir(self) -> Path:
+        return self.workspace_root / ".session" / self.ip_name / self.workflow
+
+    def export_env(self) -> dict[str, str]:
+        context_key = self.context_key
+        workflow = self.workflow
+        user_name = self.user_name
+        workspace_root = str(self.workspace_root)
+        ip_root = str(self.ip_root)
+        session_dir = str(self.session_dir)
+        return {
+            "ATLAS_ROOT": str(self.atlas_root),
+            "ATLAS_USER_NAME": user_name,
+            "ATLAS_SESSION_ID": context_key,
+            "ATLAS_WORKSPACE_ROOT": workspace_root,
+            "ATLAS_WORKSPACE_SESSION": self.workspace_session,
+            "ATLAS_ACTIVE_IP": self.ip_name,
+            "ATLAS_ACTIVE_WORKFLOW": workflow,
+            "ATLAS_DEFAULT_WORKFLOW": workflow,
+            "ATLAS_WORKFLOW": workflow,
+            "ATLAS_IP_ROOT": ip_root,
+            "ATLAS_SESSION_DIR": session_dir,
+            "ATLAS_CONTEXT_KEY": context_key,
+            "ATLAS_PROJECT_ROOT": workspace_root,
+            "ATLAS_ACTIVE_SESSION": context_key,
+            "ATLAS_DEFAULT_SESSION_ID": user_name,
+            "ATLAS_MEMORY_USER": user_name,
+            "ACTIVE_WORKSPACE": workflow,
         }
