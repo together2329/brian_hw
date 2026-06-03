@@ -61,19 +61,21 @@ def register_file_routes(
             return None
         return fs_authz.ip(request, ip, permission)
 
-    def _context_base(session_id: str) -> Path:
+    def _context_for_session(session_id: str) -> AtlasContext | None:
         raw = str(session_id or "").strip()
         if not raw:
-            return project_root
+            return None
         try:
-            context = AtlasContext.from_session_key(
+            return AtlasContext.from_session_key(
                 raw,
                 atlas_root=os.environ.get("ATLAS_ROOT") or str(project_root),
             )
-            if not context.legacy:
-                return context.workspace_root
         except Exception:
-            pass
+            return None
+
+    def _context_base(context: AtlasContext | None) -> Path:
+        if context is not None and not context.legacy:
+            return context.workspace_root
         return project_root
 
     def _safe_in_base(base: Path, rel_path: str) -> Optional[Path]:
@@ -85,29 +87,63 @@ def register_file_routes(
         except (OSError, ValueError):
             return None
 
-    def _target_for_session(path: str, session_id: str) -> tuple[Optional[Path], Path]:
-        base = _context_base(session_id)
+    def _target_for_session(path: str, session_id: str) -> tuple[Optional[Path], Path, AtlasContext | None]:
+        context = _context_for_session(session_id)
+        base = _context_base(context)
         if base == project_root:
-            return safe_path_fn(path), project_root
-        return _safe_in_base(base, path), base
+            return safe_path_fn(path), project_root, context
+        return _safe_in_base(base, path), base, context
+
+    def _deny_context_request(request: Request, context: AtlasContext | None):
+        if context is None or context.legacy:
+            return None
+        try:
+            user = request.scope.get("user") or {}
+        except Exception:
+            user = {}
+        user_id = str((user or {}).get("id") or "").strip()
+        if not user_id or user_id == "default":
+            return JSONResponse({"error": "login required"}, status_code=401)
+        if str((user or {}).get("role") or "").strip().lower() == "admin":
+            return None
+        username = str((user or {}).get("username") or "").strip().strip("/")
+        if username == context.user_name:
+            return None
+        return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+
+    def _gate_for_context_path(
+        request: Request,
+        rel_path: str,
+        context: AtlasContext | None,
+        permission: str = "view",
+    ):
+        denied = _deny_context_request(request, context)
+        if denied is not None:
+            return denied
+        if context is not None and not context.legacy:
+            return None
+        return _gate(request, rel_path, permission)
 
     @app.get("/api/files")
     async def api_files(request: Request, path: str = "", recursive: int = 0,
                           max_depth: int = 4, max_entries: int = 800,
                           session_id: str = "", session: str = ""):
-        target, root = _target_for_session(path, session_id or session)
+        target, root, context = _target_for_session(path, session_id or session)
         if target is None:
             return JSONResponse({"error": "path outside project root"},
                                 status_code=400)
         if not target.exists():
             return JSONResponse({"error": "not found"}, status_code=404)
         rel = "" if target == root else target.relative_to(root).as_posix()
+        denied = _deny_context_request(request, context)
+        if denied is not None:
+            return denied
         # A specific path must be readable by the caller; the project-root
         # listing is instead FILTERED to the caller's accessible top-level
         # entries (shared roots + owned/granted IPs) so the IP-rooted file tree
         # keeps working without leaking other tenants' IP directories.
         if rel:
-            denied = _gate(request, rel)
+            denied = _gate_for_context_path(request, rel, context)
             if denied is not None:
                 return denied
         if target.is_file():
@@ -168,10 +204,10 @@ def register_file_routes(
 
     @app.get("/api/file")
     async def api_file(request: Request, path: str, session_id: str = "", session: str = ""):
-        denied = _gate(request, path)
+        target, _root, context = _target_for_session(path, session_id or session)
+        denied = _gate_for_context_path(request, path, context)
         if denied is not None:
             return denied
-        target, _root = _target_for_session(path, session_id or session)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         try:
@@ -217,10 +253,10 @@ def register_file_routes(
         images (.png/.jpg/...) and other binary previews. Text files also
         flow through here when the caller wants the un-decoded bytes.
         """
-        denied = _gate(request, path)
+        target, _root, context = _target_for_session(path, session_id or session)
+        denied = _gate_for_context_path(request, path, context)
         if denied is not None:
             return denied
-        target, _root = _target_for_session(path, session_id or session)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         ext = target.suffix.lower().lstrip(".")
@@ -244,10 +280,10 @@ def register_file_routes(
 
     @app.get("/api/fold-symbols")
     async def api_fold_symbols(request: Request, path: str, session_id: str = "", session: str = ""):
-        denied = _gate(request, path)
+        target, _root, context = _target_for_session(path, session_id or session)
+        denied = _gate_for_context_path(request, path, context)
         if denied is not None:
             return denied
-        target, _root = _target_for_session(path, session_id or session)
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         stat = target.stat()
