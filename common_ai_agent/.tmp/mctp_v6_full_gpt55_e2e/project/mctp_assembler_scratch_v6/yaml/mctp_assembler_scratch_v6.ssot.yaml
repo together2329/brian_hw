@@ -1,0 +1,570 @@
+top_module:
+  name: mctp_assembler_scratch_v6
+  file: rtl/mctp_assembler_scratch_v6.sv
+  version: 0.1.0
+  type: packet_assembler
+  description: >-
+    Message Control Transport Protocol (MCTP) packet assembler that accepts a
+    byte-stream payload with descriptor sideband, emits one or more framed MCTP
+    packets, maintains control/status registers, and exposes deterministic
+    ready/valid backpressure, error, and interrupt behavior for RTL generation.
+  target:
+    language: systemverilog
+    synthesis: fpga_asic
+    clock: clk
+    reset: rst_n active-low synchronous
+
+sub_modules:
+  - name: mctp_cfg_regs
+    type: control_status_registers
+    implements: [registers, interrupts]
+    function_model_refs: [tx_request, csr_write, csr_read, reset]
+    cycle_model_refs: [csr_access_timing]
+    register_refs: [CTRL, STATUS, SRC_EID, DST_EID, MSG_TAG, PKT_CFG, PAYLOAD_LEN, ERROR_STATUS, INT_ENABLE]
+  - name: mctp_header_builder
+    type: packet_header_formatter
+    implements: [mctp_base_header, mctp_message_header, packet_field_assumptions]
+    function_model_refs: [tx_request, header_emit]
+    cycle_model_refs: [header_latency]
+    dataflow_refs: [assemble_packets]
+  - name: mctp_payload_buffer
+    type: elastic_payload_buffer
+    implements: [payload_buffering, backpressure]
+    function_model_refs: [payload_accept, payload_emit, error_overflow]
+    cycle_model_refs: [ready_valid_payload]
+    dataflow_refs: [ingress_buffer, egress_stream]
+  - name: mctp_packet_fsm
+    type: control_fsm
+    implements: [packet_segmentation, sop_eop_control, error_recovery]
+    function_model_refs: [tx_request, payload_emit, complete_message, error_abort]
+    cycle_model_refs: [ready_valid_packet]
+    fsm_refs: [tx_fsm]
+  - name: mctp_interrupt_status
+    type: status_interrupt_logic
+    implements: [interrupts, sticky_status]
+    function_model_refs: [complete_message, error_overflow, error_abort]
+    register_refs: [STATUS, ERROR_STATUS, INT_ENABLE]
+
+parameters:
+  DATA_W:
+    type: int
+    default: 8
+    allowed: [8]
+    description: Payload and packet stream width in bits; one byte per valid beat.
+  LEN_W:
+    type: int
+    default: 16
+    range: [1, 65535]
+    description: Payload length field width.
+  MAX_PAYLOAD_BYTES:
+    type: int
+    default: 64
+    range: [1, 64]
+    description: Maximum MCTP payload bytes per packet excluding headers.
+  FIFO_DEPTH:
+    type: int
+    default: 256
+    range: [8, 4096]
+    description: Ingress payload buffering depth in bytes.
+  TAG_W:
+    type: int
+    default: 3
+    allowed: [3]
+    description: MCTP message tag width.
+
+io_list:
+  - name: clk
+    direction: input
+    width: 1
+    protocol: clock
+    role: clock
+    description: Rising-edge system clock.
+  - name: rst_n
+    direction: input
+    width: 1
+    protocol: reset
+    role: reset
+    reset_semantics: Active-low synchronous reset; clears FSM, FIFOs, status, and outputs.
+  - name: in_valid
+    direction: input
+    width: 1
+    protocol: ready_valid
+    role: payload_sink_valid
+    handshake: Byte accepted when in_valid && in_ready.
+  - name: in_ready
+    direction: output
+    width: 1
+    protocol: ready_valid
+    role: payload_sink_ready
+    handshake: Deasserts when FIFO lacks space, TX is disabled, or abort recovery is active.
+  - name: in_data
+    direction: input
+    width: DATA_W
+    protocol: ready_valid
+    role: payload_sink_data
+    handshake: Stable while in_valid && !in_ready.
+  - name: in_sop
+    direction: input
+    width: 1
+    protocol: ready_valid
+    role: payload_sink_sop
+    handshake: Asserted with first accepted payload byte of a message.
+  - name: in_eop
+    direction: input
+    width: 1
+    protocol: ready_valid
+    role: payload_sink_eop
+    handshake: Asserted with last accepted payload byte of a message.
+  - name: in_len
+    direction: input
+    width: LEN_W
+    protocol: ready_valid_sideband
+    role: payload_message_length
+    handshake: Sampled on accepted in_sop beat; must equal total message payload byte count.
+  - name: in_dst_eid
+    direction: input
+    width: 8
+    protocol: ready_valid_sideband
+    role: mctp_destination_eid
+    handshake: Sampled on accepted in_sop beat unless CSR override is enabled.
+  - name: in_src_eid
+    direction: input
+    width: 8
+    protocol: ready_valid_sideband
+    role: mctp_source_eid
+    handshake: Sampled on accepted in_sop beat unless CSR override is enabled.
+  - name: in_msg_tag
+    direction: input
+    width: TAG_W
+    protocol: ready_valid_sideband
+    role: mctp_message_tag
+    handshake: Sampled on accepted in_sop beat unless CSR override is enabled.
+  - name: in_tag_owner
+    direction: input
+    width: 1
+    protocol: ready_valid_sideband
+    role: mctp_tag_owner
+    handshake: Sampled on accepted in_sop beat unless CSR override is enabled.
+  - name: out_valid
+    direction: output
+    width: 1
+    protocol: ready_valid
+    role: packet_source_valid
+    handshake: Output byte transferred when out_valid && out_ready.
+  - name: out_ready
+    direction: input
+    width: 1
+    protocol: ready_valid
+    role: packet_source_ready
+    handshake: Consumer backpressure; output byte and sideband remain stable while out_valid && !out_ready.
+  - name: out_data
+    direction: output
+    width: DATA_W
+    protocol: ready_valid
+    role: packet_source_data
+    handshake: Header and payload bytes emitted in network byte order.
+  - name: out_sop
+    direction: output
+    width: 1
+    protocol: ready_valid
+    role: packet_source_sop
+    handshake: Asserted with first byte of each assembled MCTP packet.
+  - name: out_eop
+    direction: output
+    width: 1
+    protocol: ready_valid
+    role: packet_source_eop
+    handshake: Asserted with final byte of each assembled MCTP packet segment.
+  - name: out_pkt_seq
+    direction: output
+    width: 2
+    protocol: ready_valid_sideband
+    role: mctp_packet_sequence
+    handshake: Sequence number associated with current output packet, stable during transfer.
+  - name: csr_valid
+    direction: input
+    width: 1
+    protocol: simple_csr
+    role: csr_request_valid
+    handshake: CSR request accepted when csr_valid && csr_ready.
+  - name: csr_ready
+    direction: output
+    width: 1
+    protocol: simple_csr
+    role: csr_request_ready
+    handshake: Single outstanding CSR access, ready high when not in reset.
+  - name: csr_write
+    direction: input
+    width: 1
+    protocol: simple_csr
+    role: csr_write_enable
+    handshake: 1=write, 0=read on accepted CSR request.
+  - name: csr_addr
+    direction: input
+    width: 8
+    protocol: simple_csr
+    role: csr_address
+    handshake: Byte address aligned to 32-bit registers.
+  - name: csr_wdata
+    direction: input
+    width: 32
+    protocol: simple_csr
+    role: csr_write_data
+    handshake: Write data sampled on accepted CSR write.
+  - name: csr_rdata
+    direction: output
+    width: 32
+    protocol: simple_csr
+    role: csr_read_data
+    handshake: Valid with csr_rvalid for accepted CSR read.
+  - name: csr_rvalid
+    direction: output
+    width: 1
+    protocol: simple_csr
+    role: csr_read_valid
+    handshake: Pulses one cycle after accepted CSR read.
+  - name: irq
+    direction: output
+    width: 1
+    protocol: interrupt
+    role: level_interrupt
+    handshake: Level high when enabled sticky completion or error status is set.
+
+features:
+  - id: mctp_base_header
+    description: Emits MCTP transport header fields with version=1, destination EID, source EID, SOM/EOM, packet sequence, tag owner, and message tag.
+  - id: mctp_message_header
+    description: Emits a one-byte message type field before payload; default message_type from PKT_CFG[7:0].
+  - id: packet_segmentation
+    description: Splits messages longer than MAX_PAYLOAD_BYTES into multiple packets with SOM asserted only on first packet and EOM asserted only on last packet.
+  - id: payload_buffering
+    description: Buffers accepted payload bytes and applies input backpressure before overflow.
+  - id: control_status_registers
+    description: Provides enable, field override, status, error, and interrupt registers through a simple CSR port.
+  - id: error_recovery
+    description: Detects length mismatch, unexpected SOP/EOP, disabled start, FIFO overflow, and CSR address errors; aborts current message and records sticky status.
+
+packet_field_assumptions:
+  mctp_version: 1
+  byte_order: network
+  header_bytes:
+    - {index: 0, field: version_rsvd_hdrver, expr: "8'h10"}
+    - {index: 1, field: dst_eid, expr: "effective_dst_eid"}
+    - {index: 2, field: src_eid, expr: "effective_src_eid"}
+    - {index: 3, field: flags_seq_tag, expr: "{som,eom,out_pkt_seq,tag_owner,effective_msg_tag}"}
+    - {index: 4, field: message_type, expr: "message_type"}
+  max_payload_per_packet: MAX_PAYLOAD_BYTES
+  sequence_rule: Increment modulo 4 for each packet segment of a message; reset to 0 at start of each new message.
+
+dataflow:
+  - id: ingress_buffer
+    source: payload ready/valid sink
+    sink: mctp_payload_buffer
+    flow: Accepted bytes, SOP/EOP, length, EID, and tag sideband are queued when enabled and space is available.
+    backpressure: in_ready is low if FIFO occupancy is greater than FIFO_DEPTH-2 or TX disabled.
+  - id: assemble_packets
+    source: mctp_packet_fsm
+    sink: mctp_header_builder and payload buffer
+    flow: FSM emits five header bytes followed by up to MAX_PAYLOAD_BYTES payload bytes for each packet segment.
+    backpressure: Header/payload byte pointer advances only on out_valid && out_ready.
+  - id: egress_stream
+    source: mctp_header_builder and payload buffer
+    sink: packet ready/valid source
+    flow: out_data, out_sop, out_eop, and out_pkt_seq provide complete MCTP packets.
+    backpressure: All output signals remain stable while out_valid && !out_ready.
+
+function_model:
+  state:
+    enabled: {width: 1, reset: "1'b0"}
+    busy: {width: 1, reset: "1'b0"}
+    fifo_count: {width: 16, reset: "16'd0"}
+    msg_bytes_remaining: {width: LEN_W, reset: "0"}
+    current_seq: {width: 2, reset: "2'd0"}
+    status_done: {width: 1, reset: "1'b0"}
+    status_error: {width: 1, reset: "1'b0"}
+    error_status: {width: 32, reset: "32'd0"}
+  transactions:
+    - id: reset
+      trigger: "rst_n == 1'b0"
+      state_updates:
+        - {state: enabled, expr: "1'b0", width: 1}
+        - {state: busy, expr: "1'b0", width: 1}
+        - {state: fifo_count, expr: "16'd0", width: 16}
+        - {state: msg_bytes_remaining, expr: "{LEN_W{1'b0}}", width: LEN_W}
+        - {state: current_seq, expr: "2'd0", width: 2}
+        - {state: status_done, expr: "1'b0", width: 1}
+        - {state: status_error, expr: "1'b0", width: 1}
+        - {state: error_status, expr: "32'd0", width: 32}
+      output_rules:
+        - {port: in_ready, expr: "1'b0", width: 1}
+        - {port: out_valid, expr: "1'b0", width: 1}
+        - {port: csr_ready, expr: "1'b0", width: 1}
+        - {port: irq, expr: "1'b0", width: 1}
+    - id: csr_write
+      trigger: "csr_valid && csr_ready && csr_write"
+      state_updates:
+        - {state: enabled, expr: "csr_addr == 8'h00 ? csr_wdata[0] : enabled", width: 1}
+        - {state: status_done, expr: "csr_addr == 8'h04 && csr_wdata[0] ? 1'b0 : status_done", width: 1}
+        - {state: status_error, expr: "csr_addr == 8'h20 && |csr_wdata ? 1'b0 : status_error", width: 1}
+        - {state: error_status, expr: "csr_addr == 8'h20 ? (error_status & ~csr_wdata) : error_status", width: 32}
+      output_rules:
+        - {port: csr_ready, expr: "rst_n", width: 1}
+    - id: csr_read
+      trigger: "csr_valid && csr_ready && !csr_write"
+      output_rules:
+        - {port: csr_rvalid, expr: "1'b1", width: 1}
+        - {port: csr_rdata, expr: "register_value(csr_addr)", width: 32}
+    - id: payload_accept
+      trigger: "in_valid && in_ready"
+      state_updates:
+        - {state: fifo_count, expr: "fifo_count + 16'd1", width: 16}
+        - {state: busy, expr: "in_sop ? 1'b1 : busy", width: 1}
+        - {state: msg_bytes_remaining, expr: "in_sop ? in_len : (msg_bytes_remaining - 1'b1)", width: LEN_W}
+      output_rules:
+        - {port: in_ready, expr: "enabled && (fifo_count < FIFO_DEPTH-1) && !status_error", width: 1}
+    - id: tx_request
+      trigger: "enabled && busy && fifo_count != 0"
+      state_updates:
+        - {state: current_seq, expr: "first_packet_of_message ? 2'd0 : current_seq", width: 2}
+      output_rules:
+        - {port: out_valid, expr: "1'b1", width: 1}
+        - {port: out_sop, expr: "header_index == 0", width: 1}
+        - {port: out_pkt_seq, expr: "current_seq", width: 2}
+    - id: header_emit
+      trigger: "out_valid && out_ready && emitting_header"
+      output_rules:
+        - {port: out_data, expr: "header_byte(header_index)", width: DATA_W}
+        - {port: out_eop, expr: "1'b0", width: 1}
+    - id: payload_emit
+      trigger: "out_valid && out_ready && emitting_payload"
+      state_updates:
+        - {state: fifo_count, expr: "fifo_count - 16'd1", width: 16}
+        - {state: msg_bytes_remaining, expr: "msg_bytes_remaining - 1'b1", width: LEN_W}
+      output_rules:
+        - {port: out_data, expr: "fifo_dout", width: DATA_W}
+        - {port: out_eop, expr: "last_payload_byte_of_packet", width: 1}
+    - id: complete_message
+      trigger: "out_valid && out_ready && last_payload_byte_of_message"
+      state_updates:
+        - {state: busy, expr: "1'b0", width: 1}
+        - {state: status_done, expr: "1'b1", width: 1}
+        - {state: current_seq, expr: "2'd0", width: 2}
+      output_rules:
+        - {port: irq, expr: "int_enable_done", width: 1}
+    - id: error_overflow
+      trigger: "in_valid && !in_ready && force_accept_violation"
+      state_updates:
+        - {state: status_error, expr: "1'b1", width: 1}
+        - {state: error_status, expr: "error_status | 32'h0000_0001", width: 32}
+      output_rules:
+        - {port: irq, expr: "int_enable_error", width: 1}
+    - id: error_abort
+      trigger: "length_mismatch || unexpected_sop || unexpected_eop || disabled_start || csr_addr_error"
+      state_updates:
+        - {state: busy, expr: "1'b0", width: 1}
+        - {state: status_error, expr: "1'b1", width: 1}
+        - {state: error_status, expr: "error_status | decoded_error_bit", width: 32}
+      output_rules:
+        - {port: out_valid, expr: "1'b0", width: 1}
+        - {port: irq, expr: "int_enable_error", width: 1}
+
+cycle_model:
+  clock: clk
+  reset: rst_n
+  rules:
+    - id: ready_valid_payload
+      expr: Inputs are sampled only on rising clk when rst_n && in_valid && in_ready; in_data and sideband must be held stable by source during backpressure.
+      latency: 0
+    - id: ready_valid_packet
+      expr: Output bytes advance only on rising clk when out_valid && out_ready; out_data/out_sop/out_eop/out_pkt_seq stable while stalled.
+      latency: variable_with_backpressure
+    - id: header_latency
+      expr: First output packet byte appears 1 to 3 cycles after a complete SOP descriptor is accepted and output is ready.
+      latency: 1_to_3_cycles
+    - id: csr_access_timing
+      expr: CSR writes commit in the accept cycle; CSR reads return csr_rvalid/csr_rdata one cycle after accept.
+      latency: 1_cycle_read
+    - id: segmentation_timing
+      expr: For N payload bytes, output byte count is N plus 5 bytes per packet segment, with segment payload size at most MAX_PAYLOAD_BYTES.
+      latency: depends_on_N_and_out_ready
+
+registers:
+  - name: CTRL
+    address: 0x00
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: enable, bits: "0", access: rw, reset: 0, description: Enable packet assembly.}
+      - {name: override_fields, bits: "1", access: rw, reset: 0, description: Use CSR EID/tag fields instead of input sideband.}
+      - {name: soft_abort, bits: "2", access: w1p, reset: 0, description: Abort current message and flush payload FIFO.}
+  - name: STATUS
+    address: 0x04
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: done, bits: "0", access: w1c, reset: 0, description: Message assembly completed.}
+      - {name: busy, bits: "1", access: ro, reset: 0, description: Message in progress.}
+      - {name: error, bits: "2", access: ro, reset: 0, description: One or more sticky errors set.}
+      - {name: fifo_level, bits: "31:16", access: ro, reset: 0, description: Current payload FIFO occupancy.}
+  - name: SRC_EID
+    address: 0x08
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: value, bits: "7:0", access: rw, reset: 0, description: Override source EID.}
+  - name: DST_EID
+    address: 0x0C
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: value, bits: "7:0", access: rw, reset: 0, description: Override destination EID.}
+  - name: MSG_TAG
+    address: 0x10
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: tag, bits: "2:0", access: rw, reset: 0, description: Override MCTP message tag.}
+      - {name: tag_owner, bits: "3", access: rw, reset: 0, description: Override tag owner bit.}
+  - name: PKT_CFG
+    address: 0x14
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: message_type, bits: "7:0", access: rw, reset: 0, description: MCTP message type byte emitted before payload.}
+      - {name: max_payload_bytes, bits: "15:8", access: rw, reset: 64, description: Runtime segment payload limit capped by parameter MAX_PAYLOAD_BYTES.}
+  - name: PAYLOAD_LEN
+    address: 0x18
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: last_len, bits: "15:0", access: ro, reset: 0, description: Length of most recent accepted message.}
+  - name: ERROR_STATUS
+    address: 0x20
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: fifo_overflow, bits: "0", access: w1c, reset: 0, description: Input overflow or source protocol violation.}
+      - {name: length_mismatch, bits: "1", access: w1c, reset: 0, description: Accepted bytes did not match in_len by EOP.}
+      - {name: unexpected_sop, bits: "2", access: w1c, reset: 0, description: SOP while a message was already active.}
+      - {name: unexpected_eop, bits: "3", access: w1c, reset: 0, description: EOP before programmed message length.}
+      - {name: disabled_start, bits: "4", access: w1c, reset: 0, description: SOP attempted while disabled.}
+      - {name: csr_addr_error, bits: "5", access: w1c, reset: 0, description: Unsupported CSR address accessed.}
+  - name: INT_ENABLE
+    address: 0x24
+    width: 32
+    reset: 0x00000000
+    fields:
+      - {name: done_en, bits: "0", access: rw, reset: 0, description: Enable done interrupt.}
+      - {name: error_en, bits: "1", access: rw, reset: 0, description: Enable error interrupt.}
+
+interrupts:
+  - name: irq
+    type: level
+    sources:
+      - {status: STATUS.done, enable: INT_ENABLE.done_en}
+      - {status: STATUS.error, enable: INT_ENABLE.error_en}
+    clear: Write-one-to-clear STATUS.done and ERROR_STATUS bits; irq deasserts when no enabled source remains.
+
+fsm:
+  - id: tx_fsm
+    reset_state: IDLE
+    states:
+      - IDLE
+      - LOAD_DESC
+      - EMIT_HEADER
+      - EMIT_PAYLOAD
+      - NEXT_SEGMENT
+      - COMPLETE
+      - ERROR_ABORT
+    transitions:
+      - {from: IDLE, to: LOAD_DESC, condition: "enabled && message_available"}
+      - {from: LOAD_DESC, to: EMIT_HEADER, condition: "descriptor_valid"}
+      - {from: EMIT_HEADER, to: EMIT_PAYLOAD, condition: "out_valid && out_ready && last_header_byte"}
+      - {from: EMIT_PAYLOAD, to: NEXT_SEGMENT, condition: "out_valid && out_ready && segment_done && !message_done"}
+      - {from: EMIT_PAYLOAD, to: COMPLETE, condition: "out_valid && out_ready && message_done"}
+      - {from: NEXT_SEGMENT, to: EMIT_HEADER, condition: "1'b1"}
+      - {from: COMPLETE, to: IDLE, condition: "1'b1"}
+      - {from: IDLE, to: ERROR_ABORT, condition: "disabled_start || unexpected_eop"}
+      - {from: LOAD_DESC, to: ERROR_ABORT, condition: "length_mismatch || unexpected_sop"}
+      - {from: EMIT_PAYLOAD, to: ERROR_ABORT, condition: "soft_abort"}
+      - {from: ERROR_ABORT, to: IDLE, condition: "abort_flush_done"}
+
+test_requirements:
+  - id: reset_defaults
+    stimulus: Apply reset for at least two clocks, then release with no traffic.
+    expected_results: All outputs inactive, registers at reset values, FIFO empty, FSM IDLE.
+    checkers: [reset_register_checker, no_x_checker]
+    coverage: Reset during idle and reset during active packet.
+  - id: single_packet_message
+    stimulus: Enable assembler and send one message with length 1..MAX_PAYLOAD_BYTES using sideband EID/tag values.
+    expected_results: One output packet with five expected header bytes followed by exact payload bytes; out_sop on first byte and out_eop on final payload byte.
+    checkers: [packet_scoreboard, ready_valid_stability_checker]
+    coverage: Message lengths 1, 2, MAX_PAYLOAD_BYTES.
+  - id: segmented_message
+    stimulus: Send message longer than MAX_PAYLOAD_BYTES with output stalls inserted.
+    expected_results: Multiple packets with sequence increment modulo 4, SOM only first, EOM only last, no data loss under backpressure.
+    checkers: [segmentation_scoreboard, sequence_checker, backpressure_checker]
+    coverage: Two segments, four sequence values, stalls on header and payload beats.
+  - id: csr_override_and_interrupt
+    stimulus: Program override EIDs/tag/message_type and interrupt enables, then send a message.
+    expected_results: Header uses CSR fields, done status sets, irq asserts until W1C clear.
+    checkers: [csr_model_checker, interrupt_checker]
+    coverage: CSR read/write, done interrupt clear, override_fields 0 and 1.
+  - id: error_paths
+    stimulus: Exercise length mismatch, unexpected SOP, unexpected EOP, disabled start, FIFO overflow pressure, and unsupported CSR address.
+    expected_results: Current message aborts, sticky error bit sets, irq asserts when enabled, recovery allows later valid message after clear.
+    checkers: [error_status_checker, abort_recovery_checker]
+    coverage: Each ERROR_STATUS bit and recovery path.
+
+quality_gates:
+  - name: ssot_schema_verify
+    owner: ssot-gen
+    command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" mctp_assembler_scratch_v6 --root "$ATLAS_PROJECT_ROOT" --mode engineering
+    pass_criteria: Engineering SSOT validation returns success with no live TBD sections.
+  - name: rtl_compile
+    owner: rtl-gen
+    pass_criteria: Generated rtl/mctp_assembler_scratch_v6.sv compiles without syntax or elaboration errors.
+  - name: lint
+    owner: lint
+    pass_criteria: No undriven outputs, inferred latches, X-propagation reset gaps, or ready/valid stability violations.
+  - name: simulation
+    owner: sim
+    pass_criteria: All directed tests and scoreboard checks pass, including reset, segmentation, CSR, interrupt, and error scenarios.
+  - name: coverage
+    owner: coverage
+    pass_criteria: Functional coverage closes bins named in test_requirements or reports justified exclusions.
+
+workflow_todos:
+  - owner: fl-model
+    task: Build deterministic reference packet assembler using this SSOT packet_field_assumptions and function_model.
+  - owner: cl-model
+    task: Build cycle model honoring ready/valid stalls, CSR timing, reset, and segmentation latency.
+  - owner: rtl-gen
+    task: Implement rtl/mctp_assembler_scratch_v6.sv as synthesizable SystemVerilog top only, with submodule behavior traceable to sub_modules refs.
+  - owner: tb
+    task: Create scoreboard-driven verification for packet formatting, backpressure stability, CSR/IRQ behavior, and error recovery.
+  - owner: contract-check
+    task: Confirm locked requirements, SSOT, models, RTL, tests, and validation artifacts are mutually consistent.
+
+custom:
+  requirement_classification:
+    protocol_families: [packet_formatter, ready_valid_stream, simple_csr, interrupt]
+    not_assumed: [APB, AXI4_Lite, AXI4_Stream, DMA, physical_implementation]
+  assumptions:
+    - Existing locked requirement source names this IP as an MCTP packet assembler; no external DMTF specification text is imported in this worker context.
+    - DATA_W is fixed at 8 bits so MCTP bytes are emitted one byte per ready/valid beat.
+    - MCTP transport header is modeled as four bytes plus one message_type byte before payload for implementation and checking consistency.
+    - Runtime max_payload_bytes may reduce but not exceed parameter MAX_PAYLOAD_BYTES.
+    - CSR protocol is a minimal valid/ready local bus, not APB or AXI4-Lite, because the visible goal does not require a standard register bus.
+    - Reset is synchronous active-low using rst_n, and all sticky status bits clear on reset.
+  future_considerations:
+    - Add optional packet integrity/checksum fields only if a later locked requirement explicitly requests them.
+    - Add multi-message queueing or multi-lane output only if future throughput requirements demand it.
+  rtl_blocker_answers:
+    resolution_policy: recommended_defaults
+    csr_bus: simple_csr_valid_ready
+    output_top: rtl/mctp_assembler_scratch_v6.sv
+    reset: synchronous_active_low
+    packet_width: 8_bits
+    max_payload_bytes: 64
+    interrupt_style: level_sensitive_sticky_status
