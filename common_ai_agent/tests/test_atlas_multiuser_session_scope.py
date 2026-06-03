@@ -189,8 +189,8 @@ def test_session_activate_records_db_control_plane_namespace(tmp_path, monkeypat
         assert session["summary"]["ip"] == "spi_core"
         assert session["summary"]["workflow"] == "orchestrator"
         listed = {row["id"]: row for row in db.list_all_sessions()}
-            assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
-            assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
+        assert listed["alice/spi_core/orchestrator"]["ip"] == "spi_core"
+        assert listed["alice/spi_core/orchestrator"]["workflow"] == "orchestrator"
 
 
 def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch):
