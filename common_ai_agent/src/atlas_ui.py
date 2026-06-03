@@ -4816,7 +4816,7 @@ def create_app():
                     cfg_mod = _sys.modules.get(cfg_name)
                 if cfg_mod is not None and all(cfg_mod is not m for m in cfg_modules):
                     cfg_modules.append(cfg_mod)
-            session_dir = PROJECT_ROOT / ".session" / active_slash_session
+            session_dir = _session_json_path(active_slash_session).parent
             session_dir.mkdir(parents=True, exist_ok=True)
             session_cfg = {
                 "TODO_FILE": str(session_dir / "todo.json"),
@@ -10235,10 +10235,10 @@ def create_app():
                 or ""
             ))
             if ip and ip not in {"default", "soc", "user"}:
-                parts[1] = ip
+                parts[2 if len(parts) >= 4 else 1] = ip
             if workflow and workflow not in {"user", "soc"}:
-                parts[2] = workflow
-            return _authorize_ws_session("/".join(parts[:3]))
+                parts[3 if len(parts) >= 4 else 2] = workflow
+            return _authorize_ws_session("/".join(parts[:4] if len(parts) >= 4 else parts[:3]))
 
         # Identity-driven default: empty / legacy "default" session_id
         # collapses to the user's default namespace. Full
