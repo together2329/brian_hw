@@ -508,6 +508,10 @@ export const _parseTodoStepUpdate = (text: unknown, tool: unknown, actionText: u
     reason = rawObs;
   }
 
+  if (/\[blocked:\s*(?:plan|exec)\]/i.test(rawAction)) {
+    toStatus = 'blocked';
+  }
+
   if (!toStatus) {
     if (operation === 'add' || operation === 'write' || operation === 'status') toStatus = 'pending';
     else if (operation === 'remove') toStatus = 'completed';

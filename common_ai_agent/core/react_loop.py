@@ -1950,6 +1950,14 @@ def run_react_agent_impl(
                         _args_display = str(_raw_args)
 
                     summary = _extract_tool_args_summary(tool_name, _args_display)
+                    _is_plan_blocked = (
+                        agent_mode in ("plan", "plan_q")
+                        and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set())
+                    )
+                    _is_normal_blocked = (
+                        agent_mode not in ("plan", "plan_q")
+                        and tool_name in getattr(cfg, "NORMAL_MODE_BLOCKED_TOOLS", set())
+                    )
                     # For todo_update: inject previous status so header shows "#N prev → new"
                     if tool_name == "todo_update" and todo_tracker:
                         import re as _re
@@ -1960,7 +1968,8 @@ def run_react_agent_impl(
                                 _prev = todo_tracker.todos[_idx].status
                                 _new_m = _re.search(r'status\s*=\s*["\']([^"\']+)["\']', _args_display)
                                 if _new_m and _prev != _new_m.group(1):
-                                    summary = f"#{_idx + 1} {_prev} → {_new_m.group(1)}"
+                                    _next = "blocked" if (_is_plan_blocked or _is_normal_blocked) else _new_m.group(1)
+                                    summary = f"#{_idx + 1} {_prev} → {_next}"
                     tracker.record_tool(tool_name)
                     if _perf:
                         print(f"  {Color.DIM}[PERF] >>> tool/{tool_name} start{Color.RESET}")
@@ -1973,14 +1982,6 @@ def run_react_agent_impl(
                         "multi_replace_file_content", "edit_file", "create_file",
                     }
                     _debug = getattr(cfg, "DEBUG_MODE", False)
-                    _is_plan_blocked = (
-                        agent_mode in ("plan", "plan_q")
-                        and tool_name in getattr(cfg, "PLAN_MODE_BLOCKED_TOOLS", set())
-                    )
-                    _is_normal_blocked = (
-                        agent_mode not in ("plan", "plan_q")
-                        and tool_name in getattr(cfg, "NORMAL_MODE_BLOCKED_TOOLS", set())
-                    )
 
                     # Show what we're about to do — before execution so long ops aren't silent
                     # Skip the *terminal* header for diff/write tools (their stdout already

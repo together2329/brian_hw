@@ -336,6 +336,74 @@ class TestRunReactAgentImpl(unittest.TestCase):
             for m in msgs
         ))
 
+    def test_plan_blocked_todo_update_emit_uses_blocked_transition(self):
+        from core.react_loop import run_react_agent_impl
+
+        class _Todo:
+            content = "draft plan"
+            active_form = "draft plan"
+            detail = "create a planning artifact"
+            criteria = "plan is documented"
+            status = "pending"
+
+        class _PlanTodoTracker:
+            todos = [_Todo()]
+            current_index = 0
+            _persist_path = "/tmp/atlas-plan-blocked-test-todo.json"
+
+            def is_all_processed(self):
+                return False
+
+            def get_current_todo(self):
+                return self.todos[0]
+
+            def check_rejection_livelock(self, max_rejections=50):
+                return None
+
+        calls = {"count": 0}
+
+        def blocked_action(messages, stop=None, **kwargs):
+            calls["count"] += 1
+            if calls["count"] == 1:
+                yield 'Action: todo_update(index=1, status="in_progress", reason="start execution")'
+            else:
+                yield "Final Answer: done."
+
+        emitted = []
+        execute_tool_fn = MagicMock(return_value="should not execute")
+        cfg = _make_cfg(
+            ENABLE_TODO_TRACKING=True,
+            PLAN_MODE_BLOCKED_TOOLS={"todo_update"},
+            TODO_FILE="/tmp/atlas-plan-blocked-test-todo.json",
+            CHAT_MAX_ITERATIONS=1,
+            LLM_RETRY_COUNT=0,
+            REACT_LOOP_STALL_SEC=0,
+        )
+        deps = self._make_deps(
+            cfg=cfg,
+            llm_call_fn=blocked_action,
+            detect_completion_fn=lambda _text: False,
+            execute_tool_fn=execute_tool_fn,
+            emit_tool_fn=lambda text: emitted.append(text),
+        )
+        messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "plan only"}]
+        tracker = self._make_tracker()
+
+        run_react_agent_impl(
+            messages=messages,
+            tracker=tracker,
+            task_description="plan only",
+            deps=deps,
+            agent_mode="plan",
+            todo_tracker=_PlanTodoTracker(),
+        )
+
+        execute_tool_fn.assert_not_called()
+        todo_events = [str(event) for event in emitted if "todo_update" in str(event)]
+        self.assertTrue(todo_events)
+        self.assertTrue(any("pending → blocked" in event for event in todo_events))
+        self.assertFalse(any("pending → in_progress" in event for event in todo_events))
+
     def test_no_todo_tracker_when_disabled(self):
         """ENABLE_TODO_TRACKING=False → todo_tracker is None inside loop."""
         cfg = _make_cfg(ENABLE_TODO_TRACKING=False)

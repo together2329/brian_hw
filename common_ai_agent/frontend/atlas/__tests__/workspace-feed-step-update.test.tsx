@@ -93,6 +93,19 @@ describe('workspace step update feed cards', () => {
     expect(screen.getByText(/todo_update.*blocked in plan mode/i)).toBeTruthy();
   });
 
+  it('renders action-only plan-mode blocked status attempts as blocked', () => {
+    render(
+      <ToolCard
+        action={{ kind: 'action', tool: 'todo_update', text: '▶ todo_update  #1 pending → in_progress [blocked: plan]', createdAt: Date.now() }}
+        summaryMode
+      />,
+    );
+
+    expect(screen.getByText('Task #1')).toBeTruthy();
+    expect(screen.getByText('pending → blocked')).toBeTruthy();
+    expect(screen.queryByText('pending → in-progress')).toBeNull();
+  });
+
   it('renders todo status reads as snapshots instead of pending task transitions', () => {
     render(
       <ToolCard
