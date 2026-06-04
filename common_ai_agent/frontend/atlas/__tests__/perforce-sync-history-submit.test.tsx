@@ -29,6 +29,7 @@ describe('PerforceSyncTab history and submit refresh', () => {
   const submitBodies: RequestBody[] = [];
   let pendingRows: PendingRow[] = [];
   let pendingChanges: PendingChange[] = [];
+  let showFails = false;
 
   beforeEach(() => {
     logUrls.length = 0;
@@ -39,6 +40,7 @@ describe('PerforceSyncTab history and submit refresh', () => {
       { id: 'default', label: 'default' },
       { id: '12', label: '12 pending checkout', description: 'pending checkout' },
     ];
+    showFails = false;
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = requestUrl(input);
       if (url.startsWith('/api/ip/list')) {
@@ -70,6 +72,9 @@ describe('PerforceSyncTab history and submit refresh', () => {
       }
       if (url.startsWith('/api/scm/show')) {
         showUrls.push(url);
+        if (showFails) {
+          return jsonResponse({ ok: false, error: 'describe failed' });
+        }
         return jsonResponse({
           ok: true,
           diff: 'Change 77 by brian\n--- //GOOD_SOC/GOOD_IP/rtl/main.sv\n+++ //GOOD_SOC/GOOD_IP/rtl/main.sv\n+module fixed;\n',
@@ -93,17 +98,48 @@ describe('PerforceSyncTab history and submit refresh', () => {
   it('loads Perforce changelist history and shows the selected changelist diff', async () => {
     const view = within(render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />).container);
 
+    expect(await view.findByText('PENDING')).toBeVisible();
+    expect(view.getByText('0 file(s) opened')).toBeVisible();
+    expect(view.queryByText('HISTORY')).not.toBeInTheDocument();
+    expect(view.queryByText('HISTORY DIFF')).not.toBeInTheDocument();
+    expect(view.queryByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv')).not.toBeInTheDocument();
+
+    fireEvent.click(await view.findByRole('button', { name: /history/i }));
+    expect(await view.findByText('HISTORY')).toBeVisible();
+    expect(view.queryByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv')).not.toBeInTheDocument();
+    expect(view.queryByText('HISTORY DIFF')).not.toBeInTheDocument();
+
     fireEvent.click(await view.findByText('Fix RTL gate'));
 
     expect(await view.findByText(/\+module fixed;/)).toBeVisible();
+    expect(view.getByText('HISTORY DIFF')).toBeVisible();
+    expect(view.queryByText('Fix RTL gate')).not.toBeInTheDocument();
+    expect(view.queryByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv')).not.toBeInTheDocument();
     expect(logUrls.some(url => url.includes('/api/scm/log'))).toBe(true);
     expect(logUrls.some(url => url.includes('stream=%2F%2FGOOD_SOC%2FGOOD_IP'))).toBe(true);
     expect(logUrls.some(url => url.includes('scm_root=%2Ftmp%2Fp4_workspace'))).toBe(true);
     expect(showUrls.some(url => url.includes('revision=77'))).toBe(true);
   });
 
+  it('keeps history rows visible when loading a history diff fails', async () => {
+    showFails = true;
+    const view = within(render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />).container);
+    fireEvent.click(await view.findByRole('button', { name: /history/i }));
+    fireEvent.click(await view.findByText('Fix RTL gate'));
+    expect(await view.findByText('describe failed')).toBeVisible();
+
+    fireEvent.click(view.getByRole('button', { name: /history/i }));
+
+    expect(await view.findByText('Fix RTL gate')).toBeVisible();
+    expect(view.queryByText('describe failed')).not.toBeInTheDocument();
+  });
+
   it('removes a submitted pending changelist from the visible pending list', async () => {
     render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    expect(await screen.findByRole('button', { name: /diff/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /history/i })).toBeVisible();
+    expect(screen.getByRole('button', { name: /pending list/i })).toBeVisible();
+
     fireEvent.change(await screen.findByLabelText('Pending changelist'), { target: { value: '12' } });
     expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv')).toBeVisible();
 
