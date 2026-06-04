@@ -1208,6 +1208,23 @@ def create_app():
             _chat_autostart()
         except Exception as _e:
             print(f"[chat-responder] autostart failed: {_e}")
+    # Session Flow / runtime usage rollup scheduler (Task 7 / B2 / RS-1): the
+    # REAL out-of-band production trigger that folds per-session runtime rows into
+    # the control-side session_flow_rollups + runtime_usage_rollups. Without this
+    # the dashboard reads empty/stale in session mode (the admin read is
+    # no-fanout by design and never folds on-read). The scheduler is its own
+    # guard: it starts ONLY in session mode (or when forced), and is test-disabled
+    # unless ATLAS_FLOW_ROLLUP_ENABLE=1 so pytest never spins the daemon. Interval
+    # is ATLAS_FLOW_ROLLUP_INTERVAL_S (default 30s). NOTE: the pre-existing
+    # runtime_usage_rollups had the SAME missing-trigger gap; this scheduler wires
+    # BOTH folds (run_rollup_pass) so both are populated.
+    try:
+        from core.runtime_rollup import start_rollup_scheduler as _start_flow_rollup
+        _flow_rollup_thread = _start_flow_rollup()
+        if _flow_rollup_thread is not None:
+            print("[atlas] Session Flow rollup scheduler started")
+    except Exception as _e:
+        print(f"[atlas] flow rollup scheduler not started: {_e}")
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 
@@ -9874,6 +9891,34 @@ def create_app():
                 return JSONResponse(build_admin_usage_payload(db))
         except Exception as e:
             print(f"api_admin_usage error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/admin/session-flow")
+    async def api_admin_session_flow(request: Request):
+        """Read-only Session Flow read-model: per-session flow state, risk, input/
+        LLM/worker/artifact counters, IP flow, and attribution gaps. Admin-only."""
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            with AtlasDB() as db:
+                from core.session_flow_usage import build_session_flow_payload
+                qp = request.query_params
+                payload = build_session_flow_payload(db, {
+                    "range": (qp.get("range") or "7d").strip(),
+                    "lens": (qp.get("lens") or "team_lead").strip(),
+                    "risk": (qp.get("risk") or "all").strip(),
+                    "ip_id": (qp.get("ip_id") or "").strip() or None,
+                    "workflow": (qp.get("workflow") or "").strip() or None,
+                    "user_id": (qp.get("user_id") or "").strip() or None,
+                    "session_id": (qp.get("session_id") or "").strip() or None,
+                    "limit": qp.get("limit"),
+                    "offset": qp.get("offset"),
+                })
+                # Plan response shape exposes the page window as `pagination`.
+                payload["pagination"] = payload.pop("limits", {})
+                return JSONResponse(payload)
+        except Exception as e:
+            print(f"api_admin_session_flow error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/api/admin/runtime")

@@ -55,6 +55,9 @@ _EXPECTED_TABLES = {
     "rtl_versions", "workflow_runs", "workflow_stages", "workflow_events",
     "workflow_todos", "todo_events",
     "trace_events", "llm_calls", "artifacts",
+    # Session Flow (Task 1)
+    "session_inputs", "worker_runs", "session_flow_events",
+    "session_flow_rollups", "ip_flow_rollups",
 }
 
 
@@ -78,7 +81,17 @@ _EXPECTED_INDEXES = {
     "idx_trace_events_correlation", "idx_trace_events_session",
     "idx_trace_events_chat_room",        # added 2026-05-15
     "idx_llm_calls_context", "idx_llm_calls_session", "idx_llm_calls_ip_created", "idx_llm_calls_todo",
+    "idx_llm_calls_worker_run",
     "idx_artifacts_run", "idx_artifacts_rtl_version",
+    # Session Flow (Task 1)
+    "idx_trace_events_worker_run",
+    "idx_session_inputs_session", "idx_session_inputs_ip",
+    "idx_worker_runs_session", "idx_worker_runs_status", "idx_worker_runs_ip",
+    "idx_session_flow_events_session", "idx_session_flow_events_ip",
+    "idx_session_flow_events_type",
+    "idx_session_flow_rollups_risk", "idx_session_flow_rollups_user",
+    "idx_session_flow_rollups_ip",
+    "idx_ip_flow_rollups_risk", "idx_ip_flow_rollups_workspace",
 }
 
 

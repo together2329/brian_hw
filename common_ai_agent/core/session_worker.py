@@ -1248,6 +1248,61 @@ def run_worker(session_id: str, db_path: str) -> int:
     except Exception as exc:
         worker.emit("error", {"message": f"QA callback registration failed: {exc}"})
 
+    # WP-1: open a worker_runs ledger row for this interactive session so its
+    # in-process LLM calls (react_loop) can be attributed to a worker run. Done
+    # here because run_worker() does NO DB worker-run write today. Best-effort —
+    # accounting must never block the worker from starting.
+    worker_run_id = ""
+    try:
+        wr = worker.db.start_worker_run(
+            session_id=session_id,
+            user_id=owner,
+            ip_id=ip,
+            workflow=workflow,
+            worker_kind="interactive",
+            worker_label="session_worker",
+            status="running",
+        )
+        worker_run_id = wr.get("id") or ""
+        if worker_run_id:
+            # Stamp it for the SAME-process accounting sites to read.
+            os.environ["ATLAS_WORKER_RUN_ID"] = worker_run_id
+            try:
+                worker.db.record_session_flow_event(
+                    event_type="worker.started",
+                    idempotency_key=f"worker-started:{worker_run_id}",
+                    session_id=session_id,
+                    user_id=owner,
+                    ip_id=ip,
+                    workflow=workflow,
+                    worker_run_id=worker_run_id,
+                    attribution_confidence="exact",
+                    payload={"worker_kind": "interactive"},
+                )
+            except Exception:
+                pass
+    except Exception:
+        worker_run_id = ""
+
+    def _close_worker_run(status: str) -> None:
+        if not worker_run_id:
+            return
+        try:
+            worker.db.finish_worker_run(worker_run_id, status=status)
+            worker.db.record_session_flow_event(
+                event_type="worker.stopped",
+                idempotency_key=f"worker-stopped:{worker_run_id}:{status}",
+                session_id=session_id,
+                user_id=owner,
+                ip_id=ip,
+                workflow=workflow,
+                worker_run_id=worker_run_id,
+                attribution_confidence="exact",
+                payload={"status": status},
+            )
+        except Exception:
+            pass
+
     try:
         worker.emit("worker_started", {"pid": os.getpid()})
         # Task 5 (Wave-3 line 271): fence ALL pending inbound rows left by a
@@ -1255,12 +1310,15 @@ def run_worker(session_id: str, db_path: str) -> int:
         # prompt can never drive the new worker.
         worker.fence_stale_startup_inputs()
         agent.chat_loop()
+        _close_worker_run("completed")
         return 0
     except KeyboardInterrupt:
         worker.emit("worker_stopped", {"reason": "signal"})
+        _close_worker_run("cancelled")
         return 0
     except Exception as exc:
         worker.emit("error", {"message": str(exc), "type": type(exc).__name__})
+        _close_worker_run("error")
         raise
     finally:
         worker.set_agent_running(False)

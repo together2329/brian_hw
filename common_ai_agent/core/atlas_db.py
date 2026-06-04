@@ -37,6 +37,92 @@ _IP_PERMISSION_LEVELS = {
 # write-time predicate that re-routes these to the control DB.
 _CONTROL_TRACE_EVENT_TYPES = frozenset({"chat_message", "chat_consumed"})
 
+# Session Flow attribution confidence enum (plan hard constraint). These are the
+# ONLY legal values for any *.attribution_confidence column. The DB layer
+# normalizes/validates against this set so a typo can never silently persist.
+_ATTRIBUTION_CONFIDENCE = frozenset({"exact", "inferred", "missing", "conflict"})
+
+# PS-1 raw-prompt write guard. session_flow_events.payload is a FREE-TEXT JSON
+# column; raw user prompt/answer/message text must NEVER land there. We enforce a
+# strict allowlist of payload keys: ids/counts/measurements/status/reason codes/
+# labels only. Any key not on this list is dropped before the row is written, so
+# a careless caller that passes payload={"text": prompt} cannot leak the prompt.
+_FLOW_PAYLOAD_ALLOWED_KEYS = frozenset({
+    # identifiers / linkage
+    "session_id", "user_id", "workspace_id", "ip_id", "ip", "workflow",
+    "workflow_run_id", "orchestrator_run_id", "stage_id", "worker_run_id",
+    "llm_call_id", "artifact_version_id", "artifact_id", "message_id",
+    "todo_id", "run_id", "source_ref_id", "job_id", "pipeline_id",
+    "pipeline_run_id",
+    # counts / measurements (NO raw text)
+    "input_count", "input_index", "char_count", "token_estimate",
+    "tokens_input", "tokens_output", "tokens_reasoning", "cost_usd",
+    "attempt", "count", "duration_ms",
+    # hashes (privacy-safe digests, not text)
+    "input_hash", "sha256", "sha256_tree",
+    # categorical / reason codes / labels (bounded vocab, not free prose)
+    "status", "severity", "reason", "missing_reason", "intent_type",
+    "source", "source_type", "attribution_confidence", "event_type",
+    "flow_state", "risk_level", "worker_kind", "worker_label", "call_role",
+    "model", "provider", "artifact_type", "kind", "version", "label",
+    "created_by_user_id", "source_session_id", "source_confidence",
+})
+
+# PS-1: max length for any short label-like free string we still allow through
+# (e.g. worker_label / task_label). Longer values are truncated so a prompt that
+# is mislabeled as a "label" still cannot be reconstructed from the flow tables.
+_FLOW_SUMMARY_MAX_LEN = 120
+
+
+def _sanitize_flow_payload(payload: Any) -> Any:
+    """PS-1: strip any non-allowlisted key from a flow-event payload.
+
+    Only dict payloads can carry named free-text fields, so we filter those by
+    the :data:`_FLOW_PAYLOAD_ALLOWED_KEYS` allowlist (dropping unknown keys
+    entirely — fail-closed). Non-dict payloads (None / scalars) pass through
+    unchanged; the helper callers in Task 2 only ever pass dicts of ids/counts.
+    """
+    if not isinstance(payload, dict):
+        return payload
+    clean: Dict[str, Any] = {}
+    for key, value in payload.items():
+        if key not in _FLOW_PAYLOAD_ALLOWED_KEYS:
+            continue
+        # Truncate any allowed string defensively so a mis-bucketed long value
+        # (e.g. a prompt squeezed into "label") cannot survive intact.
+        if isinstance(value, str) and len(value) > _FLOW_SUMMARY_MAX_LEN:
+            value = value[:_FLOW_SUMMARY_MAX_LEN]
+        clean[key] = value
+    return clean
+
+
+def _truncate_summary(text: str) -> str:
+    """PS-1: clamp a worker-run summary/label to a short, non-prose length."""
+    if not text:
+        return text
+    s = str(text)
+    return s[:_FLOW_SUMMARY_MAX_LEN]
+
+
+def _norm_attribution_confidence(value: Optional[str]) -> Optional[str]:
+    """Normalize an attribution_confidence value to the legal enum or None.
+
+    Empty/None -> None (column nullable). A non-empty value MUST be one of
+    ``exact | inferred | missing | conflict`` or this raises — write-path bugs
+    that would persist an out-of-enum confidence fail loud instead of silently.
+    """
+    if value is None:
+        return None
+    text = str(value).strip().lower()
+    if text == "":
+        return None
+    if text not in _ATTRIBUTION_CONFIDENCE:
+        raise ValueError(
+            f"attribution_confidence must be one of {sorted(_ATTRIBUTION_CONFIDENCE)}, "
+            f"got {value!r}"
+        )
+    return text
+
 
 class QueueCursorNotFound(LookupError):
     """A poll ``since_id`` cursor is absent from THIS database (plan §2.4 / R5).
@@ -65,6 +151,105 @@ class QueueCursorNotFound(LookupError):
 # ============================================================
 # Schema
 # ============================================================
+
+# Session Flow tables that exist in BOTH the control DB (full schema) and each
+# per-session runtime DB (runtime subset). Workers write session_inputs /
+# worker_runs / session_flow_events into their runtime file; the control DB
+# folds them into the *_flow_rollups (Task 7). One source-of-truth fragment so
+# the column lists can never drift between SCHEMA_SQL and RUNTIME_SCHEMA_SQL.
+#
+# Privacy (plan hard constraint): session_inputs and session_flow_events.payload
+# store NO raw prompt/answer/message text — only ids, counts, char_count,
+# token_estimate, input_hash, status, and reason codes.
+#
+# Idempotency (DM-3): dedupe is DB-ENFORCED via UNIQUE keys, not Python scans.
+#   - session_inputs: UNIQUE(session_id, source, source_ref_id)
+#   - session_flow_events: UNIQUE(idempotency_key)
+# Helper methods INSERT ... ON CONFLICT DO NOTHING against these keys.
+_SESSION_FLOW_SHARED_SQL = """
+-- session_inputs (authoritative user-input ledger; NO raw prompt text)
+CREATE TABLE IF NOT EXISTS session_inputs (
+    id TEXT PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    user_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    source TEXT NOT NULL,
+    source_ref_id TEXT NOT NULL,
+    input_index INTEGER,
+    char_count INTEGER NOT NULL DEFAULT 0,
+    token_estimate INTEGER NOT NULL DEFAULT 0,
+    intent_type TEXT,
+    input_hash TEXT,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
+    created_at REAL,
+    UNIQUE(session_id, source, source_ref_id)
+);
+CREATE INDEX IF NOT EXISTS idx_session_inputs_session
+    ON session_inputs(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_session_inputs_ip
+    ON session_inputs(ip_id, created_at);
+
+-- worker_runs (first-class worker ledger linking workflow/orchestrator/LLM)
+CREATE TABLE IF NOT EXISTS worker_runs (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    user_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    worker_id TEXT,
+    worker_kind TEXT,
+    worker_label TEXT,
+    workflow_run_id TEXT,
+    orchestrator_run_id TEXT,
+    status TEXT,
+    started_at REAL,
+    ended_at REAL,
+    duration_ms REAL,
+    task_label TEXT,
+    output_summary TEXT,
+    error_summary TEXT,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_worker_runs_session
+    ON worker_runs(session_id, started_at);
+CREATE INDEX IF NOT EXISTS idx_worker_runs_status
+    ON worker_runs(status, updated_at);
+CREATE INDEX IF NOT EXISTS idx_worker_runs_ip
+    ON worker_runs(ip_id, workflow, started_at);
+
+-- session_flow_events (append-only flow lineage; NO raw prompt text in payload)
+CREATE TABLE IF NOT EXISTS session_flow_events (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    user_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    workflow TEXT,
+    workflow_run_id TEXT,
+    stage_id TEXT,
+    worker_run_id TEXT,
+    llm_call_id TEXT,
+    artifact_version_id TEXT,
+    event_type TEXT NOT NULL,
+    severity TEXT,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
+    idempotency_key TEXT UNIQUE,
+    payload TEXT,
+    created_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_session_flow_events_session
+    ON session_flow_events(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_session_flow_events_ip
+    ON session_flow_events(ip_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_session_flow_events_type
+    ON session_flow_events(event_type, created_at);
+"""
 
 SCHEMA_SQL = """
 -- users
@@ -124,7 +309,13 @@ CREATE TABLE IF NOT EXISTS sessions (
     created_at REAL,
     updated_at REAL,
     archived_at REAL,
-    summary TEXT
+    summary TEXT,
+    objective TEXT,
+    flow_state TEXT,
+    success_condition TEXT,
+    completed_at REAL,
+    abandoned_at REAL,
+    last_flow_event_at REAL
 );
 CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id, status);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_uid
@@ -284,6 +475,10 @@ CREATE TABLE IF NOT EXISTS ip_blocks (
     status TEXT DEFAULT 'active',
     created_at REAL,
     updated_at REAL,
+    created_by_user_id TEXT,
+    source_session_id TEXT,
+    source_type TEXT,
+    source_confidence TEXT,
     UNIQUE(workspace_id, ip_name)
 );
 CREATE INDEX IF NOT EXISTS idx_ip_blocks_workspace ON ip_blocks(workspace_id, ip_name);
@@ -319,6 +514,10 @@ CREATE TABLE IF NOT EXISTS artifact_versions (
     status TEXT DEFAULT 'active',
     source_run_id TEXT,
     source_stage_id TEXT,
+    source_session_id TEXT,
+    source_worker_run_id TEXT,
+    source_llm_call_id TEXT,
+    attribution_confidence TEXT,
     metadata TEXT,
     created_at REAL,
     UNIQUE(ip_id, artifact_type, version)
@@ -487,6 +686,10 @@ CREATE TABLE IF NOT EXISTS trace_events (
     correlation_id TEXT,
     causation_id TEXT,
     idempotency_key TEXT UNIQUE,
+    worker_run_id TEXT,
+    severity TEXT,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
     payload TEXT,
     created_at REAL
 );
@@ -494,6 +697,7 @@ CREATE INDEX IF NOT EXISTS idx_trace_events_context ON trace_events(workspace_id
 CREATE INDEX IF NOT EXISTS idx_trace_events_run ON trace_events(run_id, stage_id, todo_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_correlation ON trace_events(correlation_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_session ON trace_events(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_worker_run ON trace_events(worker_run_id, created_at);
 -- Chat read path: list_chat_messages and list_chat_unconsumed_for both
 -- filter on (event_type, ip_id) and order by created_at. Without this
 -- index sqlite does a full scan + temp B-tree sort, which becomes the
@@ -526,6 +730,9 @@ CREATE TABLE IF NOT EXISTS llm_calls (
     latency_ms REAL,
     status TEXT,
     error_type TEXT,
+    worker_run_id TEXT,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
     created_at REAL,
     completed_at REAL
 );
@@ -533,6 +740,7 @@ CREATE INDEX IF NOT EXISTS idx_llm_calls_context ON llm_calls(workspace_id, ip_i
 CREATE INDEX IF NOT EXISTS idx_llm_calls_session ON llm_calls(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_ip_created ON llm_calls(ip_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_todo ON llm_calls(todo_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_llm_calls_worker_run ON llm_calls(worker_run_id, created_at);
 
 -- artifacts (metadata/pointers only; content remains in filesystem/git/object storage)
 CREATE TABLE IF NOT EXISTS artifacts (
@@ -693,6 +901,101 @@ CREATE INDEX IF NOT EXISTS idx_runtime_db_audit_session
     ON runtime_db_audit(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_runtime_db_audit_action
     ON runtime_db_audit(action, created_at);
+""" + _SESSION_FLOW_SHARED_SQL + """
+-- ============================================================
+-- Session Flow control-only rollups (NOT in runtime subset)
+-- ============================================================
+
+-- session_flow_rollups (one CONTROL-DB row per session: recomputable read model)
+-- DM-2: additive COUNTERS (input_*, llm_*, worker_*, workflow_*, artifact_*,
+-- queue_*, attribution_gap_count) are folded by SUMMING runtime source rows and
+-- are safe to high-water increment. The STATE columns (flow_state, risk_level,
+-- stale_age_s, rollup_status) are NON-additive: they are RECOMPUTED-FROM-LATEST
+-- in Task 7, NEVER summed. Keep the two groups visually separate so the fold
+-- logic never accidentally adds a state column.
+CREATE TABLE IF NOT EXISTS session_flow_rollups (
+    session_id TEXT PRIMARY KEY,
+    session_uid TEXT,
+    user_id TEXT,
+    workspace_id TEXT,
+    ip_id TEXT,
+    ip TEXT,
+    workflow TEXT,
+    -- additive counters (summed when folding runtime source rows)
+    input_count INTEGER NOT NULL DEFAULT 0,
+    input_chars INTEGER NOT NULL DEFAULT 0,
+    input_tokens_est INTEGER NOT NULL DEFAULT 0,
+    llm_attempts INTEGER NOT NULL DEFAULT 0,
+    llm_success INTEGER NOT NULL DEFAULT 0,
+    llm_errors INTEGER NOT NULL DEFAULT 0,
+    tokens_input INTEGER NOT NULL DEFAULT 0,
+    tokens_output INTEGER NOT NULL DEFAULT 0,
+    tokens_reasoning INTEGER NOT NULL DEFAULT 0,
+    cost_usd REAL NOT NULL DEFAULT 0,
+    worker_runs INTEGER NOT NULL DEFAULT 0,
+    active_workers INTEGER NOT NULL DEFAULT 0,
+    failed_workers INTEGER NOT NULL DEFAULT 0,
+    workflow_runs INTEGER NOT NULL DEFAULT 0,
+    workflow_errors INTEGER NOT NULL DEFAULT 0,
+    artifact_count INTEGER NOT NULL DEFAULT 0,
+    queue_in INTEGER NOT NULL DEFAULT 0,
+    queue_out INTEGER NOT NULL DEFAULT 0,
+    attribution_gap_count INTEGER NOT NULL DEFAULT 0,
+    -- non-additive STATE (recomputed-from-latest in Task 7, never summed)
+    flow_state TEXT,
+    risk_level TEXT,
+    stale_age_s REAL,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
+    rollup_status TEXT NOT NULL DEFAULT 'ok',
+    rollup_lag_s REAL,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_session_flow_rollups_risk
+    ON session_flow_rollups(risk_level, updated_at);
+CREATE INDEX IF NOT EXISTS idx_session_flow_rollups_user
+    ON session_flow_rollups(user_id, updated_at);
+CREATE INDEX IF NOT EXISTS idx_session_flow_rollups_ip
+    ON session_flow_rollups(ip_id, workflow, updated_at);
+-- attribution filter (plan Task 7 "attribution confidence/missing reason") +
+-- range windowing on updated_at.
+CREATE INDEX IF NOT EXISTS idx_session_flow_rollups_attribution
+    ON session_flow_rollups(attribution_confidence, missing_reason);
+CREATE INDEX IF NOT EXISTS idx_session_flow_rollups_updated
+    ON session_flow_rollups(updated_at);
+
+-- ip_flow_rollups (one CONTROL-DB row per IP: recomputable read model)
+-- Same DM-2 split: additive counters vs non-additive provenance/state.
+CREATE TABLE IF NOT EXISTS ip_flow_rollups (
+    ip_id TEXT PRIMARY KEY,
+    workspace_id TEXT,
+    ip TEXT,
+    -- non-additive provenance/state (recomputed-from-latest, never summed)
+    created_by_user_id TEXT,
+    source_session_id TEXT,
+    source_type TEXT,
+    source_confidence TEXT,
+    ip_created_at REAL,
+    risk_level TEXT,
+    -- additive counters
+    sessions INTEGER NOT NULL DEFAULT 0,
+    active_sessions INTEGER NOT NULL DEFAULT 0,
+    workflows INTEGER NOT NULL DEFAULT 0,
+    worker_runs INTEGER NOT NULL DEFAULT 0,
+    artifact_count INTEGER NOT NULL DEFAULT 0,
+    llm_attempts INTEGER NOT NULL DEFAULT 0,
+    cost_usd REAL NOT NULL DEFAULT 0,
+    problem_count INTEGER NOT NULL DEFAULT 0,
+    rollup_status TEXT NOT NULL DEFAULT 'ok',
+    rollup_lag_s REAL,
+    created_at REAL,
+    updated_at REAL
+);
+CREATE INDEX IF NOT EXISTS idx_ip_flow_rollups_risk
+    ON ip_flow_rollups(risk_level, updated_at);
+CREATE INDEX IF NOT EXISTS idx_ip_flow_rollups_workspace
+    ON ip_flow_rollups(workspace_id, updated_at);
 """
 
 # Runtime-only schema subset.
@@ -787,6 +1090,10 @@ CREATE TABLE IF NOT EXISTS trace_events (
     correlation_id TEXT,
     causation_id TEXT,
     idempotency_key TEXT UNIQUE,
+    worker_run_id TEXT,
+    severity TEXT,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
     payload TEXT,
     created_at REAL
 );
@@ -794,6 +1101,7 @@ CREATE INDEX IF NOT EXISTS idx_trace_events_context ON trace_events(workspace_id
 CREATE INDEX IF NOT EXISTS idx_trace_events_run ON trace_events(run_id, stage_id, todo_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_correlation ON trace_events(correlation_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_session ON trace_events(session_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_trace_events_worker_run ON trace_events(worker_run_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_trace_events_chat_room
   ON trace_events(event_type, ip_id, created_at);
 
@@ -822,6 +1130,9 @@ CREATE TABLE IF NOT EXISTS llm_calls (
     latency_ms REAL,
     status TEXT,
     error_type TEXT,
+    worker_run_id TEXT,
+    attribution_confidence TEXT,
+    missing_reason TEXT,
     created_at REAL,
     completed_at REAL
 );
@@ -829,7 +1140,8 @@ CREATE INDEX IF NOT EXISTS idx_llm_calls_context ON llm_calls(workspace_id, ip_i
 CREATE INDEX IF NOT EXISTS idx_llm_calls_session ON llm_calls(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_ip_created ON llm_calls(ip_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_llm_calls_todo ON llm_calls(todo_id, created_at);
-"""
+CREATE INDEX IF NOT EXISTS idx_llm_calls_worker_run ON llm_calls(worker_run_id, created_at);
+""" + _SESSION_FLOW_SHARED_SQL
 
 # Columns that should be serialized as JSON on write / deserialized on read
 _JSON_COLUMNS = {
@@ -854,6 +1166,13 @@ _JSON_COLUMNS = {
         "evidence_read_json",
         "retry_budget_state_json",
     },
+    # Session Flow (Task 1). session_flow_events.payload is JSON-serialized and
+    # holds ONLY ids/counts/reason codes — never raw prompt text (privacy gate).
+    "session_inputs": set(),
+    "worker_runs": set(),
+    "session_flow_events": {"payload"},
+    "session_flow_rollups": set(),
+    "ip_flow_rollups": set(),
 }
 
 
@@ -1106,6 +1425,18 @@ class AtlasDB:
                 return
             conn = self._connect()
             if self._schema_set == "runtime":
+                # B1: RUNTIME_SCHEMA_SQL uses CREATE TABLE IF NOT EXISTS, so new
+                # COLUMNS added to llm_calls/trace_events never apply to a
+                # PRE-EXISTING runtime DB file. The control-only
+                # _run_lightweight_migrations is skipped on the runtime path, so
+                # without this an INSERT referencing the new columns would raise
+                # sqlite3.OperationalError. Run the runtime-scoped additive
+                # migration BEFORE the idempotent DDL — RUNTIME_SCHEMA_SQL now
+                # has indexes on the new columns (e.g. idx_trace_events_worker_run),
+                # and those indexes cannot attach to a legacy table that still
+                # lacks the column. _run_runtime_migrations only ALTERs tables
+                # that already exist, so it is a no-op on a brand-new runtime DB.
+                self._run_runtime_migrations(conn)
                 conn.executescript(RUNTIME_SCHEMA_SQL)
             else:
                 self._preflight_legacy_schema(conn)
@@ -1262,6 +1593,12 @@ class AtlasDB:
             for column, definition in columns.items():
                 ensure_if_exists(table, column, definition)
 
+        # Session Flow (Task 1): SCHEMA_SQL adds indexes on new columns
+        # (idx_trace_events_worker_run, idx_llm_calls_worker_run), which cannot
+        # attach to a legacy table that still lacks the column. Add the additive
+        # Session Flow columns here, BEFORE the idempotent DDL runs.
+        self._ensure_session_flow_columns(conn)
+
         # Older DBs may have run/workflow tables but not the generic artifact
         # lineage tables. They are created by SCHEMA_SQL after this preflight, so
         # no column backfill is needed here for those brand-new tables.
@@ -1282,6 +1619,13 @@ class AtlasDB:
             "ip": "TEXT",
             "workflow": "TEXT",
             "session_kind": "TEXT DEFAULT 'chat'",
+            # Session Flow (Task 1)
+            "objective": "TEXT",
+            "flow_state": "TEXT",
+            "success_condition": "TEXT",
+            "completed_at": "REAL",
+            "abandoned_at": "REAL",
+            "last_flow_event_at": "REAL",
         }
         for column, definition in session_columns.items():
             self._ensure_column(conn, "sessions", column, definition)
@@ -1413,6 +1757,69 @@ class AtlasDB:
             """CREATE INDEX IF NOT EXISTS idx_custom_agents_updated
                   ON custom_agents(updated_at)"""
         )
+        # Session Flow (Task 1) additive columns on EXISTING control tables.
+        # New flow tables (session_inputs, worker_runs, session_flow_events,
+        # session_flow_rollups, ip_flow_rollups) are created by SCHEMA_SQL
+        # (CREATE IF NOT EXISTS) so they need no column backfill here.
+        self._ensure_session_flow_columns(conn)
+
+    def _ensure_session_flow_columns(self, conn: sqlite3.Connection) -> None:
+        """Add Session Flow additive columns to existing tables (idempotent).
+
+        Shared by the FULL legacy-migration path and the runtime-migration path
+        (B1) so the column lists can never drift. _ensure_column only ALTERs a
+        table that already exists and only adds a column that is missing.
+        """
+        session_flow_columns = {
+            "ip_blocks": {
+                "created_by_user_id": "TEXT",
+                "source_session_id": "TEXT",
+                "source_type": "TEXT",
+                "source_confidence": "TEXT",
+            },
+            "artifact_versions": {
+                "source_session_id": "TEXT",
+                "source_worker_run_id": "TEXT",
+                "source_llm_call_id": "TEXT",
+                "attribution_confidence": "TEXT",
+            },
+            "llm_calls": {
+                "worker_run_id": "TEXT",
+                "attribution_confidence": "TEXT",
+                "missing_reason": "TEXT",
+            },
+            "trace_events": {
+                "worker_run_id": "TEXT",
+                "severity": "TEXT",
+                "attribution_confidence": "TEXT",
+                "missing_reason": "TEXT",
+            },
+        }
+
+        def table_exists(table: str) -> bool:
+            return bool(conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+                (table,),
+            ).fetchone())
+
+        for table, columns in session_flow_columns.items():
+            if not table_exists(table):
+                continue
+            for column, definition in columns.items():
+                self._ensure_column(conn, table, column, definition)
+
+    def _run_runtime_migrations(self, conn: sqlite3.Connection) -> None:
+        """Apply additive migrations needed on EXISTING runtime DB files (B1).
+
+        RUNTIME_SCHEMA_SQL uses ``CREATE TABLE IF NOT EXISTS``, so new COLUMNS on
+        the runtime llm_calls/trace_events tables never apply to a runtime file
+        that predates them — and the runtime branch of init_db() does NOT run
+        ``_run_lightweight_migrations`` (control-only). Without this, an INSERT
+        referencing e.g. ``llm_calls.worker_run_id`` raises OperationalError on a
+        legacy runtime DB. The new flow tables are fine via CREATE IF NOT EXISTS;
+        only EXISTING runtime tables need column backfill, which this provides.
+        """
+        self._ensure_session_flow_columns(conn)
 
     @staticmethod
     def _ensure_column(
@@ -2091,8 +2498,27 @@ class AtlasDB:
         user_id: str,
         title: str,
         project_id: str = "",
+        *,
+        namespace: str = "",
+        owner: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        ip: str = "",
+        workflow: str = "",
+        session_kind: str = "chat",
+        objective: str = "",
+        success_condition: str = "",
     ) -> Dict[str, Any]:
-        """Create a new session. Returns the session dict."""
+        """Create a new session. Returns the session dict.
+
+        The keyword-only metadata params are additive (Task 2): existing
+        positional callers ``create_session(user_id, title, project_id)`` stay
+        valid. When provided they seed the Session Flow dimensions (namespace,
+        owner, ip, workflow, kind, objective, success_condition) directly on the
+        row so the flow read model has exact attribution from the first write.
+        A ``session.created`` flow event is emitted (best-effort) so the
+        dashboard can place the session at the head of its funnel.
+        """
         session_id = self._new_id()
         session_uid = self._new_id()
         now = self._now()
@@ -2100,33 +2526,75 @@ class AtlasDB:
         self._execute(
             """
             INSERT INTO sessions
-            (id, session_uid, user_id, project_id, session_kind, directory, title, status, created_at, updated_at, archived_at, summary)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (id, session_uid, user_id, namespace, owner, project_id, workspace_id,
+             ip_id, ip, workflow, session_kind, directory, title, status,
+             objective, success_condition, flow_state,
+             created_at, updated_at, archived_at, summary)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 session_id,
                 session_uid,
                 user_id,
+                namespace,
+                owner,
                 project_id,
-                "chat",
+                workspace_id,
+                ip_id,
+                ip,
+                workflow,
+                session_kind or "chat",
                 directory,
                 title,
                 "active",
+                objective,
+                success_condition,
+                "created",
                 now,
                 now,
                 None,
                 None,
             ),
         )
+        # Emit the head-of-funnel flow event. Accounting writes must never break
+        # the user's actual workflow (Task 2 hard constraint), so guard it.
+        try:
+            self.record_session_flow_event(
+                event_type="session.created",
+                idempotency_key=f"session-created:{session_id}",
+                session_id=session_id,
+                user_id=user_id,
+                workspace_id=workspace_id,
+                ip_id=ip_id,
+                workflow=workflow,
+                attribution_confidence="exact",
+                payload={
+                    "session_id": session_id,
+                    "user_id": user_id,
+                    "session_kind": session_kind or "chat",
+                    "flow_state": "created",
+                },
+            )
+        except Exception:
+            pass
         return {
             "id": session_id,
             "session_uid": session_uid,
             "user_id": user_id,
+            "namespace": namespace,
+            "owner": owner,
             "project_id": project_id,
-            "session_kind": "chat",
+            "workspace_id": workspace_id,
+            "ip_id": ip_id,
+            "ip": ip,
+            "workflow": workflow,
+            "session_kind": session_kind or "chat",
             "directory": directory,
             "title": title,
             "status": "active",
+            "objective": objective,
+            "success_condition": success_condition,
+            "flow_state": "created",
             "created_at": now,
             "updated_at": now,
             "archived_at": None,
@@ -2909,6 +3377,249 @@ class AtlasDB:
                 conn.rollback()
                 raise
         return self.get_runtime_usage_rollup(session_id) or {}
+
+    # Additive counter columns of session_flow_rollups that the runtime fold
+    # SUMS (DM-2). The STATE columns (flow_state/risk_level/stale_age_s/
+    # attribution_confidence/missing_reason/rollup_status/rollup_lag_s) are
+    # NON-additive and are passed in ``state`` to be OVERWRITTEN, never summed.
+    _SESSION_FLOW_COUNTERS = (
+        "input_count", "input_chars", "input_tokens_est",
+        "llm_attempts", "llm_success", "llm_errors",
+        "tokens_input", "tokens_output", "tokens_reasoning", "cost_usd",
+        "worker_runs", "active_workers", "failed_workers",
+        "workflow_runs", "workflow_errors",
+        "artifact_count", "queue_in", "queue_out",
+        "attribution_gap_count",
+    )
+
+    def fold_session_flow_rollup(
+        self,
+        session_id: str,
+        *,
+        deltas: Optional[Dict[str, Any]] = None,
+        absolutes: Optional[Dict[str, Any]] = None,
+        offsets: Optional[Dict[str, int]] = None,
+        identity: Optional[Dict[str, Any]] = None,
+        state: Optional[Dict[str, Any]] = None,
+        status: str = "ok",
+        rollup_lag_s: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Atomically fold one session's flow rollup AND advance its offsets.
+
+        Task 7 / RS-2. This is the exactly-once fold for ``session_flow_rollups``
+        modeled on :meth:`fold_runtime_usage_rollup`: the additive counter write
+        AND the high-water advances to ``runtime_rollup_offsets`` (keyed by the new
+        ``flow:`` source_table keys) happen in ONE control-DB transaction. A crash
+        before the commit leaves BOTH untouched, so the next run re-reads the same
+        slice and folds it exactly once — no double-count.
+
+        ``deltas`` carries additive counters ADDED to the existing row (append-only
+        incremental case — runtime flow rows are append-only, so this is the normal
+        path). ``absolutes`` carries counters that OVERWRITE just those columns
+        (used only if a runtime flow table is ever drained/rowid-reused). A column
+        in ``absolutes`` wins over the same column in ``deltas``.
+
+        ``state`` carries the NON-additive STATE columns (flow_state, risk_level,
+        stale_age_s, attribution_confidence, missing_reason) RECOMPUTED-from-latest
+        by the caller (DM-2) — these OVERWRITE, never sum. ``identity`` sets the
+        descriptive columns (session_uid/user_id/workspace_id/ip_id/ip/workflow).
+        ``offsets`` maps ``source_table -> new last_rowid`` (written directly so a
+        recount can reset DOWN). ``status``/``rollup_lag_s`` are set absolutely.
+        """
+        deltas = deltas or {}
+        absolutes = absolutes or {}
+        offsets = offsets or {}
+        identity = identity or {}
+        state = state or {}
+        now = self._now()
+        counters = self._SESSION_FLOW_COUNTERS
+
+        def _num(value: Any) -> float:
+            try:
+                return float(value or 0)
+            except (TypeError, ValueError):
+                return 0.0
+
+        with self._lock:
+            conn = self._connect()
+            try:
+                conn.execute("BEGIN IMMEDIATE")
+                existing = conn.execute(
+                    "SELECT * FROM session_flow_rollups WHERE session_id = ?",
+                    (session_id,),
+                ).fetchone()
+                base = dict(existing) if existing is not None else {}
+                merged: Dict[str, Any] = {}
+                for col in counters:
+                    if col in absolutes:
+                        merged[col] = _num(absolutes.get(col))
+                    else:
+                        merged[col] = _num(base.get(col)) + _num(deltas.get(col))
+                for col in counters:
+                    if col != "cost_usd":
+                        merged[col] = int(round(merged[col]))
+
+                ident_cols = ("session_uid", "user_id", "workspace_id",
+                              "ip_id", "ip", "workflow")
+                ident = {c: identity.get(c, base.get(c)) for c in ident_cols}
+
+                state_cols = ("flow_state", "risk_level", "stale_age_s",
+                              "attribution_confidence", "missing_reason")
+                st = {}
+                for c in state_cols:
+                    val = state.get(c, base.get(c))
+                    if c == "attribution_confidence":
+                        val = _norm_attribution_confidence(val) if val else val
+                    st[c] = val
+
+                created_at = base.get("created_at") or now
+                conn.execute(
+                    """
+                    INSERT INTO session_flow_rollups
+                        (session_id, session_uid, user_id, workspace_id, ip_id, ip,
+                         workflow, input_count, input_chars, input_tokens_est,
+                         llm_attempts, llm_success, llm_errors, tokens_input,
+                         tokens_output, tokens_reasoning, cost_usd, worker_runs,
+                         active_workers, failed_workers, workflow_runs,
+                         workflow_errors, artifact_count, queue_in, queue_out,
+                         attribution_gap_count, flow_state, risk_level, stale_age_s,
+                         attribution_confidence, missing_reason, rollup_status,
+                         rollup_lag_s, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(session_id) DO UPDATE SET
+                        session_uid = excluded.session_uid,
+                        user_id = excluded.user_id,
+                        workspace_id = excluded.workspace_id,
+                        ip_id = excluded.ip_id,
+                        ip = excluded.ip,
+                        workflow = excluded.workflow,
+                        input_count = excluded.input_count,
+                        input_chars = excluded.input_chars,
+                        input_tokens_est = excluded.input_tokens_est,
+                        llm_attempts = excluded.llm_attempts,
+                        llm_success = excluded.llm_success,
+                        llm_errors = excluded.llm_errors,
+                        tokens_input = excluded.tokens_input,
+                        tokens_output = excluded.tokens_output,
+                        tokens_reasoning = excluded.tokens_reasoning,
+                        cost_usd = excluded.cost_usd,
+                        worker_runs = excluded.worker_runs,
+                        active_workers = excluded.active_workers,
+                        failed_workers = excluded.failed_workers,
+                        workflow_runs = excluded.workflow_runs,
+                        workflow_errors = excluded.workflow_errors,
+                        artifact_count = excluded.artifact_count,
+                        queue_in = excluded.queue_in,
+                        queue_out = excluded.queue_out,
+                        attribution_gap_count = excluded.attribution_gap_count,
+                        flow_state = excluded.flow_state,
+                        risk_level = excluded.risk_level,
+                        stale_age_s = excluded.stale_age_s,
+                        attribution_confidence = excluded.attribution_confidence,
+                        missing_reason = excluded.missing_reason,
+                        rollup_status = excluded.rollup_status,
+                        rollup_lag_s = excluded.rollup_lag_s,
+                        updated_at = excluded.updated_at
+                    """,
+                    (
+                        session_id, ident["session_uid"], ident["user_id"],
+                        ident["workspace_id"], ident["ip_id"], ident["ip"],
+                        ident["workflow"],
+                        merged["input_count"], merged["input_chars"],
+                        merged["input_tokens_est"], merged["llm_attempts"],
+                        merged["llm_success"], merged["llm_errors"],
+                        merged["tokens_input"], merged["tokens_output"],
+                        merged["tokens_reasoning"], merged["cost_usd"],
+                        merged["worker_runs"], merged["active_workers"],
+                        merged["failed_workers"], merged["workflow_runs"],
+                        merged["workflow_errors"], merged["artifact_count"],
+                        merged["queue_in"], merged["queue_out"],
+                        merged["attribution_gap_count"],
+                        st["flow_state"], st["risk_level"], st["stale_age_s"],
+                        st["attribution_confidence"], st["missing_reason"],
+                        status, rollup_lag_s, created_at, now,
+                    ),
+                )
+                for source_table, new_offset in offsets.items():
+                    conn.execute(
+                        """
+                        INSERT INTO runtime_rollup_offsets
+                            (session_id, source_table, last_rowid, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        ON CONFLICT(session_id, source_table) DO UPDATE SET
+                            last_rowid = excluded.last_rowid,
+                            updated_at = excluded.updated_at
+                        """,
+                        (session_id, source_table, int(new_offset or 0), now),
+                    )
+                conn.commit()
+            except Exception:
+                conn.rollback()
+                raise
+        rows = self.list_session_flow_rollups(session_id=session_id)
+        return rows[0] if rows else {}
+
+    def mark_session_flow_rollup_status(
+        self,
+        session_id: str,
+        *,
+        status: str,
+        rollup_lag_s: Optional[float] = None,
+        identity: Optional[Dict[str, Any]] = None,
+        state: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Set status/lag (+ optional identity/state) on a session_flow_rollups row
+        WITHOUT changing counters.
+
+        Used when a runtime DB is MISSING or corrupt: the existing aggregate (if
+        any) is preserved, but the row is flipped to ``rollup_status='stale'`` /
+        ``'error'`` and ``rollup_lag_s`` records how long it has been unreadable,
+        so a reader surfaces a non-silent staleness signal (DM-2 / Task 7 freshness)
+        instead of a false-empty. Creates a zero-count row if none exists yet.
+        """
+        identity = identity or {}
+        state = state or {}
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            existing = conn.execute(
+                "SELECT session_id, created_at FROM session_flow_rollups "
+                "WHERE session_id = ?",
+                (session_id,),
+            ).fetchone()
+            if existing is None:
+                conn.execute(
+                    """
+                    INSERT INTO session_flow_rollups
+                        (session_id, session_uid, user_id, workspace_id, ip_id, ip,
+                         workflow, flow_state, risk_level, stale_age_s,
+                         attribution_confidence, missing_reason, rollup_status,
+                         rollup_lag_s, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        session_id, identity.get("session_uid"),
+                        identity.get("user_id"), identity.get("workspace_id"),
+                        identity.get("ip_id"), identity.get("ip"),
+                        identity.get("workflow"),
+                        state.get("flow_state"), state.get("risk_level"),
+                        state.get("stale_age_s"),
+                        state.get("attribution_confidence"),
+                        state.get("missing_reason"),
+                        status, rollup_lag_s, now, now,
+                    ),
+                )
+            else:
+                conn.execute(
+                    "UPDATE session_flow_rollups "
+                    "SET rollup_status = ?, updated_at = ?, rollup_lag_s = ? "
+                    "WHERE session_id = ?",
+                    (status, now, rollup_lag_s, session_id),
+                )
+            conn.commit()
+        rows = self.list_session_flow_rollups(session_id=session_id)
+        return rows[0] if rows else {}
 
     def mark_runtime_usage_rollup_status(
         self,
@@ -4010,8 +4721,21 @@ class AtlasDB:
         ssot_path: str = "",
         status: str = "active",
         ip_id: str = None,
+        *,
+        created_by_user_id: str = "",
+        source_session_id: str = "",
+        source_type: str = "",
+        source_confidence: str = "",
     ) -> Dict[str, Any]:
-        """Create or update an IP catalog row for a workspace."""
+        """Create or update an IP catalog row for a workspace.
+
+        WP-3: this is a hot-path upsert called from 11+ sites (incl.
+        ``TraceRecorder.from_env``). Provenance columns and the ``ip.created``
+        flow event are written ONLY on the INSERT branch — exactly once per IP.
+        The UPDATE branch must NOT overwrite existing provenance, so it uses
+        write-once COALESCE: a column already set stays put, an empty/NULL one
+        can be backfilled if a later caller supplies it.
+        """
         now = self._now()
         if ip_id:
             existing = self.get_ip_block(ip_id)
@@ -4026,23 +4750,64 @@ class AtlasDB:
 
         if existing is None:
             ip_id = ip_id or self._new_id()
+            confidence = _norm_attribution_confidence(source_confidence)
             self._execute(
                 """
                 INSERT INTO ip_blocks
-                (id, workspace_id, ip_name, ip_type, ssot_path, status, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (id, workspace_id, ip_name, ip_type, ssot_path, status,
+                 created_by_user_id, source_session_id, source_type,
+                 source_confidence, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                (ip_id, workspace_id, ip_name, ip_type, ssot_path, status, now, now),
+                (ip_id, workspace_id, ip_name, ip_type, ssot_path, status,
+                 created_by_user_id, source_session_id, source_type,
+                 confidence, now, now),
             )
+            # ip.created — exactly once, INSERT branch only, idempotency_key
+            # ip-created:{ip_id}. Best-effort: never break the caller's write.
+            try:
+                self.record_session_flow_event(
+                    event_type="ip.created",
+                    idempotency_key=f"ip-created:{ip_id}",
+                    session_id=source_session_id,
+                    user_id=created_by_user_id,
+                    workspace_id=workspace_id,
+                    ip_id=ip_id,
+                    attribution_confidence=source_confidence or "exact",
+                    payload={
+                        "ip_id": ip_id,
+                        "workspace_id": workspace_id,
+                        "source_type": source_type,
+                        "source_session_id": source_session_id,
+                        "created_by_user_id": created_by_user_id,
+                    },
+                )
+            except Exception:
+                pass
         else:
             ip_id = existing["id"]
+            # Write-once provenance: COALESCE keeps an already-set column; a
+            # currently-empty/NULL one is backfilled when a later caller knows
+            # it. NULLIF('') maps the default-empty param to NULL so it does not
+            # clobber a real prior value.
             self._execute(
                 """
                 UPDATE ip_blocks
-                   SET ip_type = ?, ssot_path = ?, status = ?, updated_at = ?
+                   SET ip_type = ?, ssot_path = ?, status = ?, updated_at = ?,
+                       created_by_user_id =
+                           COALESCE(NULLIF(created_by_user_id, ''), NULLIF(?, '')),
+                       source_session_id =
+                           COALESCE(NULLIF(source_session_id, ''), NULLIF(?, '')),
+                       source_type =
+                           COALESCE(NULLIF(source_type, ''), NULLIF(?, '')),
+                       source_confidence =
+                           COALESCE(NULLIF(source_confidence, ''), NULLIF(?, ''))
                  WHERE id = ?
                 """,
-                (ip_type, ssot_path, status, now, ip_id),
+                (ip_type, ssot_path, status, now,
+                 created_by_user_id, source_session_id, source_type,
+                 _norm_attribution_confidence(source_confidence) or "",
+                 ip_id),
             )
         return self.get_ip_block(ip_id)
 
@@ -4292,8 +5057,18 @@ class AtlasDB:
         git_tag: str = "",
         status: str = "active",
         metadata: Any = None,
+        source_session_id: str = "",
+        source_worker_run_id: str = "",
+        source_llm_call_id: str = "",
+        attribution_confidence: str = "",
     ) -> Dict[str, Any]:
-        """Register an immutable artifact snapshot such as SSOT, RTL, or TB."""
+        """Register an immutable artifact snapshot such as SSOT, RTL, or TB.
+
+        Task 2: the ``source_session_id`` / ``source_worker_run_id`` /
+        ``source_llm_call_id`` provenance columns link the artifact back to the
+        session/worker/LLM call that produced it, and an ``artifact.produced``
+        flow event is emitted (best-effort) so the dashboard funnel sees output.
+        """
         artifact_type = str(artifact_type or "").strip()
         version = str(version or "").strip()
         if not ip_id:
@@ -4304,13 +5079,16 @@ class AtlasDB:
             raise ValueError("version is required")
         artifact_version_id = self._new_id()
         now = self._now()
+        confidence = _norm_attribution_confidence(attribution_confidence)
         self._execute(
             """
             INSERT INTO artifact_versions
             (id, workspace_id, ip_id, artifact_type, version, label,
              root_path, primary_path, manifest, sha256_tree, git_commit,
-             git_tag, status, source_run_id, source_stage_id, metadata, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             git_tag, status, source_run_id, source_stage_id, metadata,
+             source_session_id, source_worker_run_id, source_llm_call_id,
+             attribution_confidence, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 artifact_version_id,
@@ -4329,9 +5107,35 @@ class AtlasDB:
                 source_run_id,
                 source_stage_id,
                 self._dump_json(metadata if metadata is not None else {}),
+                source_session_id,
+                source_worker_run_id,
+                source_llm_call_id,
+                confidence,
                 now,
             ),
         )
+        # artifact.produced flow event — best-effort; never break the artifact
+        # write. Idempotent on the artifact_version_id (one event per version).
+        try:
+            self.record_session_flow_event(
+                event_type="artifact.produced",
+                idempotency_key=f"artifact-produced:{artifact_version_id}",
+                session_id=source_session_id,
+                workspace_id=workspace_id,
+                ip_id=ip_id,
+                worker_run_id=source_worker_run_id,
+                llm_call_id=source_llm_call_id,
+                artifact_version_id=artifact_version_id,
+                attribution_confidence=attribution_confidence,
+                payload={
+                    "artifact_version_id": artifact_version_id,
+                    "artifact_type": artifact_type,
+                    "version": version,
+                    "ip_id": ip_id,
+                },
+            )
+        except Exception:
+            pass
         return self.get_artifact_version(artifact_version_id)
 
     def get_artifact_version(self, artifact_version_id: str) -> Optional[Dict[str, Any]]:
@@ -5118,6 +5922,10 @@ class AtlasDB:
         causation_id: str = "",
         idempotency_key: str = "",
         created_at: float = None,
+        worker_run_id: str = "",
+        severity: str = "",
+        attribution_confidence: str = "",
+        missing_reason: str = "",
     ) -> Dict[str, Any]:
         """Append a canonical trace event, returning an existing row for duplicate keys.
 
@@ -5151,6 +5959,10 @@ class AtlasDB:
                     causation_id=causation_id,
                     idempotency_key=idempotency_key,
                     created_at=created_at,
+                    worker_run_id=worker_run_id,
+                    severity=severity,
+                    attribution_confidence=attribution_confidence,
+                    missing_reason=missing_reason,
                 )
         key = str(idempotency_key or "").strip()
         if key:
@@ -5163,14 +5975,16 @@ class AtlasDB:
 
         event_id = self._new_id()
         now = created_at if created_at is not None else self._now()
+        confidence = _norm_attribution_confidence(attribution_confidence)
         self._execute(
             """
             INSERT INTO trace_events
             (id, event_type, session_id, workspace_id, ip_id, workflow, run_id,
              stage_id, todo_id, message_id, llm_call_id, artifact_id,
              actor_user_id, correlation_id, causation_id, idempotency_key,
+             worker_run_id, severity, attribution_confidence, missing_reason,
              payload, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 event_id,
@@ -5189,6 +6003,10 @@ class AtlasDB:
                 correlation_id,
                 causation_id,
                 key or None,
+                worker_run_id,
+                severity,
+                confidence,
+                missing_reason,
                 self._dump_json(payload),
                 now,
             ),
@@ -5443,6 +6261,9 @@ class AtlasDB:
         latency_ms: float = None,
         status: str = "ok",
         error_type: str = "",
+        worker_run_id: str = "",
+        attribution_confidence: str = "",
+        missing_reason: str = "",
         created_at: float = None,
         completed_at: float = None,
     ) -> Dict[str, Any]:
@@ -5450,6 +6271,10 @@ class AtlasDB:
         now = self._now()
         created = created_at or now
         completed = completed_at if completed_at is not None else now
+        # MINOR-2: route attribution_confidence through the shared normalizer so
+        # an out-of-enum value fails loud here exactly like every other flow
+        # write path (session_inputs / flow_events / rollups). Empty -> None.
+        confidence = _norm_attribution_confidence(attribution_confidence)
         self._execute(
             """
             INSERT INTO llm_calls
@@ -5457,8 +6282,9 @@ class AtlasDB:
              ip_id, workflow, model, provider, base_url_hash, call_role, attempt,
              tokens_input, tokens_output, tokens_reasoning, cache_read_tokens,
              cache_write_tokens, cost_usd, latency_ms, status, error_type,
+             worker_run_id, attribution_confidence, missing_reason,
              created_at, completed_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 call_id,
@@ -5484,6 +6310,9 @@ class AtlasDB:
                 latency_ms,
                 status,
                 error_type,
+                worker_run_id,
+                confidence,
+                missing_reason,
                 created,
                 completed,
             ),
@@ -5511,6 +6340,431 @@ class AtlasDB:
         else:
             rows = self._fetchall("SELECT * FROM llm_calls ORDER BY created_at ASC")
         return [dict(row) for row in rows]
+
+    # ---------- Session Flow (Task 1) ----------
+
+    def record_session_input(
+        self,
+        session_id: str,
+        *,
+        source: str,
+        source_ref_id: str = "",
+        user_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        input_index: Optional[int] = None,
+        char_count: int = 0,
+        token_estimate: int = 0,
+        intent_type: str = "",
+        input_hash: str = "",
+        attribution_confidence: str = "",
+        missing_reason: str = "",
+        created_at: float = None,
+    ) -> Dict[str, Any]:
+        """Record one authoritative user-input row.
+
+        Privacy: NO raw prompt text is stored — only counts/hash/reason codes.
+        Idempotency (DM-3): dedupe is DB-enforced by UNIQUE(session_id, source,
+        source_ref_id) via INSERT ... ON CONFLICT DO NOTHING — never a Python
+        full-table scan. ``source_ref_id`` is required to be a deterministic,
+        non-NULL value; when the caller has no natural ref we synthesize a stable
+        one from (session_id, source, input_index/char_count/hash) so replaying
+        the SAME logical input collapses to one row.
+        """
+        if not session_id:
+            raise ValueError("session_id required")
+        src = str(source or "").strip()
+        if not src:
+            raise ValueError("source required")
+        confidence = _norm_attribution_confidence(attribution_confidence)
+        ref = str(source_ref_id or "").strip()
+        if not ref:
+            # Synthesize a STABLE, deterministic ref so replays of the same
+            # logical input dedupe. Falls back through the most-specific
+            # available signal so distinct inputs stay distinct.
+            seed = input_hash or (
+                f"{input_index}" if input_index is not None else f"{char_count}:{token_estimate}"
+            )
+            ref = f"{session_id}:{src}:{seed}"
+        now = self._now()
+        created = created_at or now
+        input_id = self._new_id()
+        with self._lock:
+            conn = self._connect()
+            conn.execute(
+                """
+                INSERT INTO session_inputs
+                    (id, session_id, user_id, workspace_id, ip_id, workflow,
+                     source, source_ref_id, input_index, char_count,
+                     token_estimate, intent_type, input_hash,
+                     attribution_confidence, missing_reason, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(session_id, source, source_ref_id) DO NOTHING
+                """,
+                (
+                    input_id, session_id, user_id, workspace_id, ip_id, workflow,
+                    src, ref, input_index, int(char_count or 0),
+                    int(token_estimate or 0), intent_type, input_hash,
+                    confidence, missing_reason, created,
+                ),
+            )
+            conn.commit()
+            row = conn.execute(
+                """SELECT * FROM session_inputs
+                      WHERE session_id = ? AND source = ? AND source_ref_id = ?""",
+                (session_id, src, ref),
+            ).fetchone()
+        return self._row_to_dict(row, "session_inputs")
+
+    def start_worker_run(
+        self,
+        *,
+        session_id: str = "",
+        user_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        worker_id: str = "",
+        worker_kind: str = "",
+        worker_label: str = "",
+        workflow_run_id: str = "",
+        orchestrator_run_id: str = "",
+        status: str = "running",
+        task_label: str = "",
+        started_at: float = None,
+        worker_run_id: str = "",
+    ) -> Dict[str, Any]:
+        """Open a worker_runs ledger row. Returns the row dict.
+
+        ``worker_run_id`` is optional; pass one to make the open idempotent
+        (re-calling with the same id updates the existing row instead of
+        inserting a duplicate — used when a worker start event can replay).
+        """
+        now = self._now()
+        started = started_at or now
+        run_id = worker_run_id or self._new_id()
+        # PS-1: task_label is a free-text column — clamp it so no raw prompt text
+        # can be smuggled in via a label.
+        task_label = _truncate_summary(task_label)
+        with self._lock:
+            conn = self._connect()
+            conn.execute(
+                """
+                INSERT INTO worker_runs
+                    (id, session_id, user_id, workspace_id, ip_id, workflow,
+                     worker_id, worker_kind, worker_label, workflow_run_id,
+                     orchestrator_run_id, status, started_at, ended_at,
+                     duration_ms, task_label, output_summary, error_summary,
+                     created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    session_id = excluded.session_id,
+                    user_id = excluded.user_id,
+                    workspace_id = excluded.workspace_id,
+                    ip_id = excluded.ip_id,
+                    workflow = excluded.workflow,
+                    worker_id = excluded.worker_id,
+                    worker_kind = excluded.worker_kind,
+                    worker_label = excluded.worker_label,
+                    workflow_run_id = excluded.workflow_run_id,
+                    orchestrator_run_id = excluded.orchestrator_run_id,
+                    status = excluded.status,
+                    task_label = excluded.task_label,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    run_id, session_id, user_id, workspace_id, ip_id, workflow,
+                    worker_id, worker_kind, worker_label, workflow_run_id,
+                    orchestrator_run_id, status, started, None, None,
+                    task_label, None, None, now, now,
+                ),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT * FROM worker_runs WHERE id = ?", (run_id,)
+            ).fetchone()
+        return self._row_to_dict(row, "worker_runs")
+
+    def finish_worker_run(
+        self,
+        worker_run_id: str,
+        *,
+        status: str = "completed",
+        ended_at: float = None,
+        output_summary: str = "",
+        error_summary: str = "",
+    ) -> Optional[Dict[str, Any]]:
+        """Close a worker_runs row, computing duration_ms from started_at."""
+        now = self._now()
+        ended = ended_at or now
+        # PS-1: output_summary / error_summary are free-text columns — clamp them
+        # so raw prompt/answer text can never be persisted via a summary.
+        output_summary = _truncate_summary(output_summary)
+        error_summary = _truncate_summary(error_summary)
+        with self._lock:
+            conn = self._connect()
+            existing = conn.execute(
+                "SELECT started_at FROM worker_runs WHERE id = ?", (worker_run_id,)
+            ).fetchone()
+            if existing is None:
+                return None
+            started = existing["started_at"]
+            duration_ms = None
+            if started is not None:
+                duration_ms = max(0.0, (ended - started) * 1000.0)
+            conn.execute(
+                """
+                UPDATE worker_runs
+                   SET status = ?, ended_at = ?, duration_ms = ?,
+                       output_summary = COALESCE(NULLIF(?, ''), output_summary),
+                       error_summary = COALESCE(NULLIF(?, ''), error_summary),
+                       updated_at = ?
+                 WHERE id = ?
+                """,
+                (status, ended, duration_ms, output_summary, error_summary,
+                 now, worker_run_id),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT * FROM worker_runs WHERE id = ?", (worker_run_id,)
+            ).fetchone()
+        return self._row_to_dict(row, "worker_runs")
+
+    def record_session_flow_event(
+        self,
+        *,
+        event_type: str,
+        idempotency_key: str,
+        session_id: str = "",
+        user_id: str = "",
+        workspace_id: str = "",
+        ip_id: str = "",
+        workflow: str = "",
+        workflow_run_id: str = "",
+        stage_id: str = "",
+        worker_run_id: str = "",
+        llm_call_id: str = "",
+        artifact_version_id: str = "",
+        severity: str = "",
+        attribution_confidence: str = "",
+        missing_reason: str = "",
+        payload: Any = None,
+        created_at: float = None,
+    ) -> Dict[str, Any]:
+        """Append a session_flow_event. Idempotent via UNIQUE(idempotency_key).
+
+        Privacy: ``payload`` must hold ONLY ids/counts/reason codes — never raw
+        prompt/answer text. Replaying the same idempotency_key is a no-op
+        (INSERT ... ON CONFLICT DO NOTHING), so flow events never double-count.
+        """
+        if not event_type:
+            raise ValueError("event_type required")
+        if not idempotency_key:
+            raise ValueError("idempotency_key required (DB-enforced dedupe key)")
+        confidence = _norm_attribution_confidence(attribution_confidence)
+        now = self._now()
+        created = created_at or now
+        event_id = self._new_id()
+        # PS-1: enforce the payload allowlist so raw prompt/answer text can never
+        # be persisted into this free-text JSON column, even if a caller passes
+        # it by mistake.
+        payload_json = self._dump_json(_sanitize_flow_payload(payload))
+        with self._lock:
+            conn = self._connect()
+            conn.execute(
+                """
+                INSERT INTO session_flow_events
+                    (id, session_id, user_id, workspace_id, ip_id, workflow,
+                     workflow_run_id, stage_id, worker_run_id, llm_call_id,
+                     artifact_version_id, event_type, severity,
+                     attribution_confidence, missing_reason, idempotency_key,
+                     payload, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(idempotency_key) DO NOTHING
+                """,
+                (
+                    event_id, session_id, user_id, workspace_id, ip_id, workflow,
+                    workflow_run_id, stage_id, worker_run_id, llm_call_id,
+                    artifact_version_id, event_type, severity, confidence,
+                    missing_reason, idempotency_key, payload_json, created,
+                ),
+            )
+            conn.commit()
+            row = conn.execute(
+                "SELECT * FROM session_flow_events WHERE idempotency_key = ?",
+                (idempotency_key,),
+            ).fetchone()
+        return self._row_to_dict(row, "session_flow_events")
+
+    def upsert_session_flow_rollup(
+        self,
+        session_id: str,
+        *,
+        fields: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Insert-or-replace one session_flow_rollups row (recomputable).
+
+        ``fields`` maps rollup column -> value. Only known columns are written;
+        unknown keys are ignored. Idempotent on session_id (PRIMARY KEY): the
+        builder (Task 7) RECOMPUTES the row from latest source state and calls
+        this to overwrite, so repeated runs converge rather than accumulate.
+        """
+        return self._upsert_flow_rollup(
+            table="session_flow_rollups",
+            key_column="session_id",
+            key_value=session_id,
+            fields=fields or {},
+        )
+
+    def upsert_ip_flow_rollup(
+        self,
+        ip_id: str,
+        *,
+        fields: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Insert-or-replace one ip_flow_rollups row (recomputable).
+
+        Same contract as :meth:`upsert_session_flow_rollup`, keyed on ip_id.
+        """
+        return self._upsert_flow_rollup(
+            table="ip_flow_rollups",
+            key_column="ip_id",
+            key_value=ip_id,
+            fields=fields or {},
+        )
+
+    def _upsert_flow_rollup(
+        self,
+        *,
+        table: str,
+        key_column: str,
+        key_value: str,
+        fields: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        if not key_value:
+            raise ValueError(f"{key_column} required")
+        now = self._now()
+        with self._lock:
+            conn = self._connect()
+            valid_cols = {
+                r["name"] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()
+            }
+            payload: Dict[str, Any] = {}
+            for col, val in fields.items():
+                if col in (key_column, "created_at"):
+                    continue
+                if col not in valid_cols:
+                    continue
+                if col == "attribution_confidence":
+                    val = _norm_attribution_confidence(val)
+                payload[col] = val
+            payload.setdefault("updated_at", now)
+            cols = [key_column] + list(payload.keys())
+            placeholders = ", ".join("?" for _ in cols)
+            # created_at is set ONLY on first insert; preserved on conflict.
+            insert_cols = cols + ["created_at"]
+            insert_placeholders = placeholders + ", ?"
+            update_clause = ", ".join(f"{c} = excluded.{c}" for c in payload.keys())
+            conn.execute(
+                f"""
+                INSERT INTO {table} ({", ".join(insert_cols)})
+                VALUES ({insert_placeholders})
+                ON CONFLICT({key_column}) DO UPDATE SET {update_clause}
+                """,
+                [key_value] + list(payload.values()) + [now],
+            )
+            conn.commit()
+            row = conn.execute(
+                f"SELECT * FROM {table} WHERE {key_column} = ?", (key_value,)
+            ).fetchone()
+        return self._row_to_dict(row, table)
+
+    def list_session_flow_rollups(
+        self,
+        *,
+        session_id: str = None,
+        risk_level: str = None,
+        user_id: str = None,
+        ip_id: str = None,
+        workflow: str = None,
+        updated_at_min: float = None,
+    ) -> List[Dict[str, Any]]:
+        """List session_flow_rollups rows (control-side; no runtime fanout).
+
+        MINOR-2: ``updated_at_min`` pushes the range-window filter into SQL so
+        the DB engine applies it before returning rows (no Python-side scan of
+        all sessions when a narrow window is active). ``risk_level`` / ``user_id``
+        / ``ip_id`` / ``workflow`` are also pushed down. The full filtered set is
+        always returned; callers slice in Python so that summary/funnel/
+        needs_attention aggregate over all matching rows, not just one page.
+        """
+        clauses, params = [], []
+        if session_id is not None:
+            clauses.append("session_id = ?")
+            params.append(session_id)
+        if risk_level is not None and risk_level != "all":
+            clauses.append("risk_level = ?")
+            params.append(risk_level)
+        if user_id is not None:
+            clauses.append("user_id = ?")
+            params.append(user_id)
+        if ip_id is not None:
+            clauses.append("ip_id = ?")
+            params.append(ip_id)
+        if workflow is not None:
+            clauses.append("workflow = ?")
+            params.append(workflow)
+        if updated_at_min is not None:
+            # Range window: keep rows whose last activity is >= the cutoff.
+            # updated_at is always set by the upsert/fold; stale_age_s is a
+            # fallback for legacy rows that lack updated_at.
+            clauses.append(
+                "(updated_at >= ? OR "
+                "(updated_at IS NULL AND ? - COALESCE(stale_age_s, 0) >= ?))"
+            )
+            params.extend([updated_at_min, time.time(), updated_at_min])
+        sql = "SELECT * FROM session_flow_rollups"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        # risk_level ordering: critical(0) < warning(1) < ok/NULL(2)
+        sql += (
+            " ORDER BY CASE risk_level WHEN 'critical' THEN 0"
+            " WHEN 'warning' THEN 1 ELSE 2 END ASC,"
+            " cost_usd DESC, updated_at DESC"
+        )
+        rows = self._fetchall(sql, tuple(params))
+        return [self._row_to_dict(r, "session_flow_rollups") for r in rows]
+
+    def list_ip_flow_rollups(
+        self,
+        *,
+        ip_id: str = None,
+        risk_level: str = None,
+        workspace_id: str = None,
+        limit: int = None,
+        offset: int = 0,
+    ) -> List[Dict[str, Any]]:
+        """List ip_flow_rollups rows (control-side; no runtime fanout)."""
+        clauses, params = [], []
+        if ip_id is not None:
+            clauses.append("ip_id = ?")
+            params.append(ip_id)
+        if risk_level is not None:
+            clauses.append("risk_level = ?")
+            params.append(risk_level)
+        if workspace_id is not None:
+            clauses.append("workspace_id = ?")
+            params.append(workspace_id)
+        sql = "SELECT * FROM ip_flow_rollups"
+        if clauses:
+            sql += " WHERE " + " AND ".join(clauses)
+        sql += " ORDER BY updated_at DESC"
+        if limit is not None:
+            sql += " LIMIT ? OFFSET ?"
+            params.extend([int(limit), int(offset or 0)])
+        rows = self._fetchall(sql, tuple(params))
+        return [self._row_to_dict(r, "ip_flow_rollups") for r in rows]
 
     def summarize_llm_usage_for_user_ip(
         self,

@@ -22,6 +22,7 @@ Or as a context manager::
 
 from __future__ import annotations
 
+import hashlib
 import os
 import shlex
 import shutil
@@ -57,6 +58,12 @@ ENTRY_STATE_STARTING = "starting"
 ENTRY_STATE_READY = "ready"
 ENTRY_STATE_STOPPING = "stopping"
 ENTRY_STATE_FAILED = "failed"
+
+# Task 2: inbound queue msg_types that count as authoritative user input. Only
+# these enqueue a session_inputs row (plan: session_queue direction='in' with
+# msg_type in prompt/input_prompt/answer). Control msgs (stop/interrupt/etc.)
+# are NOT user inputs and must not inflate the count.
+_USER_INPUT_MSG_TYPES = frozenset({"prompt", "input_prompt", "answer"})
 
 
 class ProcessEntry(dict):
@@ -441,6 +448,19 @@ class SessionProcessManager:
         env["ATLAS_DB_PATH"] = runtime_db
         env["ATLAS_MEMORY_DB_PATH"] = control_db
         env["ATLAS_TRACE_DB_PATH"] = runtime_db
+        # WP-1: export the worker-run ledger id so the in-process worker LLM
+        # accounting sites (react_loop / headless_workflow) can stamp
+        # llm_calls.worker_run_id. The interactive worker mints its own run id in
+        # run_worker() once it has a DB handle and overwrites this. Pre-warmed
+        # job/IPC workers are spawned with a copied env that carries NO run id
+        # (the job path only stores job["worker_run_id"] on the dict, not in the
+        # environment), so their llm_calls fall back to
+        # attribution_confidence='inferred' while the server-side worker_runs row
+        # still exists for rollup joins. Absent a run id this is simply unset
+        # (resolvable=False).
+        worker_run_id = os.environ.get("ATLAS_WORKER_RUN_ID", "").strip()
+        if worker_run_id:
+            env["ATLAS_WORKER_RUN_ID"] = worker_run_id
         env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
         env.setdefault("COMMON_AI_AGENT_HOME", str(self._source_root))
         env.setdefault("ATLAS_PROJECT_ROOT", str(self._project_root))
@@ -1179,7 +1199,75 @@ class SessionProcessManager:
         # idle-age does not reap a session that was just handed work.
         if msg_id is not None:
             self._touch_entry_activity(session_id, msg_type=msg_type)
+            # Task 2: authoritative user-input capture. Exactly ONE session_inputs
+            # row per inbound user prompt (DB-enforced UNIQUE via source_ref_id =
+            # the queue msg_id, so a retry/re-enqueue collapses to one). NO raw
+            # prompt text is stored — only a char count + a privacy-safe hash.
+            # Best-effort: an accounting failure must never break prompt delivery.
+            if str(msg_type) in _USER_INPUT_MSG_TYPES:
+                try:
+                    self._record_user_input(db, session_id, msg_id, payload, msg_type)
+                except Exception:
+                    pass
         return msg_id
+
+    def _record_user_input(
+        self,
+        db: AtlasDB,
+        session_id: str,
+        msg_id: str,
+        payload: Optional[Dict[str, Any]],
+        msg_type: str,
+    ) -> None:
+        """Record one authoritative user-input row + an input.received event.
+
+        Privacy (PS-1): only char_count + a sha256 hash of the prompt text are
+        derived; the raw text is never persisted. Idempotency: source_ref_id is
+        the queue msg_id, so the Task-1 UNIQUE(session_id, source, source_ref_id)
+        key collapses replays to a single row.
+        """
+        text = ""
+        if isinstance(payload, dict):
+            text = str(payload.get("text") or "")
+        char_count = len(text)
+        token_estimate = (char_count + 3) // 4  # ~4 chars/token heuristic
+        input_hash = (
+            hashlib.sha256(text.encode("utf-8")).hexdigest() if text else ""
+        )
+        parts = [p for p in str(session_id or "").split("/") if p]
+        owner = parts[0] if parts else ""
+        ip_id = parts[2] if len(parts) >= 4 else (parts[1] if len(parts) >= 2 else "")
+        workflow = parts[3] if len(parts) >= 4 else (parts[2] if len(parts) >= 3 else "")
+        db.record_session_input(
+            session_id,
+            source="enqueue",
+            source_ref_id=msg_id,
+            user_id=owner,
+            ip_id=ip_id,
+            workflow=workflow,
+            char_count=char_count,
+            token_estimate=token_estimate,
+            intent_type=str(msg_type),
+            input_hash=input_hash,
+            attribution_confidence="exact",
+        )
+        db.record_session_flow_event(
+            event_type="input.received",
+            idempotency_key=f"input-received:{session_id}:{msg_id}",
+            session_id=session_id,
+            user_id=owner,
+            ip_id=ip_id,
+            workflow=workflow,
+            attribution_confidence="exact",
+            payload={
+                "source": "enqueue",
+                "source_ref_id": msg_id,
+                "char_count": char_count,
+                "token_estimate": token_estimate,
+                "input_hash": input_hash,
+                "intent_type": str(msg_type),
+            },
+        )
 
     def poll_output(
         self,
