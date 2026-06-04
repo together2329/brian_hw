@@ -4,7 +4,7 @@
  *   - preview-path persistence (localStorage + window.ATLAS_PREVIEW_PATH)
  *   - default preview path per workflow / stage
  *   - idle-scheduled fetch (window.requestIdleCallback)
- *   - in-memory caches (file / ssot) keyed by path with abort + timeout
+ *   - in-memory caches (file / ssot) keyed by active session + path with abort + timeout
  *   - byte / image-MIME formatting helpers
  *   - FILE_TREE metadata lookup
  *   - the useAtlasAsyncResource hook (subscribes to
@@ -14,7 +14,7 @@
  * serves the live app. Behavior here is identical to the legacy source.
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { KNOWN_WORKFLOW_PATH_SEGMENTS } from './workspace-session-routing';
+import { activeUiSession, KNOWN_WORKFLOW_PATH_SEGMENTS } from './workspace-session-routing';
 
 export const persistAtlasPreviewPath = (path: unknown): void => {
   const value = String(path || '').trim();
@@ -88,8 +88,17 @@ export const scheduleAtlasPreviewWork = (fn: () => void, timeout = 900): (() => 
   };
 };
 
-export const emptyAtlasResource = (path = ''): any => ({
+export const activeAtlasResourceSession = (): string => activeUiSession();
+
+export const atlasResourceCacheKey = (
+  _kind: string,
+  path: unknown,
+  sessionScope: string = activeAtlasResourceSession(),
+): string => `${String(sessionScope || '')}\n${String(path || '').trim()}`;
+
+export const emptyAtlasResource = (path = '', sessionScope = activeAtlasResourceSession()): any => ({
   path,
+  sessionScope,
   body: '',
   size: 0,
   mtime: 0,
@@ -105,25 +114,44 @@ export const atlasResourceCache = (kind: string): Map<string, any> =>
 export const isAtlasResourceTimeout = (data: any): boolean =>
   /\bpreview timed out\b/i.test(String((data && data.err) || ''));
 
-export const atlasResourceUrl = (kind: string, path: string): string => {
-  const encoded = encodeURIComponent(path);
+export const atlasResourceUrl = (
+  kind: string,
+  path: string,
+  sessionScope: string = activeAtlasResourceSession(),
+): string => {
+  const params = new URLSearchParams(
+    kind === 'ssot' ? { file: path } : { path },
+  );
+  if (sessionScope) params.set('session_id', sessionScope);
   return kind === 'ssot'
-    ? `/api/ssot?file=${encoded}`
-    : `/api/file?path=${encoded}`;
+    ? `/api/ssot?${params.toString()}`
+    : `/api/file?${params.toString()}`;
+};
+
+export const clearAtlasResourcePath = (kind: string, rawPath: unknown): void => {
+  const path = String(rawPath || '').trim();
+  if (!path) return;
+  const cache = atlasResourceCache(kind);
+  cache.delete(path);
+  for (const key of Array.from(cache.keys())) {
+    if (key === path || key.endsWith(`\n${path}`)) cache.delete(key);
+  }
 };
 
 export const readAtlasAsyncResource = (kind: string, rawPath: unknown, force = false): Promise<any> => {
   const path = String(rawPath || '').trim();
-  if (!path) return Promise.resolve(emptyAtlasResource(''));
+  const sessionScope = activeAtlasResourceSession();
+  if (!path) return Promise.resolve(emptyAtlasResource('', sessionScope));
   const cache = atlasResourceCache(kind);
-  const current = cache.get(path);
+  const cacheKey = atlasResourceCacheKey(kind, path, sessionScope);
+  const current = cache.get(cacheKey);
   if (!force && current?.data && !isAtlasResourceTimeout(current.data)) return Promise.resolve(current.data);
   if (!force && current?.promise) return current.promise;
   if (force && current?.controller) {
     try { current.controller.abort(); } catch (_) {}
   }
 
-  const token = Symbol(`${kind}:${path}`);
+  const token = Symbol(`${kind}:${cacheKey}`);
   const controller = new AbortController();
   const timeoutMs = ATLAS_ASYNC_RESOURCE_TIMEOUT_MS[kind] || ATLAS_ASYNC_RESOURCE_TIMEOUT_MS.file;
   let didTimeout = false;
@@ -131,8 +159,8 @@ export const readAtlasAsyncResource = (kind: string, rawPath: unknown, force = f
     didTimeout = true;
     controller.abort();
   }, timeoutMs);
-  const previous = current?.data || emptyAtlasResource(path);
-  const promise = fetch(atlasResourceUrl(kind, path), {
+  const previous = current?.data || emptyAtlasResource(path, sessionScope);
+  const promise = fetch(atlasResourceUrl(kind, path, sessionScope), {
     signal: controller.signal,
     cache: 'no-store',
   }).then(async (r: Response) => {
@@ -146,6 +174,7 @@ export const readAtlasAsyncResource = (kind: string, rawPath: unknown, force = f
       : (d.content || '');
     return {
       path,
+      sessionScope,
       body,
       size: d.size || 0,
       mtime: d.mtime || 0,
@@ -160,6 +189,7 @@ export const readAtlasAsyncResource = (kind: string, rawPath: unknown, force = f
       : String(e);
     return {
       path,
+      sessionScope,
       body: kind === 'ssot' ? `# fetch failed: ${msg}` : `// ${path}\n// fetch failed: ${msg}`,
       size: 0,
       mtime: 0,
@@ -170,22 +200,31 @@ export const readAtlasAsyncResource = (kind: string, rawPath: unknown, force = f
     };
   }).then((data: any) => {
     clearTimeout(timeout);
-    if (cache.get(path)?.token === token) {
-      cache.set(path, { data });
-      window.dispatchEvent(new CustomEvent('atlas-resource-loaded', { detail: { kind, path } }));
+    if (cache.get(cacheKey)?.token === token) {
+      cache.set(cacheKey, { data });
+      window.dispatchEvent(new CustomEvent('atlas-resource-loaded', {
+        detail: { kind, path, cacheKey, sessionScope },
+      }));
     }
     return data;
   });
 
-  cache.set(path, { token, promise, data: previous, controller });
-  window.dispatchEvent(new CustomEvent('atlas-resource-loading', { detail: { kind, path } }));
+  cache.set(cacheKey, { token, promise, data: previous, controller });
+  window.dispatchEvent(new CustomEvent('atlas-resource-loading', {
+    detail: { kind, path, cacheKey, sessionScope },
+  }));
   return promise;
 };
 
-export const cachedAtlasResource = (kind: string, path: unknown): any => {
+export const cachedAtlasResource = (
+  kind: string,
+  path: unknown,
+  sessionScope: string = activeAtlasResourceSession(),
+): any => {
   const key = String(path || '').trim();
-  if (!key) return emptyAtlasResource('');
-  return atlasResourceCache(kind).get(key)?.data || emptyAtlasResource(key);
+  if (!key) return emptyAtlasResource('', sessionScope);
+  const cacheKey = atlasResourceCacheKey(kind, key, sessionScope);
+  return atlasResourceCache(kind).get(cacheKey)?.data || emptyAtlasResource(key, sessionScope);
 };
 
 export const atlasFormatBytes = (value: unknown): string => {
@@ -223,49 +262,59 @@ export const atlasFileTreeMetaForPath = (rawPath: unknown): any => {
 
 export const useAtlasAsyncResource = (kind: string, path: unknown, options: any = {}): [any, (force?: boolean) => Promise<any>] => {
   const key = String(path || '').trim();
+  const sessionScope = activeAtlasResourceSession();
+  const cacheKey = atlasResourceCacheKey(kind, key, sessionScope);
   const versionKey = String(options.versionKey || '');
   const forceOnVersionChange = !!options.forceOnVersionChange;
   const requestSeq = useRef(0);
-  const lastAutoLoad = useRef<{ key: string; versionKey: string }>({ key, versionKey });
-  const [state, setState] = useState<any>(() => cachedAtlasResource(kind, key));
+  const lastAutoLoad = useRef<{ key: string; sessionScope: string; versionKey: string }>({
+    key,
+    sessionScope,
+    versionKey,
+  });
+  const [state, setState] = useState<any>(() => cachedAtlasResource(kind, key, sessionScope));
 
   const reload = useCallback((force = false): Promise<any> => {
     const currentKey = String(path || '').trim();
+    const currentSessionScope = activeAtlasResourceSession();
     const seq = requestSeq.current + 1;
     requestSeq.current = seq;
     if (!currentKey) {
-      const empty = emptyAtlasResource('');
+      const empty = emptyAtlasResource('', currentSessionScope);
       setState(empty);
       return Promise.resolve(empty);
     }
-    const cached = cachedAtlasResource(kind, currentKey);
+    const cached = cachedAtlasResource(kind, currentKey, currentSessionScope);
     setState({ ...cached, path: currentKey, loading: true, err: force ? null : cached.err });
     return readAtlasAsyncResource(kind, currentKey, force).then((data: any) => {
       if (requestSeq.current === seq) setState(data);
       return data;
     });
-  }, [kind, path]);
+  }, [kind, path, sessionScope]);
 
   useEffect(() => {
     const previous = lastAutoLoad.current;
-    const force = forceOnVersionChange && previous.key === key && previous.versionKey !== versionKey;
-    lastAutoLoad.current = { key, versionKey };
+    const force = forceOnVersionChange
+      && previous.key === key
+      && previous.sessionScope === sessionScope
+      && previous.versionKey !== versionKey;
+    lastAutoLoad.current = { key, sessionScope, versionKey };
     reload(force);
     return () => { requestSeq.current += 1; };
-  }, [forceOnVersionChange, key, reload, versionKey]);
+  }, [forceOnVersionChange, key, reload, sessionScope, versionKey]);
 
   useEffect(() => {
     if (!key) return undefined;
     const syncFromCache = (event: any) => {
       const detail = event?.detail || {};
-      if (detail.kind !== kind || detail.path !== key) return;
-      setState(cachedAtlasResource(kind, key));
+      if (detail.kind !== kind || detail.path !== key || detail.cacheKey !== cacheKey) return;
+      setState(cachedAtlasResource(kind, key, sessionScope));
     };
     const markLoading = (event: any) => {
       const detail = event?.detail || {};
-      if (detail.kind !== kind || detail.path !== key) return;
+      if (detail.kind !== kind || detail.path !== key || detail.cacheKey !== cacheKey) return;
       setState((prev: any) => {
-        const cached = cachedAtlasResource(kind, key);
+        const cached = cachedAtlasResource(kind, key, sessionScope);
         return {
           ...prev,
           ...cached,
@@ -283,8 +332,10 @@ export const useAtlasAsyncResource = (kind: string, path: unknown, options: any 
       window.removeEventListener('atlas-resource-loaded', syncFromCache);
       window.removeEventListener('atlas-resource-loading', markLoading);
     };
-  }, [kind, key]);
+  }, [cacheKey, kind, key, sessionScope]);
 
-  const visibleState = state.path === key ? state : cachedAtlasResource(kind, key);
+  const visibleState = state.path === key && state.sessionScope === sessionScope
+    ? state
+    : cachedAtlasResource(kind, key, sessionScope);
   return [visibleState, reload];
 };

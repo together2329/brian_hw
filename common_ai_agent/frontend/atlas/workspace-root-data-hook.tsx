@@ -57,6 +57,7 @@ import {
   workflowForExecMode,
   ssotIpFromSession,
   isSsotYamlPath,
+  appendActiveSessionParam,
   routeScopeIp,
   activeIpForRoute,
   workflowFromSession,
@@ -66,7 +67,7 @@ import {
   persistAtlasPreviewPath,
   defaultPreviewPathForWorkflow,
   previewPathLooksStaleForWorkspace,
-  atlasResourceCache,
+  clearAtlasResourcePath,
 } from './workspace-async-resource';
 import {
   mergeHealthTelemetry,
@@ -1731,7 +1732,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const key = atQuery.parentAbs;
     if (atDirCache[key]) { setAtDirEntries(atDirCache[key]); return; }
     let cancelled = false;
-    fetch('/api/files?path=' + encodeURIComponent(key))
+    const qs = appendActiveSessionParam(new URLSearchParams({ path: key }));
+    fetch('/api/files?' + qs.toString(), { cache: 'no-store', credentials: 'include' })
       .then((r) => r.json())
       .then((d: any) => {
         if (cancelled) return;
@@ -1785,13 +1787,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const before = input.slice(0, atQuery.pos);
     const after = input.slice(atQuery.pos + atQuery.token.length);
     const parent = atQuery.parentRel ? atQuery.parentRel + '/' : '';
-    const fullParent = atQuery.ipScoped
-      ? `${atQuery.ipPrefix}/${parent}`
-      : parent;
+    const rootPrefix = atQuery.absoluteEscape ? '/' : '';
     if (entry.type === 'dir') {
-      replaceInput(before + '@' + parent + entry.name + '/' + after);
+      replaceInput(before + '@' + rootPrefix + parent + entry.name + '/' + after);
     } else {
-      replaceInput(before + '@' + fullParent + entry.name + ' ' + after);
+      replaceInput(before + '@' + rootPrefix + parent + entry.name + ' ' + after);
       setShowAt(false);
     }
   };
@@ -1932,8 +1932,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const ok = window.confirm(`Delete ${cleanPath}? This cannot be undone.`);
     if (!ok) return;
     try {
-      const params = new URLSearchParams({ ip: cleanIp, path: cleanPath });
-      const response = await fetch(`/api/file?${params.toString()}`, {
+      const params = appendActiveSessionParam(new URLSearchParams({ ip: cleanIp, path: cleanPath }));
+      const response = await fetch(`/api/file/delete?${params.toString()}`, {
         method: 'DELETE',
         cache: 'no-store',
         credentials: 'include',
@@ -1941,7 +1941,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       let data: any = {};
       try { data = await response.json(); } catch (_) {}
       if (!response.ok) throw new Error(data.error || data.detail || `HTTP ${response.status}`);
-      atlasResourceCache('file').delete(cleanPath);
+      clearAtlasResourcePath('file', cleanPath);
       if (previewPath === cleanPath) {
         setPreviewPath('');
         persistAtlasPreviewPath('');
