@@ -1,4 +1,0 @@
-{
-  "ip": "mctp_assembler_scratch_v5",
-  "message": "Run a real orchestrator + worker E2E for IP mctp_assembler_scratch_v5. Use read_pipeline_state first. Then call dispatch_workflow with workflow=\"contract-reflection\", stages=[\"contract-check\"], schedule=\"serial\", exec_mode=\"orchestrator\", run_mode=\"engineering\", model=\"gpt-5.5\". Do not run ssot, fl, cl, rtl, tb, sim, syn, sta, pnr, or any repair loop. After the worker completes, read signoff/contract_check.json and finalize completed only if status is pass, reflection summary is 7/7, and evidence summary is 91/91. If it is not pass, finalize blocked with the owner route."
-}

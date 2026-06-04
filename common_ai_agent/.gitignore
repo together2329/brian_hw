@@ -120,3 +120,11 @@ atlas_ssot_web_clean/
 
 # Perforce local connection config
 .p4config
+
+# Scratch auto-committed by todo[N] bot runs; untracked 2026-06-04 (recoverable from git history)
+/.tmp/
+/NEW_V5/
+/NEW_V5.git/
+/deepdeep_ip/
+/deepdeep_ip.git/
+/lint_result.txt

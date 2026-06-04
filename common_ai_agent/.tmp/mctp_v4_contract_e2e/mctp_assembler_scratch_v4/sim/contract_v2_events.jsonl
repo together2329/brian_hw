@@ -1,2 +1,0 @@
-{"goal_id": "CONTRACT_V2_SRAM_BACKPRESSURE", "passed": true, "rtl_observed": {"sram_wr_addr": 0, "sram_wr_data": 21345817372864405881847059188222722561, "sram_wr_ready": 0, "sram_wr_strb": 131071, "sram_wr_valid": 1}, "scenario_id": "SC_CONTRACT_V2_SRAM_BACKPRESSURE"}
-{"goal_id": "CONTRACT_V2_APB_Q_PAYLOAD_COUNT_AFTER_UPDATE", "passed": true, "rtl_observed": {"payload_byte_count": 17, "prdata": 1114129, "pready": 1}, "scenario_id": "SC_CONTRACT_V2_APB_Q_PAYLOAD_COUNT_AFTER_UPDATE"}

@@ -1,9 +1,0 @@
-{
-  "human_review_needed": [],
-  "known_waivers": [],
-  "notes": [
-    "No waivers are asserted for local scratch signoff. Remaining failures, if any, must stay visible in ip_signoff.json and signoff_owner_routes.json."
-  ],
-  "schema_version": 1,
-  "type": "signoff_goal_ledger"
-}

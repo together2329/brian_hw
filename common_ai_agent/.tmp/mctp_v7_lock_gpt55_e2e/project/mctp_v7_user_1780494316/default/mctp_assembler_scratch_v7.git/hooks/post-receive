@@ -1,4 +1,0 @@
-#!/bin/sh
-# Atlas — fast-forward the working tree when an external push arrives.
-WORK=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.tmp/mctp_v7_lock_gpt55_e2e/project/mctp_v7_user_1780494316/default/mctp_assembler_scratch_v7
-( cd "$WORK" && unset GIT_DIR &&   git fetch -q origin &&   git reset -q --hard origin/main ) >/dev/null 2>&1 || true
