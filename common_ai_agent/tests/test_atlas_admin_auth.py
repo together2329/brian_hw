@@ -287,6 +287,60 @@ def test_non_admin_user_cannot_call_admin_api(tmp_path, monkeypatch):
     assert users.status_code == 403, users.text
 
 
+def test_session_flow_denied_for_non_admin(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+
+    # Unauthenticated request -> 401 (login required), no flow rows.
+    anon = client.get("/api/admin/session-flow")
+    assert anon.status_code == 401, anon.text
+    assert "sessions" not in anon.json()
+
+    # Authenticated non-admin -> 403, no flow rows.
+    registered = client.post(
+        "/api/auth/register",
+        json={"username": "member", "password": "pw"},
+    )
+    assert registered.status_code == 200, registered.text
+    assert registered.json()["user"]["role"] == "user"
+
+    denied = client.get("/api/admin/session-flow")
+    assert denied.status_code == 403, denied.text
+    assert "sessions" not in denied.json()
+
+
+def test_session_flow_allowed_for_admin(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    login = client.post(
+        "/api/auth/login",
+        json={"username": "admin", "password": "1151"},
+    )
+    assert login.status_code == 200, login.text
+    assert login.json()["user"]["role"] == "admin"
+
+    ok = client.get("/api/admin/session-flow")
+    assert ok.status_code == 200, ok.text
+    body = ok.json()
+    for k in ("summary", "needs_attention", "funnel", "sessions", "ip_flow",
+              "attribution_gaps", "pagination"):
+        assert k in body, f"missing top-level key {k}"
+
+
 def test_existing_admin_username_cookie_is_promoted(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
     from core.atlas_db import AtlasDB

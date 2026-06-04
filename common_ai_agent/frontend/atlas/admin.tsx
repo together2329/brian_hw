@@ -42,6 +42,7 @@ import {
 import { AdminRuntimeTab, AdminFeedbackTab, AdminChatTab } from './admin-runtime';
 import { AdminRawDbTab } from './admin-raw-db';
 import { AdminTabRow, AdminFilterBar } from './admin-chrome';
+import { AdminSessionFlowTab } from './admin-session-flow';
 
 // ── Cross-file globals owned by THIS file / by the legacy bootstrap that are
 // not yet declared in types/atlas-window.d.ts (the orchestrator maintains that
@@ -74,6 +75,14 @@ function AdminPage() {
   const [feedback, setFeedback] = useState<AdminRow[]>([]);
   const [memoryRules, setMemoryRules] = useState<AdminRow[]>([]);
   const [inputHistory, setInputHistory] = useState<AdminRow[]>([]);
+  // Session Flow tab is lazy-loaded (NOT part of loadAdminData's Promise.all):
+  // GET /api/admin/session-flow triggers a server-side rollup recompute in
+  // central mode, so we only fetch it when the tab is active or its filters/lens
+  // change — never in the initial admin load and never on a tight poll.
+  const [sessionFlow, setSessionFlow] = useState<AdminRow | null>(null);
+  const [sessionFlowLoading, setSessionFlowLoading] = useState(false);
+  const [sessionFlowError, setSessionFlowError] = useState<string | null>(null);
+  const [sessionFlowLens, setSessionFlowLens] = useState('team_lead');
   const [runtime, setRuntime] = useState<AdminRow | null>(null);
   const [adminChatMessages, setAdminChatMessages] = useState<AdminRow[]>([
     {
@@ -367,6 +376,53 @@ function AdminPage() {
       setDbOverviewLoading(false);
     }
   }, []);
+
+  const loadSessionFlow = useCallback(async () => {
+    setSessionFlowLoading(true);
+    setSessionFlowError(null);
+    try {
+      const params = new URLSearchParams();
+      if (filters.range) params.set('range', filters.range);
+      if (filters.ip) params.set('ip_id', filters.ip);
+      if (filters.workflow) params.set('workflow', filters.workflow);
+      if (filters.user) params.set('user_id', filters.user);
+      // NOTE: lens is a CLIENT-SIDE display toggle only. It changes which fields
+      // the component shows, not which rows/fields the server returns, so it is
+      // intentionally NOT sent here and NOT a dependency of this loader. Changing
+      // the lens must update the display without triggering a refetch; only
+      // range/ip/workflow/user changes refetch.
+      const r = await fetch(`/api/admin/session-flow?${params.toString()}`);
+      if (r.status === 401) {
+        setAuthUser(null);
+        setAuthStatus((prev) => ({ ...(prev || {}), login_required: true, authenticated: false }));
+        setAuthError('Admin login required');
+        return;
+      }
+      if (r.status === 403) {
+        setSessionFlowError('Admin role required');
+        return;
+      }
+      if (!r.ok) {
+        let detail = `HTTP ${r.status}`;
+        try { const b = await r.json(); detail = b.error || b.detail || detail; } catch (_) {}
+        throw new Error(detail);
+      }
+      const d = await r.json();
+      setSessionFlow(d);
+    } catch (e) {
+      setSessionFlowError(String(e));
+    } finally {
+      setSessionFlowLoading(false);
+    }
+  }, [filters.range, filters.ip, filters.workflow, filters.user]);
+
+  // Lazy-load Session Flow ONLY when its tab is active (or when the filters/lens
+  // it depends on change while it is active). Never added to loadAdminData's
+  // Promise.all, and never polled — central-mode reads recompute server rollups.
+  useEffect(() => {
+    if (activeTab !== 'session-flow' || !authUser) return;
+    loadSessionFlow();
+  }, [activeTab, authUser, loadSessionFlow]);
 
   useEffect(() => {
     if (activeTab !== 'raw-db' || !authUser) return;
@@ -782,6 +838,9 @@ function AdminPage() {
                 costContexts: filteredCostContexts.length,
                 todoUsage: filteredTodoUsage.length,
                 todoFlow: filteredTodoFlow.length,
+                sessionFlowNeedsAttention: Array.isArray(sessionFlow?.needs_attention)
+                  ? sessionFlow!.needs_attention.length
+                  : 0,
                 traceEvents: filteredTraceEvents.length,
                 toolUsage: filteredToolUsage.length,
                 rtlRunHistory: filteredRtlRunHistory.length,
@@ -869,6 +928,16 @@ function AdminPage() {
 
             {activeTab === 'flow' && (
               <AdminFlowTab filteredTodoFlow={filteredTodoFlow} />
+            )}
+
+            {activeTab === 'session-flow' && (
+              <AdminSessionFlowTab
+                data={sessionFlow}
+                loading={sessionFlowLoading}
+                error={sessionFlowError}
+                lens={sessionFlowLens}
+                onLensChange={setSessionFlowLens}
+              />
             )}
 
             {activeTab === 'trace' && (

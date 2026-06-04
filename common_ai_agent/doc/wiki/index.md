@@ -48,6 +48,7 @@ This section is additive; it does not replace the reading order below.
 | Atlas context root model proposal — user/session/IP/workflow isolation, worker cwd at IP root, command/todo/context/SCM/jobs migration plan, and IP-local workflow root rule | [[atlas-context-root-model-20260603]] |
 | Atlas context root deep test plan — branch-level Web/Desktop/API/DB/worker verification before merge | [[atlas-context-root-deep-test-plan-20260604]] |
 | Admin operational dashboard priorities from the real local DB snapshot: inactivity, unattributed cost, queue backlog, stale workflows, identity gaps | [[admin-operational-dashboard-db-snapshot-20260603]] |
+| Session Flow admin tab — session as primary unit, metric definitions (input/LLM/worker/flow_state/risk_level/attribution_confidence), three lenses (builder/team_lead/executive), runtime no-fanout rollup design, historical confidence limits, operator quick-reference | [[session-flow-dashboard-20260604]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
 | Current CPU handoff / approval / README status | [[arm-m0-min-current-status]] |
 | Multi-user or shared-worker collision risk | [[multi-user-worker-isolation]] + [[multi-user-worker-conflicts]] |

@@ -333,6 +333,28 @@ def create_admin_app(project_root: Path):
             from core.atlas_admin_usage import build_admin_usage_payload
             return JSONResponse(build_admin_usage_payload(db))
 
+    @app.get("/api/admin/session-flow")
+    async def api_admin_session_flow(request: Request):
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        with AtlasDB() as db:
+            from core.session_flow_usage import build_session_flow_payload
+            qp = request.query_params
+            payload = build_session_flow_payload(db, {
+                "range": (qp.get("range") or "7d").strip(),
+                "lens": (qp.get("lens") or "team_lead").strip(),
+                "risk": (qp.get("risk") or "all").strip(),
+                "ip_id": (qp.get("ip_id") or "").strip() or None,
+                "workflow": (qp.get("workflow") or "").strip() or None,
+                "user_id": (qp.get("user_id") or "").strip() or None,
+                "session_id": (qp.get("session_id") or "").strip() or None,
+                "limit": qp.get("limit"),
+                "offset": qp.get("offset"),
+            })
+            # Plan response shape exposes the page window as `pagination`.
+            payload["pagination"] = payload.pop("limits", {})
+            return JSONResponse(payload)
+
     @app.get("/api/admin/runtime")
     async def api_admin_runtime(request: Request):
         if _admin_required(request) is None:

@@ -12,6 +12,16 @@
   3 skipped`, Perforce UI Vitest `16 passed`, and `frontend/atlas` Vite build
   pass. `p4v` GUI was unavailable; validation used real Helix Core `p4d` plus
   `p4` CLI.
+- Added [[session-flow-dashboard-20260604]] documenting the new Session Flow
+  admin tab: session as primary unit, metric definitions (input count, LLM
+  attempts/success/errors, cost, worker runs, flow state, risk level,
+  attribution confidence), three stakeholder lenses (builder/team_lead/
+  executive), historical attribution limitations (inferred ≠ exact; conflict
+  deferred), runtime no-fanout design with out-of-band fold scheduler
+  (`rollup_all_active_flow` via `start_rollup_scheduler`), freshness/stale
+  semantics, and operator quick-reference. API registered at
+  `GET /api/admin/session-flow` in both `src/atlas_admin.py` and
+  `src/atlas_ui.py`.
 - Extended [[contract-reflection-workflow]] freshness downward from semantic
   source artifacts into simulator evidence. Added
   `workflow/contract_reflection/sim_freshness.py`,

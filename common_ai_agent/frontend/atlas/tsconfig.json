@@ -33,6 +33,7 @@
     "admin-overview.tsx",
     "admin-raw-db.tsx",
     "admin-runtime.tsx",
+    "admin-session-flow.tsx",
     "admin-styles.tsx",
     "admin-tables-a.tsx",
     "admin-tables-b.tsx",
