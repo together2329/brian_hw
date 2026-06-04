@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { PipelineOrchestratorChatPanel } from '../pipeline-rail';
@@ -12,6 +12,7 @@ type AtlasTestWindow = typeof window & {
 describe('PipelineOrchestratorChatPanel session scoping', () => {
   afterEach(() => {
     cleanup();
+    vi.useRealTimers();
     vi.restoreAllMocks();
     const w = window as AtlasTestWindow;
     delete w.ACTIVE_SESSION;
@@ -72,5 +73,60 @@ describe('PipelineOrchestratorChatPanel session scoping', () => {
       workspace_session: 'demo',
     });
     expect(body.session_id).toBeUndefined();
+  });
+
+  it('does not force-scroll incoming orchestrator messages while the user is reading older content', async () => {
+    const responses = [
+      { ok: true, messages: [], next_since: 0 },
+      {
+        ok: true,
+        messages: [{
+          id: 'm1',
+          role: 'agent',
+          content: 'new orchestrator event',
+          created_at: 1,
+        }],
+        next_since: 1,
+      },
+    ];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
+      const url = String(input);
+      if (url.startsWith('/api/orchestrator/chat/messages')) {
+        return new Response(JSON.stringify(responses.shift() || { ok: true, messages: [], next_since: 1 }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, status: 'started' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { container } = render(
+      <PipelineOrchestratorChatPanel
+        ip="jjj"
+        pipelineState={{ orchestrator: { active: true } }}
+      />,
+    );
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const body = container.querySelector('.orch-chat-body') as HTMLElement | null;
+    if (!body) throw new Error('orchestrator chat body missing');
+    let scrollTop = 100;
+    Object.defineProperty(body, 'scrollTop', {
+      configurable: true,
+      get: () => scrollTop,
+      set: (value) => { scrollTop = Number(value); },
+    });
+    Object.defineProperty(body, 'scrollHeight', { configurable: true, get: () => 1000 });
+    Object.defineProperty(body, 'clientHeight', { configurable: true, get: () => 400 });
+
+    fireEvent.scroll(body);
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 1600)); });
+
+    await waitFor(() => expect(container.textContent).toContain('new orchestrator event'));
+    expect(scrollTop).toBe(100);
   });
 });

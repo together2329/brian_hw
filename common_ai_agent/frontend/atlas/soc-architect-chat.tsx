@@ -10,6 +10,7 @@
 // Transitional: still bridges to `window.ArchitectChat` at the bottom so the
 // (still-live) legacy soc-architect.jsx + app.jsx keep resolving it.
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useStickyChatScroll } from './use-sticky-chat-scroll';
 
 const g = window as unknown as Record<string, any>;
 
@@ -58,7 +59,11 @@ export function ArchitectChat({ view, selModule, selCluster, onDiagramPlan }: Ar
   const [streaming, setStreaming] = useState(false);
   const [input, setInput] = useState('');
   const bufRef = useRef('');
-  const feedRef = useRef<HTMLDivElement | null>(null);
+  const {
+    scrollRef: feedRef,
+    onScroll: onFeedScroll,
+    scrollToBottom: scrollFeedToBottom,
+  } = useStickyChatScroll<HTMLDivElement>([feed.length]);
   const jobLogPollRef = useRef<any>(null);
 
   const replayMessages = useCallback((messages: any[], session: string, path?: string) => {
@@ -231,15 +236,10 @@ export function ArchitectChat({ view, selModule, selCluster, onDiagramPlan }: Ar
     };
   }, [replayWorkerLog]);
 
-  // Auto-scroll to bottom on new entries.
-  useEffect(() => {
-    const el = feedRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [feed.length]);
-
   const send = () => {
     const text = input.trim();
     if (!text) return;
+    scrollFeedToBottom();
     setFeed(l => [...l, { kind: 'user', text }]);
     setInput('');
     const wantsDiagramPlan =
@@ -366,7 +366,7 @@ export function ArchitectChat({ view, selModule, selCluster, onDiagramPlan }: Ar
         </span>
       </div>
 
-      <div ref={feedRef} style={{ flex: 1, overflow: 'auto', padding: 14, fontSize: 12.5 }}>
+      <div ref={feedRef} onScroll={onFeedScroll} style={{ flex: 1, overflow: 'auto', padding: 14, fontSize: 12.5 }}>
         {feed.length === 0 && (
           <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)', fontStyle: 'italic', lineHeight: 1.6 }}>
             {isPipelineChat
