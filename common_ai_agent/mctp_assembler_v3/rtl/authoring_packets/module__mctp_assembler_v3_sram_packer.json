@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -95,21 +95,25 @@
       }
     ],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 24,
-    "open_required_count": 24,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -138,6 +142,7 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
+      "cycle_model.backpressure": 1,
       "equivalence.module": 1,
       "features.item": 1,
       "function_model.error_case": 1,
@@ -148,7 +153,6 @@
       "function_model.side_effect": 1,
       "function_model.state_update": 3,
       "function_model.transaction": 1,
-      "memory.instances": 1,
       "parameters.item": 2
     },
     "module_slice": {
@@ -159,7 +163,7 @@
       "module_task_count": 24,
       "task_limit": 48
     },
-    "open_required_count": 24,
+    "open_required_count": 0,
     "required_count": 24,
     "source_refs": [
       "function_model.transactions.FM_PACK_SRAM",
@@ -181,14 +185,14 @@
       "function_model.transactions.FM_PACK_SRAM.state_updates.payload_bytes_written_count",
       "function_model.transactions.FM_PACK_SRAM.side_effects.side_effect_0",
       "function_model.transactions.FM_PACK_SRAM.error_cases.error_case_0",
-      "memory.instances.context_table",
+      "cycle_model.backpressure.backpressure_rule_0",
       "features.payload_pack",
       "sub_modules.mctp_assembler_v3_sram_packer.module_equivalence",
       "parameters.SRAM_ADDR_WIDTH",
       "parameters.SRAM_DATA_WIDTH"
     ],
     "status_counts": {
-      "open": 24
+      "pass": 24
     },
     "task_count": 24
   },
@@ -205,7 +209,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_PACK_SRAM.\nOwner: mctp_assembler_v3_sram_packer in rtl/mctp_assembler_v3_sram_packer.sv via function_model.transactions.FM_PACK_SRAM.\nSSOT item context: id=FM_PACK_SRAM; name=payload_pack_write.",
       "evidence_terms": [],
-      "id": "RTL-0228",
+      "id": "RTL-0235",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -230,9 +234,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -247,7 +251,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_PACK_SRAM.preconditions.precondition_0.\nOwner: mctp_assembler_v3_sram_packer in rtl/mctp_assembler_v3_sram_packer.sv via function_model.transactions.FM_PACK_SRAM.\nSSOT item context: value=accepted payload bytes for a context.",
       "evidence_terms": [],
-      "id": "RTL-0229",
+      "id": "RTL-0236",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -271,9 +275,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -306,7 +310,7 @@
         "sram_wr_strb",
         "sram_wr_valid"
       ],
-      "id": "RTL-0230",
+      "id": "RTL-0237",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -324,8 +328,19 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "lane",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_addr",
+          "sram_wr_strb",
+          "sram_wr_valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -348,7 +363,7 @@
           "sram_wr_valid"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -358,9 +373,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -393,7 +408,7 @@
         "sram_wr_addr",
         "sram_wr_strb"
       ],
-      "id": "RTL-0231",
+      "id": "RTL-0238",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -411,8 +426,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "lane",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_addr",
+          "sram_wr_strb"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -435,7 +460,7 @@
           "sram_wr_strb"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -445,9 +470,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -472,7 +497,7 @@
         "wr",
         "write"
       ],
-      "id": "RTL-0232",
+      "id": "RTL-0239",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -486,8 +511,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "addr",
+          "sram",
+          "sram_wr_strb",
+          "sram_write",
+          "strb",
+          "wr",
+          "write"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -503,7 +536,7 @@
           "write"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -513,9 +546,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -540,7 +573,7 @@
         "valid",
         "wr"
       ],
-      "id": "RTL-0233",
+      "id": "RTL-0240",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -556,8 +589,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "bytes",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -571,7 +612,7 @@
           "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -581,9 +622,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -609,7 +650,7 @@
         "sram_wr_addr",
         "wr"
       ],
-      "id": "RTL-0234",
+      "id": "RTL-0241",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -625,8 +666,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "addr",
+          "next",
+          "payload",
+          "sram",
+          "sram_wr_addr",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -641,7 +689,7 @@
           "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -651,9 +699,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -682,7 +730,7 @@
         "strb",
         "wr"
       ],
-      "id": "RTL-0235",
+      "id": "RTL-0242",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -698,8 +746,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_strb",
+          "strb",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -717,7 +775,7 @@
           "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -727,9 +785,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -753,7 +811,7 @@
         "payload",
         "payload_bytes"
       ],
-      "id": "RTL-0236",
+      "id": "RTL-0243",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -768,8 +826,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "next",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -783,7 +847,7 @@
           "payload_bytes"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -793,9 +857,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -820,7 +884,7 @@
         "payload",
         "payload_bytes"
       ],
-      "id": "RTL-0237",
+      "id": "RTL-0244",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -835,8 +899,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bytes",
+          "lane",
+          "next",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -851,7 +921,7 @@
           "payload_bytes"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -861,9 +931,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -886,7 +956,7 @@
         "payload_bytes_written_count",
         "written"
       ],
-      "id": "RTL-0238",
+      "id": "RTL-0245",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -901,8 +971,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bytes",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -915,7 +989,7 @@
           "written"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -925,9 +999,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -954,7 +1028,7 @@
         "valid",
         "wr"
       ],
-      "id": "RTL-0239",
+      "id": "RTL-0246",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -971,8 +1045,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "bytes",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_valid",
+          "valid",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -986,7 +1068,7 @@
           "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -996,9 +1078,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1026,7 +1108,7 @@
         "sram_wr_addr",
         "wr"
       ],
-      "id": "RTL-0240",
+      "id": "RTL-0247",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1043,8 +1125,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "addr",
+          "next",
+          "payload",
+          "sram",
+          "sram_wr_addr",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1059,7 +1148,7 @@
           "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1069,9 +1158,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1102,7 +1191,7 @@
         "strb",
         "wr"
       ],
-      "id": "RTL-0241",
+      "id": "RTL-0248",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1119,8 +1208,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_strb",
+          "strb",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1138,7 +1237,7 @@
           "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1148,9 +1247,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1176,7 +1275,7 @@
         "payload",
         "payload_bytes"
       ],
-      "id": "RTL-0242",
+      "id": "RTL-0249",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1192,8 +1291,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "next",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1207,7 +1312,7 @@
           "payload_bytes"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1217,9 +1322,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1246,7 +1351,7 @@
         "payload",
         "payload_bytes"
       ],
-      "id": "RTL-0243",
+      "id": "RTL-0250",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1262,8 +1367,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "bytes",
+          "lane",
+          "next",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1278,7 +1389,7 @@
           "payload_bytes"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1288,9 +1399,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1315,7 +1426,7 @@
         "payload_bytes_written_count",
         "written"
       ],
-      "id": "RTL-0244",
+      "id": "RTL-0251",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1331,8 +1442,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "bytes",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1345,7 +1460,7 @@
           "written"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1355,9 +1470,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1390,7 +1505,7 @@
         "sram_wr_strb",
         "sram_wr_valid"
       ],
-      "id": "RTL-0245",
+      "id": "RTL-0252",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1408,8 +1523,19 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 10,
+        "matched_terms": [
+          "addr",
+          "bytes",
+          "lane",
+          "next",
+          "payload",
+          "payload_bytes",
+          "sram",
+          "sram_wr_addr",
+          "sram_wr_strb",
+          "sram_wr_valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1432,7 +1558,7 @@
           "sram_wr_valid"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1442,9 +1568,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1477,7 +1603,7 @@
         "lane",
         "next"
       ],
-      "id": "RTL-0246",
+      "id": "RTL-0253",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1495,8 +1621,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "ADDR",
+          "SRAM",
+          "SRAM_ADDR_WIDTH",
+          "WIDTH",
+          "addr",
+          "bytes",
+          "lane",
+          "next"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1519,7 +1654,7 @@
           "next"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1529,71 +1664,73 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
-      "category": "memory.instances",
-      "content": "Implement memory item context_table",
+      "category": "cycle_model.backpressure",
+      "content": "Implement backpressure rule: backpressure_rule_0",
       "criteria": [
-        "RTL owner/evidence is named for this SSOT item",
-        "Behavior is not represented only by comments or TB code",
-        "Downstream verification can observe or justify the item",
-        "Traceability keeps source_ref memory.instances.context_table",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_sram_packer.sv",
-        "context_table width matches SSOT value 512",
-        "context_table timing uses SSOT cycle/latency 0",
-        "context_table storage depth matches SSOT value 15"
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
       ],
-      "detail": "This SSOT memory.instances item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: memory.instances.context_table.\nOwner: mctp_assembler_v3_sram_packer in rtl/mctp_assembler_v3_sram_packer.sv via memory.\nSSOT item context: name=context_table; width=512; depth=15; latency=0.",
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs..",
       "evidence_terms": [
-        "context",
-        "context_table",
-        "table"
+        "ready",
+        "sram",
+        "sram_wr_ready",
+        "wr"
       ],
-      "id": "RTL-0387",
+      "id": "RTL-0317",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
       "required": true,
-      "source_ref": "memory.instances.context_table",
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
       "ssot_context": {
-        "depth": "15",
-        "latency": "0",
-        "name": "context_table",
-        "width": "512"
+        "value": "sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs."
       },
       "ssot_refs": [
-        "memory.instances.context_table"
+        "cycle_model.backpressure.backpressure_rule_0"
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ready",
+          "sram",
+          "sram_wr_ready",
+          "wr"
+        ],
         "owner_file_scoped": true,
         "required": true,
-        "required_match_count": 1,
+        "required_match_count": 2,
         "required_terms": [
-          "context",
-          "context_table",
-          "table"
+          "ready",
+          "sram",
+          "sram_wr_ready",
+          "wr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
-        "criteria_total": 8,
+        "criteria_total": 6,
         "evidence_basis": [
           "rtl_todo_plan.json task criteria",
           "rtl_traceability.json source_ref mapping",
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1612,7 +1749,7 @@
         "sram_write",
         "write"
       ],
-      "id": "RTL-0441",
+      "id": "RTL-0448",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1627,8 +1764,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "sram",
+          "sram_write",
+          "write"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1638,7 +1779,7 @@
           "write"
         ],
         "source_scope": "rtl/mctp_assembler_v3_sram_packer.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1648,9 +1789,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1667,7 +1808,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_v3_sram_packer.module_equivalence.\nOwner: mctp_assembler_v3_sram_packer in rtl/mctp_assembler_v3_sram_packer.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0468",
+      "id": "RTL-0476",
       "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
       "owner_module": "mctp_assembler_v3_sram_packer",
       "priority": "high",
@@ -1689,9 +1830,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1730,9 +1871,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1771,13 +1912,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_sram_packer.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

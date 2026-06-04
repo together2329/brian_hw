@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -168,6 +168,17 @@
           "last_drop_class"
         ],
         "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_cdc_sync",
+        "port": "evt_fatal_internal_error_a",
+        "signal": "1'b0",
+        "signal_terms": [
+          "b0"
+        ],
+        "source_ref": "integration.connections[7]"
       }
     ],
     "ssot_top_io_contracts": [
@@ -780,13 +791,17 @@
         "width": "1"
       }
     ],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
@@ -794,7 +809,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -823,7 +838,7 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "integration.connections": 7,
+      "integration.connections": 8,
       "integration.dependencies": 3
     },
     "module_slice": {
@@ -839,7 +854,7 @@
       "task_limit": 48
     },
     "open_required_count": 0,
-    "required_count": 10,
+    "required_count": 11,
     "source_refs": [
       "integration.dependencies.external_modules",
       "integration.dependencies.external_clocks",
@@ -850,12 +865,13 @@
       "integration.connections.presetn",
       "integration.connections.irq",
       "integration.connections.sram_wr_valid",
-      "integration.connections.last_drop_class"
+      "integration.connections.last_drop_class",
+      "integration.connections.item_1_b0"
     ],
     "status_counts": {
-      "pass": 10
+      "pass": 11
     },
-    "task_count": 10
+    "task_count": 11
   },
   "tasks": [
     {
@@ -870,7 +886,7 @@
       ],
       "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_modules.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.\nSSOT item context: name=external_modules; value=[\"payload_sram (256-bit, byte-strobed)\"].",
       "evidence_terms": [],
-      "id": "RTL-0448",
+      "id": "RTL-0455",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -912,7 +928,7 @@
       ],
       "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_clocks.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.\nSSOT item context: name=external_clocks; value=[\"axi_aclk\", \"pclk\"].",
       "evidence_terms": [],
-      "id": "RTL-0449",
+      "id": "RTL-0456",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -954,7 +970,7 @@
       ],
       "detail": "This SSOT integration.dependencies item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.dependencies.external_resets.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.\nSSOT item context: name=external_resets; value=[\"axi_aresetn\", \"presetn\"].",
       "evidence_terms": [],
-      "id": "RTL-0450",
+      "id": "RTL-0457",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1001,7 +1017,7 @@
         "axi",
         "axi_aclk"
       ],
-      "id": "RTL-0451",
+      "id": "RTL-0458",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1048,7 +1064,7 @@
         "axi",
         "axi_aresetn"
       ],
-      "id": "RTL-0452",
+      "id": "RTL-0459",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1093,7 +1109,7 @@
       "evidence_terms": [
         "pclk"
       ],
-      "id": "RTL-0453",
+      "id": "RTL-0460",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1138,7 +1154,7 @@
       "evidence_terms": [
         "presetn"
       ],
-      "id": "RTL-0454",
+      "id": "RTL-0461",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1184,7 +1200,7 @@
         "irq",
         "irq_o"
       ],
-      "id": "RTL-0455",
+      "id": "RTL-0462",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1233,7 +1249,7 @@
         "valid",
         "wr"
       ],
-      "id": "RTL-0456",
+      "id": "RTL-0463",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1282,7 +1298,7 @@
         "last",
         "last_drop_class"
       ],
-      "id": "RTL-0457",
+      "id": "RTL-0464",
       "owner_file": "rtl/mctp_assembler_v3.sv",
       "owner_module": "mctp_assembler_v3",
       "priority": "high",
@@ -1311,9 +1327,58 @@
         "required": true,
         "status": "pass"
       }
+    },
+    {
+      "category": "integration.connections",
+      "content": "Implement integration item 1'b0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref integration.connections.item_1_b0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3.sv",
+        "DUT port evt_fatal_internal_error_a is the implementation/observation point for evt_fatal_internal_error_a"
+      ],
+      "detail": "This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: integration.connections.item_1_b0.\nOwner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.\nSSOT item context: port=evt_fatal_internal_error_a; signal=1'b0.",
+      "evidence_terms": [
+        "b0",
+        "evt",
+        "evt_fatal_internal_error_a",
+        "fatal",
+        "internal"
+      ],
+      "id": "RTL-0465",
+      "owner_file": "rtl/mctp_assembler_v3.sv",
+      "owner_module": "mctp_assembler_v3",
+      "priority": "high",
+      "required": true,
+      "source_ref": "integration.connections.item_1_b0",
+      "ssot_context": {
+        "port": "evt_fatal_internal_error_a",
+        "signal": "1'b0"
+      },
+      "ssot_refs": [
+        "integration.connections.item_1_b0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

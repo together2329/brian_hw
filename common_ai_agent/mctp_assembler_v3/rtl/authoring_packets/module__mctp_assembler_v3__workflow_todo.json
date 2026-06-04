@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -168,6 +168,17 @@
           "last_drop_class"
         ],
         "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_cdc_sync",
+        "port": "evt_fatal_internal_error_a",
+        "signal": "1'b0",
+        "signal_terms": [
+          "b0"
+        ],
+        "source_ref": "integration.connections[7]"
       }
     ],
     "ssot_top_io_contracts": [
@@ -780,13 +791,17 @@
         "width": "1"
       }
     ],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
@@ -794,7 +809,7 @@
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
     "open_required_count": 0,
-    "pass_allowed": false,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -1006,7 +1021,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

@@ -1,0 +1,1619 @@
+{
+  "artifacts": [
+    "verify/semantic_contracts.json",
+    "verify/requirements_index.json",
+    "verify/evidence_contract.json",
+    "verify/contract_reflection.json",
+    "signoff/contract_reflection_coverage.json",
+    "signoff/evidence_contract_coverage.json",
+    "sim/evidence_freshness.json",
+    "signoff/sim_evidence_freshness.json",
+    "signoff/contract_owner_routing.json"
+  ],
+  "evidence": {
+    "generated_at": "2026-06-04T08:09:35Z",
+    "ip": "mctp_assembler_v3",
+    "issues": [],
+    "obligations": [
+      {
+        "condition_results": {
+          "ctx_payload_byte_count_matches_fl_payload_bytes_written": true,
+          "ctx_payload_count_reaches_32_in_wave": true,
+          "ctx_payload_count_sel_matches_fl_payload_bytes_written": true,
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_MCTP_V3_SC_SINGLE_PAYLOAD_COUNT_001",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "one_sram_write_emitted": true,
+          "sram_write_addr_matches_fl": true,
+          "sram_write_after_payload_count_visible": true,
+          "sram_write_strb_matches_fl": true,
+          "sram_write_strobe_is_contiguous": true,
+          "sram_write_valid_matches_fl": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_MCTP_V3_SC_SINGLE_SRAM_PACK_001",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "context_done_state_matches_fl": true,
+          "descriptor_push_observed": true,
+          "descriptor_push_seen_in_wave": true,
+          "descriptor_valid_matches_fl": true,
+          "descriptor_valid_same_or_after_push": true,
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_MCTP_V3_SC_SINGLE_DESCRIPTOR_VISIBLE_001",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "payload_digest_matches_fl": true,
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_RB_4096"
+          }
+        ],
+        "obligation_id": "OBL_MCTP_PAYLOAD_CONTENT_001",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_INGEST_TLP",
+            "scenario_id": "SC_001_EQ_TRANSACTION_FM_INGEST_TLP"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_INGEST_TLP",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_DECODE_VDM",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_DECODE_VDM",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_DECODE_MCTP",
+            "scenario_id": "SC_PD_DISABLED"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_DECODE_MCTP",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_ALLOC_CONTEXT",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_ALLOC_CONTEXT",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_APPEND",
+            "scenario_id": "SC_FRAG"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_APPEND",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_PACK_SRAM",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+            "scenario_id": "SC_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TRANSACTION_FM_AXI_READ",
+            "scenario_id": "SC_FW_READ"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_AXI_READ",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_SINGLE",
+            "scenario_id": "SC_SINGLE_single_packet"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_SINGLE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_FRAG",
+            "scenario_id": "SC_FRAG_multi_fragment"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_FRAG",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_INTERLEAVE",
+            "scenario_id": "SC_INTERLEAVE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_INTERLEAVE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_UNALIGNED_TU",
+            "scenario_id": "SC_UNALIGNED_TU"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_UNALIGNED_TU",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_MAX_TU",
+            "scenario_id": "SC_MAX_TU"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_MAX_TU",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_PD_MALFORMED",
+            "scenario_id": "SC_PD_MALFORMED"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_MALFORMED",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_PD_VDM",
+            "scenario_id": "SC_PD_VDM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_VDM",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_PD_MCTP",
+            "scenario_id": "SC_PD_MCTP"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_MCTP",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_PD_EID",
+            "scenario_id": "SC_PD_EID"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_EID",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_PD_MIDDLE",
+            "scenario_id": "SC_PD_MIDDLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_MIDDLE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_AD_DUP",
+            "scenario_id": "SC_AD_DUP"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_DUP",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_AD_SEQ",
+            "scenario_id": "SC_AD_SEQ"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_SEQ",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_AD_CTXFULL",
+            "scenario_id": "SC_AD_CTXFULL"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_CTXFULL",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_AD_SRAM",
+            "scenario_id": "SC_AD_SRAM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_SRAM",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_AD_DESCFULL",
+            "scenario_id": "SC_AD_DESCFULL"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_DESCFULL",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_AD_TIMEOUT",
+            "scenario_id": "SC_AD_TIMEOUT"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_TIMEOUT",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_PRIORITY",
+            "scenario_id": "SC_025_EQ_SCENARIO_SC_PRIORITY"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PRIORITY",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_FW_READ",
+            "scenario_id": "SC_FW_READ"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_FW_READ",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_FW_READ_SLVERR",
+            "scenario_id": "SC_FW_READ_SLVERR"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_FW_READ_SLVERR",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_SCENARIO_SC_REG",
+            "scenario_id": "SC_028_EQ_SCENARIO_SC_REG"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_REG",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+            "scenario_id": "SC_029_EQ_PROTOCOL_HANDSHAKE_0"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_0",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+            "scenario_id": "SC_030_EQ_PROTOCOL_HANDSHAKE_1"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_1",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "scenario_id": "SC_031_EQ_PROTOCOL_HANDSHAKE_2"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_2",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+            "scenario_id": "SC_032_EQ_PROTOCOL_HANDSHAKE_3"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_3",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_4",
+            "scenario_id": "SC_033_EQ_PROTOCOL_HANDSHAKE_4"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_4",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_5",
+            "scenario_id": "SC_034_EQ_PROTOCOL_HANDSHAKE_5"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_5",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TIMING_ORDERING_0",
+            "scenario_id": "SC_035_EQ_TIMING_ORDERING_0"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TIMING_ORDERING_0",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TIMING_ORDERING_1",
+            "scenario_id": "SC_036_EQ_TIMING_ORDERING_1"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TIMING_ORDERING_1",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_TIMING_ORDERING_2",
+            "scenario_id": "SC_037_EQ_TIMING_ORDERING_2"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_TIMING_ORDERING_2",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_CONTROL",
+            "scenario_id": "SC_038_EQ_REGISTER_CONTROL"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_CONTROL",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_CFG_TU",
+            "scenario_id": "SC_039_EQ_REGISTER_CFG_TU"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_CFG_TU",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_CFG_TIMEOUT",
+            "scenario_id": "SC_040_EQ_REGISTER_CFG_TIMEOUT"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_CFG_TIMEOUT",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_SRAM_BASE",
+            "scenario_id": "SC_041_EQ_REGISTER_SRAM_BASE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_SRAM_BASE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_SRAM_LIMIT",
+            "scenario_id": "SC_042_EQ_REGISTER_SRAM_LIMIT"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_SRAM_LIMIT",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_STATUS",
+            "scenario_id": "SC_043_EQ_REGISTER_STATUS"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_STATUS",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_CTX_STATE",
+            "scenario_id": "SC_044_EQ_REGISTER_CTX_STATE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_CTX_STATE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_INTR_RAW_STATUS",
+            "scenario_id": "SC_045_EQ_REGISTER_INTR_RAW_STATUS"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_RAW_STATUS",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_INTR_ENABLE",
+            "scenario_id": "SC_046_EQ_REGISTER_INTR_ENABLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_ENABLE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_INTR_STATUS",
+            "scenario_id": "SC_047_EQ_REGISTER_INTR_STATUS"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_STATUS",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_INTR_CLEAR",
+            "scenario_id": "SC_048_EQ_REGISTER_INTR_CLEAR"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_CLEAR",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_CNT_TLP_SEEN",
+            "scenario_id": "SC_049_EQ_REGISTER_CNT_TLP_SEEN"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_CNT_TLP_SEEN",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_DESC_VALID",
+            "scenario_id": "SC_050_EQ_REGISTER_DESC_VALID"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_DESC_VALID",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_REGISTER_DEBUG_CTX",
+            "scenario_id": "SC_051_EQ_REGISTER_DEBUG_CTX"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_REGISTER_DEBUG_CTX",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MEMORY_CONTEXT_TABLE",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MEMORY_CONTEXT_TABLE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MEMORY_DESCRIPTOR_FIFO",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MEMORY_DESCRIPTOR_FIFO",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_ERROR_NONE",
+            "scenario_id": "SC_054_EQ_ERROR_NONE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_ERROR_NONE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0",
+            "scenario_id": "SC_055_EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1",
+            "scenario_id": "SC_056_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2",
+            "scenario_id": "SC_057_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3",
+            "scenario_id": "SC_058_EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4",
+            "scenario_id": "SC_059_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5",
+            "scenario_id": "SC_060_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6",
+            "scenario_id": "SC_061_EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7",
+            "scenario_id": "SC_062_EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
+            "scenario_id": "SC_STATE_FRAG"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_DONE_WAIT_DESCRIPTOR_POP_1",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_IDLE_TO_DONE_WAIT_DESCRIPTOR_POP_1",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2",
+            "scenario_id": "SC_065_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_3",
+            "scenario_id": "SC_STATE_FRAG"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_3",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4",
+            "scenario_id": "SC_AD_SEQ"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6",
+            "scenario_id": "SC_STATE_ERROR"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_IDLE_TO_ACCEPT_AR_0",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_IDLE_TO_ACCEPT_AR_0",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_ISSUE_SRAM_RD_1",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_ISSUE_SRAM_RD_1",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_DRIVE_R_2",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_DRIVE_R_2",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_ISSUE_SRAM_RD_TO_WAIT_SRAM_RSP_3",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_ISSUE_SRAM_RD_TO_WAIT_SRAM_RSP_3",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_WAIT_SRAM_RSP_TO_DRIVE_R_4",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_WAIT_SRAM_RSP_TO_DRIVE_R_4",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_ISSUE_SRAM_RD_5",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_ISSUE_SRAM_RD_5",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_DONE_6",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_DONE_6",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_DONE_TO_IDLE_7",
+            "scenario_id": "SC_READ_FSM"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_DONE_TO_IDLE_7",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_DEBUG_OBSERVABILITY",
+            "scenario_id": "SC_078_EQ_DEBUG_OBSERVABILITY"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_DEBUG_OBSERVABILITY",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS",
+            "scenario_id": "SC_079_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER",
+            "scenario_id": "SC_080_EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER",
+            "scenario_id": "SC_081_EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE",
+            "scenario_id": "SC_082_EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER",
+            "scenario_id": "SC_083_EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE",
+            "scenario_id": "SC_084_EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD",
+            "scenario_id": "SC_085_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE",
+            "scenario_id": "SC_086_EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3",
+            "scenario_id": "SC_087_EQ_MODULE_MCTP_ASSEMBLER_V3"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CCOV_INGEST",
+            "scenario_id": "SC_088_EQ_COVERAGE_CCOV_INGEST"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CCOV_INGEST",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CCOV_OUTSTANDING",
+            "scenario_id": "SC_089_EQ_COVERAGE_CCOV_OUTSTANDING"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CCOV_OUTSTANDING",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST",
+            "scenario_id": "SC_090_EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE",
+            "scenario_id": "SC_091_EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE",
+            "scenario_id": "SC_092_EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT",
+            "scenario_id": "SC_093_EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK",
+            "scenario_id": "SC_094_EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR",
+            "scenario_id": "SC_095_EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+            "scenario_id": "SC_096_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
+            "scenario_id": "SC_097_EQ_COVERAGE_CYCLE_BACKPRESSURE_1"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
+            "scenario_id": "SC_098_EQ_COVERAGE_CYCLE_BACKPRESSURE_2"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+            "scenario_id": "SC_099_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+            "scenario_id": "SC_100_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+            "scenario_id": "SC_101_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "status": "pass"
+      },
+      {
+        "condition_results": {
+          "scoreboard_row_passed": true
+        },
+        "issues": [],
+        "matched_rows": [
+          {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+            "scenario_id": "SC_102_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+          }
+        ],
+        "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "status": "pass"
+      }
+    ],
+    "schema_version": 1,
+    "status": "pass",
+    "summary": {
+      "failed": 0,
+      "index_issues": 0,
+      "passed": 106,
+      "total": 106
+    },
+    "type": "evidence_contract_coverage"
+  },
+  "generated_at": "2026-06-04T08:09:35Z",
+  "ip": "mctp_assembler_v3",
+  "owner_route": {
+    "generated_at": "2026-06-04T08:09:35Z",
+    "ip": "mctp_assembler_v3",
+    "owner_workflow": "",
+    "reason": "contract reflection and evidence both pass",
+    "rerun_after_repair": [],
+    "schema_version": 1,
+    "status": "pass",
+    "suggested_commands": [],
+    "type": "contract_owner_routing"
+  },
+  "reflection": {
+    "contract_refs": [
+      {
+        "contract_ref": "DESC_PUBLISH_VISIBLE",
+        "issues": [],
+        "status": "pass"
+      },
+      {
+        "contract_ref": "LEGACY_SCOREBOARD_GOAL_CLOSURE",
+        "issues": [],
+        "status": "pass"
+      },
+      {
+        "contract_ref": "MEM_SRAM_PAYLOAD_PACK",
+        "issues": [],
+        "status": "pass"
+      },
+      {
+        "contract_ref": "SEMANTIC_STATE_PAYLOAD_CONTENT",
+        "issues": [],
+        "status": "pass"
+      },
+      {
+        "contract_ref": "STATE_PAYLOAD_COUNT",
+        "issues": [],
+        "status": "pass"
+      }
+    ],
+    "generated_at": "2026-06-04T08:09:33Z",
+    "ip": "mctp_assembler_v3",
+    "issues": [],
+    "schema_version": 1,
+    "status": "pass",
+    "summary": {
+      "artifact_issues": 0,
+      "failed": 0,
+      "passed": 5,
+      "total": 5
+    },
+    "type": "contract_reflection_coverage"
+  },
+  "runs": [
+    {
+      "label": "semantic_contract_overlay",
+      "returncode": 0,
+      "stdout": "[semantic_overlay] wrote 2 requirements, 4 obligations, 4 contract_refs"
+    },
+    {
+      "label": "goal_contract_overlay",
+      "returncode": 0,
+      "stdout": "[goal_overlay] wrote 102 goal obligations with wave=sim/mctp_assembler_v3.vcd"
+    },
+    {
+      "label": "sim_evidence_freshness",
+      "returncode": 0,
+      "stdout": "[sim_freshness] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/signoff/sim_evidence_freshness.json"
+    },
+    {
+      "label": "contract_reflection",
+      "returncode": 0,
+      "stdout": "[contract_reflection] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/signoff/contract_reflection_coverage.json"
+    },
+    {
+      "label": "evidence_contract",
+      "returncode": 0,
+      "stdout": "[evidence_contract] pass: wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/signoff/evidence_contract_coverage.json"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "evidence_failed": 0,
+    "evidence_passed": 106,
+    "evidence_total": 106,
+    "reflection_failed": 0,
+    "reflection_passed": 5,
+    "reflection_total": 5
+  },
+  "type": "contract_check"
+}

@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -12,7 +12,7 @@
       "enabled": true,
       "index": 2,
       "key": "registers_01",
-      "module_task_count": 102,
+      "module_task_count": 103,
       "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "registers",
       "section_chunk_count": 2,
@@ -123,21 +123,25 @@
       }
     ],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 48,
-    "open_required_count": 48,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -174,14 +178,14 @@
       "enabled": true,
       "index": 2,
       "key": "registers_01",
-      "module_task_count": 102,
+      "module_task_count": 103,
       "rule": "Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "registers",
       "section_chunk_count": 2,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 48,
+    "open_required_count": 0,
     "required_count": 48,
     "source_refs": [
       "registers.register_list.CONTROL",
@@ -210,7 +214,7 @@
       "registers.register_list.STATUS.fields.axi_read_busy"
     ],
     "status_counts": {
-      "open": 48
+      "pass": 48
     },
     "task_count": 48
   },
@@ -231,7 +235,7 @@
       ],
       "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CONTROL.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.",
       "evidence_terms": [],
-      "id": "RTL-0314",
+      "id": "RTL-0321",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -259,9 +263,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -284,7 +288,7 @@
       "evidence_terms": [
         "enable"
       ],
-      "id": "RTL-0315",
+      "id": "RTL-0322",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -300,8 +304,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "enable"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -309,7 +315,7 @@
           "enable"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -319,9 +325,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -347,7 +353,7 @@
         "drop_when_disabled",
         "when"
       ],
-      "id": "RTL-0316",
+      "id": "RTL-0323",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -363,8 +369,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "disabled",
+          "drop",
+          "drop_when_disabled",
+          "when"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -375,7 +386,7 @@
           "when"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -385,9 +396,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -412,7 +423,7 @@
         "soft",
         "soft_reset"
       ],
-      "id": "RTL-0317",
+      "id": "RTL-0324",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -428,8 +439,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "reset",
+          "soft",
+          "soft_reset"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -439,7 +454,7 @@
           "soft_reset"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -449,9 +464,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -477,7 +492,7 @@
         "enable",
         "filter"
       ],
-      "id": "RTL-0318",
+      "id": "RTL-0325",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -493,8 +508,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "dest",
+          "dest_filter_enable",
+          "enable",
+          "filter"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -505,7 +525,7 @@
           "filter"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -515,9 +535,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -543,7 +563,7 @@
         "broadcast",
         "eid"
       ],
-      "id": "RTL-0319",
+      "id": "RTL-0326",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -559,8 +579,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "accept",
+          "accept_broadcast_eid",
+          "broadcast",
+          "eid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -571,7 +596,7 @@
           "eid"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -581,9 +606,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -609,7 +634,7 @@
         "eid",
         "null"
       ],
-      "id": "RTL-0320",
+      "id": "RTL-0327",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -625,8 +650,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "accept",
+          "accept_null_eid",
+          "eid",
+          "null"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -637,7 +667,7 @@
           "null"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -647,9 +677,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -677,7 +707,7 @@
         "read",
         "sram"
       ],
-      "id": "RTL-0321",
+      "id": "RTL-0328",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -693,8 +723,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "debug",
+          "enable",
+          "raw",
+          "raw_sram_debug_read_enable",
+          "read",
+          "sram"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -707,7 +744,7 @@
           "sram"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -717,9 +754,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -744,7 +781,7 @@
         "descriptor_pop",
         "pop"
       ],
-      "id": "RTL-0322",
+      "id": "RTL-0329",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -760,8 +797,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "descriptor",
+          "descriptor_pop",
+          "pop"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -771,7 +812,7 @@
           "pop"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -781,9 +822,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -806,7 +847,7 @@
       "evidence_terms": [
         "counter_clear"
       ],
-      "id": "RTL-0323",
+      "id": "RTL-0330",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -822,8 +863,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "counter_clear"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -831,7 +874,7 @@
           "counter_clear"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -841,9 +884,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -868,7 +911,7 @@
         "local",
         "local_eid"
       ],
-      "id": "RTL-0324",
+      "id": "RTL-0331",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -884,8 +927,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "eid",
+          "local",
+          "local_eid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -895,7 +942,7 @@
           "local_eid"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -905,9 +952,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -933,7 +980,7 @@
         "debug_context_select",
         "select"
       ],
-      "id": "RTL-0325",
+      "id": "RTL-0332",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -949,8 +996,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "context",
+          "debug",
+          "debug_context_select",
+          "select"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -961,7 +1013,7 @@
           "select"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -971,9 +1023,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -996,7 +1048,7 @@
         "CFG_TU",
         "TU"
       ],
-      "id": "RTL-0326",
+      "id": "RTL-0333",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1014,8 +1066,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CFG",
+          "CFG_TU",
+          "TU"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1025,7 +1081,7 @@
           "TU"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1035,9 +1091,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1063,7 +1119,7 @@
         "transmission_unit_bytes",
         "unit"
       ],
-      "id": "RTL-0327",
+      "id": "RTL-0334",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1079,8 +1135,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1091,7 +1149,7 @@
           "unit"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1101,9 +1159,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1129,7 +1187,7 @@
         "max_message_bytes",
         "message"
       ],
-      "id": "RTL-0328",
+      "id": "RTL-0335",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1145,8 +1203,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "bytes",
+          "max",
+          "max_message_bytes",
+          "message"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1157,7 +1220,7 @@
           "message"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1167,9 +1230,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1192,7 +1255,7 @@
         "CFG_TIMEOUT",
         "TIMEOUT"
       ],
-      "id": "RTL-0329",
+      "id": "RTL-0336",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1210,8 +1273,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "CFG",
+          "CFG_TIMEOUT",
+          "TIMEOUT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1221,7 +1288,7 @@
           "TIMEOUT"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1231,9 +1298,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1259,7 +1326,7 @@
         "cycles",
         "timeout"
       ],
-      "id": "RTL-0330",
+      "id": "RTL-0337",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1275,8 +1342,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "assembly",
+          "cycles",
+          "timeout"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1287,7 +1358,7 @@
           "timeout"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1297,9 +1368,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1322,7 +1393,7 @@
         "SRAM",
         "SRAM_BASE"
       ],
-      "id": "RTL-0331",
+      "id": "RTL-0338",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1340,8 +1411,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "BASE",
+          "SRAM",
+          "SRAM_BASE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1351,7 +1426,7 @@
           "SRAM_BASE"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1361,9 +1436,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1391,7 +1466,7 @@
         "sram",
         "sram_base"
       ],
-      "id": "RTL-0332",
+      "id": "RTL-0339",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1407,8 +1482,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "BASE",
+          "SRAM",
+          "SRAM_BASE",
+          "base",
+          "sram",
+          "sram_base"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1421,7 +1503,7 @@
           "sram_base"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1431,9 +1513,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1456,7 +1538,7 @@
         "SRAM",
         "SRAM_LIMIT"
       ],
-      "id": "RTL-0333",
+      "id": "RTL-0340",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1474,8 +1556,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "LIMIT",
+          "SRAM",
+          "SRAM_LIMIT"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1485,7 +1571,7 @@
           "SRAM_LIMIT"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1495,9 +1581,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1525,7 +1611,7 @@
         "sram",
         "sram_limit"
       ],
-      "id": "RTL-0334",
+      "id": "RTL-0341",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1541,8 +1627,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "LIMIT",
+          "SRAM",
+          "SRAM_LIMIT",
+          "limit",
+          "sram",
+          "sram_limit"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1555,7 +1648,7 @@
           "sram_limit"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1565,9 +1658,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1588,7 +1681,7 @@
       "evidence_terms": [
         "STATUS"
       ],
-      "id": "RTL-0335",
+      "id": "RTL-0342",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1606,8 +1699,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "STATUS"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1615,7 +1710,7 @@
           "STATUS"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -1625,9 +1720,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1652,7 +1747,7 @@
         "ingress",
         "ingress_busy"
       ],
-      "id": "RTL-0336",
+      "id": "RTL-0343",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1668,8 +1763,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "busy",
+          "ingress",
+          "ingress_busy"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1679,7 +1778,7 @@
           "ingress_busy"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1689,9 +1788,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1717,7 +1816,7 @@
         "busy",
         "read"
       ],
-      "id": "RTL-0337",
+      "id": "RTL-0344",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1733,8 +1832,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "axi",
+          "axi_read_busy",
+          "busy",
+          "read"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1745,7 +1849,7 @@
           "read"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1755,9 +1859,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1783,7 +1887,7 @@
         "sram_write_busy",
         "write"
       ],
-      "id": "RTL-0338",
+      "id": "RTL-0345",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1799,8 +1903,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "busy",
+          "sram",
+          "sram_write_busy",
+          "write"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1811,7 +1920,7 @@
           "write"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1821,9 +1930,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1849,7 +1958,7 @@
         "sram",
         "sram_read_busy"
       ],
-      "id": "RTL-0339",
+      "id": "RTL-0346",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1865,8 +1974,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "busy",
+          "read",
+          "sram",
+          "sram_read_busy"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1877,7 +1991,7 @@
           "sram_read_busy"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1887,9 +2001,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1914,7 +2028,7 @@
         "descriptor",
         "descriptor_available"
       ],
-      "id": "RTL-0340",
+      "id": "RTL-0347",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1930,8 +2044,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "available",
+          "descriptor",
+          "descriptor_available"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1941,7 +2059,7 @@
           "descriptor_available"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -1951,9 +2069,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1979,7 +2097,7 @@
         "full",
         "queue"
       ],
-      "id": "RTL-0341",
+      "id": "RTL-0348",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -1995,8 +2113,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "descriptor",
+          "descriptor_queue_full",
+          "full",
+          "queue"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2007,7 +2130,7 @@
           "queue"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2017,9 +2140,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2044,7 +2167,7 @@
         "context",
         "context_active_any"
       ],
-      "id": "RTL-0342",
+      "id": "RTL-0349",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2060,8 +2183,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "active",
+          "context",
+          "context_active_any"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2071,7 +2198,7 @@
           "context_active_any"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2081,9 +2208,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2107,7 +2234,7 @@
         "context",
         "context_error_any"
       ],
-      "id": "RTL-0343",
+      "id": "RTL-0350",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2123,8 +2250,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "context",
+          "context_error_any"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2133,7 +2263,7 @@
           "context_error_any"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2143,9 +2273,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2171,7 +2301,7 @@
         "packet_drop_seen",
         "seen"
       ],
-      "id": "RTL-0344",
+      "id": "RTL-0351",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2187,8 +2317,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "drop",
+          "packet",
+          "packet_drop_seen",
+          "seen"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2199,7 +2334,7 @@
           "seen"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2209,9 +2344,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2237,7 +2372,7 @@
         "drop",
         "seen"
       ],
-      "id": "RTL-0345",
+      "id": "RTL-0352",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2253,8 +2388,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "assembly",
+          "assembly_drop_seen",
+          "drop",
+          "seen"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2265,7 +2405,7 @@
           "seen"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2275,9 +2415,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2303,7 +2443,7 @@
         "context",
         "count"
       ],
-      "id": "RTL-0346",
+      "id": "RTL-0353",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2319,8 +2459,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "active",
+          "active_context_count",
+          "context",
+          "count"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2331,7 +2476,7 @@
           "count"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2341,9 +2486,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2369,7 +2514,7 @@
         "last",
         "last_drop_class"
       ],
-      "id": "RTL-0347",
+      "id": "RTL-0354",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2385,8 +2530,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "class",
+          "drop",
+          "last",
+          "last_drop_class"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2397,7 +2547,7 @@
           "last_drop_class"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2407,9 +2557,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2435,7 +2585,7 @@
         "last_drop_reason",
         "reason"
       ],
-      "id": "RTL-0348",
+      "id": "RTL-0355",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2451,8 +2601,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "drop",
+          "last",
+          "last_drop_reason",
+          "reason"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2463,7 +2618,7 @@
           "reason"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2473,9 +2628,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2501,7 +2656,7 @@
         "last",
         "last_error_context_id"
       ],
-      "id": "RTL-0349",
+      "id": "RTL-0356",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2517,8 +2672,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "context",
+          "id",
+          "last",
+          "last_error_context_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2529,7 +2689,7 @@
           "last_error_context_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2539,9 +2699,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2563,7 +2723,7 @@
         "CTX",
         "CTX_STATE"
       ],
-      "id": "RTL-0350",
+      "id": "RTL-0357",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2581,8 +2741,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "CTX",
+          "CTX_STATE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2591,7 +2754,7 @@
           "CTX_STATE"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -2601,9 +2764,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2629,7 +2792,7 @@
         "ctx",
         "ctx_state"
       ],
-      "id": "RTL-0351",
+      "id": "RTL-0358",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2645,8 +2808,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "CTX",
+          "CTX_STATE",
+          "ctx",
+          "ctx_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2657,7 +2825,7 @@
           "ctx_state"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2667,9 +2835,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2694,7 +2862,7 @@
         "ctx_valid",
         "valid"
       ],
-      "id": "RTL-0352",
+      "id": "RTL-0359",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2710,8 +2878,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ctx",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2721,7 +2892,7 @@
           "valid"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2731,9 +2902,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2757,7 +2928,7 @@
         "ctx",
         "ctx_error"
       ],
-      "id": "RTL-0353",
+      "id": "RTL-0360",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2773,8 +2944,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ctx"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2783,7 +2956,7 @@
           "ctx_error"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2793,9 +2966,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2821,7 +2994,7 @@
         "eid",
         "source"
       ],
-      "id": "RTL-0354",
+      "id": "RTL-0361",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2837,8 +3010,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ctx",
+          "eid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2849,7 +3025,7 @@
           "source"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2859,9 +3035,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2887,7 +3063,7 @@
         "message",
         "tag"
       ],
-      "id": "RTL-0355",
+      "id": "RTL-0362",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2903,8 +3079,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ctx",
+          "message"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2915,7 +3094,7 @@
           "tag"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2925,9 +3104,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2953,7 +3132,7 @@
         "owner",
         "tag"
       ],
-      "id": "RTL-0356",
+      "id": "RTL-0363",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -2969,8 +3148,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ctx"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2981,7 +3162,7 @@
           "tag"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -2991,9 +3172,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3019,7 +3200,7 @@
         "expected",
         "seq"
       ],
-      "id": "RTL-0357",
+      "id": "RTL-0364",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -3035,8 +3216,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ctx"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3047,7 +3230,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -3057,9 +3240,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3085,7 +3268,7 @@
         "last",
         "seq"
       ],
-      "id": "RTL-0358",
+      "id": "RTL-0365",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -3101,8 +3284,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ctx",
+          "last"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3113,7 +3299,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -3123,9 +3309,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3151,7 +3337,7 @@
         "message",
         "type"
       ],
-      "id": "RTL-0359",
+      "id": "RTL-0366",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -3167,8 +3353,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "ctx",
+          "message"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3179,7 +3368,7 @@
           "type"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -3189,9 +3378,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3218,7 +3407,7 @@
         "last",
         "reason"
       ],
-      "id": "RTL-0360",
+      "id": "RTL-0367",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -3234,8 +3423,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ctx",
+          "drop",
+          "last",
+          "reason"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3247,7 +3441,7 @@
           "reason"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 11,
@@ -3257,9 +3451,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3283,7 +3477,7 @@
         "RAW",
         "STATUS"
       ],
-      "id": "RTL-0361",
+      "id": "RTL-0368",
       "owner_file": "rtl/mctp_assembler_v3_apb_regfile.sv",
       "owner_module": "mctp_assembler_v3_apb_regfile",
       "priority": "high",
@@ -3301,8 +3495,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "INTR",
+          "RAW",
+          "STATUS"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3313,7 +3511,7 @@
           "STATUS"
         ],
         "source_scope": "rtl/mctp_assembler_v3_apb_regfile.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -3323,13 +3521,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

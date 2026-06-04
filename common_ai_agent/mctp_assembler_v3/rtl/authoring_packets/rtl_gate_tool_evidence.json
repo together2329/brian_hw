@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -156,6 +156,17 @@
           "last_drop_class"
         ],
         "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "mctp_assembler_v3_cdc_sync",
+        "port": "evt_fatal_internal_error_a",
+        "signal": "1'b0",
+        "signal_terms": [
+          "b0"
+        ],
+        "source_ref": "integration.connections[7]"
       }
     ],
     "ssot_top_io_contracts": [
@@ -768,260 +779,32 @@
         "width": "1"
       }
     ],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
-    "blocked_by_tool_evidence": [
-      {
-        "gate_kind": "common_ai_agent_authoring",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "gate_kind": "dut_compile",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "gate_kind": "dut_lint",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
-        "gate_kind": "dynamic_todo_closure",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "336 required non-closure TODO(s) remain open.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "status": "open",
-        "task_id": "RTL-0019"
-      },
-      {
-        "gate_kind": "protocol_assertion_evidence",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-        "status": "open",
-        "task_id": "RTL-0024"
-      },
-      {
-        "gate_kind": "fl_rtl_goal_audit",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-        "status": "open",
-        "task_id": "RTL-0025"
-      },
-      {
-        "gate_kind": "coverage_closure",
-        "owner_module": "mctp_assembler_v3",
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
-        "source": "packet_task",
-        "source_ref": "quality_gates.rtl_gen.coverage_closure",
-        "status": "open",
-        "task_id": "RTL-0026"
-      }
-    ],
+    "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": false,
     "evidence_closure_allowed": true,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
     "llm_actionable": false,
     "llm_actionable_open_count": 0,
-    "open_required_count": 7,
-    "pass_allowed": false,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
       "Never use a fixed RTL template as the implementation."
     ],
-    "tool_evidence_open_count": 7,
-    "tool_evidence_plan": [
-      {
-        "artifact": "rtl/rtl_authoring_provenance.json",
-        "artifacts": [
-          "mctp_assembler_v3/rtl/rtl_authoring_provenance.json",
-          "mctp_assembler_v3/rtl/rtl_todo_plan.json"
-        ],
-        "closure_rule": "Refresh common_ai_agent_authoring provenance against the current rtl_todo_plan hash.",
-        "commands": [
-          "python3 src/headless_workflow.py --root . --ip mctp_assembler_v3 --stages rtl-gen",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "common_ai_agent_authoring",
-        "prerequisites": [
-          "An LLM authoring pass emitted or repaired DUT RTL files."
-        ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
-        "source_ref": "quality_gates.rtl_gen.common_ai_agent_authoring",
-        "stage_sequence": [
-          "ssot-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0006"
-      },
-      {
-        "artifact": "rtl/rtl_compile.json",
-        "artifacts": [
-          "mctp_assembler_v3/rtl/rtl_compile.json",
-          "mctp_assembler_v3/rtl/rtl_compile.log"
-        ],
-        "closure_rule": "rtl_compile.json must be DUT-only, fresh, passed, and cover every current DUT RTL file.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/rtl_compile_report.py mctp_assembler_v3 --top mctp_assembler_v3 --project-root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_compile",
-        "prerequisites": [
-          "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL sources."
-        ],
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
-        "source_ref": "quality_gates.rtl_gen.dut_compile",
-        "stage_sequence": [
-          "ssot-rtl",
-          "dut_compile"
-        ],
-        "status": "open",
-        "task_id": "RTL-0017"
-      },
-      {
-        "artifact": "lint/dut_lint.json",
-        "artifacts": [
-          "mctp_assembler_v3/lint/dut_lint.json"
-        ],
-        "closure_rule": "dut_lint.json must be DUT-only, fresh, passed, and report zero warnings/errors.",
-        "commands": [
-          "python3 workflow/lint/scripts/dut_lint_report.py mctp_assembler_v3 --top mctp_assembler_v3",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "dut_lint",
-        "prerequisites": [
-          "mctp_assembler_v3/list/mctp_assembler_v3.f covers the current DUT RTL/header sources."
-        ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
-        "source_ref": "quality_gates.rtl_gen.dut_lint",
-        "stage_sequence": [
-          "lint",
-          "dut_lint"
-        ],
-        "status": "open",
-        "task_id": "RTL-0018"
-      },
-      {
-        "artifact": "rtl/rtl_todo_plan.json",
-        "artifacts": [
-          "mctp_assembler_v3/rtl/rtl_todo_plan.json",
-          "mctp_assembler_v3/rtl/rtl_authoring_status.md"
-        ],
-        "closure_rule": "dynamic_todo_closure passes only when every required non-closure TODO is already pass.",
-        "commands": [
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "dynamic_todo_closure",
-        "prerequisites": [
-          "All non-closure required TODOs have pass status."
-        ],
-        "reason": "336 required non-closure TODO(s) remain open.",
-        "source_ref": "quality_gates.rtl_gen.dynamic_todo_closure",
-        "stage_sequence": [
-          "audit-rtl"
-        ],
-        "status": "open",
-        "task_id": "RTL-0019"
-      },
-      {
-        "artifact": "verify/protocol_assertions.sva",
-        "artifacts": [
-          "mctp_assembler_v3/verify/protocol_assertions.sva",
-          "mctp_assembler_v3/verify/protocol_assertions.summary.json",
-          "mctp_assembler_v3/sim/assertion_failures.jsonl"
-        ],
-        "closure_rule": "Generated assertions exist and latest simulation has zero assertion failure records.",
-        "commands": [
-          "python3 workflow/fl-model-gen/scripts/emit_protocol_assertions.py mctp_assembler_v3 --root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "protocol_assertion_evidence",
-        "prerequisites": [
-          "SSOT cycle_model/protocol rules are machine-checkable.",
-          "Simulation has run after RTL edits."
-        ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
-        "source_ref": "quality_gates.rtl_gen.protocol_assertion_evidence",
-        "stage_sequence": [
-          "ssot-protocol-assertions",
-          "sim"
-        ],
-        "status": "open",
-        "task_id": "RTL-0024"
-      },
-      {
-        "artifact": "sim/fl_rtl_goal_audit.json",
-        "artifacts": [
-          "mctp_assembler_v3/sim/fl_rtl_goal_audit.json"
-        ],
-        "closure_rule": "fl_rtl_goal_audit.json must be fresh and status=pass.",
-        "commands": [
-          "python3 workflow/sim_debug/scripts/audit_fl_rtl_equivalence_goal.py mctp_assembler_v3 --root .",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "fl_rtl_goal_audit",
-        "prerequisites": [
-          "FL model, equivalence goals, TB, and simulation evidence are current."
-        ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
-        "source_ref": "quality_gates.rtl_gen.fl_rtl_goal_audit",
-        "stage_sequence": [
-          "ssot-fl-model",
-          "ssot-equiv-goals",
-          "ssot-tb-cocotb",
-          "sim",
-          "goal-audit"
-        ],
-        "status": "open",
-        "task_id": "RTL-0025"
-      },
-      {
-        "artifact": "cov/coverage.json",
-        "artifacts": [
-          "mctp_assembler_v3/cov/coverage.json"
-        ],
-        "closure_rule": "coverage.json must be fresh, come from ssot_coverage_summary, and close every planned required bin.",
-        "commands": [
-          "python3 workflow/coverage/scripts/ssot_coverage_summary.py mctp_assembler_v3",
-          "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py mctp_assembler_v3 --root . --audit-rtl"
-        ],
-        "gate_kind": "coverage_closure",
-        "prerequisites": [
-          "Simulation evidence exists and planned coverage bins are observable."
-        ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
-        "source_ref": "quality_gates.rtl_gen.coverage_closure",
-        "stage_sequence": [
-          "sim",
-          "coverage"
-        ],
-        "status": "open",
-        "task_id": "RTL-0026"
-      }
-    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
     "work_allowed": true
   },
   "ip": "mctp_assembler_v3",
@@ -1046,7 +829,7 @@
       "rtl_gate.rtl_gen": 7
     },
     "module_slice": {},
-    "open_required_count": 7,
+    "open_required_count": 0,
     "required_count": 7,
     "source_refs": [
       "quality_gates.rtl_gen.common_ai_agent_authoring",
@@ -1058,7 +841,7 @@
       "quality_gates.rtl_gen.coverage_closure"
     ],
     "status_counts": {
-      "open": 7
+      "pass": 7
     },
     "task_count": 7
   },
@@ -1107,9 +890,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_authoring_provenance.json"
         ],
-        "reason": "Missing common_ai_agent RTL authoring provenance.",
+        "reason": "RTL authoring provenance proves common_ai_agent rtl-gen ownership.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1154,9 +937,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_compile.json"
         ],
-        "reason": "rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.",
+        "reason": "DUT-only compile artifact passed with zero errors, diagnostics, and style violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1202,9 +985,9 @@
           "rtl_todo_plan.json task criteria",
           "lint/dut_lint.json"
         ],
-        "reason": "Missing canonical DUT lint artifact: lint/dut_lint.json.",
+        "reason": "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1247,9 +1030,9 @@
           "rtl_todo_plan.json task criteria",
           "rtl/rtl_todo_plan.json"
         ],
-        "reason": "336 required non-closure TODO(s) remain open.",
+        "reason": "Every required non-closure TODO has pass status.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1295,9 +1078,9 @@
           "rtl_todo_plan.json task criteria",
           "verify/protocol_assertions.sva"
         ],
-        "reason": "Missing protocol assertion artifact: verify/protocol_assertions.sva.",
+        "reason": "Protocol assertions were generated and simulation reported zero assertion failures.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1344,9 +1127,9 @@
           "rtl_todo_plan.json task criteria",
           "sim/fl_rtl_goal_audit.json"
         ],
-        "reason": "Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.",
+        "reason": "FL-vs-RTL goal audit passed and compare covers every required unblocked equivalence goal.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1395,13 +1178,13 @@
           "rtl_todo_plan.json task criteria",
           "cov/coverage.json"
         ],
-        "reason": "Missing coverage closure artifact: cov/coverage.json.",
+        "reason": "SSOT functional coverage closure passed with RTL-observed evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

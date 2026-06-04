@@ -23,29 +23,30 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: fsm, fsm.context_fsm, function_model, function_model.transactions.FM_ALLOC_CONTEXT, function_model.transactions.FM_APPEND
-- Module slice: 4/4 section=equivalence task_limit=48
-- Slice rule: Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 6/6 section=equivalence task_limit=48
+- Slice rule: Owner module mctp_assembler_v3_context_table is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_context_table.drop_class_o <= last_drop_class (integration.connections[6])
 
 ## Tasks
 
-### RTL-0467: Prove module mctp_assembler_v3_context_table is functionally equivalent to FL
+### RTL-0475: Prove module mctp_assembler_v3_context_table is functionally equivalent to FL
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: equivalence.module
 - Source ref: sub_modules.mctp_assembler_v3_context_table.module_equivalence
 - Detail: This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.
 SSOT ref: sub_modules.mctp_assembler_v3_context_table.module_equivalence.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via module_equivalence.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - verify/equivalence_goals.json contains an unblocked scope.level=module goal for this RTL module
   - cocotb/pyuvm scoreboard emits a row for the module goal before top-level signoff

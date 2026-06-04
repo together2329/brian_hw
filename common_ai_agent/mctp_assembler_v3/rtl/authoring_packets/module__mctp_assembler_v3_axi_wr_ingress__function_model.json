@@ -1,19 +1,19 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 5,
+      "count": 6,
       "enabled": true,
       "index": 2,
       "key": "function_model",
-      "module_task_count": 84,
-      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 91,
+      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -112,21 +112,25 @@
       }
     ],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 1,
-    "open_required_count": 1,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -160,28 +164,27 @@
       "function_model.invariant": 9,
       "function_model.output": 6,
       "function_model.output_rule": 1,
-      "function_model.precondition": 5,
+      "function_model.precondition": 4,
       "function_model.side_effect": 2,
       "function_model.state_update": 3,
       "function_model.transaction": 1
     },
     "module_slice": {
-      "count": 5,
+      "count": 6,
       "enabled": true,
       "index": 2,
       "key": "function_model",
-      "module_task_count": 84,
-      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 91,
+      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 1,
-    "required_count": 29,
+    "open_required_count": 0,
+    "required_count": 28,
     "source_refs": [
       "function_model.transactions.FM_INGEST_TLP",
-      "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
       "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_1",
       "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_2",
       "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_3",
@@ -203,13 +206,13 @@
       "function_model.invariants.invariant_0",
       "function_model.invariants.invariant_1",
       "function_model.invariants.invariant_2",
-      "function_model.invariants.invariant_3"
+      "function_model.invariants.invariant_3",
+      "function_model.invariants.invariant_4"
     ],
     "status_counts": {
-      "open": 1,
       "pass": 28
     },
-    "task_count": 29
+    "task_count": 28
   },
   "tasks": [
     {
@@ -224,7 +227,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: id=FM_INGEST_TLP; name=axi_write_to_tlp_bytes.",
       "evidence_terms": [],
-      "id": "RTL-0120",
+      "id": "RTL-0127",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -256,64 +259,6 @@
     },
     {
       "category": "function_model.precondition",
-      "content": "Implement precondition for FM_INGEST_TLP: precondition_0",
-      "criteria": [
-        "RTL owner logic is identifiable for this SSOT leaf",
-        "Reset/enable/error behavior is consistent with the parent transaction",
-        "Downstream equivalence/coverage can observe this behavior",
-        "Traceability keeps source_ref function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv"
-      ],
-      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=CONTROL.enable==1 or (enable==0 and drop_when_disabled==1).",
-      "evidence_terms": [
-        "disabled",
-        "drop",
-        "drop_when_disabled",
-        "when"
-      ],
-      "id": "RTL-0121",
-      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
-      "priority": "high",
-      "required": true,
-      "source_ref": "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
-      "ssot_context": {
-        "value": "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)"
-      },
-      "ssot_refs": [
-        "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "disabled",
-          "drop",
-          "drop_when_disabled",
-          "when"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Required RTL static evidence is missing.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "function_model.precondition",
       "content": "Implement precondition for FM_INGEST_TLP: precondition_1",
       "criteria": [
         "RTL owner logic is identifiable for this SSOT leaf",
@@ -324,7 +269,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_1.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=AWSIZE==5.",
       "evidence_terms": [],
-      "id": "RTL-0122",
+      "id": "RTL-0129",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -365,7 +310,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_2.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=AWBURST==INCR.",
       "evidence_terms": [],
-      "id": "RTL-0123",
+      "id": "RTL-0130",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -406,7 +351,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_3.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=W beat count == AWLEN+1.",
       "evidence_terms": [],
-      "id": "RTL-0124",
+      "id": "RTL-0131",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -447,7 +392,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_4.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=WLAST on final beat only.",
       "evidence_terms": [],
-      "id": "RTL-0125",
+      "id": "RTL-0132",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -506,7 +451,7 @@
         "tlp",
         "tlp_accept"
       ],
-      "id": "RTL-0126",
+      "id": "RTL-0133",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -588,7 +533,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.outputs.output_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=ordered raw TLP byte vector with valid byte count from WSTRB.",
       "evidence_terms": [],
-      "id": "RTL-0127",
+      "id": "RTL-0134",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -629,7 +574,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.outputs.output_1.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=BRESP=OKAY when transaction consumed.",
       "evidence_terms": [],
-      "id": "RTL-0128",
+      "id": "RTL-0135",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -687,7 +632,7 @@
         "st_rsp_error",
         "st_rsp_error_i"
       ],
-      "id": "RTL-0129",
+      "id": "RTL-0136",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -777,7 +722,7 @@
         "wlast_seen",
         "wstrb"
       ],
-      "id": "RTL-0130",
+      "id": "RTL-0137",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -865,7 +810,7 @@
         "tlp",
         "tlp_seen_count"
       ],
-      "id": "RTL-0131",
+      "id": "RTL-0138",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -931,7 +876,7 @@
         "tlp_accept",
         "tlp_accepted_count"
       ],
-      "id": "RTL-0132",
+      "id": "RTL-0139",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1011,7 +956,7 @@
         "st_rsp_error",
         "st_rsp_error_i"
       ],
-      "id": "RTL-0133",
+      "id": "RTL-0140",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1104,7 +1049,7 @@
         "wlast_seen",
         "wstrb"
       ],
-      "id": "RTL-0134",
+      "id": "RTL-0141",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1195,7 +1140,7 @@
         "tlp",
         "tlp_seen_count"
       ],
-      "id": "RTL-0135",
+      "id": "RTL-0142",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1264,7 +1209,7 @@
         "tlp_accept",
         "tlp_accepted_count"
       ],
-      "id": "RTL-0136",
+      "id": "RTL-0143",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1344,7 +1289,7 @@
         "tlp_byte_count",
         "tlp_seen_count"
       ],
-      "id": "RTL-0137",
+      "id": "RTL-0144",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1444,7 +1389,7 @@
         "tlp_accepted_count",
         "tlp_byte_count"
       ],
-      "id": "RTL-0138",
+      "id": "RTL-0145",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1545,7 +1490,7 @@
         "accepted",
         "awburst"
       ],
-      "id": "RTL-0139",
+      "id": "RTL-0146",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1563,11 +1508,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 10,
+        "matched_count": 11,
         "matched_terms": [
           "AWBURST",
           "AWSIZE",
           "BYTES",
+          "MALFORMED",
           "MAX",
           "MAX_TLP_BYTES",
           "TLP",
@@ -1626,7 +1572,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=No SRAM payload write occurs before a packet is accepted for assembly.; state=[\"context_table\", \"sram_alloc_ptr\", \"counters\", \"last_drop_class\", \"tlp_accepted_count\", \"active_context_count\", \"ctx....",
       "evidence_terms": [],
-      "id": "RTL-0283",
+      "id": "RTL-0290",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1670,7 +1616,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=The SRAM writer never writes PCIe/VDM headers, MCTP transport headers, pad bytes, or digest bytes as payload.; state=[\"context_table\", \"sram_alloc_ptr\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_payload_base_addr\", \"ctx_paylo....",
       "evidence_terms": [],
-      "id": "RTL-0284",
+      "id": "RTL-0291",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1714,7 +1660,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=For every published descriptor, byte address base_addr..base_addr+payload_len-1 is written exactly as the correspondi...; state=[\"context_table\", \"descriptor_queue\", \"sram_alloc_ptr\", \"ctx_payload_byte_count\", \"ctx_payload_base_addr\", \"ctx_paylo....",
       "evidence_terms": [],
-      "id": "RTL-0285",
+      "id": "RTL-0292",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1758,7 +1704,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_3.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"free_slot_available\", \"som\"...; signal=Active context count never exceeds CONTEXT_COUNT.; state=[\"context_table\", \"tlp_seen_count\", \"tlp_accepted_count\", \"active_context_count\", \"ctx_payload_byte_count\", \"ctx_expe....",
       "evidence_terms": [],
-      "id": "RTL-0286",
+      "id": "RTL-0293",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1802,7 +1748,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_4.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=first_tlp_header for a context is written only by the accepted SOM packet; last_tlp_header equals the most recent acc...; state=[\"context_table\", \"descriptor_queue\", \"counters\", \"last_drop_class\", \"tlp_seen_count\", \"tlp_accepted_count\", \"active_....",
       "evidence_terms": [],
-      "id": "RTL-0287",
+      "id": "RTL-0294",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1846,7 +1792,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_5.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=Non-final accepted packets contribute exactly the configured transmission unit byte count; EOM may contribute fewer.; state=[\"context_table\", \"tlp_seen_count\", \"tlp_accepted_count\", \"active_context_count\", \"ctx_payload_byte_count\", \"ctx_payl....",
       "evidence_terms": [],
-      "id": "RTL-0288",
+      "id": "RTL-0295",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1890,7 +1836,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_6.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=No descriptor is published before EOM; sequence mismatch aborts the active context and suppresses the success descrip...; state=[\"context_table\", \"descriptor_queue\", \"active_context_count\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_payl....",
       "evidence_terms": [],
-      "id": "RTL-0289",
+      "id": "RTL-0296",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1932,9 +1878,9 @@
         "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
         "DUT port [\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",... is the implementation/observation point for [\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",..."
       ],
-      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_7.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority...; state=[\"context_table\", \"counters\", \"last_drop_class\", \"tlp_accepted_count\", \"active_context_count\", \"ctx_expected_seq\"].",
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_7.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority...; state=[\"context_table\", \"counters\", \"last_drop_class\", \"tlp_accepted_count\", \"active_context_count\", \"ctx_expected_seq\", \"s....",
       "evidence_terms": [],
-      "id": "RTL-0290",
+      "id": "RTL-0297",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1943,7 +1889,7 @@
       "ssot_context": {
         "port": "[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...",
         "signal": "An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority...",
-        "state": "[\"context_table\", \"counters\", \"last_drop_class\", \"tlp_accepted_count\", \"active_context_count\", \"ctx_expected_seq\"]"
+        "state": "[\"context_table\", \"counters\", \"last_drop_class\", \"tlp_accepted_count\", \"active_context_count\", \"ctx_expected_seq\", \"s..."
       },
       "ssot_refs": [
         "function_model.invariants.invariant_7"
@@ -1978,7 +1924,7 @@
       ],
       "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_8.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.\nSSOT item context: port=[\"wlast_seen\", \"awsize\", \"awburst\", \"wstrb_contiguous\", \"tlp_byte_count\", \"s_axi_bresp\", \"message_code\", \"vendor_id\",...; signal=ctx_state encoding is mutually exclusive: a context cannot be IDLE and ASSEMBLING or ERROR in the same cycle.; state=[\"context_table\", \"sram_alloc_ptr\", \"active_context_count\", \"ctx_payload_byte_count\", \"ctx_expected_seq\", \"ctx_payloa....",
       "evidence_terms": [],
-      "id": "RTL-0291",
+      "id": "RTL-0298",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -2010,7 +1956,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

@@ -1,0 +1,229 @@
+{
+  "contract_refs": [
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.pipeline.pack_sram"
+        ]
+      },
+      "contract_ref": "SEMANTIC_STATE_PAYLOAD_CONTENT",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PACK_SRAM"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "sram_wr_data",
+          "sram_wr_strb",
+          "sram_wr_addr"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_sram_packer.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "source": "semantic_contract_overlay",
+      "ssot": {
+        "anchor": "function_model.transactions.payload_pack_write",
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.transactions.payload_pack_write",
+          "function_model.transactions.FM_PACK_SRAM"
+        ]
+      },
+      "tb": {
+        "monitor": "payload_content_monitor",
+        "path": "tb/cocotb/test_mctp_datapath.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.transaction_latency.FM_PACK_SRAM"
+        ]
+      },
+      "contract_ref": "STATE_PAYLOAD_COUNT",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PACK_SRAM"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "ctx_payload_byte_count",
+          "ctx_payload_count"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_apb_regfile.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "source": "semantic_contract_overlay",
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.state_variables.payload_byte_count",
+          "function_model.transactions.FM_PACK_SRAM",
+          "registers.register_list.Q_PAYLOAD_COUNT"
+        ]
+      },
+      "tb": {
+        "monitor": "payload_count_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.pipeline.pack_sram"
+        ]
+      },
+      "contract_ref": "MEM_SRAM_PAYLOAD_PACK",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PACK_SRAM"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "sram_wr_valid",
+          "sram_wr_strb"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_sram_packer.sv",
+          "rtl/mctp_assembler_v3_context_table.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "source": "semantic_contract_overlay",
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.transactions.FM_PACK_SRAM",
+          "test_requirements.scenarios.SC_SINGLE"
+        ]
+      },
+      "tb": {
+        "monitor": "sram_payload_pack_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.pipeline.publish_descriptor"
+        ]
+      },
+      "contract_ref": "DESC_PUBLISH_VISIBLE",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PUBLISH_DESCRIPTOR"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "descriptor_push",
+          "descriptor_valid"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_descriptor_queue.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "source": "semantic_contract_overlay",
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+          "test_requirements.scenarios.SC_SINGLE"
+        ]
+      },
+      "tb": {
+        "monitor": "descriptor_visibility_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "generated_equivalence_goals"
+        ]
+      },
+      "contract_ref": "LEGACY_SCOREBOARD_GOAL_CLOSURE",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "sram_wr_valid",
+          "sram_wr_strb",
+          "prdata",
+          "pready",
+          "AD_DESCRIPTOR_FULL",
+          "AD_DUPLICATE_SOM",
+          "AD_MESSAGE_OVERFLOW",
+          "AD_SEQUENCE_MISMATCH"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3.sv",
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_sram_packer.sv",
+          "rtl/mctp_assembler_v3_descriptor_queue.sv",
+          "rtl/mctp_assembler_v3_apb_regfile.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "verify.equivalence_goals"
+        ]
+      },
+      "tb": {
+        "monitor": "legacy_scoreboard_goal_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    }
+  ],
+  "schema_version": 1,
+  "semantic_source_fingerprint": {
+    "artifact": "verify/semantic_contracts.json",
+    "sha256": "f4b133039006d60e2693224f55c010cdeec26d4a53f9f8d02280fa06ea031cfb"
+  },
+  "type": "contract_reflection"
+}

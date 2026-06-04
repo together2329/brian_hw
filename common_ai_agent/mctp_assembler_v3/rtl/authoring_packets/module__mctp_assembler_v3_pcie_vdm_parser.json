@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 24,
+      "module_task_count": 22,
       "task_limit": 48
     },
     "owner": {
@@ -83,21 +83,25 @@
     "reference_profile": null,
     "ssot_connection_contracts": [],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 24,
-    "open_required_count": 24,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -127,24 +131,25 @@
   "summary": {
     "categories": {
       "equivalence.module": 1,
-      "features.item": 6,
+      "features.item": 3,
       "function_model.error_case": 2,
       "function_model.input": 1,
       "function_model.output": 7,
       "function_model.precondition": 1,
       "function_model.state_update": 5,
-      "function_model.transaction": 1
+      "function_model.transaction": 1,
+      "registers.field": 1
     },
     "module_slice": {
       "count": 1,
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 24,
+      "module_task_count": 22,
       "task_limit": 48
     },
-    "open_required_count": 24,
-    "required_count": 24,
+    "open_required_count": 0,
+    "required_count": 22,
     "source_refs": [
       "function_model.transactions.FM_DECODE_VDM",
       "function_model.transactions.FM_DECODE_VDM.preconditions.precondition_0",
@@ -163,18 +168,16 @@
       "function_model.transactions.FM_DECODE_VDM.state_updates.last_decoded_vdm",
       "function_model.transactions.FM_DECODE_VDM.error_cases.error_case_0",
       "function_model.transactions.FM_DECODE_VDM.error_cases.error_case_1",
+      "registers.register_list.DEBUG_CTX.fields.parser_state",
       "features.axi_ingress",
       "features.vdm_decode",
-      "features.interleaved_assembly",
-      "features.descriptor_publish",
-      "features.firmware_read",
       "features.drop_classification",
       "sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence"
     ],
     "status_counts": {
-      "open": 24
+      "pass": 22
     },
-    "task_count": 24
+    "task_count": 22
   },
   "tasks": [
     {
@@ -189,7 +192,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_DECODE_VDM.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.\nSSOT item context: id=FM_DECODE_VDM; name=pcie_vdm_decode.",
       "evidence_terms": [],
-      "id": "RTL-0140",
+      "id": "RTL-0147",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -214,9 +217,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -231,7 +234,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_VDM.preconditions.precondition_0.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.\nSSOT item context: value=legal TLP bytes available.",
       "evidence_terms": [],
-      "id": "RTL-0141",
+      "id": "RTL-0148",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -255,9 +258,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -289,7 +292,7 @@
         "pad_len",
         "pad_ok"
       ],
-      "id": "RTL-0142",
+      "id": "RTL-0149",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -306,8 +309,24 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 15,
+        "matched_terms": [
+          "TLP",
+          "class",
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "len",
+          "message",
+          "message_code",
+          "offset",
+          "ok",
+          "pad",
+          "pad_len",
+          "pad_ok"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -330,7 +349,7 @@
           "pad_ok"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -340,9 +359,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -374,7 +393,7 @@
         "routing",
         "type"
       ],
-      "id": "RTL-0143",
+      "id": "RTL-0150",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -388,8 +407,24 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 15,
+        "matched_terms": [
+          "code",
+          "id",
+          "len",
+          "message",
+          "message_code",
+          "offset",
+          "pad",
+          "pad_len",
+          "payload",
+          "payload_offset",
+          "pcie",
+          "requester",
+          "requester_id",
+          "routing",
+          "type"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -412,7 +447,7 @@
           "type"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -422,9 +457,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -439,7 +474,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_DECODE_VDM.outputs.output_1.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via function_model.transactions.FM_DECODE_VDM.\nSSOT item context: value=first 16B header snapshot candidate.",
       "evidence_terms": [],
-      "id": "RTL-0144",
+      "id": "RTL-0151",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -463,9 +498,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -498,7 +533,7 @@
         "vendor",
         "vendor_id"
       ],
-      "id": "RTL-0145",
+      "id": "RTL-0152",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -513,8 +548,25 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 16,
+        "matched_terms": [
+          "class",
+          "code",
+          "id",
+          "message",
+          "message_code",
+          "routing",
+          "routing_supported",
+          "supported",
+          "traffic",
+          "traffic_class",
+          "valid",
+          "vdm",
+          "vdm_code",
+          "vdm_valid",
+          "vendor",
+          "vendor_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -537,7 +589,7 @@
           "vendor_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -547,9 +599,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -569,7 +621,7 @@
         "payload",
         "payload_offset"
       ],
-      "id": "RTL-0146",
+      "id": "RTL-0153",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -584,8 +636,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "offset",
+          "payload",
+          "payload_offset"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -595,7 +651,7 @@
           "payload_offset"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -605,9 +661,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -627,7 +683,7 @@
         "requester",
         "requester_id"
       ],
-      "id": "RTL-0147",
+      "id": "RTL-0154",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -642,8 +698,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "id",
+          "requester",
+          "requester_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -653,7 +713,7 @@
           "requester_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -663,9 +723,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -688,7 +748,7 @@
         "pad_len",
         "pad_ok"
       ],
-      "id": "RTL-0148",
+      "id": "RTL-0155",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -703,8 +763,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "len",
+          "ok",
+          "pad",
+          "pad_len",
+          "pad_ok"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -717,7 +783,7 @@
           "pad_ok"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -727,9 +793,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -757,7 +823,7 @@
         "vendor",
         "vendor_id"
       ],
-      "id": "RTL-0149",
+      "id": "RTL-0156",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -772,8 +838,20 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "message",
+          "message_code",
+          "vdm",
+          "vdm_code",
+          "vendor",
+          "vendor_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -791,7 +869,7 @@
           "vendor_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -801,9 +879,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -838,7 +916,7 @@
         "vendor",
         "vendor_id"
       ],
-      "id": "RTL-0150",
+      "id": "RTL-0157",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -854,8 +932,25 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 16,
+        "matched_terms": [
+          "class",
+          "code",
+          "id",
+          "message",
+          "message_code",
+          "routing",
+          "routing_supported",
+          "supported",
+          "traffic",
+          "traffic_class",
+          "valid",
+          "vdm",
+          "vdm_code",
+          "vdm_valid",
+          "vendor",
+          "vendor_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -878,7 +973,7 @@
           "vendor_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -888,9 +983,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -912,7 +1007,7 @@
         "payload",
         "payload_offset"
       ],
-      "id": "RTL-0151",
+      "id": "RTL-0158",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -928,8 +1023,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "offset",
+          "payload",
+          "payload_offset"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -939,7 +1038,7 @@
           "payload_offset"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -949,9 +1048,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -973,7 +1072,7 @@
         "requester",
         "requester_id"
       ],
-      "id": "RTL-0152",
+      "id": "RTL-0159",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -989,8 +1088,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "id",
+          "requester",
+          "requester_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1000,7 +1103,7 @@
           "requester_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1010,9 +1113,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1037,7 +1140,7 @@
         "pad_len",
         "pad_ok"
       ],
-      "id": "RTL-0153",
+      "id": "RTL-0160",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1053,8 +1156,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "len",
+          "ok",
+          "pad",
+          "pad_len",
+          "pad_ok"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1067,7 +1176,7 @@
           "pad_ok"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1077,9 +1186,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1109,7 +1218,7 @@
         "vendor",
         "vendor_id"
       ],
-      "id": "RTL-0154",
+      "id": "RTL-0161",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1125,8 +1234,20 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "message",
+          "message_code",
+          "vdm",
+          "vdm_code",
+          "vendor",
+          "vendor_id"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1144,7 +1265,7 @@
           "vendor_id"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1154,9 +1275,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1188,7 +1309,7 @@
         "message",
         "message_code"
       ],
-      "id": "RTL-0155",
+      "id": "RTL-0162",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1205,8 +1326,22 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 13,
+        "matched_terms": [
+          "PD",
+          "PD_UNSUPPORTED_VDM",
+          "UNSUPPORTED",
+          "VDM",
+          "class",
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "len",
+          "message",
+          "message_code"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1229,7 +1364,7 @@
           "message_code"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1239,9 +1374,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1273,7 +1408,7 @@
         "last_decoded_vdm",
         "len"
       ],
-      "id": "RTL-0156",
+      "id": "RTL-0163",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1290,8 +1425,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "ALIGNMENT",
+          "BAD",
+          "OR",
+          "PAD",
+          "PD",
+          "PD_BAD_PAD_OR_ALIGNMENT",
+          "TU",
+          "class",
+          "code",
+          "decoded",
+          "id",
+          "last",
+          "last_decoded_vdm",
+          "len"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1314,7 +1464,7 @@
           "len"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1324,9 +1474,74 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field DEBUG_CTX.parser_state",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.DEBUG_CTX.fields.parser_state",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "parser_state reset behavior matches SSOT value 0",
+        "parser_state access policy ro is implemented without read/write shortcuts",
+        "parser_state readback returns implemented RTL state when readable",
+        "parser_state write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.DEBUG_CTX.fields.parser_state.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.\nSSOT item context: name=parser_state; reset=0; access=ro.",
+      "evidence_terms": [
+        "parser",
+        "parser_state"
+      ],
+      "id": "RTL-0388",
+      "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+      "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.parser_state",
+      "ssot_context": {
+        "access": "ro",
+        "name": "parser_state",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.DEBUG_CTX.fields.parser_state"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "parser",
+          "parser_state"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "parser",
+          "parser_state"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     },
     {
@@ -1346,7 +1561,7 @@
         "PD_MALFORMED_TLP",
         "TLP"
       ],
-      "id": "RTL-0437",
+      "id": "RTL-0444",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1361,8 +1576,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "PD",
+          "TLP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1373,7 +1591,7 @@
           "TLP"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1383,9 +1601,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1410,7 +1628,7 @@
         "UNSUPPORTED",
         "VDM"
       ],
-      "id": "RTL-0438",
+      "id": "RTL-0445",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1425,8 +1643,18 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 9,
+        "matched_terms": [
+          "ALIGNMENT",
+          "BAD",
+          "OR",
+          "PAD",
+          "PD",
+          "PD_BAD_PAD_OR_ALIGNMENT",
+          "PD_UNSUPPORTED_VDM",
+          "UNSUPPORTED",
+          "VDM"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1442,7 +1670,7 @@
           "VDM"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1452,186 +1680,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "features.item",
-      "content": "Implement feature interleaved_assembly",
-      "criteria": [
-        "Feature trigger/control/data behavior has RTL owner logic",
-        "Feature observability and error behavior match SSOT",
-        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.interleaved_assembly",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_pcie_vdm_parser.sv"
-      ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.interleaved_assembly.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.\nSSOT item context: name=interleaved_assembly; output=appended payload bytes + descriptor on EOM, or AD_* assembly drop.",
-      "evidence_terms": [
-        "AD",
-        "AD_",
-        "EOM"
-      ],
-      "id": "RTL-0440",
-      "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-      "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
-      "priority": "high",
-      "required": true,
-      "source_ref": "features.interleaved_assembly",
-      "ssot_context": {
-        "name": "interleaved_assembly",
-        "output": "appended payload bytes + descriptor on EOM, or AD_* assembly drop"
-      },
-      "ssot_refs": [
-        "features.interleaved_assembly"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "AD",
-          "AD_",
-          "EOM"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "features.item",
-      "content": "Implement feature descriptor_publish",
-      "criteria": [
-        "Feature trigger/control/data behavior has RTL owner logic",
-        "Feature observability and error behavior match SSOT",
-        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.descriptor_publish",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_pcie_vdm_parser.sv"
-      ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.descriptor_publish.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.\nSSOT item context: name=descriptor_publish; output=descriptor_ready interrupt + APB descriptor readout, or AD_DESCRIPTOR_FULL.",
-      "evidence_terms": [
-        "AD",
-        "AD_DESCRIPTOR_FULL",
-        "APB",
-        "DESCRIPTOR",
-        "FULL",
-        "descriptor",
-        "descriptor_ready",
-        "ready"
-      ],
-      "id": "RTL-0442",
-      "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-      "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
-      "priority": "high",
-      "required": true,
-      "source_ref": "features.descriptor_publish",
-      "ssot_context": {
-        "name": "descriptor_publish",
-        "output": "descriptor_ready interrupt + APB descriptor readout, or AD_DESCRIPTOR_FULL"
-      },
-      "ssot_refs": [
-        "features.descriptor_publish"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "AD",
-          "AD_DESCRIPTOR_FULL",
-          "APB",
-          "DESCRIPTOR",
-          "FULL",
-          "descriptor",
-          "descriptor_ready",
-          "ready"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "features.item",
-      "content": "Implement feature firmware_read",
-      "criteria": [
-        "Feature trigger/control/data behavior has RTL owner logic",
-        "Feature observability and error behavior match SSOT",
-        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
-        "Traceability keeps source_ref features.firmware_read",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_pcie_vdm_parser.sv"
-      ],
-      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.firmware_read.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.\nSSOT item context: name=firmware_read; output=rdata beats; SLVERR for out-of-window/no-descriptor reads.",
-      "evidence_terms": [
-        "SLVERR"
-      ],
-      "id": "RTL-0443",
-      "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-      "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
-      "priority": "high",
-      "required": true,
-      "source_ref": "features.firmware_read",
-      "ssot_context": {
-        "name": "firmware_read",
-        "output": "rdata beats; SLVERR for out-of-window/no-descriptor reads"
-      },
-      "ssot_refs": [
-        "features.firmware_read"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 1,
-        "required_terms": [
-          "SLVERR"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 5,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
-        "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1653,7 +1704,7 @@
         "last_drop_reason",
         "reason"
       ],
-      "id": "RTL-0444",
+      "id": "RTL-0451",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1668,8 +1719,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "class",
+          "drop",
+          "last",
+          "reason"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1682,7 +1738,7 @@
           "reason"
         ],
         "source_scope": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1692,9 +1748,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1711,7 +1767,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_v3_pcie_vdm_parser.module_equivalence.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0465",
+      "id": "RTL-0473",
       "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
       "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
       "priority": "high",
@@ -1733,13 +1789,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_pcie_vdm_parser.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

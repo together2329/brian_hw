@@ -1,0 +1,21 @@
+{
+  "approval_mode": "starter",
+  "approved_at_utc": "2026-06-04T00:00:00Z",
+  "approved_by": "ssot-gen-automated-pipeline",
+  "artifact": "req/mctp_assembler_v3_requirements.md",
+  "bytes": 47082,
+  "checks": {
+    "has_feature_table": true,
+    "has_functional_behavior": true,
+    "has_interface_table": true,
+    "has_quality_gates": true,
+    "has_verification_requirements": true,
+    "minimum_bytes": true,
+    "no_tbd_markers": true
+  },
+  "ip": "mctp_assembler_v3",
+  "locked_truth_scope": "local_engineering",
+  "schema_version": 1,
+  "status": "approved",
+  "type": "starter_requirement_approval_manifest"
+}

@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-04T08:09:31Z",
+  "ip": "mctp_assembler_v3",
+  "issues": [],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "issues": 0
+  },
+  "type": "sim_evidence_freshness_report"
+}

@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-06-04T01:00:39Z",
+  "schema_version": 1,
+  "source": "mutation/mutation_report.json",
+  "status": "pass",
+  "summary": {
+    "classified": 5,
+    "equivalent": 0,
+    "irrelevant": 0,
+    "test_hole": 5,
+    "total_survivors": 5
+  },
+  "survivors": [
+    {
+      "after": "+",
+      "before": "-",
+      "category": "operator_flip",
+      "disposition": "test_hole",
+      "id": "MUT_0408_sub_to_add_mctp_assembler_v3_sram_packer_72",
+      "line": 72,
+      "next_action": "Add targeted unaligned first/last-word cases around the mutated expression.",
+      "preview": "(({{(AXI_STRB_WIDTH-1){1'b0}}, 1'b1} << payload_bytes[5:0]) - {{(AXI_STRB_WIDTH-1){1'b0}}, 1'b1});",
+      "rationale": "The survivor is in lane/strobe packing arithmetic; existing payload reconstruction catches main no-hole behavior but not every boundary expression.",
+      "relpath": "rtl/mctp_assembler_v3_sram_packer.sv",
+      "rule": "sub_to_add"
+    },
+    {
+      "after": "1'b1",
+      "before": "1'b0",
+      "category": "constant_flip",
+      "disposition": "test_hole",
+      "id": "MUT_0406_zero_to_one_mctp_assembler_v3_sram_packer_70",
+      "line": 70,
+      "next_action": "Add targeted unaligned first/last-word cases around the mutated expression.",
+      "preview": "(payload_bytes == 13'd0)              ? {AXI_STRB_WIDTH{1'b0}} :",
+      "rationale": "The survivor is in lane/strobe packing arithmetic; existing payload reconstruction catches main no-hole behavior but not every boundary expression.",
+      "relpath": "rtl/mctp_assembler_v3_sram_packer.sv",
+      "rule": "zero_to_one"
+    },
+    {
+      "after": "!=",
+      "before": "==",
+      "category": "comparator_flip",
+      "disposition": "test_hole",
+      "id": "MUT_0456_eq_to_ne_mctp_assembler_v3_axi_rd_payload_75",
+      "line": 75,
+      "next_action": "Add a targeted scenario or explicitly waive after human review.",
+      "preview": "reg                        ar_legal;     // ARSIZE==5 && ARBURST==INCR",
+      "rationale": "The mutant survived the current deterministic harness and should be treated as an uncovered behavior until waived.",
+      "relpath": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "rule": "eq_to_ne"
+    },
+    {
+      "after": "+",
+      "before": "-",
+      "category": "operator_flip",
+      "disposition": "test_hole",
+      "id": "MUT_0458_sub_to_add_mctp_assembler_v3_axi_rd_payload_83",
+      "line": 83,
+      "next_action": "Add a targeted scenario or explicitly waive after human review.",
+      "preview": "({{(AXI_ADDR_WIDTH-8){1'b0}}, beat_index} << 5);",
+      "rationale": "The mutant survived the current deterministic harness and should be treated as an uncovered behavior until waived.",
+      "relpath": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "rule": "sub_to_add"
+    },
+    {
+      "after": "axi_rd_state",
+      "before": "S_IDLE",
+      "category": "state_update_drop",
+      "disposition": "test_hole",
+      "id": "MUT_0056_state_update_to_self_hold_mctp_assembler_v3_axi_rd_payload_134",
+      "line": 134,
+      "next_action": "Add back-to-back queue wrap or long-pack drain checks tied to the mutated state.",
+      "preview": "axi_rd_state           <= S_IDLE;",
+      "rationale": "The mutant removes an internal pointer or remaining-byte update and survived, so the harness needs stronger multi-transaction state observation.",
+      "relpath": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "rule": "state_update_to_self_hold"
+    }
+  ],
+  "type": "survivor_classification"
+}

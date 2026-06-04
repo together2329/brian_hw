@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_v3_axi_wr_ingress
 - Owner file: rtl/mctp_assembler_v3_axi_wr_ingress.sv
-- Task count: 29
-- Required tasks: 29
+- Task count: 28
+- Required tasks: 28
 
 ## Rules
 
@@ -23,20 +23,21 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, function_model, function_model.transactions.FM_INGEST_TLP, io_list, io_list.interfaces.axi_wr_slave, test_requirements
-- Module slice: 2/5 section=function_model task_limit=48
-- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 2/6 section=function_model task_limit=48
+- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
 
 ## Tasks
 
-### RTL-0120: Implement transaction FM_INGEST_TLP
+### RTL-0127: Implement transaction FM_INGEST_TLP
 
 - Priority: high
 - Required: True
@@ -56,27 +57,7 @@ SSOT item context: id=FM_INGEST_TLP; name=axi_write_to_tlp_bytes.
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP
 
-### RTL-0121: Implement precondition for FM_INGEST_TLP: precondition_0
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: function_model.precondition
-- Source ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0
-- Detail: This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.
-SSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0.
-Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.
-SSOT item context: value=CONTROL.enable==1 or (enable==0 and drop_when_disabled==1).
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - RTL owner logic is identifiable for this SSOT leaf
-  - Reset/enable/error behavior is consistent with the parent transaction
-  - Downstream equivalence/coverage can observe this behavior
-  - Traceability keeps source_ref function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0
-  - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
-- SSOT refs: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0
-
-### RTL-0122: Implement precondition for FM_INGEST_TLP: precondition_1
+### RTL-0129: Implement precondition for FM_INGEST_TLP: precondition_1
 
 - Priority: high
 - Required: True
@@ -96,7 +77,7 @@ SSOT item context: value=AWSIZE==5.
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_1
 
-### RTL-0123: Implement precondition for FM_INGEST_TLP: precondition_2
+### RTL-0130: Implement precondition for FM_INGEST_TLP: precondition_2
 
 - Priority: high
 - Required: True
@@ -116,7 +97,7 @@ SSOT item context: value=AWBURST==INCR.
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_2
 
-### RTL-0124: Implement precondition for FM_INGEST_TLP: precondition_3
+### RTL-0131: Implement precondition for FM_INGEST_TLP: precondition_3
 
 - Priority: high
 - Required: True
@@ -136,7 +117,7 @@ SSOT item context: value=W beat count == AWLEN+1.
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_3
 
-### RTL-0125: Implement precondition for FM_INGEST_TLP: precondition_4
+### RTL-0132: Implement precondition for FM_INGEST_TLP: precondition_4
 
 - Priority: high
 - Required: True
@@ -156,7 +137,7 @@ SSOT item context: value=WLAST on final beat only.
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_4
 
-### RTL-0126: Implement input for FM_INGEST_TLP: input_0
+### RTL-0133: Implement input for FM_INGEST_TLP: input_0
 
 - Priority: high
 - Required: True
@@ -177,7 +158,7 @@ SSOT item context: id=FM_INGEST_TLP; name=axi_write_to_tlp_bytes; port=["s_axi_b
   - DUT port ["s_axi_bresp"] is the implementation/observation point for axi_write_to_tlp_bytes
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.inputs.input_0
 
-### RTL-0127: Implement output for FM_INGEST_TLP: output_0
+### RTL-0134: Implement output for FM_INGEST_TLP: output_0
 
 - Priority: high
 - Required: True
@@ -197,7 +178,7 @@ SSOT item context: value=ordered raw TLP byte vector with valid byte count from 
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.outputs.output_0
 
-### RTL-0128: Implement output for FM_INGEST_TLP: output_1
+### RTL-0135: Implement output for FM_INGEST_TLP: output_1
 
 - Priority: high
 - Required: True
@@ -217,7 +198,7 @@ SSOT item context: value=BRESP=OKAY when transaction consumed.
   - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.outputs.output_1
 
-### RTL-0129: Implement output for FM_INGEST_TLP: bresp_next
+### RTL-0136: Implement output for FM_INGEST_TLP: bresp_next
 
 - Priority: high
 - Required: True
@@ -239,7 +220,7 @@ SSOT item context: name=bresp_next; port=s_axi_bresp; expr=BRESP_OKAY.
   - DUT port s_axi_bresp is the implementation/observation point for bresp_next
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.outputs.bresp_next
 
-### RTL-0130: Implement output for FM_INGEST_TLP: tlp_accept
+### RTL-0137: Implement output for FM_INGEST_TLP: tlp_accept
 
 - Priority: high
 - Required: True
@@ -260,7 +241,7 @@ SSOT item context: state=tlp_accept; expr=wlast_seen and (awsize == 5) and (awbu
   - function_model.transactions.FM_INGEST_TLP.outputs.tlp_accept RTL expression implements SSOT expression wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_coun...
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.outputs.tlp_accept
 
-### RTL-0131: Implement output for FM_INGEST_TLP: tlp_seen_count
+### RTL-0138: Implement output for FM_INGEST_TLP: tlp_seen_count
 
 - Priority: high
 - Required: True
@@ -281,7 +262,7 @@ SSOT item context: state=tlp_seen_count; expr=tlp_seen_count + 1.
   - function_model.transactions.FM_INGEST_TLP.outputs.tlp_seen_count RTL expression implements SSOT expression tlp_seen_count + 1
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.outputs.tlp_seen_count
 
-### RTL-0132: Implement output for FM_INGEST_TLP: tlp_accepted_count
+### RTL-0139: Implement output for FM_INGEST_TLP: tlp_accepted_count
 
 - Priority: high
 - Required: True
@@ -302,7 +283,7 @@ SSOT item context: state=tlp_accepted_count; expr=tlp_accepted_count + (1 if tlp
   - function_model.transactions.FM_INGEST_TLP.outputs.tlp_accepted_count RTL expression implements SSOT expression tlp_accepted_count + (1 if tlp_accept else 0)
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.outputs.tlp_accepted_count
 
-### RTL-0133: Implement output rule for FM_INGEST_TLP: bresp_next
+### RTL-0140: Implement output rule for FM_INGEST_TLP: bresp_next
 
 - Priority: high
 - Required: True
@@ -326,7 +307,7 @@ SSOT item context: name=bresp_next; port=s_axi_bresp; expr=BRESP_OKAY; width=2.
   - bresp_next is not implemented only in FunctionalModel or scoreboard code
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.output_rules.bresp_next
 
-### RTL-0134: Implement state update for FM_INGEST_TLP: tlp_accept
+### RTL-0141: Implement state update for FM_INGEST_TLP: tlp_accept
 
 - Priority: high
 - Required: True
@@ -349,7 +330,7 @@ SSOT item context: name=tlp_accept; expr=wlast_seen and (awsize == 5) and (awbur
   - tlp_accept updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.state_updates.tlp_accept
 
-### RTL-0135: Implement state update for FM_INGEST_TLP: tlp_seen_count
+### RTL-0142: Implement state update for FM_INGEST_TLP: tlp_seen_count
 
 - Priority: high
 - Required: True
@@ -372,7 +353,7 @@ SSOT item context: name=tlp_seen_count; expr=tlp_seen_count + 1; width=32.
   - tlp_seen_count updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.state_updates.tlp_seen_count
 
-### RTL-0136: Implement state update for FM_INGEST_TLP: tlp_accepted_count
+### RTL-0143: Implement state update for FM_INGEST_TLP: tlp_accepted_count
 
 - Priority: high
 - Required: True
@@ -395,7 +376,7 @@ SSOT item context: name=tlp_accepted_count; expr=tlp_accepted_count + (1 if tlp_
   - tlp_accepted_count updates exactly once at the SSOT-defined transaction acceptance point
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.state_updates.tlp_accepted_count
 
-### RTL-0137: Implement side effect for FM_INGEST_TLP: side_effect_0
+### RTL-0144: Implement side effect for FM_INGEST_TLP: side_effect_0
 
 - Priority: high
 - Required: True
@@ -416,7 +397,7 @@ SSOT item context: id=FM_INGEST_TLP; name=axi_write_to_tlp_bytes; port=["s_axi_b
   - DUT port ["s_axi_bresp"] is the implementation/observation point for axi_write_to_tlp_bytes
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.side_effects.side_effect_0
 
-### RTL-0138: Implement side effect for FM_INGEST_TLP: side_effect_1
+### RTL-0145: Implement side effect for FM_INGEST_TLP: side_effect_1
 
 - Priority: high
 - Required: True
@@ -437,7 +418,7 @@ SSOT item context: id=FM_INGEST_TLP; name=axi_write_to_tlp_bytes; port=["s_axi_b
   - DUT port ["s_axi_bresp"] is the implementation/observation point for axi_write_to_tlp_bytes
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.side_effects.side_effect_1
 
-### RTL-0139: Implement error case for FM_INGEST_TLP: error_case_0
+### RTL-0146: Implement error case for FM_INGEST_TLP: error_case_0
 
 - Priority: high
 - Required: True
@@ -458,7 +439,7 @@ SSOT item context: id=FM_INGEST_TLP; name=axi_write_to_tlp_bytes; port=["s_axi_b
   - DUT port ["s_axi_bresp"] is the implementation/observation point for axi_write_to_tlp_bytes
 - SSOT refs: function_model.transactions.FM_INGEST_TLP.error_cases.error_case_0
 
-### RTL-0283: Preserve FL invariant invariant_0
+### RTL-0290: Preserve FL invariant invariant_0
 
 - Priority: high
 - Required: True
@@ -479,7 +460,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_0
 
-### RTL-0284: Preserve FL invariant invariant_1
+### RTL-0291: Preserve FL invariant invariant_1
 
 - Priority: high
 - Required: True
@@ -500,7 +481,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_1
 
-### RTL-0285: Preserve FL invariant invariant_2
+### RTL-0292: Preserve FL invariant invariant_2
 
 - Priority: high
 - Required: True
@@ -521,7 +502,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_2
 
-### RTL-0286: Preserve FL invariant invariant_3
+### RTL-0293: Preserve FL invariant invariant_3
 
 - Priority: high
 - Required: True
@@ -542,7 +523,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "free_slot_available", "som"... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "free_slot_available", "som"...
 - SSOT refs: function_model.invariants.invariant_3
 
-### RTL-0287: Preserve FL invariant invariant_4
+### RTL-0294: Preserve FL invariant invariant_4
 
 - Priority: high
 - Required: True
@@ -563,7 +544,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_4
 
-### RTL-0288: Preserve FL invariant invariant_5
+### RTL-0295: Preserve FL invariant invariant_5
 
 - Priority: high
 - Required: True
@@ -584,7 +565,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_5
 
-### RTL-0289: Preserve FL invariant invariant_6
+### RTL-0296: Preserve FL invariant invariant_6
 
 - Priority: high
 - Required: True
@@ -605,7 +586,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_6
 
-### RTL-0290: Preserve FL invariant invariant_7
+### RTL-0297: Preserve FL invariant invariant_7
 
 - Priority: high
 - Required: True
@@ -615,7 +596,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
 - Detail: Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.
 SSOT ref: function_model.invariants.invariant_7.
 Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.
-SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...; signal=An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority...; state=["context_table", "counters", "last_drop_class", "tlp_accepted_count", "active_context_count", "ctx_expected_seq"].
+SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...; signal=An earlier packet-drop reason wins over a later assembly-drop reason for the same accepted transaction (drop priority...; state=["context_table", "counters", "last_drop_class", "tlp_accepted_count", "active_context_count", "ctx_expected_seq", "s....
 - Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL behavior cannot violate the invariant in normal operation
@@ -626,7 +607,7 @@ SSOT item context: port=["wlast_seen", "awsize", "awburst", "wstrb_contiguous", 
   - DUT port ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",... is the implementation/observation point for ["wlast_seen", "awsize", "awburst", "wstrb_contiguous", "tlp_byte_count", "s_axi_bresp", "message_code", "vendor_id",...
 - SSOT refs: function_model.invariants.invariant_7
 
-### RTL-0291: Preserve FL invariant invariant_8
+### RTL-0298: Preserve FL invariant invariant_8
 
 - Priority: high
 - Required: True

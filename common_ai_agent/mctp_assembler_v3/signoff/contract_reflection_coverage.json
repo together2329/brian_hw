@@ -1,0 +1,41 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref": "DESC_PUBLISH_VISIBLE",
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "contract_ref": "LEGACY_SCOREBOARD_GOAL_CLOSURE",
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "contract_ref": "MEM_SRAM_PAYLOAD_PACK",
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "contract_ref": "SEMANTIC_STATE_PAYLOAD_CONTENT",
+      "issues": [],
+      "status": "pass"
+    },
+    {
+      "contract_ref": "STATE_PAYLOAD_COUNT",
+      "issues": [],
+      "status": "pass"
+    }
+  ],
+  "generated_at": "2026-06-04T08:09:33Z",
+  "ip": "mctp_assembler_v3",
+  "issues": [],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "artifact_issues": 0,
+    "failed": 0,
+    "passed": 5,
+    "total": 5
+  },
+  "type": "contract_reflection_coverage"
+}

@@ -268,8 +268,8 @@
     }
   },
   "summary": {
-    "total": 90,
-    "required": 90,
+    "total": 102,
+    "required": 102,
     "optional": 0,
     "blocked": 0,
     "unverified": 1,
@@ -379,6 +379,7 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
+        "fcov_pd_all",
         "function_pcie_vdm_decode"
       ],
       "stimulus_contract": {
@@ -459,6 +460,7 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
+        "fcov_pd_all",
         "function_mctp_transport_decode"
       ],
       "stimulus_contract": {
@@ -546,6 +548,7 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
+        "fcov_ad_all",
         "function_context_allocate"
       ],
       "stimulus_contract": {
@@ -629,6 +632,8 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
+        "fcov_frag",
+        "fcov_ad_all",
         "function_context_append"
       ],
       "stimulus_contract": {
@@ -706,6 +711,7 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
+        "fcov_pack",
         "function_payload_pack_write"
       ],
       "stimulus_contract": {
@@ -781,7 +787,9 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
-        "function_descriptor_publish"
+        "fcov_single",
+        "function_descriptor_publish",
+        "cycle_ordering_0"
       ],
       "stimulus_contract": {
         "transaction_type": "descriptor_publish",
@@ -2504,12 +2512,14 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_s_axi_awready_s_axi_wready",
-        "cycle_s_axi_bvalid",
-        "cycle_sram_wr_valid",
-        "cycle_sram_rd_req_valid",
-        "cycle_s_axi_rvalid_s_axi_rlast",
-        "cycle_apb_pready"
+        "ccov_sram_hold",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4",
+        "cycle_handshake_5",
+        "cycle_latency_single_beat_transfer"
       ],
       "stimulus_contract": {
         "transaction_type": "handshake_0",
@@ -2565,12 +2575,14 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_s_axi_awready_s_axi_wready",
-        "cycle_s_axi_bvalid",
-        "cycle_sram_wr_valid",
-        "cycle_sram_rd_req_valid",
-        "cycle_s_axi_rvalid_s_axi_rlast",
-        "cycle_apb_pready"
+        "ccov_sram_hold",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4",
+        "cycle_handshake_5",
+        "cycle_latency_single_beat_transfer"
       ],
       "stimulus_contract": {
         "transaction_type": "handshake_1",
@@ -2626,12 +2638,14 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_s_axi_awready_s_axi_wready",
-        "cycle_s_axi_bvalid",
-        "cycle_sram_wr_valid",
-        "cycle_sram_rd_req_valid",
-        "cycle_s_axi_rvalid_s_axi_rlast",
-        "cycle_apb_pready"
+        "ccov_sram_hold",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4",
+        "cycle_handshake_5",
+        "cycle_latency_single_beat_transfer"
       ],
       "stimulus_contract": {
         "transaction_type": "handshake_2",
@@ -2687,12 +2701,14 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_s_axi_awready_s_axi_wready",
-        "cycle_s_axi_bvalid",
-        "cycle_sram_wr_valid",
-        "cycle_sram_rd_req_valid",
-        "cycle_s_axi_rvalid_s_axi_rlast",
-        "cycle_apb_pready"
+        "ccov_sram_hold",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4",
+        "cycle_handshake_5",
+        "cycle_latency_single_beat_transfer"
       ],
       "stimulus_contract": {
         "transaction_type": "handshake_3",
@@ -2748,12 +2764,14 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_s_axi_awready_s_axi_wready",
-        "cycle_s_axi_bvalid",
-        "cycle_sram_wr_valid",
-        "cycle_sram_rd_req_valid",
-        "cycle_s_axi_rvalid_s_axi_rlast",
-        "cycle_apb_pready"
+        "ccov_sram_hold",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4",
+        "cycle_handshake_5",
+        "cycle_latency_single_beat_transfer"
       ],
       "stimulus_contract": {
         "transaction_type": "handshake_4",
@@ -2809,12 +2827,14 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
-        "cycle_s_axi_awready_s_axi_wready",
-        "cycle_s_axi_bvalid",
-        "cycle_sram_wr_valid",
-        "cycle_sram_rd_req_valid",
-        "cycle_s_axi_rvalid_s_axi_rlast",
-        "cycle_apb_pready"
+        "ccov_sram_hold",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3",
+        "cycle_handshake_4",
+        "cycle_handshake_5",
+        "cycle_latency_single_beat_transfer"
       ],
       "stimulus_contract": {
         "transaction_type": "handshake_5",
@@ -2870,7 +2890,12 @@
         "mctp_assembler_v3_datapath_model",
         "mctp_assembler_v3_fsm_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "ccov_desc_order",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
       "stimulus_contract": {
         "transaction_type": "ordering_0",
         "required_fields": [
@@ -2924,7 +2949,12 @@
         "mctp_assembler_v3_datapath_model",
         "mctp_assembler_v3_fsm_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "ccov_desc_order",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
       "stimulus_contract": {
         "transaction_type": "ordering_1",
         "required_fields": [
@@ -2978,7 +3008,12 @@
         "mctp_assembler_v3_datapath_model",
         "mctp_assembler_v3_fsm_model"
       ],
-      "coverage_refs": [],
+      "coverage_refs": [
+        "ccov_desc_order",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2"
+      ],
       "stimulus_contract": {
         "transaction_type": "ordering_2",
         "required_fields": [
@@ -3032,14 +3067,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3099,14 +3128,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3166,14 +3189,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3233,15 +3250,9 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "error_error_11",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "error_error_11"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3301,14 +3312,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3368,14 +3373,9 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_ordering_2"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3435,14 +3435,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3502,14 +3496,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3569,14 +3557,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3636,14 +3618,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3703,14 +3679,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3770,14 +3740,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3837,14 +3801,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -3904,14 +3862,8 @@
       ],
       "coverage_refs": [
         "SC_REG_executed",
-        "latency_register_read_at_min",
-        "latency_register_read_mid",
-        "latency_register_read_at_max",
-        "latency_register_read_gt_max",
-        "latency_register_write_at_min",
-        "latency_register_write_mid",
-        "latency_register_write_at_max",
-        "latency_register_write_gt_max"
+        "cycle_latency_register_read",
+        "cycle_latency_register_write"
       ],
       "stimulus_contract": {
         "transaction_type": "csr_access",
@@ -4085,6 +4037,9 @@
         "mctp_assembler_v3_error_model"
       ],
       "coverage_refs": [
+        "fcov_pd_all",
+        "fcov_ad_all",
+        "cycle_latency_single_beat_transfer",
         "fsm_context_fsm_assembling_to_error_4",
         "fsm_context_fsm_error_to_idle_6",
         "error_error_0",
@@ -4681,6 +4636,7 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "ccov_ctx_fsm",
         "fsm_ingress_fsm_idle_to_accept_aw_0",
         "fsm_ingress_fsm_resp_b_to_idle_7",
         "fsm_context_fsm_idle_to_assembling_0",
@@ -4748,6 +4704,7 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "ccov_ctx_fsm",
         "fsm_ingress_fsm_idle_to_accept_aw_0",
         "fsm_ingress_fsm_resp_b_to_idle_7",
         "fsm_context_fsm_idle_to_assembling_0",
@@ -4815,6 +4772,7 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "ccov_ctx_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_idle_to_done_wait_descriptor_pop_1",
         "fsm_context_fsm_assembling_to_assembling_2",
@@ -4878,6 +4836,7 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "ccov_ctx_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_idle_to_done_wait_descriptor_pop_1",
         "fsm_context_fsm_assembling_to_assembling_2",
@@ -4941,6 +4900,9 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "fcov_pd_all",
+        "fcov_ad_all",
+        "ccov_ctx_fsm",
         "fsm_context_fsm_idle_to_assembling_0",
         "fsm_context_fsm_idle_to_done_wait_descriptor_pop_1",
         "fsm_context_fsm_assembling_to_assembling_2",
@@ -5018,6 +4980,7 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "ccov_ctx_fsm",
         "fsm_ingress_fsm_idle_to_accept_aw_0",
         "fsm_ingress_fsm_resp_b_to_idle_7",
         "fsm_context_fsm_idle_to_assembling_0",
@@ -5085,6 +5048,9 @@
         "mctp_assembler_v3_fsm_model"
       ],
       "coverage_refs": [
+        "fcov_pd_all",
+        "fcov_ad_all",
+        "ccov_ctx_fsm",
         "fsm_ingress_fsm_idle_to_accept_aw_0",
         "fsm_ingress_fsm_resp_b_to_idle_7",
         "fsm_context_fsm_idle_to_assembling_0",
@@ -6543,6 +6509,7 @@
         "features",
         "function_model.state_variables",
         "function_model.state_variables.active_context_count",
+        "function_model.state_variables.beat_index",
         "function_model.state_variables.context_table",
         "function_model.state_variables.counters",
         "function_model.state_variables.ctx_expected_seq",
@@ -6551,11 +6518,17 @@
         "function_model.state_variables.ctx_payload_byte_count",
         "function_model.state_variables.ctx_payload_next_addr",
         "function_model.state_variables.descriptor_queue",
+        "function_model.state_variables.eom",
         "function_model.state_variables.fw_axi_read_beat_count",
         "function_model.state_variables.fw_axi_read_error_count",
         "function_model.state_variables.last_drop_class",
         "function_model.state_variables.message_completed_count",
+        "function_model.state_variables.no_descriptor",
+        "function_model.state_variables.out_of_window",
+        "function_model.state_variables.payload_bytes",
         "function_model.state_variables.payload_bytes_written_count",
+        "function_model.state_variables.raw_sram_debug_read_enable",
+        "function_model.state_variables.som",
         "function_model.state_variables.sram_alloc_ptr",
         "function_model.state_variables.tlp_accepted_count",
         "function_model.state_variables.tlp_seen_count",
@@ -6744,14 +6717,14 @@
       "unverified": true
     },
     {
-      "goal_id": "EQ_COVERAGE_LATENCY_SINGLE_BEAT_TRANSFER_LT_MIN",
-      "title": "Functional coverage bin latency_single_beat_transfer_lt_min: single_beat_transfer latency < 1 cycles",
+      "goal_id": "EQ_COVERAGE_CCOV_INGEST",
+      "title": "Functional coverage bin ccov_ingest: Ingest stage observed",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.latency.single_beat_transfer"
+        "cycle_model.pipeline.S0_INGEST"
       ],
       "decomposition_refs": [
         "mctp_assembler_v3_axi_wr_ingress",
@@ -6773,7 +6746,7 @@
         "mctp_assembler_v3_security_model"
       ],
       "coverage_refs": [
-        "latency_single_beat_transfer_lt_min"
+        "ccov_ingest"
       ],
       "stimulus_contract": {
         "transaction_type": "axi_write_to_tlp_bytes",
@@ -6791,7 +6764,7 @@
           "AWBURST==INCR",
           "W beat count == AWLEN+1",
           "WLAST on final beat only",
-          "single_beat_transfer latency < 1 cycles"
+          "Ingest stage observed"
         ]
       },
       "expected_contract": {
@@ -6835,14 +6808,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_LATENCY_SINGLE_BEAT_TRANSFER_AT_MIN",
-      "title": "Functional coverage bin latency_single_beat_transfer_at_min: single_beat_transfer latency == 1 cycles",
+      "goal_id": "EQ_COVERAGE_CCOV_OUTSTANDING",
+      "title": "Functional coverage bin ccov_outstanding: single outstanding read/write exercised",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.latency.single_beat_transfer"
+        "cycle_model.performance.outstanding"
       ],
       "decomposition_refs": [
         "mctp_assembler_v3_axi_wr_ingress",
@@ -6864,7 +6837,7 @@
         "mctp_assembler_v3_security_model"
       ],
       "coverage_refs": [
-        "latency_single_beat_transfer_at_min"
+        "ccov_outstanding"
       ],
       "stimulus_contract": {
         "transaction_type": "axi_write_to_tlp_bytes",
@@ -6882,7 +6855,7 @@
           "AWBURST==INCR",
           "W beat count == AWLEN+1",
           "WLAST on final beat only",
-          "single_beat_transfer latency == 1 cycles"
+          "single outstanding read/write exercised"
         ]
       },
       "expected_contract": {
@@ -6926,14 +6899,14 @@
       "unverified": false
     },
     {
-      "goal_id": "EQ_COVERAGE_LATENCY_SINGLE_BEAT_TRANSFER_UNBOUNDED",
-      "title": "Functional coverage bin latency_single_beat_transfer_unbounded: single_beat_transfer latency unbounded (no max_cycles)",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST",
+      "title": "Functional coverage bin cycle_pipeline_s0_ingest: Reconstruct TLP bytes from AXI W beats; legality check",
       "kind": "coverage",
       "scope": {
         "level": "top"
       },
       "ssot_refs": [
-        "cycle_model.latency.single_beat_transfer"
+        "cycle_model.pipeline[0]"
       ],
       "decomposition_refs": [
         "mctp_assembler_v3_axi_wr_ingress",
@@ -6955,7 +6928,7 @@
         "mctp_assembler_v3_security_model"
       ],
       "coverage_refs": [
-        "latency_single_beat_transfer_unbounded"
+        "cycle_pipeline_s0_ingest"
       ],
       "stimulus_contract": {
         "transaction_type": "axi_write_to_tlp_bytes",
@@ -6973,7 +6946,1099 @@
           "AWBURST==INCR",
           "W beat count == AWLEN+1",
           "WLAST on final beat only",
-          "single_beat_transfer latency unbounded (no max_cycles)"
+          "Reconstruct TLP bytes from AXI W beats; legality check"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE",
+      "title": "Functional coverage bin cycle_pipeline_s1_vdm_decode: Decode/validate 16B PCIe VDM header; strip header/pad/digest",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s1_vdm_decode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "Decode/validate 16B PCIe VDM header; strip header/pad/digest"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE",
+      "title": "Functional coverage bin cycle_pipeline_s2_mctp_decode: Decode MCTP transport header + IC/msg_type on SOM",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[2]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s2_mctp_decode"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "Decode MCTP transport header + IC/msg_type on SOM"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT",
+      "title": "Functional coverage bin cycle_pipeline_s3_context: Allocate/append context by key; sequence/timeout checks",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[3]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s3_context"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "Allocate/append context by key; sequence/timeout checks"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK",
+      "title": "Functional coverage bin cycle_pipeline_s4_pack: Pack payload bytes into 256-bit SRAM words; per-context partial word",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[4]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s4_pack"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "Pack payload bytes into 256-bit SRAM words; per-context partial word"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR",
+      "title": "Functional coverage bin cycle_pipeline_s5_descriptor: On EOM push descriptor + first/last headers; raise descriptor_ready",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[5]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s5_descriptor"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "On EOM push descriptor + first/last headers; raise descriptor_ready"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
+      "title": "Functional coverage bin cycle_backpressure_1: SRAM write traffic for assembly has priority over firmware AXI read traffic on a shared port.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[1]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "SRAM write traffic for assembly has priority over firmware AXI read traffic on a shared port."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
+      "title": "Functional coverage bin cycle_backpressure_2: AXI read backpressure must not corrupt ongoing assembly writes; each context owns its own partial-word state.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[2]"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "AXI read backpressure must not corrupt ongoing assembly writes; each context owns its own partial-word state."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "title": "Functional coverage bin cycle_perf_outstanding: {'read_max': 1, 'write_max': 1, 'description': 'Single outstanding AXI write and read transaction'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.outstanding"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_outstanding"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "{'read_max': 1, 'write_max': 1, 'description': 'Single outstanding AXI write and read transaction'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "title": "Functional coverage bin cycle_perf_depth: {'pipeline_stages': 6, 'queue_depth': 8, 'description': 'Pipeline depth + descriptor FIFO depth visible to cycle coverage'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.depth"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_depth"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "{'pipeline_stages': 6, 'queue_depth': 8, 'description': 'Pipeline depth + descriptor FIFO depth visible to cycle coverage'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 400",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "400"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered raw TLP byte vector with valid byte count from WSTRB",
+          "BRESP=OKAY when transaction consumed",
+          "{'name': 'bresp_next', 'port': 's_axi_bresp', 'expr': 'BRESP_OKAY', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'tlp_accept', 'expr': 'wlast_seen and (awsize == 5) and (awburst == INCR) and wstrb_contiguous and (tlp_byte_count >= 16) and (tlp_byte_count <= MAX_TLP_BYTES)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_seen_count', 'expr': 'tlp_seen_count + 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'tlp_accepted_count', 'expr': 'tlp_accepted_count + (1 if tlp_accept else 0)', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "bresp_next"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "tlp_seen_count increment",
+          "tlp_accepted_count increment on legal TLP",
+          "tlp_accept",
+          "tlp_seen_count",
+          "tlp_accepted_count"
+        ],
+        "error_policy": "{'condition': 'empty txn / bad AWSIZE/AWBURST / interleave / beat-count mismatch / early/late WLAST / non-contiguous WSTRB / <16B / >MAX_TLP_BYTES / PCIe-length inconsistent / unstripped digest when stripped-mode', 'result': 'PD_MALFORMED_TLP packet drop; no context/SRAM/descriptor side effect'}"
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'sustained_beats_per_cycle': 1, 'condition': 'No SRAM/AXI backpressure; full 256-bit payload words'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "mctp_assembler_v3_axi_wr_ingress",
+        "mctp_assembler_v3_pcie_vdm_parser",
+        "mctp_assembler_v3_mctp_decoder",
+        "mctp_assembler_v3_context_table",
+        "mctp_assembler_v3_sram_packer",
+        "mctp_assembler_v3_descriptor_queue",
+        "mctp_assembler_v3_axi_rd_payload",
+        "mctp_assembler_v3_apb_regfile",
+        "mctp_assembler_v3_cdc_sync",
+        "mctp_assembler_v3",
+        "mctp_assembler_v3_protocol_model",
+        "mctp_assembler_v3_register_model",
+        "mctp_assembler_v3_memory_model",
+        "mctp_assembler_v3_datapath_model",
+        "mctp_assembler_v3_fsm_model",
+        "mctp_assembler_v3_error_model",
+        "mctp_assembler_v3_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "axi_write_to_tlp_bytes",
+        "required_fields": [
+          "kind",
+          "wlast_seen",
+          "awsize",
+          "awburst",
+          "wstrb_contiguous",
+          "tlp_byte_count"
+        ],
+        "constraints": [
+          "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)",
+          "AWSIZE==5",
+          "AWBURST==INCR",
+          "W beat count == AWLEN+1",
+          "WLAST on final beat only",
+          "{'sustained_beats_per_cycle': 1, 'condition': 'No SRAM/AXI backpressure; full 256-bit payload words'}"
         ]
       },
       "expected_contract": {

@@ -1,19 +1,19 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 4,
+      "count": 6,
       "enabled": true,
       "index": 2,
       "key": "function_model",
-      "module_task_count": 73,
-      "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 65,
+      "rule": "Owner module mctp_assembler_v3_context_table is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -99,21 +99,25 @@
       }
     ],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 46,
-    "open_required_count": 46,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -145,26 +149,27 @@
       "function_model.error_case": 6,
       "function_model.input": 4,
       "function_model.output": 17,
-      "function_model.precondition": 3,
+      "function_model.precondition": 4,
       "function_model.side_effect": 2,
       "function_model.state_update": 12,
       "function_model.transaction": 2
     },
     "module_slice": {
-      "count": 4,
+      "count": 6,
       "enabled": true,
       "index": 2,
       "key": "function_model",
-      "module_task_count": 73,
-      "rule": "Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 65,
+      "rule": "Owner module mctp_assembler_v3_context_table is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "function_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 46,
-    "required_count": 46,
+    "open_required_count": 0,
+    "required_count": 47,
     "source_refs": [
+      "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
       "function_model.transactions.FM_ALLOC_CONTEXT",
       "function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0",
       "function_model.transactions.FM_ALLOC_CONTEXT.inputs.input_0",
@@ -187,15 +192,77 @@
       "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.active_context_count",
       "function_model.transactions.FM_ALLOC_CONTEXT.state_updates.sram_alloc_ptr",
       "function_model.transactions.FM_ALLOC_CONTEXT.side_effects.side_effect_0",
-      "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0",
-      "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_1"
+      "function_model.transactions.FM_ALLOC_CONTEXT.error_cases.error_case_0"
     ],
     "status_counts": {
-      "open": 46
+      "pass": 47
     },
-    "task_count": 46
+    "task_count": 47
   },
   "tasks": [
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_INGEST_TLP: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via function_model.transactions.FM_INGEST_TLP.\nSSOT item context: value=CONTROL.enable==1 or (enable==0 and drop_when_disabled==1).",
+      "evidence_terms": [
+        "disabled",
+        "drop",
+        "drop_when_disabled",
+        "when"
+      ],
+      "id": "RTL-0128",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "CONTROL.enable==1 or (enable==0 and drop_when_disabled==1)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "disabled",
+          "drop",
+          "drop_when_disabled",
+          "when"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "disabled",
+          "drop",
+          "drop_when_disabled",
+          "when"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
     {
       "category": "function_model.transaction",
       "content": "Implement transaction FM_ALLOC_CONTEXT",
@@ -208,7 +275,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: id=FM_ALLOC_CONTEXT; name=context_allocate.",
       "evidence_terms": [],
-      "id": "RTL-0182",
+      "id": "RTL-0189",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -233,9 +300,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -250,7 +317,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.preconditions.precondition_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: value=decoded MCTP packet with SOM=1.",
       "evidence_terms": [],
-      "id": "RTL-0183",
+      "id": "RTL-0190",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -274,9 +341,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -308,7 +375,7 @@
         "ctx_expected_seq",
         "ctx_payload_base_addr"
       ],
-      "id": "RTL-0184",
+      "id": "RTL-0191",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -325,8 +392,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "active",
+          "active_context_count",
+          "addr",
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "assembly",
+          "assembly_key",
+          "available",
+          "base",
+          "context",
+          "count",
+          "ctx",
+          "ctx_expected_seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -349,7 +431,7 @@
           "ctx_payload_base_addr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -359,9 +441,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -393,7 +475,7 @@
         "ctx_state",
         "eom"
       ],
-      "id": "RTL-0185",
+      "id": "RTL-0192",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -410,8 +492,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "active",
+          "active_context_count",
+          "addr",
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "available",
+          "base",
+          "context",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "ctx_state",
+          "eom"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -434,7 +531,7 @@
           "eom"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -444,9 +541,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -461,7 +558,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_ALLOC_CONTEXT.outputs.output_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_ALLOC_CONTEXT.\nSSOT item context: value=new ASSEMBLING context (SOM,EOM=0) or single-packet path (SOM,EOM=1).",
       "evidence_terms": [],
-      "id": "RTL-0186",
+      "id": "RTL-0193",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -485,9 +582,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -507,7 +604,7 @@
         "header",
         "tlp"
       ],
-      "id": "RTL-0187",
+      "id": "RTL-0194",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -521,8 +618,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "first",
+          "header",
+          "tlp"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -533,7 +634,7 @@
           "tlp"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -543,9 +644,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -569,7 +670,7 @@
         "sram",
         "sram_alloc_ptr"
       ],
-      "id": "RTL-0188",
+      "id": "RTL-0195",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -583,8 +684,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "addr",
+          "alloc",
+          "base",
+          "payload",
+          "ptr",
+          "sram",
+          "sram_alloc_ptr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -599,7 +708,7 @@
           "sram_alloc_ptr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -609,9 +718,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -635,7 +744,7 @@
         "ok",
         "slot"
       ],
-      "id": "RTL-0189",
+      "id": "RTL-0196",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -650,8 +759,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "alloc",
+          "available",
+          "free",
+          "free_slot_available",
+          "ok",
+          "slot"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -665,7 +781,7 @@
           "slot"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -675,9 +791,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -697,7 +813,7 @@
         "single",
         "single_packet"
       ],
-      "id": "RTL-0190",
+      "id": "RTL-0197",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -712,8 +828,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "packet",
+          "single",
+          "single_packet"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -723,7 +843,7 @@
           "single_packet"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -733,9 +853,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -760,7 +880,7 @@
         "ctx",
         "ctx_state"
       ],
-      "id": "RTL-0191",
+      "id": "RTL-0198",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -775,8 +895,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "ASSEMBLING",
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "POP",
+          "WAIT",
+          "ctx",
+          "ctx_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -791,7 +920,7 @@
           "ctx_state"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -801,9 +930,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -829,7 +958,7 @@
         "sram",
         "sram_alloc_ptr"
       ],
-      "id": "RTL-0192",
+      "id": "RTL-0199",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -844,8 +973,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "addr",
+          "alloc",
+          "base",
+          "ctx",
+          "payload",
+          "ptr",
+          "sram",
+          "sram_alloc_ptr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -861,7 +999,7 @@
           "sram_alloc_ptr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -871,9 +1009,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -896,7 +1034,7 @@
         "packet_seq",
         "seq"
       ],
-      "id": "RTL-0193",
+      "id": "RTL-0200",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -911,8 +1049,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -925,7 +1070,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -935,9 +1080,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -958,7 +1103,7 @@
         "context",
         "count"
       ],
-      "id": "RTL-0194",
+      "id": "RTL-0201",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -973,8 +1118,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "active",
+          "active_context_count",
+          "context",
+          "count"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -985,7 +1135,7 @@
           "count"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -995,9 +1145,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1021,7 +1171,7 @@
         "sram",
         "sram_alloc_ptr"
       ],
-      "id": "RTL-0195",
+      "id": "RTL-0202",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1036,8 +1186,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "len",
+          "ptr",
+          "sram",
+          "sram_alloc_ptr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1051,7 +1209,7 @@
           "sram_alloc_ptr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1061,9 +1219,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1089,7 +1247,7 @@
         "ok",
         "slot"
       ],
-      "id": "RTL-0196",
+      "id": "RTL-0203",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1105,8 +1263,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "alloc",
+          "available",
+          "free",
+          "free_slot_available",
+          "ok",
+          "slot"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1120,7 +1285,7 @@
           "slot"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1130,9 +1295,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1154,7 +1319,7 @@
         "single",
         "single_packet"
       ],
-      "id": "RTL-0197",
+      "id": "RTL-0204",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1170,8 +1335,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "packet",
+          "single",
+          "single_packet"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1181,7 +1350,7 @@
           "single_packet"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1191,9 +1360,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1220,7 +1389,7 @@
         "ctx",
         "ctx_state"
       ],
-      "id": "RTL-0198",
+      "id": "RTL-0205",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1236,8 +1405,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "ASSEMBLING",
+          "DESCRIPTOR",
+          "DONE",
+          "DONE_WAIT_DESCRIPTOR_POP",
+          "POP",
+          "WAIT",
+          "ctx",
+          "ctx_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1252,7 +1430,7 @@
           "ctx_state"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1262,9 +1440,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1292,7 +1470,7 @@
         "sram",
         "sram_alloc_ptr"
       ],
-      "id": "RTL-0199",
+      "id": "RTL-0206",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1308,8 +1486,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "addr",
+          "alloc",
+          "base",
+          "ctx",
+          "payload",
+          "ptr",
+          "sram",
+          "sram_alloc_ptr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1325,7 +1512,7 @@
           "sram_alloc_ptr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1335,9 +1522,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1362,7 +1549,7 @@
         "packet_seq",
         "seq"
       ],
-      "id": "RTL-0200",
+      "id": "RTL-0207",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1378,8 +1565,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1392,7 +1586,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1402,9 +1596,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1427,7 +1621,7 @@
         "context",
         "count"
       ],
-      "id": "RTL-0201",
+      "id": "RTL-0208",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1443,8 +1637,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "active",
+          "active_context_count",
+          "context",
+          "count"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1455,7 +1654,7 @@
           "count"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1465,9 +1664,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1493,7 +1692,7 @@
         "sram",
         "sram_alloc_ptr"
       ],
-      "id": "RTL-0202",
+      "id": "RTL-0209",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1509,8 +1708,16 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 7,
+        "matched_terms": [
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "len",
+          "ptr",
+          "sram",
+          "sram_alloc_ptr"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1524,7 +1731,7 @@
           "sram_alloc_ptr"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1534,9 +1741,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1568,7 +1775,7 @@
         "ctx_payload_base_addr",
         "ctx_state"
       ],
-      "id": "RTL-0203",
+      "id": "RTL-0210",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1585,8 +1792,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "ASSEMBLING",
+          "active",
+          "active_context_count",
+          "addr",
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "available",
+          "base",
+          "context",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "ctx_state"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1609,7 +1831,7 @@
           "ctx_state"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1619,9 +1841,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1653,7 +1875,7 @@
         "available",
         "base"
       ],
-      "id": "RTL-0204",
+      "id": "RTL-0211",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1670,8 +1892,24 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 15,
+        "matched_terms": [
+          "BAD",
+          "EXPIRED",
+          "OR",
+          "PD",
+          "PD_BAD_OR_EXPIRED_TAG",
+          "SOM",
+          "TAG",
+          "active",
+          "active_context_count",
+          "addr",
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "available",
+          "base"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1694,7 +1932,7 @@
           "base"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1704,9 +1942,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1738,7 +1976,7 @@
         "count",
         "ctx"
       ],
-      "id": "RTL-0205",
+      "id": "RTL-0212",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1755,8 +1993,24 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 15,
+        "matched_terms": [
+          "AD",
+          "AD_DUPLICATE_SOM",
+          "DUPLICATE",
+          "SOM",
+          "active",
+          "active_context_count",
+          "addr",
+          "alloc",
+          "allocated",
+          "allocated_len",
+          "available",
+          "base",
+          "context",
+          "count",
+          "ctx"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1779,7 +2033,7 @@
           "ctx"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1789,9 +2043,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1806,7 +2060,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APPEND.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: id=FM_APPEND; name=context_append.",
       "evidence_terms": [],
-      "id": "RTL-0206",
+      "id": "RTL-0213",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1831,9 +2085,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1848,7 +2102,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APPEND.preconditions.precondition_0.\nOwner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via function_model.transactions.FM_APPEND.\nSSOT item context: value=SOM=0 packet matches an active key.",
       "evidence_terms": [],
-      "id": "RTL-0207",
+      "id": "RTL-0214",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1872,9 +2126,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1896,7 +2150,7 @@
         "packet_seq",
         "seq"
       ],
-      "id": "RTL-0208",
+      "id": "RTL-0215",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1910,8 +2164,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1924,7 +2185,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -1934,9 +2195,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1968,7 +2229,7 @@
         "packet",
         "packet_seq"
       ],
-      "id": "RTL-0209",
+      "id": "RTL-0216",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -1985,8 +2246,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "eom",
+          "expected",
+          "last",
+          "message",
+          "message_complete",
+          "ok",
+          "packet",
+          "packet_seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2009,7 +2285,7 @@
           "packet_seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2019,9 +2295,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2053,7 +2329,7 @@
         "message_complete",
         "ok"
       ],
-      "id": "RTL-0210",
+      "id": "RTL-0217",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2070,8 +2346,22 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 13,
+        "matched_terms": [
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "eom",
+          "expected",
+          "header",
+          "last",
+          "message",
+          "message_complete",
+          "ok"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2094,7 +2384,7 @@
           "ok"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2104,9 +2394,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2129,7 +2419,7 @@
         "seq",
         "tlp"
       ],
-      "id": "RTL-0211",
+      "id": "RTL-0218",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2143,8 +2433,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "expected",
+          "expected_seq",
+          "header",
+          "last",
+          "seq",
+          "tlp"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2158,7 +2455,7 @@
           "tlp"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2168,9 +2465,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2190,7 +2487,7 @@
         "FM_PUBLISH_DESCRIPTOR",
         "PUBLISH"
       ],
-      "id": "RTL-0212",
+      "id": "RTL-0219",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2204,8 +2501,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DESCRIPTOR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2216,7 +2515,7 @@
           "PUBLISH"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2226,9 +2525,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2253,7 +2552,7 @@
         "seq",
         "seq_ok"
       ],
-      "id": "RTL-0213",
+      "id": "RTL-0220",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2268,8 +2567,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "ok",
+          "packet",
+          "packet_seq",
+          "seq",
+          "seq_ok"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2284,7 +2592,7 @@
           "seq_ok"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2294,9 +2602,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2316,7 +2624,7 @@
         "message",
         "message_complete"
       ],
-      "id": "RTL-0214",
+      "id": "RTL-0221",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2331,8 +2639,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "complete",
+          "message",
+          "message_complete"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2342,7 +2654,7 @@
           "message_complete"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2352,9 +2664,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2378,7 +2690,7 @@
         "payload",
         "payload_bytes"
       ],
-      "id": "RTL-0215",
+      "id": "RTL-0222",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2393,8 +2705,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "byte",
+          "bytes",
+          "count",
+          "ctx",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2408,7 +2727,7 @@
           "payload_bytes"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2418,9 +2737,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2441,7 +2760,7 @@
         "expected",
         "seq"
       ],
-      "id": "RTL-0216",
+      "id": "RTL-0223",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2456,8 +2775,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2468,7 +2792,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2478,9 +2802,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2503,7 +2827,7 @@
         "packet_seq",
         "seq"
       ],
-      "id": "RTL-0217",
+      "id": "RTL-0224",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2518,8 +2842,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "ctx",
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2532,7 +2862,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -2542,9 +2872,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2571,7 +2901,7 @@
         "seq",
         "seq_ok"
       ],
-      "id": "RTL-0218",
+      "id": "RTL-0225",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2587,8 +2917,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "ok",
+          "packet",
+          "packet_seq",
+          "seq",
+          "seq_ok"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2603,7 +2942,7 @@
           "seq_ok"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2613,9 +2952,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2637,7 +2976,7 @@
         "message",
         "message_complete"
       ],
-      "id": "RTL-0219",
+      "id": "RTL-0226",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2653,8 +2992,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "complete",
+          "message",
+          "message_complete"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2664,7 +3007,7 @@
           "message_complete"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2674,9 +3017,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2702,7 +3045,7 @@
         "payload",
         "payload_bytes"
       ],
-      "id": "RTL-0220",
+      "id": "RTL-0227",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2718,8 +3061,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "byte",
+          "bytes",
+          "count",
+          "ctx",
+          "payload",
+          "payload_bytes"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2733,7 +3083,7 @@
           "payload_bytes"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2743,9 +3093,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2768,7 +3118,7 @@
         "expected",
         "seq"
       ],
-      "id": "RTL-0221",
+      "id": "RTL-0228",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2784,8 +3134,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ctx",
+          "ctx_expected_seq",
+          "expected",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2796,7 +3151,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2806,9 +3161,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2833,7 +3188,7 @@
         "packet_seq",
         "seq"
       ],
-      "id": "RTL-0222",
+      "id": "RTL-0229",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2849,8 +3204,14 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 5,
+        "matched_terms": [
+          "ctx",
+          "last",
+          "packet",
+          "packet_seq",
+          "seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2863,7 +3224,7 @@
           "seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -2873,9 +3234,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2907,7 +3268,7 @@
         "packet",
         "packet_seq"
       ],
-      "id": "RTL-0223",
+      "id": "RTL-0230",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -2924,8 +3285,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "eom",
+          "expected",
+          "last",
+          "message",
+          "message_complete",
+          "ok",
+          "packet",
+          "packet_seq"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -2948,7 +3324,7 @@
           "packet_seq"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -2958,9 +3334,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2992,7 +3368,7 @@
         "ctx_payload_byte_count",
         "eom"
       ],
-      "id": "RTL-0224",
+      "id": "RTL-0231",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -3009,8 +3385,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "END",
+          "EOM",
+          "MIDDLE",
+          "PD",
+          "PD_UNEXPECTED_MIDDLE_END",
+          "SOM",
+          "UNEXPECTED",
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "eom"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3033,7 +3424,7 @@
           "eom"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3043,9 +3434,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3077,7 +3468,7 @@
         "last",
         "message"
       ],
-      "id": "RTL-0225",
+      "id": "RTL-0232",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -3094,8 +3485,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "AD",
+          "AD_SEQUENCE_MISMATCH",
+          "MISMATCH",
+          "SEQUENCE",
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "eom",
+          "expected",
+          "last",
+          "message"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3118,7 +3524,7 @@
           "message"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3128,9 +3534,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3162,7 +3568,7 @@
         "ctx_payload_byte_count",
         "eom"
       ],
-      "id": "RTL-0226",
+      "id": "RTL-0233",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -3179,8 +3585,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "AD",
+          "AD_MESSAGE_OVERFLOW",
+          "BYTES",
+          "MAX",
+          "MAX_MESSAGE_BYTES",
+          "MESSAGE",
+          "OVERFLOW",
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "eom"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3203,7 +3624,7 @@
           "eom"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3213,9 +3634,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -3247,7 +3668,7 @@
         "eom",
         "expected"
       ],
-      "id": "RTL-0227",
+      "id": "RTL-0234",
       "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
       "owner_module": "mctp_assembler_v3_context_table",
       "priority": "high",
@@ -3264,8 +3685,22 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 13,
+        "matched_terms": [
+          "AD",
+          "AD_TIMEOUT",
+          "TIMEOUT",
+          "assembly",
+          "byte",
+          "bytes",
+          "complete",
+          "count",
+          "ctx",
+          "ctx_expected_seq",
+          "cycles",
+          "eom",
+          "expected"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -3288,7 +3723,7 @@
           "expected"
         ],
         "source_scope": "rtl/mctp_assembler_v3_context_table.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -3298,13 +3733,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

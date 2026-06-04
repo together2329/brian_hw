@@ -23,27 +23,12 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
-- Tool-evidence blockers:
-  - common_ai_agent_authoring: Missing common_ai_agent RTL authoring provenance.
-  - dut_compile: rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.
-  - dut_lint: Missing canonical DUT lint artifact: lint/dut_lint.json.
-  - dynamic_todo_closure: 336 required non-closure TODO(s) remain open.
-  - protocol_assertion_evidence: Missing protocol assertion artifact: verify/protocol_assertions.sva.
-  - fl_rtl_goal_audit: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
-  - coverage_closure: Missing coverage closure artifact: cov/coverage.json.
-- Tool-evidence runbook:
-  - common_ai_agent_authoring: stages=ssot-rtl; artifact=mctp_assembler_v3/rtl/rtl_authoring_provenance.json
-  - dut_compile: stages=ssot-rtl, dut_compile; artifact=mctp_assembler_v3/rtl/rtl_compile.json
-  - dut_lint: stages=lint, dut_lint; artifact=mctp_assembler_v3/lint/dut_lint.json
-  - dynamic_todo_closure: stages=audit-rtl; artifact=mctp_assembler_v3/rtl/rtl_todo_plan.json
-  - protocol_assertion_evidence: stages=ssot-protocol-assertions, sim; artifact=mctp_assembler_v3/verify/protocol_assertions.sva
-  - fl_rtl_goal_audit: stages=ssot-fl-model, ssot-equiv-goals, ssot-tb-cocotb, sim, goal-audit; artifact=mctp_assembler_v3/sim/fl_rtl_goal_audit.json
-  - coverage_closure: stages=sim, coverage; artifact=mctp_assembler_v3/cov/coverage.json
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
@@ -52,6 +37,7 @@
   - mctp_assembler_v3_apb_regfile.irq_o <= irq (integration.connections[4])
   - mctp_assembler_v3_sram_packer.sram_wr_valid_o <= sram_wr_valid (integration.connections[5])
   - mctp_assembler_v3_context_table.drop_class_o <= last_drop_class (integration.connections[6])
+  - mctp_assembler_v3_cdc_sync.evt_fatal_internal_error_a <= 1'b0 (integration.connections[7])
 - SSOT top IO contracts: 51
 
 ## Tasks
@@ -60,13 +46,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.common_ai_agent_authoring
 - Detail: RTL approval requires provenance that the common engine/ATLAS/Textual/headless rtl-gen path wrote the RTL from the current SSOT-derived TODO plan.
 SSOT ref: quality_gates.rtl_gen.common_ai_agent_authoring.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: Missing common_ai_agent RTL authoring provenance.
+- Current reason: RTL authoring provenance proves common_ai_agent rtl-gen ownership.
 - Criteria:
   - rtl/rtl_authoring_provenance.json exists
   - provenance agent is common_ai_agent
@@ -83,13 +69,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_compile
 - Detail: Compile approval must come from the canonical rtl_compile_report.py artifact generated after RTL generation or repair.
 SSOT ref: quality_gates.rtl_gen.dut_compile.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: rtl/rtl_compile.json is older than current RTL source rtl/mctp_assembler_v3_axi_wr_ingress.sv; rerun DUT compile after the final RTL edit.
+- Current reason: DUT-only compile artifact passed with zero errors, diagnostics, and style violations.
 - Criteria:
   - rtl/rtl_compile.json exists
   - rtl_compile.json reports dut_only=true
@@ -104,13 +90,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dut_lint
 - Detail: Lint approval must come from the canonical dut_lint_report.py artifact and must not rely on ad-hoc suppressions.
 SSOT ref: quality_gates.rtl_gen.dut_lint.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: Missing canonical DUT lint artifact: lint/dut_lint.json.
+- Current reason: DUT-only lint artifact passed with zero errors, warnings, and suppression violations.
 - Criteria:
   - lint/dut_lint.json exists
   - dut_lint.json reports dut_only=true
@@ -126,13 +112,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.dynamic_todo_closure
 - Detail: rtl-gen PASS is forbidden until all required implementation, SSOT workflow, and RTL gate TODOs have pass status.
 SSOT ref: quality_gates.rtl_gen.dynamic_todo_closure.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 336 required non-closure TODO(s) remain open.
+- Current reason: Every required non-closure TODO has pass status.
 - Criteria:
   - Every required non-closure task has todo_completion.status=pass
   - open_required_todos is zero
@@ -145,13 +131,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.protocol_assertion_evidence
 - Detail: PL330-level RTL needs protocol-checker style evidence for interface, ordering, valid/ready, reset, and backpressure rules. The assertion source comes from SSOT cycle_model; the pass condition comes from real simulation evidence.
 SSOT ref: quality_gates.rtl_gen.protocol_assertion_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: Missing protocol assertion artifact: verify/protocol_assertions.sva.
+- Current reason: Protocol assertions were generated and simulation reported zero assertion failures.
 - Criteria:
   - verify/protocol_assertions.sva exists
   - verify/protocol_assertions.summary.json has assertions_total > 0
@@ -167,13 +153,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.fl_rtl_goal_audit
 - Detail: Passing compile/lint is not enough. The final RTL must be proven against FunctionalModel-derived equivalence goals using real RTL-observed evidence.
 SSOT ref: quality_gates.rtl_gen.fl_rtl_goal_audit.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: Missing FL-vs-RTL goal audit artifact: sim/fl_rtl_goal_audit.json.
+- Current reason: FL-vs-RTL goal audit passed and compare covers every required unblocked equivalence goal.
 - Criteria:
   - sim/fl_rtl_goal_audit.json exists
   - fl_rtl_goal_audit.json is newer than or equal to every listed DUT RTL source
@@ -190,13 +176,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.coverage_closure
 - Detail: Coverage must be measured from passing RTL-observed scoreboard evidence. Raw FL-only coverage or weakened coverage goals cannot close this gate.
 SSOT ref: quality_gates.rtl_gen.coverage_closure.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: Missing coverage closure artifact: cov/coverage.json.
+- Current reason: SSOT functional coverage closure passed with RTL-observed evidence.
 - Criteria:
   - cov/coverage.json exists
   - coverage.json is newer than or equal to every listed DUT RTL source

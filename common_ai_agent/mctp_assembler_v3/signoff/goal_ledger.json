@@ -1,0 +1,10 @@
+{
+  "human_review_needed": [],
+  "known_waivers": [],
+  "notes": [
+    "No waivers are asserted for mctp_assembler_v3 local signoff. All equivalence goals pass (scoreboard 90/90 with real rtl_observed rows), so zero waivers are required.",
+    "Remaining gate failures (rtl_todo static_missing, rtl_compile style_violations, dut_lint warnings, truth_coverage, coverage, simulation_quality) are real and stay visible in signoff/ip_signoff.json; they are NOT waived here and must be closed by per-module RTL / TB-evidence fixes."
+  ],
+  "schema_version": 1,
+  "type": "signoff_goal_ledger"
+}

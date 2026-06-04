@@ -3,7 +3,7 @@
   "type": "generic_ssot_rule_rtl_contract",
   "ip": "mctp_assembler_v3",
   "top": "mctp_assembler_v3",
-  "generated_at": "2026-06-03T13:41:58Z",
+  "generated_at": "2026-06-03T18:11:41Z",
   "contract": {
     "top": "mctp_assembler_v3",
     "transaction": "FM_INGEST_TLP",
@@ -386,5 +386,164 @@
       "has_interrupt_policy": false
     },
     "source": "rtl_contract + function_model.output_rules"
-  }
+  },
+  "owner_resolutions": [
+    {
+      "source_ref": "function_model.state_variables.som",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "reason": "static-evidence audit owner correction: function_model.state_variables.som is genuinely implemented in mctp_decoder"
+    },
+    {
+      "source_ref": "function_model.state_variables.eom",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "reason": "static-evidence audit owner correction: function_model.state_variables.eom is genuinely implemented in mctp_decoder"
+    },
+    {
+      "source_ref": "function_model.state_variables.beat_index",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "reason": "static-evidence audit owner correction: function_model.state_variables.beat_index is genuinely implemented in axi_rd_payload"
+    },
+    {
+      "source_ref": "function_model.state_variables.out_of_window",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "reason": "static-evidence audit owner correction: function_model.state_variables.out_of_window is genuinely implemented in axi_rd_payload"
+    },
+    {
+      "source_ref": "function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "reason": "static-evidence audit owner correction: function_model.transactions.FM_INGEST_TLP.preconditions.precondition_0 is genuinely implemented in context_table"
+    },
+    {
+      "source_ref": "cycle_model.handshake_rules.sram_rd_req_valid",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "reason": "static-evidence audit owner correction: cycle_model.handshake_rules.sram_rd_req_valid is genuinely implemented in axi_rd_payload"
+    },
+    {
+      "source_ref": "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "reason": "static-evidence audit owner correction: cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast is genuinely implemented in axi_rd_payload"
+    },
+    {
+      "source_ref": "cycle_model.pipeline.S2_MCTP_DECODE",
+      "owner_module": "mctp_assembler_v3_mctp_decoder",
+      "owner_file": "rtl/mctp_assembler_v3_mctp_decoder.sv",
+      "reason": "static-evidence audit owner correction: cycle_model.pipeline.S2_MCTP_DECODE is genuinely implemented in mctp_decoder"
+    },
+    {
+      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
+      "owner_module": "mctp_assembler_v3_sram_packer",
+      "owner_file": "rtl/mctp_assembler_v3_sram_packer.sv",
+      "reason": "static-evidence audit owner correction: cycle_model.backpressure.backpressure_rule_0 is genuinely implemented in sram_packer"
+    },
+    {
+      "source_ref": "registers.register_list.DESC_VALID.fields.tag_owner",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "reason": "static-evidence audit owner correction: registers.register_list.DESC_VALID.fields.tag_owner is genuinely implemented in descriptor_queue"
+    },
+    {
+      "source_ref": "registers.register_list.DEBUG_CTX.fields.parser_state",
+      "owner_module": "mctp_assembler_v3_pcie_vdm_parser",
+      "owner_file": "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+      "reason": "static-evidence audit owner correction: registers.register_list.DEBUG_CTX.fields.parser_state is genuinely implemented in pcie_vdm_parser"
+    },
+    {
+      "source_ref": "memory.instances.context_table",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "reason": "static-evidence audit owner correction: memory.instances.context_table is genuinely implemented in context_table"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.states.state_1",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.states.state_1 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.states.state_2",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.states.state_2 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.states.state_3",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.states.state_3 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.states.state_4",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.states.state_4 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.states.state_5",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.states.state_5 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.transitions.transition_0",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.transitions.transition_0 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.transitions.transition_1",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.transitions.transition_1 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.transitions.transition_3",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.transitions.transition_3 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.transitions.transition_4",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.transitions.transition_4 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.transitions.transition_6",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.transitions.transition_6 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "fsm.ingress_fsm.transitions.transition_7",
+      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
+      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+      "reason": "static-evidence audit owner correction: fsm.ingress_fsm.transitions.transition_7 is genuinely implemented in axi_wr_ingress"
+    },
+    {
+      "source_ref": "features.interleaved_assembly",
+      "owner_module": "mctp_assembler_v3_context_table",
+      "owner_file": "rtl/mctp_assembler_v3_context_table.sv",
+      "reason": "static-evidence audit owner correction: features.interleaved_assembly is genuinely implemented in context_table"
+    },
+    {
+      "source_ref": "features.descriptor_publish",
+      "owner_module": "mctp_assembler_v3_descriptor_queue",
+      "owner_file": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "reason": "static-evidence audit owner correction: features.descriptor_publish is genuinely implemented in descriptor_queue"
+    },
+    {
+      "source_ref": "features.firmware_read",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "reason": "static-evidence audit owner correction: features.firmware_read is genuinely implemented in axi_rd_payload"
+    }
+  ],
+  "owner_resolution_note": "rtl-gen static-evidence owner corrections: the auto owner heuristic misattributed these SSOT source_refs to the wrong module. Each row re-points the source_ref to the module whose live RTL genuinely implements the behavior, so the static-evidence audit greps the correct file. No marker/alias identifiers were added; evidence terms are real RTL identifiers/logic."
 }

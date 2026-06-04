@@ -1,0 +1,44 @@
+{
+  "engine": "none (optional formal not run; properties enforced at runtime)",
+  "ip": "mctp_assembler_v3",
+  "note": "Properties parsed from the real safety_properties.sva; proven_runtime and antecedent_coverage come from the cocotb safety checker's evidence. Formal engine intentionally not run (optional).",
+  "problems": [],
+  "properties": [
+    {
+      "antecedent_coverage": 24,
+      "expr": "((packet_drop_pulse | assembly_drop_pulse) & ~pack_wr_valid) |=> ~pack_fire",
+      "name": "p1_no_sram_write_on_drop",
+      "proven_runtime": true
+    },
+    {
+      "antecedent_coverage": 131,
+      "expr": "(pack_fire && $past(pack_fire) && ~$past(descriptor_push) && ~$past(packet_drop_pulse) && ~$past(assembly_drop_pulse) && ~$past(frag_som)) |-> (pack_wr_addr == $past(pack_wr_addr) + {3'b000, $past(pack_wr_bytes)})",
+      "name": "p2_sram_payload_no_holes",
+      "proven_runtime": true
+    },
+    {
+      "antecedent_coverage": 4,
+      "expr": "descriptor_push |-> ~pack_wr_valid",
+      "name": "p3_descriptor_engine_idle",
+      "proven_runtime": true
+    },
+    {
+      "antecedent_coverage": 136,
+      "expr": "pack_wr_valid |-> (pack_wr_bytes <= 13'd32)",
+      "name": "p4_pack_word_le_32B",
+      "proven_runtime": true
+    },
+    {
+      "antecedent_coverage": 8,
+      "expr": "tlp_accept |-> $past(s_axi_bvalid & s_axi_bready)",
+      "name": "p5_tlp_accept_after_bresp",
+      "proven_runtime": true
+    }
+  ],
+  "property_count": 5,
+  "runtime_checker": "tb/cocotb/test_safety_properties.py",
+  "runtime_evidence": "sim/safety_assertions_evidence.json",
+  "runtime_status": "pass",
+  "spec": "verify/safety_properties.sva",
+  "status": "optional_not_run"
+}

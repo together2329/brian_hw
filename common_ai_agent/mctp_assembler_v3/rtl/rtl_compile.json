@@ -10,9 +10,17 @@
   "filelist": "list/mctp_assembler_v3.f",
   "rtl_files": [
     "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+    "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_v3_mctp_decoder.sv",
+    "rtl/mctp_assembler_v3_context_table.sv",
+    "rtl/mctp_assembler_v3_sram_packer.sv",
+    "rtl/mctp_assembler_v3_descriptor_queue.sv",
+    "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+    "rtl/mctp_assembler_v3_apb_regfile.sv",
+    "rtl/mctp_assembler_v3_cdc_sync.sv",
     "rtl/mctp_assembler_v3.sv"
   ],
-  "timestamp": "2026-06-03T12:45:16Z",
+  "timestamp": "2026-06-04T01:08:00Z",
   "returncode": 0,
   "errors": 0,
   "diagnostics": 0,

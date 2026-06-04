@@ -23,13 +23,12 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
-- Human-locked open tasks: 1
+- Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
-- Locked-truth blockers:
-  - manifest_connection_contract_evidence: 5 SSOT connection contract issue(s) remain. mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
@@ -38,6 +37,7 @@
   - mctp_assembler_v3_apb_regfile.irq_o <= irq (integration.connections[4])
   - mctp_assembler_v3_sram_packer.sram_wr_valid_o <= sram_wr_valid (integration.connections[5])
   - mctp_assembler_v3_context_table.drop_class_o <= last_drop_class (integration.connections[6])
+  - mctp_assembler_v3_cdc_sync.evt_fatal_internal_error_a <= 1'b0 (integration.connections[7])
 - SSOT top IO contracts: 51
 
 ## Tasks
@@ -104,13 +104,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_connection_contract_evidence
 - Detail: Named port maps prove that child instances are wired, but not that they are wired to the SSOT-intended signals. When the SSOT provides integration.connections or sub_modules[].connections, rtl-gen must satisfy those machine-readable connection contracts. Production-profile multi-module RTL must provide such contracts.
 SSOT ref: quality_gates.rtl_gen.manifest_connection_contract_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 5 SSOT connection contract issue(s) remain. mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL; mctp_assembler_v3_apb_regfile: SSOT connection contract targets a module not declared in RTL
+- Current reason: SSOT connection contracts are satisfied by reachable RTL named port maps.
 - Criteria:
   - Production-profile multi-module IPs provide machine-readable integration.connections or sub_modules[].connections
   - Each SSOT connection contract resolves to a reachable manifest child module and port
@@ -156,7 +156,7 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 - Detail: When a calibration reference profile provides target-scale candidates, a human must lock the chosen minimum structural scale in SSOT quality_gates.rtl_gen.target_scale or record an explicit SSOT target_scale_waiver before rtl-gen can claim production signoff.
 SSOT ref: quality_gates.rtl_gen.target_scale.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: No reference-derived target scale candidate is present, so no target-scale policy lock is required.
+- Current reason: SSOT quality_gates.rtl_gen.target_scale contains human-locked structural scale minima.
 - Criteria:
   - Reference-derived suggested_ssot_target_scale candidates are review inputs only
   - SSOT quality_gates.rtl_gen.target_scale contains human-locked structural depth minima before PL330-level PASS claims

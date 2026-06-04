@@ -3,34 +3,15 @@
 ## Status
 
 - Top: mctp_assembler_v3
-- Packets: 34
-- LLM-actionable tasks: 329
-- Human-locked tasks: 1
-- Tool-evidence tasks: 7
-- Deferred human QA allowed: True
-- PASS allowed: False
-- Target scale locked: False
+- Packets: 37
+- LLM-actionable tasks: 0
+- Human-locked tasks: 0
+- Tool-evidence tasks: 0
+- Deferred human QA allowed: False
+- PASS allowed: True
+- Target scale locked: True
 - Pending connection-contract suggestions: 0
 - Recommended packet batch limit: 4
-
-## Next LLM Packets
-
-- module__mctp_assembler_v3_pcie_vdm_parser: rtl/authoring_packets/module__mctp_assembler_v3_pcie_vdm_parser.json (llm_open=24, human_locked=0)
-- module__mctp_assembler_v3_mctp_decoder: rtl/authoring_packets/module__mctp_assembler_v3_mctp_decoder.json (llm_open=27, human_locked=0)
-- module__mctp_assembler_v3_context_table__function_model: rtl/authoring_packets/module__mctp_assembler_v3_context_table__function_model.json (llm_open=46, human_locked=0)
-- module__mctp_assembler_v3_context_table__fsm: rtl/authoring_packets/module__mctp_assembler_v3_context_table__fsm.json (llm_open=25, human_locked=0)
-- module__mctp_assembler_v3_context_table__equivalence: rtl/authoring_packets/module__mctp_assembler_v3_context_table__equivalence.json (llm_open=1, human_locked=0)
-- module__mctp_assembler_v3_context_table__parameters: rtl/authoring_packets/module__mctp_assembler_v3_context_table__parameters.json (llm_open=1, human_locked=0)
-- module__mctp_assembler_v3_sram_packer: rtl/authoring_packets/module__mctp_assembler_v3_sram_packer.json (llm_open=24, human_locked=0)
-- module__mctp_assembler_v3_descriptor_queue: rtl/authoring_packets/module__mctp_assembler_v3_descriptor_queue.json (llm_open=24, human_locked=0)
-
-## Tool Evidence Queue
-
-- rtl_gate_tool_evidence: tool_evidence=7, next_tool=ssot-rtl, json=rtl/authoring_packets/rtl_gate_tool_evidence.json
-
-## Human-Locked Queue
-
-- rtl_gate_human_closure: human_locked=1, json=rtl/authoring_packets/rtl_gate_human_closure.json
 
 ## Rules
 

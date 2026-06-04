@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "apb_per_q_readback_pass": true,
+    "axi_read_protocol_pass": true,
+    "axi_write_protocol_pass": true,
+    "sram_no_header_or_pad_write": true,
+    "sram_payload_no_holes": true,
+    "sram_payload_only": true
+  },
+  "ip": "mctp_assembler_v3",
+  "note": "Each check is copied from a real monitor's evidence emitted by a cocotb test that verified it against the live DUT this run. No check is hand-set; a missing/false source leaves the check false.",
+  "problems": [],
+  "sources": {
+    "apb_per_q_readback_pass": "sim/apb_desc_readback_evidence.json",
+    "axi_read_protocol_pass": "sim/sram_write_evidence.json",
+    "axi_write_protocol_pass": "sim/sram_write_evidence.json",
+    "sram_no_header_or_pad_write": "sim/sram_write_evidence.json",
+    "sram_payload_no_holes": "sim/sram_write_evidence.json",
+    "sram_payload_only": "sim/sram_write_evidence.json"
+  },
+  "status": "pass"
+}

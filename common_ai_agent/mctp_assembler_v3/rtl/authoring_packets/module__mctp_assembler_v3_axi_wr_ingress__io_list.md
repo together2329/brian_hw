@@ -23,13 +23,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, function_model, function_model.transactions.FM_INGEST_TLP, io_list, io_list.interfaces.axi_wr_slave, test_requirements
-- Module slice: 1/5 section=io_list task_limit=48
-- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 1/6 section=io_list task_limit=48
+- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])

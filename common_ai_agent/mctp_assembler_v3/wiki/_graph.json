@@ -1,0 +1,757 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-06-03T23:01:37Z",
+  "root": "mctp_assembler_v3/wiki",
+  "node_count": 21,
+  "edge_count": 89,
+  "tags": {
+    "artifact": [
+      "audit",
+      "cl_model",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "last_run",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ],
+    "cl-model-gen": [
+      "cl_model"
+    ],
+    "coverage": [
+      "coverage"
+    ],
+    "equiv-goals": [
+      "audit"
+    ],
+    "fl-model-gen": [
+      "fl-model-gen",
+      "fl_model"
+    ],
+    "index": [
+      "workflow-stages"
+    ],
+    "lint": [
+      "lint",
+      "lint"
+    ],
+    "pnr": [
+      "pnr"
+    ],
+    "rtl": [
+      "rtl-gen"
+    ],
+    "rtl-gen": [
+      "filelist",
+      "rtl",
+      "rtl-gen"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "signoff": [
+      "pnr",
+      "sta",
+      "sta-post",
+      "syn"
+    ],
+    "sim": [
+      "coverage",
+      "sim",
+      "sim"
+    ],
+    "ssot": [
+      "fl-model-gen",
+      "ssot",
+      "ssot-gen",
+      "workflow-stages"
+    ],
+    "ssot-gen": [
+      "ssot-gen"
+    ],
+    "sta": [
+      "sta"
+    ],
+    "sta-post": [
+      "sta-post"
+    ],
+    "syn": [
+      "syn"
+    ],
+    "tb": [
+      "tb-gen"
+    ],
+    "tb-gen": [
+      "tb",
+      "tb-gen"
+    ],
+    "workflow": [
+      "coverage",
+      "fl-model-gen",
+      "lint",
+      "pnr",
+      "rtl-gen",
+      "sim",
+      "ssot-gen",
+      "sta",
+      "sta-post",
+      "syn",
+      "tb-gen",
+      "workflow-stages"
+    ]
+  },
+  "types": {
+    "index": [
+      "workflow-stages"
+    ],
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "audit",
+      "cl_model",
+      "coverage",
+      "filelist",
+      "fl-model-gen",
+      "fl_model",
+      "lint",
+      "pnr",
+      "rtl",
+      "rtl-gen",
+      "sim",
+      "ssot",
+      "ssot-gen",
+      "sta",
+      "sta-post",
+      "syn",
+      "tb",
+      "tb-gen",
+      "workflow-runbook"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "mctp_assembler_v3 Equivalence Goals",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "equiv-goals"
+      ],
+      "related": [
+        "fl_model",
+        "rtl"
+      ],
+      "outgoing": [
+        "fl_model",
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-03T18:33:41Z",
+      "summary": "goals=102 blocked=0",
+      "status": "pass",
+      "digest": "goals=102 blocked=0",
+      "path": "mctp_assembler_v3/verify/equivalence_goals.json",
+      "size_bytes": 311600
+    },
+    {
+      "id": "cl_model",
+      "title": "mctp_assembler_v3 CycleModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "cl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-03T18:33:39Z",
+      "summary": "cycle_model.py size=44570B",
+      "status": "present",
+      "digest": "cycle_model.py size=44570B",
+      "path": "mctp_assembler_v3/model/cycle_model.py",
+      "size_bytes": 44570
+    },
+    {
+      "id": "coverage",
+      "title": "Coverage",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "coverage",
+        "sim",
+        "artifact"
+      ],
+      "related": [],
+      "outgoing": [
+        "tb-gen",
+        "workflow-stages",
+        "sim",
+        "fl-model-gen",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "fl-model-gen",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`coverage` instruments the DUT with Verilator coverage flags, re-runs the [[tb-gen]] testbench, analyzes line/toggle/user coverage against SSOT goals, and iteratively closes gaps with directed tests until SSOT targets are met or precisely escalated. SSOT is the only acceptance source; it never silently lowers a threshold. See [[workflow-stages]] for the…",
+      "path": "mctp_assembler_v3/wiki/_generated/coverage.md",
+      "size_bytes": 4301,
+      "status": "present",
+      "digest": "reports=5"
+    },
+    {
+      "id": "filelist",
+      "title": "mctp_assembler_v3 filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-03T19:05:58Z",
+      "summary": "mctp_assembler_v3.f size=373B",
+      "status": "present",
+      "digest": "mctp_assembler_v3.f size=373B",
+      "path": "mctp_assembler_v3/list/mctp_assembler_v3.f",
+      "size_bytes": 373
+    },
+    {
+      "id": "fl-model-gen",
+      "title": "Functional Model Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "fl-model-gen",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [
+        "tb-gen",
+        "ssot-gen",
+        "workflow-stages",
+        "sim",
+        "rtl-gen",
+        "coverage"
+      ],
+      "incoming": [
+        "coverage",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`fl-model-gen` authors the executable FunctionalModel, decomposition, functional-coverage plan, and FL-vs-RTL equivalence goals directly from the validated SSOT. The FunctionalModel is the behavioral oracle that [[tb-gen]]'s scoreboard compares RTL observations against; equivalence goals define what the LLM repair loop may prove versus what stays…",
+      "path": "mctp_assembler_v3/wiki/_generated/fl-model-gen.md",
+      "size_bytes": 6338
+    },
+    {
+      "id": "fl_model",
+      "title": "mctp_assembler_v3 FunctionalModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "fl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [
+        "sim",
+        "rtl",
+        "tb",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03T18:33:40Z",
+      "summary": "check=pass",
+      "status": "pass",
+      "digest": "check=pass",
+      "path": "mctp_assembler_v3/model/functional_model.py",
+      "size_bytes": 116294
+    },
+    {
+      "id": "last_run",
+      "title": "mctp_assembler_v3 last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-03T23:01:37Z",
+      "summary": "stages=5 last=contract-check:blocked",
+      "status": "blocked",
+      "digest": "stages=5 last=contract-check:blocked",
+      "path": "mctp_assembler_v3/logs/headless_run.json",
+      "size_bytes": 21021
+    },
+    {
+      "id": "lint",
+      "title": "Lint",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "lint",
+        "lint",
+        "artifact"
+      ],
+      "related": [],
+      "outgoing": [
+        "rtl-gen",
+        "workflow-stages",
+        "tb-gen",
+        "syn",
+        "rtl"
+      ],
+      "incoming": [
+        "rtl-gen",
+        "syn",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`lint` drives the DUT RTL files to 0 lint errors, 0 warnings and writes `<ip>/lint/dut_lint.json` + `dut_lint.log`. It is the DUT-only quality gate for [[rtl-gen]] — sim/TB logs are not lint approval, and warnings are fixed at the root cause, never suppressed. See [[workflow-stages]] for the pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/lint.md",
+      "size_bytes": 3754,
+      "status": "pass",
+      "digest": "errors=0 warnings=0"
+    },
+    {
+      "id": "pnr",
+      "title": "Place & Route",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "pnr",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "sta-post",
+        "workflow-stages",
+        "syn",
+        "sta",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "ssot-gen",
+        "sta-post",
+        "sta",
+        "syn",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`pnr` drives the post-synth netlist through OpenROAD's full physical pipeline (floorplan → place → CTS → route) and extracts a parasitic SPEF for sign-off timing. The triple `(routed.v, routed.spef, <ip>.sdc)` is the handoff to [[sta-post]]. See [[workflow-stages]] for the pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/pnr.md",
+      "size_bytes": 4014
+    },
+    {
+      "id": "rtl",
+      "title": "mctp_assembler_v3 RTL",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "ssot",
+        "fl_model"
+      ],
+      "outgoing": [
+        "ssot",
+        "fl_model"
+      ],
+      "incoming": [
+        "lint",
+        "sim",
+        "filelist",
+        "tb",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03T19:42:21Z",
+      "summary": "files=10 compile_errors=0 surface=headless_common_engine",
+      "status": "pass",
+      "digest": "files=10 compile_errors=0 surface=headless_common_engine",
+      "path": "mctp_assembler_v3/rtl",
+      "size_bytes": 768
+    },
+    {
+      "id": "rtl-gen",
+      "title": "RTL Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "rtl-gen",
+        "rtl"
+      ],
+      "related": [],
+      "outgoing": [
+        "ssot-gen",
+        "workflow-stages",
+        "tb-gen",
+        "sim",
+        "lint",
+        "fl-model-gen",
+        "coverage",
+        "syn"
+      ],
+      "incoming": [
+        "fl-model-gen",
+        "lint",
+        "sim",
+        "ssot-gen",
+        "syn",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`rtl-gen` translates the validated SSOT into synthesizable SystemVerilog, driving every SSOT-derived TODO and quality gate to `pass` with fresh compile/lint evidence. It is a contract-first SSOT→RTL translation workflow: existing RTL is reuse evidence only, and any disagreement with SSOT ports/names/hierarchy is repaired, not accepted. See [[ssot-gen]] for…",
+      "path": "mctp_assembler_v3/wiki/_generated/rtl-gen.md",
+      "size_bytes": 7021
+    },
+    {
+      "id": "sim",
+      "title": "Simulation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "sim",
+        "sim",
+        "artifact"
+      ],
+      "related": [],
+      "outgoing": [
+        "tb-gen",
+        "rtl-gen",
+        "workflow-stages",
+        "coverage",
+        "ssot-gen",
+        "fl-model-gen",
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "rtl-gen",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`sim` compiles and runs the [[tb-gen]] testbench against the [[rtl-gen]] DUT until it reaches 0 errors, 0 warnings with all checks PASS, then writes `sim/sim_report.txt`. It accepts handoffs from tb-gen (SSOT or legacy MAS) and is the executable verification step where FL-vs-RTL equivalence is exercised. See [[workflow-stages]] for the pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/sim.md",
+      "size_bytes": 3868,
+      "status": "present",
+      "digest": "results.xml=present"
+    },
+    {
+      "id": "ssot",
+      "title": "mctp_assembler_v3 SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "fl_model",
+        "cl_model",
+        "rtl"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03T18:28:41Z",
+      "summary": "sections=36 size=114692B",
+      "status": "present",
+      "digest": "sections=36 size=114692B",
+      "path": "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+      "size_bytes": 114692
+    },
+    {
+      "id": "ssot-gen",
+      "title": "SSOT Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "ssot-gen",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [
+        "workflow-stages",
+        "fl-model-gen",
+        "rtl-gen",
+        "tb-gen",
+        "coverage",
+        "syn",
+        "sta",
+        "pnr",
+        "sta-post"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "pnr",
+        "rtl-gen",
+        "sim",
+        "sta-post",
+        "sta",
+        "syn",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`ssot-gen` authors and validates `<ip>/yaml/<ip>.ssot.yaml`, the Single Source of Truth that every downstream stage treats as binding contract. It owns the SSOT contract only — it writes no RTL, TB, sim, firmware, or docs — and finishes with a `[SSOT HANDOFF] -> rtl-gen` block once validation passes. See [[workflow-stages]] for the full pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/ssot-gen.md",
+      "size_bytes": 8461
+    },
+    {
+      "id": "sta",
+      "title": "Static Timing Analysis (Pre-Route)",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "sta",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "syn",
+        "sta-post",
+        "workflow-stages",
+        "pnr",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "pnr",
+        "ssot-gen",
+        "sta-post",
+        "syn",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`sta` runs OpenSTA on the [[syn]] gate netlist and produces setup/hold WNS+TNS for every SSOT-declared clock, writing `<ip>/sta/out/wns.json` and the generated `<ip>.sdc`. This is the optimistic, zero-net-delay timing view — the silicon-accurate truth comes later from [[sta-post]]. See [[workflow-stages]] for the pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/sta.md",
+      "size_bytes": 3752
+    },
+    {
+      "id": "sta-post",
+      "title": "Post-Route Sign-Off STA",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "sta-post",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "pnr",
+        "sta",
+        "workflow-stages",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "pnr",
+        "ssot-gen",
+        "sta",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`sta-post` runs OpenSTA on the [[pnr]] post-route netlist with extracted parasitics (SPEF) to produce silicon-accurate, sign-off-grade setup/hold + clock-skew timing. Unlike the optimistic zero-net-delay [[sta]], this view includes real interconnect R/C — it is the timing truth. See [[workflow-stages]] for the pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/sta-post.md",
+      "size_bytes": 3839
+    },
+    {
+      "id": "syn",
+      "title": "Synthesis",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "syn",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "sta",
+        "workflow-stages",
+        "rtl-gen",
+        "lint",
+        "ssot-gen",
+        "pnr"
+      ],
+      "incoming": [
+        "lint",
+        "pnr",
+        "rtl-gen",
+        "ssot-gen",
+        "sta",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`syn` drives RTL → gate-level netlist with yosys against the sky130_fd_sc_hd Liberty (SS corner), producing `<ip>/syn/out/synth.v` plus area stats and a report. The mapped netlist is the canonical handoff to [[sta]]; an ungated or unmapped netlist makes timing silently lie. See [[workflow-stages]] for the pipeline.",
+      "path": "mctp_assembler_v3/wiki/_generated/syn.md",
+      "size_bytes": 4025
+    },
+    {
+      "id": "tb",
+      "title": "mctp_assembler_v3 Testbench",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "tb-gen"
+      ],
+      "related": [
+        "rtl",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "fl_model"
+      ],
+      "incoming": [
+        "sim"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-03T18:09:31Z",
+      "summary": "manifest=yes",
+      "status": "present",
+      "digest": "manifest=yes",
+      "path": "mctp_assembler_v3/tb",
+      "size_bytes": 160
+    },
+    {
+      "id": "tb-gen",
+      "title": "Testbench Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "tb-gen",
+        "tb"
+      ],
+      "related": [],
+      "outgoing": [
+        "fl-model-gen",
+        "workflow-stages",
+        "sim",
+        "coverage",
+        "ssot-gen",
+        "rtl-gen"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "lint",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`tb-gen` builds the SSOT-driven verification environment — a layered pyuvm/cocotb testbench whose scoreboard compares RTL observations against the [[fl-model-gen]] FunctionalModel for every equivalence goal. It owns SSOT-derived tests, scoreboards, functional bins, results XML, and waveform setup, but never invents expected behavior. See…",
+      "path": "mctp_assembler_v3/wiki/_generated/tb-gen.md",
+      "size_bytes": 6928
+    },
+    {
+      "id": "workflow-runbook",
+      "title": "mctp_assembler_v3 — Workflow Runbook",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "workflow-stages"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Self-contained, executable flow for IP `mctp_assembler_v3`. The full workflow engine is copied into `../workflow/` at scaffold time — every stage's scripts, prompts, `system_prompt.md`, rules, and todo templates, plus the shared `scripts/`/`prompts/` and the flow guides. The IP runs on its own, with no dependency on the central checkout's project wiki. Run…",
+      "path": "mctp_assembler_v3/wiki/_generated/workflow-runbook.md",
+      "size_bytes": 3526
+    },
+    {
+      "id": "workflow-stages",
+      "title": "ATLAS IP Workflow — Knowledge Graph",
+      "type": "index",
+      "tags": [
+        "workflow",
+        "index",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [
+        "lint",
+        "coverage",
+        "ssot-gen",
+        "fl-model-gen",
+        "rtl-gen",
+        "tb-gen",
+        "sim",
+        "syn",
+        "sta",
+        "pnr",
+        "sta-post"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "lint",
+        "pnr",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "sta-post",
+        "sta",
+        "syn",
+        "tb-gen",
+        "workflow-runbook"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Entry point for the 11-stage ATLAS hardware-IP generation pipeline: every stage takes the human-approved SSOT YAML as authority and emits traceable, validator-gated artifacts under `<ip>/`. This wiki has one page per stage, distilled from each `workflow/<stage>/system_prompt.md` and `scripts/`.",
+      "path": "mctp_assembler_v3/wiki/_generated/workflow-stages.md",
+      "size_bytes": 2976
+    }
+  ],
+  "ip": "mctp_assembler_v3"
+}

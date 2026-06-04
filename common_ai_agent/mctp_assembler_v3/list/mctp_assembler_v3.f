@@ -1,3 +1,10 @@
-// mctp_assembler_v3.f — filelist
 rtl/mctp_assembler_v3_axi_wr_ingress.sv
+rtl/mctp_assembler_v3_pcie_vdm_parser.sv
+rtl/mctp_assembler_v3_mctp_decoder.sv
+rtl/mctp_assembler_v3_context_table.sv
+rtl/mctp_assembler_v3_sram_packer.sv
+rtl/mctp_assembler_v3_descriptor_queue.sv
+rtl/mctp_assembler_v3_axi_rd_payload.sv
+rtl/mctp_assembler_v3_apb_regfile.sv
+rtl/mctp_assembler_v3_cdc_sync.sv
 rtl/mctp_assembler_v3.sv

@@ -1,0 +1,11 @@
+{
+  "generated_at": "2026-06-04T08:09:35Z",
+  "ip": "mctp_assembler_v3",
+  "owner_workflow": "",
+  "reason": "contract reflection and evidence both pass",
+  "rerun_after_repair": [],
+  "schema_version": 1,
+  "status": "pass",
+  "suggested_commands": [],
+  "type": "contract_owner_routing"
+}

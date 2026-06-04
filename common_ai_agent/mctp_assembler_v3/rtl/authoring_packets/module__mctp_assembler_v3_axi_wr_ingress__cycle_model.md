@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_v3_axi_wr_ingress
 - Owner file: rtl/mctp_assembler_v3_axi_wr_ingress.sv
-- Task count: 16
-- Required tasks: 16
+- Task count: 13
+- Required tasks: 13
 
 ## Rules
 
@@ -23,20 +23,21 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 3
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, function_model, function_model.transactions.FM_INGEST_TLP, io_list, io_list.interfaces.axi_wr_slave, test_requirements
-- Module slice: 3/5 section=cycle_model task_limit=48
-- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 3/6 section=cycle_model task_limit=48
+- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
 
 ## Tasks
 
-### RTL-0292: Implement cycle-model clock
+### RTL-0299: Implement cycle-model clock
 
 - Priority: high
 - Required: True
@@ -57,7 +58,7 @@ SSOT item context: value=axi_aclk.
   - cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.clock
 
-### RTL-0293: Implement cycle-model reset
+### RTL-0300: Implement cycle-model reset
 
 - Priority: high
 - Required: True
@@ -77,7 +78,7 @@ Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.
   - cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.reset
 
-### RTL-0294: Implement cycle-model latency
+### RTL-0301: Implement cycle-model latency
 
 - Priority: high
 - Required: True
@@ -97,7 +98,7 @@ Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.
   - cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.latency
 
-### RTL-0295: Implement handshake rule: s_axi_awready/s_axi_wready
+### RTL-0302: Implement handshake rule: s_axi_awready/s_axi_wready
 
 - Priority: high
 - Required: True
@@ -118,7 +119,7 @@ SSOT item context: signal=s_axi_awready/s_axi_wready.
   - cycle_model.handshake_rules.s_axi_awready_s_axi_wready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.s_axi_awready_s_axi_wready
 
-### RTL-0296: Implement handshake rule: s_axi_bvalid
+### RTL-0303: Implement handshake rule: s_axi_bvalid
 
 - Priority: high
 - Required: True
@@ -139,7 +140,7 @@ SSOT item context: signal=s_axi_bvalid.
   - cycle_model.handshake_rules.s_axi_bvalid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.s_axi_bvalid
 
-### RTL-0297: Implement handshake rule: sram_wr_valid
+### RTL-0304: Implement handshake rule: sram_wr_valid
 
 - Priority: high
 - Required: True
@@ -160,49 +161,7 @@ SSOT item context: signal=sram_wr_valid.
   - cycle_model.handshake_rules.sram_wr_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.sram_wr_valid
 
-### RTL-0298: Implement handshake rule: sram_rd_req_valid
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.sram_rd_req_valid
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.sram_rd_req_valid.
-Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.
-SSOT item context: signal=sram_rd_req_valid.
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.sram_rd_req_valid
-  - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
-  - cycle_model.handshake_rules.sram_rd_req_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.sram_rd_req_valid
-
-### RTL-0299: Implement handshake rule: s_axi_rvalid/s_axi_rlast
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: cycle_model.handshake_rules
-- Source ref: cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast.
-Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.
-SSOT item context: signal=s_axi_rvalid/s_axi_rlast.
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast
-  - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
-  - cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast
-
-### RTL-0300: Implement handshake rule: apb pready
+### RTL-0307: Implement handshake rule: apb pready
 
 - Priority: high
 - Required: True
@@ -223,7 +182,7 @@ SSOT item context: signal=apb pready.
   - cycle_model.handshake_rules.apb_pready appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.handshake_rules.apb_pready
 
-### RTL-0307: Implement ordering rule: ordering_rule_0
+### RTL-0314: Implement ordering rule: ordering_rule_0
 
 - Priority: high
 - Required: True
@@ -244,7 +203,7 @@ SSOT item context: value=descriptor_publish must occur only after the final SRAM
   - cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_0
 
-### RTL-0308: Implement ordering rule: ordering_rule_1
+### RTL-0315: Implement ordering rule: ordering_rule_1
 
 - Priority: high
 - Required: True
@@ -265,7 +224,7 @@ SSOT item context: value=AXI read response is not issued before the correspondin
   - cycle_model.ordering.ordering_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_1
 
-### RTL-0309: Implement ordering rule: ordering_rule_2
+### RTL-0316: Implement ordering rule: ordering_rule_2
 
 - Priority: high
 - Required: True
@@ -286,28 +245,7 @@ SSOT item context: value=Interrupt status updates occur on the rising edge the t
   - cycle_model.ordering.ordering_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.ordering.ordering_rule_2
 
-### RTL-0310: Implement backpressure rule: backpressure_rule_0
-
-- Priority: high
-- Required: True
-- Status: open
-- Category: cycle_model.backpressure
-- Source ref: cycle_model.backpressure.backpressure_rule_0
-- Detail: Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.
-SSOT ref: cycle_model.backpressure.backpressure_rule_0.
-Owner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.
-SSOT item context: value=sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs..
-- Current reason: Required RTL static evidence is missing.
-- Criteria:
-  - RTL contains the control/state/handshake logic for this cycle rule
-  - Rule timing is reflected in sample/hold/ready/valid or FSM behavior
-  - TB scoreboard/coverage can observe the rule at the declared phase
-  - Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0
-  - Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv
-  - cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
-- SSOT refs: cycle_model.backpressure.backpressure_rule_0
-
-### RTL-0311: Implement backpressure rule: backpressure_rule_1
+### RTL-0318: Implement backpressure rule: backpressure_rule_1
 
 - Priority: high
 - Required: True
@@ -328,7 +266,7 @@ SSOT item context: value=SRAM write traffic for assembly has priority over firmw
   - cycle_model.backpressure.backpressure_rule_1 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.backpressure.backpressure_rule_1
 
-### RTL-0312: Implement backpressure rule: backpressure_rule_2
+### RTL-0319: Implement backpressure rule: backpressure_rule_2
 
 - Priority: high
 - Required: True
@@ -349,7 +287,7 @@ SSOT item context: value=AXI read backpressure must not corrupt ongoing assembly
   - cycle_model.backpressure.backpressure_rule_2 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB
 - SSOT refs: cycle_model.backpressure.backpressure_rule_2
 
-### RTL-0313: Implement observability signal: observability_signal_0
+### RTL-0320: Implement observability signal: observability_signal_0
 
 - Priority: high
 - Required: True

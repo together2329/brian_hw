@@ -23,20 +23,21 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.handshake_rules, function_model, function_model.transactions.FM_INGEST_TLP, io_list, io_list.interfaces.axi_wr_slave, test_requirements
-- Module slice: 4/5 section=test_requirements task_limit=48
-- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 5/6 section=test_requirements task_limit=48
+- Slice rule: Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
 
 ## Tasks
 
-### RTL-0474: Keep RTL observable for scenario SC_SINGLE
+### RTL-0482: Keep RTL observable for scenario SC_SINGLE
 
 - Priority: normal
 - Required: True
@@ -57,7 +58,7 @@ SSOT item context: id=SC_SINGLE; name=Valid single-packet message; expected=payl
   - Downstream checker compares RTL-observed behavior against expected result: payload assembled, descriptor published, first==last header
 - SSOT refs: test_requirements.scenarios.SC_SINGLE
 
-### RTL-0475: Keep RTL observable for scenario SC_FRAG
+### RTL-0483: Keep RTL observable for scenario SC_FRAG
 
 - Priority: normal
 - Required: True
@@ -78,7 +79,7 @@ SSOT item context: id=SC_FRAG; name=Fragmented message across TLPs; expected=con
   - Downstream checker compares RTL-observed behavior against expected result: concatenated payload, no SRAM holes, descriptor payload_len correct
 - SSOT refs: test_requirements.scenarios.SC_FRAG
 
-### RTL-0476: Keep RTL observable for scenario SC_INTERLEAVE
+### RTL-0484: Keep RTL observable for scenario SC_INTERLEAVE
 
 - Priority: normal
 - Required: True
@@ -99,7 +100,7 @@ SSOT item context: id=SC_INTERLEAVE; name=Interleaved messages distinct keys; ex
   - Downstream checker compares RTL-observed behavior against expected result: independent contexts, B completes before A, partial words preserved
 - SSOT refs: test_requirements.scenarios.SC_INTERLEAVE
 
-### RTL-0477: Keep RTL observable for scenario SC_UNALIGNED_TU
+### RTL-0485: Keep RTL observable for scenario SC_UNALIGNED_TU
 
 - Priority: normal
 - Required: True
@@ -120,7 +121,7 @@ SSOT item context: id=SC_UNALIGNED_TU; name=TU=68B unaligned 32B continuation; e
   - Downstream checker compares RTL-observed behavior against expected result: next fragment continues lane 4 of word@64, no gap
 - SSOT refs: test_requirements.scenarios.SC_UNALIGNED_TU
 
-### RTL-0478: Keep RTL observable for scenario SC_MAX_TU
+### RTL-0486: Keep RTL observable for scenario SC_MAX_TU
 
 - Priority: normal
 - Required: True
@@ -141,7 +142,7 @@ SSOT item context: id=SC_MAX_TU; name=Max TU 4096B over 129 beats; expected=129 
   - Downstream checker compares RTL-observed behavior against expected result: 129 W beats accepted, payload_len=4096
 - SSOT refs: test_requirements.scenarios.SC_MAX_TU
 
-### RTL-0479: Keep RTL observable for scenario SC_PD_MALFORMED
+### RTL-0487: Keep RTL observable for scenario SC_PD_MALFORMED
 
 - Priority: normal
 - Required: True
@@ -162,7 +163,7 @@ SSOT item context: id=SC_PD_MALFORMED; name=Malformed AXI/TLP drops; expected=PD
   - Downstream checker compares RTL-observed behavior against expected result: PD_MALFORMED_TLP, no context/SRAM/descriptor side effect
 - SSOT refs: test_requirements.scenarios.SC_PD_MALFORMED
 
-### RTL-0480: Keep RTL observable for scenario SC_PD_VDM
+### RTL-0488: Keep RTL observable for scenario SC_PD_VDM
 
 - Priority: normal
 - Required: True
@@ -183,7 +184,7 @@ SSOT item context: id=SC_PD_VDM; name=Unsupported VDM constants; expected=PD_UNS
   - Downstream checker compares RTL-observed behavior against expected result: PD_UNSUPPORTED_VDM
 - SSOT refs: test_requirements.scenarios.SC_PD_VDM
 
-### RTL-0481: Keep RTL observable for scenario SC_PD_MCTP
+### RTL-0489: Keep RTL observable for scenario SC_PD_MCTP
 
 - Priority: normal
 - Required: True
@@ -204,7 +205,7 @@ SSOT item context: id=SC_PD_MCTP; name=Bad MCTP header version; expected=PD_BAD_
   - Downstream checker compares RTL-observed behavior against expected result: PD_BAD_MCTP_HEADER
 - SSOT refs: test_requirements.scenarios.SC_PD_MCTP
 
-### RTL-0482: Keep RTL observable for scenario SC_PD_EID
+### RTL-0490: Keep RTL observable for scenario SC_PD_EID
 
 - Priority: normal
 - Required: True
@@ -225,7 +226,7 @@ SSOT item context: id=SC_PD_EID; name=Dest EID reject; expected=PD_DEST_EID_REJE
   - Downstream checker compares RTL-observed behavior against expected result: PD_DEST_EID_REJECT
 - SSOT refs: test_requirements.scenarios.SC_PD_EID
 
-### RTL-0483: Keep RTL observable for scenario SC_PD_MIDDLE
+### RTL-0491: Keep RTL observable for scenario SC_PD_MIDDLE
 
 - Priority: normal
 - Required: True
@@ -246,7 +247,7 @@ SSOT item context: id=SC_PD_MIDDLE; name=Middle/EOM without SOM; expected=PD_UNE
   - Downstream checker compares RTL-observed behavior against expected result: PD_UNEXPECTED_MIDDLE_END
 - SSOT refs: test_requirements.scenarios.SC_PD_MIDDLE
 
-### RTL-0484: Keep RTL observable for scenario SC_AD_DUP
+### RTL-0492: Keep RTL observable for scenario SC_AD_DUP
 
 - Priority: normal
 - Required: True
@@ -267,7 +268,7 @@ SSOT item context: id=SC_AD_DUP; name=Duplicate SOM; expected=AD_DUPLICATE_SOM a
   - Downstream checker compares RTL-observed behavior against expected result: AD_DUPLICATE_SOM aborts exactly that context
 - SSOT refs: test_requirements.scenarios.SC_AD_DUP
 
-### RTL-0485: Keep RTL observable for scenario SC_AD_SEQ
+### RTL-0493: Keep RTL observable for scenario SC_AD_SEQ
 
 - Priority: normal
 - Required: True
@@ -288,7 +289,7 @@ SSOT item context: id=SC_AD_SEQ; name=Sequence mismatch; expected=AD_SEQUENCE_MI
   - Downstream checker compares RTL-observed behavior against expected result: AD_SEQUENCE_MISMATCH abort
 - SSOT refs: test_requirements.scenarios.SC_AD_SEQ
 
-### RTL-0486: Keep RTL observable for scenario SC_AD_CTXFULL
+### RTL-0494: Keep RTL observable for scenario SC_AD_CTXFULL
 
 - Priority: normal
 - Required: True
@@ -309,7 +310,7 @@ SSOT item context: id=SC_AD_CTXFULL; name=Context table full; expected=PD_BAD_OR
   - Downstream checker compares RTL-observed behavior against expected result: PD_BAD_OR_EXPIRED_TAG (table full), no alloc
 - SSOT refs: test_requirements.scenarios.SC_AD_CTXFULL
 
-### RTL-0487: Keep RTL observable for scenario SC_AD_SRAM
+### RTL-0495: Keep RTL observable for scenario SC_AD_SRAM
 
 - Priority: normal
 - Required: True
@@ -330,7 +331,7 @@ SSOT item context: id=SC_AD_SRAM; name=SRAM overflow; expected=AD_SRAM_OVERFLOW 
   - Downstream checker compares RTL-observed behavior against expected result: AD_SRAM_OVERFLOW abort
 - SSOT refs: test_requirements.scenarios.SC_AD_SRAM
 
-### RTL-0488: Keep RTL observable for scenario SC_AD_DESCFULL
+### RTL-0496: Keep RTL observable for scenario SC_AD_DESCFULL
 
 - Priority: normal
 - Required: True
@@ -351,7 +352,7 @@ SSOT item context: id=SC_AD_DESCFULL; name=Descriptor queue full; expected=AD_DE
   - Downstream checker compares RTL-observed behavior against expected result: AD_DESCRIPTOR_FULL, no descriptor
 - SSOT refs: test_requirements.scenarios.SC_AD_DESCFULL
 
-### RTL-0489: Keep RTL observable for scenario SC_AD_TIMEOUT
+### RTL-0497: Keep RTL observable for scenario SC_AD_TIMEOUT
 
 - Priority: normal
 - Required: True
@@ -372,7 +373,7 @@ SSOT item context: id=SC_AD_TIMEOUT; name=Assembly timeout; expected=AD_TIMEOUT 
   - Downstream checker compares RTL-observed behavior against expected result: AD_TIMEOUT abort
 - SSOT refs: test_requirements.scenarios.SC_AD_TIMEOUT
 
-### RTL-0490: Keep RTL observable for scenario SC_PRIORITY
+### RTL-0498: Keep RTL observable for scenario SC_PRIORITY
 
 - Priority: normal
 - Required: True
@@ -393,7 +394,7 @@ SSOT item context: id=SC_PRIORITY; name=Drop priority; expected=earlier packet-d
   - Downstream checker compares RTL-observed behavior against expected result: earlier packet-drop reason wins
 - SSOT refs: test_requirements.scenarios.SC_PRIORITY
 
-### RTL-0491: Keep RTL observable for scenario SC_FW_READ
+### RTL-0499: Keep RTL observable for scenario SC_FW_READ
 
 - Priority: normal
 - Required: True
@@ -414,7 +415,7 @@ SSOT item context: id=SC_FW_READ; name=Firmware payload read; expected=payload b
   - Downstream checker compares RTL-observed behavior against expected result: payload bytes returned, RLAST on final beat
 - SSOT refs: test_requirements.scenarios.SC_FW_READ
 
-### RTL-0492: Keep RTL observable for scenario SC_FW_READ_SLVERR
+### RTL-0500: Keep RTL observable for scenario SC_FW_READ_SLVERR
 
 - Priority: normal
 - Required: True
@@ -435,7 +436,7 @@ SSOT item context: id=SC_FW_READ_SLVERR; name=Read outside window; expected=RRES
   - Downstream checker compares RTL-observed behavior against expected result: RRESP=SLVERR
 - SSOT refs: test_requirements.scenarios.SC_FW_READ_SLVERR
 
-### RTL-0493: Keep RTL observable for scenario SC_REG
+### RTL-0501: Keep RTL observable for scenario SC_REG
 
 - Priority: normal
 - Required: True

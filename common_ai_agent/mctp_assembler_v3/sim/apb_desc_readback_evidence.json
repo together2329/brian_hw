@@ -1,0 +1,99 @@
+{
+  "apb_per_q_readback_pass": true,
+  "descriptors_driven": 4,
+  "distinct_head_words": 4,
+  "fifo_depth": 8,
+  "ip": "mctp_assembler_v3",
+  "steps": [
+    {
+      "descriptor_push": 1,
+      "descriptor_valid": 1,
+      "index": 0,
+      "phase": "push"
+    },
+    {
+      "descriptor_push": 1,
+      "descriptor_valid": 1,
+      "index": 1,
+      "phase": "push"
+    },
+    {
+      "descriptor_push": 1,
+      "descriptor_valid": 1,
+      "index": 2,
+      "phase": "push"
+    },
+    {
+      "descriptor_push": 1,
+      "descriptor_valid": 1,
+      "index": 3,
+      "phase": "push"
+    },
+    {
+      "active_context_count": 4,
+      "descriptor_available": true,
+      "descriptor_queue_full": false,
+      "phase": "status_after_push",
+      "status": 4177
+    },
+    {
+      "active_context_count": 4,
+      "desc_word": 2432945488,
+      "descriptor_available": true,
+      "index": 0,
+      "phase": "walk",
+      "status": 4177
+    },
+    {
+      "active_context_count": 3,
+      "desc_word": 2365636244,
+      "descriptor_available": true,
+      "index": 1,
+      "phase": "walk",
+      "status": 3153
+    },
+    {
+      "active_context_count": 2,
+      "desc_word": 699723303,
+      "descriptor_available": true,
+      "index": 2,
+      "phase": "walk",
+      "status": 2129
+    },
+    {
+      "active_context_count": 1,
+      "desc_word": 2128657543,
+      "descriptor_available": true,
+      "index": 3,
+      "phase": "walk",
+      "status": 1105
+    },
+    {
+      "distinct_count": 4,
+      "phase": "distinctness",
+      "seen_words": [
+        2432945488,
+        2365636244,
+        699723303,
+        2128657543
+      ],
+      "total": 4
+    },
+    {
+      "descriptor_available": false,
+      "phase": "status_after_drain",
+      "status": 1
+    },
+    {
+      "descriptor_queue_full": true,
+      "phase": "fill_to_full",
+      "status": 8305
+    },
+    {
+      "descriptor_queue_full": false,
+      "phase": "full_clear_after_pop",
+      "status": 7249
+    }
+  ],
+  "test": "test_apb_desc_readback.apb_per_q_descriptor_readback"
+}

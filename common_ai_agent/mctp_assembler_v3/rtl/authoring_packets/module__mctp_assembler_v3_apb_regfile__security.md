@@ -23,13 +23,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: decomposition, error_handling, features, function_model.state_variables, interrupts, registers, registers.register_list
 - Module slice: 6/7 section=security task_limit=48
 - Slice rule: Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_apb_regfile.pclk <= pclk (integration.connections[2])
   - mctp_assembler_v3_apb_regfile.presetn <= presetn (integration.connections[3])
@@ -37,18 +38,18 @@
 
 ## Tasks
 
-### RTL-0447: Implement security item register_map
+### RTL-0454: Implement security item register_map
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: security.assets
 - Source ref: security.assets.register_map
 - Detail: This SSOT security.assets item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: security.assets.register_map.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via semantic_terms:apb.
 SSOT item context: name=register_map.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

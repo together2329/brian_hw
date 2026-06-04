@@ -23,13 +23,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 1
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: fsm, fsm.context_fsm, function_model, function_model.transactions.FM_ALLOC_CONTEXT, function_model.transactions.FM_APPEND
-- Module slice: 1/4 section=parameters task_limit=48
-- Slice rule: Owner module mctp_assembler_v3_context_table is split into 4 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- Module slice: 1/6 section=parameters task_limit=48
+- Slice rule: Owner module mctp_assembler_v3_context_table is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_context_table.drop_class_o <= last_drop_class (integration.connections[6])
 
@@ -39,14 +40,14 @@
 
 - Priority: normal
 - Required: True
-- Status: open
+- Status: pass
 - Category: parameters.item
 - Source ref: parameters.CONTEXT_COUNT
 - Detail: Declare the parameter/localparam in the owning RTL module and ensure all derived widths/slices are legal Verilog/SystemVerilog.
 SSOT ref: parameters.CONTEXT_COUNT.
 Owner: mctp_assembler_v3_context_table in rtl/mctp_assembler_v3_context_table.sv via semantic_terms:context.
 SSOT item context: name=CONTEXT_COUNT.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_context_table.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Parameter default/value matches SSOT
   - Parameter-derived widths are implemented outside procedural part-selects

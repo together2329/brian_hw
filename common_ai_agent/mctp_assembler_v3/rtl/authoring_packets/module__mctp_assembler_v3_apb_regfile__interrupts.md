@@ -23,13 +23,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 9
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: decomposition, error_handling, features, function_model.state_variables, interrupts, registers, registers.register_list
 - Module slice: 5/7 section=interrupts task_limit=48
 - Slice rule: Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_apb_regfile.pclk <= pclk (integration.connections[2])
   - mctp_assembler_v3_apb_regfile.presetn <= presetn (integration.connections[3])
@@ -37,18 +38,18 @@
 
 ## Tasks
 
-### RTL-0389: Implement interrupt item descriptor_ready
+### RTL-0396: Implement interrupt item descriptor_ready
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.descriptor_ready
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.descriptor_ready.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=descriptor_ready; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -58,18 +59,18 @@ SSOT item context: name=descriptor_ready; clear=W1C.
   - descriptor_ready clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.descriptor_ready
 
-### RTL-0390: Implement interrupt item packet_drop
+### RTL-0397: Implement interrupt item packet_drop
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.packet_drop
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.packet_drop.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=packet_drop; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -79,18 +80,18 @@ SSOT item context: name=packet_drop; clear=W1C.
   - packet_drop clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.packet_drop
 
-### RTL-0391: Implement interrupt item assembly_drop
+### RTL-0398: Implement interrupt item assembly_drop
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.assembly_drop
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.assembly_drop.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=assembly_drop; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -100,18 +101,18 @@ SSOT item context: name=assembly_drop; clear=W1C.
   - assembly_drop clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.assembly_drop
 
-### RTL-0392: Implement interrupt item context_timeout
+### RTL-0399: Implement interrupt item context_timeout
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.context_timeout
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.context_timeout.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=context_timeout; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -121,18 +122,18 @@ SSOT item context: name=context_timeout; clear=W1C.
   - context_timeout clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.context_timeout
 
-### RTL-0393: Implement interrupt item sram_overflow
+### RTL-0400: Implement interrupt item sram_overflow
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.sram_overflow
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.sram_overflow.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=sram_overflow; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -142,18 +143,18 @@ SSOT item context: name=sram_overflow; clear=W1C.
   - sram_overflow clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.sram_overflow
 
-### RTL-0394: Implement interrupt item descriptor_queue_full
+### RTL-0401: Implement interrupt item descriptor_queue_full
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.descriptor_queue_full
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.descriptor_queue_full.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=descriptor_queue_full; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -163,18 +164,18 @@ SSOT item context: name=descriptor_queue_full; clear=W1C.
   - descriptor_queue_full clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.descriptor_queue_full
 
-### RTL-0395: Implement interrupt item axi_write_malformed
+### RTL-0402: Implement interrupt item axi_write_malformed
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.axi_write_malformed
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.axi_write_malformed.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=axi_write_malformed; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -184,18 +185,18 @@ SSOT item context: name=axi_write_malformed; clear=W1C.
   - axi_write_malformed clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.axi_write_malformed
 
-### RTL-0396: Implement interrupt item axi_read_error
+### RTL-0403: Implement interrupt item axi_read_error
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.axi_read_error
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.axi_read_error.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=axi_read_error; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code
@@ -205,18 +206,18 @@ SSOT item context: name=axi_read_error; clear=W1C.
   - axi_read_error clear behavior matches SSOT clear policy W1C
 - SSOT refs: interrupts.sources.axi_read_error
 
-### RTL-0397: Implement interrupt item fatal_internal_error
+### RTL-0404: Implement interrupt item fatal_internal_error
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: interrupts.sources
 - Source ref: interrupts.sources.fatal_internal_error
 - Detail: This SSOT interrupts.sources item must map to RTL behavior, integration evidence, or a precise blocker.
 SSOT ref: interrupts.sources.fatal_internal_error.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via interrupts.
 SSOT item context: name=fatal_internal_error; clear=W1C.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - RTL owner/evidence is named for this SSOT item
   - Behavior is not represented only by comments or TB code

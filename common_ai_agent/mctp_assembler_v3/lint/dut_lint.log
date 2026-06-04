@@ -1,100 +1,14 @@
 ===== pyslang =====
-command: pyslang rtl/mctp_assembler_v3_axi_wr_ingress.sv rtl/mctp_assembler_v3.sv
+command: pyslang rtl/mctp_assembler_v3_axi_wr_ingress.sv rtl/mctp_assembler_v3_pcie_vdm_parser.sv rtl/mctp_assembler_v3_mctp_decoder.sv rtl/mctp_assembler_v3_context_table.sv rtl/mctp_assembler_v3_sram_packer.sv rtl/mctp_assembler_v3_descriptor_queue.sv rtl/mctp_assembler_v3_axi_rd_payload.sv rtl/mctp_assembler_v3_apb_regfile.sv rtl/mctp_assembler_v3_cdc_sync.sv rtl/mctp_assembler_v3.sv
 returncode: 0
-errors: 0 warnings: 2
-pyslang files: 2
-errors=0 warnings=2
-warning: mctp_assembler_v3/rtl/mctp_assembler_v3_axi_wr_ingress.sv:60 implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[5:0]'
-warning: mctp_assembler_v3/rtl/mctp_assembler_v3_axi_wr_ingress.sv:60 implicit conversion truncates from 32 to 6 bits
+errors: 0 warnings: 0
+pyslang files: 10
+errors=0 warnings=0
 
 ===== verilator =====
 command: verilator --lint-only -Wall -Irtl -f list/mctp_assembler_v3.f --top-module mctp_assembler_v3
-returncode: 1
-errors: 0 warnings: 21
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:21:40: Signal is not used: 'pclk'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   21 |     input  wire                        pclk,
-      |                                        ^~~~
-                       ... For warning description see https://verilator.org/warn/UNUSEDSIGNAL?v=5.046
-                       ... Use "/* verilator lint_off UNUSEDSIGNAL */" and lint_on around source to disable this message.
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:23:40: Signal is not used: 'presetn'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   23 |     input  wire                        presetn,
-      |                                        ^~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:40:40: Signal is not used: 's_axi_araddr'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   40 |     input  wire [AXI_ADDR_WIDTH-1:0]   s_axi_araddr,
-      |                                        ^~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:41:40: Signal is not used: 's_axi_arlen'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   41 |     input  wire [7:0]                  s_axi_arlen,
-      |                                        ^~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:42:40: Signal is not used: 's_axi_arsize'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   42 |     input  wire [2:0]                  s_axi_arsize,
-      |                                        ^~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:43:40: Signal is not used: 's_axi_arburst'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   43 |     input  wire [1:0]                  s_axi_arburst,
-      |                                        ^~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:44:40: Signal is not used: 's_axi_arvalid'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   44 |     input  wire                        s_axi_arvalid,
-      |                                        ^~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:50:40: Signal is not used: 's_axi_rready'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   50 |     input  wire                        s_axi_rready,
-      |                                        ^~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:52:40: Signal is not used: 'paddr'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   52 |     input  wire [AXI_ADDR_WIDTH-1:0]   paddr,
-      |                                        ^~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:53:40: Signal is not used: 'psel'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   53 |     input  wire                        psel,
-      |                                        ^~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:54:40: Signal is not used: 'penable'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   54 |     input  wire                        penable,
-      |                                        ^~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:55:40: Signal is not used: 'pwrite'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   55 |     input  wire                        pwrite,
-      |                                        ^~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:56:40: Signal is not used: 'pwdata'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   56 |     input  wire [31:0]                 pwdata,
-      |                                        ^~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:57:40: Signal is not used: 'pstrb'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   57 |     input  wire [3:0]                  pstrb,
-      |                                        ^~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:63:40: Signal is not used: 'sram_wr_ready'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   63 |     input  wire                        sram_wr_ready,
-      |                                        ^~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:69:40: Signal is not used: 'sram_rd_req_ready'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   69 |     input  wire                        sram_rd_req_ready,
-      |                                        ^~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:71:40: Signal is not used: 'sram_rd_rsp_valid'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   71 |     input  wire                        sram_rd_rsp_valid,
-      |                                        ^~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:73:40: Signal is not used: 'sram_rd_rsp_data'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   73 |     input  wire [SRAM_DATA_WIDTH-1:0]  sram_rd_rsp_data,
-      |                                        ^~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3.sv:74:40: Signal is not used: 'sram_rd_rsp_error'
-                                                     : ... note: In instance 'mctp_assembler_v3'
-   74 |     input  wire                        sram_rd_rsp_error,
-      |                                        ^~~~~~~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3_axi_wr_ingress.sv:22:40: Signal is not used: 's_axi_awaddr'
-                                                                    : ... note: In instance 'mctp_assembler_v3.u_axi_wr_ingress'
-   22 |     input  wire [AXI_ADDR_WIDTH-1:0]   s_axi_awaddr,
-      |                                        ^~~~~~~~~~~~
-%Warning-UNUSEDSIGNAL: rtl/mctp_assembler_v3_axi_wr_ingress.sv:23:40: Signal is not used: 's_axi_awlen'
-                                                                    : ... note: In instance 'mctp_assembler_v3.u_axi_wr_ingress'
-   23 |     input  wire [7:0]                  s_axi_awlen,
-      |                                        ^~~~~~~~~~~
-%Error: Exiting due to 21 warning(s)
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 1.203 MB sources in 11 modules, into 0.434 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.105 s (elab=0.018, cvt=0.051, bld=0.000); cpu 0.082 s on 1 threads; allocated 21.875 MB

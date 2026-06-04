@@ -9,7 +9,7 @@
   "check_ssot_disk": {
     "ok": true,
     "returncode": 0,
-    "stdout": "[check_ssot_disk] PASS: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml = 114089B, 34 sections, 0 TBDs, mode=engineering\n",
+    "stdout": "[check_ssot_disk] PASS: mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml = 114692B, 34 sections, 0 TBDs, mode=engineering\n",
     "stderr": ""
   },
   "preview_contract": "strict"

@@ -1,19 +1,19 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
     },
     "connection_contract_suggestions": {},
     "module_slice": {
-      "count": 5,
+      "count": 6,
       "enabled": true,
       "index": 3,
       "key": "cycle_model",
-      "module_task_count": 84,
-      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 91,
+      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
@@ -112,21 +112,25 @@
       }
     ],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 3,
-    "open_required_count": 3,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -155,28 +159,28 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
-      "cycle_model.backpressure": 3,
+      "cycle_model.backpressure": 2,
       "cycle_model.clock": 1,
-      "cycle_model.handshake_rules": 6,
+      "cycle_model.handshake_rules": 4,
       "cycle_model.latency": 1,
       "cycle_model.observability": 1,
       "cycle_model.ordering": 3,
       "cycle_model.reset": 1
     },
     "module_slice": {
-      "count": 5,
+      "count": 6,
       "enabled": true,
       "index": 3,
       "key": "cycle_model",
-      "module_task_count": 84,
-      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 5 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "module_task_count": 91,
+      "rule": "Owner module mctp_assembler_v3_axi_wr_ingress is split into 6 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
       "section": "cycle_model",
       "section_chunk_count": 1,
       "section_chunk_index": 1,
       "task_limit": 48
     },
-    "open_required_count": 3,
-    "required_count": 16,
+    "open_required_count": 0,
+    "required_count": 13,
     "source_refs": [
       "cycle_model.clock",
       "cycle_model.reset",
@@ -184,22 +188,18 @@
       "cycle_model.handshake_rules.s_axi_awready_s_axi_wready",
       "cycle_model.handshake_rules.s_axi_bvalid",
       "cycle_model.handshake_rules.sram_wr_valid",
-      "cycle_model.handshake_rules.sram_rd_req_valid",
-      "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
       "cycle_model.handshake_rules.apb_pready",
       "cycle_model.ordering.ordering_rule_0",
       "cycle_model.ordering.ordering_rule_1",
       "cycle_model.ordering.ordering_rule_2",
-      "cycle_model.backpressure.backpressure_rule_0",
       "cycle_model.backpressure.backpressure_rule_1",
       "cycle_model.backpressure.backpressure_rule_2",
       "cycle_model.observability.observability_signal_0"
     ],
     "status_counts": {
-      "open": 3,
       "pass": 13
     },
-    "task_count": 16
+    "task_count": 13
   },
   "tasks": [
     {
@@ -219,7 +219,7 @@
         "axi",
         "axi_aclk"
       ],
-      "id": "RTL-0292",
+      "id": "RTL-0299",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -276,7 +276,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.",
       "evidence_terms": [],
-      "id": "RTL-0293",
+      "id": "RTL-0300",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -316,7 +316,7 @@
       ],
       "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.",
       "evidence_terms": [],
-      "id": "RTL-0294",
+      "id": "RTL-0301",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -362,7 +362,7 @@
         "s_axi_wready",
         "wready"
       ],
-      "id": "RTL-0295",
+      "id": "RTL-0302",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -427,7 +427,7 @@
         "bvalid",
         "s_axi_bvalid"
       ],
-      "id": "RTL-0296",
+      "id": "RTL-0303",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -489,7 +489,7 @@
         "valid",
         "wr"
       ],
-      "id": "RTL-0297",
+      "id": "RTL-0304",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -535,132 +535,6 @@
     },
     {
       "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: sram_rd_req_valid",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.sram_rd_req_valid",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "cycle_model.handshake_rules.sram_rd_req_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_rd_req_valid.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sram_rd_req_valid.",
-      "evidence_terms": [
-        "rd",
-        "req",
-        "sram",
-        "sram_rd_req_valid",
-        "valid"
-      ],
-      "id": "RTL-0298",
-      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.sram_rd_req_valid",
-      "ssot_context": {
-        "signal": "sram_rd_req_valid"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.sram_rd_req_valid"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 1,
-        "matched_terms": [
-          "valid"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "rd",
-          "req",
-          "sram",
-          "sram_rd_req_valid",
-          "valid"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Required RTL static evidence is missing.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
-      "content": "Implement handshake rule: s_axi_rvalid/s_axi_rlast",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.\nSSOT item context: signal=s_axi_rvalid/s_axi_rlast.",
-      "evidence_terms": [
-        "axi",
-        "rlast",
-        "rvalid",
-        "s_axi_rlast",
-        "s_axi_rvalid"
-      ],
-      "id": "RTL-0299",
-      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
-      "ssot_context": {
-        "signal": "s_axi_rvalid/s_axi_rlast"
-      },
-      "ssot_refs": [
-        "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 1,
-        "matched_terms": [
-          "axi"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "axi",
-          "rlast",
-          "rvalid",
-          "s_axi_rlast",
-          "s_axi_rvalid"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Required RTL static evidence is missing.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "cycle_model.handshake_rules",
       "content": "Implement handshake rule: apb pready",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
@@ -672,7 +546,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.apb_pready.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.\nSSOT item context: signal=apb pready.",
       "evidence_terms": [],
-      "id": "RTL-0300",
+      "id": "RTL-0307",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -714,7 +588,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=descriptor_publish must occur only after the final SRAM payload write/flush for the message is accepted..",
       "evidence_terms": [],
-      "id": "RTL-0307",
+      "id": "RTL-0314",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -756,7 +630,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_1.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=AXI read response is not issued before the corresponding SRAM read response..",
       "evidence_terms": [],
-      "id": "RTL-0308",
+      "id": "RTL-0315",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -798,7 +672,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_2.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=Interrupt status updates occur on the rising edge the terminal event is recorded (after CDC into pclk for status bits)..",
       "evidence_terms": [],
-      "id": "RTL-0309",
+      "id": "RTL-0316",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -829,67 +703,6 @@
     },
     {
       "category": "cycle_model.backpressure",
-      "content": "Implement backpressure rule: backpressure_rule_0",
-      "criteria": [
-        "RTL contains the control/state/handshake logic for this cycle rule",
-        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
-        "TB scoreboard/coverage can observe the rule at the declared phase",
-        "Traceability keeps source_ref cycle_model.backpressure.backpressure_rule_0",
-        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "cycle_model.backpressure.backpressure_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
-      ],
-      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs..",
-      "evidence_terms": [
-        "ready",
-        "sram",
-        "sram_wr_ready",
-        "wr"
-      ],
-      "id": "RTL-0310",
-      "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-      "owner_module": "mctp_assembler_v3_axi_wr_ingress",
-      "priority": "high",
-      "required": true,
-      "source_ref": "cycle_model.backpressure.backpressure_rule_0",
-      "ssot_context": {
-        "value": "sram_wr_ready deassertion stalls payload writes without dropping accepted bytes unless timeout/overflow occurs."
-      },
-      "ssot_refs": [
-        "cycle_model.backpressure.backpressure_rule_0"
-      ],
-      "static_evidence": {
-        "fallback_scope": "",
-        "matched_count": 1,
-        "matched_terms": [
-          "wr"
-        ],
-        "owner_file_scoped": true,
-        "required": true,
-        "required_match_count": 2,
-        "required_terms": [
-          "ready",
-          "sram",
-          "sram_wr_ready",
-          "wr"
-        ],
-        "source_scope": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-        "status": "missing"
-      },
-      "todo_completion": {
-        "criteria_total": 6,
-        "evidence_basis": [
-          "rtl_todo_plan.json task criteria",
-          "rtl_traceability.json source_ref mapping",
-          "owner RTL file/module declaration evidence",
-          "static RTL evidence audit when evidence_terms are required"
-        ],
-        "reason": "Required RTL static evidence is missing.",
-        "required": true,
-        "status": "open"
-      }
-    },
-    {
-      "category": "cycle_model.backpressure",
       "content": "Implement backpressure rule: backpressure_rule_1",
       "criteria": [
         "RTL contains the control/state/handshake logic for this cycle rule",
@@ -901,7 +714,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_1.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=SRAM write traffic for assembly has priority over firmware AXI read traffic on a shared port..",
       "evidence_terms": [],
-      "id": "RTL-0311",
+      "id": "RTL-0318",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -943,7 +756,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.backpressure.backpressure_rule_2.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=AXI read backpressure must not corrupt ongoing assembly writes; each context owns its own partial-word state..",
       "evidence_terms": [],
-      "id": "RTL-0312",
+      "id": "RTL-0319",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -985,7 +798,7 @@
       ],
       "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.observability.observability_signal_0.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.\nSSOT item context: value=Every function_model transaction maps to at least one cycle_model stage and one test_requirements scenario..",
       "evidence_terms": [],
-      "id": "RTL-0313",
+      "id": "RTL-0320",
       "owner_file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
       "owner_module": "mctp_assembler_v3_axi_wr_ingress",
       "priority": "high",
@@ -1015,7 +828,7 @@
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

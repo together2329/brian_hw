@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "type": "safety_assertions_evidence",
+  "ip": "mctp_assembler_v3",
+  "spec": "verify/safety_properties.sva",
+  "checker": "tb/cocotb/test_safety_properties.py",
+  "cycles": 1317,
+  "real_run_failures": [],
+  "antecedent_coverage": {
+    "P1_drop_windows": 24,
+    "P2_continuation_writes": 131,
+    "P3_descriptor_pushes": 4,
+    "P4_pack_writes": 136,
+    "P5_tlp_accepts": 8
+  },
+  "status": "pass",
+  "properties": [
+    {
+      "id": "P1_no_sram_write_on_drop",
+      "desc": "dropped packet payload never written to SRAM (drained)"
+    },
+    {
+      "id": "P2_sram_payload_no_holes",
+      "desc": "within a message the byte write pointer is strictly contiguous"
+    },
+    {
+      "id": "P3_descriptor_after_assembly",
+      "desc": "descriptor_push only when pack engine idle and EOM seen"
+    },
+    {
+      "id": "P4_pack_word_le_32B",
+      "desc": "every pack write requests <=32 bytes"
+    },
+    {
+      "id": "P5_tlp_accept_after_bresp",
+      "desc": "tlp_accept only after the B handshake completes"
+    }
+  ],
+  "negative_controls": [
+    {
+      "property": "P4_pack_word_le_32B",
+      "fired": true,
+      "injection": "pack_wr_valid=1, pack_wr_bytes=33 (>32)",
+      "failure": {
+        "type": "safety_property_failure",
+        "property": "P4_pack_word_le_32B",
+        "cycle": 0,
+        "detail": "pack_wr_bytes=33 exceeds 32"
+      }
+    },
+    {
+      "property": "P5_tlp_accept_after_bresp",
+      "fired": true,
+      "injection": "tlp_accept=1 with no bvalid&bready on the prior cycle",
+      "failure": {
+        "type": "safety_property_failure",
+        "property": "P5_tlp_accept_after_bresp",
+        "cycle": 0,
+        "detail": "tlp_accept pulsed without a completed B handshake on the prior cycle"
+      }
+    },
+    {
+      "property": "P3_descriptor_after_assembly",
+      "fired": true,
+      "injection": "descriptor_push=1 while pack_wr_valid=1 and no EOM seen",
+      "failure": {
+        "type": "safety_property_failure",
+        "property": "P3_descriptor_after_assembly",
+        "cycle": 0,
+        "detail": "descriptor_push asserted while a pack write is still outstanding"
+      }
+    },
+    {
+      "property": "P2_sram_payload_no_holes",
+      "fired": true,
+      "injection": "consecutive in-message writes addr 0(+32) then 64 (expected 32) -> 32B hole",
+      "failure": {
+        "type": "safety_property_failure",
+        "property": "P2_sram_payload_no_holes",
+        "cycle": 0,
+        "detail": "non-contiguous payload write: addr=64 expected=32 (hole/gap)"
+      }
+    },
+    {
+      "property": "P1_no_sram_write_on_drop",
+      "fired": true,
+      "injection": "packet_drop_pulse=1 then an accepted pack write within the drop window",
+      "failure": {
+        "type": "safety_property_failure",
+        "property": "P1_no_sram_write_on_drop",
+        "cycle": 0,
+        "detail": "pack/SRAM write occurred for a packet whose payload was dropped"
+      }
+    }
+  ]
+}

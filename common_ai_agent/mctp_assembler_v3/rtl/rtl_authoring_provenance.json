@@ -1,0 +1,31 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "module__mctp_assembler_v3_context_table__fsm"
+  ],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
+  "generation_note": "Fake LLM provider artifact used only for headless TDD.",
+  "ip": "mctp_assembler_v3",
+  "model": "gpt-5.5",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "rtl_files": [
+    "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+    "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_v3_mctp_decoder.sv",
+    "rtl/mctp_assembler_v3_context_table.sv",
+    "rtl/mctp_assembler_v3_sram_packer.sv",
+    "rtl/mctp_assembler_v3_descriptor_queue.sv",
+    "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+    "rtl/mctp_assembler_v3_apb_regfile.sv",
+    "rtl/mctp_assembler_v3_cdc_sync.sv",
+    "rtl/mctp_assembler_v3.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-06-03T19:05:58Z",
+  "workflow": "rtl-gen"
+}

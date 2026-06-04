@@ -1,0 +1,13 @@
+# cocotb protocol-assertion run for mctp_assembler_v3. Drives the full DUT under
+# representative traffic + backpressure and writes sim/assertion_failures.jsonl.
+TOPLEVEL_LANG ?= verilog
+SIM ?= icarus
+THIS_DIR := $(shell pwd)
+RTL_DIR  := $(THIS_DIR)/../../rtl
+VERILOG_SOURCES := $(wildcard $(RTL_DIR)/*.sv)
+TOPLEVEL := mctp_assembler_v3
+MODULE ?= test_protocol_assertions
+COMPILE_ARGS += -g2012
+WAVES ?= 0
+export PYTHONPATH := $(THIS_DIR)/../../model:$(THIS_DIR)/../../workflow/tb-gen/runtime:$(THIS_DIR):$(PYTHONPATH)
+include $(shell cocotb-config --makefiles)/Makefile.sim

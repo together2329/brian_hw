@@ -1,0 +1,106 @@
+{
+  "evidence_artifacts": [
+    {
+      "mtime_ns": 1780560514482275840,
+      "path": "sim/mctp_assembler_v3.vcd",
+      "sha256": "ee1f2e5667691ac8156b24ade9527d841780c518424409ca0b2ba40cf5a6e5e4"
+    },
+    {
+      "mtime_ns": 1780560513786866792,
+      "path": "sim/scoreboard_events.jsonl",
+      "sha256": "5e69881c0adf3117388a2f386da29853c874e63aeee5a190edc960ed832737ce"
+    }
+  ],
+  "generated_at": "2026-06-04T08:08:35Z",
+  "input_fingerprints": [
+    {
+      "mtime_ns": 1780511619821570628,
+      "path": "model/cycle_model.py",
+      "sha256": "b91afbc8aab20152fb956d8aa63177abb56ccbea2e31083c7b3910c86bd8da4b"
+    },
+    {
+      "mtime_ns": 1780511620568399675,
+      "path": "model/functional_model.py",
+      "sha256": "ffaed743ba319fa979e808f41e056f1a51a0ce5dc75f5941ff085b3e34811dc0"
+    },
+    {
+      "mtime_ns": 1780531269967549250,
+      "path": "rtl/mctp_assembler_v3.sv",
+      "sha256": "ca032a322112831038e1c5834aa561aa1abf53fb985d91b71a1b8780efb30ccc"
+    },
+    {
+      "mtime_ns": 1780510736134405516,
+      "path": "rtl/mctp_assembler_v3_apb_regfile.sv",
+      "sha256": "ea43cac02fe42c5070908a3bd52b4cf4d6fe3ff6c02b58aad6c0e5666bb86f0e"
+    },
+    {
+      "mtime_ns": 1780559284679715500,
+      "path": "rtl/mctp_assembler_v3_context_table.sv",
+      "sha256": "f8011470fead58d68baa3ce67c5eb896b99a4689ea9a554aa54ec9586fd3cea2"
+    },
+    {
+      "mtime_ns": 1780510408764196529,
+      "path": "rtl/mctp_assembler_v3_descriptor_queue.sv",
+      "sha256": "760ca41e774ac49b807858acfdab03c4cd734ad0c280d064210e04e9b3960106"
+    },
+    {
+      "mtime_ns": 1780527650660484516,
+      "path": "rtl/mctp_assembler_v3_sram_packer.sv",
+      "sha256": "ea3aca8ee97f3937c3be09d70961238571b5c899dc6d4d2cab31c7f8c0af3064"
+    },
+    {
+      "mtime_ns": 1780510171513123985,
+      "path": "tb/cocotb/test_mctp_assembler_v3.py",
+      "sha256": "627d9280b48bb9e6030b8e3607a8d7bb4dbb1646c96d333a872fb6ba8252feef"
+    },
+    {
+      "mtime_ns": 1780515658514711094,
+      "path": "tb/cocotb/test_mctp_datapath.py",
+      "sha256": "89f7b95242cf7b1644a4e5eb91195e83bd3f0b005f2dba8a2b19f451bdca1da6"
+    },
+    {
+      "mtime_ns": 1780560088370906000,
+      "path": "yaml/mctp_assembler_v3.ssot.yaml",
+      "sha256": "f9c3f732b7a65c42d934bc0078a5a85bf1bd30eafacb2ffe2bbe8738e0a0de76"
+    }
+  ],
+  "ip": "mctp_assembler_v3",
+  "issues": [],
+  "metadata_fingerprints": [
+    {
+      "mtime_ns": 1780560197072037869,
+      "path": "verify/contract_reflection.json",
+      "sha256": "3f3857233dc986e32c3d5ce1fa2b5b66638992f4083b1c892d229be41f393164"
+    },
+    {
+      "mtime_ns": 1780560197071681621,
+      "path": "verify/evidence_contract.json",
+      "sha256": "247b294edaabfcbea4e888b1657425d90034a65e2d555b67ca74d3ac8d09cf0a"
+    },
+    {
+      "mtime_ns": 1780560515022495772,
+      "path": "sim/sim_stage_run.json",
+      "sha256": "de7bcd7f6e8c52c29f2a0aeaf9a75e996f1caa5c9521d0f8c525f2923350ec82"
+    }
+  ],
+  "schema_version": 1,
+  "sim_receipt": {
+    "fail": 0,
+    "generated_at": "2026-06-04T08:08:35Z",
+    "pass": 10,
+    "runner": "mctp_assembler_v3/tb/cocotb/test_runner.py",
+    "schema_version": 1,
+    "source": "sim_stage",
+    "status": "pass",
+    "type": "sim_stage_run"
+  },
+  "stamp_source": "sim_stage",
+  "status": "pass",
+  "summary": {
+    "evidence_artifacts": 2,
+    "inputs": 10,
+    "issues": 0,
+    "metadata": 3
+  },
+  "type": "sim_evidence_freshness"
+}

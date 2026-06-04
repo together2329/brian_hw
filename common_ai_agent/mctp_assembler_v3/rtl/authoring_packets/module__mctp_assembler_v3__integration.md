@@ -3,8 +3,8 @@
 - Kind: module
 - Owner module: mctp_assembler_v3
 - Owner file: rtl/mctp_assembler_v3.sv
-- Task count: 10
-- Required tasks: 10
+- Task count: 11
+- Required tasks: 11
 
 ## Rules
 
@@ -23,13 +23,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
 - LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
 - Module slice: 4/9 section=integration task_limit=48
 - Slice rule: Owner module mctp_assembler_v3 is split into 9 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
@@ -38,11 +39,12 @@
   - mctp_assembler_v3_apb_regfile.irq_o <= irq (integration.connections[4])
   - mctp_assembler_v3_sram_packer.sram_wr_valid_o <= sram_wr_valid (integration.connections[5])
   - mctp_assembler_v3_context_table.drop_class_o <= last_drop_class (integration.connections[6])
+  - mctp_assembler_v3_cdc_sync.evt_fatal_internal_error_a <= 1'b0 (integration.connections[7])
 - SSOT top IO contracts: 51
 
 ## Tasks
 
-### RTL-0448: Implement integration item external_modules
+### RTL-0455: Implement integration item external_modules
 
 - Priority: high
 - Required: True
@@ -62,7 +64,7 @@ SSOT item context: name=external_modules; value=["payload_sram (256-bit, byte-st
   - Primary implementation evidence is in rtl/mctp_assembler_v3.sv
 - SSOT refs: integration.dependencies.external_modules
 
-### RTL-0449: Implement integration item external_clocks
+### RTL-0456: Implement integration item external_clocks
 
 - Priority: high
 - Required: True
@@ -82,7 +84,7 @@ SSOT item context: name=external_clocks; value=["axi_aclk", "pclk"].
   - Primary implementation evidence is in rtl/mctp_assembler_v3.sv
 - SSOT refs: integration.dependencies.external_clocks
 
-### RTL-0450: Implement integration item external_resets
+### RTL-0457: Implement integration item external_resets
 
 - Priority: high
 - Required: True
@@ -102,7 +104,7 @@ SSOT item context: name=external_resets; value=["axi_aresetn", "presetn"].
   - Primary implementation evidence is in rtl/mctp_assembler_v3.sv
 - SSOT refs: integration.dependencies.external_resets
 
-### RTL-0451: Implement integration item axi_aclk
+### RTL-0458: Implement integration item axi_aclk
 
 - Priority: high
 - Required: True
@@ -123,7 +125,7 @@ SSOT item context: port=axi_aclk; signal=axi_aclk.
   - DUT port axi_aclk is the implementation/observation point for axi_aclk
 - SSOT refs: integration.connections.axi_aclk
 
-### RTL-0452: Implement integration item axi_aresetn
+### RTL-0459: Implement integration item axi_aresetn
 
 - Priority: high
 - Required: True
@@ -144,7 +146,7 @@ SSOT item context: port=axi_aresetn; signal=axi_aresetn.
   - DUT port axi_aresetn is the implementation/observation point for axi_aresetn
 - SSOT refs: integration.connections.axi_aresetn
 
-### RTL-0453: Implement integration item pclk
+### RTL-0460: Implement integration item pclk
 
 - Priority: high
 - Required: True
@@ -165,7 +167,7 @@ SSOT item context: port=pclk; signal=pclk.
   - DUT port pclk is the implementation/observation point for pclk
 - SSOT refs: integration.connections.pclk
 
-### RTL-0454: Implement integration item presetn
+### RTL-0461: Implement integration item presetn
 
 - Priority: high
 - Required: True
@@ -186,7 +188,7 @@ SSOT item context: port=presetn; signal=presetn.
   - DUT port presetn is the implementation/observation point for presetn
 - SSOT refs: integration.connections.presetn
 
-### RTL-0455: Implement integration item irq
+### RTL-0462: Implement integration item irq
 
 - Priority: high
 - Required: True
@@ -207,7 +209,7 @@ SSOT item context: port=irq_o; signal=irq.
   - DUT port irq_o is the implementation/observation point for irq_o
 - SSOT refs: integration.connections.irq
 
-### RTL-0456: Implement integration item sram_wr_valid
+### RTL-0463: Implement integration item sram_wr_valid
 
 - Priority: high
 - Required: True
@@ -228,7 +230,7 @@ SSOT item context: port=sram_wr_valid_o; signal=sram_wr_valid.
   - DUT port sram_wr_valid_o is the implementation/observation point for sram_wr_valid_o
 - SSOT refs: integration.connections.sram_wr_valid
 
-### RTL-0457: Implement integration item last_drop_class
+### RTL-0464: Implement integration item last_drop_class
 
 - Priority: high
 - Required: True
@@ -248,3 +250,24 @@ SSOT item context: port=drop_class_o; signal=last_drop_class.
   - Primary implementation evidence is in rtl/mctp_assembler_v3.sv
   - DUT port drop_class_o is the implementation/observation point for drop_class_o
 - SSOT refs: integration.connections.last_drop_class
+
+### RTL-0465: Implement integration item 1'b0
+
+- Priority: high
+- Required: True
+- Status: pass
+- Category: integration.connections
+- Source ref: integration.connections.item_1_b0
+- Detail: This SSOT integration.connections item must map to RTL behavior, integration evidence, or a precise blocker.
+SSOT ref: integration.connections.item_1_b0.
+Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via integration.connections.
+SSOT item context: port=evt_fatal_internal_error_a; signal=1'b0.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
+- Criteria:
+  - RTL owner/evidence is named for this SSOT item
+  - Behavior is not represented only by comments or TB code
+  - Downstream verification can observe or justify the item
+  - Traceability keeps source_ref integration.connections.item_1_b0
+  - Primary implementation evidence is in rtl/mctp_assembler_v3.sv
+  - DUT port evt_fatal_internal_error_a is the implementation/observation point for evt_fatal_internal_error_a
+- SSOT refs: integration.connections.item_1_b0

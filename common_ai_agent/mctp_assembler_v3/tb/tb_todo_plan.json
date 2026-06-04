@@ -1,0 +1,125 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "mctp_assembler_v3/tb/cocotb/test_mctp_assembler_v3.py",
+    "mctp_assembler_v3/tb/cocotb/test_runner.py",
+    "mctp_assembler_v3/tb/cocotb/tb_manifest.json",
+    "mctp_assembler_v3/tb/cocotb/tb_generation.json",
+    "mctp_assembler_v3/sim/scoreboard_events.jsonl after /sim",
+    "mctp_assembler_v3/cov/coverage.json after /sim"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": true,
+    "approval_state": "approved",
+    "open_required_todos": 0,
+    "status": "pass"
+  },
+  "generated_at": "2026-06-03T18:09:32Z",
+  "headline": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+  "human_review_needed": [],
+  "ip": "mctp_assembler_v3",
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py mctp_assembler_v3 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_goal_scoreboard_cocotb] wrote 8 Python files for mctp_assembler_v3\n[emit_goal_scoreboard_cocotb] goals=102 rtl_sources=10\n[emit_goal_scoreboard_cocotb] runner=mctp_assembler_v3/tb/cocotb/test_runner.py"
+    },
+    {
+      "cmd": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.sh mctp_assembler_v3",
+      "label": "check_pyuvm_structure",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_scoreboard_events] PASS: goals=102 required=102 scoreboard_rows=0 goals_with_rows=0\n[check_pyuvm_structure] PASS: layered pyuvm/cocotb structure exists for mctp_assembler_v3"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py mctp_assembler_v3 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check",
+      "label": "equivalence_scoreboard_self_check",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\n  \"checked\": 102,\n  \"contract_gaps\": [],\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/mctp_assembler_v3/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-06-03T18:09:32Z\",\n  \"goals\": 102,\n  \"ip\": \"mctp_assembler_v3\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 102,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_INGEST\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 1\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CCOV_OUTSTANDING\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 2\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_BACKPRESSURE_0\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 3\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_BACKPRESSURE_1\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 4\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_BACKPRESSURE_2\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 5\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_DEPTH\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 6\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 7\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_OUTSTANDING\",\n      \"kind\": \"FM_INGEST_TLP\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bresp_next\": 0,\n        \"resp\": 0,\n        \"s_axi_bresp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"tlp_accept\": 0,\n          \"tlp_accepted_count\": 0,\n          \"tlp_seen_count\": 8\n        },\n        \"transaction_id\": \"FM_INGEST_TLP\",\n        \"transaction_name\": \"axi_write_to_tlp_bytes\"\n      }\n    }\n  ],\n  \"ssot_questions\": 0,\n  \"unsupported_transactions\": 0\n}"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "ssot-tb-cocotb",
+  "status": "pass",
+  "summary": {},
+  "tasks": [
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "Generate SSOT-derived pyuvm/cocotb testbench",
+      "criteria": "emit_goal_scoreboard_cocotb exits 0 and writes test_<ip>.py, test_runner.py, tb_manifest.json, and tb_generation.json.",
+      "detail": "Derive the testbench from SSOT scenarios, equivalence goals, and the RTL contract; do not approve a fixed template fallback.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "TB-0001",
+      "owner_workflow": "tb-gen",
+      "required": true,
+      "required_evidence": [
+        "mctp_assembler_v3/tb/cocotb/test_mctp_assembler_v3.py",
+        "mctp_assembler_v3/tb/cocotb/test_runner.py",
+        "mctp_assembler_v3/tb/cocotb/tb_manifest.json",
+        "mctp_assembler_v3/tb/cocotb/tb_generation.json"
+      ],
+      "source_refs": [
+        "mctp_assembler_v3/yaml/mctp_assembler_v3.ssot.yaml",
+        "mctp_assembler_v3/verify/equivalence_goals.json"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "mctp_assembler_v3/tb/cocotb/test_mctp_assembler_v3.py",
+          "mctp_assembler_v3/tb/cocotb/test_runner.py",
+          "mctp_assembler_v3/tb/cocotb/tb_manifest.json",
+          "mctp_assembler_v3/tb/cocotb/tb_generation.json",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "Validate TB structure and scoreboard contract",
+      "criteria": "check_pyuvm_structure and equivalence_scoreboard --self-check both exit 0.",
+      "detail": "The generated TB must instantiate the common equivalence scoreboard and expose the rows required by SIM and Coverage.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "TB-0002",
+      "owner_workflow": "tb-gen",
+      "required": true,
+      "required_evidence": [
+        "check_pyuvm_structure returncode 0",
+        "equivalence_scoreboard_self_check returncode 0"
+      ],
+      "source_refs": [
+        "mctp_assembler_v3/tb/cocotb/test_mctp_assembler_v3.py",
+        "mctp_assembler_v3/tb/cocotb/tb_manifest.json"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "check_pyuvm_structure returncode 0",
+          "equivalence_scoreboard_self_check returncode 0",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": true,
+    "open_required_tasks": 0,
+    "status_counts": {
+      "open": 0,
+      "pass": 2
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "tb-gen"
+}

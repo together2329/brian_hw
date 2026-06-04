@@ -1,0 +1,10 @@
+{
+  "fail": 0,
+  "generated_at": "2026-06-04T08:08:35Z",
+  "pass": 10,
+  "runner": "mctp_assembler_v3/tb/cocotb/test_runner.py",
+  "schema_version": 1,
+  "source": "sim_stage",
+  "status": "pass",
+  "type": "sim_stage_run"
+}

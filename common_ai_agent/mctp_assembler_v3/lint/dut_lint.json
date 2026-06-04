@@ -4,242 +4,47 @@
   "scope": "dut",
   "dut_only": true,
   "tool": "pyslang+verilator",
-  "command": "pyslang rtl/mctp_assembler_v3_axi_wr_ingress.sv rtl/mctp_assembler_v3.sv && verilator --lint-only -Wall -Irtl -f list/mctp_assembler_v3.f --top-module mctp_assembler_v3",
+  "command": "pyslang rtl/mctp_assembler_v3_axi_wr_ingress.sv rtl/mctp_assembler_v3_pcie_vdm_parser.sv rtl/mctp_assembler_v3_mctp_decoder.sv rtl/mctp_assembler_v3_context_table.sv rtl/mctp_assembler_v3_sram_packer.sv rtl/mctp_assembler_v3_descriptor_queue.sv rtl/mctp_assembler_v3_axi_rd_payload.sv rtl/mctp_assembler_v3_apb_regfile.sv rtl/mctp_assembler_v3_cdc_sync.sv rtl/mctp_assembler_v3.sv && verilator --lint-only -Wall -Irtl -f list/mctp_assembler_v3.f --top-module mctp_assembler_v3",
   "cwd": "mctp_assembler_v3",
   "top": "mctp_assembler_v3",
   "filelist": "mctp_assembler_v3/list/mctp_assembler_v3.f",
   "rtl_files": [
     "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+    "rtl/mctp_assembler_v3_pcie_vdm_parser.sv",
+    "rtl/mctp_assembler_v3_mctp_decoder.sv",
+    "rtl/mctp_assembler_v3_context_table.sv",
+    "rtl/mctp_assembler_v3_sram_packer.sv",
+    "rtl/mctp_assembler_v3_descriptor_queue.sv",
+    "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+    "rtl/mctp_assembler_v3_apb_regfile.sv",
+    "rtl/mctp_assembler_v3_cdc_sync.sv",
     "rtl/mctp_assembler_v3.sv"
   ],
-  "timestamp": "2026-06-03T13:24:51.659924+00:00",
-  "returncode": 1,
+  "timestamp": "2026-06-04T01:08:01.229096+00:00",
+  "returncode": 0,
   "errors": 0,
-  "warnings": 23,
+  "warnings": 0,
   "waived_warnings": 0,
   "tool_results": [
     {
       "tool": "pyslang",
       "available": true,
-      "command": "pyslang rtl/mctp_assembler_v3_axi_wr_ingress.sv rtl/mctp_assembler_v3.sv",
+      "command": "pyslang rtl/mctp_assembler_v3_axi_wr_ingress.sv rtl/mctp_assembler_v3_pcie_vdm_parser.sv rtl/mctp_assembler_v3_mctp_decoder.sv rtl/mctp_assembler_v3_context_table.sv rtl/mctp_assembler_v3_sram_packer.sv rtl/mctp_assembler_v3_descriptor_queue.sv rtl/mctp_assembler_v3_axi_rd_payload.sv rtl/mctp_assembler_v3_apb_regfile.sv rtl/mctp_assembler_v3_cdc_sync.sv rtl/mctp_assembler_v3.sv",
       "returncode": 0,
       "errors": 0,
-      "warnings": 2,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "file": "mctp_assembler_v3/rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-          "line": 60,
-          "message": "implicit conversion changes signedness from 'logic signed[31:0]' to 'logic[5:0]'"
-        },
-        {
-          "severity": "warning",
-          "file": "mctp_assembler_v3/rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-          "line": 60,
-          "message": "implicit conversion truncates from 32 to 6 bits"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     },
     {
       "tool": "verilator",
       "available": true,
       "command": "verilator --lint-only -Wall -Irtl -f list/mctp_assembler_v3.f --top-module mctp_assembler_v3",
-      "returncode": 1,
+      "returncode": 0,
       "errors": 0,
-      "warnings": 21,
-      "diagnostics": [
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 21,
-          "column": 40,
-          "message": "Signal is not used: 'pclk'",
-          "source": "    input  wire                        pclk,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 23,
-          "column": 40,
-          "message": "Signal is not used: 'presetn'",
-          "source": "    input  wire                        presetn,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 40,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_araddr'",
-          "source": "    input  wire [AXI_ADDR_WIDTH-1:0]   s_axi_araddr,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 41,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_arlen'",
-          "source": "    input  wire [7:0]                  s_axi_arlen,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 42,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_arsize'",
-          "source": "    input  wire [2:0]                  s_axi_arsize,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 43,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_arburst'",
-          "source": "    input  wire [1:0]                  s_axi_arburst,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 44,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_arvalid'",
-          "source": "    input  wire                        s_axi_arvalid,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 50,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_rready'",
-          "source": "    input  wire                        s_axi_rready,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 52,
-          "column": 40,
-          "message": "Signal is not used: 'paddr'",
-          "source": "    input  wire [AXI_ADDR_WIDTH-1:0]   paddr,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 53,
-          "column": 40,
-          "message": "Signal is not used: 'psel'",
-          "source": "    input  wire                        psel,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 54,
-          "column": 40,
-          "message": "Signal is not used: 'penable'",
-          "source": "    input  wire                        penable,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 55,
-          "column": 40,
-          "message": "Signal is not used: 'pwrite'",
-          "source": "    input  wire                        pwrite,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 56,
-          "column": 40,
-          "message": "Signal is not used: 'pwdata'",
-          "source": "    input  wire [31:0]                 pwdata,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 57,
-          "column": 40,
-          "message": "Signal is not used: 'pstrb'",
-          "source": "    input  wire [3:0]                  pstrb,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 63,
-          "column": 40,
-          "message": "Signal is not used: 'sram_wr_ready'",
-          "source": "    input  wire                        sram_wr_ready,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 69,
-          "column": 40,
-          "message": "Signal is not used: 'sram_rd_req_ready'",
-          "source": "    input  wire                        sram_rd_req_ready,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 71,
-          "column": 40,
-          "message": "Signal is not used: 'sram_rd_rsp_valid'",
-          "source": "    input  wire                        sram_rd_rsp_valid,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 73,
-          "column": 40,
-          "message": "Signal is not used: 'sram_rd_rsp_data'",
-          "source": "    input  wire [SRAM_DATA_WIDTH-1:0]  sram_rd_rsp_data,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3.sv",
-          "line": 74,
-          "column": 40,
-          "message": "Signal is not used: 'sram_rd_rsp_error'",
-          "source": "    input  wire                        sram_rd_rsp_error,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-          "line": 22,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_awaddr'",
-          "source": "    input  wire [AXI_ADDR_WIDTH-1:0]   s_axi_awaddr,"
-        },
-        {
-          "severity": "warning",
-          "rule": "UNUSEDSIGNAL",
-          "file": "rtl/mctp_assembler_v3_axi_wr_ingress.sv",
-          "line": 23,
-          "column": 40,
-          "message": "Signal is not used: 's_axi_awlen'",
-          "source": "    input  wire [7:0]                  s_axi_awlen,"
-        }
-      ],
-      "passed": false
+      "warnings": 0,
+      "diagnostics": [],
+      "passed": true
     }
   ],
   "suppression_violation_count": 0,
@@ -247,5 +52,5 @@
   "style_violation_count": 0,
   "style_violations": [],
   "policy": "DUT RTL must be lint-clean without ad-hoc verilator lint_off/lint_on or -Wno suppressions, and generated RTL must keep .sv filenames while using the project SystemVerilog subset: input logic/output logic ports and internal logic are allowed; package/import/interface/modport/function/task/for/while/typedef/enum/always_ff/always_comb remain forbidden.",
-  "passed": false
+  "passed": true
 }

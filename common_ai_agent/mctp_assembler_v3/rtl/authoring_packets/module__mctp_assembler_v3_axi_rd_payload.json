@@ -1,7 +1,7 @@
 {
   "context": {
     "connection_contract_gap": {
-      "machine_readable_contract_count": 7,
+      "machine_readable_contract_count": 8,
       "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
       "required_for_profile": true,
       "status": "ok"
@@ -12,7 +12,7 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 42,
+      "module_task_count": 47,
       "task_limit": 48
     },
     "owner": {
@@ -84,21 +84,25 @@
     "reference_profile": null,
     "ssot_connection_contracts": [],
     "ssot_top_io_contracts": [],
-    "target_scale": null
+    "target_scale": {
+      "min_modules": 9,
+      "min_source_files": 10,
+      "policy": "SSOT-locked scale target. It may be calibrated from a reference profile, but rtl-gen must satisfy it through IP-specific SSOT behavior, not by copying reference RTL."
+    }
   },
   "execution_policy": {
     "blocked_by_locked_truth": [],
     "blocked_by_tool_evidence": [],
     "contract_blocked_open_count": 0,
-    "deferred_human_qa_allowed": true,
+    "deferred_human_qa_allowed": false,
     "draft_allowed": true,
     "evidence_closure_allowed": false,
     "human_locked_open_count": 0,
     "integration_signoff_allowed": true,
-    "llm_actionable": true,
-    "llm_actionable_open_count": 42,
-    "open_required_count": 42,
-    "pass_allowed": false,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
     "stop_conditions": [
       "Close this packet only after every required task in the packet has pass status.",
       "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
@@ -127,7 +131,9 @@
   "source_plan": "rtl/rtl_todo_plan.json",
   "summary": {
     "categories": {
+      "cycle_model.handshake_rules": 2,
       "equivalence.module": 1,
+      "features.item": 1,
       "fsm.state": 6,
       "fsm.transition": 8,
       "function_model.error_case": 1,
@@ -137,6 +143,7 @@
       "function_model.precondition": 3,
       "function_model.side_effect": 1,
       "function_model.state_update": 2,
+      "function_model.state_variable": 2,
       "function_model.transaction": 1,
       "io_list.port": 11
     },
@@ -145,12 +152,14 @@
       "enabled": false,
       "index": 1,
       "key": "all",
-      "module_task_count": 42,
+      "module_task_count": 47,
       "task_limit": 48
     },
-    "open_required_count": 42,
-    "required_count": 42,
+    "open_required_count": 0,
+    "required_count": 47,
     "source_refs": [
+      "function_model.state_variables.beat_index",
+      "function_model.state_variables.out_of_window",
       "function_model.transactions.FM_AXI_READ",
       "function_model.transactions.FM_AXI_READ.preconditions.precondition_0",
       "function_model.transactions.FM_AXI_READ.preconditions.precondition_1",
@@ -167,21 +176,150 @@
       "function_model.transactions.FM_AXI_READ.state_updates.fw_axi_read_error_count",
       "function_model.transactions.FM_AXI_READ.side_effects.side_effect_0",
       "function_model.transactions.FM_AXI_READ.error_cases.error_case_0",
+      "cycle_model.handshake_rules.sram_rd_req_valid",
+      "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
       "fsm.axi_read_fsm.states.state_0",
       "fsm.axi_read_fsm.states.state_1",
       "fsm.axi_read_fsm.states.state_2",
-      "fsm.axi_read_fsm.states.state_3",
-      "fsm.axi_read_fsm.states.state_4",
-      "fsm.axi_read_fsm.states.state_5",
-      "fsm.axi_read_fsm.transitions.transition_0",
-      "fsm.axi_read_fsm.transitions.transition_1"
+      "fsm.axi_read_fsm.states.state_3"
     ],
     "status_counts": {
-      "open": 42
+      "pass": 47
     },
-    "task_count": 42
+    "task_count": 47
   },
   "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state beat_index",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.beat_index",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "beat_index width matches SSOT value 8",
+        "beat_index reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.beat_index.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.\nSSOT item context: name=beat_index; width=8; reset=0.",
+      "evidence_terms": [
+        "beat",
+        "beat_index",
+        "index"
+      ],
+      "id": "RTL-0123",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.beat_index",
+      "ssot_context": {
+        "name": "beat_index",
+        "reset": "0",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.beat_index"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "beat",
+          "beat_index",
+          "index"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "beat",
+          "beat_index",
+          "index"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state out_of_window",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.out_of_window",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_apb_regfile.sv",
+        "out_of_window width matches SSOT value 1",
+        "out_of_window reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.out_of_window.\nOwner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via function_model.state_variables.\nSSOT item context: name=out_of_window; width=1; reset=0.",
+      "evidence_terms": [
+        "of",
+        "out",
+        "out_of_window",
+        "window"
+      ],
+      "id": "RTL-0124",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.out_of_window",
+      "ssot_context": {
+        "name": "out_of_window",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.out_of_window"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "of",
+          "out",
+          "out_of_window",
+          "window"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "of",
+          "out",
+          "out_of_window",
+          "window"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
     {
       "category": "function_model.transaction",
       "content": "Implement transaction FM_AXI_READ",
@@ -194,7 +332,7 @@
       ],
       "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_AXI_READ.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: id=FM_AXI_READ; name=firmware_payload_read.",
       "evidence_terms": [],
-      "id": "RTL-0267",
+      "id": "RTL-0274",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -219,9 +357,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -236,7 +374,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.preconditions.precondition_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=ARSIZE==5.",
       "evidence_terms": [],
-      "id": "RTL-0268",
+      "id": "RTL-0275",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -260,9 +398,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -277,7 +415,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.preconditions.precondition_1.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=ARBURST==INCR.",
       "evidence_terms": [],
-      "id": "RTL-0269",
+      "id": "RTL-0276",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -301,9 +439,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -325,7 +463,7 @@
         "read",
         "sram"
       ],
-      "id": "RTL-0270",
+      "id": "RTL-0277",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -339,8 +477,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "debug",
+          "enable",
+          "raw",
+          "raw_sram_debug_read_enable",
+          "read",
+          "sram"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -353,7 +498,7 @@
           "sram"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 5,
@@ -363,9 +508,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -398,7 +543,7 @@
         "of",
         "out"
       ],
-      "id": "RTL-0271",
+      "id": "RTL-0278",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -416,8 +561,25 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 16,
+        "matched_terms": [
+          "AR",
+          "arlen",
+          "axi",
+          "beat",
+          "beat_index",
+          "count",
+          "debug",
+          "descriptor",
+          "enable",
+          "fw",
+          "fw_axi_read_beat_count",
+          "fw_axi_read_error_count",
+          "index",
+          "no_descriptor",
+          "of",
+          "out"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -440,7 +602,7 @@
           "out"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -450,9 +612,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -467,7 +629,7 @@
       ],
       "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_AXI_READ.outputs.output_0.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via function_model.transactions.FM_AXI_READ.\nSSOT item context: value=one SRAM read per R beat; rdata returned unmodified; RLAST on final beat.",
       "evidence_terms": [],
-      "id": "RTL-0272",
+      "id": "RTL-0279",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -491,9 +653,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -527,7 +689,7 @@
         "next",
         "no_descriptor"
       ],
-      "id": "RTL-0273",
+      "id": "RTL-0280",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -543,8 +705,21 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 12,
+        "matched_terms": [
+          "AXI",
+          "READ",
+          "RRESP",
+          "RRESP_OKAY",
+          "RRESP_SLVERR",
+          "SLVERR",
+          "axi",
+          "debug",
+          "descriptor",
+          "enable",
+          "next",
+          "no_descriptor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -567,7 +742,7 @@
           "no_descriptor"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -577,9 +752,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -605,7 +780,7 @@
         "rlast_next",
         "s_axi_rlast"
       ],
-      "id": "RTL-0274",
+      "id": "RTL-0281",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -621,8 +796,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "axi",
+          "beat",
+          "beat_index",
+          "index",
+          "next",
+          "rlast",
+          "rlast_next",
+          "s_axi_rlast"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -637,7 +821,7 @@
           "s_axi_rlast"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -647,9 +831,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -672,7 +856,7 @@
         "fw_axi_read_beat_count",
         "read"
       ],
-      "id": "RTL-0275",
+      "id": "RTL-0282",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -687,8 +871,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "beat",
+          "count",
+          "fw",
+          "fw_axi_read_beat_count",
+          "read"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -701,7 +892,7 @@
           "read"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -711,9 +902,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -736,7 +927,7 @@
         "read",
         "read_error"
       ],
-      "id": "RTL-0276",
+      "id": "RTL-0283",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -751,8 +942,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "count",
+          "fw",
+          "fw_axi_read_error_count",
+          "read",
+          "read_error"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -765,7 +963,7 @@
           "read_error"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -775,9 +973,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -813,7 +1011,7 @@
         "next",
         "no_descriptor"
       ],
-      "id": "RTL-0277",
+      "id": "RTL-0284",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -830,8 +1028,21 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 12,
+        "matched_terms": [
+          "AXI",
+          "READ",
+          "RRESP",
+          "RRESP_OKAY",
+          "RRESP_SLVERR",
+          "SLVERR",
+          "axi",
+          "debug",
+          "descriptor",
+          "enable",
+          "next",
+          "no_descriptor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -854,7 +1065,7 @@
           "no_descriptor"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -864,9 +1075,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -894,7 +1105,7 @@
         "rlast_next",
         "s_axi_rlast"
       ],
-      "id": "RTL-0278",
+      "id": "RTL-0285",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -911,8 +1122,17 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 8,
+        "matched_terms": [
+          "axi",
+          "beat",
+          "beat_index",
+          "index",
+          "next",
+          "rlast",
+          "rlast_next",
+          "s_axi_rlast"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -927,7 +1147,7 @@
           "s_axi_rlast"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 9,
@@ -937,9 +1157,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -964,7 +1184,7 @@
         "fw_axi_read_beat_count",
         "read"
       ],
-      "id": "RTL-0279",
+      "id": "RTL-0286",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -980,8 +1200,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "beat",
+          "count",
+          "fw",
+          "fw_axi_read_beat_count",
+          "read"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -994,7 +1221,7 @@
           "read"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1004,9 +1231,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1031,7 +1258,7 @@
         "read",
         "read_error"
       ],
-      "id": "RTL-0280",
+      "id": "RTL-0287",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1047,8 +1274,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "axi",
+          "count",
+          "fw",
+          "fw_axi_read_error_count",
+          "read",
+          "read_error"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1061,7 +1295,7 @@
           "read_error"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 8,
@@ -1071,9 +1305,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1106,7 +1340,7 @@
         "out",
         "out_of_window"
       ],
-      "id": "RTL-0281",
+      "id": "RTL-0288",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1124,8 +1358,25 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 16,
+        "matched_terms": [
+          "arlen",
+          "axi",
+          "beat",
+          "beat_index",
+          "count",
+          "debug",
+          "descriptor",
+          "enable",
+          "fw",
+          "fw_axi_read_beat_count",
+          "fw_axi_read_error_count",
+          "index",
+          "no_descriptor",
+          "of",
+          "out",
+          "out_of_window"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1148,7 +1399,7 @@
           "out_of_window"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1158,9 +1409,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1193,7 +1444,7 @@
         "index",
         "no_descriptor"
       ],
-      "id": "RTL-0282",
+      "id": "RTL-0289",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1211,8 +1462,25 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 16,
+        "matched_terms": [
+          "RRESP",
+          "SLVERR",
+          "SRAM",
+          "arlen",
+          "axi",
+          "beat",
+          "beat_index",
+          "count",
+          "debug",
+          "descriptor",
+          "enable",
+          "fw",
+          "fw_axi_read_beat_count",
+          "fw_axi_read_error_count",
+          "index",
+          "no_descriptor"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1235,7 +1503,7 @@
           "no_descriptor"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1245,9 +1513,143 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: sram_rd_req_valid",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.sram_rd_req_valid",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "cycle_model.handshake_rules.sram_rd_req_valid appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.sram_rd_req_valid.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.\nSSOT item context: signal=sram_rd_req_valid.",
+      "evidence_terms": [
+        "rd",
+        "req",
+        "sram",
+        "sram_rd_req_valid",
+        "valid"
+      ],
+      "id": "RTL-0305",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.sram_rd_req_valid",
+      "ssot_context": {
+        "signal": "sram_rd_req_valid"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.sram_rd_req_valid"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "rd",
+          "req",
+          "sram",
+          "sram_rd_req_valid",
+          "valid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "rd",
+          "req",
+          "sram",
+          "sram_rd_req_valid",
+          "valid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: s_axi_rvalid/s_axi_rlast",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_axi_wr_ingress.sv",
+        "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast.\nOwner: mctp_assembler_v3_axi_wr_ingress in rtl/mctp_assembler_v3_axi_wr_ingress.sv via cycle_model.handshake_rules.\nSSOT item context: signal=s_axi_rvalid/s_axi_rlast.",
+      "evidence_terms": [
+        "axi",
+        "rlast",
+        "rvalid",
+        "s_axi_rlast",
+        "s_axi_rvalid"
+      ],
+      "id": "RTL-0306",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast",
+      "ssot_context": {
+        "signal": "s_axi_rvalid/s_axi_rlast"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.s_axi_rvalid_s_axi_rlast"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "axi",
+          "rlast",
+          "rvalid",
+          "s_axi_rlast",
+          "s_axi_rvalid"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "axi",
+          "rlast",
+          "rvalid",
+          "s_axi_rlast",
+          "s_axi_rvalid"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     },
     {
@@ -1265,7 +1667,7 @@
       "evidence_terms": [
         "IDLE"
       ],
-      "id": "RTL-0423",
+      "id": "RTL-0430",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1279,8 +1681,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1288,7 +1692,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1298,9 +1702,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1318,7 +1722,7 @@
       "evidence_terms": [
         "ACCEPT_AR"
       ],
-      "id": "RTL-0424",
+      "id": "RTL-0431",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1332,8 +1736,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ACCEPT_AR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1341,7 +1747,7 @@
           "ACCEPT_AR"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1351,9 +1757,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1371,7 +1777,7 @@
       "evidence_terms": [
         "ISSUE_SRAM_RD"
       ],
-      "id": "RTL-0425",
+      "id": "RTL-0432",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1385,8 +1791,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "ISSUE_SRAM_RD"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1394,7 +1802,7 @@
           "ISSUE_SRAM_RD"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1404,9 +1812,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1424,7 +1832,7 @@
       "evidence_terms": [
         "WAIT_SRAM_RSP"
       ],
-      "id": "RTL-0426",
+      "id": "RTL-0433",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1438,8 +1846,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "WAIT_SRAM_RSP"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1447,7 +1857,7 @@
           "WAIT_SRAM_RSP"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1457,9 +1867,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1477,7 +1887,7 @@
       "evidence_terms": [
         "DRIVE_R"
       ],
-      "id": "RTL-0427",
+      "id": "RTL-0434",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1491,8 +1901,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DRIVE_R"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1500,7 +1912,7 @@
           "DRIVE_R"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1510,9 +1922,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1530,7 +1942,7 @@
       "evidence_terms": [
         "DONE"
       ],
-      "id": "RTL-0428",
+      "id": "RTL-0435",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1544,8 +1956,10 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 1,
+        "matched_terms": [
+          "DONE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 1,
@@ -1553,7 +1967,7 @@
           "DONE"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 6,
@@ -1563,9 +1977,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1587,7 +2001,7 @@
         "AR",
         "IDLE"
       ],
-      "id": "RTL-0429",
+      "id": "RTL-0436",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1603,8 +2017,13 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 4,
+        "matched_terms": [
+          "ACCEPT",
+          "ACCEPT_AR",
+          "AR",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1615,7 +2034,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1625,9 +2044,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1659,7 +2078,7 @@
         "read",
         "sram"
       ],
-      "id": "RTL-0430",
+      "id": "RTL-0437",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1675,8 +2094,23 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 14,
+        "matched_terms": [
+          "ACCEPT",
+          "ACCEPT_AR",
+          "AR",
+          "ARSIZE",
+          "ISSUE",
+          "ISSUE_SRAM_RD",
+          "RD",
+          "SRAM",
+          "debug",
+          "enable",
+          "raw",
+          "raw_sram_debug_read_enable",
+          "read",
+          "sram"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1697,7 +2131,7 @@
           "sram"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1707,9 +2141,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1733,7 +2167,7 @@
         "DRIVE_R",
         "SLVERR"
       ],
-      "id": "RTL-0431",
+      "id": "RTL-0438",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1749,8 +2183,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "ACCEPT",
+          "ACCEPT_AR",
+          "AR",
+          "DRIVE",
+          "DRIVE_R",
+          "SLVERR"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1763,7 +2204,7 @@
           "SLVERR"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1773,9 +2214,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1804,7 +2245,7 @@
         "sram",
         "sram_rd_req"
       ],
-      "id": "RTL-0432",
+      "id": "RTL-0439",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1820,8 +2261,20 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "ISSUE",
+          "ISSUE_SRAM_RD",
+          "RD",
+          "RSP",
+          "SRAM",
+          "WAIT",
+          "WAIT_SRAM_RSP",
+          "rd",
+          "req",
+          "sram",
+          "sram_rd_req"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1839,7 +2292,7 @@
           "sram_rd_req"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1849,9 +2302,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1880,7 +2333,7 @@
         "sram_rd_rsp_valid",
         "valid"
       ],
-      "id": "RTL-0433",
+      "id": "RTL-0440",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1896,8 +2349,20 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 11,
+        "matched_terms": [
+          "DRIVE",
+          "DRIVE_R",
+          "RSP",
+          "SRAM",
+          "WAIT",
+          "WAIT_SRAM_RSP",
+          "rd",
+          "rsp",
+          "sram",
+          "sram_rd_rsp_valid",
+          "valid"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1915,7 +2380,7 @@
           "valid"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1925,9 +2390,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -1951,7 +2416,7 @@
         "RD",
         "SRAM"
       ],
-      "id": "RTL-0434",
+      "id": "RTL-0441",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -1967,8 +2432,15 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 6,
+        "matched_terms": [
+          "DRIVE",
+          "DRIVE_R",
+          "ISSUE",
+          "ISSUE_SRAM_RD",
+          "RD",
+          "SRAM"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -1981,7 +2453,7 @@
           "SRAM"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -1991,9 +2463,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2014,7 +2486,7 @@
         "DRIVE",
         "DRIVE_R"
       ],
-      "id": "RTL-0435",
+      "id": "RTL-0442",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -2030,8 +2502,12 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 3,
+        "matched_terms": [
+          "DONE",
+          "DRIVE",
+          "DRIVE_R"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2041,7 +2517,7 @@
           "DRIVE_R"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2051,9 +2527,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2073,7 +2549,7 @@
         "DONE",
         "IDLE"
       ],
-      "id": "RTL-0436",
+      "id": "RTL-0443",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -2089,8 +2565,11 @@
       ],
       "static_evidence": {
         "fallback_scope": "",
-        "matched_count": 0,
-        "matched_terms": [],
+        "matched_count": 2,
+        "matched_terms": [
+          "DONE",
+          "IDLE"
+        ],
         "owner_file_scoped": true,
         "required": true,
         "required_match_count": 2,
@@ -2099,7 +2578,7 @@
           "IDLE"
         ],
         "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
-        "status": "missing"
+        "status": "pass"
       },
       "todo_completion": {
         "criteria_total": 7,
@@ -2109,9 +2588,64 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature firmware_read",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.firmware_read",
+        "Primary implementation evidence is in rtl/mctp_assembler_v3_pcie_vdm_parser.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.firmware_read.\nOwner: mctp_assembler_v3_pcie_vdm_parser in rtl/mctp_assembler_v3_pcie_vdm_parser.sv via features.\nSSOT item context: name=firmware_read; output=rdata beats; SLVERR for out-of-window/no-descriptor reads.",
+      "evidence_terms": [
+        "SLVERR"
+      ],
+      "id": "RTL-0450",
+      "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+      "owner_module": "mctp_assembler_v3_axi_rd_payload",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.firmware_read",
+      "ssot_context": {
+        "name": "firmware_read",
+        "output": "rdata beats; SLVERR for out-of-window/no-descriptor reads"
+      },
+      "ssot_refs": [
+        "features.firmware_read"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "SLVERR"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "SLVERR"
+        ],
+        "source_scope": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
       }
     },
     {
@@ -2128,7 +2662,7 @@
       ],
       "detail": "This is a functionality-equality gate, not a style or file-existence check. The module must be driven from the same SSOT transaction intent used by FunctionalModel.apply, and its RTL-observed outputs/state must equal the FL expected result.\nSSOT ref: sub_modules.mctp_assembler_v3_axi_rd_payload.module_equivalence.\nOwner: mctp_assembler_v3_axi_rd_payload in rtl/mctp_assembler_v3_axi_rd_payload.sv via module_equivalence.",
       "evidence_terms": [],
-      "id": "RTL-0470",
+      "id": "RTL-0478",
       "owner_file": "rtl/mctp_assembler_v3_axi_rd_payload.sv",
       "owner_module": "mctp_assembler_v3_axi_rd_payload",
       "priority": "high",
@@ -2150,9 +2684,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2195,9 +2729,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2240,9 +2774,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2285,9 +2819,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2330,9 +2864,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2375,9 +2909,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2420,9 +2954,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2465,9 +2999,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2510,9 +3044,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2555,9 +3089,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2600,9 +3134,9 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     },
     {
@@ -2645,13 +3179,13 @@
           "owner RTL file/module declaration evidence",
           "static RTL evidence audit when evidence_terms are required"
         ],
-        "reason": "Owner RTL file is missing: rtl/mctp_assembler_v3_axi_rd_payload.sv.",
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
         "required": true,
-        "status": "open"
+        "status": "pass"
       }
     }
   ],
-  "todo_plan_sha256": "928c0a587fbcc3522da24eba470cd1fb51a8ad7c9c51ddd94821393e2967e9f9",
+  "todo_plan_sha256": "1d8a14547372e359f8580d1b128dfa68a22fb271a003218a9460d1ee7d6426c2",
   "top": "mctp_assembler_v3",
   "type": "rtl_authoring_packet"
 }

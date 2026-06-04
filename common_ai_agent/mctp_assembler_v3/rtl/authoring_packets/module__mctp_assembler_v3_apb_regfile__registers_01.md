@@ -23,13 +23,14 @@
 - Work allowed: True
 - Draft allowed: True
 - Evidence closure allowed: False
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 48
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: decomposition, error_handling, features, function_model.state_variables, interrupts, registers, registers.register_list
 - Module slice: 2/7 section=registers task_limit=48
 - Slice rule: Owner module mctp_assembler_v3_apb_regfile is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_apb_regfile.pclk <= pclk (integration.connections[2])
   - mctp_assembler_v3_apb_regfile.presetn <= presetn (integration.connections[3])
@@ -37,18 +38,18 @@
 
 ## Tasks
 
-### RTL-0314: Implement CSR/register CONTROL
+### RTL-0321: Implement CSR/register CONTROL
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CONTROL
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CONTROL.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -61,18 +62,18 @@ SSOT item context: name=CONTROL; width=32; reset=0; access=rw; offset=0.
   - CONTROL decode uses SSOT address/offset 0
 - SSOT refs: registers.register_list.CONTROL
 
-### RTL-0315: Implement field CONTROL.enable
+### RTL-0322: Implement field CONTROL.enable
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.enable.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=enable; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -87,18 +88,18 @@ SSOT item context: name=enable; reset=0; access=rw.
   - enable write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.enable
 
-### RTL-0316: Implement field CONTROL.drop_when_disabled
+### RTL-0323: Implement field CONTROL.drop_when_disabled
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.drop_when_disabled
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.drop_when_disabled.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=drop_when_disabled; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -113,18 +114,18 @@ SSOT item context: name=drop_when_disabled; reset=0; access=rw.
   - drop_when_disabled write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.drop_when_disabled
 
-### RTL-0317: Implement field CONTROL.soft_reset
+### RTL-0324: Implement field CONTROL.soft_reset
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.soft_reset
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.soft_reset.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=soft_reset; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -139,18 +140,18 @@ SSOT item context: name=soft_reset; reset=0; access=rw.
   - soft_reset write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.soft_reset
 
-### RTL-0318: Implement field CONTROL.dest_filter_enable
+### RTL-0325: Implement field CONTROL.dest_filter_enable
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.dest_filter_enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.dest_filter_enable.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=dest_filter_enable; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -165,18 +166,18 @@ SSOT item context: name=dest_filter_enable; reset=0; access=rw.
   - dest_filter_enable write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.dest_filter_enable
 
-### RTL-0319: Implement field CONTROL.accept_broadcast_eid
+### RTL-0326: Implement field CONTROL.accept_broadcast_eid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.accept_broadcast_eid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.accept_broadcast_eid.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=accept_broadcast_eid; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -191,18 +192,18 @@ SSOT item context: name=accept_broadcast_eid; reset=0; access=rw.
   - accept_broadcast_eid write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.accept_broadcast_eid
 
-### RTL-0320: Implement field CONTROL.accept_null_eid
+### RTL-0327: Implement field CONTROL.accept_null_eid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.accept_null_eid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.accept_null_eid.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=accept_null_eid; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -217,18 +218,18 @@ SSOT item context: name=accept_null_eid; reset=0; access=rw.
   - accept_null_eid write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.accept_null_eid
 
-### RTL-0321: Implement field CONTROL.raw_sram_debug_read_enable
+### RTL-0328: Implement field CONTROL.raw_sram_debug_read_enable
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.raw_sram_debug_read_enable
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.raw_sram_debug_read_enable.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=raw_sram_debug_read_enable; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -243,18 +244,18 @@ SSOT item context: name=raw_sram_debug_read_enable; reset=0; access=rw.
   - raw_sram_debug_read_enable write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.raw_sram_debug_read_enable
 
-### RTL-0322: Implement field CONTROL.descriptor_pop
+### RTL-0329: Implement field CONTROL.descriptor_pop
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.descriptor_pop
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.descriptor_pop.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=descriptor_pop; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -269,18 +270,18 @@ SSOT item context: name=descriptor_pop; reset=0; access=rw.
   - descriptor_pop write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.descriptor_pop
 
-### RTL-0323: Implement field CONTROL.counter_clear
+### RTL-0330: Implement field CONTROL.counter_clear
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.counter_clear
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.counter_clear.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=counter_clear; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -295,18 +296,18 @@ SSOT item context: name=counter_clear; reset=0; access=rw.
   - counter_clear write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.counter_clear
 
-### RTL-0324: Implement field CONTROL.local_eid
+### RTL-0331: Implement field CONTROL.local_eid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.local_eid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.local_eid.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=local_eid; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -321,18 +322,18 @@ SSOT item context: name=local_eid; reset=0; access=rw.
   - local_eid write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.local_eid
 
-### RTL-0325: Implement field CONTROL.debug_context_select
+### RTL-0332: Implement field CONTROL.debug_context_select
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CONTROL.fields.debug_context_select
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CONTROL.fields.debug_context_select.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=debug_context_select; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -347,18 +348,18 @@ SSOT item context: name=debug_context_select; reset=0; access=rw.
   - debug_context_select write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CONTROL.fields.debug_context_select
 
-### RTL-0326: Implement CSR/register CFG_TU
+### RTL-0333: Implement CSR/register CFG_TU
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CFG_TU
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CFG_TU.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=CFG_TU; width=32; reset=268435520; access=rw; offset=4.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -371,18 +372,18 @@ SSOT item context: name=CFG_TU; width=32; reset=268435520; access=rw; offset=4.
   - CFG_TU decode uses SSOT address/offset 4
 - SSOT refs: registers.register_list.CFG_TU
 
-### RTL-0327: Implement field CFG_TU.transmission_unit_bytes
+### RTL-0334: Implement field CFG_TU.transmission_unit_bytes
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CFG_TU.fields.transmission_unit_bytes
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CFG_TU.fields.transmission_unit_bytes.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=transmission_unit_bytes; reset=64; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -397,18 +398,18 @@ SSOT item context: name=transmission_unit_bytes; reset=64; access=rw.
   - transmission_unit_bytes write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CFG_TU.fields.transmission_unit_bytes
 
-### RTL-0328: Implement field CFG_TU.max_message_bytes
+### RTL-0335: Implement field CFG_TU.max_message_bytes
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CFG_TU.fields.max_message_bytes
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CFG_TU.fields.max_message_bytes.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=max_message_bytes; reset=4096; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -423,18 +424,18 @@ SSOT item context: name=max_message_bytes; reset=4096; access=rw.
   - max_message_bytes write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CFG_TU.fields.max_message_bytes
 
-### RTL-0329: Implement CSR/register CFG_TIMEOUT
+### RTL-0336: Implement CSR/register CFG_TIMEOUT
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CFG_TIMEOUT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CFG_TIMEOUT.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=CFG_TIMEOUT; width=32; reset=0; access=rw; offset=8.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -447,18 +448,18 @@ SSOT item context: name=CFG_TIMEOUT; width=32; reset=0; access=rw; offset=8.
   - CFG_TIMEOUT decode uses SSOT address/offset 8
 - SSOT refs: registers.register_list.CFG_TIMEOUT
 
-### RTL-0330: Implement field CFG_TIMEOUT.assembly_timeout_cycles
+### RTL-0337: Implement field CFG_TIMEOUT.assembly_timeout_cycles
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CFG_TIMEOUT.fields.assembly_timeout_cycles
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CFG_TIMEOUT.fields.assembly_timeout_cycles.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=assembly_timeout_cycles; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -473,18 +474,18 @@ SSOT item context: name=assembly_timeout_cycles; reset=0; access=rw.
   - assembly_timeout_cycles write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CFG_TIMEOUT.fields.assembly_timeout_cycles
 
-### RTL-0331: Implement CSR/register SRAM_BASE
+### RTL-0338: Implement CSR/register SRAM_BASE
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.SRAM_BASE
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.SRAM_BASE.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=SRAM_BASE; width=32; reset=0; access=rw; offset=12.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -497,18 +498,18 @@ SSOT item context: name=SRAM_BASE; width=32; reset=0; access=rw; offset=12.
   - SRAM_BASE decode uses SSOT address/offset 12
 - SSOT refs: registers.register_list.SRAM_BASE
 
-### RTL-0332: Implement field SRAM_BASE.sram_base
+### RTL-0339: Implement field SRAM_BASE.sram_base
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.SRAM_BASE.fields.sram_base
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.SRAM_BASE.fields.sram_base.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=sram_base; reset=0; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -523,18 +524,18 @@ SSOT item context: name=sram_base; reset=0; access=rw.
   - sram_base write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.SRAM_BASE.fields.sram_base
 
-### RTL-0333: Implement CSR/register SRAM_LIMIT
+### RTL-0340: Implement CSR/register SRAM_LIMIT
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.SRAM_LIMIT
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.SRAM_LIMIT.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=SRAM_LIMIT; width=32; reset=65535; access=rw; offset=16.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -547,18 +548,18 @@ SSOT item context: name=SRAM_LIMIT; width=32; reset=65535; access=rw; offset=16.
   - SRAM_LIMIT decode uses SSOT address/offset 16
 - SSOT refs: registers.register_list.SRAM_LIMIT
 
-### RTL-0334: Implement field SRAM_LIMIT.sram_limit
+### RTL-0341: Implement field SRAM_LIMIT.sram_limit
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.SRAM_LIMIT.fields.sram_limit
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.SRAM_LIMIT.fields.sram_limit.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=sram_limit; reset=65535; access=rw.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -573,18 +574,18 @@ SSOT item context: name=sram_limit; reset=65535; access=rw.
   - sram_limit write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.SRAM_LIMIT.fields.sram_limit
 
-### RTL-0335: Implement CSR/register STATUS
+### RTL-0342: Implement CSR/register STATUS
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.STATUS.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=32.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -597,18 +598,18 @@ SSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=32.
   - STATUS decode uses SSOT address/offset 32
 - SSOT refs: registers.register_list.STATUS
 
-### RTL-0336: Implement field STATUS.ingress_busy
+### RTL-0343: Implement field STATUS.ingress_busy
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.ingress_busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.ingress_busy.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ingress_busy; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -623,18 +624,18 @@ SSOT item context: name=ingress_busy; reset=0; access=ro.
   - ingress_busy write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.ingress_busy
 
-### RTL-0337: Implement field STATUS.axi_read_busy
+### RTL-0344: Implement field STATUS.axi_read_busy
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.axi_read_busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.axi_read_busy.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=axi_read_busy; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -649,18 +650,18 @@ SSOT item context: name=axi_read_busy; reset=0; access=ro.
   - axi_read_busy write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.axi_read_busy
 
-### RTL-0338: Implement field STATUS.sram_write_busy
+### RTL-0345: Implement field STATUS.sram_write_busy
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.sram_write_busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.sram_write_busy.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=sram_write_busy; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -675,18 +676,18 @@ SSOT item context: name=sram_write_busy; reset=0; access=ro.
   - sram_write_busy write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.sram_write_busy
 
-### RTL-0339: Implement field STATUS.sram_read_busy
+### RTL-0346: Implement field STATUS.sram_read_busy
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.sram_read_busy
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.sram_read_busy.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=sram_read_busy; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -701,18 +702,18 @@ SSOT item context: name=sram_read_busy; reset=0; access=ro.
   - sram_read_busy write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.sram_read_busy
 
-### RTL-0340: Implement field STATUS.descriptor_available
+### RTL-0347: Implement field STATUS.descriptor_available
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.descriptor_available
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.descriptor_available.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=descriptor_available; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -727,18 +728,18 @@ SSOT item context: name=descriptor_available; reset=0; access=ro.
   - descriptor_available write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.descriptor_available
 
-### RTL-0341: Implement field STATUS.descriptor_queue_full
+### RTL-0348: Implement field STATUS.descriptor_queue_full
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.descriptor_queue_full
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.descriptor_queue_full.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=descriptor_queue_full; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -753,18 +754,18 @@ SSOT item context: name=descriptor_queue_full; reset=0; access=ro.
   - descriptor_queue_full write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.descriptor_queue_full
 
-### RTL-0342: Implement field STATUS.context_active_any
+### RTL-0349: Implement field STATUS.context_active_any
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.context_active_any
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.context_active_any.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=context_active_any; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -779,18 +780,18 @@ SSOT item context: name=context_active_any; reset=0; access=ro.
   - context_active_any write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.context_active_any
 
-### RTL-0343: Implement field STATUS.context_error_any
+### RTL-0350: Implement field STATUS.context_error_any
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.context_error_any
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.context_error_any.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=context_error_any; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -805,18 +806,18 @@ SSOT item context: name=context_error_any; reset=0; access=ro.
   - context_error_any write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.context_error_any
 
-### RTL-0344: Implement field STATUS.packet_drop_seen
+### RTL-0351: Implement field STATUS.packet_drop_seen
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.packet_drop_seen
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.packet_drop_seen.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=packet_drop_seen; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -831,18 +832,18 @@ SSOT item context: name=packet_drop_seen; reset=0; access=ro.
   - packet_drop_seen write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.packet_drop_seen
 
-### RTL-0345: Implement field STATUS.assembly_drop_seen
+### RTL-0352: Implement field STATUS.assembly_drop_seen
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.assembly_drop_seen
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.assembly_drop_seen.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=assembly_drop_seen; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -857,18 +858,18 @@ SSOT item context: name=assembly_drop_seen; reset=0; access=ro.
   - assembly_drop_seen write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.assembly_drop_seen
 
-### RTL-0346: Implement field STATUS.active_context_count
+### RTL-0353: Implement field STATUS.active_context_count
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.active_context_count
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.active_context_count.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=active_context_count; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -883,18 +884,18 @@ SSOT item context: name=active_context_count; reset=0; access=ro.
   - active_context_count write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.active_context_count
 
-### RTL-0347: Implement field STATUS.last_drop_class
+### RTL-0354: Implement field STATUS.last_drop_class
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.last_drop_class
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.last_drop_class.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=last_drop_class; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -909,18 +910,18 @@ SSOT item context: name=last_drop_class; reset=0; access=ro.
   - last_drop_class write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.last_drop_class
 
-### RTL-0348: Implement field STATUS.last_drop_reason
+### RTL-0355: Implement field STATUS.last_drop_reason
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.last_drop_reason
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.last_drop_reason.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=last_drop_reason; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -935,18 +936,18 @@ SSOT item context: name=last_drop_reason; reset=0; access=ro.
   - last_drop_reason write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.last_drop_reason
 
-### RTL-0349: Implement field STATUS.last_error_context_id
+### RTL-0356: Implement field STATUS.last_error_context_id
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.STATUS.fields.last_error_context_id
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.STATUS.fields.last_error_context_id.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=last_error_context_id; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -961,18 +962,18 @@ SSOT item context: name=last_error_context_id; reset=0; access=ro.
   - last_error_context_id write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.STATUS.fields.last_error_context_id
 
-### RTL-0350: Implement CSR/register CTX_STATE
+### RTL-0357: Implement CSR/register CTX_STATE
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.CTX_STATE
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.CTX_STATE.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=CTX_STATE; width=32; reset=0; access=ro; offset=1024.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder
@@ -985,18 +986,18 @@ SSOT item context: name=CTX_STATE; width=32; reset=0; access=ro; offset=1024.
   - CTX_STATE decode uses SSOT address/offset 1024
 - SSOT refs: registers.register_list.CTX_STATE
 
-### RTL-0351: Implement field CTX_STATE.ctx_state
+### RTL-0358: Implement field CTX_STATE.ctx_state
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_state
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_state.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_state; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1011,18 +1012,18 @@ SSOT item context: name=ctx_state; reset=0; access=ro.
   - ctx_state write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_state
 
-### RTL-0352: Implement field CTX_STATE.ctx_valid
+### RTL-0359: Implement field CTX_STATE.ctx_valid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_valid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_valid.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_valid; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1037,18 +1038,18 @@ SSOT item context: name=ctx_valid; reset=0; access=ro.
   - ctx_valid write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_valid
 
-### RTL-0353: Implement field CTX_STATE.ctx_error
+### RTL-0360: Implement field CTX_STATE.ctx_error
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_error
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_error.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_error; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1063,18 +1064,18 @@ SSOT item context: name=ctx_error; reset=0; access=ro.
   - ctx_error write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_error
 
-### RTL-0354: Implement field CTX_STATE.ctx_source_eid
+### RTL-0361: Implement field CTX_STATE.ctx_source_eid
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_source_eid
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_source_eid.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_source_eid; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1089,18 +1090,18 @@ SSOT item context: name=ctx_source_eid; reset=0; access=ro.
   - ctx_source_eid write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_source_eid
 
-### RTL-0355: Implement field CTX_STATE.ctx_message_tag
+### RTL-0362: Implement field CTX_STATE.ctx_message_tag
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_message_tag
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_message_tag.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_message_tag; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1115,18 +1116,18 @@ SSOT item context: name=ctx_message_tag; reset=0; access=ro.
   - ctx_message_tag write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_message_tag
 
-### RTL-0356: Implement field CTX_STATE.ctx_tag_owner
+### RTL-0363: Implement field CTX_STATE.ctx_tag_owner
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_tag_owner
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_tag_owner.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_tag_owner; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1141,18 +1142,18 @@ SSOT item context: name=ctx_tag_owner; reset=0; access=ro.
   - ctx_tag_owner write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_tag_owner
 
-### RTL-0357: Implement field CTX_STATE.ctx_expected_seq
+### RTL-0364: Implement field CTX_STATE.ctx_expected_seq
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_expected_seq
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_expected_seq.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_expected_seq; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1167,18 +1168,18 @@ SSOT item context: name=ctx_expected_seq; reset=0; access=ro.
   - ctx_expected_seq write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_expected_seq
 
-### RTL-0358: Implement field CTX_STATE.ctx_last_seq
+### RTL-0365: Implement field CTX_STATE.ctx_last_seq
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_last_seq
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_last_seq.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_last_seq; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1193,18 +1194,18 @@ SSOT item context: name=ctx_last_seq; reset=0; access=ro.
   - ctx_last_seq write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_last_seq
 
-### RTL-0359: Implement field CTX_STATE.ctx_message_type
+### RTL-0366: Implement field CTX_STATE.ctx_message_type
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_message_type
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_message_type.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_message_type; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1219,18 +1220,18 @@ SSOT item context: name=ctx_message_type; reset=0; access=ro.
   - ctx_message_type write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_message_type
 
-### RTL-0360: Implement field CTX_STATE.ctx_last_drop_reason
+### RTL-0367: Implement field CTX_STATE.ctx_last_drop_reason
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.field
 - Source ref: registers.register_list.CTX_STATE.fields.ctx_last_drop_reason
 - Detail: Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.
 SSOT ref: registers.register_list.CTX_STATE.fields.ctx_last_drop_reason.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=ctx_last_drop_reason; reset=0; access=ro.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Field bit range, mask, and write strobe decode match SSOT
   - Field reset/access policy matches SSOT
@@ -1245,18 +1246,18 @@ SSOT item context: name=ctx_last_drop_reason; reset=0; access=ro.
   - ctx_last_drop_reason write/clear side effects are connected to owning control/status logic
 - SSOT refs: registers.register_list.CTX_STATE.fields.ctx_last_drop_reason
 
-### RTL-0361: Implement CSR/register INTR_RAW_STATUS
+### RTL-0368: Implement CSR/register INTR_RAW_STATUS
 
 - Priority: high
 - Required: True
-- Status: open
+- Status: pass
 - Category: registers.register
 - Source ref: registers.register_list.INTR_RAW_STATUS
 - Detail: Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.
 SSOT ref: registers.register_list.INTR_RAW_STATUS.
 Owner: mctp_assembler_v3_apb_regfile in rtl/mctp_assembler_v3_apb_regfile.sv via registers.register_list.
 SSOT item context: name=INTR_RAW_STATUS; width=32; reset=0; access=ro; offset=256.
-- Current reason: Owner RTL file is missing: rtl/mctp_assembler_v3_apb_regfile.sv.
+- Current reason: Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.
 - Criteria:
   - Address/decode behavior matches SSOT
   - Readable fields return RTL state, not a constant placeholder

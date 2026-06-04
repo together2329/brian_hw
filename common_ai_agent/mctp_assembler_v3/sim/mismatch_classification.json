@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "type": "mismatch_classification",
+  "ip": "mctp_assembler_v3",
+  "generated_at": "2026-06-03T18:34:00Z",
+  "status": "pass",
+  "classifications": []
+}

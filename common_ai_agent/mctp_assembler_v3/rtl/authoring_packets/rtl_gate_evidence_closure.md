@@ -23,11 +23,12 @@
 - Work allowed: True
 - Draft allowed: False
 - Evidence closure allowed: True
-- PASS allowed: False
+- PASS allowed: True
 - Integration signoff allowed: True
-- LLM-actionable open tasks: 6
+- LLM-actionable open tasks: 0
 - Human-locked open tasks: 0
 - Owner refs: cycle_model, cycle_model.pipeline, dataflow, decomposition, function_model, function_model.transactions, integration, integration.connections, io_list, io_list.interfaces, top_module
+- SSOT target scale: min_modules=9, min_source_files=10
 - SSOT connection contracts:
   - mctp_assembler_v3_axi_wr_ingress.axi_aclk <= axi_aclk (integration.connections[0])
   - mctp_assembler_v3_axi_wr_ingress.axi_aresetn <= axi_aresetn (integration.connections[1])
@@ -36,6 +37,7 @@
   - mctp_assembler_v3_apb_regfile.irq_o <= irq (integration.connections[4])
   - mctp_assembler_v3_sram_packer.sram_wr_valid_o <= sram_wr_valid (integration.connections[5])
   - mctp_assembler_v3_context_table.drop_class_o <= last_drop_class (integration.connections[6])
+  - mctp_assembler_v3_cdc_sync.evt_fatal_internal_error_a <= 1'b0 (integration.connections[7])
 - SSOT top IO contracts: 51
 
 ## Tasks
@@ -44,13 +46,13 @@
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.static_rtl_evidence
 - Detail: After RTL exists, derive_rtl_todos.py --audit-rtl must find concrete DUT source terms for every static-evidence-required task.
 SSOT ref: quality_gates.rtl_gen.static_rtl_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 276 static-evidence-required task(s) still lack DUT RTL evidence.
+- Current reason: Static DUT RTL evidence audit has no missing required task.
 - Criteria:
   - derive_rtl_todos.py --audit-rtl ran after the final RTL edit
   - rtl_todo_plan.json static_rtl_evidence.missing is zero
@@ -64,13 +66,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.owner_logic_structure_evidence
 - Detail: Static token evidence is not enough. Each SSOT behavior-owner RTL module must contain real assign/procedural/state structure appropriate for its owned function_model, cycle_model, register, memory, or FSM contract.
 SSOT ref: quality_gates.rtl_gen.owner_logic_structure_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 8 owner logic structure issue(s) remain. mctp_assembler_v3_pcie_vdm_parser: Behavior-owner module is not declared in its owner file; mctp_assembler_v3_mctp_decoder: Behavior-owner module is not declared in its owner file; mctp_assembler_v3_context_table: Behavior-owner module is not declared in its owner file
+- Current reason: Behavior-owner RTL modules contain real implementation structure.
 - Criteria:
   - Every active behavior-owner module is declared in its owner file
   - Behavior-owner modules contain non-placeholder assign/procedural implementation logic
@@ -124,13 +126,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_output_drive_evidence
 - Detail: Declaring output ports is not enough. Each SSOT-declared top output must be driven by nonconstant RTL logic, a procedural assignment, or a declared child-module output connection. Constant tieoffs require an explicit SSOT constant/tieoff allowance.
 SSOT ref: quality_gates.rtl_gen.top_output_drive_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 10 top output drive issue(s) remain. s_axi_arready: RTL top output is driven only by a constant without explicit SSOT tieoff allowance; s_axi_rresp: RTL top output is driven only by a constant without explicit SSOT tieoff allowance; s_axi_rlast: RTL top output is driven only by a constant without explicit SSOT tieoff allowance
+- Current reason: SSOT top outputs have non-placeholder RTL drive evidence.
 - Criteria:
   - Every SSOT output/inout top contract has drive evidence in the RTL top
   - Non-waived output constants are rejected as placeholder tieoffs
@@ -143,13 +145,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.top_input_consumption_evidence
 - Detail: Declaring input ports is not enough. Each SSOT-declared non-clock/reset top input must feed real RTL logic, a procedural/control expression, or a declared child-module input/inout connection. Unused inputs require an explicit SSOT unused/reserved allowance.
 SSOT ref: quality_gates.rtl_gen.top_input_consumption_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 17 top input consumption issue(s) remain. s_axi_araddr: RTL top input has no RHS/control use or declared child-input consumption evidence; s_axi_arlen: RTL top input has no RHS/control use or declared child-input consumption evidence; s_axi_arsize: RTL top input has no RHS/control use or declared child-input consumption evidence
+- Current reason: SSOT top inputs have RTL consumption evidence.
 - Criteria:
   - Every non-clock/reset SSOT input/inout top contract has consumption evidence in the RTL top
   - Child-instance consumption evidence uses a declared child input/inout port, not an unknown direction
@@ -162,13 +164,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.manifest_hierarchy_integration
 - Detail: File existence is not enough for general IP RTL. Every SSOT manifest-owned non-top RTL module must be declared and reachable from the SSOT top through real module instantiation.
 SSOT ref: quality_gates.rtl_gen.manifest_hierarchy_integration.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 8 manifest hierarchy integration issue(s) remain. mctp_assembler_v3_pcie_vdm_parser: SSOT manifest child module is not declared in listed RTL sources; mctp_assembler_v3_mctp_decoder: SSOT manifest child module is not declared in listed RTL sources; mctp_assembler_v3_context_table: SSOT manifest child module is not declared in listed RTL sources
+- Current reason: Every SSOT manifest-owned child module is declared and reachable from the top RTL hierarchy.
 - Criteria:
   - Every manifest-owned non-top submodule is declared in listed DUT RTL sources
   - Each child module is reachable from the SSOT top module through SystemVerilog instantiation
@@ -219,13 +221,13 @@ Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
 
 - Priority: critical
 - Required: True
-- Status: open
+- Status: pass
 - Category: rtl_gate.rtl_gen
 - Source ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence
 - Detail: Production-profile RTL cannot be a shallow shell that merely satisfies names, ports, or compile checks. The RTL must contain aggregate implementation structure scaled from the current SSOT task count, behavior-owner modules, and manifest hierarchy.
 SSOT ref: quality_gates.rtl_gen.rtl_implementation_depth_evidence.
 Owner: mctp_assembler_v3 in rtl/mctp_assembler_v3.sv via top_module.
-- Current reason: 3 production RTL implementation-depth issue(s) remain. Production RTL implementation depth score is below the SSOT-derived or target-scale threshold: actual=113 required=165; Too few RTL modules contain implementation structure for the SSOT behavior complexity: actual=2 required=9; Too few SSOT behavior-owner modules contain implementation-depth evidence: actual=1 required=9
+- Current reason: Production RTL implementation depth meets SSOT-derived/target-scale thresholds (score=1972, required=170).
 - Criteria:
   - Implementation depth thresholds are derived from SSOT owner/task complexity, not a fixed IP template
   - Listed DUT RTL sources contain enough nonconstant logic, procedural/state/control structure, and child instances for the SSOT profile

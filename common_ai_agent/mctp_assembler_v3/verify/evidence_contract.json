@@ -1,0 +1,6619 @@
+{
+  "obligations": [
+    {
+      "claim": "The SC_SINGLE payload count reaches the 32-byte FL expected payload length in scoreboard and wave evidence.",
+      "contract_refs": [
+        "STATE_PAYLOAD_COUNT"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_MCTP_V3_SC_SINGLE_PAYLOAD_COUNT_001",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed_with_fl_expected"
+        },
+        {
+          "expected_path": "fl_expected.model_result.state_updates.payload_bytes_written_count",
+          "field": "ctx_payload_byte_count",
+          "id": "ctx_payload_byte_count_matches_fl_payload_bytes_written",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "expected_path": "fl_expected.model_result.state_updates.payload_bytes_written_count",
+          "field": "ctx_payload_count_sel",
+          "id": "ctx_payload_count_sel_matches_fl_payload_bytes_written",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "artifact": "sim/mctp_assembler_v3.vcd",
+          "id": "ctx_payload_count_reaches_32_in_wave",
+          "kind": "vcd_signal_ever_equals",
+          "signal": "ctx_payload_byte_count",
+          "value": 32
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel"
+      ],
+      "requirement_ids": [
+        "REQ_MCTP_V3_SC_SINGLE_ASSEMBLY_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ],
+      "source": "semantic_contract_overlay"
+    },
+    {
+      "claim": "The SC_SINGLE SRAM pack transaction emits one contiguous 32-byte SRAM write after the payload count is visible.",
+      "contract_refs": [
+        "MEM_SRAM_PAYLOAD_PACK"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_MCTP_V3_SC_SINGLE_SRAM_PACK_001",
+      "pass_conditions": [
+        {
+          "expected_path": "fl_expected.model_result.sram_wr_valid",
+          "field": "sram_wr_valid",
+          "id": "sram_write_valid_matches_fl",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "field": "sram_wr_count",
+          "id": "one_sram_write_emitted",
+          "kind": "observed_equals",
+          "value": 1
+        },
+        {
+          "expected_path": "fl_expected.model_result.sram_wr_addr",
+          "field": "sram_wr_addr",
+          "id": "sram_write_addr_matches_fl",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "expected_path": "fl_expected.model_result.sram_wr_strb",
+          "field": "sram_wr_strb",
+          "id": "sram_write_strb_matches_fl",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "field": "sram_wr_strb",
+          "id": "sram_write_strobe_is_contiguous",
+          "kind": "strobe_contiguous"
+        },
+        {
+          "artifact": "sim/mctp_assembler_v3.vcd",
+          "first": {
+            "signal": "ctx_payload_byte_count",
+            "value": 32
+          },
+          "id": "sram_write_after_payload_count_visible",
+          "kind": "vcd_event_order",
+          "relation": "same_or_after",
+          "second": {
+            "signal": "sram_wr_valid",
+            "value": 1
+          }
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "ctx_payload_byte_count",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_MCTP_V3_SC_SINGLE_ASSEMBLY_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ],
+      "source": "semantic_contract_overlay"
+    },
+    {
+      "claim": "The SC_SINGLE descriptor publication is visible in scoreboard and VCD evidence after a descriptor push event.",
+      "contract_refs": [
+        "DESC_PUBLISH_VISIBLE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_MCTP_V3_SC_SINGLE_DESCRIPTOR_VISIBLE_001",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed_with_fl_expected"
+        },
+        {
+          "field": "descriptor_push",
+          "id": "descriptor_push_observed",
+          "kind": "observed_equals",
+          "value": 1
+        },
+        {
+          "expected_path": "fl_expected.model_result.state_updates.descriptor_valid",
+          "field": "descriptor_valid",
+          "id": "descriptor_valid_matches_fl",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "expected_path": "fl_expected.model_result.state_updates.ctx_state",
+          "field": "ctx_state_sel",
+          "id": "context_done_state_matches_fl",
+          "kind": "observed_equals_fl_expected"
+        },
+        {
+          "artifact": "sim/mctp_assembler_v3.vcd",
+          "id": "descriptor_push_seen_in_wave",
+          "kind": "vcd_signal_ever_equals",
+          "signal": "descriptor_push",
+          "value": 1
+        },
+        {
+          "artifact": "sim/mctp_assembler_v3.vcd",
+          "first": {
+            "signal": "descriptor_push",
+            "value": 1
+          },
+          "id": "descriptor_valid_same_or_after_push",
+          "kind": "vcd_event_order",
+          "relation": "same_or_after",
+          "second": {
+            "signal": "descriptor_valid",
+            "value": 1
+          }
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid"
+      ],
+      "requirement_ids": [
+        "REQ_MCTP_V3_SC_SINGLE_ASSEMBLY_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ],
+      "source": "semantic_contract_overlay"
+    },
+    {
+      "claim": "For SC_RB_4096 the SRAM payload digest observed in RTL equals the FL-expected payload digest, proving full byte-content equivalence with no holes.",
+      "closure_stage": "sim",
+      "contract_refs": [
+        "SEMANTIC_STATE_PAYLOAD_CONTENT"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "scenario_id": "SC_RB_4096"
+          }
+        }
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "content",
+      "obligation_id": "OBL_MCTP_PAYLOAD_CONTENT_001",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed_with_fl_expected"
+        },
+        {
+          "expected_path": "fl_expected.model_result.state_updates.payload_digest",
+          "field": "payload_digest",
+          "id": "payload_digest_matches_fl",
+          "kind": "observed_equals_fl_expected"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "payload_digest"
+      ],
+      "required_stages": [
+        "fl",
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_ids": [
+        "REQ_MCTP_PAYLOAD_CONTENT_001"
+      ],
+      "scenario_ids": [
+        "SC_RB_4096"
+      ],
+      "source": "semantic_contract_overlay"
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_INGEST_TLP closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_INGEST_TLP",
+            "scenario_id": "SC_001_EQ_TRANSACTION_FM_INGEST_TLP"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_INGEST_TLP",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_001_EQ_TRANSACTION_FM_INGEST_TLP"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_DECODE_VDM closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_DECODE_VDM",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_DECODE_VDM",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_DECODE_MCTP closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_DECODE_MCTP",
+            "scenario_id": "SC_PD_DISABLED"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_DECODE_MCTP",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_DISABLED_DROP_MODE",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_PD_DISABLED"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_ALLOC_CONTEXT closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_ALLOC_CONTEXT",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_ALLOC_CONTEXT",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_APPEND closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_APPEND",
+            "scenario_id": "SC_FRAG"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_APPEND",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_FRAG"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_PACK_SRAM closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_PACK_SRAM",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+            "scenario_id": "SC_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TRANSACTION_FM_AXI_READ closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TRANSACTION_FM_AXI_READ",
+            "scenario_id": "SC_FW_READ"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TRANSACTION_FM_AXI_READ",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "m_axi_rvalid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_FW_READ"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_SINGLE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_SINGLE",
+            "scenario_id": "SC_SINGLE_single_packet"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_SINGLE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_SINGLE_single_packet"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_FRAG closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_FRAG",
+            "scenario_id": "SC_FRAG_multi_fragment"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_FRAG",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_FRAG_multi_fragment"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_INTERLEAVE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_INTERLEAVE",
+            "scenario_id": "SC_INTERLEAVE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_INTERLEAVE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_error",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_message_tag",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "debug_context_key",
+        "debug_drop_pulse",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_INTERLEAVE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_UNALIGNED_TU closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_UNALIGNED_TU",
+            "scenario_id": "SC_UNALIGNED_TU"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_UNALIGNED_TU",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_UNALIGNED_TU"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_MAX_TU closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_MAX_TU",
+            "scenario_id": "SC_MAX_TU"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_MAX_TU",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bresp_next",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_MAX_TU"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_PD_MALFORMED closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_PD_MALFORMED",
+            "scenario_id": "SC_PD_MALFORMED"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_MALFORMED",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_MALFORMED_TLP",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_PD_MALFORMED"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_PD_VDM closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_PD_VDM",
+            "scenario_id": "SC_PD_VDM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_VDM",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_UNSUPPORTED_VDM",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_PD_VDM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_PD_MCTP closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_PD_MCTP",
+            "scenario_id": "SC_PD_MCTP"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_MCTP",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_BAD_MCTP_HEADER",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_PD_MCTP"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_PD_EID closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_PD_EID",
+            "scenario_id": "SC_PD_EID"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_EID",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_DEST_EID_REJECT",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_PD_EID"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_PD_MIDDLE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_PD_MIDDLE",
+            "scenario_id": "SC_PD_MIDDLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PD_MIDDLE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_UNEXPECTED_MIDDLE_END",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_PD_MIDDLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_AD_DUP closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_AD_DUP",
+            "scenario_id": "SC_AD_DUP"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_DUP",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "AD_DUPLICATE_SOM",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_DUP"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_AD_SEQ closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_AD_SEQ",
+            "scenario_id": "SC_AD_SEQ"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_SEQ",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "AD_SEQUENCE_MISMATCH",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_SEQ"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_AD_CTXFULL closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_AD_CTXFULL",
+            "scenario_id": "SC_AD_CTXFULL"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_CTXFULL",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "PD_BAD_OR_EXPIRED_TAG",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_CTXFULL"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_AD_SRAM closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_AD_SRAM",
+            "scenario_id": "SC_AD_SRAM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_SRAM",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "AD_SRAM_OVERFLOW",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_SRAM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_AD_DESCFULL closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_AD_DESCFULL",
+            "scenario_id": "SC_AD_DESCFULL"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_DESCFULL",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "AD_DESCRIPTOR_FULL",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_DESCFULL"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_AD_TIMEOUT closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_AD_TIMEOUT",
+            "scenario_id": "SC_AD_TIMEOUT"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_AD_TIMEOUT",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "AD_TIMEOUT",
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_TIMEOUT"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_PRIORITY closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_PRIORITY",
+            "scenario_id": "SC_025_EQ_SCENARIO_SC_PRIORITY"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_PRIORITY",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_025_EQ_SCENARIO_SC_PRIORITY"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_FW_READ closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_FW_READ",
+            "scenario_id": "SC_FW_READ"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_FW_READ",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "arready_seen",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "m_axi_rvalid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_FW_READ"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_FW_READ_SLVERR closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_FW_READ_SLVERR",
+            "scenario_id": "SC_FW_READ_SLVERR"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_FW_READ_SLVERR",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_FW_READ_SLVERR"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_SCENARIO_SC_REG closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_SCENARIO_SC_REG",
+            "scenario_id": "SC_028_EQ_SCENARIO_SC_REG"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_SCENARIO_SC_REG",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_028_EQ_SCENARIO_SC_REG"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_PROTOCOL_HANDSHAKE_0 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+            "scenario_id": "SC_029_EQ_PROTOCOL_HANDSHAKE_0"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_0",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_029_EQ_PROTOCOL_HANDSHAKE_0"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_PROTOCOL_HANDSHAKE_1 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+            "scenario_id": "SC_030_EQ_PROTOCOL_HANDSHAKE_1"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_1",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_030_EQ_PROTOCOL_HANDSHAKE_1"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_PROTOCOL_HANDSHAKE_2 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "scenario_id": "SC_031_EQ_PROTOCOL_HANDSHAKE_2"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_2",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_031_EQ_PROTOCOL_HANDSHAKE_2"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_PROTOCOL_HANDSHAKE_3 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+            "scenario_id": "SC_032_EQ_PROTOCOL_HANDSHAKE_3"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_3",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_032_EQ_PROTOCOL_HANDSHAKE_3"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_PROTOCOL_HANDSHAKE_4 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_4",
+            "scenario_id": "SC_033_EQ_PROTOCOL_HANDSHAKE_4"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_4",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_033_EQ_PROTOCOL_HANDSHAKE_4"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_PROTOCOL_HANDSHAKE_5 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_5",
+            "scenario_id": "SC_034_EQ_PROTOCOL_HANDSHAKE_5"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_PROTOCOL_HANDSHAKE_5",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_034_EQ_PROTOCOL_HANDSHAKE_5"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TIMING_ORDERING_0 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TIMING_ORDERING_0",
+            "scenario_id": "SC_035_EQ_TIMING_ORDERING_0"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TIMING_ORDERING_0",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_035_EQ_TIMING_ORDERING_0"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TIMING_ORDERING_1 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TIMING_ORDERING_1",
+            "scenario_id": "SC_036_EQ_TIMING_ORDERING_1"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TIMING_ORDERING_1",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_036_EQ_TIMING_ORDERING_1"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_TIMING_ORDERING_2 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_TIMING_ORDERING_2",
+            "scenario_id": "SC_037_EQ_TIMING_ORDERING_2"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_TIMING_ORDERING_2",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_037_EQ_TIMING_ORDERING_2"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_CONTROL closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_CONTROL",
+            "scenario_id": "SC_038_EQ_REGISTER_CONTROL"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_CONTROL",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_038_EQ_REGISTER_CONTROL"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_CFG_TU closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_CFG_TU",
+            "scenario_id": "SC_039_EQ_REGISTER_CFG_TU"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_CFG_TU",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_039_EQ_REGISTER_CFG_TU"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_CFG_TIMEOUT closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_CFG_TIMEOUT",
+            "scenario_id": "SC_040_EQ_REGISTER_CFG_TIMEOUT"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_CFG_TIMEOUT",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_040_EQ_REGISTER_CFG_TIMEOUT"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_SRAM_BASE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_SRAM_BASE",
+            "scenario_id": "SC_041_EQ_REGISTER_SRAM_BASE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_SRAM_BASE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_041_EQ_REGISTER_SRAM_BASE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_SRAM_LIMIT closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_SRAM_LIMIT",
+            "scenario_id": "SC_042_EQ_REGISTER_SRAM_LIMIT"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_SRAM_LIMIT",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_042_EQ_REGISTER_SRAM_LIMIT"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_STATUS closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_STATUS",
+            "scenario_id": "SC_043_EQ_REGISTER_STATUS"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_STATUS",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_043_EQ_REGISTER_STATUS"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_CTX_STATE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_CTX_STATE",
+            "scenario_id": "SC_044_EQ_REGISTER_CTX_STATE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_CTX_STATE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_044_EQ_REGISTER_CTX_STATE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_INTR_RAW_STATUS closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_INTR_RAW_STATUS",
+            "scenario_id": "SC_045_EQ_REGISTER_INTR_RAW_STATUS"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_RAW_STATUS",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_045_EQ_REGISTER_INTR_RAW_STATUS"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_INTR_ENABLE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_INTR_ENABLE",
+            "scenario_id": "SC_046_EQ_REGISTER_INTR_ENABLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_ENABLE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_046_EQ_REGISTER_INTR_ENABLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_INTR_STATUS closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_INTR_STATUS",
+            "scenario_id": "SC_047_EQ_REGISTER_INTR_STATUS"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_STATUS",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_047_EQ_REGISTER_INTR_STATUS"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_INTR_CLEAR closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_INTR_CLEAR",
+            "scenario_id": "SC_048_EQ_REGISTER_INTR_CLEAR"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_INTR_CLEAR",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_048_EQ_REGISTER_INTR_CLEAR"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_CNT_TLP_SEEN closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_CNT_TLP_SEEN",
+            "scenario_id": "SC_049_EQ_REGISTER_CNT_TLP_SEEN"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_CNT_TLP_SEEN",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_049_EQ_REGISTER_CNT_TLP_SEEN"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_DESC_VALID closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_DESC_VALID",
+            "scenario_id": "SC_050_EQ_REGISTER_DESC_VALID"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_DESC_VALID",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_050_EQ_REGISTER_DESC_VALID"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_REGISTER_DEBUG_CTX closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_REGISTER_DEBUG_CTX",
+            "scenario_id": "SC_051_EQ_REGISTER_DEBUG_CTX"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_REGISTER_DEBUG_CTX",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_051_EQ_REGISTER_DEBUG_CTX"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MEMORY_CONTEXT_TABLE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MEMORY_CONTEXT_TABLE",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MEMORY_CONTEXT_TABLE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "retention",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MEMORY_DESCRIPTOR_FIFO closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MEMORY_DESCRIPTOR_FIFO",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MEMORY_DESCRIPTOR_FIFO",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "retention",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_ERROR_NONE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_ERROR_NONE",
+            "scenario_id": "SC_054_EQ_ERROR_NONE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_ERROR_NONE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_054_EQ_ERROR_NONE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0",
+            "scenario_id": "SC_055_EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_055_EQ_STATE_INGRESS_FSM_IDLE_TO_ACCEPT_AW_0"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1",
+            "scenario_id": "SC_056_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_056_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_COLLECT_W_1"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2",
+            "scenario_id": "SC_057_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_057_EQ_STATE_INGRESS_FSM_ACCEPT_AW_TO_RESP_B_2"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3",
+            "scenario_id": "SC_058_EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_058_EQ_STATE_INGRESS_FSM_COLLECT_W_TO_CHECK_LEGAL_3"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4",
+            "scenario_id": "SC_059_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_059_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_EMIT_TLP_4"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5",
+            "scenario_id": "SC_060_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_060_EQ_STATE_INGRESS_FSM_CHECK_LEGAL_TO_RESP_B_5"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6",
+            "scenario_id": "SC_061_EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_061_EQ_STATE_INGRESS_FSM_EMIT_TLP_TO_RESP_B_6"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7",
+            "scenario_id": "SC_062_EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_062_EQ_STATE_INGRESS_FSM_RESP_B_TO_IDLE_7"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
+            "scenario_id": "SC_STATE_FRAG"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_IDLE_TO_ASSEMBLING_0",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_FRAG"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_IDLE_TO_DONE_WAIT_DESCRIPTOR_POP_1 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_IDLE_TO_DONE_WAIT_DESCRIPTOR_POP_1",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_IDLE_TO_DONE_WAIT_DESCRIPTOR_POP_1",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2",
+            "scenario_id": "SC_065_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_065_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ASSEMBLING_2"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_3 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_3",
+            "scenario_id": "SC_STATE_FRAG"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_DONE_WAIT_DESCRIPTOR_POP_3",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_FRAG"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4",
+            "scenario_id": "SC_AD_SEQ"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ASSEMBLING_TO_ERROR_4",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_AD_SEQ"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5",
+            "scenario_id": "SC_STATE_SINGLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_DONE_WAIT_DESCRIPTOR_POP_TO_IDLE_5",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_SINGLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6",
+            "scenario_id": "SC_STATE_ERROR"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_CONTEXT_FSM_ERROR_TO_IDLE_6",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "assembly_drop_pulse",
+        "beats",
+        "bresp",
+        "bvalid",
+        "ctx_expected_seq_sel",
+        "ctx_key_sel",
+        "ctx_payload_byte_count",
+        "ctx_payload_count_sel",
+        "ctx_state_sel",
+        "descriptor_push",
+        "descriptor_valid",
+        "drop_class_o",
+        "drop_reason_o",
+        "frag_valid",
+        "ingress_malformed_reason",
+        "ingress_malformed_valid",
+        "mctp_drop_reason",
+        "mctp_drop_valid",
+        "packet_drop_pulse",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "sram_wr_addr",
+        "sram_wr_count",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid",
+        "tlp_bytes",
+        "vdm_drop_reason",
+        "vdm_drop_valid",
+        "vdm_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_STATE_ERROR"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_IDLE_TO_ACCEPT_AR_0 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_IDLE_TO_ACCEPT_AR_0",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_IDLE_TO_ACCEPT_AR_0",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_ISSUE_SRAM_RD_1 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_ISSUE_SRAM_RD_1",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_ISSUE_SRAM_RD_1",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_DRIVE_R_2 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_DRIVE_R_2",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_ACCEPT_AR_TO_DRIVE_R_2",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_ISSUE_SRAM_RD_TO_WAIT_SRAM_RSP_3 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_ISSUE_SRAM_RD_TO_WAIT_SRAM_RSP_3",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_ISSUE_SRAM_RD_TO_WAIT_SRAM_RSP_3",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_WAIT_SRAM_RSP_TO_DRIVE_R_4 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_WAIT_SRAM_RSP_TO_DRIVE_R_4",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_WAIT_SRAM_RSP_TO_DRIVE_R_4",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_ISSUE_SRAM_RD_5 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_ISSUE_SRAM_RD_5",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_ISSUE_SRAM_RD_5",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_DONE_6 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_DONE_6",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_DRIVE_R_TO_DONE_6",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_STATE_AXI_READ_FSM_DONE_TO_IDLE_7 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_STATE_AXI_READ_FSM_DONE_TO_IDLE_7",
+            "scenario_id": "SC_READ_FSM"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_STATE_AXI_READ_FSM_DONE_TO_IDLE_7",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "arready_seen",
+        "m_axi_rvalid",
+        "rd_reqs",
+        "readback_last",
+        "readback_resp",
+        "readback_valid",
+        "rlast_count",
+        "rlast_next",
+        "rresp",
+        "rresp_next",
+        "rvalid_beats"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_READ_FSM"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_DEBUG_OBSERVABILITY closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_DEBUG_OBSERVABILITY",
+            "scenario_id": "SC_078_EQ_DEBUG_OBSERVABILITY"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_DEBUG_OBSERVABILITY",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_078_EQ_DEBUG_OBSERVABILITY"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS",
+            "scenario_id": "SC_079_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_079_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_WR_INGRESS"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER",
+            "scenario_id": "SC_080_EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_080_EQ_MODULE_MCTP_ASSEMBLER_V3_PCIE_VDM_PARSER"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER",
+            "scenario_id": "SC_081_EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_081_EQ_MODULE_MCTP_ASSEMBLER_V3_MCTP_DECODER"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE",
+            "scenario_id": "SC_082_EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_082_EQ_MODULE_MCTP_ASSEMBLER_V3_CONTEXT_TABLE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER",
+            "scenario_id": "SC_083_EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_083_EQ_MODULE_MCTP_ASSEMBLER_V3_SRAM_PACKER"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE",
+            "scenario_id": "SC_084_EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_084_EQ_MODULE_MCTP_ASSEMBLER_V3_DESCRIPTOR_QUEUE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD",
+            "scenario_id": "SC_085_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_085_EQ_MODULE_MCTP_ASSEMBLER_V3_AXI_RD_PAYLOAD"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE",
+            "scenario_id": "SC_086_EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_086_EQ_MODULE_MCTP_ASSEMBLER_V3_APB_REGFILE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_MODULE_MCTP_ASSEMBLER_V3 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_MODULE_MCTP_ASSEMBLER_V3",
+            "scenario_id": "SC_087_EQ_MODULE_MCTP_ASSEMBLER_V3"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_MODULE_MCTP_ASSEMBLER_V3",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_087_EQ_MODULE_MCTP_ASSEMBLER_V3"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CCOV_INGEST closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CCOV_INGEST",
+            "scenario_id": "SC_088_EQ_COVERAGE_CCOV_INGEST"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CCOV_INGEST",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_088_EQ_COVERAGE_CCOV_INGEST"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CCOV_OUTSTANDING closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CCOV_OUTSTANDING",
+            "scenario_id": "SC_089_EQ_COVERAGE_CCOV_OUTSTANDING"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CCOV_OUTSTANDING",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_089_EQ_COVERAGE_CCOV_OUTSTANDING"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST",
+            "scenario_id": "SC_090_EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_090_EQ_COVERAGE_CYCLE_PIPELINE_S0_INGEST"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE",
+            "scenario_id": "SC_091_EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_091_EQ_COVERAGE_CYCLE_PIPELINE_S1_VDM_DECODE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE",
+            "scenario_id": "SC_092_EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_092_EQ_COVERAGE_CYCLE_PIPELINE_S2_MCTP_DECODE"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT",
+            "scenario_id": "SC_093_EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_093_EQ_COVERAGE_CYCLE_PIPELINE_S3_CONTEXT"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK",
+            "scenario_id": "SC_094_EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_094_EQ_COVERAGE_CYCLE_PIPELINE_S4_PACK"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR",
+            "scenario_id": "SC_095_EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_095_EQ_COVERAGE_CYCLE_PIPELINE_S5_DESCRIPTOR"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_BACKPRESSURE_0 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+            "scenario_id": "SC_096_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_096_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_BACKPRESSURE_1 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
+            "scenario_id": "SC_097_EQ_COVERAGE_CYCLE_BACKPRESSURE_1"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_BACKPRESSURE_1",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_097_EQ_COVERAGE_CYCLE_BACKPRESSURE_1"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_BACKPRESSURE_2 closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
+            "scenario_id": "SC_098_EQ_COVERAGE_CYCLE_BACKPRESSURE_2"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_BACKPRESSURE_2",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_098_EQ_COVERAGE_CYCLE_BACKPRESSURE_2"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PERF_OUTSTANDING closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+            "scenario_id": "SC_099_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_099_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PERF_DEPTH closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+            "scenario_id": "SC_100_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_100_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+            "scenario_id": "SC_101_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_101_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+      ]
+    },
+    {
+      "claim": "Generated equivalence goal EQ_COVERAGE_CYCLE_PERF_THROUGHPUT closes through its scoreboard row.",
+      "contract_refs": [
+        "LEGACY_SCOREBOARD_GOAL_CLOSURE"
+      ],
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+            "scenario_id": "SC_102_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+          }
+        }
+      ],
+      "obligation_id": "OBL_GOAL_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "pass_conditions": [
+        {
+          "id": "scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ],
+      "required": true,
+      "required_observables": [
+        "active_context_count",
+        "bresp_next",
+        "ctx_expected_seq",
+        "ctx_expected_seq_sel",
+        "ctx_payload_byte_count",
+        "eom",
+        "frag_eom",
+        "frag_payload_bytes",
+        "frag_som",
+        "irq",
+        "last_drop_class",
+        "payload_bytes",
+        "prdata",
+        "pready",
+        "pslverr",
+        "rlast_next",
+        "rresp_next",
+        "s_axi_arready",
+        "s_axi_awready",
+        "s_axi_bresp",
+        "s_axi_bvalid",
+        "s_axi_rdata",
+        "s_axi_rlast",
+        "s_axi_rresp",
+        "s_axi_rvalid",
+        "s_axi_wready",
+        "som",
+        "sram_rd_req_addr",
+        "sram_rd_req_valid",
+        "sram_rd_rsp_ready",
+        "sram_wr_addr",
+        "sram_wr_data",
+        "sram_wr_strb",
+        "sram_wr_valid"
+      ],
+      "requirement_ids": [
+        "REQ_LEGACY_EQUIVALENCE_GOAL_CLOSURE_001"
+      ],
+      "scenario_ids": [
+        "SC_102_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "semantic_source_fingerprint": {
+    "artifact": "verify/semantic_contracts.json",
+    "sha256": "f4b133039006d60e2693224f55c010cdeec26d4a53f9f8d02280fa06ea031cfb"
+  },
+  "type": "evidence_contract"
+}
