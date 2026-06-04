@@ -23,6 +23,43 @@ import re as _re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+
+class CompressionLLMError(RuntimeError):
+    """Raised by ``compress_history`` (only when ``raise_on_llm_failure=True``)
+    to signal that the summarizer LLM call failed and the produced "summary" is
+    a non-LLM truncation fallback, not a real AI summary.
+
+    The web ``/compact`` path opts in so a genuine LLM failure surfaces as the
+    deterministic ``_compact_history_file`` fallback + an honest
+    "(AI summary unavailable: …)" message, instead of silently reporting a
+    successful "N% reduction" whose body is raw truncated text.
+    """
+
+
+# Substrings embedded by _compress_single / _compress_chunked when the LLM call
+# fails and they fall back to a char-truncation summary. compress_history scans
+# the produced summary for these to detect a swallowed failure. They are
+# bracket-anchored so ordinary summary prose mentioning "compression failed"
+# does not false-positive.
+_LLM_FAILURE_MARKERS = (
+    ", compression failed)]",
+    "[Chunk compression failed",
+    "[Compression failed]",
+)
+
+
+def _summary_is_llm_fallback(compressed: Optional[List[Dict]]) -> bool:
+    """True if any compressed part is a non-LLM truncation fallback."""
+    if not compressed:
+        return False
+    for _cm in compressed:
+        if not isinstance(_cm, dict):
+            continue
+        _content = str(_cm.get("content", ""))
+        if any(_mk in _content for _mk in _LLM_FAILURE_MARKERS):
+            return True
+    return False
+
 # ---------------------------------------------------------------------------
 # Working-path collector — snapshot current project context at compress time
 # ---------------------------------------------------------------------------
@@ -1192,6 +1229,7 @@ def compress_history(
     find_hook_fn: Optional[Callable] = None,
     hook_command_fn: Optional[Callable] = None,
     emit_fn: Optional[Callable] = None,
+    raise_on_llm_failure: bool = False,
 ) -> List[Dict]:
     """Compress conversation history when it exceeds the token limit.
 
@@ -1211,6 +1249,11 @@ def compress_history(
         on_compressed_fn: Called (no args) after compression completes.
         find_hook_fn: Locates hook files (defaults to built-in _find_hook).
         hook_command_fn: Builds hook command list (defaults to built-in _hook_command).
+        raise_on_llm_failure: If True, raise CompressionLLMError when the
+            summarizer LLM call fails (instead of returning a degraded
+            truncation summary). The web /compact path opts in so it can fall
+            back to the deterministic compactor with an honest message; the
+            CLI/worker loop leaves this False to survive transient LLM errors.
 
     Returns:
         Compressed (or original) message list.
@@ -1589,6 +1632,7 @@ def compress_history(
 
     # Compress (skip if all old messages were frozen summaries)
     compressed = None
+    llm_failed = False
     if old_msgs:
         try:
             if mode == "chunked":
@@ -1597,7 +1641,22 @@ def compress_history(
             else:
                 compressed = [_compress_single(old_msgs, llm_call_fn=llm_call_fn, instruction=instruction, cfg=cfg)]
         except Exception as exc:
+            llm_failed = True
             print(f"  [Compress] LLM compression failed entirely: {exc}")
+
+    # _compress_single / _compress_chunked swallow LLM errors internally and
+    # return a char-truncation fallback (preserving content, never raising) so
+    # the agent loop survives. That silent substitution is exactly what makes a
+    # web /compact look like a successful "N% reduction" whose body is raw text.
+    # Detect the fallback marker so we can (a) warn in the emitted output and
+    # (b) re-raise for callers that opt in (the web path) so they can fall back
+    # to the deterministic compactor with an honest "AI summary unavailable".
+    if _summary_is_llm_fallback(compressed):
+        llm_failed = True
+    if llm_failed and raise_on_llm_failure:
+        raise CompressionLLMError(
+            "summarizer LLM call failed; produced a non-LLM truncation fallback"
+        )
 
     # Preserve "awaiting user input" state across compression. If the pre-
     # compression tail shows the assistant asked the user a question that
@@ -1840,6 +1899,18 @@ def compress_history(
         "- Tokens: " + f"{current_tokens:,}" + " -> " + f"{new_tokens:,}" + " (" + str(reduction_pct) + "% reduction)\n"
         "- Kept: " + str(len(recent_msgs)) + " recent | Summarized: " + str(len(old_msgs)) + " -> " + str(len(compressed) if compressed else 0)
     )
+
+    # Surface a swallowed LLM failure at the top of the emitted output so the
+    # user is not misled by the "N% reduction" stats below it. The history was
+    # still reduced (via raw truncation), but it is NOT an AI summary.
+    if llm_failed:
+        md_parts.insert(
+            0,
+            "## ⚠️ AI Summary Unavailable\n\n"
+            "The summarizer LLM call failed, so the conversation was reduced with a "
+            "raw text truncation instead of an AI summary. Check the model / API "
+            "configuration (model name, base URL, API key) and re-run /compact.",
+        )
 
     if md_parts:
         md = "\n\n---\n\n".join(md_parts) + "\n"
