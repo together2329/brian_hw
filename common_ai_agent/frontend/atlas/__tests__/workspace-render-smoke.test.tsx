@@ -391,6 +391,15 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(queryByText(/End of loop/)).not.toBeNull();
   });
 
+  it('prefixes the footer status while the workspace is in plan mode', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { getByText, queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+
+    fireEvent.click(getByText(/Plan/));
+
+    await waitFor(() => expect(queryByText(/\[plan\] End of loop/)).not.toBeNull());
+  });
+
   it('updates the footer when backend connection closes', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
@@ -404,7 +413,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(queryByText(/End of loop/)).toBeNull();
   });
 
-  it('shows session worker failure ahead of the idle ready footer', async () => {
+  it('shows idle session worker state instead of a failed worker banner', async () => {
     global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
       if (String(url).startsWith('/api/session/worker/status')) {
         return new Response(JSON.stringify({
@@ -421,11 +430,12 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
 
-    await waitFor(() => expect(queryByText(/Agent worker failed/)).not.toBeNull());
+    await waitFor(() => expect(queryByText(/Agent worker idle/)).not.toBeNull());
+    expect(queryByText(/Agent worker failed/)).toBeNull();
     expect(queryByText(/End of loop/)).toBeNull();
   });
 
-  it('treats missing current-session worker as failed even when other workers are active', async () => {
+  it('keeps a missing current-session worker idle even when other workers are active', async () => {
     global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
       if (String(url).startsWith('/api/session/worker/status')) {
         return new Response(JSON.stringify({
@@ -442,11 +452,12 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     const { Workspace } = await import('../workspace.tsx');
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
 
-    await waitFor(() => expect(queryByText(/Agent worker failed/)).not.toBeNull());
+    await waitFor(() => expect(queryByText(/Agent worker idle/)).not.toBeNull());
+    expect(queryByText(/Agent worker failed/)).toBeNull();
     expect(queryByText(/End of loop/)).toBeNull();
   });
 
-  it('shows Agent responding ahead of stale session worker failure', async () => {
+  it('shows Agent responding ahead of stale idle session worker state', async () => {
     global.fetch = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
       if (String(url).startsWith('/api/session/worker/status')) {
         return new Response(JSON.stringify({
@@ -464,13 +475,13 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
     const backend = (window as AnyWindow).backend;
 
-    await waitFor(() => expect(queryByText(/Agent worker failed/)).not.toBeNull());
+    await waitFor(() => expect(queryByText(/Agent worker idle/)).not.toBeNull());
     await act(async () => {
       backend._emit('agent_state', { running: true });
     });
 
     await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
-    expect(queryByText(/Agent worker failed/)).toBeNull();
+    expect(queryByText(/Agent worker idle/)).toBeNull();
   });
 
   it('shows Agent responding ahead of stale backend connecting state', async () => {
@@ -556,6 +567,183 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
 
     await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
+  });
+
+  it('clears orchestrator Agent responding via run status polling when terminal websocket is missed', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/demo/jjj/orchestrator';
+    w.ACTIVE_IP = 'jjj';
+    w.atlasData.sessionFor = (ip: string, wf: string) => `alice/demo/${ip}/${wf}`;
+
+    const fetchSpy = vi.fn(async (url: RequestInfo | URL, _init?: RequestInit) => {
+      const requestUrl = new URL(String(url), 'http://atlas.test');
+      const path = requestUrl.pathname;
+      if (path === '/api/pipeline/orchestrator/chat') {
+        return new Response(JSON.stringify({
+          ok: true,
+          run_id: 'run-completed-without-ws',
+          status: 'started',
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (path === '/api/orchestrator/runs/run-completed-without-ws') {
+        return new Response(JSON.stringify({
+          ok: true,
+          run: {
+            id: 'run-completed-without-ws',
+            status: 'completed',
+            final_state: 'completed',
+          },
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    });
+    global.fetch = fetchSpy as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { container, queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: 'answer once' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+    await waitFor(() => {
+      const runDetailCall = fetchSpy.mock.calls.find(([url]) => {
+        const requestUrl = new URL(String(url), 'http://atlas.test');
+        return requestUrl.pathname === '/api/orchestrator/runs/run-completed-without-ws';
+      });
+      expect(runDetailCall).toBeTruthy();
+      const runDetailUrl = new URL(String(runDetailCall?.[0] || ''), 'http://atlas.test');
+      expect(runDetailUrl.searchParams.get('workspace_session')).toBe('demo');
+      expect(runDetailUrl.searchParams.get('ip')).toBe('jjj');
+      expect(runDetailUrl.searchParams.get('session')).toBe('alice/demo/jjj/orchestrator');
+    });
+    await waitFor(() => expect(queryByText('Agent responding')).toBeNull());
+  });
+
+  it('keeps a newer orchestrator response active when an older run poll finishes late', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/demo/jjj/orchestrator';
+    w.ACTIVE_IP = 'jjj';
+    w.atlasData.sessionFor = (ip: string, wf: string) => `alice/demo/${ip}/${wf}`;
+    const chatRunIds = ['old-run', 'new-run'];
+    let resolveOldRun: ((response: Response) => void) | null = null;
+    let oldRunSignal: AbortSignal | null = null;
+
+    const fetchSpy = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      const requestUrl = new URL(String(url), 'http://atlas.test');
+      const path = requestUrl.pathname;
+      if (path === '/api/pipeline/orchestrator/chat') {
+        const runId = chatRunIds.shift() || 'new-run';
+        return new Response(JSON.stringify({
+          ok: true,
+          run_id: runId,
+          status: 'started',
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (path === '/api/orchestrator/runs/old-run') {
+        oldRunSignal = init?.signal instanceof AbortSignal ? init.signal : null;
+        return new Promise<Response>((resolve, reject) => {
+          resolveOldRun = resolve;
+          oldRunSignal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+        });
+      }
+      if (path === '/api/orchestrator/runs/new-run') {
+        return new Response(JSON.stringify({
+          ok: true,
+          run: {
+            id: 'new-run',
+            status: 'running',
+            final_state: '',
+          },
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    });
+    global.fetch = fetchSpy as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { container, queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: 'first prompt' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+    await waitFor(() => {
+      expect(fetchSpy.mock.calls.some(([url]) => {
+        const requestUrl = new URL(String(url), 'http://atlas.test');
+        return requestUrl.pathname === '/api/orchestrator/runs/old-run'
+          && requestUrl.searchParams.get('workspace_session') === 'demo'
+          && requestUrl.searchParams.get('ip') === 'jjj';
+      })).toBe(true);
+    });
+
+    fireEvent.change(textarea, { target: { value: 'second prompt' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+    await waitFor(() => expect(oldRunSignal?.aborted).toBe(true));
+    expect(resolveOldRun).not.toBeNull();
+    resolveOldRun?.(new Response(JSON.stringify({
+      ok: true,
+      run: {
+        id: 'old-run',
+        status: 'completed',
+        final_state: 'completed',
+      },
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+
+    await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
+  });
+
+  it('aborts orchestrator run status polling when the workspace unmounts', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/demo/jjj/orchestrator';
+    w.ACTIVE_IP = 'jjj';
+    w.atlasData.sessionFor = (ip: string, wf: string) => `alice/demo/${ip}/${wf}`;
+    let runSignal: AbortSignal | null = null;
+
+    const fetchSpy = vi.fn(async (url: RequestInfo | URL, init?: RequestInit) => {
+      const requestUrl = new URL(String(url), 'http://atlas.test');
+      const path = requestUrl.pathname;
+      if (path === '/api/pipeline/orchestrator/chat') {
+        return new Response(JSON.stringify({
+          ok: true,
+          run_id: 'unmount-run',
+          status: 'started',
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (path === '/api/orchestrator/runs/unmount-run') {
+        runSignal = init?.signal instanceof AbortSignal ? init.signal : null;
+        return new Promise<Response>((_resolve, reject) => {
+          runSignal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+        });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    });
+    global.fetch = fetchSpy as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { container, unmount } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: 'abort on unmount' } });
+    fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+
+    await waitFor(() => {
+      expect(fetchSpy.mock.calls.some(([url]) => {
+        const requestUrl = new URL(String(url), 'http://atlas.test');
+        return requestUrl.pathname === '/api/orchestrator/runs/unmount-run'
+          && requestUrl.searchParams.get('workspace_session') === 'demo'
+          && requestUrl.searchParams.get('ip') === 'jjj';
+      })).toBe(true);
+    });
+    expect(runSignal?.aborted).toBe(false);
+
+    unmount();
+
+    await waitFor(() => expect(runSignal?.aborted).toBe(true));
   });
 
   it('does not show Agent responding for workflow activation control tokens', async () => {

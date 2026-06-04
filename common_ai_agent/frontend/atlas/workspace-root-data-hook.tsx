@@ -86,6 +86,7 @@ import {
   buildSsotQaBoardData,
   derivePendingQcard,
 } from './workspace-rootdata-feed-completion';
+import { interactiveWorkerStatusFromPayload } from './workspace-interactive-worker-state';
 
 // Re-export the deps contract from its extracted home so it stays importable
 // from this module (public-contract preservation for the strangler-fig split).
@@ -99,6 +100,33 @@ const healthzCostUrl = (): string => {
   return activeSession
     ? `/healthz?cost=0&session_id=${encodeURIComponent(activeSession)}`
     : '/healthz?cost=0';
+};
+
+const activeWorkspaceSession = (): string => {
+  const explicit = normalizeUiSession(w.ATLAS_WORKSPACE_SESSION_ID || '');
+  if (explicit) return explicit;
+  const parts = normalizeUiSession(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  return parts.length >= 4 ? parts[1] || '' : '';
+};
+
+type WorkspaceSessionPayload = {
+  readonly workspace_session?: string;
+  readonly session_id?: string;
+  readonly user_name?: string;
+};
+
+const workspaceSessionPayload = (): WorkspaceSessionPayload => {
+  const workspaceSession = activeWorkspaceSession();
+  const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
+  const parts = activeSession.split('/').filter(Boolean);
+  const owner = parts.length >= 4
+    ? parts[0] || ''
+    : normalizeUiSession(w.ATLAS_USER_SESSION_ID || w.ATLAS_USER_NAME || '');
+  return {
+    ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
+    ...(activeSession ? { session_id: activeSession } : {}),
+    ...(owner && owner !== 'default' ? { user_name: owner } : {}),
+  } satisfies WorkspaceSessionPayload;
 };
 
 const askText = (value: any, fallback = ''): string => {
@@ -145,6 +173,8 @@ const ORCHESTRATOR_TERMINAL_RUN_STATES = new Set([
   'paused',
   'yielded',
 ]);
+const ORCHESTRATOR_RUN_POLL_INTERVAL_MS = 700;
+const ORCHESTRATOR_RUN_POLL_MAX_ATTEMPTS = 90;
 
 const orchestratorFeedEntryFromLiveMessage = (message: any): any => {
   const mapper = w.AtlasOrchestratorChatLogic?.feedEntryFromChatMessage;
@@ -439,36 +469,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           : '/api/session/worker/status';
         const r = await fetch(statusUrl, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const j: any = await r.json();
-        const hasStatusPayload = !!j && (
-          Object.prototype.hasOwnProperty.call(j, 'active_count') ||
-          Object.prototype.hasOwnProperty.call(j, 'worker') ||
-          Object.prototype.hasOwnProperty.call(j, 'policy')
-        );
-        if (!hasStatusPayload) return;
-        const hasWorkerField = Object.prototype.hasOwnProperty.call(j, 'worker');
-        const worker = hasWorkerField && j.worker ? j.worker : null;
-        const state = worker && worker.state
-          ? String(worker.state)
-          : worker && worker.running
-            ? 'running'
-            : worker && worker.alive
-              ? 'ready'
-              : hasWorkerField
-                ? 'failed'
-                : (Number(j.active_count || 0) > 0 ? 'ready' : 'failed');
+        const status = interactiveWorkerStatusFromPayload(await r.json());
+        if (!status) return;
         if (!cancelled) {
-          setInteractiveWorkerStatus({
-            policy: String(j.policy || ''),
-            activeCount: Number(j.active_count || 0),
-            owner: j.owner != null ? String(j.owner) : '',
-            ownerActiveSession: j.owner_active_session != null ? String(j.owner_active_session) : '',
-            state,
-            alive: !!(worker && worker.alive),
-            running: !!(worker && worker.running),
-            pid: worker && worker.pid,
-            idleAgeSec: worker && worker.idle_age_sec,
-          });
+          setInteractiveWorkerStatus(status);
           setInteractiveWorkerStatusError('');
         }
       } catch (e) {
@@ -671,6 +675,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // the agent actually starts. (workspace.jsx L2737-L2738 component-scope refs.)
   const awaitingRunStartRef = useRef<boolean>(false);
   const backendRunStartedRef = useRef<boolean>(false);
+  const orchestratorRunPollRef = useRef<{
+    runId: string;
+    session: string;
+    token: number;
+    timer: ReturnType<typeof window.setTimeout> | null;
+    controller: AbortController | null;
+  }>({ runId: '', session: '', token: 0, timer: null, controller: null });
   const latencyStatusRef = useRef<{ msgId: any } | null>(null);
   const latencyTimerRef = useRef<any>(null);
 
@@ -819,17 +830,115 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     setStreamText('');
   }, [appendLiveFeedEntries, cancelStreamTextDisplay, setStreamText, streamBufferRef]);
 
+  const cancelOrchestratorRunPoll = useCallback(() => {
+    const current = orchestratorRunPollRef.current;
+    if (current.timer !== null) {
+      window.clearTimeout(current.timer);
+    }
+    if (current.controller) {
+      current.controller.abort();
+    }
+    orchestratorRunPollRef.current = {
+      runId: '',
+      session: '',
+      token: current.token + 1,
+      timer: null,
+      controller: null,
+    };
+  }, []);
+
+  const finishLiveRun = useCallback(() => {
+    cancelOrchestratorRunPoll();
+    parkLiveStream();
+    setStreaming(false);
+    setLiveLlmRuntime({ model: '', reasoningEffort: '' });
+    awaitingRunStartRef.current = false;
+    backendRunStartedRef.current = false;
+    setCommandBusy(null);
+  }, [cancelOrchestratorRunPoll, parkLiveStream, setStreaming]);
+
+  const pollOrchestratorRunUntilTerminal = useCallback((runId: string, sessionKey?: string) => {
+    const id = String(runId || '').trim();
+    if (!id) return;
+    cancelOrchestratorRunPoll();
+    const session = normalizeUiSession(sessionKey || w.ACTIVE_SESSION || activeSessionRef.current || '');
+    const sessionParts = session.split('/').filter(Boolean);
+    const pollWorkspaceSession = sessionParts.length >= 4 ? sessionParts[1] || '' : activeWorkspaceSession();
+    const pollIp = sessionParts.length >= 4 ? sessionParts[2] || '' : String(w.ACTIVE_IP || '').trim();
+    const pollParams = new URLSearchParams();
+    if (session) pollParams.set('session', session);
+    if (pollWorkspaceSession) pollParams.set('workspace_session', pollWorkspaceSession);
+    if (pollIp) pollParams.set('ip', pollIp);
+    const pollQuery = pollParams.toString();
+    const pollUrl = `/api/orchestrator/runs/${encodeURIComponent(id)}${pollQuery ? `?${pollQuery}` : ''}`;
+    const token = orchestratorRunPollRef.current.token + 1;
+    orchestratorRunPollRef.current = { runId: id, session, token, timer: null, controller: null };
+    let attempts = 0;
+
+    function isCurrentPoll(): boolean {
+      const current = orchestratorRunPollRef.current;
+      const active = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '');
+      const sameSession = !session || !active || active === session;
+      return current.runId === id && current.token === token && current.session === session && sameSession;
+    }
+
+    function schedulePoll(): void {
+      if (!isCurrentPoll()) return;
+      orchestratorRunPollRef.current = {
+        ...orchestratorRunPollRef.current,
+        timer: window.setTimeout(poll, ORCHESTRATOR_RUN_POLL_INTERVAL_MS),
+      };
+    }
+
+    function clearController(controller: AbortController): void {
+      const current = orchestratorRunPollRef.current;
+      if (current.controller !== controller) return;
+      orchestratorRunPollRef.current = { ...current, controller: null };
+    }
+
+    function poll(): void {
+      if (!isCurrentPoll()) return;
+      attempts += 1;
+      const controller = new AbortController();
+      orchestratorRunPollRef.current = { ...orchestratorRunPollRef.current, timer: null, controller };
+      fetch(pollUrl, {
+        credentials: 'include',
+        signal: controller.signal,
+      })
+        .then((r) => r.json().catch(() => ({})))
+        .then((d: any) => {
+          clearController(controller);
+          if (!isCurrentPoll()) return;
+          const run = (d && d.run) || {};
+          const status = String(run.status || d?.status || '').toLowerCase();
+          const finalState = String(run.final_state || d?.final_state || '').toLowerCase();
+          if (ORCHESTRATOR_TERMINAL_RUN_STATES.has(status) || ORCHESTRATOR_TERMINAL_RUN_STATES.has(finalState)) {
+            finishLiveRun();
+            return;
+          }
+          if (attempts < ORCHESTRATOR_RUN_POLL_MAX_ATTEMPTS) {
+            schedulePoll();
+          }
+        })
+        .catch((error: any) => {
+          clearController(controller);
+          if (controller.signal.aborted || String(error?.name || '') === 'AbortError') return;
+          if (isCurrentPoll() && attempts < ORCHESTRATOR_RUN_POLL_MAX_ATTEMPTS) {
+            schedulePoll();
+          }
+        });
+    }
+
+    schedulePoll();
+  }, [activeSessionRef, cancelOrchestratorRunPoll, finishLiveRun]);
+
+  useEffect(() => () => {
+    cancelOrchestratorRunPoll();
+  }, [cancelOrchestratorRunPoll]);
+
   useEffect(() => {
     if (!w.backend || typeof w.backend.subscribe !== 'function') return undefined;
     const subs: Array<(() => void) | undefined> = [];
-    const finishRun = () => {
-      parkLiveStream();
-      setStreaming(false);
-      setLiveLlmRuntime({ model: '', reasoningEffort: '' });
-      awaitingRunStartRef.current = false;
-      backendRunStartedRef.current = false;
-      setCommandBusy(null);
-    };
     try {
       subs.push(w.backend.subscribe('token', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
@@ -877,7 +986,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const role = String(payload.role || '').toLowerCase();
         if (role === 'run_state') {
           const status = String(payload.status || '').toLowerCase();
-          if (ORCHESTRATOR_TERMINAL_RUN_STATES.has(status)) finishRun();
+          if (ORCHESTRATOR_TERMINAL_RUN_STATES.has(status)) finishLiveRun();
           return;
         }
         const entry = orchestratorFeedEntryFromLiveMessage(m);
@@ -918,7 +1027,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }));
       subs.push(w.backend.subscribe('done', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
-        finishRun();
+        finishLiveRun();
       }));
       subs.push(w.backend.subscribe('agent_state', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
@@ -937,14 +1046,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           return;
         }
         if (m && m.running === false) {
-          finishRun();
+          finishLiveRun();
         }
       }));
       subs.push(w.backend.subscribe('error', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
         const message = String((m && (m.message || m.error)) || '').trim();
         if (message) appendLiveFeedEntries({ kind: 'agent', text: `[error] ${message}`, createdAt: Date.now(), live: true });
-        finishRun();
+        finishLiveRun();
       }));
     } catch (_) {}
     return () => {
@@ -953,6 +1062,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, [
     appendLiveFeedEntries,
     eventMatchesCurrentSession,
+    finishLiveRun,
     parkLiveStream,
     scheduleStreamTextDisplay,
     setStreamText,
@@ -2409,7 +2519,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       fetch('/api/pipeline/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: ipName }),
+        body: JSON.stringify({ ip: ipName, ...workspaceSessionPayload() }),
       })
         .then(async (r) => {
           const j = await r.json().catch(() => ({}));
@@ -2538,10 +2648,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           workflow: dispatchWorkflow,
           ip: orchIp,
           prompt: raw,
-          session: dispatchSession,
           exec_mode: 'orchestrator',
           run_mode: w.ATLAS_RUN_MODE || (w.ATLAS_BOOT_CONFIG && w.ATLAS_BOOT_CONFIG.run_mode) || '',
           trigger_source: 'worker_direct_chat',
+          ...workspaceSessionPayload(),
         }),
       })
         .then(async (r) => {
@@ -2628,6 +2738,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         }
       }
       setFeed((f: any) => [...(returningFromWorkerView ? [] : f), { kind: 'user', text: raw, createdAt: Date.now() }]);
+      cancelOrchestratorRunPoll();
       setStreaming(true);
       awaitingRunStartRef.current = true;
       fetch('/api/pipeline/orchestrator/chat', {
@@ -2638,23 +2749,34 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           message: raw,
           ip: orchIp,
           session: orchSession,
+          ...workspaceSessionPayload(),
         }),
       })
         .then((r) => r.json().catch(() => ({})))
         .then((d: any) => {
           if (d && d.error) {
             setFeed((f: any) => [...f, { kind: 'agent', text: `[orchestrator] ${d.error}` }]);
-            setStreaming(false);
+            finishLiveRun();
             return;
           }
           if (d && d.reply && String(d.reply).trim()) {
             setFeed((f: any) => [...f, { kind: 'agent', text: String(d.reply), createdAt: Date.now() }]);
-            setStreaming(false);
+            finishLiveRun();
+            return;
+          }
+          const status = String(d?.status || '').toLowerCase();
+          const finalState = String(d?.final_state || '').toLowerCase();
+          if (ORCHESTRATOR_TERMINAL_RUN_STATES.has(status) || ORCHESTRATOR_TERMINAL_RUN_STATES.has(finalState)) {
+            finishLiveRun();
+            return;
+          }
+          if (d && d.run_id) {
+            pollOrchestratorRunUntilTerminal(String(d.run_id), orchSession);
           }
         })
         .catch((e: any) => {
           setFeed((f: any) => [...f, { kind: 'agent', text: `[orchestrator] ${String(e)}` }]);
-          setStreaming(false);
+          finishLiveRun();
         });
       return;
     }
@@ -2729,7 +2851,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     sessionForInputRoute, setChatViewSession, setOrchestratorInputRoute,
     switchToDefaultSession, switchWorkflow, activeSsotIp,
     activeSessionRef, chatViewSessionRef, hydratedConversationSessionRef, inputRouteRef,
-    requestFeedScrollToBottom,
+    requestFeedScrollToBottom, cancelOrchestratorRunPoll, finishLiveRun, pollOrchestratorRunUntilTerminal,
   ]);
 
   // Held-input replay: when the switch settles (workflowReady cleared) and the
@@ -2883,7 +3005,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
 
     const findJobId = async () => {
       try {
-        const r = await fetch(`/api/pipeline/progress-debug?ip=${encodeURIComponent(ip)}`, { credentials: 'include', cache: 'no-store' });
+        const params = new URLSearchParams({ ip });
+        const workspaceSession = activeWorkspaceSession();
+        if (workspaceSession) params.set('workspace_session', workspaceSession);
+        const r = await fetch(`/api/pipeline/progress-debug?${params.toString()}`, { credentials: 'include', cache: 'no-store' });
         if (!r.ok) return '';
         const d = await r.json();
         const active = (d && d.worker && Array.isArray(d.worker.active)) ? d.worker.active
@@ -2906,7 +3031,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           if (!workerLogJobRef.current) return;
         }
         const jid = workerLogJobRef.current;
-        const r = await fetch(`/api/job/${encodeURIComponent(jid)}/log?since=${workerLogSinceRef.current}`, { credentials: 'include', cache: 'no-store' });
+        const params = new URLSearchParams({ since: String(workerLogSinceRef.current) });
+        const workspaceSession = activeWorkspaceSession();
+        if (workspaceSession) params.set('workspace_session', workspaceSession);
+        const r = await fetch(`/api/job/${encodeURIComponent(jid)}/log?${params.toString()}`, { credentials: 'include', cache: 'no-store' });
         if (!r.ok) { if (r.status === 404) workerLogJobRef.current = ''; return; }
         const d = await r.json();
         const jb = d.job || {};

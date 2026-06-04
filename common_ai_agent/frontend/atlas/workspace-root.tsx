@@ -335,6 +335,7 @@ export const Workspace = ({
   const scmTabLabel: any = ws.scmTabLabel;
   const liveRuntimeModel = cleanRuntimeLabel(liveLlmRuntime?.model);
   const liveRuntimeEffort = cleanRuntimeLabel(liveLlmRuntime?.reasoningEffort);
+  const footerModePrefix = intent === 'plan' ? '[plan] ' : '';
   const agentRespondingText = [
     'Agent responding',
     liveRuntimeModel,
@@ -803,6 +804,7 @@ export const Workspace = ({
             const interactiveWorkerStarting = interactiveWorkerState === 'starting' ||
               interactiveWorkerState === 'capacity_wait' ||
               interactiveWorkerState === 'switching';
+            const interactiveWorkerIdle = interactiveWorkerState === 'evicted';
             const terminalWorkerStatuses = new Set(['passed', 'done', 'completed', 'failed', 'error', 'cancelled', 'blocked']);
             const activeOrchWorker = workflow === 'orchestrator'
               ? (Array.isArray(orchWorkers) ? orchWorkers.find((wk: any) =>
@@ -856,6 +858,13 @@ export const Workspace = ({
                     color: 'var(--warn)',
                     bg: 'color-mix(in oklch, var(--warn) 10%, transparent)',
                   }
+              : interactiveWorkerIdle
+                ? {
+                    icon: '·',
+                    text: 'Agent worker idle · starts on next chat',
+                    color: 'var(--fg-mute)',
+                    bg: 'color-mix(in oklch, var(--fg-mute) 10%, transparent)',
+                  }
               : normalizedBackendState === 'connecting'
                 ? { icon: '·', text: 'Backend connecting', color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 10%, transparent)' }
               : terminalWorkerProgress
@@ -882,7 +891,7 @@ export const Workspace = ({
                 <span style={{ fontWeight: 700 }}>
                   {s.icon}{s.spin ? <span className="ascii-spin" style={{ marginLeft: 2 }} /> : null}
                 </span>
-                <span>{s.text}</span>
+                <span>{footerModePrefix}{s.text}</span>
               </div>
             );
           })()}

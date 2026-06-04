@@ -20,10 +20,10 @@ import {
 import {
   AgentWorkerStatus,
   type AtlasWorkersLogicApi,
-  type InteractiveWorkerState,
   type InteractiveWorkerStatus,
   type WorkerSnapshot,
 } from './agent-worker-status';
+import { interactiveWorkerStatusFromPayload } from './workspace-interactive-worker-state';
 
 // ── Data shapes flowing through this panel. Loose where the .jsx was loose. ──
 interface ModelOption {
@@ -369,24 +369,10 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
           : '/api/session/worker/status';
         const r = await fetch(statusUrl, { cache: 'no-store' });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const j = (await r.json()) as Record<string, unknown>;
-        const w0 = (j && (j as { worker?: Record<string, unknown> }).worker) || {};
+        const status = interactiveWorkerStatusFromPayload(await r.json());
+        if (!status) return;
         if (!dead) {
-          setInteractiveWorker({
-            policy: String(j.policy || ''),
-            single_active_owner: !!j.single_active_owner,
-            max_active: Number(j.max_active || 0),
-            active_count: Number(j.active_count || 0),
-            owner: j.owner != null ? String(j.owner) : undefined,
-            owner_slot: j.owner_slot != null ? String(j.owner_slot) : undefined,
-            authenticated_owner: j.authenticated_owner != null ? String(j.authenticated_owner) : undefined,
-            owner_active_session: j.owner_active_session != null ? String(j.owner_active_session) : undefined,
-            state: (String((w0 as { state?: string }).state || (j.active_count ? 'ready' : 'failed')) as InteractiveWorkerState),
-            alive: !!(w0 as { alive?: boolean }).alive,
-            running: !!(w0 as { running?: boolean }).running,
-            pid: (w0 as { pid?: number }).pid,
-            idle_age_sec: (w0 as { idle_age_sec?: number }).idle_age_sec,
-          });
+          setInteractiveWorker(status);
           setInteractiveWorkerError('');
         }
       } catch (e) {

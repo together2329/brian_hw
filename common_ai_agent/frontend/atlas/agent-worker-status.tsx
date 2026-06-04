@@ -125,7 +125,7 @@ export const summarizeInteractiveWorker = (
     case 'stopping':
       return { stateLabel: 'stopping', detailLabel: 'session worker stopping', tone: 'mute' };
     case 'evicted':
-      return { stateLabel: 'evicted', detailLabel: 'idle worker evicted', tone: 'mute' };
+      return { stateLabel: 'idle', detailLabel: 'idle worker evicted; next chat restarts it', tone: 'mute' };
     case 'failed':
       return { stateLabel: 'failed', detailLabel: status.error || 'session worker failed', tone: 'err' };
     default:
