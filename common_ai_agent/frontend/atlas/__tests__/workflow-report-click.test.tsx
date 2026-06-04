@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 vi.mock('../preview-pane.tsx', () => ({
   PreviewPane: ({
@@ -343,5 +343,53 @@ describe('Workflow report click surfaces', () => {
     const lastCall = fetchMock.mock.calls.at(-1);
     expect(String(lastCall?.[0] || '')).toContain('vcd=1');
     expect(String(lastCall?.[0] || '')).toContain('vcd_path=demo_ip%2Fsim%2Fnested%2Falt.vcd');
+  });
+
+  it('prefers discovered workflow artifacts over stale hard-coded report candidates', async () => {
+    installWorkflowReportGlobals({});
+    const w = window as TestWindow;
+    w.WORKFLOW_REPORT_TABS = {
+      syn: {
+        label: 'syn_report',
+        title: 'Synthesis Report',
+        folders: ['syn'],
+        paths: (ip: string) => [`${ip}/syn/syn_report.md`],
+      },
+    };
+    w.FILE_TREE = [
+      { type: 'file', name: 'syn/out/syn.report.md', depth: 2, size: 44, mtime: 123 },
+    ];
+    w.SCOPE_PATH = 'demo_ip';
+    w.ACTIVE_SESSION = 'alice/s1/demo_ip/syn';
+    const { WorkflowReportPane } = await import('../workflow-report.tsx');
+
+    render(<WorkflowReportPane workflow="syn" activeIp="demo_ip" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-pane')).toHaveTextContent(
+        'demo_ip/syn/out/syn.report.md|L0|no lint diagnostic',
+      );
+    });
+  });
+
+  it('renders the post-STA report surface from discovered artifacts', async () => {
+    installWorkflowReportGlobals({});
+    const w = window as TestWindow;
+    const { WORKFLOW_REPORT_TABS } = await import('../workspace-report-status.tsx');
+    w.WORKFLOW_REPORT_TABS = WORKFLOW_REPORT_TABS;
+    w.FILE_TREE = [
+      { type: 'file', name: 'sta/out/sta_post.report.md', depth: 2, size: 44, mtime: 123 },
+    ];
+    w.SCOPE_PATH = 'demo_ip';
+    w.ACTIVE_SESSION = 'alice/s1/demo_ip/sta-post';
+    const { WorkflowReportPane } = await import('../workflow-report.tsx');
+
+    render(<WorkflowReportPane workflow="sta-post" activeIp="demo_ip" />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('preview-pane')).toHaveTextContent(
+        'demo_ip/sta/out/sta_post.report.md|L0|no lint diagnostic',
+      );
+    });
   });
 });

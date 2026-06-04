@@ -29,6 +29,7 @@ def _import_docx_helpers():
     if g.get("_HELPERS_HYDRATED"): return
     from src import atlas_ssot_docx as _d
     for name in (
+        "_SSOT_DOCX_APPENDIX_KEYS",
         "_ssot_docx_add_list_of_figures",
         "_ssot_docx_add_list_of_tables",
         "_ssot_docx_add_toc",
@@ -773,4 +774,3 @@ def _ssot_to_docx(data: dict, ip: str, out_path: Path) -> None:
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     doc.save(str(out_path))
-

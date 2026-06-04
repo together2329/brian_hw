@@ -19,6 +19,8 @@ from fastapi import FastAPI
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from src.atlas_api_files import AtlasContext, IP_LOCAL_ROOTS
+
 
 def register_ssot_routes(
     app: FastAPI,
@@ -72,13 +74,115 @@ def register_ssot_routes(
                 kept.append(f)
         return kept
 
+    def _context_for_session(session_id: str) -> AtlasContext | None:
+        raw = str(session_id or "").strip()
+        if not raw:
+            return None
+        try:
+            return AtlasContext.from_session_key(
+                raw,
+                atlas_root=os.environ.get("ATLAS_ROOT") or str(project_root()),
+            )
+        except Exception:
+            return None
+
+    def _context_base(context: AtlasContext | None) -> Path:
+        if context is not None and not context.legacy:
+            return context.workspace_root
+        return project_root()
+
+    def _clean_rel_path(rel_path: str) -> str:
+        return str(rel_path or "").replace("\\", "/").lstrip("/")
+
+    def _session_rel_path(context: AtlasContext | None, rel_path: str) -> str:
+        rel = _clean_rel_path(rel_path)
+        if context is None or context.legacy or not rel or str(rel_path or "").startswith("/"):
+            return rel
+        prefix = f"{context.user_name}/{context.workspace_session}/"
+        if rel.startswith(prefix):
+            rel = rel[len(prefix):]
+        ip_name = str(context.ip_name or "").strip()
+        if not ip_name or ip_name == "default":
+            return rel
+        first = rel.split("/", 1)[0]
+        if first == ip_name:
+            return rel
+        if first in IP_LOCAL_ROOTS:
+            return f"{ip_name}/{rel}"
+        candidate = context.workspace_root / ip_name / rel
+        if candidate.exists():
+            return f"{ip_name}/{rel}"
+        return rel
+
+    def _safe_in_base(base: Path, rel_path: str) -> Path | None:
+        rel = _clean_rel_path(rel_path)
+        try:
+            candidate = (base / rel).resolve()
+            candidate.relative_to(base.resolve())
+            return candidate
+        except (OSError, ValueError):
+            return None
+
+    def _target_for_session(path: str, session_id: str) -> tuple[Path | None, Path, AtlasContext | None, str]:
+        context = _context_for_session(session_id)
+        base = _context_base(context)
+        if base == project_root():
+            target = safe_path(path)
+            rel = _clean_rel_path(path)
+            if target is not None:
+                try:
+                    rel = target.resolve().relative_to(project_root().resolve()).as_posix()
+                except (OSError, ValueError):
+                    pass
+            return target, project_root(), context, rel
+        rel = _session_rel_path(context, path)
+        target = _safe_in_base(base, rel)
+        if target is not None:
+            try:
+                rel = target.resolve().relative_to(base.resolve()).as_posix()
+            except (OSError, ValueError):
+                pass
+        return target, base, context, rel
+
+    def _deny_context_request(request: Request, context: AtlasContext | None):
+        if context is None or context.legacy:
+            return None
+        try:
+            user = request.scope.get("user") or {}
+        except Exception:
+            user = {}
+        user_id = str((user or {}).get("id") or "").strip()
+        if not user_id or user_id == "default":
+            return JSONResponse({"error": "login required"}, status_code=401)
+        if str((user or {}).get("role") or "").strip().lower() == "admin":
+            return None
+        username = str((user or {}).get("username") or "").strip().strip("/")
+        if username == context.user_name:
+            return None
+        return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+
+    def _gate_for_context_path(
+        request: Request,
+        rel_path: str,
+        context: AtlasContext | None,
+        permission: str = "view",
+    ):
+        denied = _deny_context_request(request, context)
+        if denied is not None:
+            return denied
+        if context is not None and not context.legacy:
+            return None
+        return _gate_path(request, rel_path, permission)
+
     @app.get("/api/ssot")
-    async def api_ssot(request: Request, file: str = ""):
+    async def api_ssot(request: Request, file: str = "", session_id: str = "", session: str = ""):
+        context = _context_for_session(session_id or session)
+        root = _context_base(context)
         if file:
-            denied = _gate_path(request, file)
+            target, root, context, rel_file = _target_for_session(file, session_id or session)
+            denied = _gate_for_context_path(request, rel_file or file, context)
             if denied is not None:
                 return denied
-            target = safe_path(file)
             if target is None or not target.is_file():
                 return JSONResponse({"error": "not found"}, status_code=404)
             try:
@@ -90,7 +194,7 @@ def register_ssot_routes(
             except OSError as e:
                 return JSONResponse({"error": str(e)}, status_code=500)
             return JSONResponse({
-                "path": file,
+                "path": rel_file or file,
                 "size": stat.st_size,
                 "mtime": stat.st_mtime,
                 "truncated": stat.st_size > max_read_bytes,
@@ -103,7 +207,9 @@ def register_ssot_routes(
         # os.walk(onerror=...) skips a transient/again directory instead, and pruning
         # skip/hidden dirs in-place avoids descending into them at all.
         results = []
-        root = project_root()
+        denied = _deny_context_request(request, context)
+        if denied is not None:
+            return denied
         for dirpath, dirnames, filenames in os.walk(root, onerror=lambda _e: None):
             dirnames[:] = [d for d in dirnames
                            if d not in skip_dirs and not d.startswith(".")]
@@ -212,7 +318,8 @@ def register_ssot_routes(
                 "subtitle": entry.get("subtitle") or "",
             }
             answer_text = str(entry.get("answer") or "").strip()
-            selected = entry.get("selected") if isinstance(entry.get("selected"), list) else []
+            selected_raw = entry.get("selected")
+            selected: list[Any] = selected_raw if isinstance(selected_raw, list) else []
             if not answer_text and selected:
                 answer_text = "; ".join(str(s) for s in selected if s)
             bucket = grouped.setdefault(flow_id, {"pairs": [], "answers": {}})

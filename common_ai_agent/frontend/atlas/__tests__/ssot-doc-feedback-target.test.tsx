@@ -12,6 +12,7 @@ import {
 describe('SSOT DOC Feedback Mode target selection', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    window.history.pushState({}, '', '/');
     vi.stubGlobal('fetch', vi.fn());
   });
 
@@ -97,6 +98,18 @@ describe('SSOT DOC Feedback Mode target selection', () => {
     expect(screen.getByRole('button', { name: /send to chat/i })).toBeDisabled();
     expect(screen.queryByPlaceholderText(/value to write/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /apply feedback/i })).not.toBeInTheDocument();
+  });
+
+  it('renders the DOC export iframe with the active workspace session', () => {
+    window.history.pushState({}, '', '/?session=admin%2Fdefault%2Fmctp_axi%2Fsim_debug&ip=mctp_axi');
+
+    render(<SsotDocPane uiLang="en" ip="mctp_axi" />);
+
+    const frame = screen.getByTestId('ssot-doc-frame') as HTMLIFrameElement;
+    const url = new URL(frame.src);
+    expect(url.pathname).toBe('/api/ssot/export');
+    expect(url.searchParams.get('ip')).toBe('mctp_axi');
+    expect(url.searchParams.get('session_id')).toBe('admin/default/mctp_axi/sim_debug');
   });
 
   it('dispatches a structured chat prefill event for the selected DOC source', () => {

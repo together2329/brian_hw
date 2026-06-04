@@ -120,7 +120,10 @@ export const stripScopeDirective = (t: any): any => {
 export function resolveActiveSession(): string {
   try {
     const url = new URLSearchParams(window.location.search);
-    const urlSession = normalizeUiSession(url.get('session') || url.get('sid') || url.get('namespace') || '');
+    const rawUrlSession = String(url.get('session') || url.get('sid') || url.get('namespace') || '')
+      .trim()
+      .replace(/^\/+|\/+$/g, '');
+    const urlSession = normalizeUiSession(rawUrlSession) || rawUrlSession;
     const urlSessionParts = urlSession.split('/').filter(Boolean);
     const urlIp = String(url.get('ip') || url.get('ip_id') || '').trim();
     const urlWf = String(url.get('workflow') || url.get('wf') || '').trim()
@@ -129,16 +132,17 @@ export function resolveActiveSession(): string {
     const username = (w.ATLAS_USER && w.ATLAS_USER.username)
       || w.ATLAS_USER_SESSION_ID
       || 'validator';
-    const workspaceSession = normalizeUiSession(
+    const rawWorkspaceSession = String(
       url.get('workspace_session')
-      || url.get('workspace')
-      || w.ATLAS_WORKSPACE_SESSION_ID
-      || (() => {
-        try { return localStorage.getItem('atlasWorkspaceSessionId') || ''; }
-        catch (_) { return ''; }
-      })()
-      || ''
-    ) || 'default';
+        || url.get('workspace')
+        || w.ATLAS_WORKSPACE_SESSION_ID
+        || (() => {
+          try { return localStorage.getItem('atlasWorkspaceSessionId') || ''; }
+          catch (_) { return ''; }
+        })()
+        || ''
+    ).trim().replace(/^\/+|\/+$/g, '');
+    const workspaceSession = normalizeUiSession(rawWorkspaceSession) || rawWorkspaceSession || 'default';
     if (urlSessionParts.length >= 4) {
       return urlSession;
     }
@@ -166,20 +170,44 @@ export function resolveActiveSession(): string {
 }
 try { w.atlasResolveActiveSession = resolveActiveSession; } catch (_) {}
 
-export const activeUiSession = (): string => normalizeUiSession(w.ACTIVE_SESSION || resolveActiveSession() || '');
+const explicitRouteSession = (): string => {
+  try {
+    const url = new URLSearchParams(window.location.search);
+    const hasExplicitRoute = !!(
+      url.get('session')
+      || url.get('sid')
+      || url.get('namespace')
+      || url.get('ip')
+      || url.get('ip_id')
+      || url.get('workflow')
+      || url.get('wf')
+    );
+    const resolved = resolveActiveSession() || '';
+    return hasExplicitRoute ? (normalizeUiSession(resolved) || String(resolved).trim()) : '';
+  } catch (_) {
+    return '';
+  }
+};
+
+export const activeUiSession = (): string => {
+  const routeSession = explicitRouteSession();
+  const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '') || String(w.ACTIVE_SESSION || '').trim();
+  const resolved = resolveActiveSession() || '';
+  const resolvedSession = normalizeUiSession(resolved) || String(resolved).trim();
+  return routeSession || activeSession || resolvedSession || 'default';
+};
 
 export const appendActiveSessionParam = (params: URLSearchParams): URLSearchParams => {
-  const activeSession = activeUiSession();
-  if (activeSession && !params.has('session_id')) {
-    params.set('session_id', activeSession);
-  }
+  const sid = activeUiSession();
+  if (sid) params.set('session_id', sid);
   return params;
 };
 
 export const ssotIpFromSession = (session: any): string => {
   const parts = normalizeUiSession(session).split('/').filter(Boolean);
   const idx = parts.lastIndexOf('ssot-gen');
-  return idx > 0 ? parts[idx - 1] : '';
+  if (idx > 0) return parts[idx - 1];
+  return routeSessionIp(session);
 };
 w.ssotIpFromSession = ssotIpFromSession;  // Phase 13a: consumed by ssot-doc.jsx
 

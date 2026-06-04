@@ -44,6 +44,7 @@ import {
   markSsotDocSelection,
 } from './ssot-doc-feedback-dom';
 import type { SsotDocSelectedTarget, SsotDocSourceResponse } from './ssot-doc-feedback-types';
+import { appendActiveSessionParam } from './active-session-query';
 
 // ── Local typed view of the cross-file window globals this file reads. ──
 // Owned by workspace.jsx (not yet migrated); mirror their runtime shapes
@@ -86,16 +87,18 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
   const [sourceInfo, setSourceInfo] = useState<SsotDocSourceResponse | null>(null);
   const docFrameRef = useRef<HTMLIFrameElement>(null);
   const effectiveIp = String(ip || ssotWin.ACTIVE_IP || ssotIpFromSession(ssotWin.ACTIVE_SESSION) || '').trim();
-  const qs = effectiveIp ? new URLSearchParams({
+  const inlineParams = effectiveIp ? appendActiveSessionParam(new URLSearchParams({
     ip: effectiveIp,
     format: 'html',
     inline: '1',
     v: String(reloadKey),
-  }).toString() : '';
-  const inlineUrl = qs ? `/api/ssot/export?${qs}` : '';
-  const downloadUrl = effectiveIp
-    ? `/api/ssot/export?ip=${encodeURIComponent(effectiveIp)}&format=html`
-    : '';
+  })) : null;
+  const inlineUrl = inlineParams ? `/api/ssot/export?${inlineParams.toString()}` : '';
+  const downloadParams = effectiveIp ? appendActiveSessionParam(new URLSearchParams({
+    ip: effectiveIp,
+    format: 'html',
+  })) : null;
+  const downloadUrl = downloadParams ? `/api/ssot/export?${downloadParams.toString()}` : '';
   const title = uiLang === 'en' ? 'SSOT Document' : 'SSOT Document';
   const subtitle = uiLang === 'en'
     ? 'Rendered from the same HTML export artifact.'

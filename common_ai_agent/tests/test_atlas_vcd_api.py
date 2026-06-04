@@ -25,6 +25,12 @@ def _safe(root: Path, rel_path: str) -> Optional[Path]:
 
 def _client(root: Path) -> TestClient:
     app = FastAPI()
+
+    @app.middleware("http")
+    async def _attach_user(request, call_next):
+        request.scope["user"] = {"id": "uid_alice", "username": "alice", "role": "user"}
+        return await call_next(request)
+
     register_vcd_routes(
         app,
         project_root=lambda: root,
@@ -62,6 +68,59 @@ def test_vcd_list_converts_fst_to_cached_vcd_for_active_ip(tmp_path: Path, monke
     assert files[0]["converted_from"] == "demo_ip/sim/demo_ip.fst"
     assert files[0]["path"].startswith("demo_ip/sim/.wave_cache/")
     assert (tmp_path / files[0]["path"]).read_text(encoding="utf-8") == VCD_TEXT
+
+
+def test_vcd_list_discovers_waveforms_anywhere_under_active_ip(tmp_path: Path) -> None:
+    sim_dir = tmp_path / "demo_ip" / "sim" / "nested"
+    cocotb_dir = tmp_path / "demo_ip" / "tb" / "cocotb" / "sim_build"
+    other_ip_dir = tmp_path / "other_ip" / "sim"
+    sim_dir.mkdir(parents=True)
+    cocotb_dir.mkdir(parents=True)
+    other_ip_dir.mkdir(parents=True)
+    (sim_dir / "waves.vcd").write_text(VCD_TEXT, encoding="utf-8")
+    (cocotb_dir / "trace.vcd").write_text(VCD_TEXT, encoding="utf-8")
+    (other_ip_dir / "hidden.vcd").write_text(VCD_TEXT, encoding="utf-8")
+
+    response = _client(tmp_path).get("/api/vcd/list?ip=demo_ip")
+
+    assert response.status_code == 200
+    paths = {entry["path"] for entry in response.json()["files"]}
+    assert "demo_ip/sim/nested/waves.vcd" in paths
+    assert "demo_ip/tb/cocotb/sim_build/trace.vcd" in paths
+    assert "other_ip/sim/hidden.vcd" not in paths
+
+
+def test_vcd_list_and_raw_resolve_workspace_session_ip(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    sim_dir = tmp_path / "alice" / "s1" / "demo_ip" / "sim" / "nested"
+    sim_dir.mkdir(parents=True)
+    (sim_dir / "waves.vcd").write_text(VCD_TEXT, encoding="utf-8")
+    client = _client(tmp_path)
+
+    listed = client.get(
+        "/api/vcd/list",
+        params={
+            "ip": "demo_ip",
+            "session_id": "alice/s1/demo_ip/sim_debug",
+        },
+    )
+
+    assert listed.status_code == 200
+    paths = {entry["path"] for entry in listed.json()["files"]}
+    assert "demo_ip/sim/nested/waves.vcd" in paths
+
+    raw = client.get(
+        "/api/vcd/raw",
+        params={
+            "path": "demo_ip/sim/nested/waves.vcd",
+            "session_id": "alice/s1/demo_ip/sim_debug",
+        },
+    )
+
+    assert raw.status_code == 200
+    payload = raw.json()
+    assert payload["path"] == "demo_ip/sim/nested/waves.vcd"
+    assert payload["content"] == VCD_TEXT
 
 
 def test_vcd_raw_accepts_fst_path_and_returns_converted_vcd(tmp_path: Path, monkeypatch) -> None:

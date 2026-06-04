@@ -32,11 +32,11 @@ import { type ReactNode, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from './app-helpers';
 import { Splitter } from './workspace-resize-splitters';
 import { WorkflowReadyOverlay } from './workspace-workflow-ready';
+import { WorkflowReportPane } from './workflow-report';
 import { isSsotYamlPath, normalizeUiSession } from './workspace-session-routing';
 import {
   GitDiffPane,
   FileViewer,
-  WorkflowReportPane,
 } from './workspace-git-diff';
 import { TodoEditorPane } from './workspace-todo';
 import { useWorkspaceSession, type UseWorkspaceSessionDeps } from './workspace-root-session-hook';

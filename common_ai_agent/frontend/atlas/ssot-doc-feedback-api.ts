@@ -6,6 +6,7 @@ import type {
   SsotDocSourceRequest,
   SsotDocSourceResponse,
 } from './ssot-doc-feedback-types';
+import { activeSessionForRequest, appendActiveSessionParam } from './active-session-query';
 
 export class SsotDocFeedbackError extends Error {
   constructor(message: string) {
@@ -23,7 +24,7 @@ export function requireSsotDocSelection(target: SsotDocSelectedTarget | null): S
 
 export async function fetchSsotDocSource(request: SsotDocSourceRequest): Promise<SsotDocSourceResponse> {
   const target = requireSsotDocSelection(request.target);
-  const qs = new URLSearchParams({ ip: request.ip, path: target.path });
+  const qs = appendActiveSessionParam(new URLSearchParams({ ip: request.ip, path: target.path }));
   return parseJsonResponse<SsotDocSourceResponse>(
     await fetch(`/api/ssot/doc-source?${qs.toString()}`, { credentials: 'include' }),
   );
@@ -46,6 +47,7 @@ export async function submitSsotDocFeedback(
         field: request.field || '',
         value: request.value || '',
         comment: request.comment,
+        session_id: activeSessionForRequest(),
       }),
     }),
   );

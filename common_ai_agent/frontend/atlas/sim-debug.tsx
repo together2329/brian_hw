@@ -35,6 +35,7 @@ import type { ModuleSignal, VcdData, PinnedSignal, WaveGroupState } from './sim-
 import { SimSummaryPanel, Splitter } from './sim-debug-panels';
 import { useModuleSignals } from './sim-debug-module-signals';
 import { useSimDebugIntent } from './sim-debug-intent-hook';
+import { appendActiveSessionParam } from './workspace-session-routing';
 // Cross-file window view + the shared local types — extracted to
 // sim-debug-root-shared.tsx so the presentational siblings can reuse the SAME
 // window view (behavior identical).
@@ -166,7 +167,11 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     }
     (async () => {
       try {
-        const r = await fetch('/api/vcd/list?ip=' + encodeURIComponent(activeIp));
+        const params = appendActiveSessionParam(new URLSearchParams({ ip: activeIp }));
+        const r = await fetch('/api/vcd/list?' + params.toString(), {
+          cache: 'no-store',
+          credentials: 'include',
+        });
         const d = await r.json();
         if (cancelled) return;
         const files = (d.files || []).filter((f: { path: string }) => vcdPathBelongsToIp(f.path, activeIp));
@@ -184,7 +189,11 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch('/api/vcd/raw?path=' + encodeURIComponent(vcdActive));
+        const params = appendActiveSessionParam(new URLSearchParams({ path: vcdActive }));
+        const r = await fetch('/api/vcd/raw?' + params.toString(), {
+          cache: 'no-store',
+          credentials: 'include',
+        });
         const d = await r.json();
         if (cancelled) return;
         if (d.content && g.parseVCD) {
@@ -519,7 +528,11 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
       return;
     }
     try {
-      const r = await fetch('/api/vcd/rc/list?ip=' + encodeURIComponent(ipName));
+      const params = appendActiveSessionParam(new URLSearchParams({ ip: ipName }));
+      const r = await fetch('/api/vcd/rc/list?' + params.toString(), {
+        cache: 'no-store',
+        credentials: 'include',
+      });
       const d = await r.json();
       setWaveRcFiles(Array.isArray(d?.files) ? d.files : []);
     } catch (_) {
@@ -597,8 +610,10 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     setWaveRcName(name);
     setWaveRcStatus('saving...');
     try {
-      const r = await fetch(`/api/vcd/rc/save?ip=${encodeURIComponent(ipName)}&name=${encodeURIComponent(name)}`, {
+      const params = appendActiveSessionParam(new URLSearchParams({ ip: ipName, name }));
+      const r = await fetch('/api/vcd/rc/save?' + params.toString(), {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ payload: currentWaveRcSnapshot() }),
       });
@@ -620,7 +635,11 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     setWaveRcName(name);
     setWaveRcStatus('loading...');
     try {
-      const r = await fetch(`/api/vcd/rc/load?ip=${encodeURIComponent(ipName)}&name=${encodeURIComponent(name)}`);
+      const params = appendActiveSessionParam(new URLSearchParams({ ip: ipName, name }));
+      const r = await fetch('/api/vcd/rc/load?' + params.toString(), {
+        cache: 'no-store',
+        credentials: 'include',
+      });
       const d = await r.json();
       if (!r.ok || d?.error) throw new Error(d?.error || `HTTP ${r.status}`);
       restoreWaveRcSnapshot(d.payload);

@@ -108,6 +108,9 @@ def register_file_routes(
         rel = _clean_rel_path(rel_path)
         if context is None or context.legacy or not rel or str(rel_path or "").startswith("/"):
             return rel
+        prefix = f"{context.user_name}/{context.workspace_session}/"
+        if rel.startswith(prefix):
+            rel = rel[len(prefix):]
         ip_name = str(context.ip_name or "").strip()
         if not ip_name or ip_name == "default":
             return rel

@@ -19,6 +19,7 @@ const target: SsotDocSelectedTarget = {
 describe('SSOT DOC feedback API helpers', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    window.history.pushState({}, '', '/?session=alice%2Fs1%2Fdemo_ip%2Fssot-gen');
   });
 
   it('resolves source lookup and submits feedback with credentials', async () => {
@@ -57,7 +58,7 @@ describe('SSOT DOC feedback API helpers', () => {
     expect(feedback.feedback_id).toBe('fb_1');
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      '/api/ssot/doc-source?ip=demo_ip&path=registers.register_list.0.fields.0.description',
+      '/api/ssot/doc-source?ip=demo_ip&path=registers.register_list.0.fields.0.description&session_id=alice%2Fs1%2Fdemo_ip%2Fssot-gen',
       { credentials: 'include' },
     );
     expect(fetchMock).toHaveBeenNthCalledWith(
@@ -76,6 +77,7 @@ describe('SSOT DOC feedback API helpers', () => {
       path: target.path,
       comment: 'Clarify enable timing',
       value: 'Enable transfer when START is high.',
+      session_id: 'alice/s1/demo_ip/ssot-gen',
     });
   });
 

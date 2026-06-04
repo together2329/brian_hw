@@ -12,6 +12,7 @@
 //
 // Transitional: still bridges to `window.*` at the bottom so the
 // not-yet-migrated sim-debug.jsx keeps resolving these globals.
+import { activeIpFromSession } from './data-helpers';
 
 // ── Cross-file globals owned by OTHER (unmigrated) files. Read through a
 // locally typed view of `window` so a typo is caught, without editing the
@@ -203,8 +204,7 @@ export const activeIpFromAtlasRuntime = (): string => {
   if (direct && direct !== 'default') return direct;
   const ctxIp = String((g.CONTEXT && (g.CONTEXT.active_ip || g.CONTEXT.activeIp)) || '').trim();
   if (ctxIp && ctxIp !== 'default') return ctxIp;
-  const parts = String(g.ACTIVE_SESSION || '').split('/').filter(Boolean);
-  const sessionIp = parts.length >= 2 ? String(parts[1] || '').trim() : '';
+  const sessionIp = activeIpFromSession(g.ACTIVE_SESSION || '');
   return sessionIp && sessionIp !== 'default' ? sessionIp : '';
 };
 

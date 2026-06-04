@@ -145,6 +145,70 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
     return sid;
   }
 
+  function explicitBrowserRouteSession(): string {
+    let params: URLSearchParams;
+    try { params = new URLSearchParams(window.location.search || ''); }
+    catch (_) { return ''; }
+    const hasRoute = !!(
+      params.get('session')
+      || params.get('sid')
+      || params.get('namespace')
+      || params.get('ip')
+      || params.get('ip_id')
+      || params.get('workflow')
+      || params.get('wf')
+    );
+    if (!hasRoute) return '';
+    const direct = normalizeSessionName(
+      params.get('session') || params.get('sid') || params.get('namespace') || '',
+    );
+    const directParts = direct.split('/').filter(Boolean);
+    const storedOwner = (() => {
+      try { return normalizeSessionName(localStorage.getItem('atlasUserSessionId')); }
+      catch (_) { return ''; }
+    })();
+    const storedWorkspace = (() => {
+      try { return normalizeSessionName(localStorage.getItem('atlasWorkspaceSessionId')); }
+      catch (_) { return ''; }
+    })();
+    const owner = normalizeSessionName(
+      params.get('session_id')
+      || params.get('user_session')
+      || params.get('owner')
+      || storedOwner
+      || w.ATLAS_USER_SESSION_ID
+      || '',
+    ) || 'default';
+    const workspace = normalizeSessionName(
+      params.get('workspace_session')
+      || params.get('workspace')
+      || storedWorkspace
+      || w.ATLAS_WORKSPACE_SESSION_ID
+      || '',
+    ) || 'default';
+    if (directParts.length >= 4) return direct;
+    if (directParts.length === 3) {
+      return normalizeSessionName(`${directParts[0]}/${workspace}/${directParts[1]}/${directParts[2]}`);
+    }
+    if (directParts.length === 2) {
+      const ip = directParts[0] || DEFAULT_WORKFLOW;
+      const workflow = directParts[1] || DEFAULT_WORKFLOW;
+      return normalizeSessionName(`${owner}/${workspace}/${ip}/${workflow}`);
+    }
+    const ip = normalizeSessionName(params.get('ip') || params.get('ip_id') || '');
+    const workflow = normalizeSessionName(params.get('workflow') || params.get('wf') || '') || DEFAULT_WORKFLOW;
+    return ip ? normalizeSessionName(`${owner}/${workspace}/${ip}/${workflow}`) : '';
+  }
+
+  function activeFileTreeSession(): string {
+    return (
+      explicitBrowserRouteSession()
+      || normalizeSessionName(URL_ACTIVE_SESSION || '')
+      || normalizeSessionName(w.ACTIVE_SESSION || '')
+      || 'default'
+    );
+  }
+
   async function refreshSessionState(
     session?: unknown,
     hydrateConversation: boolean = true,
@@ -266,7 +330,8 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
   }
 
   async function refreshFileTree(path?: unknown, opts?: any): Promise<void> {
-    const activeIp = activeIpFromSession();
+    const activeSession = activeFileTreeSession();
+    const activeIp = activeIpFromSession(activeSession) || activeIpFromSession();
     const reqPath = activeIp;
     if (!reqPath) {
       w.FILE_TREE = [];
@@ -304,7 +369,6 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
     let recursive = (reqPath && reqPath.length > 0) ? '&recursive=1' : '';
     if (opts && opts.recursive === true) recursive = '&recursive=1';
     try {
-      const activeSession = normalizeSessionName(w.ACTIVE_SESSION || '');
       const qs = new URLSearchParams({ path: reqPath });
       if (activeSession) qs.set('session_id', activeSession);
       if (recursive) qs.set('recursive', '1');
