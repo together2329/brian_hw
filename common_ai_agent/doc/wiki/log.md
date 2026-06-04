@@ -2,6 +2,16 @@
 
 ## 2026-06-04
 
+- Extended [[contract-reflection-workflow]] freshness downward from semantic
+  source artifacts into simulator evidence. Added
+  `workflow/contract_reflection/sim_freshness.py`,
+  `stamp_sim_evidence_freshness.py`, `check_sim_evidence_freshness.py`, and
+  `run_contract_check.py --require-sim-freshness`. MCTP v3 was rerun through
+  cocotb (`TESTS=10 PASS=10 FAIL=0`), stamped with
+  `sim/evidence_freshness.json` from the owning sim stage with
+  `sim/sim_stage_run.json` embedded as a pass=10/fail=0 receipt, and then
+  closed with strict contract check: reflection 4/4, evidence 105/105, sim
+  freshness metadata=3/inputs=9/artifacts=2/issues=0.
 - Documented the orchestrator supervisor IPC runtime shipped in commit
   `a96dbf29` in [[orchestrator-worker-handoff]]. The route now resolves
   `get_orchestrator_runtime`, keeps legacy `thread` transport available, and
@@ -1027,6 +1037,21 @@
   its three semantic obligations with FL-derived expected values plus VCD
   predicates. Fresh full-IP result after rerun is pass: reflection 4/4,
   evidence 105/105.
+- Expanded [[contract-reflection-workflow]] with the six-layer model for
+  requirement -> obligation -> contract_ref -> stage reflection -> evidence ->
+  validation/closure. The page now records the must-have and should-have
+  migration items, current workflow readiness, and the split between human truth
+  authority, LLM author/reviewer work, deterministic validator judgement, and
+  orchestrator owner-route execution.
+- Picked up one must-have item, stale evidence prevention, as an executable
+  slice. `semantic_contract_overlay` now stamps
+  `semantic_source_fingerprint` into generated requirements/evidence/reflection
+  artifacts, and evidence/reflection validators reject stale semantic artifacts
+  when `verify/semantic_contracts.json` changes without regeneration. The
+  validators also recompute expected semantic requirements/obligations/refs from
+  the source, so a manually updated fingerprint cannot self-attest stale
+  content. MCTP v3 strict contract-check remains pass: reflection 4/4, evidence
+  105/105.
 - ATLAS context-root final6 refresh recorded in
   [[atlas-context-root-model-20260603]]. Fixed an order-dependent stale
   `ATLAS_ROOT` leak from `/api/session/activate` into job/pipeline-state
@@ -1052,3 +1077,15 @@
   Chrome UI. Same-session IPs like `real_ip`/`uart` remain visible only because
   they physically exist under `ATLAS_ROOT/brian/hi/`.
 - Phase 3 of `[[orchestrator-chat-only-product-plan]]` landed — the right-side Pipeline chat at `POST /api/pipeline/orchestrator/chat` no longer parses keywords; it persists the user message, then `OrchestratorRunner.submit_or_attach(user_id, ip_id, ...)` either starts a fresh `orchestrator_run` row or appends a `user_reply` step to the existing active run for that `(user_id, ip_id)` (single-flight). The background `ThreadPoolExecutor(max_workers=4)` drives `OrchestratorLoop.run()` which iterates one LLM tool call at a time over 8 tools (`read_pipeline_state`, `dispatch_workflow`, `wait_job` non-blocking, `read_artifact`, `classify_failure`, `ask_user`, `write_handoff`, `mark_downstream_stale`) and writes one `orchestrator_steps` row per iteration with `decision_json` + `evidence_read_json` + `verdict`. Hard caps: 50 steps / 30 min → `final_state="cap_exceeded"`. Terminal states (`completed/blocked/error/paused`) all close the run with `ended_at`. New DB: `orchestrator_runs`, `orchestrator_steps` plus `orchestrator_run_id`/`trigger_source` columns on `workflow_runs` and `artifacts`. New owner-routing extracted from `workflow/orchestrator/system_prompt.md` prose into `src/orchestrator/classify.py::classify_failure(stage, evidence, error_text)` returning `{owner, next_workflow, reason, confidence}`. Two new read endpoints: `GET /api/orchestrator/runs/{run_id}` (run + all steps) and `GET /api/orchestrator/active_run?ip=X` (active run + latest step, used by the new "Human decision waiting" banner in `frontend/atlas/pipeline.jsx`). StageCard gained an `orch` pill when `data.trigger_source === "orchestrator_chat"`. Test coverage: 54 new pytest cases across `tests/test_atlas_db_orchestrator.py`, `test_orchestrator_classify.py`, `test_orchestrator_tools.py`, `test_orchestrator_loop.py`, `test_orchestrator_runner.py`, `test_orchestrator_route.py` — all green with `PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`. Slop-decisions intentionally locked: no env-gated keyword fallback (LLM is the only truth, errors surface as `status=error/final_state=llm_error`), `import_document` excluded from the tool set (deferred to Phase 2 — no placeholder), `wait_job` is non-blocking (loop yields and resumes on the next iteration instead of holding the thread). Five legacy tests in `tests/test_pipeline_orchestrator_worker_integration.py` that asserted the keyword-dispatch contract are decorated `@_PHASE3_SKIP` with a pointer to the new async contract; they need a rewrite (stub LLM caller + poll `/api/orchestrator/runs/{run_id}`) before they re-enter the suite. Full record: `[[orchestrator-llm-loop-phase3]]`.
+- ATLAS context-root IP-local workflow follow-up recorded in
+  `[[atlas-context-root-model-20260603]]` and
+  `[[tauri-desktop-shell]]`. Desktop dry-run no longer passes
+  `--workflow-root`; `AtlasContext`, IPC workers, lazy workers, and
+  orchestrator supervisor env prefer
+  `ATLAS_ROOT/user/session/ip/workflow` when that IP-local workflow exists.
+  Focused verification passed: supervisor/IPC workflow-root tests 7/7,
+  desktop plus multiuser session scope 60/60, scaffold/IPC dispatch tests 17/17,
+  Python compile, launcher shell syntax, `npm --prefix frontend/atlas run build`,
+  and Browser smoke on `127.0.0.1:3099` after creating `local-admin/hi/jjj`.
+  Desktop Computer Use attach still saw the existing blank same-bundle ATLAS
+  window, so this entry is not a fresh Desktop visual pass.

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Mapping
 import os
 import re
 
@@ -22,6 +22,25 @@ def _validated_segment(value: object, *, field_name: str) -> str:
 def default_atlas_root(env: Mapping[str, str] | None = None) -> Path:
     values = env if env is not None else os.environ
     return Path(values.get("ATLAS_ROOT") or "~/ATLAS").expanduser().resolve()
+
+
+def resolve_ip_workflow_root(
+    project_root: Path | str,
+    source_root: Path | str,
+    ip_name: str = "",
+) -> Path:
+    project = Path(project_root).expanduser().resolve()
+    source = Path(source_root).expanduser().resolve()
+    ip = str(ip_name or "").strip()
+    candidates: list[Path] = []
+    if ip:
+        candidates.append(project / ip / "workflow")
+    candidates.append(project / "workflow")
+    candidates.append(source / "workflow")
+    for candidate in candidates:
+        if (candidate / "ssot-gen").is_dir():
+            return candidate.resolve()
+    return candidates[0].resolve()
 
 
 @dataclass(frozen=True)
@@ -99,6 +118,10 @@ class AtlasContext:
         return self.workspace_root / self.ip_name
 
     @property
+    def workflow_root(self) -> Path:
+        return self.ip_root / "workflow"
+
+    @property
     def session_dir(self) -> Path:
         if self.legacy:
             return self.workspace_root / ".session" / self.user_name / self.ip_name / self.workflow
@@ -118,6 +141,7 @@ class AtlasContext:
             "ATLAS_DEFAULT_WORKFLOW": workflow,
             "ATLAS_WORKFLOW": workflow,
             "ATLAS_IP_ROOT": str(self.ip_root),
+            "ATLAS_WORKFLOW_ROOT": str(self.workflow_root),
             "ATLAS_SESSION_DIR": str(self.session_dir),
             "ATLAS_CONTEXT_KEY": self.context_key,
             "ATLAS_PROJECT_ROOT": workspace_root,

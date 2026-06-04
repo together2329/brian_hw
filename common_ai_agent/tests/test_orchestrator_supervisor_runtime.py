@@ -49,6 +49,8 @@ def _runtime(tmp_path: Path):
 
 def test_first_submit_spawns_supervisor_job(tmp_path: Path, monkeypatch) -> None:
     runtime, _db, spawned, jobs, processes = _runtime(tmp_path)
+    ip_workflow = tmp_path / "ipA" / "workflow"
+    (ip_workflow / "ssot-gen").mkdir(parents=True)
 
     outcome = runtime.submit_or_attach(
         user_id="user-1",
@@ -72,6 +74,7 @@ def test_first_submit_spawns_supervisor_job(tmp_path: Path, monkeypatch) -> None
     assert request["wake_path"] == str(control_dir / "wake.jsonl")
     assert (control_dir / "supervisor.log").exists()
     assert spawned[0][0][:3] == [sys.executable, "-m", "src.atlas_orchestrator_supervisor_ipc"]
+    assert spawned[0][1]["env"]["ATLAS_WORKFLOW_ROOT"] == str(ip_workflow)
     assert "--request" in spawned[0][0]
     assert job["job_kind"] == "orchestrator-supervisor"
     assert job["workflow"] == "orchestrator"

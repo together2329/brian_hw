@@ -57,7 +57,7 @@ common_ai_agent/scripts/run_atlas_desktop.sh --root /path/to/ip-parent --ip <ip-
 common_ai_agent/scripts/run_atlas_desktop.sh --prod --root /path/to/ip-parent --ip <ip-name>
 
 # Existing backend mode is still supported:
-common_ai_agent/scripts/run_atlas_desktop.sh --backend-url 'http://127.0.0.1:3000/?ip=<ip-name>'
+common_ai_agent/scripts/run_atlas_desktop.sh --backend-url 'http://localhost:3000/?ip=<ip-name>'
 
 # 3. build the runnable .app yourself (app-only target, ~2 min release compile):
 (cd common_ai_agent && frontend/atlas/node_modules/.bin/tauri build)
@@ -67,6 +67,11 @@ common_ai_agent/scripts/run_atlas_desktop.sh --backend-url 'http://127.0.0.1:300
 The launcher never hardcodes a project root. Root selection belongs to the
 backend and flows through `src/atlas_ui.py --root <ip-parent>`. To expose the
 Perforce SCM tab, pass the provider explicitly:
+
+`--workflow-root` is not part of the normal Desktop launch contract. Workflow
+scripts live inside the selected IP at
+`<root>/<user>/<workspace-session>/<ip>/workflow`; the backend and worker env
+export `ATLAS_WORKFLOW_ROOT` to that IP-local directory when it exists.
 
 ```bash
 common_ai_agent/scripts/run_atlas_desktop.sh \
@@ -80,6 +85,12 @@ common_ai_agent/scripts/run_atlas_desktop.sh \
 The Desktop shell loads one backend URL. If no URL is supplied, the Tauri binary
 defaults to `http://localhost:3000/`. That is correct only when the ATLAS server
 is listening on localhost.
+
+The product launcher also defaults local backend startup to `localhost`, not
+`127.0.0.1`. A repo Desktop verification on 2026-06-04 showed the Tauri WebView
+can fail module-script bootstrap on the `127.0.0.1` path while the same backend
+loads normally on `localhost`. Explicit `--host 127.0.0.1` remains supported
+for cases that need it.
 
 If the server was started with a LAN-only bind, for example:
 
@@ -102,7 +113,7 @@ backend URL, session, IP, workflow, and SCM flags together:
 ```bash
 common_ai_agent/scripts/run_atlas_desktop.sh \
   --prod \
-  --backend-url 'http://127.0.0.1:3000/?session_id=admin&ip=NEW_IP_v5&workflow=default'
+  --backend-url 'http://localhost:3000/?session_id=admin&ip=NEW_IP_v5&workflow=default'
 ```
 
 For the installed macOS app, launch through `open -na ... --args --backend-url`
@@ -124,15 +135,18 @@ Status interpretation:
 - `Agent responding` means a live `agent_state running` event is active and takes
   priority over stale worker-status polling.
 
-2026-06-03 launcher verification:
+2026-06-04 launcher verification:
 
-- `scripts/run_atlas_desktop.sh --prod --root /tmp/atlas-desktop-launcher-qa --ip QA_IP --workspace-session qa --session-id qa_user --workflow default --port 3046`
-  started a backend at `127.0.0.1:3046` with project root
-  `/private/tmp/atlas-desktop-launcher-qa`.
+- `scripts/run_atlas_desktop.sh --prod --root /tmp/atlas-c003-final-default-host --ip DESK_QA_IP --workspace-session s1 --session-id qa_user --workflow rtl-gen --port 3047 --scm-provider perforce`
+  used no `--host` argument and started a backend at `localhost:3047` with
+  project root `/private/tmp/atlas-c003-final-default-host`.
 - The launched process was
-  `atlas-desktop --backend-url http://127.0.0.1:3046/?ip=QA_IP&workflow=default&session_id=qa_user&workspace_session=qa&session=qa_user%2Fqa%2FQA_IP%2Fdefault`.
-- After that app process exited, `127.0.0.1:3046/healthz` was closed, proving
-  the launcher backend cleanup trap ran.
+  `atlas-desktop --backend-url http://localhost:3047/?ip=DESK_QA_IP&workflow=rtl-gen&session_id=qa_user&workspace_session=s1&session=qa_user%2Fs1%2FDESK_QA_IP%2Frtl-gen&scm=perforce`.
+- Computer Use observed the repo app at
+  `.session/2076604/s1/DESK_QA_IP/rtl-gen` with side panel
+  `dir > DESK_QA_IP`, `PERFORCE/GIT/TODO`, and session worker hot/alive.
+- After that app process exited, `lsof -nP -iTCP:3047 -sTCP:LISTEN` returned no
+  listener, proving the launcher backend cleanup trap ran.
 
 > `bundle.targets` is `["app"]` (not `dmg`): the `.app` is the runnable artifact.
 > `tauri build`'s `.dmg` step (`bundle_dmg.sh`) needs a GUI Finder/AppleScript

@@ -31,7 +31,7 @@ This section is additive; it does not replace the reading order below.
 | MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 18/18 pass, mutation advisory interpretation, post-signoff RTL risks | [[mctp-assembler-scratch-flow-20260531]] |
 | General IP 시행착오 종합 — PyMTL식 FL/CL/RTL, small IP/UART/SPI/CPU/MCTP lessons, mutation/formal/truth_coverage 경계, direct SSOT 허용 정책 | [[general-ip-flow-trial-and-error-20260601]] |
 | Evidence contract proposal — requirement를 atomic obligation / scenario / observable / pass condition / scoreboard row로 연결하는 다음 traceability layer | [[evidence-contract-obligation-traceability]] |
-| Contract reflection workflow — `contract_ref`가 SSOT→FL→CL→RTL→TB→scoreboard까지 끊기지 않았는지 검증하는 다음 layer; MCTP `payload_byte_count` 예시 포함 | [[contract-reflection-workflow]] |
+| Contract reflection workflow — requirement→obligation→contract_ref→stage reflection→evidence→closure 6층 모델; SSOT→FL→CL→RTL→TB→scoreboard trace와 MCTP v3 semantic slice 포함 | [[contract-reflection-workflow]] |
 | ATLAS vite 프론트 자동 E2E 검증(실브라우저) 런북 + `scripts/atlas_vite_e2e_verify.sh` | [[atlas-vite-e2e-verification]] |
 | Sim Debug RTL module-signal panel (pyslang ports+internal, in/out/internal filter, regex search, Ctrl+W/right-click→wave, wave-scroll fix, 50/50 split) | [[sim-debug-module-signals-2026-05-30]] |
 | Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
@@ -44,7 +44,7 @@ This section is additive; it does not replace the reading order below.
 | Run Mode / Exec Mode and SSOT provenance policy | [[run-mode-and-provenance-policy]] |
 | Single active session worker + orchestrator worker chat + future rtl-gen subworker lanes | [[atlas-single-active-orchestrator-subworkers-20260603]] |
 | Atlas DB Router + Runtime DB sharding concept for multi-user prompt/worker write isolation | [[atlas-db-router-runtime-sharding-20260602]] |
-| Atlas context root model proposal — user/session/IP/workflow isolation, worker cwd at IP root, command/todo/context/SCM/jobs migration plan | [[atlas-context-root-model-20260603]] |
+| Atlas context root model proposal — user/session/IP/workflow isolation, worker cwd at IP root, command/todo/context/SCM/jobs migration plan, and IP-local workflow root rule | [[atlas-context-root-model-20260603]] |
 | Atlas context root deep test plan — branch-level Web/Desktop/API/DB/worker verification before merge | [[atlas-context-root-deep-test-plan-20260604]] |
 | Admin operational dashboard priorities from the real local DB snapshot: inactivity, unattributed cost, queue backlog, stale workflows, identity gaps | [[admin-operational-dashboard-db-snapshot-20260603]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |

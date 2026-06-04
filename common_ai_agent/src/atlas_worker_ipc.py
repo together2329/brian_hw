@@ -8,6 +8,7 @@ process isolation without opening per-worker HTTP ports.
 from __future__ import annotations
 
 import argparse
+import importlib
 import json
 import os
 import sys
@@ -34,6 +35,11 @@ def _write_response(path: Path, payload: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
+def _resolve_ip_workflow_root(project_root: str, source_root: str, ip: str) -> Path:
+    resolver = importlib.import_module("core.atlas_context").resolve_ip_workflow_root
+    return resolver(project_root, source_root, ip)
+
+
 def _configure_env(request: dict[str, Any]) -> None:
     project_root = str(request.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".")
     source_root = str(
@@ -47,7 +53,7 @@ def _configure_env(request: dict[str, Any]) -> None:
 
     os.environ["ATLAS_PROJECT_ROOT"] = project_root
     os.environ["ATLAS_SOURCE_ROOT"] = source_root
-    os.environ.setdefault("ATLAS_WORKFLOW_ROOT", str(Path(source_root) / "workflow"))
+    os.environ["ATLAS_WORKFLOW_ROOT"] = str(_resolve_ip_workflow_root(project_root, source_root, ip))
     os.environ["ATLAS_WORKER_TRANSPORT"] = "ipc"
     os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1"
     os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"

@@ -1,4 +1,5 @@
 import json
+import importlib
 import os
 import sys
 import time
@@ -33,6 +34,7 @@ def _isolate_atlas_db_path(tmp_path, monkeypatch):
         "ATLAS_DEFAULT_EXEC_MODE",
         "ATLAS_ORCHESTRATOR_MODE",
         "ATLAS_SINGLE_MAIN_LOOP",
+        "ATLAS_WORKSPACE_SESSION",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -44,7 +46,7 @@ def _activate(
     workflow: str,
     preserve_running: Optional[bool] = None,
 ):
-    body = {"session_id": session_id, "ip": ip, "workflow": workflow}
+    body: dict[str, object] = {"session_id": session_id, "ip": ip, "workflow": workflow}
     if preserve_running is not None:
         body["preserve_running"] = preserve_running
     return client.post(
@@ -63,6 +65,22 @@ def _receive_until_types(ws, *types: str, limit: int = 12):
         if not needed:
             return seen
     raise AssertionError(f"expected websocket events {sorted(types)!r}, saw {seen!r}")
+
+
+def test_context_exports_ip_local_workflow_root(tmp_path):
+    AtlasContext = importlib.import_module("core.atlas_context").AtlasContext
+
+    context = AtlasContext(
+        user_name="alice",
+        workspace_session="s1",
+        ip_name="spi_core",
+        workflow="rtl-gen",
+        atlas_root=tmp_path,
+    )
+
+    expected = tmp_path / "alice" / "s1" / "spi_core" / "workflow"
+    assert context.workflow_root == expected
+    assert context.export_env()["ATLAS_WORKFLOW_ROOT"] == str(expected)
 
 
 def test_multiuser_session_ip_workflow_dirs_and_ip_visibility(tmp_path, monkeypatch):
@@ -300,6 +318,196 @@ def test_ip_list_scopes_v2_workspace_session_per_user(tmp_path, monkeypatch):
     assert s2_list.status_code == 200, s2_list.text
     assert s2_list.json()["workspace_session"] == "s2"
     assert {item["name"] for item in s2_list.json()["items"]} == {"ip_beta"}
+
+
+def test_ip_list_uses_ip_blocks_when_workspace_catalog_exists(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    workspace_root = tmp_path / "alice" / "hi"
+    (workspace_root / "jjj" / "yaml").mkdir(parents=True)
+    (workspace_root / "jjj" / "yaml" / "jjj.ssot.yaml").write_text(
+        "ip: jjj\n",
+        encoding="utf-8",
+    )
+    (workspace_root / "real_ip").mkdir(parents=True)
+    (workspace_root / "uart").mkdir(parents=True)
+
+    with AtlasDB() as db:
+        user = db.get_user_by_username("alice")
+        assert user is not None
+        workspace = db.upsert_workspace(
+            f"{tmp_path.name}/hi",
+            owner_user_id=user["id"],
+            local_path=str(workspace_root.resolve()),
+        )
+        ip_row = db.upsert_ip_block(
+            workspace["id"],
+            "jjj",
+            ssot_path="jjj/yaml/jjj.ssot.yaml",
+        )
+        for ip_name in ("jjj", "real_ip", "uart"):
+            db.upsert_runtime_session(
+                f"alice/hi/{ip_name}/default",
+                user["id"],
+                owner="alice",
+                ip=ip_name,
+                workflow="default",
+                workspace_id=workspace["id"],
+                ip_id=ip_row["id"] if ip_name == "jjj" else ip_name,
+                project_id=ip_name,
+                directory=str(workspace_root / ".session" / ip_name / "default"),
+                title=f"{ip_name} / default",
+                status="active",
+                summary={"workspace_session": "hi", "ip": ip_name},
+            )
+
+    listed = client.get("/api/ip/list?session_id=alice/hi")
+
+    assert listed.status_code == 200, listed.text
+    body = listed.json()
+    assert body["workspace_session"] == "hi"
+    assert body["source"] == "db_ip_blocks"
+    assert {item["name"] for item in body["items"]} == {"jjj"}
+
+
+def test_session_activate_ignores_unregistered_ip_when_workspace_catalog_exists(
+    tmp_path,
+    monkeypatch,
+):
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    workspace_root = tmp_path / "alice" / "hi"
+    (workspace_root / "jjj" / "yaml").mkdir(parents=True)
+    (workspace_root / "jjj" / "yaml" / "jjj.ssot.yaml").write_text(
+        "ip: jjj\n",
+        encoding="utf-8",
+    )
+    with AtlasDB() as db:
+        user = db.get_user_by_username("alice")
+        assert user is not None
+        workspace = db.upsert_workspace(
+            f"{tmp_path.name}/hi",
+            owner_user_id=user["id"],
+            local_path=str(workspace_root.resolve()),
+        )
+        db.upsert_ip_block(
+            workspace["id"],
+            "jjj",
+            ssot_path="jjj/yaml/jjj.ssot.yaml",
+        )
+
+    activated = client.post(
+        "/api/session/activate",
+        json={
+            "owner": "alice",
+            "workspace_session": "hi",
+            "ip": "real_ip",
+            "workflow": "default",
+        },
+    )
+
+    assert activated.status_code == 200, activated.text
+    payload = activated.json()
+    assert payload["active_session"] == "alice/hi/default/default"
+    assert payload["ip"] == "default"
+    assert not (workspace_root / "real_ip").exists()
+    with AtlasDB() as db:
+        assert db.get_session("alice/hi/real_ip/default") is None
+
+
+def test_ip_list_scopes_v2_workspace_session_in_desktop_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    legacy_yaml = tmp_path / "legacy_ip" / "yaml"
+    legacy_yaml.mkdir(parents=True)
+    (legacy_yaml / "legacy_ip.ssot.yaml").write_text("ip: legacy_ip\n", encoding="utf-8")
+    for workspace_session, ip_name in (("s1", "ip_alpha"), ("s2", "ip_beta")):
+        yaml_dir = tmp_path / "alice" / workspace_session / ip_name / "yaml"
+        yaml_dir.mkdir(parents=True)
+        (yaml_dir / f"{ip_name}.ssot.yaml").write_text(f"ip: {ip_name}\n", encoding="utf-8")
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    s1_list = client.get("/api/ip/list?session_id=alice/s1")
+    assert s1_list.status_code == 200, s1_list.text
+    assert s1_list.json()["workspace_session"] == "s1"
+    assert {item["name"] for item in s1_list.json()["items"]} == {"ip_alpha"}
+
+    s2_list = client.get("/api/ip/list?session_id=alice/s2/default/default")
+    assert s2_list.status_code == 200, s2_list.text
+    assert s2_list.json()["workspace_session"] == "s2"
+    assert {item["name"] for item in s2_list.json()["items"]} == {"ip_beta"}
+
+
+def test_ip_list_rejects_workspace_session_symlinks_in_desktop_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    for owner, workspace_session, ip_name in (
+        ("alice", "s1", "ip_alpha"),
+        ("bob", "s1", "ip_bob"),
+    ):
+        yaml_dir = tmp_path / owner / workspace_session / ip_name / "yaml"
+        yaml_dir.mkdir(parents=True)
+        (yaml_dir / f"{ip_name}.ssot.yaml").write_text(f"ip: {ip_name}\n", encoding="utf-8")
+    outside_root = tmp_path.parent / f"{tmp_path.name}_outside"
+    outside_yaml = outside_root / "ip_outside" / "yaml"
+    outside_yaml.mkdir(parents=True)
+    (outside_yaml / "ip_outside.ssot.yaml").write_text("ip: ip_outside\n", encoding="utf-8")
+
+    symlink_cases = (
+        ("s2_same_user", tmp_path / "alice" / "s1"),
+        ("s2_other_user", tmp_path / "bob" / "s1"),
+        ("s2_outside_root", outside_root),
+    )
+    for workspace_session, target in symlink_cases:
+        (tmp_path / "alice" / workspace_session).symlink_to(target, target_is_directory=True)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    for workspace_session, _target in symlink_cases:
+        response = client.get(f"/api/ip/list?session_id=alice/{workspace_session}")
+        assert response.status_code == 400, response.text
+        assert response.json()["items"] == []
 
 
 def test_healthz_session_hint_selects_v2_workspace_session(tmp_path, monkeypatch):
@@ -1510,6 +1718,194 @@ def test_ip_create_endpoint_scaffolds_once_and_rejects_duplicate(tmp_path, monke
 
     assert duplicate.status_code == 409
     assert "already exists" in duplicate.json()["error"]
+
+
+def test_ip_create_endpoint_uses_session_root_in_single_user_desktop_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    atlas_root = tmp_path / "atlas-root"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    response = client.post(
+        "/api/ip/create",
+        json={
+            "name": "desktop_ip",
+            "workspace_session": "s2",
+            "session_id": "brian/s2/default/default",
+            "user_name": "brian",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    workspace_root = atlas_root / "brian" / "s2"
+    assert body["session"] == "brian/s2/desktop_ip/default"
+    assert Path(body["workspace_root"]).resolve() == workspace_root.resolve()
+    assert Path(body["ip_root"]).resolve() == (workspace_root / "desktop_ip").resolve()
+    assert (workspace_root / "desktop_ip" / "yaml" / "desktop_ip.ssot.yaml").is_file()
+    assert (workspace_root / ".session" / "desktop_ip" / "default" / "conversation.json").is_file()
+    assert not (tmp_path / "desktop_ip").exists()
+    assert not (tmp_path / ".session" / "brian" / "desktop_ip").exists()
+
+    listed = client.get(
+        "/api/ip/list",
+        params={"session_id": "brian/s2/default/default"},
+    )
+    assert listed.status_code == 200, listed.text
+    listed_body = listed.json()
+    assert {item["name"] for item in listed_body["items"]} == {"desktop_ip"}
+    assert Path(listed_body["project_root"]).resolve() == tmp_path.resolve()
+    assert Path(listed_body["workspace_root"]).resolve() == workspace_root.resolve()
+
+
+def test_healthz_honors_query_session_root_in_single_user_desktop_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    atlas_root = tmp_path / "atlas-root"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    created = client.post(
+        "/api/ip/create",
+        json={
+            "name": "desktop_ip",
+            "workspace_session": "s2",
+            "session_id": "brian/s2/default/default",
+            "user_name": "brian",
+        },
+    )
+    assert created.status_code == 200, created.text
+
+    health = client.get(
+        "/healthz",
+        params={"cost": "0", "session_id": "brian/s2/desktop_ip/default"},
+    )
+
+    assert health.status_code == 200, health.text
+    body = health.json()
+    workspace_root = atlas_root / "brian" / "s2"
+    assert body["active_session"] == "brian/s2/desktop_ip/default"
+    assert body["context_key"] == "brian/s2/desktop_ip/default"
+    assert body["workspace_session"] == "s2"
+    assert body["active_ip"] == "desktop_ip"
+    assert body["active_workflow"] == "default"
+    assert Path(body["project_root"]).resolve() == workspace_root.resolve()
+    assert Path(body["workspace_root"]).resolve() == workspace_root.resolve()
+    assert Path(body["ip_root"]).resolve() == (workspace_root / "desktop_ip").resolve()
+    assert Path(body["session_dir"]).resolve() == (
+        workspace_root / ".session" / "desktop_ip" / "default"
+    ).resolve()
+
+
+def test_healthz_ignores_unauthenticated_multiuser_query_session(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    bob_session = "bob/default/ip_beta/default"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
+    monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    response = client.get(
+        "/healthz",
+        params={"cost": "0", "session_id": bob_session},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body.get("active_session") != bob_session
+    assert body.get("active_ip") != "ip_beta"
+    assert "bob/default" not in str(body.get("workspace_root") or "")
+
+
+def test_ip_create_rejects_workspace_session_symlink_in_multiuser_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    outside = tmp_path.parent / f"{tmp_path.name}_outside_create"
+    outside.mkdir()
+    owner_root = tmp_path / "alice"
+    owner_root.mkdir()
+    (owner_root / "s2").symlink_to(outside, target_is_directory=True)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client, "alice")
+    response = client.post(
+        "/api/ip/create",
+        json={
+            "name": "leak_ip",
+            "workspace_session": "s2",
+            "session_id": "alice/s2/default/default",
+        },
+    )
+
+    assert response.status_code == 400, response.text
+    assert "symlink" in response.json()["error"]
+    assert not (outside / "leak_ip").exists()
+
+
+def test_healthz_rejects_workspace_session_symlink_in_desktop_mode(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    atlas_root = tmp_path / "atlas-root"
+    outside = tmp_path / "outside-root"
+    outside.mkdir(parents=True)
+    owner_root = atlas_root / "brian"
+    owner_root.mkdir(parents=True)
+    (owner_root / "s2").symlink_to(outside, target_is_directory=True)
+    (outside / ".session" / "desktop_ip" / "default").mkdir(parents=True)
+    (outside / ".session" / "desktop_ip" / "default" / "cost.json").write_text(
+        '{"input_tokens":999999}',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    response = client.get(
+        "/healthz",
+        params={"cost": "1", "session_id": "brian/s2/desktop_ip/default"},
+    )
+
+    assert response.status_code == 400, response.text
+    assert "symlink" in response.json()["error"]
+    assert "999999" not in response.text
 
 
 def test_ip_create_endpoint_uses_orchestrator_workflow_in_orchestrator_mode(tmp_path, monkeypatch):

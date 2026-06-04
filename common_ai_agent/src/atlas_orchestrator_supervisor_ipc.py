@@ -31,6 +31,11 @@ def _write_response(path: Path, payload: dict[str, Any]) -> None:
     tmp.replace(path)
 
 
+def _resolve_ip_workflow_root(project_root: str, source_root: str, ip: str) -> Path:
+    resolver = importlib.import_module("core.atlas_context").resolve_ip_workflow_root
+    return resolver(project_root, source_root, ip)
+
+
 def _configure_env(request: dict[str, Any]) -> None:
     project_root = str(request.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".")
     source_root = str(request.get("source_root") or os.environ.get("ATLAS_SOURCE_ROOT") or Path(__file__).resolve().parents[1])
@@ -39,7 +44,7 @@ def _configure_env(request: dict[str, Any]) -> None:
     ip_id = str(request.get("ip_id") or ip_name).strip()
     os.environ["ATLAS_PROJECT_ROOT"] = project_root
     os.environ["ATLAS_SOURCE_ROOT"] = source_root
-    os.environ.setdefault("ATLAS_WORKFLOW_ROOT", str(Path(source_root) / "workflow"))
+    os.environ["ATLAS_WORKFLOW_ROOT"] = str(_resolve_ip_workflow_root(project_root, source_root, ip_name))
     os.environ["ATLAS_EXEC_MODE"] = "orchestrator"
     os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1"
     os.environ["ATLAS_WORKER_TRANSPORT"] = "ipc"

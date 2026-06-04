@@ -16,6 +16,7 @@ get_jobs_state() -> tuple[dict, threading.Lock]
 from __future__ import annotations
 
 import atexit
+import importlib
 import json
 import logging
 import logging.handlers
@@ -217,11 +218,29 @@ def _resolve_workflow_root(raw: str | Path | None = None) -> Path:
 _WORKFLOW_ROOT = _resolve_workflow_root()
 
 
-def _workflow_root_for_project(project_root: Path) -> Path:
-    local = _resolve_workflow_root(project_root)
+def _resolve_ip_workflow_root(project_root: Path | str, source_root: Path | str, ip: str = "") -> Path:
+    resolver = importlib.import_module("core.atlas_context").resolve_ip_workflow_root
+    return resolver(project_root, source_root, ip)
+
+
+def _workflow_root_for_project(project_root: Path, ip: str = "") -> Path:
+    local = _resolve_ip_workflow_root(project_root, _SOURCE_ROOT, ip)
     if (local / "ssot-gen").is_dir():
         return local
     return _WORKFLOW_ROOT
+
+
+def _job_ip_name(job: dict[str, Any]) -> str:
+    direct = str(job.get("ip") or job.get("ip_name") or "").strip()
+    if direct:
+        return direct
+    session = str(job.get("session") or "").strip().strip("/")
+    parts = [part for part in session.split("/") if part]
+    if len(parts) >= 3:
+        return parts[-2]
+    if len(parts) == 2:
+        return parts[0]
+    return ""
 
 
 def _configured_ip_root(project_root: Path, ip: str) -> Path | None:
@@ -2647,7 +2666,13 @@ def _ensure_lazy_worker(job: dict[str, Any]) -> None:
                     job.get("project_root") or env.get("ATLAS_PROJECT_ROOT") or "."
                 )
                 env["ATLAS_SOURCE_ROOT"] = str(_SOURCE_ROOT)
-                env.setdefault("ATLAS_WORKFLOW_ROOT", str(_WORKFLOW_ROOT))
+                env["ATLAS_WORKFLOW_ROOT"] = str(
+                    _resolve_ip_workflow_root(
+                        env["ATLAS_PROJECT_ROOT"],
+                        _SOURCE_ROOT,
+                        _job_ip_name(job),
+                    )
+                )
                 env["ATLAS_EXEC_MODE"] = "orchestrator"
                 env["ATLAS_ORCHESTRATOR_MODE"] = "1"
                 env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
@@ -3153,7 +3178,9 @@ def _ipc_worker_env(job: dict[str, Any]) -> dict[str, str]:
     project_root_value = str(job.get("project_root") or env.get("ATLAS_PROJECT_ROOT") or ".")
     env["ATLAS_PROJECT_ROOT"] = project_root_value
     env["ATLAS_SOURCE_ROOT"] = str(_SOURCE_ROOT)
-    env.setdefault("ATLAS_WORKFLOW_ROOT", str(_WORKFLOW_ROOT))
+    env["ATLAS_WORKFLOW_ROOT"] = str(
+        _resolve_ip_workflow_root(project_root_value, _SOURCE_ROOT, _job_ip_name(job))
+    )
     env["ATLAS_EXEC_MODE"] = str(job.get("exec_mode") or EXEC_MODE_ORCHESTRATOR)
     env["ATLAS_ORCHESTRATOR_MODE"] = "1"
     env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
@@ -4074,7 +4101,7 @@ def _job_artifact_recovery(
         ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
         if not ssot_path.is_file():
             return False, ""
-        checker = _workflow_root_for_project(project_root) / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        checker = _workflow_root_for_project(project_root, ip) / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
         if not checker.is_file():
             return False, f"SSOT checker missing: {checker}"
         run_mode = _normalize_run_mode(job.get("run_mode")) or _current_run_mode()
@@ -4373,7 +4400,7 @@ def _refresh_completed_stage_evidence(job: dict[str, Any], project_root: Path) -
     except ModuleNotFoundError:
         from workflow_stage_engine import WorkflowStageEngine  # type: ignore
     try:
-        workflow_root = _workflow_root_for_project(project_root)
+        workflow_root = _workflow_root_for_project(project_root, ip)
         tool_root = _tool_project_root_for_ip(project_root, ip)
         result = WorkflowStageEngine(
             tool_root,
@@ -4504,7 +4531,7 @@ def _job_artifact_failure(
             or (ip_dir / "lint" / "dut_lint.json").is_file()
             or (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").is_file()
         )
-        checker = _workflow_root_for_project(project_root) / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
+        checker = _workflow_root_for_project(project_root, ip) / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
         if rtl_ran and has_rtl_evidence and checker.is_file():
             try:
                 proc = subprocess.run(

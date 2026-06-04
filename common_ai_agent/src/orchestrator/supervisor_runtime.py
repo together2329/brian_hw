@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import subprocess
@@ -18,6 +19,11 @@ from src.orchestrator.supervisor_watch import watch_supervisor_job
 
 
 ProcessFactory = Callable[..., Any]
+
+
+def _resolve_ip_workflow_root(project_root: Path, source_root: Path, ip_name: str = "") -> Path:
+    resolver = importlib.import_module("core.atlas_context").resolve_ip_workflow_root
+    return resolver(project_root, source_root, ip_name)
 
 
 class OrchestratorSupervisorRuntime:
@@ -152,7 +158,7 @@ class OrchestratorSupervisorRuntime:
             proc = self._process_factory(
                 cmd,
                 cwd=str(self._project_root),
-                env=self._env(),
+                env=self._env(ip_name=str(data.get("ip_name") or "")),
                 stdout=log_fh,
                 stderr=subprocess.STDOUT,
             )
@@ -217,11 +223,13 @@ class OrchestratorSupervisorRuntime:
             "response_path": str(paths["response"]),
         }
 
-    def _env(self) -> dict[str, str]:
+    def _env(self, ip_name: str = "") -> dict[str, str]:
         env = os.environ.copy()
         env["ATLAS_PROJECT_ROOT"] = str(self._project_root)
         env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
-        env.setdefault("ATLAS_WORKFLOW_ROOT", str(self._source_root / "workflow"))
+        env["ATLAS_WORKFLOW_ROOT"] = str(
+            _resolve_ip_workflow_root(self._project_root, self._source_root, ip_name)
+        )
         env["ATLAS_EXEC_MODE"] = "orchestrator"
         env["ATLAS_ORCHESTRATOR_MODE"] = "1"
         env["ATLAS_WORKER_TRANSPORT"] = "ipc"

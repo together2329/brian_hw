@@ -46,8 +46,10 @@ def test_desktop_launcher_accepts_root_without_hardcoded_ip_parent(tmp_path: Pat
     assert result.returncode == 0, result.stdout
     assert HARDCODED_ROOT not in result.stdout
     assert f"--root {project_root}" in result.stdout
+    assert "--workflow-root" not in result.stdout
     assert "-ip NEWIP_MCTP" in result.stdout
     assert "--workflow default" in result.stdout
+    assert "--workspace-session default" in result.stdout
     assert "ATLAS_SCM_PROVIDER=perforce" in result.stdout
     assert "ip=NEWIP_MCTP" in result.stdout
     assert "workflow=default" in result.stdout
@@ -91,8 +93,43 @@ def test_desktop_launcher_defaults_root_to_home_atlas(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stdout
     assert default_root.is_dir()
     assert f"--root {default_root}" in result.stdout
+    assert "--workflow-root" not in result.stdout
     assert f"ATLAS_ROOT={default_root}" in result.stdout
     assert "workspace_session=default" in result.stdout
+
+
+def test_desktop_launcher_defaults_backend_to_localhost_for_tauri_webview(tmp_path: Path) -> None:
+    project_root = tmp_path / "atlas_root"
+    project_root.mkdir()
+
+    result = _run_dry(
+        "--root",
+        str(project_root),
+        "--ip",
+        "DESK_QA_IP",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "backend_url=http://localhost:3000/" in result.stdout
+    assert "--host localhost" in result.stdout
+
+
+def test_desktop_launcher_preserves_explicit_backend_host(tmp_path: Path) -> None:
+    project_root = tmp_path / "atlas_root"
+    project_root.mkdir()
+
+    result = _run_dry(
+        "--root",
+        str(project_root),
+        "--ip",
+        "DESK_QA_IP",
+        "--host",
+        "127.0.0.1",
+    )
+
+    assert result.returncode == 0, result.stdout
+    assert "backend_url=http://127.0.0.1:3000/" in result.stdout
+    assert "--host 127.0.0.1" in result.stdout
 
 
 def test_desktop_launcher_accepts_workspace_session_segment(tmp_path: Path) -> None:
@@ -115,5 +152,6 @@ def test_desktop_launcher_accepts_workspace_session_segment(tmp_path: Path) -> N
     assert result.returncode == 0, result.stdout
     assert "session_id=alice" in result.stdout
     assert "workspace_session=s2" in result.stdout
+    assert "--workspace-session s2" in result.stdout
     assert "session=alice%2Fs2%2FNEWIP_MCTP%2Fssot-gen" in result.stdout
     assert "ATLAS_CONTEXT_KEY=alice/s2/NEWIP_MCTP/ssot-gen" in result.stdout

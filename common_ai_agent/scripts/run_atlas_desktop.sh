@@ -15,7 +15,7 @@ HERE="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$HERE"
 
 MODE="dev"
-HOST="${ATLAS_DESKTOP_HOST:-127.0.0.1}"
+HOST="${ATLAS_DESKTOP_HOST:-localhost}"
 PORT="${ATLAS_DESKTOP_PORT:-3000}"
 ROOT="${ATLAS_DESKTOP_ROOT:-}"
 ROOT_EXPLICIT=0
@@ -266,8 +266,8 @@ backend_command() {
     --host "$HOST"
     --port "$PORT"
     --root "$ROOT"
-    --workflow-root "$HERE"
     --session "$SESSION_ID"
+    --workspace-session "${WORKSPACE_SESSION:-default}"
     -ip "${IP:-default}"
     --workflow "$WORKFLOW"
     --exec "$EXEC_MODE"
@@ -355,8 +355,8 @@ start_backend_if_needed() {
       --host "$HOST" \
       --port "$PORT" \
       --root "$ROOT" \
-      --workflow-root "$HERE" \
       --session "$SESSION_ID" \
+      --workspace-session "${WORKSPACE_SESSION:-default}" \
       -ip "${IP:-default}" \
       --workflow "$WORKFLOW" \
       --exec "$EXEC_MODE" \

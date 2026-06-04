@@ -39,7 +39,7 @@ from core.atlas_exec_policy import (
     current_exec_mode,
     normalize_exec_mode,
 )
-from core.atlas_context import default_atlas_root
+from core.atlas_context import AtlasContext, default_atlas_root
 
 
 def _hydrate_atlas_ui_globals() -> None:
@@ -724,22 +724,18 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
     if os.environ.get("ATLAS_AGENT_AUTOSTART", _autostart_default).strip().lower() not in {"0", "false", "off", "no"}:
         bridge.ensure_agent_alive()
 
-    # Surface the source-repo path to the agent so it can locate
-    # workflow/, rules/, templates/, etc. when running from a non-source
-    # cwd (e.g. user runs `cd Custom_IP && python ../…/textual_main.py`).
     os.environ["ATLAS_SOURCE_ROOT"] = str(_source_root())
     os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
     os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
-    # Inject a system-prompt note so the LLM knows about both roots.
     _root_note = (
         f"\n\n[Atlas Runtime] You are running with cwd = {PROJECT_ROOT}. "
         f"All file reads/writes default to ATLAS_PROJECT_ROOT={PROJECT_ROOT}. "
-        f"The active workflow scripts live at ATLAS_WORKFLOW_ROOT={WORKFLOW_ROOT}; "
-        f"the common_ai_agent source root is ATLAS_SOURCE_ROOT={_source_root()}. "
+        f"The active workflow scripts live under the active IP at "
+        f"ATLAS_WORKFLOW_ROOT={WORKFLOW_ROOT}; the common_ai_agent source root "
+        f"is ATLAS_SOURCE_ROOT={_source_root()} for bootstrap imports only. "
         f"Use `$ATLAS_WORKFLOW_ROOT/<workflow>/scripts/...` for deterministic "
         f"workflow tooling and pass `--root $ATLAS_PROJECT_ROOT` for IP/project "
-        f"artifacts. Keep generated IP artifacts under PROJECT_ROOT/IP_ROOT and "
-        f"do not ask the user to mount or copy workflow/ into the project workspace."
+        f"artifacts. Keep generated IP artifacts under PROJECT_ROOT/IP_ROOT."
     )
     try:
         # Append to whatever the existing system prompt builder produces
@@ -1025,6 +1021,10 @@ def main() -> None:
     # All three default to "default" so the directory layout is uniform.
     ap.add_argument("-s", "--session", dest="session_id", default="default",
                     help="session_id segment (default: 'default')")
+    ap.add_argument("--workspace-session", "--ws-session", dest="workspace_session",
+                    default=None,
+                    help="workspace session segment between user/session owner and IP "
+                         "(default: ATLAS_WORKSPACE_SESSION or 'default')")
     ap.add_argument("-ip", "--ip", dest="ip", default="default",
                     help="ip segment (default: 'default')")
     ap.add_argument("-w", "--workflow", dest="workflow", default="default",
@@ -1126,10 +1126,31 @@ def main() -> None:
     os.environ["ATLAS_ROOT"] = str(PROJECT_ROOT)
     os.environ["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
     os.environ.setdefault("ATLAS_WORKFLOW_ROOT", str(WORKFLOW_ROOT))
-    # Seed environment so all path resolvers see the canonical 3-part string.
-    new_session = f"{args.session_id}/{args.ip}/{args.workflow}"
+    workspace_session = (
+        str(args.workspace_session or "").strip()
+        or os.environ.get("ATLAS_WORKSPACE_SESSION", "").strip()
+        or os.environ.get("ATLAS_SESSION_ID", "").strip()
+        or "default"
+    )
+    new_session = f"{args.session_id}/{workspace_session}/{args.ip}/{args.workflow}"
+    initial_context = AtlasContext(
+        user_name=args.session_id,
+        workspace_session=workspace_session,
+        ip_name=args.ip,
+        workflow=args.workflow,
+        atlas_root=PROJECT_ROOT,
+    )
+    ip_workflow_root = initial_context.workflow_root
+    if ip_workflow_root.is_dir():
+        WORKFLOW_ROOT = ip_workflow_root
+        _aui.WORKFLOW_ROOT = WORKFLOW_ROOT
+        os.environ["ATLAS_WORKFLOW_ROOT"] = str(WORKFLOW_ROOT)
+    os.environ["ATLAS_IP_ROOT"] = str(initial_context.ip_root)
     _atlas_active_session_cv.set(new_session)
     _atlas_active_ip_cv.set(args.ip)
+    os.environ["ATLAS_CONTEXT_KEY"] = new_session
+    os.environ["ATLAS_WORKSPACE_SESSION"] = workspace_session
+    os.environ["ATLAS_SESSION_ID"] = workspace_session
     _sync_env_to_context()
     os.environ.setdefault("ATLAS_DEFAULT_SESSION_ID", args.session_id)
     os.environ.setdefault("ATLAS_DEFAULT_WORKFLOW", args.workflow)

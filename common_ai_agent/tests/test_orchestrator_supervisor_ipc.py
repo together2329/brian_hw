@@ -88,6 +88,8 @@ def test_supervisor_ipc_propagates_request_context(
     tmp_path: Path, monkeypatch
 ) -> None:
     supervisor = importlib.import_module("src.atlas_orchestrator_supervisor_ipc")
+    ip_workflow = tmp_path / "ipA" / "workflow"
+    (ip_workflow / "ssot-gen").mkdir(parents=True)
 
     db_path = tmp_path / "atlas.db"
     db = AtlasDB(str(db_path))
@@ -128,4 +130,5 @@ def test_supervisor_ipc_propagates_request_context(
     assert os.environ["ATLAS_ORCHESTRATOR_MODE"] == "1"
     assert os.environ["ATLAS_ACTIVE_SESSION"] == "user/default/ipA/orchestrator"
     assert os.environ["ATLAS_ACTIVE_IP"] == "ipA"
+    assert os.environ["ATLAS_WORKFLOW_ROOT"] == str(ip_workflow)
     assert os.environ["ATLAS_IP_ID"] == "ip-db-1"

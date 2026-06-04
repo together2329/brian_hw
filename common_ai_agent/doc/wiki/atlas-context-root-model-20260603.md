@@ -262,6 +262,78 @@ Regression evidence:
   a separate existing `127.0.0.1:3030` instance and now reports failed worker
   state honestly instead of green ready.
 
+## 2026-06-04 IP-Local Workflow Root Follow-Up
+
+`--workflow-root` is no longer a required user-facing launch argument. Workflow
+scripts are copied into each IP under:
+
+```text
+ATLAS_ROOT/user/session/ip/workflow/
+```
+
+The active runtime environment should therefore expose:
+
+```text
+ATLAS_WORKFLOW_ROOT = ATLAS_IP_ROOT / "workflow"
+```
+
+The central `common_ai_agent/workflow` tree remains only a bootstrap/template
+fallback for creating an IP or for legacy projects that do not yet have an
+IP-local workflow copy. Once `ATLAS_ROOT/user/session/ip/workflow/ssot-gen`
+exists, runtime, IPC worker, lazy worker, and orchestrator supervisor code must
+prefer that IP-local path.
+
+Desktop launch behavior:
+
+- `scripts/run_atlas_desktop.sh` no longer passes `--workflow-root`.
+- `--root` is the storage root. If omitted, the launcher uses the default
+  Atlas root policy rather than `common_ai_agent`.
+- `--workflow-root` may remain accepted by backend CLI compatibility code, but
+  it must not be needed for normal Web or Desktop use.
+
+Regression evidence for this follow-up:
+
+- `tests/test_run_atlas_desktop_script.py` asserts desktop dry-run output has
+  no `--workflow-root`.
+- `tests/test_atlas_multiuser_session_scope.py::test_context_exports_ip_local_workflow_root`
+  asserts `AtlasContext.export_env()` emits
+  `ATLAS_ROOT/user/session/ip/workflow`.
+- `tests/test_atlas_worker_ipc_workflow_root.py` asserts IPC workers prefer
+  `project_root/ip/workflow`, and also work when `project_root` is already the
+  IP root.
+- `tests/test_orchestrator_supervisor_runtime.py` and
+  `tests/test_orchestrator_supervisor_ipc.py` assert orchestrator supervisor
+  env uses the IP-local workflow root.
+- Browser smoke on `127.0.0.1:3099` launched the backend without
+  `--workflow-root`, created `local-admin/hi/jjj/default`, and loaded ATLAS with
+  `ACTIVE_SESSION=local-admin/hi/jjj/default`, `ACTIVE_IP=jjj`,
+  `workspaceSession=hi`, and no visible `--workflow-root` text.
+- Desktop smoke was attempted through Computer Use against the repo
+  `ATLAS.app`, but macOS attached to an existing blank same-bundle window while
+  a separate backend-url process was running. Treat this as not a fresh Desktop
+  visual pass; Web/backend verification is current.
+
+Verification command set:
+
+```bash
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest \
+  tests/test_atlas_worker_ipc_workflow_root.py \
+  tests/test_orchestrator_supervisor_runtime.py \
+  tests/test_orchestrator_supervisor_ipc.py -q
+
+PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest \
+  tests/test_run_atlas_desktop_script.py \
+  tests/test_atlas_multiuser_session_scope.py -q
+
+python3 -m py_compile \
+  core/atlas_context.py core/atlas_context_paths.py \
+  src/atlas_worker_ipc.py src/atlas_orchestrator_supervisor_ipc.py \
+  src/orchestrator/supervisor_runtime.py src/atlas_api_jobs.py \
+  src/atlas_runtime_run.py
+
+bash -n scripts/run_atlas_desktop.sh
+```
+
 ## 2026-06-03 Session Worker Status Scope Follow-Up
 
 Interactive session workers may remain hot for old sessions so users can switch
