@@ -166,6 +166,16 @@ export function resolveActiveSession(): string {
 }
 try { w.atlasResolveActiveSession = resolveActiveSession; } catch (_) {}
 
+export const activeUiSession = (): string => normalizeUiSession(w.ACTIVE_SESSION || resolveActiveSession() || '');
+
+export const appendActiveSessionParam = (params: URLSearchParams): URLSearchParams => {
+  const activeSession = activeUiSession();
+  if (activeSession && !params.has('session_id')) {
+    params.set('session_id', activeSession);
+  }
+  return params;
+};
+
 export const ssotIpFromSession = (session: any): string => {
   const parts = normalizeUiSession(session).split('/').filter(Boolean);
   const idx = parts.lastIndexOf('ssot-gen');

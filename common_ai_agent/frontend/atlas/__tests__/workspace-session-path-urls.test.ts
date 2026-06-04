@@ -6,6 +6,7 @@ import {
   readAtlasAsyncResource,
 } from '../workspace-async-resource';
 import { parseAtQuery } from '../workspace-rootdata-feed-completion';
+import { appendActiveSessionParam } from '../workspace-session-routing';
 
 describe('workspace session-aware path URLs', () => {
   beforeEach(() => {
@@ -24,6 +25,12 @@ describe('workspace session-aware path URLs', () => {
     expect(atlasResourceUrl('ssot', 'yaml/jjj.ssot.yaml')).toBe(
       '/api/ssot?file=yaml%2Fjjj.ssot.yaml&session_id=alice%2Fhi%2Fjjj%2Frtl-gen',
     );
+  });
+
+  it('appends the active session to workspace resource query params', () => {
+    const params = appendActiveSessionParam(new URLSearchParams({ path: 'rtl/top.sv' }));
+
+    expect(params.get('session_id')).toBe('alice/hi/jjj/rtl-gen');
   });
 
   it('treats rootless @ paths as active-IP relative for lookup', () => {
