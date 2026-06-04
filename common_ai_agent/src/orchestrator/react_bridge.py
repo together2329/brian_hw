@@ -623,9 +623,26 @@ def _make_build_prompt_fn(ctx: Any) -> Callable:
         f"user_id={ctx.user_id}\n"
         f"session_id={ctx.session_id}\n"
     )
+    session_parts = [part for part in str(ctx.session_id or "").split("/") if part]
+    workflow_name = session_parts[-1] if len(session_parts) >= 3 else "orchestrator"
 
     def _build_prompt(messages=None, allowed_tools=None, agent_mode=None) -> str:
         body = build_system_prompt(extra_context=context_header)
+        try:
+            import config  # type: ignore
+            from core.prompt_builder import apply_memory_override
+            from lib.memory import MemorySystem
+
+            user = str(ctx.session_id or "")
+            if not user:
+                user = MemorySystem.active_user_from_env()
+            memory = MemorySystem(
+                memory_dir=getattr(config, "MEMORY_DIR", ".memory"),
+                user=user,
+            )
+            body = apply_memory_override(body, memory, workflow=workflow_name)
+        except Exception:
+            pass
         return f"{body}\n\n[AVAILABLE_TOOLS]\n{schemas_json}\n[/AVAILABLE_TOOLS]\n"
 
     return _build_prompt

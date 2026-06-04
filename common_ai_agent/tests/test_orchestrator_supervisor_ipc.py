@@ -132,3 +132,5 @@ def test_supervisor_ipc_propagates_request_context(
     assert os.environ["ATLAS_ACTIVE_IP"] == "ipA"
     assert os.environ["ATLAS_WORKFLOW_ROOT"] == str(ip_workflow)
     assert os.environ["ATLAS_IP_ID"] == "ip-db-1"
+    assert os.environ["ATLAS_DB_PATH"] == str(db_path)
+    assert os.environ["ATLAS_MEMORY_DB_PATH"] == str(db_path)

@@ -42,6 +42,7 @@ def _configure_env(request: dict[str, Any]) -> None:
     session_id = str(request.get("session_id") or "").strip()
     ip_name = str(request.get("ip_name") or request.get("ip") or "").strip()
     ip_id = str(request.get("ip_id") or ip_name).strip()
+    db_path = str(request.get("db_path") or "").strip()
     os.environ["ATLAS_PROJECT_ROOT"] = project_root
     os.environ["ATLAS_SOURCE_ROOT"] = source_root
     os.environ["ATLAS_WORKFLOW_ROOT"] = str(_resolve_ip_workflow_root(project_root, source_root, ip_name))
@@ -49,9 +50,15 @@ def _configure_env(request: dict[str, Any]) -> None:
     os.environ["ATLAS_ORCHESTRATOR_MODE"] = "1"
     os.environ["ATLAS_WORKER_TRANSPORT"] = "ipc"
     os.environ["ATLAS_SINGLE_MAIN_LOOP"] = "0"
+    if db_path:
+        os.environ["ATLAS_DB_PATH"] = db_path
+        os.environ["ATLAS_MEMORY_DB_PATH"] = db_path
     if session_id:
         os.environ["ATLAS_ACTIVE_SESSION"] = session_id
         os.environ["ATLAS_SESSION_ID"] = session_id
+        owner = session_id.split("/", 1)[0].strip()
+        if owner:
+            os.environ["ATLAS_MEMORY_USER"] = owner
     if ip_name:
         os.environ["ATLAS_ACTIVE_IP"] = ip_name
     if ip_id:

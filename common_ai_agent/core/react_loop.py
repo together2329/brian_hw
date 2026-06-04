@@ -789,7 +789,13 @@ def run_react_agent_impl(
 
         # Refresh system prompt
         _t = time.time()
-        if getattr(cfg, "ENABLE_SMART_RAG", False) or getattr(cfg, "DEBUG_MODE", False) or getattr(cfg, "ENABLE_SKILL_SYSTEM", False):
+        if (
+            getattr(cfg, "ENABLE_SMART_RAG", False)
+            or getattr(cfg, "DEBUG_MODE", False)
+            or getattr(cfg, "ENABLE_SKILL_SYSTEM", False)
+            or getattr(cfg, "ENABLE_MEMORY_RULES", False)
+            or getattr(cfg, "ENABLE_MEMORY", False)
+        ):
             user_messages = [m for m in messages if m.get("role") == "user"]
             current_query = user_messages[-1].get("content", "")[:100] if user_messages else ""
             last_rag_query = getattr(tracker, "_last_rag_query", None)

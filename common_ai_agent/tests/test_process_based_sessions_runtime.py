@@ -95,6 +95,7 @@ def test_runtime_mode_spawn_cmd_and_env_route_to_runtime_db(monkeypatch, tmp_pat
     # Control db is advertised separately for control-only reads.
     assert env["ATLAS_CONTROL_DB_PATH"] == control_path
     assert env["ATLAS_CONTROL_DB_PATH"] != env["ATLAS_DB_PATH"]
+    assert env["ATLAS_MEMORY_DB_PATH"] == control_path
 
 
 def test_runtime_mode_same_db_invariant_and_control_db_empty(monkeypatch, tmp_path):
@@ -225,5 +226,6 @@ def test_central_mode_default_router_env_is_behavior_identical(monkeypatch, tmp_
     assert env["ATLAS_TRACE_DB_PATH"] == resolved
     assert env["ATLAS_CONTROL_DB_PATH"] == resolved
     assert env["ATLAS_RUNTIME_DB_PATH"] == resolved
+    assert env["ATLAS_MEMORY_DB_PATH"] == resolved
     # And the runtime-path resolver returns the control path in central mode.
     assert manager._resolve_runtime_db_path(SESSION_ID) == resolved
