@@ -216,13 +216,21 @@ def register_git_routes(
 
     @app.get("/api/scm/log")
     @app.get("/api/git/log")
-    async def api_git_log(ip: str = "", limit: int = 60, provider: str = "", scm_root: str = "", session_id: str = ""):
+    async def api_git_log(
+        ip: str = "",
+        limit: int = 60,
+        provider: str = "",
+        scm_root: str = "",
+        stream: str = "",
+        session_id: str = "",
+    ):
         local_root, scm_root_path, error, resolved_ip = _route_roots(
             ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
         )
         if error is not None:
             return error
-        log = await _scm_call(scm_root_path, "log", limit, provider=provider)
+        kwargs = {"stream": stream} if stream and _request_provider(provider) == "perforce" else {}
+        log = await _scm_call(scm_root_path, "log", limit, provider=provider, **kwargs)
         if not log.get("ok", True):
             return JSONResponse({
                 "error": log.get("error") or "scm log failed",
@@ -247,6 +255,7 @@ def register_git_routes(
         ip: str = "",
         provider: str = "",
         scm_root: str = "",
+        stream: str = "",
         session_id: str = "",
     ):
         local_root, scm_root_path, error, resolved_ip = _route_roots(
@@ -262,7 +271,8 @@ def register_git_routes(
             return JSONResponse({"error": "invalid sha"}, status_code=400)
         if provider_name != "git" and not re.match(r"^[0-9A-Za-z._/@#:+-]{1,160}$", selected_revision):
             return JSONResponse({"error": "invalid revision"}, status_code=400)
-        result = await _scm_call(scm_root_path, "show", selected_revision, provider=provider)
+        kwargs = {"stream": stream} if stream and provider_name == "perforce" else {}
+        result = await _scm_call(scm_root_path, "show", selected_revision, provider=provider, **kwargs)
         if not result.ok:
             return JSONResponse({
                 "error": result.error or f"scm show {selected_revision} failed",

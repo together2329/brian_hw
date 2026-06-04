@@ -37,6 +37,7 @@ interface DepotRow { path: string; rev: string; kind?: PaneRowKind }
 interface TreeRow { key: string; name: string; path: string; kind: 'up' | 'folder' | 'file'; state?: string; rev?: string }
 interface PendRow { path: string; action: string; change?: string }
 interface PendingChange { id: string; label?: string; description?: string }
+interface HistoryCommit { sha: string; short?: string; subject?: string; author?: string; date?: string }
 interface PaneLocation { localDir: string; depotDir: string }
 interface NavigationState { entries: PaneLocation[]; index: number }
 interface LoadPaneOptions { remember?: boolean; clearLocal?: boolean; clearDepot?: boolean }
@@ -77,6 +78,26 @@ const ACTION_COLOR: Record<string, string> = {
   delete: 'var(--err)',
   'move/add': 'var(--ok)',
   'move/delete': 'var(--err)',
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const stringField = (row: Record<string, unknown>, key: string): string =>
+  typeof row[key] === 'string' ? row[key] : '';
+
+const historyCommitsFromPayload = (payload: unknown): HistoryCommit[] => {
+  if (!isRecord(payload) || !Array.isArray(payload.commits)) return [];
+  return payload.commits
+    .filter(isRecord)
+    .map(row => ({
+      sha: stringField(row, 'sha') || stringField(row, 'revision'),
+      short: stringField(row, 'short'),
+      subject: stringField(row, 'subject'),
+      author: stringField(row, 'author'),
+      date: stringField(row, 'date'),
+    }))
+    .filter(row => Boolean(row.sha));
 };
 
 const parentLocalDir = (dir: string): string => {
@@ -205,7 +226,10 @@ const sx: Record<string, CSSProperties> = {
   rowLi: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 10px', borderBottom: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--mono, monospace)' },
   crumb: { color: 'var(--fg-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   center: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '0 12px', borderLeft: '1px solid var(--line)', borderRight: '1px solid var(--line)', background: 'var(--bg)' },
-  bottom: { borderTop: '1px solid var(--line)', background: 'var(--bg-2)', padding: '8px 12px', maxHeight: '34%', display: 'flex', flexDirection: 'column', minHeight: 0 },
+  bottom: { borderTop: '1px solid var(--line)', background: 'var(--bg-2)', padding: '8px 12px', maxHeight: '45%', display: 'flex', flexDirection: 'column', minHeight: 0 },
+  historyPanel: { display: 'flex', gap: 8, minHeight: 94, maxHeight: 132, marginBottom: 8, minWidth: 0 },
+  historyList: { overflow: 'auto', flex: '0 0 34%', minHeight: 70, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', minWidth: 0 },
+  historyDiffPane: { overflow: 'hidden', flex: 1, minHeight: 70, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
   pendingBody: { display: 'flex', gap: 8, flex: 1, minHeight: 72, minWidth: 0 },
   pendList: { overflow: 'auto', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' },
   diffPane: { overflow: 'hidden', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
@@ -244,9 +268,17 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const [diffText, setDiffText] = useState('');
   const [diffBusy, setDiffBusy] = useState(false);
   const [diffErr, setDiffErr] = useState('');
+  const [historyRows, setHistoryRows] = useState<HistoryCommit[]>([]);
+  const [historyRevision, setHistoryRevision] = useState('');
+  const [historyDiff, setHistoryDiff] = useState('');
+  const [historyBusy, setHistoryBusy] = useState(false);
+  const [historyDiffBusy, setHistoryDiffBusy] = useState(false);
+  const [historyErr, setHistoryErr] = useState('');
   const mounted = useRef(true);
   const reqRef = useRef(0);
   const diffReqRef = useRef(0);
+  const historyReqRef = useRef(0);
+  const historyShowReqRef = useRef(0);
   const activeStream = stream || pane?.stream || '';
   const activeScmRoot = scmRoot || pane?.scmRoot || '';
   const depotRoot = activeStream ? `${activeStream.replace(/\/+$/, '')}/` : '';
@@ -335,7 +367,68 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     loadPane(ip, stream, scmRoot, '', '', { remember: true, clearLocal: true, clearDepot: true });
   }, [ip]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const post = useCallback((url: string, body: any, okMsg: string) => {
+  const loadHistory = useCallback((targetIp = ip, targetStream = activeStream, targetScmRoot = activeScmRoot) => {
+    if (!targetIp) { setHistoryRows([]); return; }
+    const reqId = ++historyReqRef.current;
+    setHistoryBusy(true);
+    setHistoryErr('');
+    const params = new URLSearchParams({ ip: targetIp, provider: 'perforce', limit: '80' });
+    const sessionId = activeSessionId();
+    if (sessionId) params.set('session_id', sessionId);
+    if (targetStream) params.set('stream', targetStream);
+    if (targetScmRoot) params.set('scm_root', targetScmRoot);
+    fetch(`/api/scm/log?${params.toString()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then((d: unknown) => {
+        if (!mounted.current || historyReqRef.current !== reqId) return;
+        if (isRecord(d) && d.error) setHistoryErr(String(d.error));
+        setHistoryRows(historyCommitsFromPayload(d));
+      })
+      .catch(e => { if (mounted.current && historyReqRef.current === reqId) setHistoryErr(String(e)); })
+      .finally(() => { if (mounted.current && historyReqRef.current === reqId) setHistoryBusy(false); });
+  }, [ip, activeStream, activeScmRoot]);
+
+  useEffect(() => {
+    loadHistory(ip, activeStream, activeScmRoot);
+  }, [ip, activeStream, activeScmRoot, loadHistory]);
+
+  const loadHistoryDiff = useCallback((revision: string) => {
+    if (!revision || !ip) return;
+    const reqId = ++historyShowReqRef.current;
+    setHistoryRevision(revision);
+    setHistoryDiff('');
+    setHistoryErr('');
+    setHistoryDiffBusy(true);
+    const params = new URLSearchParams({ ip, provider: 'perforce', revision });
+    const sessionId = activeSessionId();
+    if (sessionId) params.set('session_id', sessionId);
+    if (activeStream) params.set('stream', activeStream);
+    if (activeScmRoot) params.set('scm_root', activeScmRoot);
+    fetch(`/api/scm/show?${params.toString()}`, { cache: 'no-store' })
+      .then(r => r.json())
+      .then((d: unknown) => {
+        if (!mounted.current || historyShowReqRef.current !== reqId) return;
+        if (isRecord(d) && d.error) setHistoryErr(String(d.error));
+        setHistoryDiff(isRecord(d) ? String(d.diff || '') : '');
+      })
+      .catch(e => { if (mounted.current && historyShowReqRef.current === reqId) setHistoryErr(String(e)); })
+      .finally(() => { if (mounted.current && historyShowReqRef.current === reqId) setHistoryDiffBusy(false); });
+  }, [ip, activeStream, activeScmRoot]);
+
+  useEffect(() => {
+    const selectedStillVisible = historyRows.some(row => row.sha === historyRevision);
+    const first = historyRows[0];
+    if (first && (!historyRevision || !selectedStillVisible)) {
+      loadHistoryDiff(first.sha);
+    }
+  }, [historyRows, historyRevision, loadHistoryDiff]);
+
+  const post = useCallback((
+    url: string,
+    body: Record<string, unknown>,
+    okMsg: string,
+    afterOk?: (payload: Record<string, unknown>) => void,
+  ) => {
     setBusy(true); setErr(''); setMsg('');
     const activeStream = stream || pane?.stream || '';
     const activeScmRoot = scmRoot || pane?.scmRoot || '';
@@ -345,14 +438,25 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const sessionBody = activeSessionId() ? { session_id: activeSessionId() } : {};
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, ip, provider: 'perforce', ...streamBody, ...rootBody, ...changeBody, ...sessionBody }) })
       .then(r => r.json())
-      .then(d => {
+      .then((d: unknown) => {
         if (!mounted.current) return;
-        if (d && d.ok) setMsg(okMsg + (d.stdout ? ` — ${String(d.stdout).split('\n')[0]}` : ''));
-        else setErr((d && (d.error || d.stderr)) || 'operation failed');
+        if (isRecord(d) && d.ok) {
+          afterOk?.(d);
+          setMsg(okMsg + (d.stdout ? ` — ${String(d.stdout).split('\n')[0]}` : ''));
+        } else {
+          const message = isRecord(d) ? String(d.error || d.stderr || 'operation failed') : 'operation failed';
+          setErr(message);
+        }
       })
       .catch(e => { if (mounted.current) setErr(String(e)); })
-      .finally(() => { if (mounted.current) { setBusy(false); loadPane(ip, activeStream, activeScmRoot, localDir, depotDir); } });
-  }, [ip, stream, scmRoot, pane?.stream, pane?.scmRoot, selectedChange, localDir, depotDir, loadPane]);
+      .finally(() => {
+        if (mounted.current) {
+          setBusy(false);
+          loadPane(ip, activeStream, activeScmRoot, localDir, depotDir);
+          loadHistory(ip, activeStream, activeScmRoot);
+        }
+      });
+  }, [ip, stream, scmRoot, pane?.stream, pane?.scmRoot, selectedChange, localDir, depotDir, loadPane, loadHistory]);
 
   const goHistory = useCallback((offset: number) => {
     const targetIndex = nav.index + offset;
@@ -455,8 +559,21 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   };
   const onSubmit = () => {
     if (!desc.trim()) { setErr('description required'); return; }
-    post('/api/scm/submit', { message: desc.trim(), add_all: false }, 'submitted');
-    setDesc('');
+    const submittedChange = selectedChange;
+    post('/api/scm/submit', { message: desc.trim(), add_all: false }, 'submitted', () => {
+      setDesc('');
+      setSelPend(new Set());
+      setDiffPath('');
+      setDiffText('');
+      setPane(current => current ? {
+        ...current,
+        pending: current.pending.filter(row => (row.change || 'default') !== submittedChange),
+        pendingChanges: submittedChange === 'default'
+          ? current.pendingChanges
+          : (current.pendingChanges || []).filter(change => change.id !== submittedChange),
+      } : current);
+      if (submittedChange !== 'default') setSelectedChange('default');
+    });
   };
   const onSync = () => {
     const depotFiles = depotFileRowsInDir(depot, depotDir || depotRoot);
@@ -580,6 +697,38 @@ function PerforceSyncTab(props: PerforceSyncProps) {
 
       {/* BOTTOM — pending changelist */}
       <div style={sx.bottom}>
+        <div style={sx.historyPanel}>
+          <div style={sx.historyList}>
+            <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
+              <strong>HISTORY</strong>
+              <span style={sx.mute}>{historyRows.length} CL</span>
+            </div>
+            {historyBusy ? <div style={sx.empty}>loading history…</div> :
+              historyErr ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{historyErr}</div> :
+                historyRows.length === 0 ? <div style={sx.empty}>no changelists</div> :
+                  historyRows.map(row => (
+                    <div
+                      key={row.sha}
+                      style={{ ...sx.rowLi, background: historyRevision === row.sha ? 'var(--bg-3)' : 'transparent' }}
+                      onClick={() => loadHistoryDiff(row.sha)}
+                      title={row.sha}
+                    >
+                      <span style={{ color: 'var(--accent)', width: 48, flex: 'none' }}>{row.short || row.sha}</span>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.subject || row.sha}</span>
+                      {row.author ? <span style={{ color: 'var(--fg-dim)', flex: 'none' }}>{row.author}</span> : null}
+                    </div>
+                  ))}
+          </div>
+          <div style={sx.historyDiffPane}>
+            <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
+              <span>HISTORY DIFF</span>
+              <span style={sx.crumb} className="mono">{historyRevision}</span>
+            </div>
+            {historyDiffBusy ? <div style={sx.empty}>loading changelist…</div> :
+              historyDiff ? <pre style={sx.diffPre}>{historyDiff}</pre> :
+                <div style={sx.empty}>select changelist</div>}
+          </div>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
           <strong>PENDING</strong>
           <span style={sx.mute}>{visiblePending.length} file(s) opened</span>

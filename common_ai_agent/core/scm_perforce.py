@@ -99,13 +99,19 @@ class PerforceP4Adapter(SCMAdapter):
         return caps
 
     # --------------------------------------------------------------- runners
-    def _run_p4(self, *args: str, timeout: int = DEFAULT_TIMEOUT_SEC) -> SCMCommandResult:
+    def _run_p4(
+        self,
+        *args: str,
+        timeout: int = DEFAULT_TIMEOUT_SEC,
+        input_text: str = "",
+    ) -> SCMCommandResult:
         selected_client = self._configured_client()
         client_args = ("-c", selected_client) if selected_client else ()
         command = (self.executable, *client_args, "-d", str(self.root), *args)
         try:
             completed = subprocess.run(
                 list(command),
+                input=input_text if input_text else None,
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
@@ -575,6 +581,38 @@ class PerforceP4Adapter(SCMAdapter):
             return self._result(ok=True)
         return self._soften(self._run_p4("reopen", "-c", target, *specs))
 
+    @staticmethod
+    def _change_form_with_description(form: str, message: str) -> str:
+        clean = (message or "atlas: submit").strip() or "atlas: submit"
+        description = ["Description:", *[f"\t{line}" for line in clean.splitlines()], ""]
+        lines = form.splitlines()
+        start = -1
+        for idx, line in enumerate(lines):
+            if line == "Description:":
+                start = idx
+                break
+        if start < 0:
+            insert_at = len(lines)
+            for idx, line in enumerate(lines):
+                if line == "Files:":
+                    insert_at = idx
+                    break
+            return "\n".join([*lines[:insert_at], *description, *lines[insert_at:]]).rstrip() + "\n"
+        end = start + 1
+        while end < len(lines):
+            line = lines[end]
+            if line and not line.startswith((" ", "\t")) and line.endswith(":"):
+                break
+            end += 1
+        return "\n".join([*lines[:start], *description, *lines[end:]]).rstrip() + "\n"
+
+    def _update_pending_changelist_description(self, changelist: str, message: str) -> SCMCommandResult:
+        form = self._run_p4("change", "-o", changelist)
+        if not form.ok:
+            return form
+        updated = self._change_form_with_description(form.stdout, message)
+        return self._run_p4("change", "-i", input_text=updated)
+
     def _pending_changes(self) -> tuple[list[dict[str, str]], SCMCommandResult]:
         args = ["changes", "-s", "pending"]
         client = self._info().get("clientName", "")
@@ -726,7 +764,8 @@ class PerforceP4Adapter(SCMAdapter):
         target = self._filespecs_for_perforce_selection([path])
         return self._soften(self._run_p4("diff", "-du", *(target or [self._workspace_scope()])))
 
-    def log(self, limit: int = 60) -> dict[str, Any]:
+    def log(self, limit: int = 60, stream: str = "") -> dict[str, Any]:
+        self._select_stream(stream)
         limit = max(1, min(int(limit or 60), 500))
         recs, result = self._records("changes", "-m", str(limit), "-t", "-s", "submitted", self._perforce_scope())
         if not recs and not self._soften(result).ok:
@@ -750,7 +789,8 @@ class PerforceP4Adapter(SCMAdapter):
             "branch": self._branch(), "commits": commits,
         }
 
-    def show(self, revision: str) -> SCMCommandResult:
+    def show(self, revision: str, stream: str = "") -> SCMCommandResult:
+        self._select_stream(stream)
         cl = str(revision or "").lstrip("@#").strip()
         if not cl:
             return self._result(ok=False, returncode=2, error="empty revision")
@@ -776,6 +816,9 @@ class PerforceP4Adapter(SCMAdapter):
             opened, _ = self._records("opened", "-c", target_change, self._perforce_scope())
             if not opened and not allow_empty:
                 return self._result(ok=False, returncode=0, stdout="no files opened", error="no changes to submit")
+            updated = self._update_pending_changelist_description(target_change, message)
+            if not updated.ok:
+                return updated
             return self._run_p4("submit", "-c", target_change)
         if add_all:
             self._run_p4("reconcile", self._workspace_scope())  # benign if nothing to reconcile

@@ -861,6 +861,55 @@ def test_edit_paths_checks_out_depot_file_to_selected_pending_changelist(tmp_pat
     ]
 
 
+def test_submit_numbered_changelist_updates_description_before_submit(tmp_path):
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+            self.input_texts: list[str] = []
+
+        def _records(self, *args: str, timeout: int = 60):
+            if args and args[0] == "opened":
+                return [
+                    {"depotFile": "//GOOD_SOC/GOOD_IP/rtl/opened.sv", "action": "edit", "change": "12"},
+                ], self._result(ok=True)
+            return [], self._result(ok=True)
+
+        def _run_p4(self, *args: str, timeout: int = 60, input_text: str = ""):
+            self.calls.append(args)
+            self.input_texts.append(input_text)
+            if args == ("change", "-o", "12"):
+                return self._result(
+                    ok=True,
+                    stdout=(
+                        "Change:\t12\n"
+                        "Client:\tatlas_GOOD_IP\n\n"
+                        "Description:\n"
+                        "\told description\n\n"
+                        "Files:\n"
+                        "\t//GOOD_SOC/GOOD_IP/rtl/opened.sv\n"
+                    ),
+                )
+            if args == ("change", "-i"):
+                return self._result(ok=True, stdout="Change 12 updated.")
+            if args == ("submit", "-c", "12"):
+                return self._result(ok=True, stdout="Change 12 submitted.")
+            return self._result(ok=True)
+
+    adapter = RecordingAdapter(tmp_path)
+
+    result = adapter.submit("ship checkout fix", add_all=False, changelist="12")
+
+    assert result.ok is True
+    assert adapter.calls == [
+        ("change", "-o", "12"),
+        ("change", "-i"),
+        ("submit", "-c", "12"),
+    ]
+    assert "Description:\n\tship checkout fix\n" in adapter.input_texts[1]
+    assert "\told description" not in adapter.input_texts[1]
+
+
 def test_diff_accepts_pending_depot_file_path(tmp_path):
     p4_root = tmp_path / "perforce_workspace"
     p4_root.mkdir()
