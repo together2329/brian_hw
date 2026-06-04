@@ -5,8 +5,12 @@ Core server and are skipped unless `p4 info` succeeds against a configured
 workspace (see scripts/perforce_setup.sh).
 """
 import os
+import re
+import shutil
+import socket
 import subprocess
 import sys
+import time
 from pathlib import Path
 from typing import Union
 
@@ -33,6 +37,150 @@ def _p4_ready() -> bool:
 
 
 p4_required = pytest.mark.skipif(not _p4_ready(), reason="no reachable/configured p4 workspace")
+
+P4_TEST_PASSWORD = "Password123"
+ATLAS_TEST_CLIENT_ENV_VARS = (
+    "ATLAS_SCM_CLIENT_PERFORCE",
+    "ATLAS_PERFORCE_CLIENT",
+    "ATLAS_P4CLIENT",
+)
+
+
+def _free_tcp_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def _wait_for_p4d(port: int, process: subprocess.Popen[str]) -> None:
+    deadline = time.monotonic() + 5.0
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            stdout, stderr = process.communicate(timeout=1)
+            pytest.fail(f"p4d exited early\nstdout={stdout}\nstderr={stderr}")
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=0.2):
+                return
+        except OSError:
+            time.sleep(0.05)
+    pytest.fail("p4d did not accept TCP connections in time")
+
+
+def _run_live_p4(
+    p4: str,
+    env: dict[str, str],
+    cwd: Path,
+    *args: str,
+    input_text: str = "",
+) -> subprocess.CompletedProcess[str]:
+    run_env = dict(env)
+    run_env["PWD"] = cwd.as_posix()
+    return subprocess.run(
+        [p4, *args],
+        cwd=cwd,
+        env=run_env,
+        input=input_text,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+@pytest.fixture
+def local_p4d(monkeypatch, tmp_path):
+    p4 = shutil.which("p4")
+    p4d = shutil.which("p4d")
+    if p4 is None or p4d is None:
+        pytest.skip("p4 and p4d are required for the local Helix Core integration test")
+
+    server_root = tmp_path / "p4d"
+    client_root = tmp_path / "client"
+    ip_root = tmp_path / "worktree_ip"
+    server_root.mkdir()
+    client_root.mkdir()
+    ip_root.mkdir()
+
+    port = _free_tcp_port()
+    process = subprocess.Popen(
+        [
+            p4d,
+            "-r", server_root.as_posix(),
+            "-p", f"127.0.0.1:{port}",
+            "-L", (tmp_path / "p4d.log").as_posix(),
+            "-J", (tmp_path / "journal").as_posix(),
+        ],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+
+    env = {key: value for key, value in os.environ.items() if not key.startswith("P4")}
+    env.update({
+        "P4PORT": f"127.0.0.1:{port}",
+        "P4USER": "atlas_pytest",
+        "P4CLIENT": "atlas_ws",
+        "P4PASSWD": P4_TEST_PASSWORD,
+        "P4TICKETS": (tmp_path / "tickets").as_posix(),
+        "ATLAS_SCM_CLIENT_PERFORCE": "atlas_ws",
+        "ATLAS_PERFORCE_CLIENT": "atlas_ws",
+        "ATLAS_P4CLIENT": "atlas_ws",
+    })
+
+    try:
+        _wait_for_p4d(port, process)
+        passwd_env = dict(env)
+        passwd_env.pop("P4PASSWD", None)
+        password = _run_live_p4(
+            p4,
+            passwd_env,
+            tmp_path,
+            "passwd",
+            input_text=f"{P4_TEST_PASSWORD}\n{P4_TEST_PASSWORD}\n",
+        )
+        assert password.returncode == 0, password.stderr or password.stdout
+        login = _run_live_p4(p4, env, tmp_path, "login", input_text=f"{P4_TEST_PASSWORD}\n")
+        assert login.returncode == 0, login.stderr or login.stdout
+
+        client_spec = (
+            "Client:\tatlas_ws\n"
+            "Owner:\tatlas_pytest\n"
+            f"Root:\t{client_root.as_posix()}\n"
+            "Options:\tnoallwrite noclobber nocompress unlocked nomodtime normdir\n"
+            "LineEnd:\tlocal\n"
+            "View:\n"
+            "\t//depot/... //atlas_ws/...\n"
+        )
+        client = _run_live_p4(p4, env, tmp_path, "client", "-i", input_text=client_spec)
+        assert client.returncode == 0, client.stderr or client.stdout
+
+        seed = client_root / "rtl" / "main.sv"
+        seed.parent.mkdir(parents=True)
+        seed.write_text("module seed; endmodule\n", encoding="utf-8")
+        add = _run_live_p4(p4, env, client_root, "add", "rtl/main.sv")
+        assert add.returncode == 0, add.stderr or add.stdout
+        submit = _run_live_p4(p4, env, client_root, "submit", "-d", "seed main")
+        assert submit.returncode == 0, submit.stderr or submit.stdout
+
+        for key in list(os.environ):
+            if key.startswith("P4") or key in ATLAS_TEST_CLIENT_ENV_VARS:
+                monkeypatch.delenv(key, raising=False)
+        for key, value in env.items():
+            if key.startswith("P4") or key in ATLAS_TEST_CLIENT_ENV_VARS:
+                monkeypatch.setenv(key, value)
+
+        yield {
+            "p4": p4,
+            "env": env,
+            "client_root": client_root,
+            "ip_root": ip_root,
+        }
+    finally:
+        process.terminate()
+        try:
+            process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.communicate(timeout=5)
 
 
 # ----------------------------------------------------------------- no server
@@ -908,6 +1056,83 @@ def test_submit_numbered_changelist_updates_description_before_submit(tmp_path):
     ]
     assert "Description:\n\tship checkout fix\n" in adapter.input_texts[1]
     assert "\told description" not in adapter.input_texts[1]
+
+
+def test_live_local_p4d_checkout_copy_submit_roundtrip(local_p4d):
+    # Given: a real local p4d server has //depot/rtl/main.sv submitted.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    source = ip_root / "rtl" / "main.sv"
+    source.parent.mkdir(parents=True)
+    source.write_text("module edited; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    assert adapter._configured_client() == "atlas_ws"
+
+    # When: the UI-style checkout maps the local worktree file to a Perforce target and submits it.
+    opened = adapter.edit_paths(
+        ["rtl/main.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    pending = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv" in pending.stdout
+
+    submitted = adapter.submit("checkout edit submit", add_all=False, changelist="default")
+
+    # Then: the pending file is cleared and the submitted depot content matches the local edit.
+    assert submitted.ok, submitted.error or submitted.stderr
+    after = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv" not in after.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module edited; endmodule" in printed.stdout
+
+
+def test_live_local_p4d_numbered_checkout_submit_clears_pending(local_p4d):
+    # Given: a numbered pending changelist on a real local p4d server.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    change_form = (
+        "Change:\tnew\n"
+        "Client:\tatlas_ws\n"
+        "User:\tatlas_pytest\n"
+        "Status:\tnew\n"
+        "Description:\n"
+        "\tnumbered checkout submit\n"
+    )
+    change = _run_live_p4(p4, env, client_root, "change", "-i", input_text=change_form)
+    assert change.returncode == 0, change.stderr or change.stdout
+    match = re.search(r"Change (\d+) created", change.stdout)
+    assert match is not None, change.stdout
+    change_id = match.group(1)
+    source = ip_root / "rtl" / "main.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module numbered; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    assert adapter._configured_client() == "atlas_ws"
+
+    # When: the local edit is checked out into the selected changelist and submitted.
+    opened = adapter.edit_paths(
+        ["rtl/main.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist=change_id,
+    )
+    assert opened.ok, opened.error or opened.stderr
+    submitted = adapter.submit("numbered checkout submit", add_all=False, changelist=change_id)
+
+    # Then: the selected changelist leaves the pending list and depot receives the edit.
+    assert submitted.ok, submitted.error or submitted.stderr
+    pending_changes = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert f"Change {change_id} " not in pending_changes.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert "module numbered; endmodule" in printed.stdout
 
 
 def test_diff_accepts_pending_depot_file_path(tmp_path):

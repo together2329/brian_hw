@@ -90,13 +90,28 @@ def _compact_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, 
     _write_history_json(path, compacted)
     return msg, compacted
 
-def _default_web_compress_fn(messages: list[dict[str, Any]], **kwargs):
+def _default_web_compress_fn(messages: list[dict[str, Any]], *, model: str | None = None, **kwargs):
     """Real LLM compaction — the SAME path the CLI / Textual UI use.
 
     Delegates to core.compressor.compress_history with the web server's config
     and streaming LLM client injected (mirrors src/main.py's wrapper). Raises on
     import/LLM failure so the caller can fall back to the deterministic local
     compactor.
+
+    The compaction is run inside ``config.scoped_model_runtime`` — the same
+    thread-local mechanism the worker's ``_llm_call_fn`` uses — so the model
+    name, base URL and API key move together for this call. Without it, the web
+    ``/compact`` summarized via a raw ``chat_completion_stream`` against whatever
+    ``MODEL_NAME`` the server process held, which could be out of sync with
+    BASE_URL/API_KEY after a bare ``/model`` switch — producing a silent 401/404
+    that degraded to a non-LLM truncation. ``raise_on_llm_failure=True`` makes a
+    genuine LLM failure propagate so ``_compact_history_llm``'s caller falls back
+    to the deterministic compactor with an honest "AI summary unavailable".
+
+    Args:
+        model: Model to summarize with. Defaults to the process-global
+            ``config.MODEL_NAME`` (which the web ``/model`` switch sets, so it is
+            the session's active model).
     """
     from core.compressor import compress_history as _impl
     try:
@@ -115,14 +130,31 @@ def _default_web_compress_fn(messages: list[dict[str, Any]], **kwargs):
             estimate_message_tokens as _est,
             get_actual_tokens as _act,
         )
-    return _impl(
-        messages,
-        cfg=_cfg,
-        llm_call_fn=_stream,
-        estimate_tokens_fn=_est,
-        get_actual_tokens_fn=_act,
-        **kwargs,
-    )
+
+    # Refresh .env so a server that booted before the user's model/key changed
+    # still summarizes with the current provider config.
+    try:
+        _cfg.reload_env()
+    except Exception:
+        pass
+
+    def _run():
+        return _impl(
+            messages,
+            cfg=_cfg,
+            llm_call_fn=_stream,
+            estimate_tokens_fn=_est,
+            get_actual_tokens_fn=_act,
+            raise_on_llm_failure=True,
+            **kwargs,
+        )
+
+    _model = str(model or getattr(_cfg, "MODEL_NAME", "") or "").strip()
+    _scoped = getattr(_cfg, "scoped_model_runtime", None)
+    if _model and callable(_scoped):
+        with _scoped(_model):
+            return _run()
+    return _run()
 
 def _compact_history_llm(
     path: Path, signal: str, *, compress_fn=None

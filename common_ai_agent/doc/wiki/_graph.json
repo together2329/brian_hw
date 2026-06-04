@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-04T12:13:55Z",
+  "generated_at": "2026-06-04T13:42:42Z",
   "root": "doc/wiki",
-  "node_count": 138,
-  "edge_count": 615,
+  "node_count": 139,
+  "edge_count": 619,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603"
@@ -52,6 +52,9 @@
     ],
     "cl": [
       "contract-reflection-workflow"
+    ],
+    "classification": [
+      "project_classify_survivors_clobber"
     ],
     "cocotb": [
       "atcwdt200-flow-debugging-lessons",
@@ -130,6 +133,7 @@
       "general-ip-flow-trial-and-error-20260601"
     ],
     "freshness": [
+      "project_classify_survivors_clobber",
       "verification-contract-model"
     ],
     "frontend": [
@@ -204,6 +208,7 @@
     "mutation": [
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531",
+      "project_classify_survivors_clobber",
       "project_silent_pass_exposure"
     ],
     "orchestrator": [
@@ -414,6 +419,7 @@
       "hardcoded-strip-honest-baseline-20260520",
       "multi-cycle-production-wiring-20260520",
       "orchestrator-verification-report",
+      "project_classify_survivors_clobber",
       "silent-pass-exposure-tb-stimulus-gap-20260520",
       "ssot-rtl-flow-verify-20260519"
     ],
@@ -547,6 +553,7 @@
       "parallel-todo-sub-agent-workers",
       "perforce-integration-20260530",
       "pipeline-progress-debugging",
+      "project_classify_survivors_clobber",
       "project_merge_broke_prompt_delivery",
       "project_silent_pass_exposure",
       "project_ts_vite_tauri_cutover",
@@ -2323,6 +2330,7 @@
         "babel-retirement-cutover-20260529",
         "local-iproot-thin-llm-server-arch-20260529",
         "desktop-local-tool-execution-plan-20260603",
+        "perforce-integration-20260530",
         "run-mode-and-provenance-policy",
         "atlas-single-active-orchestrator-subworkers-20260603",
         "atlas-db-router-runtime-sharding-20260602",
@@ -2412,7 +2420,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 31510
+      "size_bytes": 31699
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2573,6 +2581,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "perforce-integration-20260530",
         "contract-reflection-workflow",
         "orchestrator-worker-handoff",
         "atlas-context-root-deep-test-plan-20260604",
@@ -2621,9 +2630,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Extended [[contract-reflection-workflow]] freshness downward from semantic source artifacts into simulator evidence. Added `workflow/contract_reflection/sim_freshness.py`, `stamp_sim_evidence_freshness.py`, `check_sim_evidence_freshness.py`, and `run_contract_check.py --require-sim-freshness`. MCTP v3 was rerun through cocotb (`TESTS=10 PASS=10 FAIL=0`),…",
+      "summary": "- Refined [[perforce-integration-20260530]] after the worktree checkout/edit/submit report. The Perforce lower panel now uses bottom tabs for Diff, History, and Pending List instead of keeping history/history diff expanded in the middle of the panel. New temporary-`p4d` regressions verify UI-style local worktree checkout into a depot target and submit for…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 101258
+      "size_bytes": 101951
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -3258,12 +3267,15 @@
         "atlas-pytest-hygiene",
         "babel-retirement-cutover-20260529"
       ],
-      "incoming": [],
+      "incoming": [
+        "index",
+        "log"
+      ],
       "broken_refs": [],
       "updated": "",
       "summary": "Wires ATLAS's provider-abstracted SCM layer to a real Perforce (Helix Core) server and adds a two-pane **Perforce Sync** tab. A developer can push IP folders to Perforce (add → submit) and pull them back (force-sync = overwrite). Built on a local dev server; design is site-portable. Related: [[common-ai-agent-map]] · [[atlas-pytest-hygiene]] (sibling…",
       "path": "doc/wiki/perforce-integration-20260530.md",
-      "size_bytes": 7221
+      "size_bytes": 9292
     },
     {
       "id": "pipeline-progress-debugging",
@@ -3350,6 +3362,29 @@
       "summary": "Real-use debugging record for the `pl330realverify` ATLAS UI run. This page captures the mistakes that only became visible when the user watched the UI and insisted on real Orchestrator + worker execution rather than headless shortcuts or mock progress.",
       "path": "doc/wiki/pl330-real-orchestrator-ui-lessons-20260517.md",
       "size_bytes": 11899
+    },
+    {
+      "id": "project_classify_survivors_clobber",
+      "title": "project_classify_survivors_clobber",
+      "type": "reference",
+      "tags": [
+        "verification",
+        "mutation",
+        "classification",
+        "freshness"
+      ],
+      "related": [],
+      "outgoing": [
+        "verification-contract-model"
+      ],
+      "incoming": [
+        "verification-contract-model"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "This page preserves the historical reference from [[verification-contract-model]] to a known verification hazard: generated classification or survivor artifacts can overwrite evidence from a previous stage if output ownership and freshness are not explicit.",
+      "path": "doc/wiki/project_classify_survivors_clobber.md",
+      "size_bytes": 673
     },
     {
       "id": "project_merge_broke_prompt_delivery",
@@ -4241,10 +4276,10 @@
         "contract-reflection-workflow",
         "project_classify_survivors_clobber"
       ],
-      "incoming": [],
-      "broken_refs": [
+      "incoming": [
         "project_classify_survivors_clobber"
       ],
+      "broken_refs": [],
       "updated": "",
       "summary": "Agreed design (2026-06-04) for how a `requirement` is proven against locked truth in the ATLAS workflow. Consolidates the contract-reflection + evidence-contract + semantic-freshness layers into one model. See [[contract-reflection-workflow]].",
       "path": "doc/wiki/verification-contract-model.md",

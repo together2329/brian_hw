@@ -65,6 +65,9 @@ interface PerforceSyncProps {
   fallbackTab?: any;
 }
 
+type BottomTab = 'diff' | 'history' | 'pending';
+type DiffSource = 'pending' | 'history';
+
 // state badge → {label, color}
 const STATE_BADGE: Record<string, { label: string; color: string }> = {
   new: { label: '● new', color: 'var(--ok)' },
@@ -226,13 +229,41 @@ const sx: Record<string, CSSProperties> = {
   rowLi: { display: 'flex', alignItems: 'center', gap: 8, padding: '3px 10px', borderBottom: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--mono, monospace)' },
   crumb: { color: 'var(--fg-dim)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
   center: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 10, padding: '0 12px', borderLeft: '1px solid var(--line)', borderRight: '1px solid var(--line)', background: 'var(--bg)' },
-  bottom: { borderTop: '1px solid var(--line)', background: 'var(--bg-2)', padding: '8px 12px', maxHeight: '45%', display: 'flex', flexDirection: 'column', minHeight: 0 },
-  historyPanel: { display: 'flex', gap: 8, minHeight: 94, maxHeight: 132, marginBottom: 8, minWidth: 0 },
-  historyList: { overflow: 'auto', flex: '0 0 34%', minHeight: 70, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', minWidth: 0 },
-  historyDiffPane: { overflow: 'hidden', flex: 1, minHeight: 70, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
-  pendingBody: { display: 'flex', gap: 8, flex: 1, minHeight: 72, minWidth: 0 },
-  pendList: { overflow: 'auto', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' },
-  diffPane: { overflow: 'hidden', flex: 1, minHeight: 40, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
+  bottom: { borderTop: '1px solid var(--line)', background: 'var(--bg-2)', maxHeight: '48%', minHeight: 180, display: 'flex', flexDirection: 'column', resize: 'vertical', overflow: 'hidden' },
+  bottomTabs: { display: 'flex', alignItems: 'center', gap: 4, padding: '6px 8px 0', borderBottom: '1px solid var(--line)', flex: 'none' },
+  bottomTab: {
+    background: 'transparent',
+    color: 'var(--fg-mute)',
+    borderTopWidth: 1,
+    borderTopStyle: 'solid',
+    borderTopColor: 'transparent',
+    borderRightWidth: 1,
+    borderRightStyle: 'solid',
+    borderRightColor: 'transparent',
+    borderBottom: 'none',
+    borderLeftWidth: 1,
+    borderLeftStyle: 'solid',
+    borderLeftColor: 'transparent',
+    borderRadius: '4px 4px 0 0',
+    padding: '5px 12px',
+    font: 'inherit',
+    fontSize: 11,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  bottomTabActive: {
+    background: 'var(--bg)',
+    color: 'var(--accent)',
+    borderTopColor: 'var(--accent)',
+    borderRightColor: 'var(--accent)',
+    borderLeftColor: 'var(--accent)',
+  },
+  bottomBody: { flex: 1, minHeight: 0, padding: 8, overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+  bottomControls: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flex: 'none' },
+  historyList: { overflow: 'auto', flex: 1, minHeight: 0, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', minWidth: 0 },
+  pendingBody: { display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, minWidth: 0 },
+  pendList: { overflow: 'auto', flex: 1, minHeight: 0, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' },
+  diffPane: { overflow: 'hidden', flex: 1, minHeight: 0, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
   diffPre: { margin: 0, padding: '8px 10px', overflow: 'auto', flex: 1, minHeight: 0, whiteSpace: 'pre', fontFamily: 'var(--mono, monospace)', fontSize: 11, color: 'var(--fg)' },
   btn: { background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 4, padding: '5px 12px', font: 'inherit', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' },
   btnPrimary: { background: 'var(--accent)', color: 'var(--bg)', border: '1px solid var(--accent)', borderRadius: 4, padding: '5px 12px', font: 'inherit', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' },
@@ -274,6 +305,9 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const [historyBusy, setHistoryBusy] = useState(false);
   const [historyDiffBusy, setHistoryDiffBusy] = useState(false);
   const [historyErr, setHistoryErr] = useState('');
+  const [historyDiffErr, setHistoryDiffErr] = useState('');
+  const [bottomTab, setBottomTab] = useState<BottomTab>('pending');
+  const [diffSource, setDiffSource] = useState<DiffSource>('pending');
   const mounted = useRef(true);
   const reqRef = useRef(0);
   const diffReqRef = useRef(0);
@@ -397,8 +431,10 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const reqId = ++historyShowReqRef.current;
     setHistoryRevision(revision);
     setHistoryDiff('');
-    setHistoryErr('');
+    setHistoryDiffErr('');
     setHistoryDiffBusy(true);
+    setDiffSource('history');
+    setBottomTab('diff');
     const params = new URLSearchParams({ ip, provider: 'perforce', revision });
     const sessionId = activeSessionId();
     if (sessionId) params.set('session_id', sessionId);
@@ -408,10 +444,10 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .then(r => r.json())
       .then((d: unknown) => {
         if (!mounted.current || historyShowReqRef.current !== reqId) return;
-        if (isRecord(d) && d.error) setHistoryErr(String(d.error));
+        if (isRecord(d) && d.error) setHistoryDiffErr(String(d.error));
         setHistoryDiff(isRecord(d) ? String(d.diff || '') : '');
       })
-      .catch(e => { if (mounted.current && historyShowReqRef.current === reqId) setHistoryErr(String(e)); })
+      .catch(e => { if (mounted.current && historyShowReqRef.current === reqId) setHistoryDiffErr(String(e)); })
       .finally(() => { if (mounted.current && historyShowReqRef.current === reqId) setHistoryDiffBusy(false); });
   }, [ip, activeStream, activeScmRoot]);
 
@@ -419,9 +455,14 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const selectedStillVisible = historyRows.some(row => row.sha === historyRevision);
     const first = historyRows[0];
     if (first && (!historyRevision || !selectedStillVisible)) {
-      loadHistoryDiff(first.sha);
+      setHistoryRevision(first.sha);
+      setHistoryDiff('');
     }
-  }, [historyRows, historyRevision, loadHistoryDiff]);
+    if (!first) {
+      setHistoryRevision('');
+      setHistoryDiff('');
+    }
+  }, [historyRows, historyRevision]);
 
   const post = useCallback((
     url: string,
@@ -479,6 +520,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     setDiffText('');
     setDiffErr('');
     setDiffBusy(true);
+    setDiffSource('pending');
+    setBottomTab('diff');
     const params = new URLSearchParams({ ip, provider: 'perforce', path });
     const sessionId = activeSessionId();
     if (sessionId) params.set('session_id', sessionId);
@@ -565,6 +608,8 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       setSelPend(new Set());
       setDiffPath('');
       setDiffText('');
+      setDiffSource('pending');
+      setBottomTab('pending');
       setPane(current => current ? {
         ...current,
         pending: current.pending.filter(row => (row.change || 'default') !== submittedChange),
@@ -589,6 +634,21 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     if (!paths.length) { setErr('nothing to revert'); return; }
     post('/api/scm/revert', { paths }, `reverted ${paths.length} file(s)`);
   };
+  const renderBottomTab = (tab: BottomTab, label: string) => (
+    <button
+      type="button"
+      style={bottomTab === tab ? { ...sx.bottomTab, ...sx.bottomTabActive } : sx.bottomTab}
+      onClick={() => setBottomTab(tab)}
+    >
+      {label}
+    </button>
+  );
+  const activeDiffTitle = diffSource === 'history' ? 'HISTORY DIFF' : 'DIFF';
+  const activeDiffPath = diffSource === 'history' ? historyRevision : diffPath;
+  const activeDiffBusy = diffSource === 'history' ? historyDiffBusy : diffBusy;
+  const activeDiffError = diffSource === 'history' ? historyDiffErr : diffErr;
+  const activeDiffText = diffSource === 'history' ? historyDiff : diffText;
+  const activeDiffEmpty = diffSource === 'history' ? 'select changelist' : 'select pending file';
 
   return (
     <div style={sx.root}>
@@ -695,93 +755,97 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         </div>
       </div>
 
-      {/* BOTTOM — pending changelist */}
       <div style={sx.bottom}>
-        <div style={sx.historyPanel}>
-          <div style={sx.historyList}>
-            <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
-              <strong>HISTORY</strong>
-              <span style={sx.mute}>{historyRows.length} CL</span>
-            </div>
-            {historyBusy ? <div style={sx.empty}>loading history…</div> :
-              historyErr ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{historyErr}</div> :
-                historyRows.length === 0 ? <div style={sx.empty}>no changelists</div> :
-                  historyRows.map(row => (
-                    <div
-                      key={row.sha}
-                      style={{ ...sx.rowLi, background: historyRevision === row.sha ? 'var(--bg-3)' : 'transparent' }}
-                      onClick={() => loadHistoryDiff(row.sha)}
-                      title={row.sha}
-                    >
-                      <span style={{ color: 'var(--accent)', width: 48, flex: 'none' }}>{row.short || row.sha}</span>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.subject || row.sha}</span>
-                      {row.author ? <span style={{ color: 'var(--fg-dim)', flex: 'none' }}>{row.author}</span> : null}
-                    </div>
-                  ))}
-          </div>
-          <div style={sx.historyDiffPane}>
-            <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
-              <span>HISTORY DIFF</span>
-              <span style={sx.crumb} className="mono">{historyRevision}</span>
-            </div>
-            {historyDiffBusy ? <div style={sx.empty}>loading changelist…</div> :
-              historyDiff ? <pre style={sx.diffPre}>{historyDiff}</pre> :
-                <div style={sx.empty}>select changelist</div>}
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <strong>PENDING</strong>
-          <span style={sx.mute}>{visiblePending.length} file(s) opened</span>
-          <label htmlFor="perforce-pending-change" style={sx.mute}>CL:</label>
-          <select
-            id="perforce-pending-change"
-            aria-label="Pending changelist"
-            value={selectedChange}
-            onChange={e => { setSelectedChange(e.target.value); setSelPend(new Set()); }}
-            style={{ ...sx.input, flex: 'none', minWidth: 160 }}
-          >
-            {pendingChanges.map(change => (
-              <option key={change.id} value={change.id}>{change.label || change.id}</option>
-            ))}
-          </select>
-          <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-            <button style={sx.btn} onClick={onRevert} disabled={busy || !visiblePending.length}>Revert</button>
+        <div style={sx.bottomTabs}>
+          {renderBottomTab('diff', 'Diff')}
+          {renderBottomTab('history', 'History')}
+          {renderBottomTab('pending', 'Pending List')}
+          <span style={{ ...sx.mute, marginLeft: 'auto' }}>
+            {visiblePending.length} opened · {historyRows.length} CL
           </span>
         </div>
-        <div style={sx.pendingBody}>
-          <div style={sx.pendList}>
-            {visiblePending.length === 0 ? <div style={sx.empty}>nothing opened — select local files and press ＋ Add</div> :
-              visiblePending.map(r => {
-                const checked = selPend.has(r.path);
-                return (
-                  <div
-                    key={r.path}
-                    style={sx.rowLi}
-                    onClick={() => {
-                      toggle(selPend, r.path, setSelPend);
-                      loadPendingDiff(r.path);
-                    }}
-                  >
-                    <input type="checkbox" checked={checked} readOnly />
-                    <span style={{ color: ACTION_COLOR[r.action] || 'var(--fg-mute)', width: 76, flex: 'none' }}>{r.action}</span>
-                    <span style={{ color: 'var(--fg-dim)', width: 64, flex: 'none' }}>{r.change || 'default'}</span>
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.path}</span>
-                  </div>
-                );
-              })}
-          </div>
-          <div style={sx.diffPane}>
-            <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
-              <span>DIFF</span>
-              <span style={sx.crumb} className="mono">{diffPath}</span>
+        <div style={sx.bottomBody}>
+          {bottomTab === 'diff' ? (
+            <div style={sx.diffPane}>
+              <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
+                <span>{activeDiffTitle}</span>
+                <span style={sx.crumb} className="mono">{activeDiffPath}</span>
+              </div>
+              {activeDiffBusy ? <div style={sx.empty}>{diffSource === 'history' ? 'loading changelist…' : 'loading diff…'}</div> :
+                activeDiffError ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{activeDiffError}</div> :
+                  activeDiffText ? <pre style={sx.diffPre}>{activeDiffText}</pre> :
+                    <div style={sx.empty}>{activeDiffEmpty}</div>}
             </div>
-            {diffBusy ? <div style={sx.empty}>loading diff…</div> :
-              diffErr ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{diffErr}</div> :
-                diffText ? <pre style={sx.diffPre}>{diffText}</pre> :
-                  <div style={sx.empty}>select pending file</div>}
-          </div>
+          ) : null}
+          {bottomTab === 'history' ? (
+            <div style={sx.historyList}>
+              <div style={{ ...sx.paneHead, padding: '4px 8px' }}>
+                <strong>HISTORY</strong>
+                <span style={sx.mute}>{historyRows.length} CL</span>
+              </div>
+              {historyBusy ? <div style={sx.empty}>loading history…</div> :
+                historyErr ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{historyErr}</div> :
+                  historyRows.length === 0 ? <div style={sx.empty}>no changelists</div> :
+                    historyRows.map(row => (
+                      <div
+                        key={row.sha}
+                        style={{ ...sx.rowLi, background: historyRevision === row.sha ? 'var(--bg-3)' : 'transparent' }}
+                        onClick={() => loadHistoryDiff(row.sha)}
+                        title={row.sha}
+                      >
+                        <span style={{ color: 'var(--accent)', width: 48, flex: 'none' }}>{row.short || row.sha}</span>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.subject || row.sha}</span>
+                        {row.author ? <span style={{ color: 'var(--fg-dim)', flex: 'none' }}>{row.author}</span> : null}
+                      </div>
+                    ))}
+            </div>
+          ) : null}
+          {bottomTab === 'pending' ? (
+            <div style={sx.pendingBody}>
+              <div style={sx.bottomControls}>
+                <strong>PENDING</strong>
+                <span style={sx.mute}>{visiblePending.length} file(s) opened</span>
+                <label htmlFor="perforce-pending-change" style={sx.mute}>CL:</label>
+                <select
+                  id="perforce-pending-change"
+                  aria-label="Pending changelist"
+                  value={selectedChange}
+                  onChange={e => { setSelectedChange(e.target.value); setSelPend(new Set()); }}
+                  style={{ ...sx.input, flex: 'none', minWidth: 160 }}
+                >
+                  {pendingChanges.map(change => (
+                    <option key={change.id} value={change.id}>{change.label || change.id}</option>
+                  ))}
+                </select>
+                <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <button style={sx.btn} onClick={onRevert} disabled={busy || !visiblePending.length}>Revert</button>
+                </span>
+              </div>
+              <div style={sx.pendList}>
+                {visiblePending.length === 0 ? <div style={sx.empty}>nothing opened — select local files and press ＋ Add</div> :
+                  visiblePending.map(r => {
+                    const checked = selPend.has(r.path);
+                    return (
+                      <div
+                        key={r.path}
+                        style={sx.rowLi}
+                        onClick={() => {
+                          toggle(selPend, r.path, setSelPend);
+                          loadPendingDiff(r.path);
+                        }}
+                      >
+                        <input type="checkbox" checked={checked} readOnly />
+                        <span style={{ color: ACTION_COLOR[r.action] || 'var(--fg-mute)', width: 76, flex: 'none' }}>{r.action}</span>
+                        <span style={{ color: 'var(--fg-dim)', width: 64, flex: 'none' }}>{r.change || 'default'}</span>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.path}</span>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          ) : null}
         </div>
-        <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+        <div style={{ display: 'flex', gap: 8, padding: '0 8px 8px', flex: 'none' }}>
           <input style={sx.input} placeholder="changelist description…" value={desc}
                  onChange={e => setDesc(e.target.value)}
                  onKeyDown={e => { if (e.key === 'Enter') onSubmit(); }} />

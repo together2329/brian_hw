@@ -50,6 +50,44 @@ bundled — hence the `main.tsx` import. See [[babel-retirement-cutover-20260529
 - Real authenticated HTTP (`admin`/`1151`): `/api/scm/pane?ip=deepdeep_ip` → provider perforce, client `atlas_GOOD_IP`, local files "new", depot empty; git provider → graceful "unsupported".
 - Browser (Vite bundle): Perforce tab renders two panes; Add→Submit→depot `#1`, badge flips to ✓ same; force-sync overwrites a locally-edited file. `.p4ignore` correctly excludes `.omc/` + `.gitignore`.
 
+## 2026-06-04 checkout-submit and history panel follow-up
+
+User-visible issue: after checkout/edit from a worktree, submit looked broken or
+left the pending view stale, and Perforce history/history diff occupied the
+middle of the lower panel.
+
+Follow-up changes:
+
+- `frontend/atlas/perforce-sync.tsx` lower panel is now tabbed as **Diff**,
+  **History**, and **Pending List**. History and history diff are no longer
+  always expanded between the file panes and pending list.
+- Clicking a pending file or history changelist switches to the Diff tab with
+  the relevant diff source. The submit description stays visible below the tab
+  body so a user can inspect a diff and submit without switching back.
+- Successful submit clears the selected pending diff and returns the lower panel
+  to Pending List while the normal pane/history refresh runs.
+- New local Helix Core regression tests start a temporary `p4d` server, create a
+  real client/depot, perform UI-style local-worktree checkout into a depot
+  target, submit default and numbered changelists, assert no pending file/list
+  remains, and verify `p4 print` returns the edited depot content.
+
+Verification:
+
+- `python3 -m pytest tests/test_scm_perforce_adapter.py tests/test_atlas_git_api.py -q`
+  → `43 passed, 3 skipped`.
+- `npx vitest run __tests__/perforce-sync.test.tsx __tests__/perforce-sync-history-submit.test.tsx __tests__/perforce-sync-navigation.test.tsx`
+  → `16 passed`.
+- `npm run build` under `frontend/atlas` → pass.
+
+Note: `p4v` GUI was not installed on the machine used for this verification.
+The submit path was validated against the actual Helix Core server binary
+(`p4d`) plus `p4` CLI, which is the server/client path the adapter executes.
+For Windows deployments, keep the same model: configure `P4PORT`, `P4USER`,
+`P4CLIENT`/`ATLAS_P4CLIENT`, and tickets for the workspace, then let the Atlas
+adapter invoke `p4` from the selected IP/worktree path. The regression fixture
+pins both Perforce and Atlas client env vars so worktree cwd differences do not
+fall back to the wrong client.
+
 ## Gotchas
 
 - After submit, p4 marks files read-only (`noallwrite`); editing outside p4 needs `chmod +w` or `p4 edit`.
