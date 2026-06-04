@@ -5,8 +5,10 @@ Run with:
 """
 from __future__ import annotations
 
+import importlib
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
@@ -32,20 +34,31 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     return client
 
 
-def _seed_chat_message(db_path: Path, ip_name: str, content: str, ts: float = None):
+def _seed_chat_message(
+    db_path: Path,
+    ip_name: str,
+    content: str,
+    ts: float | None = None,
+    *,
+    username: str = "u",
+    workspace_name: str = "default",
+) -> dict[str, Any]:
     """Seed a chat_message via record_chat_message using the resolved ip_blocks.id (UUID).
 
     Mirrors how the orchestrator writes messages so the endpoint's name→UUID
     resolution can find them. Uses the DB user UUID for owner_user_id so the
     workspace key matches what the endpoint resolves via _request_db_user_id.
     """
-    from core.atlas_db import AtlasDB
+    AtlasDB = importlib.import_module("core.atlas_db").AtlasDB
 
     with AtlasDB(str(db_path)) as db:
-        user_row = db.get_user_by_username("u")
-        user_db_id = user_row["id"] if user_row else "u"
-        ws_name = db_path.parent.name or "default"
-        workspace = db.upsert_workspace(ws_name, owner_user_id=user_db_id, local_path=str(db_path.parent))
+        user_row = db.get_user_by_username(username)
+        user_db_id = user_row["id"] if user_row else username
+        workspace = db.upsert_workspace(
+            workspace_name,
+            owner_user_id=user_db_id,
+            local_path=str(db_path.parent / username / workspace_name),
+        )
         ip_row = db.upsert_ip_block(workspace["id"], ip_name)
         row = db.record_chat_message(
             ip_id=ip_row["id"],
@@ -59,6 +72,13 @@ def _seed_chat_message(db_path: Path, ip_name: str, content: str, ts: float = No
                 (ts, row["id"]),
             )
         return row
+
+
+def _payloads(messages: list[dict[str, Any]]) -> list[str]:
+    return [
+        (m.get("payload") or {}).get("content") or m.get("content") or ""
+        for m in messages
+    ]
 
 
 def test_get_without_auth_returns_401(tmp_path, monkeypatch):
@@ -86,6 +106,13 @@ def test_bad_ip_returns_400(tmp_path, monkeypatch):
     assert r.status_code == 400
 
 
+def test_overlong_ip_returns_400(tmp_path, monkeypatch):
+    client = _make_client(tmp_path, monkeypatch)
+    overlong_ip = "a" * 65
+    r = client.get(f"/api/orchestrator/chat/messages?ip={overlong_ip}")
+    assert r.status_code == 400
+
+
 def test_get_with_auth_returns_valid_schema(tmp_path, monkeypatch):
     client = _make_client(tmp_path, monkeypatch)
     db_path = tmp_path / "atlas.db"
@@ -101,6 +128,72 @@ def test_get_with_auth_returns_valid_schema(tmp_path, monkeypatch):
     msg = j["messages"][0]
     for field in ("id", "created_at"):
         assert field in msg, f"missing field: {field}"
+
+
+def test_db_fallback_scopes_absent_workspace_to_default(tmp_path, monkeypatch):
+    client = _make_client(tmp_path, monkeypatch)
+    db_path = tmp_path / "atlas.db"
+
+    _seed_chat_message(db_path, "pl330", "default workspace", workspace_name="default")
+    _seed_chat_message(db_path, "pl330", "alt workspace", workspace_name="alt")
+
+    implicit = client.get("/api/orchestrator/chat/messages?ip=pl330")
+    explicit_alt = client.get("/api/orchestrator/chat/messages?ip=pl330&workspace_session=alt")
+
+    assert implicit.status_code == 200, implicit.text
+    assert explicit_alt.status_code == 200, explicit_alt.text
+    assert _payloads(implicit.json()["messages"]) == ["default workspace"]
+    assert _payloads(explicit_alt.json()["messages"]) == ["alt workspace"]
+
+
+def test_overlong_workspace_session_is_bounded_to_default(tmp_path, monkeypatch):
+    client = _make_client(tmp_path, monkeypatch)
+    db_path = tmp_path / "atlas.db"
+    overlong_workspace = "a" * 65
+
+    _seed_chat_message(db_path, "pl330", "default workspace", workspace_name="default")
+    _seed_chat_message(db_path, "pl330", "overlong workspace", workspace_name=overlong_workspace)
+
+    r = client.get(f"/api/orchestrator/chat/messages?ip=pl330&workspace_session={overlong_workspace}")
+
+    assert r.status_code == 200, r.text
+    assert _payloads(r.json()["messages"]) == ["default workspace"]
+
+
+def test_explicit_workspace_db_fallback_is_not_masked_by_legacy_local_chat(tmp_path, monkeypatch):
+    client = _make_client(tmp_path, monkeypatch)
+    db_path = tmp_path / "atlas.db"
+
+    me = client.get("/api/users/me")
+    assert me.status_code == 200, me.text
+    owner = me.json()["user"]["id"]
+
+    append_chat = importlib.import_module("core.local_chat_store").append_chat
+
+    append_chat(tmp_path, owner, "pl330", "legacy local", role="assistant", display_name="ATLAS")
+    _seed_chat_message(db_path, "pl330", "alt workspace", workspace_name="alt")
+
+    r = client.get("/api/orchestrator/chat/messages?ip=pl330&workspace_session=alt")
+    assert r.status_code == 200, r.text
+    assert _payloads(r.json()["messages"]) == ["alt workspace"]
+
+
+def test_db_fallback_keeps_user_workspace_isolation(tmp_path, monkeypatch):
+    client = _make_client(tmp_path, monkeypatch)
+    db_path = tmp_path / "atlas.db"
+
+    AtlasDB = importlib.import_module("core.atlas_db").AtlasDB
+
+    with AtlasDB(str(db_path)) as db:
+        if db.get_user_by_username("other") is None:
+            db.create_user("other", "other")
+
+    _seed_chat_message(db_path, "pl330", "current user", username="u")
+    _seed_chat_message(db_path, "pl330", "other user", username="other")
+
+    r = client.get("/api/orchestrator/chat/messages?ip=pl330")
+    assert r.status_code == 200, r.text
+    assert _payloads(r.json()["messages"]) == ["current user"]
 
 
 def test_since_filter_excludes_older_rows(tmp_path, monkeypatch):
@@ -119,10 +212,7 @@ def test_since_filter_excludes_older_rows(tmp_path, monkeypatch):
     assert r.status_code == 200
     j = r.json()
     assert j["ok"] is True
-    payloads = [
-        (m.get("payload") or {}).get("content") or m.get("content") or ""
-        for m in j["messages"]
-    ]
+    payloads = _payloads(j["messages"])
     assert "new message" in payloads
     assert "old message" not in payloads
 
@@ -159,8 +249,5 @@ def test_ip_name_resolves_to_uuid_round_trip(tmp_path, monkeypatch):
     assert r.status_code == 200
     j = r.json()
     assert j["ok"] is True
-    payloads = [
-        (m.get("payload") or {}).get("content") or m.get("content") or ""
-        for m in j["messages"]
-    ]
+    payloads = _payloads(j["messages"])
     assert "round trip content" in payloads, f"message not found; got: {j['messages']}"

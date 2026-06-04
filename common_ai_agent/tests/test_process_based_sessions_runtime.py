@@ -98,6 +98,42 @@ def test_runtime_mode_spawn_cmd_and_env_route_to_runtime_db(monkeypatch, tmp_pat
     assert env["ATLAS_MEMORY_DB_PATH"] == control_path
 
 
+def test_v2_workspace_session_worker_starts_in_active_ip_root(monkeypatch, tmp_path):
+    control_db, _runtime_root = _runtime_env(monkeypatch, tmp_path)
+    atlas_root = tmp_path / "atlas-root"
+    session_id = "alice/s1/spi_core/rtl-gen"
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(atlas_root / "alice" / "s1"))
+
+    popen_calls = []
+
+    def fake_popen(cmd, **kwargs):
+        popen_calls.append((cmd, kwargs))
+        return FakeProc()
+
+    monkeypatch.setattr(subprocess, "Popen", fake_popen)
+
+    manager = SessionProcessManager(project_root=str(atlas_root / "alice" / "s1"))
+    assert manager.spawn(session_id)
+
+    assert len(popen_calls) == 1
+    _cmd, kwargs = popen_calls[0]
+    env = kwargs["env"]
+    expected_workspace = atlas_root / "alice" / "s1"
+    expected_ip_root = expected_workspace / "spi_core"
+    expected_session_dir = expected_workspace / ".session" / "spi_core" / "rtl-gen"
+    assert kwargs["cwd"] == str(expected_ip_root.resolve())
+    assert env["ATLAS_ROOT"] == str(atlas_root.resolve())
+    assert env["ATLAS_WORKSPACE_ROOT"] == str(expected_workspace.resolve())
+    assert env["ATLAS_PROJECT_ROOT"] == str(expected_workspace.resolve())
+    assert env["ATLAS_IP_ROOT"] == str(expected_ip_root.resolve())
+    assert env["ATLAS_SESSION_DIR"] == str(expected_session_dir.resolve())
+    assert env["ATLAS_CONTEXT_KEY"] == session_id
+    assert env["ATLAS_ACTIVE_SESSION"] == session_id
+    assert env["ATLAS_SESSION_WORKER_PARENT_PID"] == str(os.getpid())
+    assert env["ATLAS_CONTROL_DB_PATH"] == str(control_db.resolve())
+
+
 def test_runtime_mode_same_db_invariant_and_control_db_empty(monkeypatch, tmp_path):
     control_db, runtime_root = _runtime_env(monkeypatch, tmp_path)
     manager = SessionProcessManager(project_root=str(tmp_path))

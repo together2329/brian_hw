@@ -22,6 +22,7 @@
 // This .tsx is an INERT mirror — the live app is still served by workspace.jsx.
 import { useState, useEffect, useCallback, type ReactNode } from 'react';
 import { _copyToClipboard } from './workspace-markdown-chips';
+import { appendActiveSessionParam } from './workspace-session-routing';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
 // read it through window here with a permissive cast (it is declared in
@@ -80,6 +81,7 @@ export const DiffPanel = () => (
 // SSOT importer auto-generates a .md sibling for previewing text content.
 export const DocxFallbackPane = ({ path, ext }: { path?: string; ext?: string }) => {
   const sibling = (path || '').replace(/\.(docx|pptx|xlsx)$/i, '.md');
+  const rawParams = appendActiveSessionParam(new URLSearchParams({ path: path || '' }));
   return (
     <div style={{ padding: 24, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12, lineHeight: 1.6 }}>
       <div style={{ color: 'var(--fg)', fontSize: 14, fontWeight: 700, marginBottom: 8 }}>
@@ -87,7 +89,7 @@ export const DocxFallbackPane = ({ path, ext }: { path?: string; ext?: string })
       </div>
       <div>Office documents are stored byte-exact under <code>req/imports/originals/</code>. The SSOT importer auto-generates a <code>.md</code> sibling for previewing the text content.</div>
       <div style={{ marginTop: 10 }}>
-        <a href={`/api/file/raw?path=${encodeURIComponent(path || '')}`} style={{ color: 'var(--accent)' }}>📥 download original</a>
+        <a href={`/api/file/raw?${rawParams.toString()}`} style={{ color: 'var(--accent)' }}>📥 download original</a>
         {sibling !== path ? (
           <> · try the auto-converted markdown: <code>{sibling}</code></>
         ) : null}

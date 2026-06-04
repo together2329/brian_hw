@@ -337,6 +337,126 @@ user orchestrator from the authenticated user, then derive the run context from
 the active session/pipeline. Do not let the frontend pass an arbitrary `user_id`
 to claim another user's orchestrator.
 
+Current implementation rule for worker startup and snapshots:
+
+```text
+worker identity key:
+  user / workspace_session / ip / workflow
+
+request surfaces that must preserve the key:
+  /api/pipeline/dispatch
+  /api/pipeline/state
+  /api/pipeline/progress-debug
+  /api/pipeline/orchestrator/chat
+  /api/orchestrator/workers
+  /api/orchestrator/workers/warm
+  core.tools.dispatch_workflow
+  src.orchestrator.tools.read_pipeline_state
+  src.orchestrator.tools.dispatch_workflow
+```
+
+This means worker processes may still be reused internally, but user-visible
+state, sessions, warm workers, runtime snapshots, IPC jobs, chat history, todo
+files, and artifact roots are scoped to the authenticated user and workspace
+session. Ownerless legacy DB rows and unscoped IPC jobs are hidden from scoped
+multi-user responses; IPC process metadata is filtered through the same visible
+run set. Explicit `session_id` or `orchestrator_session_id` inputs are accepted
+only when they match the authenticated
+`user/workspace_session/ip/workflow` context.
+
+The orchestrator React bridge must pass `ctx.session_id` and the trusted
+runtime `ctx.user_id` into `src.orchestrator.tools.read_pipeline_state`.
+Otherwise an LLM tool call can fall back to `ATLAS_ACTIVE_SESSION`, default
+workspace state, or display-owner-only filtering even though the HTTP route was
+correctly scoped.
+
+## Orchestrator Supervisor IPC Runtime
+
+As of commit `a96dbf29`, orchestrator chat no longer has to run the
+orchestrator loop inside the ATLAS web server thread. The route now resolves an
+orchestrator runtime through `src.orchestrator.runtime.get_orchestrator_runtime`
+and selects the transport from environment:
+
+```text
+ATLAS_ORCHESTRATOR_TRANSPORT=thread  -> legacy in-process OrchestratorRunner
+ATLAS_ORCHESTRATOR_TRANSPORT=ipc     -> supervisor subprocess runtime
+ATLAS_EXEC_MODE=orchestrator         -> defaults to ipc when no transport is set
+```
+
+The current as-built path is:
+
+```text
+UI /api/pipeline/orchestrator/chat
+  -> src.atlas_api_jobs api_pipeline_orchestrator_chat
+  -> src.orchestrator.runtime.get_orchestrator_runtime(...)
+  -> src.orchestrator.supervisor_runtime.OrchestratorSupervisorRuntime
+  -> python -m src.atlas_orchestrator_supervisor_ipc --request ... --response ...
+  -> src.orchestrator.react_bridge.OrchestratorReactLoop
+  -> stage workers / workflow dispatch
+```
+
+This makes the orchestrator a supervisor runtime, not a normal stage worker.
+The supervisor owns conversation/run lifecycle, wakeups, cancellation intent,
+job visibility, and crash isolation. Stage workers still own SSOT, RTL, TB,
+simulation, coverage, and other workflow artifacts.
+
+Runtime files:
+
+- `src/orchestrator/runtime.py` chooses thread vs IPC and caches IPC runtimes
+  per `(atlas.db, project_root)`.
+- `src/orchestrator/runtime_types.py` holds the shared `SubmitOutcome` contract
+  so the route and legacy runner agree on return shape.
+- `src/orchestrator/supervisor_runtime.py` creates the DB run, writes the
+  supervisor request, spawns the subprocess, and registers a synthetic
+  `job_kind=orchestrator-supervisor` IPC job.
+- `src/atlas_orchestrator_supervisor_ipc.py` is the subprocess entry point. It
+  configures `ATLAS_PROJECT_ROOT`, `ATLAS_SOURCE_ROOT`,
+  `ATLAS_WORKER_TRANSPORT=ipc`, builds `OrchestratorContext`, and runs the
+  React bridge loop.
+- `src/orchestrator/supervisor_wake.py` is the file-backed wake channel.
+- `src/orchestrator/supervisor_watch.py` waits for the subprocess, reads the
+  response JSON, updates the visible job row, unregisters the process, and
+  closes the orchestrator DB run.
+
+Supervisor control files live under the request project root:
+
+```text
+.session/orchestrators-ipc/<run_id>/request.json
+.session/orchestrators-ipc/<run_id>/response.json
+.session/orchestrators-ipc/<run_id>/wake.jsonl
+.session/orchestrators-ipc/<run_id>/cancel.json
+.session/orchestrators-ipc/<run_id>/supervisor.log
+```
+
+The route registers the supervisor with the same in-memory job/process tables
+used by IPC workflow workers, so admin/runtime snapshots can see the
+orchestrator supervisor as a live process. Appending a second chat message to
+an active run writes a DB `user_reply` step and a `user_message` wake event
+instead of spawning another supervisor. When stage jobs finish,
+`_advance_pipeline_from` appends a `job_complete` wake event for the owning
+`orchestrator_run_id`.
+
+The route must keep using the request-scoped project root:
+
+```text
+pr = _request_project_root(request, ip, body)
+db = _atlas_job_db_path(pr)
+```
+
+Passing the global `project_root()` here would put supervisor control files,
+`atlas.db`, chat history, and worker artifacts in the wrong user's workspace.
+
+Verification recorded with the commit:
+
+- targeted supervisor/runtime tests: `11 passed`
+- legacy route and runner regression tests: `19 passed`
+- Python compile for the new supervisor modules: pass
+- manual supervisor runtime smoke: subprocess spawned, wrote response/log, and
+  cleaned up through the watcher
+- Computer Use QA: live ATLAS surface showed orchestrator state through the
+  product UI
+- `ruff` was attempted but unavailable in the active Python environment
+
 In worker mode:
 
 ```text

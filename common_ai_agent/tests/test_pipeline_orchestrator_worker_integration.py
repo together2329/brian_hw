@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 import socket
+import subprocess
 import sys
 import threading
 import time
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Iterator
 
 import pytest
@@ -523,6 +525,145 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     return client
 
 
+def _make_unauthenticated_client(tmp_path: Path, monkeypatch) -> TestClient:
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
+    monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    return TestClient(atlas_ui.create_app())
+
+
+def test_pipeline_state_and_progress_debug_reject_unauthenticated_multiuser_scope(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _make_unauthenticated_client(tmp_path, monkeypatch)
+
+    state_resp = client.get("/api/pipeline/state?ip=unauth_ip&workspace_session=alt")
+    progress_resp = client.get("/api/pipeline/progress-debug?ip=unauth_ip&workspace_session=alt")
+
+    assert state_resp.status_code == 401
+    assert progress_resp.status_code == 401
+
+
+def test_handoff_routes_reject_unauthenticated_multiuser_scope(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from src import handoff_queue as hq
+
+    ip = "handoff_unauth_ip"
+    ip_dir = tmp_path / ip
+    ip_dir.mkdir()
+    record = {
+        "schema": hq.SCHEMA,
+        "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", "BLOCK"),
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "scope": hq.make_scope(user_id="u", session_id=f"u/alt/{ip}/orchestrator", pipeline_run_id="P"),
+    }
+    hq.write_pending(ip_dir, record)
+    client = _make_unauthenticated_client(tmp_path, monkeypatch)
+
+    list_resp = client.get(f"/api/handoff/list?ip={ip}&workflow=rtl-gen&workspace_session=alt")
+    save_resp = client.post(
+        "/api/handoff/save",
+        json={
+            "ip": ip,
+            "from_workflow": "sim-debug",
+            "to_workflow": "rtl-gen",
+            "workspace_session": "alt",
+            "session_id": f"u/alt/{ip}/orchestrator",
+        },
+    )
+    take_resp = client.post(
+        "/api/handoff/take",
+        json={
+            "ip": ip,
+            "workflow": "rtl-gen",
+            "workspace_session": "alt",
+            "session_id": f"u/alt/{ip}/orchestrator",
+        },
+    )
+
+    assert list_resp.status_code == 401
+    assert save_resp.status_code == 401
+    assert take_resp.status_code == 401
+    assert hq.get(ip_dir, record["handoff_id"])[0] == "pending"
+
+
+def test_pipeline_state_hides_ownerless_legacy_db_runs_from_scoped_user(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_db import AtlasDB
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "ownerless_legacy_state_ip"
+    scoped_root = tmp_path / "u" / "alt"
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        workspace = db.upsert_workspace("alt", owner_user_id="", local_path=str(scoped_root))
+        ip_row = db.upsert_ip_block(workspace["id"], ip)
+        run = db.start_workflow_run(
+            session_id=f"legacy/alt/{ip}/ssot-gen",
+            workspace_id=str(workspace["id"] or ""),
+            ip_id=str(ip_row["id"] or ""),
+            workflow="ssot-gen",
+            status="running",
+        )
+        db.finish_workflow_run(run["id"], status="error", error_summary="legacy leaked state")
+
+    resp = client.get(f"/api/pipeline/state?ip={ip}&workspace_session=alt")
+
+    assert resp.status_code == 200, resp.text
+    stage = resp.json()["stages"]["ssot"]
+    assert stage["state"] != "failed"
+    assert "legacy leaked state" not in json.dumps(resp.json())
+
+
+def test_pipeline_state_hides_foreign_rtl_version_from_scoped_user(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_db import AtlasDB
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "foreign_rtl_state_ip"
+    foreign_root = tmp_path / "bob" / "alt"
+
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        bob = db.ensure_user_by_username("bob")
+        workspace = db.upsert_workspace(
+            "alt",
+            owner_user_id=str(bob["id"] or ""),
+            local_path=str(foreign_root),
+        )
+        ip_row = db.upsert_ip_block(workspace["id"], ip)
+        db.register_rtl_version(
+            ip_id=str(ip_row["id"] or ""),
+            workspace_id=str(workspace["id"] or ""),
+            version="foreign-rtl-v001",
+            rtl_root=str(foreign_root / ip / "rtl"),
+        )
+
+    resp = client.get(f"/api/pipeline/state?ip={ip}&workspace_session=alt")
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body.get("rtl_version_id") in (None, "")
+    assert "foreign-rtl-v001" not in json.dumps(body)
+
+
 def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
     tmp_path: Path,
     monkeypatch,
@@ -531,7 +672,8 @@ def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
     import atlas_api_jobs as jobs
 
     ip = "worker_pipe_ip"
-    ip_dir = tmp_path / ip
+    user_workspace_root = tmp_path / "u" / "default"
+    ip_dir = user_workspace_root / ip
     # Minimal valid SSOT/RTL evidence so the strict completion gate accepts the
     # rtl stage (Task 2). Paired with _patch_rtl_gate_for_fixture below.
     _write_minimal_valid_ssot_rtl_fixture(ip_dir, ip)
@@ -551,7 +693,7 @@ def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
     with jobs._jobs_lock:
         jobs._jobs.clear()
 
-    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, tmp_path)
+    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, user_workspace_root)
 
     with _mock_worker("rtl") as (rtl_url, rtl_worker), _mock_worker("other") as (other_url, other_worker):
         monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
@@ -593,10 +735,10 @@ def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
 
         for item in other_worker.requests:
             payload = item["payload"]
-            assert payload["project_root"] == str(tmp_path)
+            assert payload["project_root"] == str(user_workspace_root)
             assert payload["source_root"].endswith("common_ai_agent")
             assert payload["ip"] == ip
-            assert payload["session"].startswith(f"u/{ip}/pipeline/{dispatch_body['pipeline_id']}/")
+            assert payload["session"].startswith(f"u/default/{ip}/pipeline/{dispatch_body['pipeline_id']}/")
             assert "rtl_version_id" in payload, payload
             assert "rtl_version_id:" in payload["context"]
             assert "write_boundary: only modify files under" in payload["task"]
@@ -612,7 +754,8 @@ def test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints(
     import atlas_api_jobs as jobs
 
     ip = "real_worker_pipe_ip"
-    ip_dir = tmp_path / ip
+    user_workspace_root = tmp_path / "u" / "default"
+    ip_dir = user_workspace_root / ip
     # Minimal valid SSOT/RTL evidence created before dispatch so the strict
     # completion gate accepts the rtl stage (Task 5). The agent-server worker
     # re-writes the same valid evidence after /run via _write_mock_stage_artifact.
@@ -621,7 +764,7 @@ def test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints(
     with jobs._jobs_lock:
         jobs._jobs.clear()
 
-    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, tmp_path)
+    _patch_rtl_gate_for_fixture(monkeypatch, jobs, ip, user_workspace_root)
 
     worker_calls: list[dict] = []
     with _agent_server_worker(monkeypatch, worker_calls) as rtl_url, _agent_server_worker(monkeypatch, worker_calls) as lint_url:
@@ -669,8 +812,8 @@ def test_pipeline_dispatch_can_drive_real_agent_server_worker_endpoints(
         lint_call = worker_calls[1]
         assert lint_call["rtl_version_id"]
         assert lint_call["ip"] == ip
-        assert lint_call["project_root"] == str(tmp_path)
-        assert lint_call["session"].startswith(f"u/{ip}/pipeline/{dispatch.json()['pipeline_id']}/")
+        assert lint_call["project_root"] == str(user_workspace_root)
+        assert lint_call["session"].startswith(f"u/default/{ip}/pipeline/{dispatch.json()['pipeline_id']}/")
         assert "rtl_version_id:" in lint_call["context"]
 
     with jobs._jobs_lock:
@@ -685,6 +828,8 @@ def test_multiuser_pipeline_dispatch_scopes_worker_sessions_by_owner(
 
     ip = "shared_pipe_ip"
     (tmp_path / ip / "rtl").mkdir(parents=True)
+    user_workspace_root = tmp_path / "u" / "default"
+    (user_workspace_root / ip / "rtl").mkdir(parents=True)
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
@@ -709,14 +854,1278 @@ def test_multiuser_pipeline_dispatch_scopes_worker_sessions_by_owner(
         assert dispatch_body["jobs"][0]["user_id"] == "u"
         assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
         payload = rtl_worker.requests[0]["payload"]
-        assert payload["session"].startswith(f"u/{ip}/pipeline/{pipeline_id}/")
+        assert payload["session"].startswith(f"u/default/{ip}/pipeline/{pipeline_id}/")
         assert payload["pipeline_id"] == pipeline_id
         assert payload["pipeline_run_id"] == pipeline_id
         assert payload["user_id"] == "u"
         assert payload["stage_id"] == "rtl"
+        assert payload["project_root"] == str(user_workspace_root)
+        assert payload["scope_path"] == ip
+        assert (user_workspace_root / ip / "rtl" / "rtl_compile.json").is_file()
+        assert not (tmp_path / ip / "rtl" / "rtl_compile.json").exists()
+        jobs_resp = client.get("/api/jobs")
+        assert jobs_resp.status_code == 200, jobs_resp.text
+        rows = jobs_resp.json()["jobs"]
+        assert len(rows) == 1
+        assert rows[0]["status"] == "completed"
+        assert rows[0]["project_root"] == str(user_workspace_root)
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+
+def test_job_dispatch_uses_session_root_in_single_user_desktop_mode(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    import src.atlas_ui as atlas_ui
+
+    ip = "desktop_ip"
+    source_root = tmp_path / "source-root"
+    atlas_root = tmp_path / "atlas-root"
+    workspace_root = atlas_root / "brian" / "s2"
+    (workspace_root / ip / "yaml").mkdir(parents=True)
+    (workspace_root / ip / "yaml" / f"{ip}.ssot.yaml").write_text(
+        f"ip: {ip}\nsections:\n  - name: interface\n",
+        encoding="utf-8",
+    )
+    source_root.mkdir()
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    try:
+        with _mock_worker("ssot") as (ssot_url, ssot_worker):
+            monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+            monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "0")
+            monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+            monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+            monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+            monkeypatch.chdir(source_root)
+            monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", source_root)
+
+            client = TestClient(atlas_ui.create_app())
+            response = client.post(
+                "/api/job/dispatch",
+                json={
+                    "workflow": "ssot-gen",
+                    "ip": ip,
+                    "workspace_session": "s2",
+                    "session_id": "brian/s2/desktop_ip/default",
+                    "user_name": "brian",
+                    "prompt": "desktop scoped ssot check",
+                },
+            )
+
+            assert response.status_code == 200, response.text
+            body = response.json()
+            assert body["session"] == "brian/s2/desktop_ip/ssot-gen"
+            assert body["session_dir"] == ".session/desktop_ip/ssot-gen"
+            assert body["scope_path"] == ip
+            assert len(ssot_worker.runs_for_workflow("ssot-gen")) == 1
+            payload = ssot_worker.requests[0]["payload"]
+            assert payload["session"] == "brian/s2/desktop_ip/ssot-gen"
+            assert payload["project_root"] == str(workspace_root)
+            assert (workspace_root / ".session" / ip / "ssot-gen").is_dir()
+            assert not (workspace_root / ".session" / "brian" / "s2" / ip / "ssot-gen").exists()
+            assert not (source_root / ".session" / ip / "ssot-gen").exists()
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_multiuser_new_ip_dispatch_uses_user_workspace_without_existing_ip_dir(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "new_user_ssot_ip"
+    user_workspace_root = tmp_path / "u" / "default"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("ssot") as (ssot_url, ssot_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+
+        client = _make_client(tmp_path, monkeypatch)
+        dispatch = client.post("/api/pipeline/dispatch", json={
+            "ip": ip,
+            "schedule": "auto",
+            "stages": ["ssot"],
+        })
+
+        assert dispatch.status_code == 200, dispatch.text
+        assert len(ssot_worker.runs_for_workflow("ssot-gen")) == 1
+        payload = ssot_worker.requests[0]["payload"]
+        assert payload["project_root"] == str(user_workspace_root)
+        assert (user_workspace_root / ip / "yaml" / f"{ip}.ssot.yaml").is_file()
+        assert not (tmp_path / ip).exists()
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_multiuser_pipeline_state_reads_user_workspace_artifacts(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "state_user_ip"
+    user_workspace_root = tmp_path / "u" / "default"
+    ssot_path = user_workspace_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text(
+        f"ip: {ip}\nsections:\n  - name: locked_truth\n    description: user scoped\n",
+        encoding="utf-8",
+    )
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    client = _make_client(tmp_path, monkeypatch)
+    state = client.get(f"/api/pipeline/state?ip={ip}")
+
+    assert state.status_code == 200, state.text
+    payload = state.json()
+    assert payload["stages"]["ssot"]["top"].startswith(f"yaml/{ip}.ssot.yaml")
+    assert "1 sect" in payload["stages"]["ssot"]["top"]
+    assert not (tmp_path / ip).exists()
+
+
+def test_ipc_completion_gate_prefers_job_project_root_over_env_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from src.headless_workflow import _structured_ssot_yaml
+
+    monkeypatch.setenv("ATLAS_WORKFLOW_ROOT", str(PROJECT_ROOT / "workflow"))
+    monkeypatch.setenv("ATLAS_RUN_MODE", "engineering")
+    poison_ip_root = tmp_path / "poison_ip_root"
+    poison_ip_root.mkdir()
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(poison_ip_root))
+
+    user_root = tmp_path / "alice" / "default"
+    ip = "user_scoped_ssot_ip"
+    ssot_path = user_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True, exist_ok=True)
+    ssot_path.write_text(
+        _structured_ssot_yaml(ip, "AXI lite counter"),
+        encoding="utf-8",
+    )
+
+    response_path = user_root / ".session" / "workers-ipc" / "job-ssot" / "response.json"
+    response_path.parent.mkdir(parents=True, exist_ok=True)
+    response_path.write_text(
+        json.dumps(
+            {
+                "run_id": "ipc-job-ssot",
+                "status": "completed",
+                "result": {
+                    "status": "completed",
+                    "result": "SSOT PASS",
+                    "files_modified": [f"{ip}/yaml/{ip}.ssot.yaml"],
+                    "iterations": 1,
+                },
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    proc = subprocess.Popen([sys.executable, "-c", ""])
+    job = {
+        "job_id": "job-ssot",
+        "run_id": "ipc-job-ssot",
+        "status": "running",
+        "worker": "ipc://alice/user_scoped_ssot_ip/orchestrator/ssot-gen",
+        "worker_transport": "ipc",
+        "workflow": "ssot-gen",
+        "stage_id": "ssot",
+        "ip": ip,
+        "project_root": str(user_root),
+        "run_mode": "engineering",
+        "started_at": time.time(),
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["job-ssot"] = job
+    try:
+        jobs._watch_ipc_worker("job-ssot", "ipc-job-ssot", response_path, proc)
+        with jobs._jobs_lock:
+            live = dict(jobs._jobs["job-ssot"])
+        assert live["status"] == "completed"
+        assert live.get("error") in ("", None)
+        assert "validated artifact" in str(live.get("evidence_summary") or "")
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_refresh_recovers_terminal_missing_evidence_job_from_user_project_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from src.headless_workflow import _structured_ssot_yaml
+
+    monkeypatch.setenv("ATLAS_WORKFLOW_ROOT", str(PROJECT_ROOT / "workflow"))
+    monkeypatch.setenv("ATLAS_RUN_MODE", "engineering")
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(tmp_path / "wrong_global_ip_root"))
+
+    user_root = tmp_path / "alice" / "default"
+    ip = "user_scoped_recovered_ssot_ip"
+    ssot_path = user_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True, exist_ok=True)
+    ssot_path.write_text(
+        _structured_ssot_yaml(ip, "AXI lite counter"),
+        encoding="utf-8",
+    )
+
+    job = {
+        "job_id": "job-recover-ssot",
+        "run_id": "ipc-job-recover-ssot",
+        "status": "error",
+        "worker": "ipc://alice/user_scoped_recovered_ssot_ip/orchestrator/ssot-gen",
+        "worker_transport": "ipc",
+        "workflow": "ssot-gen",
+        "stage_id": "ssot",
+        "ip": ip,
+        "project_root": str(user_root),
+        "run_mode": "engineering",
+        "started_at": time.time(),
+        "finished_at": time.time(),
+        "error": "missing required evidence for ssot; worker reported completed but no stage artifact was found",
+        "result_summary": "worker reported SSOT PASS",
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["job-recover-ssot"] = job
+    try:
+        _snapshot, changed = jobs._refresh_tracked_jobs(user_root)
+        with jobs._jobs_lock:
+            live = dict(jobs._jobs["job-recover-ssot"])
+        assert changed is True
+        assert live["status"] == "completed"
+        assert live.get("error") in ("", None)
+        assert "validated artifact" in str(live.get("evidence_summary") or "")
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_refresh_uses_job_project_root_when_request_root_differs(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from src.headless_workflow import _structured_ssot_yaml
+
+    monkeypatch.setenv("ATLAS_WORKFLOW_ROOT", str(PROJECT_ROOT / "workflow"))
+    monkeypatch.setenv("ATLAS_RUN_MODE", "engineering")
+
+    request_root = tmp_path
+    user_root = tmp_path / "alice" / "default"
+    ip = "request_root_differs_ssot_ip"
+    ssot_path = user_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True, exist_ok=True)
+    ssot_path.write_text(
+        _structured_ssot_yaml(ip, "AXI lite counter"),
+        encoding="utf-8",
+    )
+
+    job = {
+        "job_id": "job-recover-request-root-differs",
+        "run_id": "ipc-job-recover-request-root-differs",
+        "status": "error",
+        "worker": "ipc://alice/request_root_differs_ssot_ip/orchestrator/ssot-gen",
+        "worker_transport": "ipc",
+        "workflow": "ssot-gen",
+        "stage_id": "ssot",
+        "ip": ip,
+        "project_root": str(user_root),
+        "run_mode": "engineering",
+        "started_at": time.time(),
+        "finished_at": time.time(),
+        "error": "missing required evidence for ssot; worker reported completed but no stage artifact was found",
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[job["job_id"]] = job
+    try:
+        _snapshot, changed = jobs._refresh_tracked_jobs(request_root)
+        with jobs._jobs_lock:
+            live = dict(jobs._jobs[job["job_id"]])
+        assert changed is True
+        assert live["status"] == "completed"
+        assert live.get("error") in ("", None)
+        assert "validated artifact" in str(live.get("evidence_summary") or "")
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_refresh_filter_does_not_recover_other_users_missing_evidence_job(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from src.headless_workflow import _structured_ssot_yaml
+
+    monkeypatch.setenv("ATLAS_WORKFLOW_ROOT", str(PROJECT_ROOT / "workflow"))
+    monkeypatch.setenv("ATLAS_RUN_MODE", "engineering")
+
+    ip = "shared_recovery_ip"
+    alice_root = tmp_path / "alice" / "default"
+    bob_root = tmp_path / "bob" / "default"
+    for root in (alice_root, bob_root):
+        ssot_path = root / ip / "yaml" / f"{ip}.ssot.yaml"
+        ssot_path.parent.mkdir(parents=True, exist_ok=True)
+        ssot_path.write_text(
+            _structured_ssot_yaml(ip, "AXI lite counter"),
+            encoding="utf-8",
+        )
+
+    base_job = {
+        "run_id": "ipc-shared-recovery",
+        "status": "error",
+        "worker_transport": "ipc",
+        "workflow": "ssot-gen",
+        "stage_id": "ssot",
+        "ip": ip,
+        "run_mode": "engineering",
+        "started_at": time.time(),
+        "finished_at": time.time(),
+        "error": "missing required evidence for ssot; worker reported completed but no stage artifact was found",
+    }
+    alice_job = {
+        **base_job,
+        "job_id": "alice-job",
+        "user_id": "alice",
+        "project_root": str(alice_root),
+    }
+    bob_job = {
+        **base_job,
+        "job_id": "bob-job",
+        "user_id": "bob",
+        "project_root": str(bob_root),
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["alice-job"] = alice_job
+        jobs._jobs["bob-job"] = bob_job
+    try:
+        _snapshot, changed = jobs._refresh_tracked_jobs(
+            alice_root,
+            job_filter=lambda job: job.get("user_id") == "alice",
+        )
+        with jobs._jobs_lock:
+            live_alice = dict(jobs._jobs["alice-job"])
+            live_bob = dict(jobs._jobs["bob-job"])
+        assert changed is True
+        assert live_alice["status"] == "completed"
+        assert live_bob["status"] == "error"
+        assert "evidence_summary" not in live_bob
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_pipeline_dispatch_refresh_does_not_recover_other_users_missing_evidence_job(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    monkeypatch.setenv("ATLAS_RUN_MODE", "engineering")
+
+    alice_ip = "shared_dispatch_recovery_ip"
+    alice_root = tmp_path / "alice" / "default"
+    fl_check_path = alice_root / alice_ip / "model" / "fl_model_check.json"
+    fl_check_path.parent.mkdir(parents=True, exist_ok=True)
+    fl_check_path.write_text('{"status":"pass"}\n', encoding="utf-8")
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["alice-job"] = {
+            "job_id": "alice-job",
+            "run_id": "ipc-alice-hidden-recovery",
+            "status": "error",
+            "worker_transport": "ipc",
+            "workflow": "fl-model-gen",
+            "stage_id": "fl-model",
+            "ip": alice_ip,
+            "user_id": "alice",
+            "db_user_id": "alice-db",
+            "project_root": str(alice_root),
+            "run_mode": "engineering",
+            "started_at": time.time(),
+            "finished_at": time.time(),
+            "error": "missing required evidence for fl-model; worker reported completed but no stage artifact was found",
+        }
+
+    try:
+        with _mock_worker("ssot") as (ssot_url, _ssot_worker):
+            monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+            client = _make_client(tmp_path, monkeypatch)
+            response = client.post("/api/pipeline/dispatch", json={
+                "ip": alice_ip,
+                "schedule": "auto",
+                "stages": ["ssot"],
+            })
+        assert response.status_code == 200, response.text
+        with jobs._jobs_lock:
+            live_alice = dict(jobs._jobs["alice-job"])
+        assert live_alice["status"] == "error"
+        assert "evidence_summary" not in live_alice
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_api_jobs_scopes_same_user_jobs_by_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "shared_workspace_jobs_ip"
+    now = time.time()
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-job"] = {
+            "job_id": "default-job",
+            "run_id": "ipc-default-job",
+            "status": "completed",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": now,
+            "finished_at": now,
+        }
+        jobs._jobs["alt-job"] = {
+            "job_id": "alt-job",
+            "run_id": "ipc-alt-job",
+            "status": "completed",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "started_at": now + 1,
+            "finished_at": now + 1,
+        }
+    try:
+        default_resp = client.get("/api/jobs")
+        alt_resp = client.get("/api/jobs?workspace_session=alt")
+
+        assert default_resp.status_code == 200, default_resp.text
+        assert alt_resp.status_code == 200, alt_resp.text
+        assert {job["job_id"] for job in default_resp.json()["jobs"]} == {"default-job"}
+        assert {job["job_id"] for job in alt_resp.json()["jobs"]} == {"alt-job"}
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_pipeline_state_scopes_same_user_running_jobs_by_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "shared_workspace_state_ip"
+    now = time.time()
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-state-job"] = {
+            "job_id": "default-state-job",
+            "run_id": "ipc-default-state-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": now,
+        }
+        jobs._jobs["alt-state-job"] = {
+            "job_id": "alt-state-job",
+            "run_id": "ipc-alt-state-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "started_at": now + 1,
+        }
+    try:
+        default_resp = client.get(f"/api/pipeline/state?ip={ip}")
+        alt_resp = client.get(f"/api/pipeline/state?ip={ip}&workspace_session=alt")
+
+        assert default_resp.status_code == 200, default_resp.text
+        assert alt_resp.status_code == 200, alt_resp.text
+
+        def running_ids(payload) -> set[str]:
+            stages = payload.get("stages") or {}
+            ssot = stages.get("ssot") if isinstance(stages, dict) else {}
+            raw_history = ssot.get("history") if isinstance(ssot, dict) else []
+            history = raw_history if isinstance(raw_history, list) else []
+            return {
+                str(item["run_id"])
+                for item in history
+                if isinstance(item, dict) and item.get("run_id")
+            }
+
+        assert running_ids(default_resp.json()) == {"ipc-default-state-job"}
+        assert running_ids(alt_resp.json()) == {"ipc-alt-state-job"}
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_pipeline_state_uses_request_workspace_rtl_version(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_db import AtlasDB
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "shared_rtl_version_ip"
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.get_user_by_username("u")
+        assert user is not None
+        default_workspace = db.upsert_workspace(
+            "default",
+            owner_user_id=user["id"],
+            local_path=str(tmp_path / "u" / "default"),
+        )
+        alt_workspace = db.upsert_workspace(
+            "alt",
+            owner_user_id=user["id"],
+            local_path=str(tmp_path / "u" / "alt"),
+        )
+        default_ip = db.upsert_ip_block(default_workspace["id"], ip)
+        alt_ip = db.upsert_ip_block(alt_workspace["id"], ip)
+        db.register_rtl_version(
+            ip_id=default_ip["id"],
+            workspace_id=default_workspace["id"],
+            version="default-v1",
+            rtl_root=f"{ip}/rtl",
+            filelist_path=f"{ip}/list/{ip}.f",
+        )
+        db.register_rtl_version(
+            ip_id=alt_ip["id"],
+            workspace_id=alt_workspace["id"],
+            version="alt-v1",
+            rtl_root=f"{ip}/rtl",
+            filelist_path=f"{ip}/list/{ip}.f",
+        )
+
+    resp = client.get(f"/api/pipeline/state?ip={ip}&workspace_session=alt")
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["rtl_version_id"] == "alt-v1"
+
+
+def test_pipeline_progress_debug_scopes_same_user_jobs_by_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "shared_progress_debug_ip"
+    now = time.time()
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-progress-job"] = {
+            "job_id": "default-progress-job",
+            "run_id": "ipc-default-progress-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": now,
+        }
+        jobs._jobs["alt-progress-job"] = {
+            "job_id": "alt-progress-job",
+            "run_id": "ipc-alt-progress-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "started_at": now + 1,
+        }
+    try:
+        default_resp = client.get(f"/api/pipeline/progress-debug?ip={ip}")
+        alt_resp = client.get(f"/api/pipeline/progress-debug?ip={ip}&workspace_session=alt")
+
+        assert default_resp.status_code == 200, default_resp.text
+        assert alt_resp.status_code == 200, alt_resp.text
+
+        def active_job_ids(payload) -> set[str]:
+            worker = payload.get("worker") if isinstance(payload, dict) else {}
+            active = worker.get("active") if isinstance(worker, dict) else []
+            return {
+                str(item["job_id"])
+                for item in active
+                if isinstance(item, dict) and item.get("job_id")
+            }
+
+        assert active_job_ids(default_resp.json()) == {"default-progress-job"}
+        assert active_job_ids(alt_resp.json()) == {"alt-progress-job"}
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_same_user_other_workspace_job_log_and_cancel_are_forbidden(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    alt_root = tmp_path / "u" / "alt"
+    session = "u/alt/shared_workspace_log_ip/ssot-gen"
+    conversation = alt_root / ".session" / session / "conversation.json"
+    conversation.parent.mkdir(parents=True, exist_ok=True)
+    conversation.write_text(
+        json.dumps([{"role": "assistant", "content": "alt workspace secret log"}]),
+        encoding="utf-8",
+    )
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["alt-log-job"] = {
+            "job_id": "alt-log-job",
+            "run_id": "ipc-alt-log-job",
+            "status": "running",
+            "worker": "ipc://u/shared_workspace_log_ip/orchestrator/ssot-gen",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": "shared_workspace_log_ip",
+            "user_id": "u",
+            "project_root": str(alt_root),
+            "session": session,
+            "started_at": time.time(),
+        }
+    try:
+        default_log = client.get("/api/job/alt-log-job/log")
+        default_cancel = client.post("/api/job/alt-log-job/cancel")
+        with jobs._jobs_lock:
+            after_default = dict(jobs._jobs["alt-log-job"])
+
+        assert default_log.status_code == 403
+        assert default_cancel.status_code == 403
+        assert after_default["status"] == "running"
+
+        alt_log = client.get("/api/job/alt-log-job/log?workspace_session=alt")
+        alt_cancel = client.post("/api/job/alt-log-job/cancel?workspace_session=alt")
+
+        assert alt_log.status_code == 200, alt_log.text
+        assert "alt workspace secret log" in json.dumps(alt_log.json())
+        assert alt_cancel.status_code == 200, alt_cancel.text
+        with jobs._jobs_lock:
+            assert jobs._jobs["alt-log-job"]["status"] == "cancelled"
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_jobs_clear_only_removes_completed_jobs_visible_to_workspace(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "shared_workspace_clear_ip"
+    now = time.time()
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-done"] = {
+            "job_id": "default-done",
+            "run_id": "run-default-done",
+            "status": "completed",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": now,
+        }
+        jobs._jobs["alt-done"] = {
+            "job_id": "alt-done",
+            "run_id": "run-alt-done",
+            "status": "completed",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "started_at": now + 1,
+        }
+        jobs._jobs["alt-running"] = {
+            "job_id": "alt-running",
+            "run_id": "run-alt-running",
+            "status": "running",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "started_at": now + 2,
+        }
+        jobs._jobs["other-done"] = {
+            "job_id": "other-done",
+            "run_id": "run-other-done",
+            "status": "completed",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "other",
+            "project_root": str(tmp_path / "other" / "alt"),
+            "started_at": now + 3,
+        }
+    try:
+        resp = client.post("/api/jobs/clear?workspace_session=alt")
+        assert resp.status_code == 200, resp.text
+        with jobs._jobs_lock:
+            remaining = set(jobs._jobs.keys())
+        assert remaining == {"default-done", "alt-running", "other-done"}
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_dispatch_does_not_dedupe_against_same_user_other_workspace_job(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "shared_workspace_dispatch_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-running-job"] = {
+            "job_id": "default-running-job",
+            "run_id": "ipc-default-running-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": time.time(),
+        }
+    try:
+        with _mock_worker("ssot") as (ssot_url, ssot_worker):
+            monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+            client = _make_client(tmp_path, monkeypatch)
+            response = client.post("/api/pipeline/dispatch", json={
+                "ip": ip,
+                "workspace_session": "alt",
+                "schedule": "auto",
+                "stages": ["ssot"],
+            })
+
+            assert response.status_code == 200, response.text
+            payload = response.json()
+            assert payload.get("deduped") is not True
+            assert len(ssot_worker.runs_for_workflow("ssot-gen")) == 1
+            assert ssot_worker.requests[0]["payload"]["project_root"] == str(tmp_path / "u" / "alt")
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_job_dispatch_does_not_dedupe_against_other_user_legacy_job(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "cross_user_legacy_dedupe_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["bob-running-job"] = {
+            "job_id": "bob-running-job",
+            "run_id": "ipc-bob-running-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "bob",
+            "db_user_id": "",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": time.time(),
+        }
+    try:
+        with _mock_worker("ssot") as (ssot_url, ssot_worker):
+            monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+            client = _make_client(tmp_path, monkeypatch)
+            response = client.post("/api/job/dispatch", json={
+                "workflow": "ssot-gen",
+                "ip": ip,
+            })
+
+            assert response.status_code == 200, response.text
+            payload = response.json()
+            assert payload.get("deduped") is not True
+            assert payload.get("job_id") != "bob-running-job"
+            assert {job.get("job_id") for job in payload.get("existing_jobs", [])} != {"bob-running-job"}
+            assert len(ssot_worker.runs_for_workflow("ssot-gen")) == 1
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_active_job_conflicts_excludes_ownerless_legacy_jobs_for_username_scope(
+    tmp_path: Path,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "ownerless_legacy_dedupe_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["legacy-ownerless-job"] = {
+            "job_id": "legacy-ownerless-job",
+            "run_id": "ipc-legacy-ownerless-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "",
+            "db_user_id": "",
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": time.time(),
+        }
+    try:
+        username_scoped = jobs._active_job_conflicts(
+            ip=ip,
+            stage_ids=["ssot"],
+            workflows=["ssot-gen"],
+            user_id="u",
+            db_user_id="",
+            project_root=tmp_path / "u" / "default",
+        )
+        legacy_scope = jobs._active_job_conflicts(
+            ip=ip,
+            stage_ids=["ssot"],
+            workflows=["ssot-gen"],
+            user_id="",
+            db_user_id="",
+            project_root=tmp_path / "u" / "default",
+        )
+
+        assert username_scoped == []
+        assert [job["job_id"] for job in legacy_scope] == ["legacy-ownerless-job"]
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_handoff_routes_use_authenticated_workspace_session_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from src import handoff_queue as hq
+
+    ip = "handoff_workspace_root_ip"
+    legacy_ip_dir = tmp_path / ip
+    scoped_ip_dir = tmp_path / "u" / "alt" / ip
+    legacy_ip_dir.mkdir(parents=True)
+    scoped_ip_dir.mkdir(parents=True)
+    client = _make_client(tmp_path, monkeypatch)
+    session_id = f"u/alt/{ip}/orchestrator"
+    pipeline_run_id = "pipe-alt-handoff"
+
+    save_resp = client.post("/api/handoff/save", json={
+        "ip": ip,
+        "from_workflow": "sim-debug",
+        "to_workflow": "rtl-gen",
+        "reason": "workspace scoped handoff",
+        "suffix": "ALT",
+        "workspace_session": "alt",
+        "session_id": session_id,
+        "pipeline_run_id": pipeline_run_id,
+    })
+
+    assert save_resp.status_code == 200, save_resp.text
+    handoff_id = save_resp.json()["handoff_id"]
+    assert (scoped_ip_dir / "handoff" / "pending" / f"{handoff_id}.json").is_file()
+    assert not (legacy_ip_dir / "handoff").exists()
+
+    list_resp = client.get(
+        f"/api/handoff/list?ip={ip}&workflow=rtl-gen&"
+        "workspace_session=alt&"
+        f"session_id={session_id}&pipeline_run_id={pipeline_run_id}"
+    )
+    assert list_resp.status_code == 200, list_resp.text
+    assert [row["handoff_id"] for row in list_resp.json()["pending"]] == [handoff_id]
+
+    state_resp = client.get(f"/api/pipeline/state?ip={ip}&workspace_session=alt")
+    assert state_resp.status_code == 200, state_resp.text
+    assert state_resp.json()["orchestrator"]["pending_handoffs"] == 1
+
+    take_resp = client.post("/api/handoff/take", json={
+        "ip": ip,
+        "workflow": "rtl-gen",
+        "workspace_session": "alt",
+        "session_id": session_id,
+        "pipeline_run_id": pipeline_run_id,
+    })
+    assert take_resp.status_code == 200, take_resp.text
+    assert take_resp.json()["handoff"]["handoff_id"] == handoff_id
+    assert hq.get(scoped_ip_dir, handoff_id)[0] == "claimed"
+
+
+def test_orchestrator_bridge_handoff_uses_session_owner_for_request_scope(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_db import AtlasDB
+    from src import handoff_queue as hq
+    from src.orchestrator import react_bridge
+
+    ip = "bridge_handoff_scope_ip"
+    scoped_ip_dir = tmp_path / "u" / "alt" / ip
+    scoped_ip_dir.mkdir(parents=True)
+    client = _make_client(tmp_path, monkeypatch)
+    session_id = f"u/alt/{ip}/orchestrator"
+    pipeline_run_id = "pipe-bridge-handoff"
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.get_user_by_username("u") or {}
+
+    class _Budget:
+        def attempt(self, name: str) -> dict[str, bool]:
+            return {"allowed": True}
+
+        def reset(self, name: str) -> None:
+            return None
+
+        def snapshot(self) -> dict[str, object]:
+            return {}
+
+    class _Collector:
+        def __init__(self) -> None:
+            self.rows: list[dict[str, object]] = []
+
+        def append(self, **row: object) -> None:
+            self.rows.append(row)
+
+    ctx = SimpleNamespace(
+        run_id="orch-handoff-run",
+        user_id=str(user.get("id") or ""),
+        ip_id=ip,
+        ip_name=ip,
+        session_id=session_id,
+        project_root=tmp_path / "u" / "alt",
+        runner=None,
+        user_seed="",
+    )
+    bound = react_bridge._bind_orchestrator_tools(
+        ctx=ctx,
+        runner=None,
+        db=None,
+        collector=_Collector(),
+        budgets=_Budget(),
+    )
+    bound["write_handoff"](
+        "",
+        pre_parsed_kwargs={
+            "workflow": "rtl-gen",
+            "reason": "bridge handoff",
+            "payload": {"note": "x"},
+            "pipeline_run_id": pipeline_run_id,
+        },
+    )
+
+    pending_files = list((scoped_ip_dir / "handoff" / "pending").glob("*.json"))
+    assert len(pending_files) == 1
+    record = json.loads(pending_files[0].read_text(encoding="utf-8"))
+    assert record["scope"]["user_id"] == "u"
+
+    list_resp = client.get(
+        f"/api/handoff/list?ip={ip}&workflow=rtl-gen&"
+        "workspace_session=alt&"
+        f"session_id={session_id}&pipeline_run_id={pipeline_run_id}"
+    )
+    assert list_resp.status_code == 200, list_resp.text
+    assert [row["handoff_id"] for row in list_resp.json()["pending"]] == [record["handoff_id"]]
+
+    state_resp = client.get(f"/api/pipeline/state?ip={ip}&workspace_session=alt")
+    assert state_resp.status_code == 200, state_resp.text
+    assert state_resp.json()["orchestrator"]["pending_handoffs"] == 1
+
+    take_resp = client.post("/api/handoff/take", json={
+        "ip": ip,
+        "workflow": "rtl-gen",
+        "workspace_session": "alt",
+        "session_id": session_id,
+        "pipeline_run_id": pipeline_run_id,
+    })
+    assert take_resp.status_code == 200, take_resp.text
+    assert take_resp.json()["handoff"]["handoff_id"] == record["handoff_id"]
+    assert hq.get(scoped_ip_dir, record["handoff_id"])[0] == "claimed"
+
+
+def test_job_dispatch_http_worker_partition_includes_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    monkeypatch.setenv("ATLAS_WORKER_TRANSPORT", "http")
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PER_SESSION", "1")
+    with jobs._SESSION_WORKER_PORT_LOCK:
+        jobs._SESSION_WORKER_PORTS.clear()
+        jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "workspace_partition_ip"
+    try:
+        default_resp = client.post("/api/job/dispatch", json={
+            "workflow": "ssot-gen",
+            "ip": ip,
+        })
+        alt_resp = client.post("/api/job/dispatch", json={
+            "workflow": "ssot-gen",
+            "ip": ip,
+            "workspace_session": "alt",
+        })
+
+        assert default_resp.status_code == 502, default_resp.text
+        assert alt_resp.status_code == 502, alt_resp.text
+        with jobs._jobs_lock:
+            created = [
+                dict(job)
+                for job in jobs._jobs.values()
+                if job.get("ip") == ip and job.get("workflow") == "ssot-gen"
+            ]
+        assert len(created) == 2
+        sessions = {str(job.get("session") or "") for job in created}
+        workers = {str(job.get("worker") or "") for job in created}
+        partitions = {str(job.get("worker_partition") or "") for job in created}
+        assert sessions == {f"u/default/{ip}/ssot-gen", f"u/alt/{ip}/ssot-gen"}
+        assert len(workers) == 2
+        assert len(partitions) == 2
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+        with jobs._SESSION_WORKER_PORT_LOCK:
+            jobs._SESSION_WORKER_PORTS.clear()
+            jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+
+def test_job_dispatch_rejects_explicit_session_for_another_user(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "explicit_session_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    try:
+        response = client.post("/api/job/dispatch", json={
+            "workflow": "rtl-gen",
+            "ip": ip,
+            "workspace_session": "alt",
+            "session": f"bob/alt/{ip}/rtl-gen",
+        })
+
+        assert response.status_code == 403, response.text
+        assert "session owner/workspace mismatch" in response.text
+        with jobs._jobs_lock:
+            assert not [
+                job for job in jobs._jobs.values()
+                if job.get("ip") == ip and job.get("workflow") == "rtl-gen"
+            ]
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_dispatch_many_rejects_explicit_session_for_another_workspace(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "explicit_many_session_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    try:
+        response = client.post("/api/jobs/dispatch_many", json={
+            "workspace_session": "alt",
+            "jobs": [
+                {
+                    "workflow": "tb-gen",
+                    "ip": ip,
+                    "session": f"u/default/{ip}/tb-gen",
+                }
+            ],
+        })
+
+        assert response.status_code == 207, response.text
+        payload = response.json()
+        assert payload["jobs"] == []
+        assert payload["errors"] == [{"index": 0, "error": "session owner/workspace mismatch"}]
+        with jobs._jobs_lock:
+            assert not [
+                job for job in jobs._jobs.values()
+                if job.get("ip") == ip and job.get("workflow") == "tb-gen"
+            ]
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_job_dispatch_rejects_symlinked_workspace_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    target = tmp_path / "bob" / "default"
+    link = tmp_path / "u" / "alt"
+    target.mkdir(parents=True)
+    link.parent.mkdir(parents=True)
+    link.symlink_to(target, target_is_directory=True)
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "symlink_workspace_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+    try:
+        response = client.post("/api/job/dispatch", json={
+            "workflow": "rtl-gen",
+            "ip": ip,
+            "workspace_session": "alt",
+        })
+
+        assert response.status_code == 403, response.text
+        assert "workspace root symlink not allowed" in response.text
+        with jobs._jobs_lock:
+            assert not [
+                job for job in jobs._jobs.values()
+                if job.get("ip") == ip and job.get("workflow") == "rtl-gen"
+            ]
+        assert not (target / ".session").exists()
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_rootless_legacy_job_is_not_visible_cancelled_or_deduped_from_scoped_workspace(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    ip = "rootless_workspace_ip"
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["legacy-rootless"] = {
+            "job_id": "legacy-rootless",
+            "run_id": "ipc-legacy-rootless",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "started_at": time.time(),
+        }
+    try:
+        jobs_resp = client.get("/api/jobs?workspace_session=alt")
+        cancel_resp = client.post("/api/job/legacy-rootless/cancel?workspace_session=alt")
+        with _mock_worker("ssot") as (ssot_url, ssot_worker):
+            monkeypatch.setenv("WORKER_URL_SSOT_GEN", ssot_url)
+            dispatch_resp = client.post("/api/job/dispatch", json={
+                "workflow": "ssot-gen",
+                "ip": ip,
+                "workspace_session": "alt",
+            })
+
+        assert jobs_resp.status_code == 200, jobs_resp.text
+        assert "legacy-rootless" not in {job["job_id"] for job in jobs_resp.json()["jobs"]}
+        assert cancel_resp.status_code == 403
+        assert dispatch_resp.status_code == 200, dispatch_resp.text
+        assert dispatch_resp.json().get("deduped") is not True
+        assert len(ssot_worker.runs_for_workflow("ssot-gen")) == 1
+        with jobs._jobs_lock:
+            assert jobs._jobs["legacy-rootless"]["status"] == "running"
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_multiuser_job_log_and_cancel_reject_other_user(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["bob-job"] = {
+            "job_id": "bob-job",
+            "run_id": "ipc-bob-job",
+            "status": "running",
+            "worker": "ipc://bob/shared/orchestrator/ssot-gen",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": "shared_log_ip",
+            "user_id": "bob",
+            "project_root": str(tmp_path / "bob" / "default"),
+            "started_at": time.time(),
+        }
+    try:
+        log_resp = client.get("/api/job/bob-job/log")
+        cancel_resp = client.post("/api/job/bob-job/cancel")
+        with jobs._jobs_lock:
+            live = dict(jobs._jobs["bob-job"])
+        assert log_resp.status_code == 403
+        assert cancel_resp.status_code == 403
+        assert live["status"] == "running"
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
 
 
 def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
@@ -755,7 +2164,7 @@ def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
         assert result["jobs"][0]["pipeline_run_id"] == result["pipeline_id"]
         assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
         payload = rtl_worker.requests[0]["payload"]
-        assert payload["session"].startswith(f"u/{ip}/pipeline/{result['pipeline_id']}/")
+        assert payload["session"].startswith(f"u/default/{ip}/pipeline/{result['pipeline_id']}/")
         assert payload["pipeline_run_id"] == result["pipeline_id"]
         assert payload["user_id"] == "u"
         assert payload["model"] == "gpt-5.3-codex"
@@ -795,7 +2204,7 @@ def test_orchestrator_dispatch_workflow_tool_uses_payload_session_owner(
             ip=ip,
             payload={
                 "db_user_id": owner["id"],
-                "orchestrator_session_id": f"happy2/{ip}/orchestrator",
+                "orchestrator_session_id": f"happy2/default/{ip}/orchestrator",
             },
             reason="dispatch from current orchestrator session",
         )
@@ -806,7 +2215,7 @@ def test_orchestrator_dispatch_workflow_tool_uses_payload_session_owner(
         assert result["db_user_id"] == owner["id"]
         assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
         payload = rtl_worker.requests[0]["payload"]
-        assert payload["session"].startswith(f"happy2/{ip}/pipeline/{result['pipeline_id']}/")
+        assert payload["session"].startswith(f"happy2/default/{ip}/pipeline/{result['pipeline_id']}/")
         assert payload["user_id"] == "happy2"
         assert payload["db_user_id"] == owner["id"]
 
@@ -830,6 +2239,206 @@ def test_orchestrator_dispatch_workflow_tool_uses_payload_session_owner(
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+
+def test_orchestrator_dispatch_workflow_tool_rejects_spoofed_session_owner(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "tool_spoofed_session_ip"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+        monkeypatch.delenv("ATLAS_ACTIVE_USER", raising=False)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            owner = db.ensure_user_by_username("alice")
+
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            payload={
+                "db_user_id": owner["id"],
+                "orchestrator_session_id": f"bob/alt/{ip}/orchestrator",
+            },
+            reason="spoof another owner",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is False
+        assert "session owner/workspace mismatch" in result["error"]
+        assert rtl_worker.runs_for_workflow("rtl-gen") == []
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_dispatch_workflow_tool_uses_payload_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "tool_payload_workspace_ip"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+        monkeypatch.delenv("ATLAS_ACTIVE_USER", raising=False)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            owner = db.ensure_user_by_username("happy_alt")
+
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            payload={
+                "db_user_id": owner["id"],
+                "orchestrator_session_id": f"happy_alt/alt/{ip}/orchestrator",
+            },
+            reason="dispatch from alt workspace",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
+        payload = rtl_worker.requests[0]["payload"]
+        assert payload["session"].startswith(f"happy_alt/alt/{ip}/pipeline/{result['pipeline_id']}/")
+        assert payload["project_root"] == str(tmp_path / "happy_alt" / "alt")
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_read_pipeline_state_tool_scopes_same_user_jobs_by_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "tool_read_workspace_ip"
+    now = time.time()
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/default/{ip}/orchestrator")
+    _make_client(tmp_path, monkeypatch)
+    with AtlasDB(str(tmp_path / "atlas.db")) as db:
+        user = db.get_user_by_username("u")
+        assert user is not None
+        db_user_id = str(user["id"] or "")
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-tool-state-job"] = {
+            "job_id": "default-tool-state-job",
+            "run_id": "ipc-default-tool-state-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "db_user_id": db_user_id,
+            "project_root": str(tmp_path / "u" / "default"),
+            "started_at": now,
+        }
+        jobs._jobs["alt-tool-state-job"] = {
+            "job_id": "alt-tool-state-job",
+            "run_id": "ipc-alt-tool-state-job",
+            "status": "running",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "stage_id": "ssot",
+            "ip": ip,
+            "user_id": "u",
+            "db_user_id": db_user_id,
+            "project_root": str(tmp_path / "u" / "alt"),
+            "started_at": now + 1,
+        }
+    try:
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/default/{ip}/orchestrator")
+
+        raw = tools.read_pipeline_state(ip=ip, scope=f"u/alt/{ip}/orchestrator")
+        result = json.loads(raw)
+
+        assert result["project_root"] == str(tmp_path / "u" / "alt")
+        assert {job["job_id"] for job in result["active_jobs"]} == {"alt-tool-state-job"}
+        assert result["stages"]["ssot"]["active_jobs"][0]["job_id"] == "alt-tool-state-job"
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_orchestrator_read_pipeline_state_tool_uses_db_user_id_visibility(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from src.orchestrator import tools as orch_tools
+
+    ip = "tool_read_db_user_workspace_ip"
+    now = time.time()
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["default-db-tool-state-job"] = {
+            "db_user_id": "u-db",
+            "job_id": "default-db-tool-state-job",
+            "project_root": str(tmp_path / "u" / "default"),
+            "run_id": "ipc-default-db-tool-state-job",
+            "stage_id": "ssot",
+            "started_at": now,
+            "status": "running",
+            "user_id": "u",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "ip": ip,
+        }
+        jobs._jobs["alt-db-tool-state-job"] = {
+            "db_user_id": "u-db",
+            "job_id": "alt-db-tool-state-job",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "run_id": "ipc-alt-db-tool-state-job",
+            "stage_id": "ssot",
+            "started_at": now + 1,
+            "status": "running",
+            "user_id": "u",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "ip": ip,
+        }
+    try:
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        _make_client(tmp_path, monkeypatch)
+
+        result, _summary = orch_tools.read_pipeline_state(
+            ip=ip,
+            scope=f"u/alt/{ip}/orchestrator",
+            db_user_id="u-db",
+        )
+
+        assert result["project_root"] == str(tmp_path / "u" / "alt")
+        assert {job["job_id"] for job in result["active_jobs"]} == {"alt-db-tool-state-job"}
+        assert result["stages"]["ssot"]["active_jobs"][0]["job_id"] == "alt-db-tool-state-job"
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
 
 
 def test_orchestrator_custom_rtl_prompt_keeps_ssot_rtl_driver(
@@ -1082,6 +2691,7 @@ def test_orchestrator_chat_smoke_dispatches_worker_evidence_and_db_run(
 
     with _mock_worker("lint") as (worker_url, worker):
         monkeypatch.setenv("WORKER_URL_LINT", worker_url)
+        monkeypatch.setenv("ATLAS_ORCHESTRATOR_TRANSPORT", "thread")
         client = _make_client(tmp_path, monkeypatch)
         db = AtlasDB(str(tmp_path / "atlas.db"))
         runner = OrchestratorRunner(
@@ -1105,10 +2715,14 @@ def test_orchestrator_chat_smoke_dispatches_worker_evidence_and_db_run(
             if active_futures:
                 active_futures[0].result(timeout=5)
             assert not smoke_errors
-            assert db.get_orchestrator_run(body["run_id"])["status"] == "completed"
+            run_row = db.get_orchestrator_run(body["run_id"])
+            assert run_row is not None
+            assert run_row["status"] == "completed"
 
             for _ in range(30):
-                detail = client.get(f"/api/orchestrator/runs/{body['run_id']}")
+                detail = client.get(
+                    f"/api/orchestrator/runs/{body['run_id']}?ip={ip}&workspace_session=default"
+                )
                 assert detail.status_code == 200, detail.text
                 if detail.json()["run"]["status"] == "completed":
                     break
@@ -1117,7 +2731,10 @@ def test_orchestrator_chat_smoke_dispatches_worker_evidence_and_db_run(
                 raise AssertionError("orchestrator smoke run did not complete")
 
             assert len(worker.runs_for_workflow("lint")) == 1
-            assert (tmp_path / ip / "lint" / "dut_lint.json").is_file()
+            workspace_root = tmp_path / "u" / "default"
+            assert worker.requests[0]["payload"]["project_root"] == str(workspace_root)
+            assert (workspace_root / ip / "lint" / "dut_lint.json").is_file()
+            assert not (tmp_path / ip / "lint" / "dut_lint.json").exists()
             rows = db._fetchall(
                 "SELECT workflow, status, model_profile FROM workflow_runs WHERE workflow = ?",
                 ("lint",),
@@ -1141,12 +2758,13 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
     import atlas_api_jobs as jobs
 
     # _job_artifact_recovery for ssot calls workflow/ssot-gen/scripts/check_ssot_disk.sh
-    # against project_root (tmp_path). Symlink the real workflow dir so the
-    # validator script is reachable in the test sandbox.
+    # against project_root. Symlink the real workflow dir so the validator script
+    # is reachable in the test sandbox.
     (tmp_path / "workflow").symlink_to(PROJECT_ROOT / "workflow", target_is_directory=True)
 
     ip = "full_worker_pipe_ip"
-    ip_dir = tmp_path / ip
+    user_workspace_root = tmp_path / "u" / "default"
+    ip_dir = user_workspace_root / ip
     (ip_dir / "yaml").mkdir(parents=True)
     (ip_dir / "rtl").mkdir(parents=True)
     (ip_dir / "list").mkdir(parents=True)
@@ -1175,10 +2793,10 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
         stage = str(job.get("stage_id") or job.get("workflow") or "")
         workflow = str(job.get("workflow") or "")
         if stage == "ssot" or workflow == "ssot-gen":
-            ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+            ssot_path = user_workspace_root / ip / "yaml" / f"{ip}.ssot.yaml"
             return ssot_path.is_file(), f"test mock validated artifact: {ip}/yaml/{ip}.ssot.yaml"
         if stage == "rtl" or workflow == "rtl-gen":
-            compile_path = tmp_path / ip / "rtl" / "rtl_compile.json"
+            compile_path = user_workspace_root / ip / "rtl" / "rtl_compile.json"
             return compile_path.is_file(), "test mock validated artifact: rtl/rtl_compile.json"
         return real_recovery(job, project_root)
 
@@ -1495,7 +3113,7 @@ def test_worker_reported_completed_with_blocked_stage_engine_blocks_downstream(
     from core.atlas_db import AtlasDB
 
     ip = "blocked_engine_ip"
-    ip_dir = tmp_path / ip
+    ip_dir = tmp_path / "u" / "default" / ip
     ip_dir.mkdir(parents=True)
 
     with jobs._jobs_lock:

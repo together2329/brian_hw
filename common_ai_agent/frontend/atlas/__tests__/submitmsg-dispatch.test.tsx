@@ -174,7 +174,7 @@ function installWindowStubs() {
 
   // Default network double: empty-OK JSON so mount-time polls settle. Individual
   // tests REPLACE this with a spy when they need to assert a specific POST.
-  global.fetch = vi.fn(async () =>
+  globalThis.fetch = vi.fn(async () =>
     new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } }),
   ) as unknown as typeof fetch;
 }
@@ -192,12 +192,19 @@ function typeAndSubmit(container: HTMLElement, text: string) {
   return textarea;
 }
 
-async function mountWorkspace() {
+async function mountWorkspace(props: { activeNamespace?: string; activeWorkflow?: string } = {}) {
   // Import AFTER stubs so the module-load window reads see them.
   const { Workspace } = await import('../workspace.tsx');
   let utils: ReturnType<typeof render>;
   await act(async () => {
-    utils = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    utils = render(
+      <Workspace
+        dir="/tmp/ws"
+        uiLang="ko"
+        activeNamespace={props.activeNamespace || ''}
+        activeWorkflow={props.activeWorkflow || ''}
+      />,
+    );
   });
   // @ts-expect-error assigned inside act
   return utils;
@@ -248,10 +255,10 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     w.ACTIVE_SESSION = 'alice/myip/orchestrator';
     w.ACTIVE_IP = 'myip';
 
-    const fetchSpy = vi.fn(async () =>
+    const fetchSpy = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit): Promise<Response> =>
       new Response('{"reply":""}', { status: 200, headers: { 'Content-Type': 'application/json' } }),
     );
-    global.fetch = fetchSpy as unknown as typeof fetch;
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
 
     const { container } = await mountWorkspace();
 
@@ -272,6 +279,60 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
       ([url]) => String(url) === '/api/job/dispatch',
     );
     expect(jobDispatchCalls.length).toBe(0);
+  });
+
+  it('(b2) workflow-dispatch prompt POSTs /api/job/dispatch without legacy session', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = 'orchestrator';
+    w.ACTIVE_SESSION = 'alice/s1/myip/orchestrator';
+    w.ACTIVE_IP = 'myip';
+    w.ATLAS_WORKSPACE_SESSION_ID = 's1';
+    w.FLOW_STAGES = [{ id: 'rtl-gen' }];
+    w.atlasData.sessionFor = (ip: string, wf: string) => `alice/s1/${ip}/${wf}`;
+
+    const fetchSpy = vi.fn(async (input: RequestInfo | URL, _init?: RequestInit): Promise<Response> => {
+      if (String(input) === '/api/job/dispatch') {
+        return new Response('{"ok":true,"job_id":"job-1","workflow":"rtl-gen","session":"alice/s1/myip/rtl-gen","status":"queued"}', {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    });
+    globalThis.fetch = fetchSpy as unknown as typeof fetch;
+
+    const { container } = await mountWorkspace({
+      activeNamespace: 'alice/s1/myip/orchestrator',
+      activeWorkflow: 'orchestrator',
+    });
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('atlas-session-switched', {
+        detail: {
+          sessionId: 'alice',
+          namespace: 'alice/s1/myip/rtl-gen',
+          session: 'alice/s1/myip/rtl-gen',
+          ip: 'myip',
+          workflow: 'rtl-gen',
+        },
+      }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      typeAndSubmit(container, 'implement rtl');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const dispatchCall = fetchSpy.mock.calls.find(([url]) => String(url) === '/api/job/dispatch');
+    expect(dispatchCall).toBeTruthy();
+    const body = JSON.parse(String((dispatchCall?.[1] as RequestInit).body || '{}'));
+    expect(body.workflow).toBe('rtl-gen');
+    expect(body.ip).toBe('myip');
+    expect(body.workspace_session).toBe('s1');
+    expect(body.session).toBeUndefined();
   });
 
   // (c) NORMAL mode plain prompt → sendPrompt (the WS agent path).
@@ -301,8 +362,9 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(promptMsg).toBeTruthy();
     expect(promptMsg.text).toBe('implement the FIFO');
     // Normal mode does NOT route a plain prompt through the orchestrator endpoint.
-    const usedOrchestrator = (global.fetch as any).mock.calls.some(
-      ([url]: any[]) => String(url) === '/api/pipeline/orchestrator/chat',
+    const fetchMock = globalThis.fetch as unknown as { mock: { calls: Array<[unknown, ...unknown[]]> } };
+    const usedOrchestrator = fetchMock.mock.calls.some(
+      ([url]) => String(url) === '/api/pipeline/orchestrator/chat',
     );
     expect(usedOrchestrator).toBe(false);
   });
@@ -457,5 +519,62 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     });
 
     expect(container.textContent || '').not.toMatch(/전송 중|worker.*busy|pending/i);
+  });
+
+  it('(g) routes prompt input to the newly switched workspace session', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/s1/ip_alpha/rtl-gen';
+    w.ACTIVE_IP = 'ip_alpha';
+    w.ATLAS_WORKSPACE_SESSION_ID = 's1';
+    w.atlasData.sessionFor = (ip: string, wf: string) => {
+      const parts = String(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
+      const owner = parts[0] || 'alice';
+      const workspaceSession = (
+        (parts.length >= 4 && parts[0] === owner ? parts[1] : '')
+        || String(w.ATLAS_WORKSPACE_SESSION_ID || '').trim()
+        || 'default'
+      );
+      return `${owner}/${workspaceSession}/${String(ip || 'default').trim()}/${String(wf || 'default').trim()}`;
+    };
+    bk.setAckMode('accept');
+
+    const { container } = await mountWorkspace({
+      activeNamespace: 'alice/s1/ip_alpha/rtl-gen',
+      activeWorkflow: 'rtl-gen',
+    });
+
+    await act(async () => {
+      w.ATLAS_WORKSPACE_SESSION_ID = 's2';
+      w.ACTIVE_SESSION = 'alice/s2/default/default';
+      w.ACTIVE_IP = 'default';
+      window.dispatchEvent(new CustomEvent('atlas-session-switched', {
+        detail: {
+          sessionId: 'alice',
+          namespace: 'alice/s2/default/default',
+          session: 'alice/s2/default/default',
+          ip: 'default',
+          workflow: 'default',
+        },
+      }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      typeAndSubmit(container, 'prompt after session switch');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const promptMsg = bk.sent.find((m) => m && m.type === 'prompt' && m.text === 'prompt after session switch');
+    expect(promptMsg).toBeTruthy();
+    expect(promptMsg.session).toBe('alice/s2/default/default');
+    expect(promptMsg.ip).toBe('default');
+    expect(promptMsg.workflow).toBe('default');
+    const stalePrompt = bk.sent.some(
+      (m) => m && m.type === 'prompt' && m.text === 'prompt after session switch' && String(m.session || '').startsWith('alice/s1/'),
+    );
+    expect(stalePrompt).toBe(false);
   });
 });

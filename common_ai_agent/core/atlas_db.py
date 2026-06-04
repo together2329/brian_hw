@@ -980,10 +980,10 @@ class AtlasDB:
 
     def _connect(self) -> sqlite3.Connection:
         """Return this thread's connection for db_path, opening it once."""
-        cache = getattr(AtlasDB._TLS, "conns", None)
+        cache = getattr(type(self)._TLS, "conns", None)
         if cache is None:
             cache = {}
-            AtlasDB._TLS.conns = cache
+            type(self)._TLS.conns = cache
         conn = cache.get(self.db_path)
         if conn is not None:
             # Liveness probe: a cross-thread close() (e.g. strict single-active-owner
@@ -1434,7 +1434,7 @@ class AtlasDB:
     def close(self):
         """Close and evict this thread's cached connection for db_path."""
         with self._lock:
-            cache = getattr(AtlasDB._TLS, "conns", None)
+            cache = getattr(type(self)._TLS, "conns", None)
             conn = cache.pop(self.db_path, None) if cache else None
             if conn is None:
                 conn = self._conn

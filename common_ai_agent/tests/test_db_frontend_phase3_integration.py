@@ -73,6 +73,23 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     return client
 
 
+def _make_unauthenticated_client(tmp_path: Path, monkeypatch) -> TestClient:
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
+    monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    return TestClient(atlas_ui.create_app())
+
+
 def _lookup_user_id(db_path: Path) -> str:
     """Read back the DB user_id for the just-registered user 'u'. Needed so DB
     seeding of orchestrator_runs/workflow_runs uses an id the authenticated API
@@ -90,12 +107,13 @@ def _seed_workspace_and_ip(db_path: Path, tmp_path: Path, ip_name: str, user_id:
     (workspace_id, ip_id) so the caller can attach workflow_runs / orchestrator_runs."""
     from core.atlas_db import AtlasDB
 
-    (tmp_path / ip_name).mkdir(exist_ok=True)
+    workspace_root = tmp_path / "u" / "default"
+    (workspace_root / ip_name).mkdir(parents=True, exist_ok=True)
     with AtlasDB(str(db_path)) as db:
         ws = db.upsert_workspace(
-            tmp_path.name or "default",
+            workspace_root.name or "default",
             owner_user_id=user_id,
-            local_path=str(tmp_path),
+            local_path=str(workspace_root),
         )
         ipb = db.upsert_ip_block(ws["id"], ip_name)
     return ws["id"], ipb["id"]
@@ -138,7 +156,7 @@ def test_pipeline_state_status_normalization(tmp_path: Path, monkeypatch) -> Non
         ("ssot-gen", "completed", "passed"),
         ("rtl-gen",  "running",   "running"),
         ("lint",     "error",     "failed"),
-        ("tb-gen",   "blocked",   "failed"),
+        ("tb-gen",   "blocked",   "blocked"),
         ("sim",      "cancelled", "failed"),
         ("coverage", "success",   "passed"),  # 'success' is an accepted alias
     ]
@@ -252,6 +270,60 @@ def test_active_run_returns_paused_with_awaiting_user_question(tmp_path: Path, m
     if isinstance(dec, str):
         dec = json.loads(dec)
     assert dec["args"]["question"] == question
+
+
+def test_active_run_rejects_unauthenticated_multiuser_request(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _make_unauthenticated_client(tmp_path, monkeypatch)
+
+    resp = client.get("/api/orchestrator/active_run?ip=ask_user_ip")
+
+    assert resp.status_code == 401
+
+
+def test_active_run_hides_foreign_workspace_question(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from core.atlas_db import AtlasDB
+
+    ip = "foreign_question_ip"
+    db_path = tmp_path / "atlas.db"
+    client = _make_client(tmp_path, monkeypatch)
+    foreign_root = tmp_path / "bob" / "alt"
+    question = "foreign user question must not leak"
+
+    with AtlasDB(str(db_path)) as db:
+        bob = db.ensure_user_by_username("bob")
+        workspace = db.upsert_workspace(
+            "alt",
+            owner_user_id=str(bob["id"] or ""),
+            local_path=str(foreign_root),
+        )
+        ip_row = db.upsert_ip_block(workspace["id"], ip)
+        orun = db.create_orchestrator_run(
+            user_id=str(bob["id"] or ""),
+            ip_id=str(ip_row["id"] or ""),
+            session_id=f"bob/alt/{ip}/orchestrator",
+            workspace_id=str(workspace["id"] or ""),
+            status="paused",
+        )
+        db.append_orchestrator_step(
+            orun["id"],
+            tool_name="ask_user",
+            decision={"args": {"question": question}},
+            verdict="awaiting_user",
+        )
+
+    resp = client.get(f"/api/orchestrator/active_run?ip={ip}&workspace_session=alt")
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    assert body["run"] is None
+    assert body["latest_step"] is None
+    assert question not in json.dumps(body)
 
 
 # ── 5 ─────────────────────────────────────────────────────────────────────────

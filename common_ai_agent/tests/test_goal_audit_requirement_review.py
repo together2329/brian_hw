@@ -223,6 +223,27 @@ def test_goal_audit_placeholder_scan_ignores_metadata_tbd_key(tmp_path: Path) ->
     assert mod._text_has_placeholder(ssot) is False
 
 
+def test_goal_audit_placeholder_scan_ignores_negated_placeholder_phrase(tmp_path: Path) -> None:
+    mod = _load_module()
+    ssot = tmp_path / "ip" / "yaml" / "ip.ssot.yaml"
+    ssot.parent.mkdir(parents=True)
+    ssot.write_text(
+        "note: explicit SSOT tieoff allowance, not a placeholder)\n",
+        encoding="utf-8",
+    )
+
+    assert mod._text_has_placeholder(ssot) is False
+
+
+def test_goal_audit_placeholder_scan_rejects_unresolved_todo(tmp_path: Path) -> None:
+    mod = _load_module()
+    artifact = tmp_path / "ip" / "doc" / "review.md"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_text("unresolved TODO: implement real contract\n", encoding="utf-8")
+
+    assert mod._text_has_placeholder(artifact) is True
+
+
 def test_goal_audit_rejects_approved_req_when_review_decision_still_open(
     tmp_path: Path,
 ) -> None:

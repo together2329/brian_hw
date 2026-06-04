@@ -18,6 +18,21 @@ const g = window as unknown as Record<string, any>;
 // Shared helper owned by soc-architect-shared.tsx; resolved at call time.
 const normalizeArchitectSession = (session: unknown): string => g.normalizeArchitectSession(session);
 
+const activeWorkspaceSessionParam = (): string => {
+  const normalizeOrRaw = (value: unknown): string => normalizeArchitectSession(value) || String(value || '').trim();
+  const explicit = normalizeOrRaw(g.ATLAS_WORKSPACE_SESSION_ID || '');
+  if (explicit) return explicit;
+  const parts = normalizeOrRaw(g.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  return parts.length >= 4 ? parts[1] || '' : '';
+};
+
+const scopedJobUrl = (path: string): string => {
+  const workspaceSession = activeWorkspaceSessionParam();
+  if (!workspaceSession) return path;
+  const params = new URLSearchParams({ workspace_session: workspaceSession });
+  return `${path}?${params.toString()}`;
+};
+
 // ── ArchitectMyIps — landing card grid of the logged-in user's IPs ──
 // The Architect no longer opens on a mock SoC. It opens on the user's own
 // IPs (workspace-session-scoped via `/api/ip/list`). Clicking a card opens that
@@ -241,12 +256,12 @@ export function JobTracker({ jobs, onSelectIp, onLoadSession, onLoadJobLog }: Jo
   const cancel = async (e: any, jobId: string) => {
     e.stopPropagation();
     try {
-      await fetch(`/api/job/${jobId}/cancel`, { method: 'POST' });
+      await fetch(scopedJobUrl(`/api/job/${encodeURIComponent(jobId)}/cancel`), { method: 'POST' });
     } catch (_) {}
   };
 
   const clearDone = async () => {
-    try { await fetch('/api/jobs/clear', { method: 'POST' }); } catch (_) {}
+    try { await fetch(scopedJobUrl('/api/jobs/clear'), { method: 'POST' }); } catch (_) {}
   };
 
   return (

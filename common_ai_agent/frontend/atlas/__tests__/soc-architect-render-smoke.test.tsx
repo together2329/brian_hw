@@ -34,7 +34,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 }); // full-app mount in jsdom is >5s under load
 
-import { render, cleanup, fireEvent, within } from '@testing-library/react';
+import { render, cleanup, fireEvent, waitFor, within, act } from '@testing-library/react';
 
 // Establish the SAME window bridges the live app loads BEFORE the soc-architect
 // bundle. These publish window globals at MODULE-LOAD time that the render path
@@ -140,5 +140,112 @@ describe('SocArchitect render smoke (the behavioral gate)', () => {
   it('registered window.SocArchitect on import (legacy app-shell mount bridge)', async () => {
     await import('../soc-architect.tsx');
     expect(typeof (window as AnyWindow).SocArchitect).toBe('function');
+  });
+
+  it('sends workspace_session when dispatching a single workflow from the architect menu', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_WORKSPACE_SESSION_ID = 'alt';
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith('/api/soc')) {
+        return new Response(JSON.stringify(w.SOC), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (url === '/api/job/dispatch') {
+        return new Response(JSON.stringify({ ok: true, job_id: 'job-alt' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (url.startsWith('/api/jobs')) {
+        return new Response(JSON.stringify({ jobs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as unknown as typeof fetch;
+    global.fetch = fetchMock;
+    const { SocArchitect } = await import('../soc-architect.tsx');
+    const { container } = render(<SocArchitect ipOptions={['demo_ip']} activeIp="demo_ip" />);
+
+    fireEvent.click(container.querySelector('button') as HTMLButtonElement);
+    await waitFor(() => expect(container.querySelector('button[title="dispatch ssot-gen on cpu0"]')).not.toBeNull());
+    fireEvent.click(container.querySelector('button[title="dispatch ssot-gen on cpu0"]') as HTMLButtonElement);
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/job/dispatch')).toBe(true));
+
+    const dispatchCall = fetchMock.mock.calls.find(([url]) => String(url) === '/api/job/dispatch');
+    const body = JSON.parse(String((dispatchCall?.[1] as RequestInit | undefined)?.body || '{}'));
+    expect(body.workspace_session).toBe('alt');
+    expect(body.session).toBeUndefined();
+  });
+
+  it('sends ACTIVE_SESSION workspace when dispatching the full pipeline from the architect menu', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_WORKSPACE_SESSION_ID = '';
+    w.ACTIVE_SESSION = 'u/alt/demo_ip/status';
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.startsWith('/api/soc')) {
+        return new Response(JSON.stringify(w.SOC), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (url === '/api/pipeline/dispatch') {
+        return new Response(JSON.stringify({ ok: true, pipeline_id: 'pipe-alt' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      if (url.startsWith('/api/jobs')) {
+        return new Response(JSON.stringify({ jobs: [] }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }) as unknown as typeof fetch;
+    global.fetch = fetchMock;
+    const { SocArchitect } = await import('../soc-architect.tsx');
+    const { container } = render(<SocArchitect ipOptions={['demo_ip']} activeIp="demo_ip" />);
+
+    fireEvent.click(container.querySelector('button') as HTMLButtonElement);
+    await waitFor(() => expect(container.querySelector('.run-bar')).not.toBeNull());
+    const pipelineButton = Array.from(container.querySelectorAll('button'))
+      .find((button) => button.textContent?.includes('full pipeline')) as HTMLButtonElement;
+    expect(pipelineButton).toBeTruthy();
+    fireEvent.click(pipelineButton);
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/pipeline/dispatch')).toBe(true));
+
+    const dispatchCall = fetchMock.mock.calls.find(([url]) => String(url) === '/api/pipeline/dispatch');
+    const body = JSON.parse(String((dispatchCall?.[1] as RequestInit | undefined)?.body || '{}'));
+    expect(body.workspace_session).toBe('alt');
+  });
+
+  it('sends workspace_session for architect job cancel and clear actions', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_WORKSPACE_SESSION_ID = 'alt';
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ ok: true }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+    ) as unknown as typeof fetch;
+    global.fetch = fetchMock;
+    const { JobTracker } = await import('../soc-architect-panels.tsx');
+    const now = Date.now() / 1000;
+    const { container } = render(<JobTracker jobs={[
+      { job_id: 'run-job', status: 'running', ip: 'demo_ip', workflow: 'ssot-gen', started_at: now },
+      { job_id: 'done-job', status: 'completed', ip: 'demo_ip', workflow: 'rtl-gen', started_at: now - 3 },
+    ]} />);
+
+    fireEvent.click(container.querySelector('[title="cancel job"]') as HTMLElement);
+    fireEvent.click(container.querySelector('[title="clear completed jobs"]') as HTMLElement);
+
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(2));
+    const urls = fetchMock.mock.calls.map(([url]) => String(url));
+    expect(urls).toContain('/api/job/run-job/cancel?workspace_session=alt');
+    expect(urls).toContain('/api/jobs/clear?workspace_session=alt');
+  });
+
+  it('sends workspace_session when architect chat loads worker logs', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_WORKSPACE_SESSION_ID = 'alt';
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ entries: [], job: { status: 'completed' } }), { status: 200, headers: { 'Content-Type': 'application/json' } }),
+    ) as unknown as typeof fetch;
+    global.fetch = fetchMock;
+    const { ArchitectChat } = await import('../soc-architect-chat.tsx');
+    render(<ArchitectChat />);
+
+    await act(async () => {
+      window.dispatchEvent(new CustomEvent('atlas:load-job-log', {
+        detail: { jobId: 'run-job', live: false },
+      }));
+    });
+
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === '/api/job/run-job/log?workspace_session=alt')).toBe(true));
   });
 });

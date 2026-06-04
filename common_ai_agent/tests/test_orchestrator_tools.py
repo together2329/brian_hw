@@ -28,14 +28,26 @@ class TestReadPipelineState:
     def test_invokes_registered_bridge(self, monkeypatch):
         captured = {}
 
-        def fake_bridge(*, ip, scope, include_jobs):
+        def fake_bridge(*, ip, scope, include_jobs, db_user_id=""):
             captured["ip"] = ip
+            captured["scope"] = scope
+            captured["db_user_id"] = db_user_id
             captured["include_jobs"] = include_jobs
             return {"ok": True, "passed": ["ssot"], "failed": [], "running": []}
 
         monkeypatch.setattr(orch_tools, "_read_pipeline_state_bridge", lambda: fake_bridge)
-        result, summary = orch_tools.read_pipeline_state(ip="ipA", include_jobs=False)
-        assert captured == {"ip": "ipA", "include_jobs": False}
+        result, summary = orch_tools.read_pipeline_state(
+            ip="ipA",
+            include_jobs=False,
+            scope="u/alt/ipA/orchestrator",
+            db_user_id="u-db",
+        )
+        assert captured == {
+            "ip": "ipA",
+            "scope": "u/alt/ipA/orchestrator",
+            "db_user_id": "u-db",
+            "include_jobs": False,
+        }
         assert result["passed"] == ["ssot"]
         assert "ssot" in summary
 
@@ -180,6 +192,20 @@ class TestLocalFileTools:
         assert result["ok"] is True
         assert result["stdout"].strip() == "rtl"
 
+    def test_rejects_ip_name_path_traversal(self, tmp_path):
+        outside = tmp_path / "outside"
+
+        result, _ = orch_tools.write_file(
+            ip="../outside",
+            path="owned.txt",
+            content="escape\n",
+            project_root=tmp_path / "root",
+        )
+
+        assert result["ok"] is False
+        assert "valid ip required" in result["error"]
+        assert not outside.exists()
+
 
 class TestWaitJob:
     def test_uses_top_level_jobs_module_when_server_loaded_that_way(self, monkeypatch):
@@ -310,6 +336,15 @@ class TestReadArtifact:
         for art in result["artifacts"]:
             assert art["exists"] is False
         assert "missing" in summary
+
+    def test_rejects_ip_name_path_traversal(self, tmp_path):
+        result, summary = orch_tools.read_artifact(
+            ip="../outside", stage="sim", project_root=tmp_path / "root"
+        )
+
+        assert result["ok"] is False
+        assert "valid ip required" in result["error"]
+        assert "valid ip required" in summary
 
     def test_reads_safe_relative_artifact_path(self, tmp_path):
         ip = "ipA"
@@ -463,6 +498,22 @@ class TestWriteHandoff:
         assert record["scope"]["user_id"] == "u1"
         assert record["payload"]["scope"] == ["mod1"]
         assert record["orchestrator_run_id"] == "orch-1234abcd"
+
+    def test_rejects_ip_name_path_traversal(self, tmp_path):
+        result, summary = orch_tools.write_handoff(
+            ip="../outside",
+            workflow="rtl-gen",
+            payload={},
+            reason="test",
+            user_id="u1",
+            session_id="s1",
+            pipeline_run_id="pr1",
+            project_root=tmp_path / "root",
+        )
+
+        assert result["ok"] is False
+        assert "valid ip required" in result["error"]
+        assert "valid ip required" in summary
 
 
 class TestMarkDownstreamStale:

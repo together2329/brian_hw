@@ -60,7 +60,10 @@ def test_contract_check_command_passes_closed_contract_fixture(tmp_path: Path) -
     assert result.returncode == 0, result.stdout
     assert "Contract Check: PASS" in result.stdout
     report = read_json(ip_dir / "signoff" / "contract_check.json")
+    route = read_json(ip_dir / "signoff" / "contract_owner_routing.json")
     assert report["status"] == "pass"
+    assert route["status"] == "pass"
+    assert route["owner_workflow"] == ""
     assert report["summary"] == {
         "evidence_failed": 0,
         "evidence_passed": 1,
@@ -116,7 +119,11 @@ def test_contract_check_rejects_stale_pass_when_child_checker_fails(tmp_path: Pa
     assert result.returncode == 1
     assert "Contract Check: PASS" not in result.stdout
     report = read_json(ip_dir / "signoff" / "contract_check.json")
+    route = read_json(ip_dir / "signoff" / "contract_owner_routing.json")
     assert report["status"] != "pass"
+    assert route["status"] != "pass"
+    assert route["owner_workflow"] == "contract-reflection"
+    assert "evidence_contract" in str(route["reason"])
 
 
 def test_contract_check_treats_malformed_cached_signoff_as_missing(tmp_path: Path) -> None:

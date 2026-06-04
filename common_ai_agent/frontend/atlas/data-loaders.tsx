@@ -232,12 +232,27 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
     });
   }
 
+  function activeWorkspaceSessionParam(): string {
+    const explicit = normalizeSessionName(w.ATLAS_WORKSPACE_SESSION_ID || '');
+    if (explicit) return explicit;
+    const parts = normalizeSessionName(w.ACTIVE_SESSION || URL_ACTIVE_SESSION || '').split('/').filter(Boolean);
+    return parts.length >= 4 ? parts[1] || '' : '';
+  }
+
+  function activeSessionParams(params: URLSearchParams): URLSearchParams {
+    const activeSession = normalizeSessionName(w.ACTIVE_SESSION || URL_ACTIVE_SESSION || '');
+    if (activeSession) params.set('session_id', activeSession);
+    return params;
+  }
+
   function workerSnapshotUrl(opts: any = {}): string {
     const params = new URLSearchParams();
     const activeOnly = opts.activeOnly !== false && opts.active_only !== false;
     if (activeOnly) params.set('active_only', '1');
     const ip = String(opts.ip || '').trim();
     if (ip && ip !== 'default') params.set('ip', ip);
+    const workspaceSession = activeWorkspaceSessionParam();
+    if (workspaceSession) params.set('workspace_session', workspaceSession);
     const query = params.toString();
     return `/api/orchestrator/workers${query ? `?${query}` : ''}`;
   }
@@ -487,7 +502,9 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
 
   async function refreshSsotList(): Promise<void> {
     try {
-      const r = await fetch('/api/ssot', { cache: 'no-store' });
+      const qs = activeSessionParams(new URLSearchParams());
+      const url = qs.toString() ? `/api/ssot?${qs.toString()}` : '/api/ssot';
+      const r = await fetch(url, { cache: 'no-store', credentials: 'include' });
       if (!r.ok) return;
       const d = await r.json();
       w.SSOT_FILES = Array.isArray(d.files) ? d.files : [];
@@ -640,11 +657,16 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
             const prev = Number(_prev[key] || 0);
             return Number.isFinite(next) ? Math.max(prev, next) : prev;
           };
+          const live = (key: string, value: any) => {
+            if (!acceptHealthCounters) return keep(Number(_prev[key] || 0));
+            const next = Number(value || 0);
+            return Number.isFinite(next) ? next : Number(_prev[key] || 0);
+          };
           const routeCostScope = routeActiveIp ? 'user_ip' : '';
           const routeCostUser = effectiveRoute.owner || String(_prev.costUser || '').trim();
           const routeCostIp = routeActiveIp || '';
           return {
-            tokens: (d.tokens != null) ? stable('tokens', d.tokens) : keep(Number(_prev.tokens || 0)),
+            tokens: (d.tokens != null) ? live('tokens', d.tokens) : keep(Number(_prev.tokens || 0)),
             tokensIn: (d.tokens_in != null) ? stable('tokensIn', d.tokens_in) : keep(Number(_prev.tokensIn || 0)),
             tokensCache: (d.tokens_cache != null) ? stable('tokensCache', d.tokens_cache) : keep(Number(_prev.tokensCache || 0)),
             tokensOut: (d.tokens_out != null) ? stable('tokensOut', d.tokens_out) : keep(Number(_prev.tokensOut || 0)),

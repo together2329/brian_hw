@@ -148,5 +148,45 @@ STATUS="FAIL"
 
 echo "${TS} sim=${STATUS} errors=${ERRORS} warnings=${WARNINGS} pass=${PASS_CNT} fail=${FAIL_CNT} tb=${TB}" >> "${LOG}"
 
+if [ "${STATUS}" = "PASS" ] && [ "${PY_FLOW}" -eq 1 ] && [ -f "${IP_DIR}/verify/contract_reflection.json" ]; then
+    RUN_MARKER="${IP_DIR}/sim/sim_stage_run.json"
+    mkdir -p "$(dirname "${RUN_MARKER}")"
+    python3 - "${RUN_MARKER}" "${TB}" "${PASS_CNT}" "${FAIL_CNT}" <<'PY'
+import json
+import sys
+import time
+from pathlib import Path
+
+out = Path(sys.argv[1])
+payload = {
+    "fail": int(sys.argv[4]),
+    "generated_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    "pass": int(sys.argv[3]),
+    "runner": sys.argv[2],
+    "schema_version": 1,
+    "source": "sim_stage",
+    "status": "pass",
+    "type": "sim_stage_run",
+}
+out.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+PY
+    SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+    SEARCH_ROOT="${SCRIPT_DIR}"
+    STAMP_SCRIPT=""
+    while [ "${SEARCH_ROOT}" != "/" ]; do
+        CANDIDATE="${SEARCH_ROOT}/workflow/contract-reflection/scripts/stamp_sim_evidence_freshness.py"
+        if [ -f "${CANDIDATE}" ]; then
+            STAMP_SCRIPT="${CANDIDATE}"
+            break
+        fi
+        SEARCH_ROOT=$(dirname "${SEARCH_ROOT}")
+    done
+    [ -z "${STAMP_SCRIPT}" ] && { echo "[sim_freshness] fail: stamp script not found"; exit 1; }
+    STAMP_OUT=$(ATLAS_SIM_FRESHNESS_SOURCE=sim_stage python3 "${STAMP_SCRIPT}" "$(basename "${IP_DIR}")" --root "$(dirname "${IP_DIR}")" 2>&1)
+    STAMP_RC=$?
+    echo "${STAMP_OUT}"
+    [ ${STAMP_RC} -ne 0 ] && exit ${STAMP_RC}
+fi
+
 [ "${STATUS}" = "PASS" ] && echo "0 errors, 0 warnings"
 [ "${STATUS}" = "PASS" ]

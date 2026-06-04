@@ -110,6 +110,7 @@ interface AtlasGlue {
   CONTEXT?: { active_ip?: string; activeIp?: string } & Record<string, unknown>;
   ATLAS_USER?: { username?: string } & Record<string, unknown>;
   ATLAS_USER_SESSION_ID?: unknown;
+  ATLAS_WORKSPACE_SESSION_ID?: unknown;
   ATLAS_EXEC_MODE?: string;
   ATLAS_RUN_MODE?: string;
   ATLAS_PIPELINE_RUNNING?: number;
@@ -166,6 +167,14 @@ const StageStatusRail = (...a: any[]) => w.StageStatusRail(...a);
 const WorkerOrchestraBar = (...a: any[]) => w.WorkerOrchestraBar(...a);
 const clampPipeWidth = (...a: Parameters<AtlasGlue['clampPipeWidth']>) => w.clampPipeWidth(...a);
 const pipelineIpFromActiveNamespace = (...a: unknown[]) => w.pipelineIpFromActiveNamespace(...(a as []));
+
+function activeWorkspaceSessionParam(): string {
+  const explicit = typeof w.ATLAS_WORKSPACE_SESSION_ID === 'string' ? w.ATLAS_WORKSPACE_SESSION_ID.trim() : '';
+  if (explicit) return explicit;
+  const active = typeof w.ACTIVE_SESSION === 'string' ? w.ACTIVE_SESSION.trim() : '';
+  const parts = active.split('/').filter(Boolean);
+  return parts.length >= 4 ? (parts[1] || '') : '';
+}
 
 
 // Click a node → scroll the matching StageCard into view (smooth).
@@ -481,7 +490,10 @@ export function AtlasPipeline() {
 
     const poll = async () => {
       try {
-        const r = await fetch(`/api/pipeline/state?ip=${encodeURIComponent(ip)}`);
+        const params = new URLSearchParams({ ip });
+        const workspaceSession = activeWorkspaceSessionParam();
+        if (workspaceSession) params.set('workspace_session', workspaceSession);
+        const r = await fetch(`/api/pipeline/state?${params.toString()}`);
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const j = await r.json();
         if (dead) return;

@@ -25,6 +25,14 @@ export const normalizeUiSession = (session: any): string => {
   catch (_) { return ''; }
 };
 
+export const activeUiSession = (): string => normalizeUiSession(w.ACTIVE_SESSION || '');
+
+export const appendActiveSessionParam = (params: URLSearchParams): URLSearchParams => {
+  const activeSession = activeUiSession();
+  if (activeSession) params.set('session_id', activeSession);
+  return params;
+};
+
 export const healthMatchesCurrentUser = (payload: any): boolean => {
   const current = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '');
   const response = normalizeUiSession((payload && payload.user_session) || '');

@@ -12,6 +12,28 @@ import {
 } from './pipeline-trace-shared';
 import { win } from './pipeline-trace-shared';
 
+const workerIdentityLabel = (worker: WorkerInfo): string => {
+  const owner = String(worker.worker_owner || '').trim();
+  const workspace = String(worker.workspace_session || '').trim();
+  if (owner && workspace && workspace !== 'default') return `${owner}/${workspace}`;
+  if (owner) return owner;
+  return '';
+};
+
+const activeWorkspaceSession = (): string => {
+  const explicit = String(win.ATLAS_WORKSPACE_SESSION_ID || '').trim();
+  if (explicit) return explicit;
+  const parts = String(win.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  return parts.length >= 4 ? parts[1] || '' : '';
+};
+
+const orchestratorTraceUrl = (ip: string, limit: number): string => {
+  const params = new URLSearchParams({ ip, limit: String(limit) });
+  const workspaceSession = activeWorkspaceSession();
+  if (workspaceSession) params.set('workspace_session', workspaceSession);
+  return `/api/orchestrator/trace?${params.toString()}`;
+};
+
 export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: WorkerOrchestraBarProps) {
   const [data, setData] = useState<WorkerSnapshot>({ orchestrator: {}, workers: [] });
   const [traceMap, setTraceMap] = useState<Record<string, TraceEvent>>({}); // worker -> latest event
@@ -24,7 +46,7 @@ export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: Worker
       } catch (_) {}
       try {
         if (!ip) return;
-        const r2 = await fetch(`/api/orchestrator/trace?ip=${encodeURIComponent(ip)}&limit=30`);
+        const r2 = await fetch(orchestratorTraceUrl(ip, 30));
         if (!r2.ok) return;
         const j2 = await r2.json();
         if (dead) return;
@@ -102,8 +124,15 @@ export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: Worker
           const mismatch = w.status === 'mismatch';
           const sel = currentTarget === w.workflow;
           const flow = dataFlow(w, ev);
+          const identity = workerIdentityLabel(w);
           const opensWorkspace = win.PIPELINE_WORKSPACE_WORKFLOWS
             && win.PIPELINE_WORKSPACE_WORKFLOWS.has(w.workflow);
+          const baseTitle = opensWorkspace
+            ? `Open ${w.workflow} workspace and history`
+            : (mismatch && w.mismatch_reasons && w.mismatch_reasons.length
+                ? w.mismatch_reasons.join('\n')
+                : `Click to set chat target to ${w.workflow}`);
+          const cardTitle = identity ? `${baseTitle}\nscope: ${identity}` : baseTitle;
           return (
             <button key={w.workflow}
                     className="pipe-orchestra-worker worker-card"
@@ -117,11 +146,7 @@ export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: Worker
                       }
                       if (onSelectTarget) onSelectTarget(w.workflow);
                     }}
-                    title={opensWorkspace
-                      ? `Open ${w.workflow} workspace and history`
-                      : (mismatch && w.mismatch_reasons && w.mismatch_reasons.length
-                          ? w.mismatch_reasons.join('\n')
-                          : `Click to set chat target to ${w.workflow}`)}>
+                    title={cardTitle}>
               <span className="worker-card-arrow pipe-orchestra-arrow">
                 {flowArrow(flow)}
               </span>
@@ -130,6 +155,9 @@ export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: Worker
                 <span className="pipe-orchestra-worker-name">{w.workflow}</span>
                 {sel && <span className="to-badge pipe-orchestra-worker-sel">TO</span>}
               </span>
+              {identity && (
+                <span className="worker-card-owner pipe-orchestra-worker-owner">{identity}</span>
+              )}
               <span className="worker-card-state pipe-orchestra-worker-state">
                 {stateLabel(w)}
               </span>
@@ -162,7 +190,7 @@ export function OrchestratorTraceStrip({ ip }: OrchestratorTraceStripProps) {
     let dead = false;
     const fetchOnce = async () => {
       try {
-        const r = await fetch(`/api/orchestrator/trace?ip=${encodeURIComponent(ip)}&limit=20`);
+        const r = await fetch(orchestratorTraceUrl(ip, 20));
         if (!r.ok) return;
         const j = await r.json();
         if (!dead) setEvents(Array.isArray(j.events) ? j.events.slice().reverse() : []);

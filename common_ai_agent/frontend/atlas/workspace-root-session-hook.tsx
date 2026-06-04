@@ -517,12 +517,20 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
         )
     ).trim();
     const promptScope = (() => {
-      return activeIpForRoute([
+      const currentRoute = normalizeUiSession(
+        w.ACTIVE_SESSION
+        || activeSessionRef.current
+        || activeSession
+        || ''
+      );
+      const currentRouteIp = activeIpForRoute([
         w.ACTIVE_SESSION,
         activeSessionRef.current,
         activeSession,
-        activeNamespace,
       ]);
+      if (currentRouteIp) return currentRouteIp;
+      if (currentRoute.split('/').filter(Boolean).length >= 4) return 'default';
+      return activeIpForRoute([activeNamespace]);
     })();
     const canonicalSession = (w.atlasData && w.atlasData.sessionFor)
       ? w.atlasData.sessionFor(promptScope, promptWorkflow)

@@ -61,6 +61,11 @@ interface SsotDocWindow {
 // runtime `window.X` lookups while giving TS the shapes above.
 const ssotWin = window as unknown as SsotDocWindow;
 
+const activeSsotSessionId = (): string => {
+  const raw = String(ssotWin.ACTIVE_SESSION || '').trim();
+  return raw === 'default' ? '' : raw;
+};
+
 export interface SsotDocPaneProps {
   uiLang?: string;
   ip?: string;
@@ -86,16 +91,23 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
   const [sourceInfo, setSourceInfo] = useState<SsotDocSourceResponse | null>(null);
   const docFrameRef = useRef<HTMLIFrameElement>(null);
   const effectiveIp = String(ip || ssotWin.ACTIVE_IP || ssotIpFromSession(ssotWin.ACTIVE_SESSION) || '').trim();
-  const qs = effectiveIp ? new URLSearchParams({
-    ip: effectiveIp,
-    format: 'html',
-    inline: '1',
-    v: String(reloadKey),
-  }).toString() : '';
+  const sessionId = activeSsotSessionId();
+  const qs = effectiveIp ? (() => {
+    const params = new URLSearchParams({
+      ip: effectiveIp,
+      format: 'html',
+      inline: '1',
+      v: String(reloadKey),
+    });
+    if (sessionId) params.set('session_id', sessionId);
+    return params.toString();
+  })() : '';
   const inlineUrl = qs ? `/api/ssot/export?${qs}` : '';
-  const downloadUrl = effectiveIp
-    ? `/api/ssot/export?ip=${encodeURIComponent(effectiveIp)}&format=html`
-    : '';
+  const downloadUrl = effectiveIp ? (() => {
+    const params = new URLSearchParams({ ip: effectiveIp, format: 'html' });
+    if (sessionId) params.set('session_id', sessionId);
+    return `/api/ssot/export?${params.toString()}`;
+  })() : '';
   const title = uiLang === 'en' ? 'SSOT Document' : 'SSOT Document';
   const subtitle = uiLang === 'en'
     ? 'Rendered from the same HTML export artifact.'

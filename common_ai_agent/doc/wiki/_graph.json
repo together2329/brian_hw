@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-03T23:21:49Z",
+  "generated_at": "2026-06-04T03:01:42Z",
   "root": "doc/wiki",
   "node_count": 136,
   "edge_count": 611,
@@ -1015,7 +1015,7 @@
       "updated": "",
       "summary": "Date: 2026-06-03 Branch: `feat/atlas-context-root-model`",
       "path": "doc/wiki/atlas-context-root-model-20260603.md",
-      "size_bytes": 56235
+      "size_bytes": 59139
     },
     {
       "id": "atlas-dag-ip-flow-runbook",
@@ -1585,10 +1585,10 @@
         "log"
       ],
       "broken_refs": [],
-      "updated": "2026-06-03",
+      "updated": "2026-06-04",
       "summary": "This page captures the next design layer after `truth_coverage` and `evidence_contract`: every important contract item must be reflected through FL, CL, RTL, TB, and simulation evidence with the same stable ID.",
       "path": "doc/wiki/contract-reflection-workflow.md",
-      "size_bytes": 38628
+      "size_bytes": 52594
     },
     {
       "id": "cross-user-permission-20260519",
@@ -2380,7 +2380,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 31459
+      "size_bytes": 31510
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2541,12 +2541,12 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "contract-reflection-workflow",
         "orchestrator-worker-handoff",
         "atlas-context-root-deep-test-plan-20260604",
         "atlas-context-root-model-20260603",
         "tauri-desktop-shell",
         "admin-operational-dashboard-db-snapshot-20260603",
-        "contract-reflection-workflow",
         "atlas-single-active-orchestrator-subworkers-20260603",
         "pipeline-progress-debugging",
         "atlas-db-router-runtime-sharding-20260602",
@@ -2589,9 +2589,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Documented the orchestrator supervisor IPC runtime shipped in commit `a96dbf29` in [[orchestrator-worker-handoff]]. The route now resolves `get_orchestrator_runtime`, keeps legacy `thread` transport available, and uses IPC supervisor subprocesses for orchestrator mode. The wiki records the route/runtime/subprocess chain,…",
+      "summary": "- Extended [[contract-reflection-workflow]] freshness downward from semantic source artifacts into simulator evidence. Added `workflow/contract_reflection/sim_freshness.py`, `stamp_sim_evidence_freshness.py`, `check_sim_evidence_freshness.py`, and `run_contract_check.py --require-sim-freshness`. MCTP v3 was rerun through cocotb (`TESTS=10 PASS=10 FAIL=0`),…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 98787
+      "size_bytes": 101258
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -4007,7 +4007,7 @@
       "updated": "",
       "summary": "A native desktop window for ATLAS, for distribution + native file access (OS file dialogs, arbitrary local paths) beyond what a sandboxed browser tab allows.",
       "path": "doc/wiki/tauri-desktop-shell.md",
-      "size_bytes": 8650
+      "size_bytes": 8918
     },
     {
       "id": "tech-direction-recommendation-20260529",

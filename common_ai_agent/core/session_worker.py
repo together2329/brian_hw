@@ -21,6 +21,7 @@ import os
 import re
 import signal
 import sys
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -54,6 +55,7 @@ ASK_USER_TIMEOUT = 900.0
 # i.e. a flat "<=30 rows" is wrong — it depends on how long the stream ran.
 COALESCE_FLUSH_INTERVAL_S = 0.05  # 50ms timer trigger
 COALESCE_FLUSH_MAX_BYTES = 4096   # 4KB size trigger
+PARENT_MONITOR_INTERVAL_S = 0.5
 
 _shutdown_requested = False
 
@@ -337,7 +339,7 @@ class SessionWorker:
         now_fn: "Callable[[], float] | None" = None,
         monotonic_fn: "Callable[[], float] | None" = None,
     ) -> None:
-        self.session_id = session_id
+        self.session_id = self._normalize_session(session_id)
         # In session mode the worker's queue DB IS the per-session runtime file;
         # open it with the runtime-only 5-table schema so it does not bootstrap
         # ~24 unused control tables (defeats plan §2.9). In central mode this
@@ -364,7 +366,10 @@ class SessionWorker:
         clean = str(value or "").strip().strip("/")
         clean = re.sub(r"/+", "/", clean)
         clean = re.sub(r"[^A-Za-z0-9_.\-/]+", "_", clean)
-        return clean or "default"
+        parts = [part for part in clean.split("/") if part]
+        if any(part in {".", ".."} for part in parts):
+            raise ValueError("invalid session path segment")
+        return "/".join(parts) or "default"
 
     @staticmethod
     def _valid_ip_name(value: str | None) -> bool:
@@ -1174,6 +1179,63 @@ def _install_signal_handlers() -> None:
     signal.signal(signal.SIGINT, _handle_signal)
 
 
+def _worker_parent_pid_from_env() -> int | None:
+    raw = os.environ.get("ATLAS_SESSION_WORKER_PARENT_PID", "").strip()
+    if not raw:
+        return None
+    try:
+        parent_pid = int(raw)
+    except ValueError:
+        return None
+    if parent_pid <= 1 or parent_pid == os.getpid():
+        return None
+    return parent_pid
+
+
+def _worker_parent_is_alive(parent_pid: int) -> bool:
+    if os.getppid() != parent_pid:
+        return False
+    try:
+        os.kill(parent_pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def _start_parent_monitor(parent_pid: int | None) -> bool:
+    if parent_pid is None:
+        return True
+
+    def _monitor() -> None:
+        global _shutdown_requested
+        while not _shutdown_requested:
+            if not _worker_parent_is_alive(parent_pid):
+                _shutdown_requested = True
+                try:
+                    os.kill(os.getpid(), signal.SIGTERM)
+                except ProcessLookupError:
+                    return
+                except PermissionError:
+                    return
+                except OSError:
+                    return
+            time.sleep(PARENT_MONITOR_INTERVAL_S)
+
+    try:
+        threading.Thread(
+            target=_monitor,
+            name="atlas-session-worker-parent-monitor",
+            daemon=True,
+        ).start()
+    except RuntimeError:
+        return False
+    return True
+
+
 def run_worker(session_id: str, db_path: str) -> int:
     parts = [p for p in str(session_id or "").split("/") if p]
     owner = parts[0] if parts else "default"
@@ -1188,43 +1250,49 @@ def run_worker(session_id: str, db_path: str) -> int:
     os.environ["ATLAS_ACTIVE_IP"] = ip
     os.environ["ATLAS_DEFAULT_WORKFLOW"] = workflow
     os.environ["ACTIVE_WORKSPACE"] = workflow
+    parent_pid = _worker_parent_pid_from_env()
+    if parent_pid is not None and not _worker_parent_is_alive(parent_pid):
+        return 0
     worker = SessionWorker(session_id=session_id, db_path=db_path)
     _install_signal_handlers()
 
-    agent = _load_agent()
-    setup_session = getattr(agent, "_setup_session", None)
-    if callable(setup_session):
-        setup_session(session_id)
-        os.environ["ATLAS_SESSION_APPLIED"] = session_id
-    setup_workspace = getattr(agent, "_setup_workspace", None)
-    if callable(setup_workspace) and workflow and workflow != "default":
-        setup_workspace(workflow)
-        os.environ["ACTIVE_WORKSPACE"] = workflow
-
-    agent._textual_input_fn = worker.input
-    agent._textual_emit_content_fn = worker.emit_content
-    agent._textual_emit_reasoning_fn = worker.emit_reasoning
-    agent._textual_emit_todo_fn = worker.emit_todo
-    agent._textual_emit_flush_fn = worker.emit_flush
-    agent._textual_emit_context_fn = worker.emit_context
-    agent._textual_emit_token_fn = worker.emit_token_usage
-    agent._textual_emit_tool_fn = worker.emit_tool
-    agent._textual_emit_tool_result_fn = worker.emit_tool_result
-    agent._textual_esc_check_fn = worker.check_stop
-    agent._textual_poll_human_input_fn = worker.poll_interrupt
-    agent._textual_set_agent_running_fn = worker.set_agent_running
-
     try:
-        from core import tools as _tools
+        if _start_parent_monitor(parent_pid) is False:
+            worker.emit("error", {"message": "parent monitor failed to start"})
+            return 1
+        agent = _load_agent()
+        setup_session = getattr(agent, "_setup_session", None)
+        if callable(setup_session):
+            setup_session(session_id)
+            os.environ["ATLAS_SESSION_APPLIED"] = session_id
+        setup_workspace = getattr(agent, "_setup_workspace", None)
+        if callable(setup_workspace) and workflow and workflow != "default":
+            setup_workspace(workflow)
+            os.environ["ACTIVE_WORKSPACE"] = workflow
 
-        if hasattr(_tools, "set_ask_user_callback"):
-            _tools.set_ask_user_callback(worker.ask_user)
-        if hasattr(_tools, "set_record_ssot_qa_callback"):
-            _tools.set_record_ssot_qa_callback(worker.record_ssot_qa)
-    except Exception as exc:
-        worker.emit("error", {"message": f"QA callback registration failed: {exc}"})
+        agent._textual_input_fn = worker.input
+        agent._textual_emit_content_fn = worker.emit_content
+        agent._textual_emit_reasoning_fn = worker.emit_reasoning
+        agent._textual_emit_todo_fn = worker.emit_todo
+        agent._textual_emit_flush_fn = worker.emit_flush
+        agent._textual_emit_context_fn = worker.emit_context
+        agent._textual_emit_token_fn = worker.emit_token_usage
+        agent._textual_emit_tool_fn = worker.emit_tool
+        agent._textual_emit_tool_result_fn = worker.emit_tool_result
+        agent._textual_esc_check_fn = worker.check_stop
+        agent._textual_poll_human_input_fn = worker.poll_interrupt
+        agent._textual_set_agent_running_fn = worker.set_agent_running
 
-    try:
+        try:
+            from core import tools as _tools
+
+            if hasattr(_tools, "set_ask_user_callback"):
+                _tools.set_ask_user_callback(worker.ask_user)
+            if hasattr(_tools, "set_record_ssot_qa_callback"):
+                _tools.set_record_ssot_qa_callback(worker.record_ssot_qa)
+        except Exception as exc:
+            worker.emit("error", {"message": f"QA callback registration failed: {exc}"})
+
         worker.emit("worker_started", {"pid": os.getpid()})
         # Task 5 (Wave-3 line 271): fence ALL pending inbound rows left by a
         # previous process BEFORE the loop, so a stale stop/interrupt/answer/

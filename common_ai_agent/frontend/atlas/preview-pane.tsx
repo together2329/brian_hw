@@ -18,6 +18,7 @@ import { Fragment, useState, useEffect, useRef, useCallback, useMemo } from 'rea
 import type { ReactNode, MouseEvent } from 'react';
 import { LintDiagnosticLineAnnotation, lintDiagnosticLine } from './lint-diagnostics';
 import type { LintDiagnostic } from './lint-diagnostics';
+import { appendActiveSessionParam } from './workspace-session-routing';
 
 // ── Cross-file globals owned by OTHER (unmigrated) files. These are NOT
 // declared in types/atlas-window.d.ts yet, so we read them through a locally
@@ -122,6 +123,24 @@ const useAtlasAsyncResource = (
 const AtlasStatusBadge = (...a: any[]): any => g.AtlasStatusBadge(...a);
 const DocxFallbackPane = (...a: any[]): any => g.DocxFallbackPane(...a);
 
+const atlasApiUrl = (
+  endpoint: string,
+  params: Record<string, unknown>,
+  hash = '',
+): string => {
+  const qs = appendActiveSessionParam(new URLSearchParams());
+  Object.entries(params).forEach(([key, value]) => {
+    if (value != null && String(value) !== '') qs.set(key, String(value));
+  });
+  return `${endpoint}?${qs.toString()}${hash}`;
+};
+
+const atlasFileRawUrl = (
+  path: string,
+  params: Record<string, unknown> = {},
+  hash = '',
+): string => atlasApiUrl('/api/file/raw', { path, ...params }, hash);
+
 interface DeferredMarkdownPreviewProps {
   body?: string;
   sourcePath?: string;
@@ -168,7 +187,7 @@ const DeferredMarkdownPreview = ({ body, sourcePath = '' }: DeferredMarkdownPrev
       const rel = src.replace(/^\.\//, '');
       const resolved = rel.startsWith('/') ? rel.slice(1)
         : (baseDir ? `${baseDir}/${rel}` : rel);
-      img.setAttribute('src', `/api/file/raw?path=${encodeURIComponent(resolved)}`);
+      img.setAttribute('src', atlasFileRawUrl(resolved));
     });
   }, [html, sourcePath]);
 
@@ -245,7 +264,7 @@ const FoldablePane = ({ path, body, lang, lineCount, focusLine = 0, feedbackMode
   useEffect(() => {
     if (!path) { setRanges([]); setSkipped(null); return; }
     let cancelled = false;
-    fetch(`/api/fold-symbols?path=${encodeURIComponent(path)}`)
+    fetch(atlasApiUrl('/api/fold-symbols', { path }), { cache: 'no-store', credentials: 'include' })
       .then(r => r.json())
       .then(d => {
         if (cancelled) return;
@@ -752,7 +771,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: Pr
               </div>
             ) : (
               <img
-                src={`/api/file/raw?path=${encodeURIComponent(path)}&v=${encodeURIComponent(String(effectiveMtime || binaryReloadKey || ''))}`}
+                src={atlasFileRawUrl(path, { v: String(effectiveMtime || binaryReloadKey || '') })}
                 alt={path}
                 style={{ maxWidth: '100%', maxHeight: '90vh', background: '#fff', border: '1px solid var(--line)', borderRadius: 2 }}
                 onLoad={(e) => {
@@ -771,7 +790,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: Pr
           </div>
         ) : isPdf ? (
           <iframe
-            src={`/api/file/raw?path=${encodeURIComponent(path)}#view=FitH`}
+            src={atlasFileRawUrl(path, {}, '#view=FitH')}
             title={path}
             style={{ width: '100%', height: '100%', border: 0, background: '#fff' }}
           />
@@ -779,7 +798,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: Pr
           <DocxFallbackPane path={path} ext={ext} />
         ) : (isHtml && htmlRendered) ? (
           <iframe
-            src={`/api/file/raw?path=${encodeURIComponent(path)}&v=${encodeURIComponent(String(effectiveMtime || ''))}`}
+            src={atlasFileRawUrl(path, { v: String(effectiveMtime || '') })}
             title={path}
             style={{ width: '100%', height: '100%', border: 0, background: '#fff' }}
           />

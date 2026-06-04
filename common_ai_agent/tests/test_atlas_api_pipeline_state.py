@@ -20,12 +20,13 @@ _EXPECTED_STAGE_IDS = [
 ]
 
 
-def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
+def _make_client(tmp_path: Path, monkeypatch, *, multi_user: bool = False) -> TestClient:
     monkeypatch.chdir(tmp_path)
 
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1" if multi_user else "0")
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
@@ -923,12 +924,13 @@ def test_pipeline_state_isolates_handoffs_by_authenticated_user(
     from src import handoff_queue as hq
 
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     ip = "iso_ip"
-    ip_dir = tmp_path / ip
-    ip_dir.mkdir()
 
     # Seed one handoff per user
     for user in ("u_alice", "u_bob"):
+        ip_dir = tmp_path / user / "default" / ip
+        ip_dir.mkdir(parents=True)
         rec = {
             "schema": hq.SCHEMA,
             "handoff_id": hq.make_handoff_id(ip, "sim-debug", "rtl-gen", user.upper()),
@@ -939,7 +941,7 @@ def test_pipeline_state_isolates_handoffs_by_authenticated_user(
         }
         hq.write_pending(ip_dir, rec)
 
-    client = _make_client(tmp_path, monkeypatch)
+    client = _make_client(tmp_path, monkeypatch, multi_user=True)
     # The fixture's user is named "u" — register an alice user so we can
     # exercise the per-user cache key from two distinct sessions.
     client.post("/api/auth/register", json={"username": "u_alice", "password": "pw"})
@@ -962,19 +964,18 @@ def test_pipeline_state_isolates_handoffs_by_authenticated_user(
     assert data_bob["handoffs_by_workflow"]["rtl-gen"]["pending"] == 1
 
 
-def test_pipeline_state_allows_admin_to_inspect_user_owned_ip(
+def test_pipeline_state_allows_same_ip_name_in_isolated_user_workspace(
     tmp_path: Path, monkeypatch
 ) -> None:
-    """Admin dashboard can list user-owned IPs, so opening one should not
-    dead-end on the normal pipeline state endpoint with 403."""
     from core.atlas_db import AtlasDB
 
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
     monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
     monkeypatch.setenv("ATLAS_SESSION_DB_SYNC", "1")
     ip = "admin_view_ip"
     (tmp_path / ip).mkdir()
 
-    client = _make_client(tmp_path, monkeypatch)
+    client = _make_client(tmp_path, monkeypatch, multi_user=True)
     client.post("/api/auth/register", json={"username": "alice", "password": "pw"})
     client.post("/api/auth/register", json={"username": "bob", "password": "pw"})
     admin_reg = client.post("/api/auth/register", json={"username": "admin", "password": "1151"})
@@ -1009,7 +1010,8 @@ def test_pipeline_state_allows_admin_to_inspect_user_owned_ip(
 
     client.post("/api/auth/login", json={"username": "bob", "password": "pw"})
     bob_state = client.get(f"/api/pipeline/state?ip={ip}")
-    assert bob_state.status_code == 403
+    assert bob_state.status_code == 200, bob_state.text
+    assert bob_state.json()["ip"] == ip
 
     client.post("/api/auth/login", json={"username": "admin", "password": "1151"})
     admin_state = client.get(f"/api/pipeline/state?ip={ip}")

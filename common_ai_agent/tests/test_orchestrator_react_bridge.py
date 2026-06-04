@@ -126,6 +126,24 @@ class TestCallableRoundTrip:
         assert len(after) == before + 1
         assert after[-1]["tool_name"] == "read_pipeline_state"
 
+    def test_read_pipeline_state_passes_context_session_scope(self, bridge, ctx, monkeypatch):
+        from src.orchestrator import tools as orch_tools
+
+        captured = {}
+
+        def fake_bridge(**kwargs):
+            captured.update(kwargs)
+            return {"ok": True, "passed": [], "failed": [], "running": []}
+
+        monkeypatch.setattr(orch_tools, "_read_pipeline_state_bridge", lambda: fake_bridge)
+
+        bridge.available_tools["read_pipeline_state"](
+            pre_parsed_kwargs={"ip": "ipA"}
+        )
+
+        assert captured["ip"] == "ipA"
+        assert captured["scope"] == ctx.session_id
+
     def test_classify_failure_callable_returns_owner_routing(self, db, bridge, ctx):
         obs = bridge.available_tools["classify_failure"](
             pre_parsed_kwargs={"stage": "lint"}

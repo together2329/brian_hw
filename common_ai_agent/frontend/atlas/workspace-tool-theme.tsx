@@ -328,11 +328,16 @@ export const workspaceFetchWorkerSnapshot = async (opts: any = {}): Promise<any>
   if (typeof api.fetchWorkerSnapshot === 'function') {
     return api.fetchWorkerSnapshot(opts);
   }
+  const w = window as any;
+  const explicitWorkspace = String(w.ATLAS_WORKSPACE_SESSION_ID || '').trim();
+  const activeParts = String(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  const workspaceSession = explicitWorkspace || (activeParts.length >= 4 ? activeParts[1] || '' : '');
   const params = new URLSearchParams();
   const activeOnly = opts.activeOnly !== false && opts.active_only !== false;
   if (activeOnly) params.set('active_only', '1');
   const ip = String(opts.ip || '').trim();
   if (ip && ip !== 'default') params.set('ip', ip);
+  if (workspaceSession) params.set('workspace_session', workspaceSession);
   const query = params.toString();
   const r = await fetch(`/api/orchestrator/workers${query ? `?${query}` : ''}`, { cache: 'no-store' });
   if (!r.ok) throw new Error(`workers ${r.status}`);

@@ -14,6 +14,22 @@ export class SsotDocFeedbackError extends Error {
   }
 }
 
+function activeSessionId(): string {
+  const win = window as any;
+  const norm = win.atlasData?.normalizeSessionName || win.normalizeAtlasSessionName;
+  try {
+    return norm ? norm(win.ACTIVE_SESSION || '') : String(win.ACTIVE_SESSION || '').trim();
+  } catch (_) {
+    return '';
+  }
+}
+
+function appendSessionId(params: URLSearchParams): URLSearchParams {
+  const sessionId = activeSessionId();
+  if (sessionId) params.set('session_id', sessionId);
+  return params;
+}
+
 export function requireSsotDocSelection(target: SsotDocSelectedTarget | null): SsotDocSelectedTarget {
   if (!target?.path) {
     throw new SsotDocFeedbackError('Select a DOC component first');
@@ -23,7 +39,7 @@ export function requireSsotDocSelection(target: SsotDocSelectedTarget | null): S
 
 export async function fetchSsotDocSource(request: SsotDocSourceRequest): Promise<SsotDocSourceResponse> {
   const target = requireSsotDocSelection(request.target);
-  const qs = new URLSearchParams({ ip: request.ip, path: target.path });
+  const qs = appendSessionId(new URLSearchParams({ ip: request.ip, path: target.path }));
   return parseJsonResponse<SsotDocSourceResponse>(
     await fetch(`/api/ssot/doc-source?${qs.toString()}`, { credentials: 'include' }),
   );
@@ -46,6 +62,7 @@ export async function submitSsotDocFeedback(
         field: request.field || '',
         value: request.value || '',
         comment: request.comment,
+        session_id: activeSessionId(),
       }),
     }),
   );

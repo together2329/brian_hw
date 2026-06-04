@@ -2083,7 +2083,7 @@ def _warm_worker_owner_from_session(session_name: str, owner: str = "") -> str:
 
 def _safe_workspace_session_segment(value: str = "") -> str:
     raw = str(value or "").strip() or "default"
-    return raw if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", raw) else "default"
+    return raw if len(raw) <= 64 and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", raw) else "default"
 
 
 def _warm_worker_workspace_from_session(session_name: str, workspace_session: str = "") -> str:
@@ -7456,8 +7456,6 @@ def register_jobs_routes(
     # Poll replayable chat messages (assistant/user/thought/tool/tool_result) for an IP.
     # Frontend polls every 1.5s while orchestrator is active.
 
-    _CHAT_IP_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_]*$')
-
     @app.get("/api/orchestrator/chat/messages")
     async def api_orchestrator_chat_messages(request: Request):
         user_id = _request_db_user_id(request)
@@ -7465,7 +7463,7 @@ def register_jobs_routes(
             return JSONResponse({"error": "not authenticated"}, status_code=401)
         params = dict(request.query_params)
         ip = (params.get("ip") or "").strip()
-        if not ip or not _CHAT_IP_RE.match(ip):
+        if not _valid_ip_name(ip):
             return JSONResponse({"error": "ip param missing or invalid"}, status_code=400)
         try:
             since = float(params["since"]) if params.get("since") else None
@@ -7476,12 +7474,26 @@ def register_jobs_routes(
             limit = max(1, min(500, limit))
         except Exception:
             limit = 100
-        # Pure local read — no DB at all. ``user_id`` (from _request_db_user_id)
-        # is already the canonical UUID the writers keyed on, so chat is read
-        # straight from .session/<owner>/<ip>/chat.jsonl.
         try:
             from core.local_chat_store import read_chat
-            rows = read_chat(_request_project_root(request, ip), user_id, ip, limit=limit, since=since)
+            workspace_payload = _workspace_payload_from_request(request)
+            workspace_session = _workspace_session_from_body(workspace_payload)
+            local_root = _request_project_root(request, ip)
+            rows = read_chat(local_root, user_id, ip, limit=limit, since=since)
+            legacy_root = project_root().resolve()
+            if not rows and workspace_payload is None and legacy_root != local_root.resolve():
+                rows = read_chat(legacy_root, user_id, ip, limit=limit, since=since)
+            if not rows:
+                from core.orchestrator_chat_replay import read_orchestrator_chat_db_fallback
+
+                rows = read_orchestrator_chat_db_fallback(
+                    _atlas_job_db_path(local_root),
+                    user_id=user_id,
+                    ip_name=ip,
+                    workspace_session=workspace_session,
+                    limit=limit,
+                    since=since,
+                )
         except Exception as exc:
             return JSONResponse({"error": str(exc)}, status_code=500)
         # rows are newest-first; reverse for chronological order

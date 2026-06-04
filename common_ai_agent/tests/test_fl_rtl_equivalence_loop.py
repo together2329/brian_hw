@@ -918,6 +918,24 @@ def test_scoreboard_runtime_and_comparator_pass(tmp_path: Path):
     assert classify_doc["classifications"] == []
 
 
+def test_scoreboard_caller_pass_cannot_override_missing_rtl_observations(tmp_path: Path):
+    ip = _write_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"equivalence_scoreboard_caller_pass_{time.time_ns()}")
+
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+    row = scoreboard.record(
+        "EQ_DOUBLE",
+        scenario_id="SC_EMPTY_OBS",
+        cycle=9,
+        stimulus={"value": 21},
+        rtl_observed={},
+        passed=True,
+    )
+
+    assert row["passed"] is False
+    assert "rtl_observed must contain DUT signal observations" in row["mismatch"]
+
+
 def test_comparator_preserves_hash_on_noop_rerun(tmp_path: Path):
     ip = _write_fixture(tmp_path)
     comparator_mod = _load_module(

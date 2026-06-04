@@ -43,7 +43,6 @@ def test_evidence_contract_uses_declared_evidence_row_artifact(tmp_path: Path) -
 
     assert result.returncode == 0, result.stdout
 
-
 def test_evidence_contract_rejects_declared_artifact_outside_sim(tmp_path: Path) -> None:
     ip_dir = make_contract_ip(tmp_path)
     write_rows(

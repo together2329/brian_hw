@@ -285,3 +285,78 @@ def test_truth_coverage_credits_structured_evidence_aliases(tmp_path: Path) -> N
     report = json.loads((ip_dir / "signoff" / "truth_coverage.json").read_text(encoding="utf-8"))
     assert report["status"] == "pass"
     assert report["summary"]["uncovered_required"] == 0
+
+
+def test_truth_coverage_does_not_credit_ssot_validation_or_completed_todos_without_evidence(tmp_path: Path) -> None:
+    ip = "workflow_truth_ip"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        "\n".join(
+            [
+                "top_module:",
+                "  name: workflow_truth_ip",
+                "function_model:",
+                "  transactions: []",
+                "cycle_model:",
+                "  pipeline: []",
+                "workflow_todos:",
+                "  ssot-gen:",
+                "    - content: Close locked SSOT.",
+                "      criteria:",
+                "        - SSOT exists at yaml/workflow_truth_ip.ssot.yaml with canonical top-level keys.",
+                "        - verify_ssot.py --mode engineering returns zero blockers.",
+                "  rtl-gen:",
+                "    - content: Close owner RTL evidence.",
+                "      criteria:",
+                "        - Owner logic present; FunctionalModel expected vs RTL observed comparable; fresh compile/lint evidence.",
+                "        - quality_gates.rtl_gen.target_scale contains at least one positive structural minimum such as source_files_min, modules_min, or depth_score_min",
+                "        - rtl_todo_plan.json target_scale_policy gate passes after rerunning rtl-gen TODO derivation",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    _write_json(
+        ip_dir / "req" / "ssot_validation.json",
+        {
+            "ok": True,
+            "blockers": [],
+            "check_ssot_disk": {
+                "ok": True,
+                "returncode": 0,
+            },
+        },
+    )
+    _write_json(
+        ip_dir / "rtl" / "rtl_todo_plan.json",
+        {
+            "target_scale": {"min_modules": 3, "min_source_files": 4},
+            "tasks": [
+                {
+                    "id": "RTL-OWNER",
+                    "source_ref": "workflow_todos.rtl-gen[0]",
+                    "criteria": [
+                        "Owner logic present; FunctionalModel expected vs RTL observed comparable; fresh compile/lint evidence.",
+                        "quality_gates.rtl_gen.target_scale contains at least one positive structural minimum such as source_files_min, modules_min, or depth_score_min",
+                        "rtl_todo_plan.json target_scale_policy gate passes after rerunning rtl-gen TODO derivation",
+                    ],
+                    "todo_completion": {"status": "pass"},
+                }
+            ],
+        },
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), ip, "--root", str(tmp_path)],
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    assert result.returncode == 1
+    report = json.loads((ip_dir / "signoff" / "truth_coverage.json").read_text(encoding="utf-8"))
+    assert report["status"] == "fail"
+    uncovered = {item["id"] for item in report["uncovered_required"]}
+    assert "SSOT exists at yaml/workflow_truth_ip.ssot.yaml with canonical top-level keys." in uncovered
+    assert "Owner logic present; FunctionalModel expected vs RTL observed comparable; fresh compile/lint evidence." in uncovered

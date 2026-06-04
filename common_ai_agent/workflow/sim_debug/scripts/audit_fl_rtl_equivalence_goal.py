@@ -23,6 +23,9 @@ from typing import Any
 
 PLACEHOLDER_MARKERS = ("TBD", "TODO", "FIXME", "PLACEHOLDER", "stub", "mock")
 REAL_RTL_TOOLS = ("verilator", "pyslang", "slang", "iverilog")
+NEGATED_PLACEHOLDER_RE = re.compile(
+    r"\b(no|non|not|without|avoid|forbid|forbidden|prevents?|must not)\b.{0,64}\b(todo|fixme|tbd|placeholder)s?\b"
+)
 
 
 def _rel(path: Path, root: Path) -> str:
@@ -81,6 +84,8 @@ def _text_has_placeholder(path: Path) -> bool:
         if re.search(r"<\s*(tbd|placeholder)\s*>", line):
             return True
         if re.search(r"(^|[\s:#\"'\-])(?:todo|fixme|tbd|placeholder)\s*(?:[:=\]\)]|$)", line):
+            if NEGATED_PLACEHOLDER_RE.search(line):
+                continue
             return True
         if re.search(r"\b(stub|mock)\b", line):
             if re.search(r"\b(no|non|not|without|avoid|forbid|forbidden|prevents?|must not)\b.{0,48}\b(stub|mock)\b", line):

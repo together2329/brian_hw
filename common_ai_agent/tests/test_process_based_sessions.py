@@ -14,6 +14,7 @@ if PROJECT_ROOT not in sys.path:
 
 from core.atlas_db import AtlasDB
 from core.atlas_multiuser import _MultiUserBridge
+from core import session_worker
 from core.session_process_manager import SessionProcessManager
 
 
@@ -183,14 +184,17 @@ def test_session_process_manager_spawns_worker_from_project_root(monkeypatch, tm
     cmd, kwargs = popen_calls[0]
     assert cmd[:3] == [sys.executable, "-m", "core.session_worker"]
     assert cmd[cmd.index("--db-path") + 1] == str(db_path.resolve())
-    assert kwargs["cwd"] == str(tmp_path.resolve())
+    expected_ip_root = tmp_path / "spi_core"
+    assert kwargs["cwd"] == str(expected_ip_root.resolve())
     env = kwargs["env"]
     assert env["ATLAS_DB_PATH"] == str(db_path.resolve())
     assert env["ATLAS_TRACE_DB_PATH"] == str(db_path.resolve())
     assert env["ATLAS_PROJECT_ROOT"] == str(tmp_path.resolve())
+    assert env["ATLAS_IP_ROOT"] == str(expected_ip_root.resolve())
     assert env["ATLAS_SOURCE_ROOT"] == str(Path(PROJECT_ROOT).resolve())
     assert env["COMMON_AI_AGENT_HOME"] == str(Path(PROJECT_ROOT).resolve())
     assert env["ATLAS_ACTIVE_SESSION"] == "alice/spi_core/rtl-gen"
+    assert env["ATLAS_SESSION_WORKER_PARENT_PID"] == str(os.getpid())
     assert env["ATLAS_DEFAULT_SESSION_ID"] == "alice"
     assert env["ATLAS_ACTIVE_IP"] == "spi_core"
     assert env["ATLAS_DEFAULT_WORKFLOW"] == "rtl-gen"
@@ -198,6 +202,215 @@ def test_session_process_manager_spawns_worker_from_project_root(monkeypatch, tm
     pythonpath = env["PYTHONPATH"].split(os.pathsep)
     assert str(Path(PROJECT_ROOT).resolve()) in pythonpath
     assert str((Path(PROJECT_ROOT) / "src").resolve()) in pythonpath
+
+
+def test_session_worker_exits_before_agent_load_when_parent_dead(monkeypatch, tmp_path):
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_PARENT_PID", "424242")
+
+    def fake_kill(pid, sig):
+        assert pid == 424242
+        assert sig == 0
+        raise ProcessLookupError
+
+    def fail_load_agent():
+        pytest.fail("dead-parent worker must not load the agent loop")
+
+    monkeypatch.setattr(session_worker.os, "kill", fake_kill)
+    monkeypatch.setattr(session_worker, "_load_agent", fail_load_agent)
+
+    db_path = tmp_path / "worker.db"
+    exit_code = session_worker.run_worker("alice/s1/spi_core/default", str(db_path))
+
+    assert exit_code == 0
+
+
+def test_session_worker_treats_reparented_worker_as_orphan(monkeypatch):
+    monkeypatch.setattr(session_worker.os, "getppid", lambda: 7777)
+    monkeypatch.setattr(session_worker.os, "kill", lambda _pid, _sig: None)
+
+    assert session_worker._worker_parent_is_alive(424242) is False
+
+
+def test_session_worker_closes_when_startup_is_interrupted(monkeypatch, tmp_path):
+    events = []
+
+    class FakeWorker:
+        def __init__(self, session_id, db_path):
+            events.append(("created", session_id, db_path))
+
+        def emit(self, msg_type, payload):
+            events.append((msg_type, payload))
+
+        def set_agent_running(self, running):
+            events.append(("running", running))
+
+        def close(self):
+            events.append(("closed",))
+
+    def interrupt_load_agent():
+        raise KeyboardInterrupt("lost parent")
+
+    monkeypatch.setattr(session_worker, "SessionWorker", FakeWorker)
+    monkeypatch.setattr(session_worker, "_install_signal_handlers", lambda: None)
+    monkeypatch.setattr(session_worker, "_start_parent_monitor", lambda _parent_pid: None)
+    monkeypatch.setattr(session_worker, "_load_agent", interrupt_load_agent)
+
+    exit_code = session_worker.run_worker("alice/s1/spi_core/default", str(tmp_path / "worker.db"))
+
+    assert exit_code == 0
+    assert ("worker_stopped", {"reason": "signal"}) in events
+    assert ("worker_exited", {}) in events
+    assert ("closed",) in events
+
+
+def test_session_worker_closes_when_parent_monitor_interrupts_startup(monkeypatch, tmp_path):
+    events = []
+
+    class FakeWorker:
+        def __init__(self, session_id, db_path):
+            events.append(("created", session_id, db_path))
+
+        def emit(self, msg_type, payload):
+            events.append((msg_type, payload))
+
+        def set_agent_running(self, running):
+            events.append(("running", running))
+
+        def close(self):
+            events.append(("closed",))
+
+    def interrupt_monitor(parent_pid):
+        assert parent_pid == 424242
+        raise KeyboardInterrupt("lost parent before agent load")
+
+    def fail_load_agent():
+        pytest.fail("worker must not load agent after parent-monitor interrupt")
+
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_PARENT_PID", "424242")
+    monkeypatch.setattr(session_worker, "_worker_parent_is_alive", lambda _parent_pid: True)
+    monkeypatch.setattr(session_worker, "SessionWorker", FakeWorker)
+    monkeypatch.setattr(session_worker, "_install_signal_handlers", lambda: None)
+    monkeypatch.setattr(session_worker, "_start_parent_monitor", interrupt_monitor)
+    monkeypatch.setattr(session_worker, "_load_agent", fail_load_agent)
+
+    exit_code = session_worker.run_worker("alice/s1/spi_core/default", str(tmp_path / "worker.db"))
+
+    assert exit_code == 0
+    assert ("worker_stopped", {"reason": "signal"}) in events
+    assert ("worker_exited", {}) in events
+    assert ("closed",) in events
+
+
+def test_session_worker_exits_when_parent_monitor_cannot_start(monkeypatch, tmp_path):
+    events = []
+
+    class FakeWorker:
+        def __init__(self, session_id, db_path):
+            events.append(("created", session_id, db_path))
+
+        def emit(self, msg_type, payload):
+            events.append((msg_type, payload))
+
+        def set_agent_running(self, running):
+            events.append(("running", running))
+
+        def close(self):
+            events.append(("closed",))
+
+    def fail_load_agent():
+        pytest.fail("worker must not load agent without parent monitor")
+
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_PARENT_PID", "424242")
+    monkeypatch.setattr(session_worker, "_worker_parent_is_alive", lambda _parent_pid: True)
+    monkeypatch.setattr(session_worker, "SessionWorker", FakeWorker)
+    monkeypatch.setattr(session_worker, "_install_signal_handlers", lambda: None)
+    monkeypatch.setattr(session_worker, "_start_parent_monitor", lambda _parent_pid: False)
+    monkeypatch.setattr(session_worker, "_load_agent", fail_load_agent)
+
+    exit_code = session_worker.run_worker("alice/s1/spi_core/default", str(tmp_path / "worker.db"))
+
+    assert exit_code == 1
+    assert ("error", {"message": "parent monitor failed to start"}) in events
+    assert ("worker_exited", {}) in events
+    assert ("closed",) in events
+
+
+def test_session_worker_monitor_stops_running_worker_when_parent_changes(monkeypatch, tmp_path):
+    events = []
+    parent_pid = 424242
+    parent_is_current = {"value": True}
+    self_signal = session_worker.threading.Event()
+    original_thread = session_worker.threading.Thread
+    monitor_threads = []
+
+    class CapturingThread:
+        def __init__(self, *args, **kwargs):
+            self.thread = original_thread(*args, **kwargs)
+            monitor_threads.append(self.thread)
+
+        def start(self):
+            return self.thread.start()
+
+    class FakeWorker:
+        def __init__(self, session_id, db_path):
+            events.append(("created", session_id, db_path))
+
+        def __getattr__(self, name):
+            def callback(*args, **kwargs):
+                events.append((name, args, kwargs))
+                return None
+
+            return callback
+
+        def emit(self, msg_type, payload):
+            events.append((msg_type, payload))
+
+        def set_agent_running(self, running):
+            events.append(("running", running))
+
+        def close(self):
+            events.append(("closed",))
+
+    class FakeAgent:
+        def chat_loop(self):
+            parent_is_current["value"] = False
+            assert self_signal.wait(2.0)
+            raise KeyboardInterrupt("lost parent")
+
+    def fake_getppid():
+        return parent_pid if parent_is_current["value"] else 7777
+
+    def fake_kill(pid, sig):
+        if pid == parent_pid:
+            assert sig == 0
+            return None
+        if pid == session_worker.os.getpid():
+            assert sig == signal.SIGTERM
+            self_signal.set()
+            return None
+        raise AssertionError(f"unexpected kill({pid}, {sig})")
+
+    monkeypatch.setenv("ATLAS_SESSION_WORKER_PARENT_PID", str(parent_pid))
+    monkeypatch.setattr(session_worker, "_shutdown_requested", False)
+    monkeypatch.setattr(session_worker, "PARENT_MONITOR_INTERVAL_S", 0.01)
+    monkeypatch.setattr(session_worker, "SessionWorker", FakeWorker)
+    monkeypatch.setattr(session_worker.threading, "Thread", CapturingThread)
+    monkeypatch.setattr(session_worker, "_install_signal_handlers", lambda: None)
+    monkeypatch.setattr(session_worker, "_load_agent", lambda: FakeAgent())
+    monkeypatch.setattr(session_worker.os, "getppid", fake_getppid)
+    monkeypatch.setattr(session_worker.os, "kill", fake_kill)
+
+    exit_code = session_worker.run_worker("alice/s1/spi_core/default", str(tmp_path / "worker.db"))
+    for thread in monitor_threads:
+        thread.join(timeout=1.0)
+
+    assert exit_code == 0
+    assert self_signal.is_set()
+    assert all(not thread.is_alive() for thread in monitor_threads)
+    assert ("worker_started", {"pid": session_worker.os.getpid()}) in events
+    assert ("worker_stopped", {"reason": "signal"}) in events
+    assert ("worker_exited", {}) in events
+    assert ("closed",) in events
 
 
 def test_session_process_manager_uses_base_python_when_sys_executable_is_py_launcher(monkeypatch):

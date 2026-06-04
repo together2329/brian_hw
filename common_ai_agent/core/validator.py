@@ -9,6 +9,7 @@ Uses Python standard library only:
 Provides Pydantic-like validation without external dependencies.
 """
 
+import inspect
 from typing import get_type_hints, get_origin, get_args, Union, Optional, Any, List, Dict, Tuple
 
 

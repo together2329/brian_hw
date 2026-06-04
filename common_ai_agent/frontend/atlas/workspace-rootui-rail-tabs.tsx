@@ -19,7 +19,7 @@
 import { type ReactNode } from 'react';
 
 import { Splitter, HorizontalSplitter } from './workspace-resize-splitters';
-import { isSsotYamlPath } from './workspace-session-routing';
+import { appendActiveSessionParam, isSsotYamlPath } from './workspace-session-routing';
 import { ConvModeSelector } from './workspace-git-diff';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
@@ -69,8 +69,9 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
               // turns it into a per-file download).
               (async () => {
                 try {
+                  const params = appendActiveSessionParam(new URLSearchParams({ path: item.path }));
                   const res = await fetch(
-                    `/api/file/raw?path=${encodeURIComponent(item.path)}`,
+                    `/api/file/raw?${params.toString()}`,
                     { cache: 'no-store', credentials: 'include' },
                   );
                   if (!res.ok) throw new Error(`HTTP ${res.status}`);

@@ -9,6 +9,8 @@ EVIDENCE_SCRIPT = REPO / "workflow" / "contract-reflection" / "scripts" / "check
 REFLECTION_SCRIPT = REPO / "workflow" / "contract-reflection" / "scripts" / "check_contract_reflection.py"
 CONTRACT_CHECK_SCRIPT = REPO / "workflow" / "contract-reflection" / "scripts" / "run_contract_check.py"
 OWNER_ROUTE_SCRIPT = REPO / "workflow" / "contract-reflection" / "scripts" / "classify_contract_owner.py"
+SEMANTIC_OVERLAY_SCRIPT = REPO / "workflow" / "contract-reflection" / "scripts" / "emit_semantic_contract_overlay.py"
+STAMP_SIM_FRESHNESS_SCRIPT = REPO / "workflow" / "contract-reflection" / "scripts" / "stamp_sim_evidence_freshness.py"
 JsonValue = Union[None, bool, int, float, str, list["JsonValue"], dict[str, "JsonValue"]]
 JsonMap = dict[str, JsonValue]
 

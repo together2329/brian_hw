@@ -47,22 +47,24 @@ def new_corr() -> str:
     return f"corr_{secrets.token_hex(4)}"
 
 
-def _resolve_root() -> Path:
+def _resolve_root(project_root: Path | str | None = None) -> Path:
     """Resolve the project root from env (set by main.py / agent_server.py)."""
+    if project_root is not None:
+        return Path(project_root)
     explicit = os.environ.get("ATLAS_PROJECT_ROOT", "").strip()
     if explicit:
         return Path(explicit)
     return Path.cwd()
 
 
-def _ip_dir(ip: str) -> Path:
+def _ip_dir(ip: str, project_root: Path | str | None = None) -> Path:
     """Return ``<project_root>/<ip>/<_DEFAULT_DIR_NAME>``."""
     ip = (ip or "_unknown").strip() or "_unknown"
-    return _resolve_root() / ip / _DEFAULT_DIR_NAME
+    return _resolve_root(project_root) / ip / _DEFAULT_DIR_NAME
 
 
-def _trace_path(ip: str) -> Path:
-    return _ip_dir(ip) / _DEFAULT_FILE_NAME
+def _trace_path(ip: str, project_root: Path | str | None = None) -> Path:
+    return _ip_dir(ip, project_root) / _DEFAULT_FILE_NAME
 
 
 def _next_step(ip: str) -> int:
@@ -78,6 +80,7 @@ def record_trace(
     lens: str,
     actor: str,
     kind: str,
+    project_root: Path | str | None = None,
     peer: Optional[str] = None,
     corr: Optional[str] = None,
     step: Optional[int] = None,
@@ -111,7 +114,7 @@ def record_trace(
         for k, v in extra.items():
             if v is not None:
                 record[k] = v
-        target = _trace_path(ip)
+        target = _trace_path(ip, project_root)
         target.parent.mkdir(parents=True, exist_ok=True)
         line = json.dumps(record, ensure_ascii=False, default=str)
         with open(target, "a", encoding="utf-8") as f:
@@ -125,12 +128,13 @@ def read_trace(
     ip: str,
     *,
     limit: int = 100,
+    project_root: Path | str | None = None,
     corr: Optional[str] = None,
     lens: Optional[str] = None,
 ) -> list[dict[str, Any]]:
     """Read trace events for ``ip``. Returns the most recent ``limit`` events,
     optionally filtered by correlation id or lens."""
-    path = _trace_path(ip)
+    path = _trace_path(ip, project_root)
     if not path.exists():
         return []
     out: list[dict[str, Any]] = []
@@ -156,10 +160,10 @@ def read_trace(
     return out
 
 
-def clear_trace(ip: str) -> bool:
+def clear_trace(ip: str, project_root: Path | str | None = None) -> bool:
     """Remove the trace file for ``ip``. Returns True if removed or absent."""
     try:
-        p = _trace_path(ip)
+        p = _trace_path(ip, project_root)
         if p.exists():
             p.unlink()
         with _STEP_LOCK:

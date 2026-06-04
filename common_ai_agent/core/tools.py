@@ -7128,6 +7128,9 @@ def _direct_dispatch_session(target, ip="", scope=""):
     if not ip_name and scope:
         ip_name = Path(str(scope).rstrip("/")).name
     ip_name = ip_name or "default"
+    if len(parts) >= 4:
+        workspace = parts[1]
+        return f"{owner}/{workspace}/{ip_name}/{target}"
     return f"{owner}/{ip_name}/{target}"
 
 

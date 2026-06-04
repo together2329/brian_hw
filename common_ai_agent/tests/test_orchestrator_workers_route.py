@@ -222,7 +222,8 @@ def test_workers_route_active_only_probes_visible_active_workflows_only(
             "ip": "pl330",
             "user_id": "u",
             "model": "gpt-5.3-codex",
-            "session": "u/pl330/rtl-gen",
+            "project_root": str(tmp_path / "u" / "default"),
+            "session": "u/default/pl330/rtl-gen",
             "started_at": 1.0,
         }
     with jobs._HEALTH_CACHE_LOCK:
@@ -319,7 +320,8 @@ def test_workers_route_scopes_running_jobs_to_request_user(tmp_path: Path, monke
             "user_id": "u",
             "db_user_id": user["id"],
             "model": "gpt-5.3-codex",
-            "session": "u/pl330/rtl-gen",
+            "project_root": str(tmp_path / "u" / "default"),
+            "session": "u/default/pl330/rtl-gen",
             "started_at": 2.0,
         }
         jobs._jobs["other"] = {
@@ -332,7 +334,8 @@ def test_workers_route_scopes_running_jobs_to_request_user(tmp_path: Path, monke
             "user_id": "other",
             "db_user_id": "other-user-id",
             "model": "private-model",
-            "session": "other/pl330/rtl-gen",
+            "project_root": str(tmp_path / "other" / "default"),
+            "session": "other/default/pl330/rtl-gen",
             "started_at": 3.0,
         }
 
@@ -473,7 +476,7 @@ def test_same_user_same_session_workflow_reuses_one_worker_process(
     assert second_body["status"] == "already_running"
     assert second_body["run_id"] == first_body["run_id"]
     assert len(run_calls) == 1
-    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
+    assert run_calls[0]["payload"]["session"].startswith("u/default/ip_a/")
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
@@ -530,6 +533,220 @@ def test_workers_route_masks_health_from_other_owner(
 
     jobs._SESSION_WORKER_PORTS.clear()
     jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+
+def test_workers_route_restricts_runtime_snapshot_for_non_admin(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    def _fake_urlopen(req, timeout=None):
+        return _JsonResponse({"status": "unreachable"})
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+    client = _make_client(tmp_path, monkeypatch)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["foreign"] = {
+            "job_id": "foreign",
+            "run_id": "foreign-run",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "bob",
+            "db_user_id": "bob-db",
+            "worker_transport": "ipc",
+            "worker": "ipc://bob_partition/rtl-gen",
+            "session": "bob/default/pl330/rtl-gen",
+            "project_root": str(tmp_path / "bob" / "default"),
+            "prompt": "bob secret prompt",
+            "started_at": 1.0,
+        }
+
+    try:
+        resp = client.get("/api/orchestrator/workers?ip=pl330")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        dumped = json.dumps(body)
+        assert body["runtime"] == {"transport": "http", "restricted": True}
+        assert "bob secret prompt" not in dumped
+        assert "bob/default/pl330/rtl-gen" not in dumped
+        assert "ipc://bob_partition" not in dumped
+        assert "bob-db" not in dumped
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+
+
+def test_workers_route_filters_admin_runtime_snapshot_by_workspace_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import atlas_api_jobs as jobs
+
+    class FakeProc:
+        def __init__(self, pid: int) -> None:
+            self.pid = pid
+
+        def poll(self) -> None:
+            return None
+
+    def _fake_urlopen(req, timeout=None):
+        return _JsonResponse({"status": "unreachable"})
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "u")
+    client = _make_client(tmp_path, monkeypatch)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["visible"] = {
+            "job_id": "visible",
+            "run_id": "visible-run",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "u",
+            "db_user_id": "u-db",
+            "worker_transport": "ipc",
+            "worker": "ipc://u_alt_partition/rtl-gen",
+            "session": "u/alt/pl330/rtl-gen",
+            "project_root": str(tmp_path / "u" / "alt"),
+            "prompt": "u alt prompt",
+            "started_at": 2.0,
+        }
+        jobs._jobs["foreign"] = {
+            "job_id": "foreign",
+            "run_id": "foreign-run",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "bob",
+            "db_user_id": "bob-db",
+            "worker_transport": "ipc",
+            "worker": "ipc://bob_partition/rtl-gen",
+            "session": "bob/default/pl330/rtl-gen",
+            "project_root": str(tmp_path / "bob" / "default"),
+            "prompt": "bob secret prompt",
+            "started_at": 1.0,
+        }
+    with jobs._IPC_WORKER_LOCK:
+        jobs._IPC_WORKER_PROCS.clear()
+        jobs._IPC_WORKER_PROCS["visible-run"] = FakeProc(111)
+        jobs._IPC_WORKER_PROCS["foreign-run"] = FakeProc(222)
+
+    try:
+        resp = client.get("/api/orchestrator/workers?ip=pl330&workspace_session=alt")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        dumped = json.dumps(body)
+        runtime_jobs = body["runtime"]["ipc"]["jobs"]
+        assert {job["job_id"] for job in runtime_jobs} == {"visible"}
+        runtime_processes = body["runtime"]["ipc"]["processes"]
+        assert {proc["run_id"] for proc in runtime_processes} == {"visible-run"}
+        assert {proc["pid"] for proc in runtime_processes} == {111}
+        assert "bob secret prompt" not in dumped
+        assert "bob/default/pl330/rtl-gen" not in dumped
+        assert "ipc://bob_partition" not in dumped
+        assert "foreign-run" not in dumped
+        assert "222" not in dumped
+        assert "bob-db" not in dumped
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
+        with jobs._IPC_WORKER_LOCK:
+            jobs._IPC_WORKER_PROCS.clear()
+
+
+def test_workers_route_admin_runtime_snapshot_filters_request_workspace(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import urllib.request
+
+    import src.atlas_ui as atlas_ui
+    import atlas_api_jobs as jobs
+
+    def _fake_urlopen(req, timeout=None):
+        return _JsonResponse({"status": "unreachable"})
+
+    monkeypatch.setattr(urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODE", "1")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
+    monkeypatch.setenv("ATLAS_ADMIN_USERS", "admin")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    reg = client.post("/api/auth/register", json={"username": "admin", "password": "1151"})
+    assert reg.status_code == 200, reg.text
+    assert reg.json()["user"]["role"] == "admin"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["admin-job"] = {
+            "job_id": "admin-job",
+            "run_id": "admin-run",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "admin",
+            "db_user_id": reg.json()["user"]["id"],
+            "worker_transport": "ipc",
+            "worker": "ipc://admin_partition/rtl-gen",
+            "session": "admin/default/pl330/rtl-gen",
+            "project_root": str(tmp_path / "admin" / "default"),
+            "prompt": "admin prompt",
+            "started_at": 2.0,
+        }
+        jobs._jobs["foreign"] = {
+            "job_id": "foreign",
+            "run_id": "foreign-run",
+            "workflow": "rtl-gen",
+            "stage_id": "rtl",
+            "status": "running",
+            "ip": "pl330",
+            "user_id": "bob",
+            "db_user_id": "bob-db",
+            "worker_transport": "ipc",
+            "worker": "ipc://bob_partition/rtl-gen",
+            "session": "bob/default/pl330/rtl-gen",
+            "project_root": str(tmp_path / "bob" / "default"),
+            "prompt": "bob secret prompt",
+            "started_at": 1.0,
+        }
+
+    try:
+        resp = client.get("/api/orchestrator/workers?ip=pl330")
+        assert resp.status_code == 200, resp.text
+        body = resp.json()
+        dumped = json.dumps(body)
+        assert "admin-run" in dumped
+        assert "bob secret prompt" not in dumped
+        assert "bob/default/pl330/rtl-gen" not in dumped
+        assert "ipc://bob_partition" not in dumped
+        assert "bob-db" not in dumped
+    finally:
+        with jobs._jobs_lock:
+            jobs._jobs.clear()
 
 
 def test_multiuser_dispatch_uses_separate_worker_process_urls_per_user(
@@ -608,8 +825,8 @@ def test_multiuser_dispatch_uses_separate_worker_process_urls_per_user(
     assert first_body["worker"] != "http://127.0.0.1:5623"
     assert second_body["worker"] != "http://127.0.0.1:5623"
     assert len(run_calls) == 2
-    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
-    assert run_calls[1]["payload"]["session"].startswith("v/ip_b/")
+    assert run_calls[0]["payload"]["session"].startswith("u/default/ip_a/")
+    assert run_calls[1]["payload"]["session"].startswith("v/default/ip_b/")
 
     workers = client.get("/api/orchestrator/workers?ip=ip_b")
     assert workers.status_code == 200, workers.text
@@ -695,8 +912,8 @@ def test_multiuser_single_worker_dispatch_scopes_worker_urls_per_user(
     assert first_body["worker"] != "http://127.0.0.1:5601"
     assert second_body["worker"] != "http://127.0.0.1:5601"
     assert len(run_calls) == 2
-    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
-    assert run_calls[1]["payload"]["session"].startswith("v/ip_b/")
+    assert run_calls[0]["payload"]["session"].startswith("u/default/ip_a/")
+    assert run_calls[1]["payload"]["session"].startswith("v/default/ip_b/")
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
@@ -770,10 +987,122 @@ def test_same_user_different_sessions_use_separate_worker_processes(
     assert second_body["status"] == "running"
     assert second_body["run_id"] != ""
     assert len(run_calls) == 2
-    assert run_calls[0]["payload"]["session"].startswith("u/ip_a/")
-    assert run_calls[1]["payload"]["session"].startswith("u/ip_b/")
+    assert run_calls[0]["payload"]["session"].startswith("u/default/ip_a/")
+    assert run_calls[1]["payload"]["session"].startswith("u/default/ip_b/")
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
     jobs._SESSION_WORKER_PORTS.clear()
     jobs._SESSION_WORKER_KEYS_BY_PORT.clear()
+
+
+def test_workers_warm_route_uses_workspace_session_for_worker_jobs(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    _clear_worker_url_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PER_USER", "1")
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "1")
+    monkeypatch.setenv("ATLAS_WORKER_WARM_POOL", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
+
+    captured: list[dict[str, object]] = []
+
+    def _capture(job: dict[str, object], *, reason: str = "", background: bool = True) -> dict[str, object]:
+        captured.append(dict(job))
+        return {
+            "workflow": str(job.get("workflow") or ""),
+            "worker": str(job.get("worker") or ""),
+            "status": "scheduled",
+        }
+
+    monkeypatch.setattr(jobs, "_schedule_warm_worker", _capture)
+
+    client = _make_client(tmp_path, monkeypatch)
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    resp = client.post("/api/orchestrator/workers/warm", json={
+        "ip": "uart",
+        "session_id": "u/alt/uart/rtl-gen",
+        "workflow": "rtl-gen",
+        "workflows": ["rtl-gen"],
+    })
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["workspace_session"] == "alt"
+    assert [job["session"] for job in captured] == ["u/alt/uart/rtl-gen"]
+    assert captured[0]["project_root"] == str(tmp_path / "u" / "alt")
+    assert str(captured[0]["worker_partition"]).endswith("_u_alt_uart_rtl-gen")
+
+
+@pytest.mark.parametrize("workspace_session", ["../bob", "/bob", "alt/child"])
+def test_workers_warm_route_normalizes_path_like_workspace_session_to_default(
+    tmp_path: Path,
+    monkeypatch,
+    workspace_session: str,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    _clear_worker_url_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PER_USER", "1")
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "1")
+    monkeypatch.setenv("ATLAS_WORKER_WARM_POOL", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
+
+    captured: list[dict[str, object]] = []
+
+    def _capture(job: dict[str, object], *, reason: str = "", background: bool = True) -> dict[str, object]:
+        captured.append(dict(job))
+        return {
+            "workflow": str(job.get("workflow") or ""),
+            "worker": str(job.get("worker") or ""),
+            "status": "scheduled",
+        }
+
+    monkeypatch.setattr(jobs, "_schedule_warm_worker", _capture)
+
+    client = _make_client(tmp_path, monkeypatch)
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    resp = client.post("/api/orchestrator/workers/warm", json={
+        "ip": "uart",
+        "workspace_session": workspace_session,
+        "workflow": "rtl-gen",
+        "workflows": ["rtl-gen"],
+    })
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["workspace_session"] == "default"
+    assert [job["session"] for job in captured] == ["u/default/uart/rtl-gen"]
+    assert captured[0]["project_root"] == str(tmp_path / "u" / "default")
+
+
+def test_workers_warm_route_rejects_invalid_ip_before_scheduling(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    _clear_worker_url_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_WORKFLOW_WORKER_PER_USER", "1")
+    monkeypatch.setenv("ATLAS_LAZY_WORKERS", "1")
+    monkeypatch.setenv("ATLAS_WORKER_WARM_POOL", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "0")
+
+    captured: list[dict[str, object]] = []
+    monkeypatch.setattr(jobs, "_schedule_warm_worker", lambda job, **_kwargs: captured.append(dict(job)))
+
+    client = _make_client(tmp_path, monkeypatch)
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "1")
+    resp = client.post("/api/orchestrator/workers/warm", json={
+        "ip": "../outside",
+        "workspace_session": "alt",
+        "workflow": "rtl-gen",
+        "workflows": ["rtl-gen"],
+    })
+
+    assert resp.status_code == 400, resp.text
+    assert captured == []

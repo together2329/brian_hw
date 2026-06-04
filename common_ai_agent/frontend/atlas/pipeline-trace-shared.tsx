@@ -45,6 +45,8 @@ export interface PipelineTraceWindow {
   pipelinePolicyPayload?: () => Record<string, unknown>;
   pipelineFetchWorkerSnapshot?: (opts?: WorkerSnapshotOpts) => Promise<WorkerSnapshot>;
   openPipelineWorkflowWorkspace?: (opts?: { ip?: string; workflow?: string }) => void;
+  ACTIVE_SESSION?: string;
+  ATLAS_WORKSPACE_SESSION_ID?: string;
 
   // StageCard owned by pipeline-flow-stage.jsx.
   StageCard?: (props: StageCardProps) => ReactNode;
@@ -143,6 +145,10 @@ export interface WorkerInfo {
   status?: string;
   running_count?: number;
   running?: Array<{ run_id?: string }>;
+  readonly worker_owner?: string;
+  readonly workspace_session?: string;
+  readonly worker_session?: string;
+  readonly worker_partition?: string;
   model?: string;
   profile?: string;
   reasoning_effort?: string;

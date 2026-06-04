@@ -441,6 +441,7 @@ class SessionProcessManager:
         env["ATLAS_DB_PATH"] = runtime_db
         env["ATLAS_MEMORY_DB_PATH"] = control_db
         env["ATLAS_TRACE_DB_PATH"] = runtime_db
+        env["ATLAS_SESSION_WORKER_PARENT_PID"] = str(os.getpid())
         env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
         env.setdefault("COMMON_AI_AGENT_HOME", str(self._source_root))
         env.setdefault("ATLAS_PROJECT_ROOT", str(self._project_root))

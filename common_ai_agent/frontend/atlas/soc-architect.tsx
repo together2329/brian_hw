@@ -71,6 +71,52 @@ import './soc-architect-chat';
 
 const g = window as unknown as Record<string, any>;
 
+function activeWorkspaceSessionParam(): string {
+  const explicit = typeof g.ATLAS_WORKSPACE_SESSION_ID === 'string' ? g.ATLAS_WORKSPACE_SESSION_ID.trim() : '';
+  if (explicit) return explicit;
+  const active = typeof g.ACTIVE_SESSION === 'string' ? g.ACTIVE_SESSION.trim() : '';
+  const parts = active.split('/').filter(Boolean);
+  return parts.length >= 4 ? (parts[1] || '') : '';
+}
+
+function activeSessionParam(): string {
+  return typeof g.ACTIVE_SESSION === 'string' ? g.ACTIVE_SESSION.trim() : '';
+}
+
+function activeOwnerParam(): string {
+  const active = activeSessionParam();
+  const parts = active.split('/').filter(Boolean);
+  if (parts.length >= 4 && parts[0]) return parts[0];
+  const explicitUser = typeof g.ATLAS_USER_SESSION_ID === 'string' ? g.ATLAS_USER_SESSION_ID.trim() : '';
+  if (explicitUser) return explicitUser;
+  return typeof g.ATLAS_USER_NAME === 'string' ? g.ATLAS_USER_NAME.trim() : '';
+}
+
+function jobsUrl(): string {
+  const params = new URLSearchParams();
+  const workspaceSession = activeWorkspaceSessionParam();
+  if (workspaceSession) params.set('workspace_session', workspaceSession);
+  const query = params.toString();
+  return query ? `/api/jobs?${query}` : '/api/jobs';
+}
+
+type WorkspaceSessionPayload = {
+  readonly workspace_session?: string;
+  readonly session_id?: string;
+  readonly user_name?: string;
+};
+
+function workspaceSessionPayload(): WorkspaceSessionPayload {
+  const workspaceSession = activeWorkspaceSessionParam();
+  const activeSession = activeSessionParam();
+  const owner = activeOwnerParam();
+  return {
+    ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
+    ...(activeSession ? { session_id: activeSession } : {}),
+    ...(owner && owner !== 'default' ? { user_name: owner } : {}),
+  } satisfies WorkspaceSessionPayload;
+}
+
 // Cross-file components resolved at render time through window — exactly as the
 // legacy `window.X` JSX did. JobTracker / ArchitectChat / IpxactImportBtn are
 // owned by this file's own .tsx siblings. Keeping them as window forward-refs
@@ -170,7 +216,7 @@ export function SocArchitect(props: any = {}) {
     let cancelled = false;
     const tick = async () => {
       try {
-        const r = await fetch('/api/jobs');
+        const r = await fetch(jobsUrl());
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         const d = await r.json();
         if (!cancelled) setJobs(Array.isArray(d.jobs) ? d.jobs : []);
@@ -210,8 +256,6 @@ export function SocArchitect(props: any = {}) {
   const [dispatchMenu, setDispatchMenu] = useState<any>(null);
   const dispatchJob = useCallback(async (workflow: any, ip: any, stageId = '') => {
     setDispatchMenu(null);
-    const stageName = stageId || workflow;
-    const session = normalizeArchitectSession(ip ? `${ip}/${stageName}` : stageName);
     try {
       const r = await fetch('/api/job/dispatch', {
         method: 'POST',
@@ -220,13 +264,13 @@ export function SocArchitect(props: any = {}) {
           workflow,
           ip,
           stage_id: stageId,
-          session,
+          ...workspaceSessionPayload(),
         }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
       // Force a job poll soon so the ring + tracker update fast.
-      setTimeout(() => fetch('/api/jobs').then(r => r.json())
+      setTimeout(() => fetch(jobsUrl()).then(r => r.json())
         .then(dd => setJobs(dd.jobs || [])).catch(() => {}), 200);
     } catch (e: any) {
       alert(`dispatch failed: ${e.message || e}\n\n` +
@@ -245,11 +289,11 @@ export function SocArchitect(props: any = {}) {
       const r = await fetch('/api/pipeline/dispatch', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip }),
+        body: JSON.stringify({ ip, ...workspaceSessionPayload() }),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
-      setTimeout(() => fetch('/api/jobs').then(r => r.json())
+      setTimeout(() => fetch(jobsUrl()).then(r => r.json())
         .then(dd => setJobs(dd.jobs || [])).catch(() => {}), 200);
     } catch (e: any) {
       alert(`pipeline dispatch failed: ${e.message || e}`);

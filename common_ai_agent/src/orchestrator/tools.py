@@ -229,14 +229,24 @@ def _pipeline_stage_deps() -> Dict[str, Tuple[str, ...]]:
 # ----------------------------------------------------------------------
 
 
-def read_pipeline_state(ip: str, include_jobs: bool = True) -> ToolResult:
+def read_pipeline_state(
+    ip: str,
+    include_jobs: bool = True,
+    scope: str = "",
+    db_user_id: str = "",
+) -> ToolResult:
     bridge = _read_pipeline_state_bridge()
     if bridge is None:
         return (
             {"ok": False, "error": "read_pipeline_state bridge not registered"},
             "bridge unavailable",
         )
-    result = bridge(ip=ip, scope="", include_jobs=bool(include_jobs))
+    result = bridge(
+        ip=ip,
+        scope=scope,
+        include_jobs=bool(include_jobs),
+        db_user_id=db_user_id,
+    )
     summary = _safe_json(
         {
             "ip": ip,
@@ -390,6 +400,8 @@ def _resolve_local_path(
     pr = Path(project_root) if project_root else Path(
         os.environ.get("ATLAS_PROJECT_ROOT") or "."
     )
+    if not _is_valid_ip_name(ip):
+        return None, "valid ip required"
     path_text = _normalize_relative_tool_path(path)
     requested = Path(path_text)
     if not requested.parts:
@@ -890,6 +902,8 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
     pr = Path(project_root) if project_root else Path(
         os.environ.get("ATLAS_PROJECT_ROOT") or "."
     )
+    if not _is_valid_ip_name(ip):
+        return {"ok": False, "error": "valid ip required", "ip": ip}, "valid ip required"
     ip_dir = pr / ip
     artifact_map: Dict[str, Tuple[str, ...]] = {
         "ssot": ("yaml/{ip}.ssot.yaml",),
@@ -1077,6 +1091,8 @@ def write_handoff(
     pr = Path(project_root) if project_root else Path(
         os.environ.get("ATLAS_PROJECT_ROOT") or "."
     )
+    if not _is_valid_ip_name(ip):
+        return {"ok": False, "error": "valid ip required", "ip": ip}, "valid ip required"
     ip_dir = pr / ip
     scope = handoff_queue.make_scope(
         user_id=user_id,

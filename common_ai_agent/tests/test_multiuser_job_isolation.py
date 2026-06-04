@@ -7,6 +7,7 @@ in multi-user mode, while returning all jobs in single-user mode.
 """
 import sys
 from pathlib import Path
+from typing import Optional
 from unittest.mock import patch
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -33,7 +34,13 @@ def _apijobs():
 # Helpers
 # ---------------------------------------------------------------------------
 
-def _make_job(job_id: str, ip: str, db_user_id: str, status: str = "completed") -> dict:
+def _make_job(
+    job_id: str,
+    ip: str,
+    db_user_id: str,
+    status: str = "completed",
+    project_root: Optional[Path] = None,
+) -> dict:
     return {
         "job_id": job_id,
         "ip": ip,
@@ -46,6 +53,7 @@ def _make_job(job_id: str, ip: str, db_user_id: str, status: str = "completed") 
         "_last_polled": 0.0,
         "stage_id": "lint",
         "workflow": "lint",
+        **({"project_root": str(project_root)} if project_root is not None else {}),
     }
 
 
@@ -83,8 +91,8 @@ def test_api_jobs_isolates_users(tmp_path, monkeypatch):
     alice_uid = alice_user["id"]
     bob_uid = bob_user["id"]
 
-    job_a = _make_job("job-a", "uart", alice_uid)
-    job_b = _make_job("job-b", "uart", bob_uid)
+    job_a = _make_job("job-a", "uart", alice_uid, project_root=tmp_path / "alice" / "default")
+    job_b = _make_job("job-b", "uart", bob_uid, project_root=tmp_path / "bob" / "default")
 
     with apijobs._jobs_lock:
         apijobs._jobs["job-a"] = job_a

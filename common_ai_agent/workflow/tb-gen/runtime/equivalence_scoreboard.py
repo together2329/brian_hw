@@ -1194,7 +1194,17 @@ class EquivalenceScoreboard:
             passed, auto_mismatch = self.compare(fl_expected, observed)
             mismatch = mismatch or auto_mismatch
         elif passed is True:
-            mismatch = ""
+            cross_passed, cross_mismatch = self.compare(fl_expected, observed)
+            if cross_passed is False and self.mismatch_policy == "hard":
+                passed = False
+                mismatch = mismatch or cross_mismatch
+            else:
+                if cross_passed is False:
+                    print(
+                        "[scoreboard:warn] CALLER_PASS_FL_DIVERGENCE (policy=soft): "
+                        f"{goal_id}/{scenario_id or ''}: {cross_mismatch}"
+                    )
+                mismatch = ""
         elif not mismatch:
             mismatch = "scoreboard marked failure without mismatch detail"
 

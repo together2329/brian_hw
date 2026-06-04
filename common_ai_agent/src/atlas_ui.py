@@ -43,6 +43,7 @@ import subprocess
 import sys
 import threading
 import time
+from urllib.parse import quote
 from pathlib import Path
 from typing import Any, Callable, Optional, TYPE_CHECKING
 
@@ -1886,6 +1887,46 @@ def create_app():
         except Exception as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=500)
 
+    def _atlas_root_for_context() -> Path:
+        return Path(os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT)).expanduser().resolve()
+
+    def _validated_context_workspace_root(context: AtlasContext) -> tuple[Path | None, str]:
+        if context.legacy:
+            try:
+                return context.workspace_root.resolve(), ""
+            except OSError as exc:
+                return None, str(exc)
+        root = Path(context.atlas_root).expanduser().resolve()
+        owner_root = root / context.user_name
+        workspace_root = owner_root / context.workspace_session
+        try:
+            if owner_root.is_symlink() or workspace_root.is_symlink():
+                return None, "workspace session path is a symlink"
+            resolved = workspace_root.resolve(strict=False)
+            resolved.relative_to(root)
+        except ValueError:
+            return None, "workspace session path escapes atlas root"
+        except OSError as exc:
+            return None, str(exc)
+        return resolved, ""
+
+    def _validated_workspace_root(
+        owner_name: str,
+        workspace_session: str,
+        atlas_root: Path | str | None = None,
+    ) -> tuple[Path | None, str]:
+        try:
+            context = AtlasContext(
+                user_name=owner_name,
+                workspace_session=workspace_session or "default",
+                ip_name="default",
+                workflow="default",
+                atlas_root=atlas_root or _atlas_root_for_context(),
+            )
+        except ValueError as exc:
+            return None, str(exc)
+        return _validated_context_workspace_root(context)
+
     @app.get("/healthz")
     async def healthz(request: Request):
         info = {
@@ -2005,17 +2046,24 @@ def create_app():
             # so polling /healthz from the frontend is enough to keep
             # the preview / SSOT / QA panels in sync without a custom
             # WS event.
+            healthz_owner_guard = username_norm if _multi_user_on else ""
+
             def _owned_healthz_session(raw: str) -> str:
                 normalized = normalize_session_name(str(raw or ""))
                 if not normalized:
                     return ""
-                if not username_norm:
+                if _multi_user_on and not healthz_owner_guard:
+                    return ""
+                if not healthz_owner_guard:
                     return normalized
                 owner = normalized.split("/", 1)[0]
-                allowed = {username_norm, _session_owner_with_model(username_norm)}
+                allowed = {
+                    healthz_owner_guard,
+                    _session_owner_with_model(healthz_owner_guard),
+                }
                 return normalized if owner in allowed else ""
 
-            if username_norm:
+            if username_norm or (query_active_session and not _multi_user_on):
                 active_session = (
                     _owned_healthz_session(query_active_session)
                     or _owned_healthz_session(request_active_session)
@@ -2036,20 +2084,48 @@ def create_app():
                 try:
                     active_context = AtlasContext.from_session_key(
                         active_session_path,
-                        atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+                        atlas_root=_atlas_root_for_context(),
                     )
+                    workspace_root, workspace_error = _validated_context_workspace_root(active_context)
+                    if workspace_error or workspace_root is None:
+                        return JSONResponse({
+                            "ok": False,
+                            "error": workspace_error or "invalid workspace root",
+                            "active_session": active_session_path,
+                        }, status_code=400)
+                    session_dir = active_context.session_dir
+                    try:
+                        if session_dir.is_symlink():
+                            return JSONResponse({
+                                "ok": False,
+                                "error": "session path is a symlink",
+                                "active_session": active_session_path,
+                            }, status_code=400)
+                        session_dir.resolve(strict=False).relative_to(workspace_root)
+                    except ValueError:
+                        return JSONResponse({
+                            "ok": False,
+                            "error": "session path escapes workspace root",
+                            "active_session": active_session_path,
+                        }, status_code=400)
+                    except OSError as exc:
+                        return JSONResponse({
+                            "ok": False,
+                            "error": str(exc),
+                            "active_session": active_session_path,
+                        }, status_code=400)
                     info["active_session"] = active_context.active_session_key
                     info["context_key"] = active_context.context_key
                     info["workspace_session"] = active_context.workspace_session
                     info["active_ip"] = active_context.ip_name
                     info["active_workflow"] = active_context.workflow
                     info["atlas_root"] = str(active_context.atlas_root)
-                    info["workspace_root"] = str(active_context.workspace_root)
-                    info["ip_root"] = str(active_context.ip_root)
+                    info["workspace_root"] = str(workspace_root)
+                    info["ip_root"] = str(workspace_root / active_context.ip_name)
                     if not active_context.legacy:
                         info["backend_project_root"] = str(PROJECT_ROOT)
-                        info["project_root"] = str(active_context.workspace_root)
-                        info["project_root_name"] = active_context.workspace_root.name or ""
+                        info["project_root"] = str(workspace_root)
+                        info["project_root_name"] = workspace_root.name or ""
                 except Exception:
                     active_context = None
             if active_context is None:
@@ -3177,6 +3253,19 @@ def create_app():
         multi_user_on = _multi_user_enabled()
         if multi_user_on and (not username or not user_id):
             return JSONResponse({"error": "login required"}, status_code=401)
+        def _owner_hint_from_create_payload() -> str:
+            for key in ("session_id", "session", "namespace", "active_session"):
+                raw = normalize_session_name(str((body or {}).get(key) or ""))
+                parts = [part for part in raw.split("/") if part]
+                if len(parts) >= 2 and parts[0] and parts[0] != "default":
+                    return parts[0]
+            for key in ("user_name", "username", "owner"):
+                raw = normalize_session_name(str((body or {}).get(key) or ""))
+                if raw and raw != "default":
+                    return raw
+            raw = normalize_session_name(str(os.environ.get("ATLAS_USER_SESSION_ID") or ""))
+            return raw if raw and raw != "default" else ""
+
         workspace_session = normalize_session_name(
             str(
                 (body or {}).get("workspace_session")
@@ -3185,15 +3274,17 @@ def create_app():
                 or "default"
             )
         )
-        if multi_user_on and not workspace_session:
+        if not workspace_session:
             workspace_session = "default"
-        atlas_root = Path(os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT)).expanduser().resolve()
+        atlas_root = _atlas_root_for_context()
         context: AtlasContext | None = None
         workspace_root = PROJECT_ROOT
-        if multi_user_on and username:
+        create_owner_hint = _owner_hint_from_create_payload()
+        context_owner = username if multi_user_on else (create_owner_hint or ("" if username == "local-admin" else username))
+        if context_owner:
             try:
                 context = AtlasContext(
-                    user_name=username,
+                    user_name=context_owner,
                     workspace_session=workspace_session or "default",
                     ip_name=name,
                     workflow=workflow,
@@ -3201,8 +3292,14 @@ def create_app():
                 )
             except ValueError as exc:
                 return JSONResponse({"error": str(exc)}, status_code=400)
-            workspace_root = context.workspace_root
-            target = context.ip_root.resolve()
+            validated_workspace_root, workspace_error = _validated_context_workspace_root(context)
+            if workspace_error or validated_workspace_root is None:
+                return JSONResponse({"error": workspace_error or "invalid workspace root"}, status_code=400)
+            workspace_root = validated_workspace_root
+            raw_target = workspace_root / name
+            if raw_target.is_symlink():
+                return JSONResponse({"error": "ip path is a symlink"}, status_code=400)
+            target = raw_target.resolve(strict=False)
         else:
             target = (PROJECT_ROOT / name).resolve()
         try:
@@ -3232,7 +3329,7 @@ def create_app():
                 summary = {
                     "kind": "atlas_ip_scaffold",
                     "namespace": session_namespace,
-                    "owner": username,
+                    "owner": context_owner,
                     "workspace_session": workspace_session or "default",
                     "context_key": context.context_key if context is not None else session_namespace,
                     "ip": name,
@@ -3255,7 +3352,7 @@ def create_app():
                     db_session = db.upsert_runtime_session(
                         session_namespace,
                         user_id,
-                        owner=username,
+                        owner=context_owner,
                         ip=name,
                         workflow=workflow,
                         workspace_id=str(workspace_row.get("id") or ""),
@@ -3284,7 +3381,7 @@ def create_app():
 
             worker_warmup = schedule_worker_warmup(
                 ip=name,
-                owner=username,
+                owner=context_owner,
                 db_user_id=user_id,
                 session_name=session_namespace,
                 active_workflow=workflow,
@@ -3653,6 +3750,7 @@ def create_app():
         by_name: dict[str, dict[str, Any]] = {}
 
         workspace_root_for_list: Path | None = None
+        workspace_root_for_list_error = ""
 
         def _ssot_exists(name: str) -> bool:
             roots = []
@@ -3689,12 +3787,38 @@ def create_app():
                 row["workflows"] = sorted(merged)
 
         def _looks_like_project_ip(entry: Path) -> bool:
-            if not entry.is_dir() or entry.name.startswith(".") or entry.name in skip:
+            if entry.is_symlink() or not entry.is_dir() or entry.name.startswith(".") or entry.name in skip:
                 return False
             try:
                 return any((entry / marker).is_dir() for marker in ip_markers)
             except OSError:
                 return False
+
+        def _workspace_catalog_ip_names(db: Any, db_user_id: str = "") -> set[str] | None:
+            if workspace_root_for_list is None:
+                return None
+            try:
+                workspace_path = str(workspace_root_for_list.resolve())
+            except OSError:
+                workspace_path = str(workspace_root_for_list)
+            rows = db._fetchall(
+                """
+                SELECT i.ip_name, i.status
+                  FROM workspaces w
+                  JOIN ip_blocks i ON i.workspace_id = w.id
+                 WHERE w.local_path = ?
+                   AND (? = '' OR w.owner_user_id = ?)
+                 ORDER BY i.ip_name
+                """,
+                (workspace_path, db_user_id, db_user_id),
+            )
+            names = {
+                str(row["ip_name"] or "").strip()
+                for row in rows
+                if str(row["ip_name"] or "").strip()
+                and str(row["status"] or "active").strip().lower() == "active"
+            }
+            return names or None
 
         user = request.scope.get("user") or {}
         username = normalize_session_name(str(user.get("username") or ""))
@@ -3711,10 +3835,24 @@ def create_app():
             return JSONResponse({"error": "login required", "items": [], "count": 0}, status_code=401)
         if multi_user_on and username and owner and owner != username:
             return JSONResponse({"error": "session owner mismatch", "items": []}, status_code=403)
-        if multi_user_on and owner and requested_workspace_session:
-            workspace_root_for_list = (PROJECT_ROOT / owner / requested_workspace_session).resolve()
+        if owner and requested_workspace_session:
+            workspace_root_for_list, workspace_root_for_list_error = _validated_workspace_root(
+                owner,
+                requested_workspace_session,
+                _atlas_root_for_context(),
+            )
         session_root = (PROJECT_ROOT / ".session" / owner).resolve() if owner else None
         try:
+            if workspace_root_for_list_error:
+                return JSONResponse({
+                    "error": workspace_root_for_list_error,
+                    "project_root": str(PROJECT_ROOT),
+                    "workspace_root": str(workspace_root_for_list) if workspace_root_for_list is not None else "",
+                    "session_id": owner or "",
+                    "workspace_session": requested_workspace_session or "",
+                    "items": [],
+                    "count": 0,
+                }, status_code=400)
             if multi_user_on:
                 user_id = str(user.get("id") or "").strip()
                 if not user_id:
@@ -3725,6 +3863,7 @@ def create_app():
                     model_owner = username
                 allowed_owners = {value for value in (username, model_owner) if value}
                 with AtlasDB() as db:
+                    catalog_ip_names = _workspace_catalog_ip_names(db, user_id)
                     session_rows = db.list_sessions(user_id)
                 for row in session_rows:
                     namespace = normalize_session_name(
@@ -3741,6 +3880,8 @@ def create_app():
                         elif requested_workspace_session != "default":
                             continue
                     name = parts[-2]
+                    if catalog_ip_names is not None and name not in catalog_ip_names:
+                        continue
                     workflow = parts[-1]
                     mtime = float(row.get("updated_at") or row.get("created_at") or 0.0)
                     ip_dir = None
@@ -3754,23 +3895,48 @@ def create_app():
                     except OSError:
                         pass
                     _add_item(name, workflows=[workflow], mtime=mtime)
+                if catalog_ip_names is not None:
+                    for name in catalog_ip_names:
+                        _add_item(name)
                 items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
                 return JSONResponse({
                     "project_root": str(PROJECT_ROOT),
+                    "workspace_root": str(workspace_root_for_list) if workspace_root_for_list is not None else "",
                     "session_id": owner or "",
                     "workspace_session": requested_workspace_session or "",
                     "items": items,
                     "count": len(items),
-                    "source": "db_sessions",
+                    "source": "db_ip_blocks" if catalog_ip_names is not None else "db_sessions",
                 })
             if not multi_user_on:
-                for entry in PROJECT_ROOT.iterdir():
-                    if _looks_like_project_ip(entry):
-                        _add_item(entry.name, mtime=entry.stat().st_mtime)
+                scan_root = workspace_root_for_list or PROJECT_ROOT
+                catalog_ip_names = None
+                if workspace_root_for_list is not None:
+                    with AtlasDB() as db:
+                        catalog_ip_names = _workspace_catalog_ip_names(db)
+                if catalog_ip_names is not None:
+                    for name in catalog_ip_names:
+                        _add_item(name)
+                elif scan_root.is_dir():
+                    for entry in scan_root.iterdir():
+                        if _looks_like_project_ip(entry):
+                            _add_item(entry.name, mtime=entry.stat().st_mtime)
+                items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
+                if workspace_root_for_list is not None:
+                    return JSONResponse({
+                        "project_root": str(PROJECT_ROOT),
+                        "workspace_root": str(workspace_root_for_list),
+                        "session_id": owner or "",
+                        "workspace_session": requested_workspace_session or "",
+                        "items": items,
+                        "count": len(items),
+                        "source": "db_ip_blocks" if catalog_ip_names is not None else "filesystem",
+                    })
             if session_root is None or not session_root.is_dir():
                 items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
                 return JSONResponse({
                     "project_root": str(PROJECT_ROOT),
+                    "workspace_root": str(workspace_root_for_list) if workspace_root_for_list is not None else "",
                     "session_id": owner or "",
                     "workspace_session": requested_workspace_session or "",
                     "items": items,
@@ -3796,6 +3962,7 @@ def create_app():
         items = sorted(by_name.values(), key=lambda x: (-x["mtime"], x["name"]))
         return JSONResponse({
             "project_root": str(PROJECT_ROOT),
+            "workspace_root": str(workspace_root_for_list) if workspace_root_for_list is not None else "",
             "session_id": owner or "",
             "workspace_session": requested_workspace_session or "",
             "items": items,
@@ -5307,6 +5474,21 @@ def create_app():
         except Exception:
             return {}
 
+    def _load_ssot_yaml_from_path(path: Path) -> dict[str, Any]:
+        import yaml as _yaml  # type: ignore
+
+        if not path.is_file():
+            raise FileNotFoundError(str(path))
+        try:
+            data = _yaml.safe_load(path.read_text(encoding="utf-8", errors="replace"))
+        except Exception as exc:
+            raise ValueError(f"invalid yaml: {exc}") from exc
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            raise ValueError("ssot yaml must be a mapping/object")
+        return data
+
     def _save_ssot_draft(ip: str, doc: dict[str, Any], base_root: Path | None = None) -> None:
         path = _ssot_yaml_path(ip, base_root=base_root)
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -5342,6 +5524,41 @@ def create_app():
             bridge.emit("file_changed", **payload)
         except Exception:
             pass
+
+    def _ssot_base_root_for_request(
+        request: Request,
+        ip: str,
+        session_id: str,
+    ) -> tuple[Path | None, JSONResponse | None]:
+        session_name = normalize_session_name(str(session_id or ""))
+        if not session_name:
+            return None, None
+        try:
+            context = AtlasContext.from_session_key(
+                session_name,
+                atlas_root=_atlas_root_for_context(),
+            )
+        except Exception as exc:
+            return None, JSONResponse({"ok": False, "error": f"invalid session_id: {exc}"}, status_code=400)
+        if context.legacy:
+            return None, None
+        if context.ip_name and context.ip_name not in {"default", ip}:
+            return None, JSONResponse({"ok": False, "error": "session ip mismatch"}, status_code=400)
+        try:
+            user = request.scope.get("user") or {}
+        except Exception:
+            user = {}
+        user_id = str((user or {}).get("id") or "").strip()
+        if not user_id or user_id == "default":
+            return None, JSONResponse({"ok": False, "error": "login required"}, status_code=401)
+        if str((user or {}).get("role") or "").strip().lower() != "admin":
+            username = str((user or {}).get("username") or "").strip().strip("/")
+            if username != context.user_name:
+                return None, JSONResponse({"ok": False, "error": "session owner mismatch"}, status_code=403)
+        root, error = _validated_context_workspace_root(context)
+        if root is None:
+            return None, JSONResponse({"ok": False, "error": error or "invalid workspace root"}, status_code=400)
+        return root, None
 
     def _parse_ssot_feedback_path(raw: str) -> list[Any]:
         text = str(raw or "").strip().strip(".")
@@ -8468,10 +8685,14 @@ def create_app():
         if not _valid_ip_name(ip):
             return JSONResponse({"ok": False, "error": "no active IP found"}, status_code=400)
 
-        path = _ssot_yaml_path(ip)
+        session_id = normalize_session_name(str(body.get("session_id") or body.get("session") or ""))
+        base_root, denied = _ssot_base_root_for_request(request, ip, session_id)
+        if denied is not None:
+            return denied
+        path = _ssot_yaml_path(ip, base_root=base_root)
         if not path.is_file():
             return JSONResponse({"ok": False, "error": f"ssot yaml not found for ip {ip!r}"}, status_code=404)
-        doc = _load_ssot_draft(ip)
+        doc = _load_ssot_draft(ip, base_root=base_root)
         if not isinstance(doc, dict) or not doc:
             return JSONResponse({"ok": False, "error": f"ssot yaml could not be parsed for ip {ip!r}"}, status_code=400)
 
@@ -8562,14 +8783,18 @@ def create_app():
         })
 
         try:
-            _save_ssot_draft(ip, doc)
+            _save_ssot_draft(ip, doc, base_root=base_root)
         except Exception as exc:
             return JSONResponse({"ok": False, "error": f"failed to save ssot: {exc}"}, status_code=500)
 
+        rel_base = base_root or PROJECT_ROOT
         try:
-            rel_path = str(path.relative_to(PROJECT_ROOT))
+            rel_path = str(path.relative_to(rel_base))
         except Exception:
             rel_path = str(path)
+        doc_url = f"/api/ssot/export?ip={ip}&format=html&inline=1"
+        if session_id:
+            doc_url += f"&session_id={quote(session_id, safe='')}"
         return JSONResponse({
             "ok": True,
             "ip": ip,
@@ -8579,32 +8804,36 @@ def create_app():
             "feedback_id": feedback_id,
             "feedback_count": len(feedback_rows),
             "ssot_path": rel_path,
-            "doc_url": f"/api/ssot/export?ip={ip}&format=html&inline=1",
+            "doc_url": doc_url,
         })
 
     @app.get("/api/ssot/doc-source")
-    async def api_ssot_doc_source(ip: str = "", path: str = ""):
+    async def api_ssot_doc_source(request: Request, ip: str = "", path: str = "", session_id: str = "", session: str = ""):
         yaml_path = str(path or "").strip()
         if not yaml_path:
             return JSONResponse({"ok": False, "error": "path is required"}, status_code=400)
         clean_ip = str(ip or "").strip()
         if not _valid_ip_name(clean_ip):
             return JSONResponse({"ok": False, "error": f"invalid ip {ip!r}"}, status_code=400)
-        ssot_path = _ssot_yaml_path(clean_ip)
+        base_root, denied = _ssot_base_root_for_request(request, clean_ip, session_id or session)
+        if denied is not None:
+            return denied
+        ssot_path = _ssot_yaml_path(clean_ip, base_root=base_root)
         if not ssot_path.is_file():
             return JSONResponse({"ok": False, "error": f"ssot yaml not found for ip {clean_ip!r}"}, status_code=404)
         try:
             tokens = _parse_ssot_feedback_path(yaml_path)
         except ValueError as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
-        doc = _load_ssot_draft(clean_ip)
+        doc = _load_ssot_draft(clean_ip, base_root=base_root)
         if not isinstance(doc, dict) or not doc:
             return JSONResponse({"ok": False, "error": f"ssot yaml could not be parsed for ip {clean_ip!r}"}, status_code=400)
         try:
             from src.atlas_ssot_doc_map import lookup_ssot_doc_source
 
+            rel_base = base_root or PROJECT_ROOT
             try:
-                rel_path = str(ssot_path.relative_to(PROJECT_ROOT))
+                rel_path = str(ssot_path.relative_to(rel_base))
             except Exception:
                 rel_path = str(ssot_path)
             payload = lookup_ssot_doc_source(doc, path=yaml_path, tokens=tokens, ip=clean_ip, ssot_path=rel_path)
@@ -8615,7 +8844,7 @@ def create_app():
         return JSONResponse(payload)
 
     @app.get("/api/ssot/export")
-    async def api_ssot_export(ip: str, format: str = "md", inline: bool = False):
+    async def api_ssot_export(request: Request, ip: str, format: str = "md", inline: bool = False, session_id: str = "", session: str = ""):
         """Export the canonical ssot yaml as md/docx/html for human review.
 
         Reverse direction of /api/ssot/import/upload. Writes
@@ -8628,8 +8857,11 @@ def create_app():
             return JSONResponse({"error": f"invalid format {format!r}"}, status_code=400)
         if not _valid_ip_name(ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        base_root, denied = _ssot_base_root_for_request(request, ip, session_id or session)
+        if denied is not None:
+            return denied
         try:
-            data = _load_ssot_yaml(ip)
+            data = _load_ssot_yaml_from_path(_ssot_yaml_path(ip, base_root=base_root)) if base_root is not None else _load_ssot_yaml(ip)
         except FileNotFoundError:
             return JSONResponse(
                 {"error": f"ssot yaml not found for ip {ip!r}"},
@@ -8638,7 +8870,7 @@ def create_app():
         except ValueError as exc:
             return JSONResponse({"error": str(exc)}, status_code=400)
 
-        out_dir = _ip_root(ip) / "doc"
+        out_dir = ((base_root / ip) if base_root is not None else _ip_root(ip)) / "doc"
         try:
             out_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:

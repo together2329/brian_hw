@@ -163,6 +163,44 @@ def test_dispatch_workflow_direct_fallback_scopes_worker_url_by_active_user(monk
     assert second["worker_url"] == calls[1]["worker"]
 
 
+def test_dispatch_workflow_direct_fallback_scopes_worker_url_by_workspace_session(monkeypatch):
+    _clear_worker_env(monkeypatch)
+    monkeypatch.setenv("ATLAS_EXEC_MODE", "orchestrator")
+    monkeypatch.setattr(tools, "_dispatch_workflow_callback", None)
+    calls = []
+
+    def fake_worker_start(**kwargs):
+        calls.append(kwargs)
+        return {
+            "status": "pending",
+            "run_id": f"run-{len(calls)}",
+            "worker": kwargs["worker"],
+        }
+
+    monkeypatch.setattr(agent_client, "worker_start", fake_worker_start)
+
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "alice/default/new_axi/orchestrator")
+    first = json.loads(tools.dispatch_workflow(
+        workflow="rtl-gen",
+        ip="new_axi",
+        prompt="Generate default workspace RTL.",
+    ))
+    monkeypatch.setenv("ATLAS_ACTIVE_SESSION", "alice/alt/new_axi/orchestrator")
+    second = json.loads(tools.dispatch_workflow(
+        workflow="rtl-gen",
+        ip="new_axi",
+        prompt="Generate alt workspace RTL.",
+    ))
+
+    assert first["session"] == "alice/default/new_axi/rtl-gen"
+    assert second["session"] == "alice/alt/new_axi/rtl-gen"
+    assert calls[0]["session"] == first["session"]
+    assert calls[1]["session"] == second["session"]
+    _assert_scoped_worker_url(calls[0]["worker"], "http://127.0.0.1:5623")
+    _assert_scoped_worker_url(calls[1]["worker"], "http://127.0.0.1:5623")
+    assert calls[0]["worker"] != calls[1]["worker"]
+
+
 def test_dispatch_workflow_direct_fallback_scopes_single_worker_policy(monkeypatch):
     _clear_worker_env(monkeypatch)
     monkeypatch.setenv("ATLAS_EXEC_MODE", "single-worker")

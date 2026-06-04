@@ -164,4 +164,16 @@ describe('AtlasPipeline render smoke (the behavioral gate)', () => {
     const board = container.querySelector('.pipe-board');
     expect(board).not.toBeNull();
   });
+
+  it('adds workspace_session to pipelinePolicyPayload from active workspace globals', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_WORKSPACE_SESSION_ID = 'alt';
+
+    await importPipelineChain();
+
+    expect(w.pipelinePolicyPayload().workspace_session).toBe('alt');
+    w.ATLAS_WORKSPACE_SESSION_ID = '';
+    w.ACTIVE_SESSION = 'u/branch2/demo_ip/pipeline';
+    expect(w.pipelinePolicyPayload().workspace_session).toBe('branch2');
+  });
 });

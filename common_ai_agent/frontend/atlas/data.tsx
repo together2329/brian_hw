@@ -452,10 +452,18 @@ const w = window as any;
         body: JSON.stringify({ session, index }),
       }).then((payload: any) => refreshTodosAfterMutation(session, payload));
     },
-    fetchFile: (path: string) =>
-      fetch('/api/file?path=' + encodeURIComponent(path)).then(r => r.json()),
-    fetchSsot: (path: string) =>
-      fetch('/api/ssot?file=' + encodeURIComponent(path)).then(r => r.json()),
+    fetchFile: (path: string) => {
+      const params = new URLSearchParams({ path });
+      const session = normalizeSessionName(w.ACTIVE_SESSION || '');
+      if (session) params.set('session_id', session);
+      return fetch('/api/file?' + params.toString(), { credentials: 'include' }).then(r => r.json());
+    },
+    fetchSsot: (path: string) => {
+      const params = new URLSearchParams({ file: path });
+      const session = normalizeSessionName(w.ACTIVE_SESSION || '');
+      if (session) params.set('session_id', session);
+      return fetch('/api/ssot?' + params.toString(), { credentials: 'include' }).then(r => r.json());
+    },
     setScopePath: (p: unknown) => {
       let next = normalizeScopePath(p || '');
       if (next === DEFAULT_WORKFLOW) next = '';

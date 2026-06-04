@@ -110,6 +110,7 @@ export function parseAtQuery(input: string): any {
     raw,
     parentRel: trimmedParent,
     parentAbs,
+    absoluteEscape,
     ipScoped,
     ipPrefix,
     filter: filter.toLowerCase(),

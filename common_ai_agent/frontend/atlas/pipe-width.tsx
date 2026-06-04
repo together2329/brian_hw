@@ -27,6 +27,8 @@ interface PipelineWindow {
   atlasData?: { fetchWorkerSnapshot?: (opts: WorkerSnapshotOpts) => Promise<unknown> } & Record<string, unknown>;
   ATLAS_RUN_MODE?: string;
   ATLAS_EXEC_MODE?: string;
+  ATLAS_WORKSPACE_SESSION_ID?: unknown;
+  ACTIVE_SESSION?: string;
 
   PIPELINE_STAGE_DEPS?: Record<string, string[]>;
   PIPELINE_STAGE_WORKFLOW?: Record<string, string>;
@@ -103,6 +105,7 @@ export interface PipelineFlowDef {
 export interface PipelinePolicyPayload {
   run_mode: string;
   exec_mode: string;
+  workspace_session?: string;
 }
 
 export interface PipelineStateMeta {
@@ -120,6 +123,13 @@ export function readPipeWidth(key: string, fallback: number, min: number, max: n
   }
 }
 
+function pipelineWorkspaceSessionParam(): string {
+  const explicit = String(win.ATLAS_WORKSPACE_SESSION_ID || '').trim();
+  if (explicit) return explicit;
+  const parts = String(win.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  return parts.length >= 4 ? parts[1] || '' : '';
+}
+
 export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {}): Promise<unknown> {
   const api = win.atlasData || {};
   if (typeof api.fetchWorkerSnapshot === 'function') {
@@ -130,6 +140,8 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
   if (activeOnly) params.set('active_only', '1');
   const ip = String(opts.ip || '').trim();
   if (ip && ip !== 'default') params.set('ip', ip);
+  const workspaceSession = pipelineWorkspaceSessionParam();
+  if (workspaceSession) params.set('workspace_session', workspaceSession);
   const query = params.toString();
   const r = await fetch(`/api/orchestrator/workers${query ? `?${query}` : ''}`, { cache: 'no-store' });
   if (!r.ok) throw new Error(`workers ${r.status}`);
@@ -352,9 +364,13 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
       savedRun = localStorage.getItem('atlasRunMode') || '';
       savedExec = localStorage.getItem('atlasExecMode') || '';
     } catch (_) {}
+    const explicitWorkspace = String(win.ATLAS_WORKSPACE_SESSION_ID || '').trim();
+    const activeParts = String(win.ACTIVE_SESSION || '').split('/').filter(Boolean);
+    const workspaceSession = explicitWorkspace || (activeParts.length >= 4 ? activeParts[1] || '' : '');
     return {
       run_mode: normRun(win.ATLAS_RUN_MODE || savedRun),
       exec_mode: normExec(win.ATLAS_EXEC_MODE || savedExec),
+      ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
     };
   };
 

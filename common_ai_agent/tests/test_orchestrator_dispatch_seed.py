@@ -16,7 +16,6 @@ These tests pin the propagation contract end-to-end:
 from __future__ import annotations
 
 import sys
-import types
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -47,12 +46,18 @@ class _StubCollector:
 
 
 class _StubCtx:
-    def __init__(self, *, ip_name: str = "cmux_flow_beta", user_seed: str = "") -> None:
+    def __init__(
+        self,
+        *,
+        ip_name: str = "cmux_flow_beta",
+        session_id: str = "",
+        user_seed: str = "",
+    ) -> None:
         self.run_id = "run-test"
         self.user_id = "u-test"
         self.ip_id = "ip-test"
         self.ip_name = ip_name
-        self.session_id = ""
+        self.session_id = session_id
         self.project_root = Path(".")
         self.runner = None
         self.user_seed = user_seed
@@ -112,6 +117,36 @@ def test_react_bridge_propagates_user_seed_to_payload(monkeypatch):
     )
 
 
+def test_react_bridge_read_pipeline_state_passes_session_scope(monkeypatch):
+    from src.orchestrator import react_bridge
+
+    session_id = "u-test/alt/ipA/orchestrator"
+    ctx = _StubCtx(ip_name="ipA", session_id=session_id)
+    captured: Dict[str, Any] = {}
+
+    def _fake_read_pipeline_state(**kw: Any):
+        captured.update(kw)
+        return {"ok": True, "active_jobs": []}, "ok"
+
+    monkeypatch.setattr(
+        react_bridge.orch_tools, "read_pipeline_state", _fake_read_pipeline_state
+    )
+    bound = react_bridge._bind_orchestrator_tools(
+        ctx=ctx,
+        runner=None,
+        db=None,
+        collector=_StubCollector(),
+        budgets=_StubBudgetTracker(),
+    )
+
+    bound["read_pipeline_state"]("", pre_parsed_kwargs={"ip": "ipA"})
+
+    assert captured["ip"] == "ipA"
+    assert captured["scope"] == session_id
+    assert captured["db_user_id"] == "u-test"
+    assert captured["include_jobs"] is True
+
+
 def test_react_bridge_preserves_caller_supplied_user_seed(monkeypatch):
     """If the caller (or a future LLM revision) already supplied
     ``payload.user_seed`` explicitly, the bridge must not clobber it."""
@@ -136,6 +171,76 @@ def test_react_bridge_preserves_caller_supplied_user_seed(monkeypatch):
         },
     )
     assert captured["payload"]["user_seed"] == "explicit-caller-seed"
+
+
+def test_react_bridge_uses_context_user_and_workspace_session_as_authority(monkeypatch):
+    from src.orchestrator import react_bridge
+
+    ctx = _StubCtx(ip_name="pl330", user_seed="ctx seed")
+    ctx.user_id = "alice-db"
+    ctx.session_id = "alice/alt/pl330/orchestrator"
+    captured: Dict[str, Any] = {}
+    _capture_dispatch_call(monkeypatch, captured)
+
+    bound = react_bridge._bind_orchestrator_tools(
+        ctx=ctx,
+        runner=None,
+        db=None,
+        collector=_StubCollector(),
+        budgets=_StubBudgetTracker(),
+    )
+    dispatch = bound["dispatch_workflow"]
+
+    dispatch(
+        "",
+        pre_parsed_kwargs={
+            "workflow": "rtl-gen",
+            "ip": "pl330",
+            "payload": {
+                "db_user_id": "bob-db",
+                "orchestrator_session_id": "bob/default/pl330/orchestrator",
+                "workspace_session": "default",
+            },
+        },
+    )
+
+    payload = captured.get("payload") or {}
+    assert payload["db_user_id"] == "alice-db"
+    assert payload["orchestrator_session_id"] == "alice/alt/pl330/orchestrator"
+    assert payload["workspace_session"] == "alt"
+
+
+def test_react_bridge_passes_context_session_to_pipeline_state_reads(monkeypatch):
+    from src.orchestrator import react_bridge
+
+    ctx = _StubCtx(ip_name="pl330")
+    ctx.session_id = "alice/alt/pl330/orchestrator"
+    captured: Dict[str, Any] = {}
+
+    def fake_read_pipeline_state(**kw: Any):
+        captured.update(kw)
+        return {"ok": True, "active_jobs": []}, "ok"
+
+    monkeypatch.setattr(
+        react_bridge.orch_tools,
+        "read_pipeline_state",
+        fake_read_pipeline_state,
+    )
+
+    bound = react_bridge._bind_orchestrator_tools(
+        ctx=ctx,
+        runner=None,
+        db=None,
+        collector=_StubCollector(),
+        budgets=_StubBudgetTracker(),
+    )
+
+    bound["read_pipeline_state"](
+        "",
+        pre_parsed_kwargs={"ip": "pl330", "include_jobs": True},
+    )
+
+    assert captured["scope"] == "alice/alt/pl330/orchestrator"
 
 
 # ----------------------------------------------------------------------
@@ -166,18 +271,10 @@ def test_dispatch_workflow_bridge_seed_lands_in_worker_prompt(tmp_path, monkeypa
     def _capture_setter(callback):
         captured_bridge["fn"] = callback
 
-    # register_jobs_routes does ``from core import tools as _atlas_tools`` and
-    # then calls ``set_dispatch_workflow_callback`` on it. Stub that module so
-    # we can capture the bridge function without standing up the real
-    # ``core.tools`` (which has heavy import-time deps).
-    fake_core_tools = types.SimpleNamespace(
-        set_dispatch_workflow_callback=_capture_setter,
-        set_read_pipeline_state_callback=lambda *_a, **_kw: None,
-    )
-    fake_core_pkg = types.ModuleType("core")
-    fake_core_pkg.tools = fake_core_tools  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "core", fake_core_pkg)
-    monkeypatch.setitem(sys.modules, "core.tools", fake_core_tools)
+    from core import tools as core_tools
+
+    monkeypatch.setattr(core_tools, "set_dispatch_workflow_callback", _capture_setter)
+    monkeypatch.setattr(core_tools, "set_read_pipeline_state_callback", lambda *_a, **_kw: None)
 
     # Stub the worker-dispatch HTTP side so _make_job_record(auto_start=True)
     # doesn't actually try to POST to a worker URL.
@@ -259,14 +356,10 @@ def test_dispatch_workflow_bridge_no_seed_does_not_emit_section(tmp_path, monkey
     monkeypatch.setenv("ATLAS_ACTIVE_USER", "local-admin")
 
     captured_bridge: Dict[str, Any] = {}
-    fake_core_tools = types.SimpleNamespace(
-        set_dispatch_workflow_callback=lambda cb: captured_bridge.setdefault("fn", cb),
-        set_read_pipeline_state_callback=lambda *_a, **_kw: None,
-    )
-    fake_core_pkg = types.ModuleType("core")
-    fake_core_pkg.tools = fake_core_tools  # type: ignore[attr-defined]
-    monkeypatch.setitem(sys.modules, "core", fake_core_pkg)
-    monkeypatch.setitem(sys.modules, "core.tools", fake_core_tools)
+    from core import tools as core_tools
+
+    monkeypatch.setattr(core_tools, "set_dispatch_workflow_callback", lambda cb: captured_bridge.setdefault("fn", cb))
+    monkeypatch.setattr(core_tools, "set_read_pipeline_state_callback", lambda *_a, **_kw: None)
 
     import src.atlas_api_jobs as api_jobs
 

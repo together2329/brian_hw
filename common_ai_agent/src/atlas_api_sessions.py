@@ -114,6 +114,30 @@ def register_sessions_routes(
             pass
         return False
 
+    def _workspace_catalog_ip_names(db: Any, workspace_root: Path, user_id: str = "") -> set[str] | None:
+        try:
+            workspace_path = str(workspace_root.resolve())
+        except OSError:
+            workspace_path = str(workspace_root)
+        rows = db._fetchall(
+            """
+            SELECT i.ip_name, i.status
+              FROM workspaces w
+              JOIN ip_blocks i ON i.workspace_id = w.id
+             WHERE w.local_path = ?
+               AND (? = '' OR w.owner_user_id = ?)
+             ORDER BY i.ip_name
+            """,
+            (workspace_path, user_id, user_id),
+        )
+        names = {
+            str(row["ip_name"] or "").strip()
+            for row in rows
+            if str(row["ip_name"] or "").strip()
+            and str(row["status"] or "active").strip().lower() == "active"
+        }
+        return names or None
+
     def _cap_enabled() -> bool:
         # A global admission cap can be active even in session-scoped mode when
         # ATLAS_SESSION_WORKER_MAX_ACTIVE is set explicitly; warmup must then also
@@ -314,6 +338,27 @@ def register_sessions_routes(
             context = AtlasContext.from_session_key(f"{sid}/{ip}/{wf}", atlas_root=project_root())
         canonical = context.active_session_key
         user_id = _request_user_id(req)
+        if ip != "default" and not context.legacy:
+            try:
+                with _atlas_db() as db:
+                    catalog_ip_names = _workspace_catalog_ip_names(
+                        db,
+                        context.workspace_root,
+                        user_id if multi_user_on else "",
+                    )
+                if catalog_ip_names is not None and ip not in catalog_ip_names:
+                    ip = "default"
+                    wf = "default"
+                    context = AtlasContext(
+                        user_name=sid,
+                        workspace_session=context.workspace_session,
+                        ip_name=ip,
+                        workflow=wf,
+                        atlas_root=atlas_root,
+                    )
+                    canonical = context.active_session_key
+            except Exception:
+                pass
         try:
             with _atlas_db() as db:
                 existing_session = db.get_session(canonical)

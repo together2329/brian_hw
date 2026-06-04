@@ -50,6 +50,7 @@ def _import_docx_helpers():
         "_ssot_docx_set_footer",
         "_ssot_docx_table_from_rows",
         "_ssot_docx_yaml_block",
+        "_SSOT_DOCX_APPENDIX_KEYS",
     ):
         if hasattr(_d, name): g[name] = getattr(_d, name)
     g["_HELPERS_HYDRATED"] = True

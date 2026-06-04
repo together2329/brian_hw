@@ -328,6 +328,8 @@ def _bind_orchestrator_tools(
     def _read_pipeline_state(**kw):
         return orch_tools.read_pipeline_state(
             ip=kw.get("ip", ctx.ip_name),
+            scope=str(kw.get("scope") or getattr(ctx, "session_id", "") or ""),
+            db_user_id=str(getattr(ctx, "user_id", "") or ""),
             include_jobs=bool(kw.get("include_jobs", True)),
         )
 
@@ -387,10 +389,13 @@ def _bind_orchestrator_tools(
             payload_in["user_seed"] = user_seed
         ctx_user_id = getattr(ctx, "user_id", "") or ""
         ctx_session_id = getattr(ctx, "session_id", "") or ""
-        if ctx_user_id and not payload_in.get("db_user_id"):
+        if ctx_user_id:
             payload_in["db_user_id"] = ctx_user_id
-        if ctx_session_id and not payload_in.get("orchestrator_session_id"):
+        if ctx_session_id:
             payload_in["orchestrator_session_id"] = ctx_session_id
+            session_parts = [part for part in str(ctx_session_id).split("/") if part]
+            if len(session_parts) >= 4:
+                payload_in["workspace_session"] = session_parts[1]
         return orch_tools.dispatch_workflow(
             workflow=workflow,
             ip=kw.get("ip", ctx.ip_name),
@@ -441,12 +446,18 @@ def _bind_orchestrator_tools(
         )
 
     def _write_handoff(**kw):
+        handoff_user_id = str(getattr(ctx, "user_id", "") or "")
+        session_parts = [
+            part for part in str(getattr(ctx, "session_id", "") or "").split("/") if part
+        ]
+        if len(session_parts) >= 4:
+            handoff_user_id = session_parts[0]
         return orch_tools.write_handoff(
             ip=kw.get("ip", ctx.ip_name),
             workflow=kw.get("workflow", ""),
             payload=kw.get("payload", {}) or {},
             reason=kw.get("reason", ""),
-            user_id=ctx.user_id,
+            user_id=handoff_user_id,
             session_id=ctx.session_id,
             pipeline_run_id=kw.get("pipeline_run_id", ""),
             orchestrator_run_id=ctx.run_id,
@@ -967,6 +978,8 @@ class OrchestratorReactLoop:
         try:
             state, _summary = orch_tools.read_pipeline_state(
                 ip=self.ctx.ip_name,
+                scope=str(getattr(self.ctx, "session_id", "") or ""),
+                db_user_id=str(getattr(self.ctx, "user_id", "") or ""),
                 include_jobs=True,
             )
         except Exception:

@@ -4,6 +4,8 @@ import sys
 import threading
 import time
 
+import pytest
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
@@ -55,6 +57,17 @@ def test_session_worker_emits_tool_and_cost_events(tmp_path, monkeypatch):
         assert ledger["cost_usd"] == by_type["cost"]["cost_usd_delta"]
     finally:
         worker.close()
+
+
+def test_session_worker_rejects_path_traversal_session_id(tmp_path, monkeypatch):
+    from core.session_worker import SessionWorker
+
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+
+    with pytest.raises(ValueError, match="invalid session path segment"):
+        SessionWorker("alice/../bob/ip/ssot-gen", str(tmp_path / "atlas.db"))
+
+    assert not (tmp_path / ".session" / "bob").exists()
 
 
 def test_session_worker_idle_stop_does_not_cancel_next_prompt(tmp_path):

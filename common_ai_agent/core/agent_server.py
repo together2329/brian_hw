@@ -72,6 +72,61 @@ def _safe_print(line: str = "") -> None:
         print(safe)
 
 
+def _path_has_symlink_component(path: Path) -> bool:
+    current = Path(path.anchor) if path.is_absolute() else Path.cwd()
+    parts = path.parts[1:] if path.is_absolute() else path.parts
+    for part in parts:
+        current = current / part
+        if current.is_symlink():
+            return True
+        if not current.exists():
+            return False
+    return False
+
+
+def _project_root_matches_session(project_root: Path, session_name: str) -> bool:
+    session_parts = [part for part in normalize_session_name(session_name).split("/") if part]
+    if not session_parts:
+        return True
+    if len(session_parts) < 4:
+        return False
+    root_parts = project_root.parts
+    return len(root_parts) >= 2 and root_parts[-2:] == tuple(session_parts[:2])
+
+
+def _project_root_allowed_for_worker(project_root: str, session_name: str = "") -> bool:
+    raw = str(project_root or "").strip()
+    if not raw:
+        return True
+    boundaries = [
+        str(os.environ.get("ATLAS_WORKSPACE_ROOT") or "").strip(),
+        str(os.environ.get("ATLAS_PROJECT_ROOT") or "").strip(),
+    ]
+    if not any(boundaries):
+        boundaries.append(os.getcwd())
+    try:
+        lexical = Path(raw).expanduser()
+        if not lexical.is_absolute():
+            lexical = Path.cwd() / lexical
+        if _path_has_symlink_component(lexical):
+            return False
+        candidate = lexical.resolve()
+        if not _project_root_matches_session(candidate, session_name):
+            return False
+        for boundary in boundaries:
+            if not boundary:
+                continue
+            allowed = Path(boundary).expanduser().resolve()
+            try:
+                candidate.relative_to(allowed)
+            except ValueError:
+                continue
+            return True
+    except (OSError, RuntimeError):
+        return False
+    return False
+
+
 _configure_text_stdio()
 
 
@@ -751,7 +806,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     entry.started_at = time.time()
     _on_status_change()
     entry.add_log("system", "ReAct loop starting (full run_react_agent_impl)...", role="system")
-    run_project_root = project_root or _project_root
+    run_project_root = project_root or os.environ.get("ATLAS_PROJECT_ROOT") or _project_root
     locked_truth_snapshot = snapshot_locked_truth(run_project_root, ip)
     _trace_runtime_prev = None
     custom_system_prompt = str(system_prompt or "").strip()
@@ -1011,7 +1066,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         run_todo_tracker = _worker_todo_tracker
         active_session = normalize_session_name(session_name)
         if active_session:
-            session_dir = Path(_project_root) / ".session" / active_session
+            session_dir = Path(run_project_root) / ".session" / active_session
             session_dir.mkdir(parents=True, exist_ok=True)
             session_overrides = {
                 "HISTORY_FILE": str(session_dir / "conversation.json"),
@@ -2155,19 +2210,28 @@ def create_app():
             from core.orchestrator_trace import record_trace, new_corr as _new_corr
             corr_eff = corr_in or _new_corr()
             actor_self = f"{_SERVER_WORKFLOW or 'worker'}-worker"
+            trace_scope = {
+                "session": session_name or None,
+                "user_id": str(request.get("user_id", "")).strip() or None,
+                "db_user_id": str(request.get("db_user_id", "")).strip() or None,
+                "job_id": str(request.get("job_id", "")).strip() or None,
+            }
             record_trace(
                 ip_for_trace, lens="interaction", actor=actor_self, peer="orchestrator",
                 kind="http_recv", corr=corr_eff,
                 requested_workflow=workflow or None, task_preview=task[:80],
                 sync=sync, has_todos=bool(todos), template=template or None,
+                **trace_scope,
             )
         except Exception:
             corr_eff = corr_in or ""
+            trace_scope = {}
         if not task:
             try:
                 from core.orchestrator_trace import record_trace
                 record_trace(ip_for_trace, lens="result", actor=actor_self, kind="http_rejected",
-                             corr=corr_eff, status=400, detail="'task' is required")
+                             corr=corr_eff, status=400, detail="'task' is required",
+                             **trace_scope)
             except Exception:
                 pass
             raise HTTPException(status_code=400, detail="'task' is required")
@@ -2183,7 +2247,7 @@ def create_app():
                 from core.orchestrator_trace import record_trace
                 record_trace(ip_for_trace, lens="result", actor=actor_self, kind="http_rejected",
                              corr=corr_eff, status=403, bound=_SERVER_WORKFLOW,
-                             requested=workflow.strip())
+                             requested=workflow.strip(), **trace_scope)
             except Exception:
                 pass
             raise HTTPException(
@@ -2231,11 +2295,17 @@ def create_app():
                     from core.orchestrator_trace import record_trace
                     record_trace(ip_for_trace, lens="result", actor=actor_self,
                                  kind="workspace_setup_warn", corr=corr_eff,
-                                 workflow=workflow.strip(), detail=str(_ws_exc)[:200])
+                                 workflow=workflow.strip(), detail=str(_ws_exc)[:200],
+                                 **trace_scope)
                 except Exception:
                     pass
         template_ip = str(request.get("ip", "")).strip()
-        project_root = str(request.get("project_root", "")).strip()
+        project_root = (
+            str(request.get("project_root", "")).strip()
+            or os.environ.get("ATLAS_PROJECT_ROOT", "").strip()
+        )
+        if not _project_root_allowed_for_worker(project_root, session_name):
+            raise HTTPException(status_code=403, detail="project_root outside worker workspace")
         rtl_version_id = str(request.get("rtl_version_id", "")).strip()
         artifact_versions = request.get("artifact_versions") or []
         if (
@@ -2294,7 +2364,8 @@ def create_app():
                     record_trace(template_ip or ip_for_trace, lens="result",
                                  actor=actor_self, kind="run_completed",
                                  corr=corr_eff, run_id=entry.run_id,
-                                 status=getattr(entry, "status", "unknown"))
+                                 status=getattr(entry, "status", "unknown"),
+                                 **trace_scope)
                 except Exception:
                     pass
             finally:
@@ -2305,7 +2376,7 @@ def create_app():
             record_trace(template_ip or ip_for_trace, lens="interaction",
                          actor=actor_self, peer="orchestrator",
                          kind="http_accepted", corr=corr_eff,
-                         status=200, run_id=entry.run_id)
+                         status=200, run_id=entry.run_id, **trace_scope)
         except Exception:
             pass
         return {"run_id": entry.run_id, "status": "pending", "trace_corr": corr_eff}

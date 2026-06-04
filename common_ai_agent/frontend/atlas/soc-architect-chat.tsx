@@ -18,6 +18,21 @@ const normalizeArchitectSession = (session: unknown): string => g.normalizeArchi
 const architectEventMatchesActiveSession = (m: any, opts?: { requireSession?: boolean }): boolean =>
   g.architectEventMatchesActiveSession(m, opts);
 
+const activeWorkspaceSessionParam = (): string => {
+  const normalizeOrRaw = (value: unknown): string => normalizeArchitectSession(value) || String(value || '').trim();
+  const explicit = normalizeOrRaw(g.ATLAS_WORKSPACE_SESSION_ID || '');
+  if (explicit) return explicit;
+  const parts = normalizeOrRaw(g.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  return parts.length >= 4 ? parts[1] || '' : '';
+};
+
+const scopedJobUrl = (path: string): string => {
+  const workspaceSession = activeWorkspaceSessionParam();
+  if (!workspaceSession) return path;
+  const params = new URLSearchParams({ workspace_session: workspaceSession });
+  return `${path}?${params.toString()}`;
+};
+
 interface FeedEntry {
   kind: string;
   text: string;
@@ -191,7 +206,7 @@ export function ArchitectChat({ view, selModule, selCluster, onDiagramPlan }: Ar
       setStreaming(true);
       const loadOnce = async () => {
         try {
-          const r = await fetch(`/api/job/${encodeURIComponent(jobId)}/log`);
+          const r = await fetch(scopedJobUrl(`/api/job/${encodeURIComponent(jobId)}/log`));
           const d = await r.json().catch(() => ({}));
           if (!r.ok || d.error) throw new Error(d.error || `HTTP ${r.status}`);
           replayWorkerLog(d);

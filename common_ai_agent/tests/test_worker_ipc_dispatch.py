@@ -258,7 +258,9 @@ def test_ipc_dispatch_watcher_updates_job_from_response(tmp_path: Path, monkeypa
     jobs._dispatch_job_to_ipc_worker(job)
 
     deadline = time.time() + 2.0
-    while time.time() < deadline and job.get("status") != "completed":
+    while time.time() < deadline and not (
+        job.get("status") == "completed" and finishes and advances
+    ):
         time.sleep(0.01)
 
     assert job["status"] == "completed"
@@ -266,8 +268,8 @@ def test_ipc_dispatch_watcher_updates_job_from_response(tmp_path: Path, monkeypa
     assert job["worker_pid"] == 4242
     assert job["files_modified"] == ["ip_a/rtl/ip_a.sv"]
     assert job["iterations"] == 2
-    assert Path(tmp_path / job["worker_request_path"]).is_file()
-    assert Path(tmp_path / job["worker_response_path"]).is_file()
+    assert (tmp_path / str(job["worker_request_path"])).is_file()
+    assert (tmp_path / str(job["worker_response_path"])).is_file()
     assert finishes[-1] == ("abc123", "completed")
     assert advances == ["completed"]
 
@@ -294,6 +296,7 @@ def test_ipc_job_log_streams_stdout_before_response(tmp_path: Path, monkeypatch)
             "project_root": str(tmp_path),
             "worker_log_path": ".session/workers-ipc/j1/worker.log",
             "worker_response_path": ".session/workers-ipc/j1/response.json",
+            "user_id": "u",
         }
 
     resp = client.get("/api/job/j1/log?since=1")
@@ -307,6 +310,52 @@ def test_ipc_job_log_streams_stdout_before_response(tmp_path: Path, monkeypatch)
     ]
     with jobs._jobs_lock:
         assert jobs._jobs["j1"]["worker_log_entries"] == 2
+
+
+def test_ipc_job_log_uses_job_project_root_and_user_scope(tmp_path: Path, monkeypatch) -> None:
+    import atlas_api_jobs as jobs
+
+    client = _make_client(tmp_path, monkeypatch)
+    user_root = tmp_path / "u" / "default"
+    log_path = user_root / ".session" / "workers-ipc" / "j-user" / "worker.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    log_path.write_text("worker booted in user root\n", encoding="utf-8")
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs["j-user"] = {
+            "job_id": "j-user",
+            "run_id": "ipc-j-user",
+            "worker": "ipc://u/orchestrator/ssot-gen",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "status": "running",
+            "project_root": str(user_root),
+            "worker_log_path": ".session/workers-ipc/j-user/worker.log",
+            "worker_response_path": ".session/workers-ipc/j-user/response.json",
+            "user_id": "u",
+        }
+        jobs._jobs["j-other"] = {
+            "job_id": "j-other",
+            "run_id": "ipc-j-other",
+            "worker": "ipc://other/orchestrator/ssot-gen",
+            "worker_transport": "ipc",
+            "workflow": "ssot-gen",
+            "status": "running",
+            "project_root": str(user_root),
+            "worker_log_path": ".session/workers-ipc/j-user/worker.log",
+            "worker_response_path": ".session/workers-ipc/j-user/response.json",
+            "user_id": "other",
+        }
+
+    visible = client.get("/api/job/j-user/log")
+    forbidden = client.get("/api/job/j-other/log")
+
+    assert visible.status_code == 200, visible.text
+    body = visible.json()
+    assert body["source"] == "ipc-stdout"
+    assert body["log_path"] == ".session/workers-ipc/j-user/worker.log"
+    assert [entry["content"] for entry in body["entries"]] == ["worker booted in user root"]
+    assert forbidden.status_code == 403, forbidden.text
 
 
 def test_ipc_job_log_groups_stdout_tool_events(tmp_path: Path, monkeypatch) -> None:
@@ -339,6 +388,7 @@ def test_ipc_job_log_groups_stdout_tool_events(tmp_path: Path, monkeypatch) -> N
             "worker_log_path": ".session/workers-ipc/j2/worker.log",
             "worker_response_path": ".session/workers-ipc/j2/response.json",
             "started_at": 1716400006,
+            "user_id": "u",
         }
 
     resp = client.get("/api/job/j2/log")
