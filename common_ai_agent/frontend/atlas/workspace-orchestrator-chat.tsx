@@ -9,7 +9,6 @@
 import {
   useState,
   useEffect,
-  useRef,
   useCallback,
   type ReactNode,
   type KeyboardEvent,
@@ -19,6 +18,7 @@ import {
   type ChatRoom,
   type ChatMessage,
 } from './workspace-panel-shared';
+import { useStickyChatScroll } from './use-sticky-chat-scroll';
 
 export interface OrchestratorChatPanelProps {
   activeIp?: string;
@@ -33,7 +33,11 @@ export const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' }: Orchestra
   const [draft, setDraft]       = useState('');
   const [busy, setBusy]         = useState(false);
   const [error, setError]       = useState('');
-  const threadRef               = useRef<HTMLDivElement>(null);
+  const {
+    scrollRef: threadRef,
+    onScroll: onThreadScroll,
+    scrollToBottom: scrollThreadToBottom,
+  } = useStickyChatScroll<HTMLDivElement>([messages.length]);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -109,16 +113,11 @@ export const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' }: Orchestra
     return off;
   }, [room]);
 
-  // Auto-scroll thread on new message.
-  useEffect(() => {
-    const el = threadRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages]);
-
   const submit = async () => {
     const text = draft.trim();
     if (!text || busy) return;
     setBusy(true);
+    scrollThreadToBottom();
     try {
       const r = await fetch(`/api/chat/${encodeURIComponent(room)}/send`, {
         method: 'POST',
@@ -230,6 +229,7 @@ export const OrchestratorChatPanel = ({ activeIp: activeIpProp = '' }: Orchestra
 
       {/* Message thread */}
       <div ref={threadRef}
+           onScroll={onThreadScroll}
            style={{ flex: 1, minHeight: 100, overflowY: 'auto',
                     border: '1px solid var(--border)', borderRadius: 4,
                     padding: 6, fontSize: 12, background: 'var(--bg-soft)' }}>
