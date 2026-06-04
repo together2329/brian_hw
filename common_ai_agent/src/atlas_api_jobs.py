@@ -4974,10 +4974,14 @@ def register_jobs_routes(
 
     def _orchestrator_session_hint_from_body(body: dict[str, Any] | None = None) -> str:
         data = body or {}
-        for key in ("orchestrator_session_id", "session_id", "session", "namespace", "active_session"):
+        for key in ("orchestrator_session_id", "session", "namespace", "active_session"):
             raw = normalize_session_name(str(data.get(key) or ""))
             if raw:
                 return raw
+        raw_session_id = normalize_session_name(str(data.get("session_id") or ""))
+        parts = [part for part in raw_session_id.split("/") if part]
+        if len(parts) >= 4:
+            return raw_session_id
         return ""
 
     def _pipeline_session_prefix_for_owner(
