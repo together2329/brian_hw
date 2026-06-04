@@ -22,6 +22,7 @@ import {
   type ChangeEvent,
   type KeyboardEvent,
 } from 'react';
+import { useStickyChatScroll } from './use-sticky-chat-scroll';
 
 // ── Local typed view of the legacy window-glue surface this file touches ──
 type AnyComponent = (...a: unknown[]) => ReactNode;
@@ -511,7 +512,11 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const bodyRef = useRef<HTMLDivElement | null>(null);
+  const {
+    scrollRef: bodyRef,
+    onScroll: onBodyScroll,
+    scrollToBottom: scrollBodyToBottom,
+  } = useStickyChatScroll<HTMLDivElement>([messages.length]);
 
   const isActive = !!(pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.active);
   const hasIp = !!(ip && ip !== 'default');
@@ -551,14 +556,11 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     return () => { dead = true; clearInterval(pollingRef.current!); pollingRef.current = null; };
   }, [ip, isActive]);
 
-  useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-  }, [messages]);
-
   const handleSend = async () => {
     const text = draft.trim();
     if (!text || !hasIp || sending) return;
     setSending(true);
+    scrollBodyToBottom();
     try {
       const workspaceSession = activeRailWorkspaceSession();
       const session = activeOrchestratorRailSession(ip);
@@ -597,7 +599,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           {isActive ? 'live' : 'idle'}
         </span>
       </div>
-      <div className="orch-chat-body" ref={bodyRef}>
+      <div className="orch-chat-body" ref={bodyRef} onScroll={onBodyScroll}>
         {messages.length === 0 ? (
           <div className="orch-chat-empty mute">
             {hasIp
