@@ -1,0 +1,436 @@
+{
+  "contract_refs": [
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.pipeline.pack_sram"
+        ]
+      },
+      "contract_ref": "SEMANTIC_STATE_PAYLOAD_CONTENT",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PACK_SRAM"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "sram_wr_data",
+          "sram_wr_strb",
+          "sram_wr_addr"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_sram_packer.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "ssot": {
+        "anchor": "function_model.transactions.payload_pack_write",
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.transactions.payload_pack_write",
+          "function_model.transactions.FM_PACK_SRAM"
+        ]
+      },
+      "tb": {
+        "monitor": "payload_content_monitor",
+        "path": "tb/cocotb/test_mctp_datapath.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.transaction_latency.FM_PACK_SRAM"
+        ]
+      },
+      "contract_ref": "STATE_PAYLOAD_COUNT",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PACK_SRAM"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "ctx_payload_byte_count",
+          "ctx_payload_count"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_apb_regfile.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.state_variables.payload_byte_count",
+          "function_model.transactions.FM_PACK_SRAM",
+          "registers.register_list.Q_PAYLOAD_COUNT"
+        ]
+      },
+      "tb": {
+        "monitor": "payload_count_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.pipeline.pack_sram"
+        ]
+      },
+      "contract_ref": "MEM_SRAM_PAYLOAD_PACK",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PACK_SRAM"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "sram_wr_valid",
+          "sram_wr_strb"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_sram_packer.sv",
+          "rtl/mctp_assembler_v3_context_table.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.transactions.FM_PACK_SRAM",
+          "test_requirements.scenarios.SC_SINGLE"
+        ]
+      },
+      "tb": {
+        "monitor": "sram_payload_pack_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    },
+    {
+      "cl": {
+        "path": "model/cycle_model.py",
+        "rules": [
+          "cycle_model.pipeline.publish_descriptor"
+        ]
+      },
+      "contract_ref": "DESC_PUBLISH_VISIBLE",
+      "fl": {
+        "entry_points": [
+          "FunctionalModel.apply",
+          "FM_PUBLISH_DESCRIPTOR"
+        ],
+        "path": "model/functional_model.py"
+      },
+      "rtl": {
+        "observable_via": [
+          "descriptor_push",
+          "descriptor_valid"
+        ],
+        "owner_files": [
+          "rtl/mctp_assembler_v3_context_table.sv",
+          "rtl/mctp_assembler_v3_descriptor_queue.sv"
+        ]
+      },
+      "sim": {
+        "scoreboard": "sim/scoreboard_events.jsonl",
+        "wave": "sim/mctp_assembler_v3.vcd"
+      },
+      "ssot": {
+        "path": "yaml/mctp_assembler_v3.ssot.yaml",
+        "refs": [
+          "function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+          "test_requirements.scenarios.SC_SINGLE"
+        ]
+      },
+      "tb": {
+        "monitor": "descriptor_visibility_monitor",
+        "path": "tb/cocotb/test_mctp_assembler_v3.py"
+      }
+    }
+  ],
+  "requirements": [
+    {
+      "claim": "For the locked SC_SINGLE MCTP assembly scenario, accepted payload bytes are counted, packed into SRAM, and made visible through descriptor publication.",
+      "obligations": [
+        {
+          "claim": "The SC_SINGLE payload count reaches the 32-byte FL expected payload length in scoreboard and wave evidence.",
+          "contract_refs": [
+            "STATE_PAYLOAD_COUNT"
+          ],
+          "evidence_rows": [
+            {
+              "artifact": "sim/scoreboard_events.jsonl",
+              "match": {
+                "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+                "scenario_id": "SC_SINGLE"
+              }
+            }
+          ],
+          "obligation_id": "OBL_MCTP_V3_SC_SINGLE_PAYLOAD_COUNT_001",
+          "pass_conditions": [
+            {
+              "id": "scoreboard_row_passed",
+              "kind": "row_passed_with_fl_expected"
+            },
+            {
+              "expected_path": "fl_expected.model_result.state_updates.payload_bytes_written_count",
+              "field": "ctx_payload_byte_count",
+              "id": "ctx_payload_byte_count_matches_fl_payload_bytes_written",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "expected_path": "fl_expected.model_result.state_updates.payload_bytes_written_count",
+              "field": "ctx_payload_count_sel",
+              "id": "ctx_payload_count_sel_matches_fl_payload_bytes_written",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "artifact": "sim/mctp_assembler_v3.vcd",
+              "id": "ctx_payload_count_reaches_32_in_wave",
+              "kind": "vcd_signal_ever_equals",
+              "signal": "ctx_payload_byte_count",
+              "value": 32
+            }
+          ],
+          "required": true,
+          "required_observables": [
+            "ctx_payload_byte_count",
+            "ctx_payload_count_sel"
+          ],
+          "scenario_ids": [
+            "SC_SINGLE"
+          ]
+        },
+        {
+          "claim": "The SC_SINGLE SRAM pack transaction emits one contiguous 32-byte SRAM write after the payload count is visible.",
+          "contract_refs": [
+            "MEM_SRAM_PAYLOAD_PACK"
+          ],
+          "evidence_rows": [
+            {
+              "artifact": "sim/scoreboard_events.jsonl",
+              "match": {
+                "goal_id": "EQ_TRANSACTION_FM_PACK_SRAM",
+                "scenario_id": "SC_SINGLE"
+              }
+            }
+          ],
+          "obligation_id": "OBL_MCTP_V3_SC_SINGLE_SRAM_PACK_001",
+          "pass_conditions": [
+            {
+              "expected_path": "fl_expected.model_result.sram_wr_valid",
+              "field": "sram_wr_valid",
+              "id": "sram_write_valid_matches_fl",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "field": "sram_wr_count",
+              "id": "one_sram_write_emitted",
+              "kind": "observed_equals",
+              "value": 1
+            },
+            {
+              "expected_path": "fl_expected.model_result.sram_wr_addr",
+              "field": "sram_wr_addr",
+              "id": "sram_write_addr_matches_fl",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "expected_path": "fl_expected.model_result.sram_wr_strb",
+              "field": "sram_wr_strb",
+              "id": "sram_write_strb_matches_fl",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "field": "sram_wr_strb",
+              "id": "sram_write_strobe_is_contiguous",
+              "kind": "strobe_contiguous"
+            },
+            {
+              "artifact": "sim/mctp_assembler_v3.vcd",
+              "first": {
+                "signal": "ctx_payload_byte_count",
+                "value": 32
+              },
+              "id": "sram_write_after_payload_count_visible",
+              "kind": "vcd_event_order",
+              "relation": "same_or_after",
+              "second": {
+                "signal": "sram_wr_valid",
+                "value": 1
+              }
+            }
+          ],
+          "required": true,
+          "required_observables": [
+            "ctx_payload_byte_count",
+            "sram_wr_addr",
+            "sram_wr_count",
+            "sram_wr_strb",
+            "sram_wr_valid"
+          ],
+          "scenario_ids": [
+            "SC_SINGLE"
+          ]
+        },
+        {
+          "claim": "The SC_SINGLE descriptor publication is visible in scoreboard and VCD evidence after a descriptor push event.",
+          "contract_refs": [
+            "DESC_PUBLISH_VISIBLE"
+          ],
+          "evidence_rows": [
+            {
+              "artifact": "sim/scoreboard_events.jsonl",
+              "match": {
+                "goal_id": "EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+                "scenario_id": "SC_SINGLE"
+              }
+            }
+          ],
+          "obligation_id": "OBL_MCTP_V3_SC_SINGLE_DESCRIPTOR_VISIBLE_001",
+          "pass_conditions": [
+            {
+              "id": "scoreboard_row_passed",
+              "kind": "row_passed_with_fl_expected"
+            },
+            {
+              "field": "descriptor_push",
+              "id": "descriptor_push_observed",
+              "kind": "observed_equals",
+              "value": 1
+            },
+            {
+              "expected_path": "fl_expected.model_result.state_updates.descriptor_valid",
+              "field": "descriptor_valid",
+              "id": "descriptor_valid_matches_fl",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "expected_path": "fl_expected.model_result.state_updates.ctx_state",
+              "field": "ctx_state_sel",
+              "id": "context_done_state_matches_fl",
+              "kind": "observed_equals_fl_expected"
+            },
+            {
+              "artifact": "sim/mctp_assembler_v3.vcd",
+              "id": "descriptor_push_seen_in_wave",
+              "kind": "vcd_signal_ever_equals",
+              "signal": "descriptor_push",
+              "value": 1
+            },
+            {
+              "artifact": "sim/mctp_assembler_v3.vcd",
+              "first": {
+                "signal": "descriptor_push",
+                "value": 1
+              },
+              "id": "descriptor_valid_same_or_after_push",
+              "kind": "vcd_event_order",
+              "relation": "same_or_after",
+              "second": {
+                "signal": "descriptor_valid",
+                "value": 1
+              }
+            }
+          ],
+          "required": true,
+          "required_observables": [
+            "ctx_state_sel",
+            "descriptor_push",
+            "descriptor_valid"
+          ],
+          "scenario_ids": [
+            "SC_SINGLE"
+          ]
+        }
+      ],
+      "required": true,
+      "requirement_id": "REQ_MCTP_V3_SC_SINGLE_ASSEMBLY_001",
+      "source_refs": [
+        "yaml/mctp_assembler_v3.ssot.yaml:function_model.transactions.FM_PACK_SRAM",
+        "yaml/mctp_assembler_v3.ssot.yaml:function_model.transactions.FM_PUBLISH_DESCRIPTOR",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_PACK_SRAM",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_PUBLISH_DESCRIPTOR",
+        "sim/scoreboard_events.jsonl:SC_SINGLE"
+      ]
+    },
+    {
+      "claim": "The assembled MCTP payload bytes written to SRAM are byte-for-byte equivalent to the FL golden payload (CONTENT equivalence), not merely the same byte COUNT, for a multi-word message.",
+      "obligations": [
+        {
+          "claim": "For SC_RB_4096 the SRAM payload digest observed in RTL equals the FL-expected payload digest, proving full byte-content equivalence with no holes.",
+          "closure_stage": "sim",
+          "contract_refs": [
+            "SEMANTIC_STATE_PAYLOAD_CONTENT"
+          ],
+          "evidence_rows": [
+            {
+              "artifact": "sim/scoreboard_events.jsonl",
+              "match": {
+                "scenario_id": "SC_RB_4096"
+              }
+            }
+          ],
+          "failure_owner": "rtl-gen",
+          "granularity": "content",
+          "obligation_id": "OBL_MCTP_PAYLOAD_CONTENT_001",
+          "pass_conditions": [
+            {
+              "id": "scoreboard_row_passed",
+              "kind": "row_passed_with_fl_expected"
+            },
+            {
+              "expected_path": "fl_expected.model_result.state_updates.payload_digest",
+              "field": "payload_digest",
+              "id": "payload_digest_matches_fl",
+              "kind": "observed_equals_fl_expected"
+            }
+          ],
+          "required": true,
+          "required_observables": [
+            "payload_digest"
+          ],
+          "required_stages": [
+            "fl",
+            "rtl",
+            "tb",
+            "sim"
+          ],
+          "scenario_ids": [
+            "SC_RB_4096"
+          ]
+        }
+      ],
+      "required": true,
+      "requirement_id": "REQ_MCTP_PAYLOAD_CONTENT_001",
+      "source_refs": [
+        "yaml/mctp_assembler_v3.ssot.yaml:function_model.transactions.payload_pack_write",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_PACK_SRAM",
+        "sim/scoreboard_events.jsonl:SC_RB_4096"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "source_of_truth": "yaml/mctp_assembler_v3.ssot.yaml",
+  "type": "semantic_contracts"
+}

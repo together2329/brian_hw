@@ -23,6 +23,7 @@ from workflow.contract_reflection.evidence_contract_json import (
     as_map as _as_map,
     strings as _strings,
 )
+from workflow.contract_reflection.owner_routing import route_from_reports
 
 
 @dataclass(frozen=True)
@@ -36,21 +37,31 @@ def _utc() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
-def _parse_args(argv: list[str]) -> tuple[str, Path]:
+def _parse_args(argv: list[str]) -> tuple[str, Path, bool, bool]:
     if not argv or argv[0] in {"-h", "--help"}:
-        raise SystemExit("usage: run_contract_check.py <ip> [--root <root>]")
+        raise SystemExit("usage: run_contract_check.py <ip> [--root <root>] [--require-contract-closure] [--require-sim-freshness]")
     ip = argv[0]
     root = Path(".")
+    require_contract_closure = False
+    require_sim_freshness = False
     index = 1
     while index < len(argv):
         token = argv[index]
+        if token == "--require-contract-closure":
+            require_contract_closure = True
+            index += 1
+            continue
+        if token == "--require-sim-freshness":
+            require_sim_freshness = True
+            index += 1
+            continue
         if token != "--root":
             raise SystemExit(f"usage: unexpected argument {token!r}")
         if index + 1 >= len(argv):
             raise SystemExit("usage: --root requires a value")
         root = Path(argv[index + 1])
         index += 2
-    return ip, root.resolve()
+    return ip, root.resolve(), require_contract_closure, require_sim_freshness
 
 
 def _resolve_ip_dir(root: Path, ip: str) -> Path:
@@ -115,8 +126,8 @@ def _int_value(value: JsonValue) -> int:
     return value if isinstance(value, int) and not isinstance(value, bool) else 0
 
 
-def _status(reflection: JsonMap, evidence: JsonMap, overlay: StepRun, reflection_run: StepRun, evidence_run: StepRun) -> str:
-    if overlay.returncode != 0:
+def _status(reflection: JsonMap, evidence: JsonMap, overlays: list[StepRun], reflection_run: StepRun, evidence_run: StepRun) -> str:
+    if any(run.returncode != 0 for run in overlays):
         return "fail"
     child_failed = reflection_run.returncode != 0 or evidence_run.returncode != 0
     if reflection.get("status") == "pass" and evidence.get("status") == "pass":
@@ -126,14 +137,47 @@ def _status(reflection: JsonMap, evidence: JsonMap, overlay: StepRun, reflection
     return "blocked"
 
 
+def _failed_step_route(ip_dir: Path, run: StepRun) -> JsonMap:
+    owner = "sim-debug" if run.label == "sim_evidence_freshness" else "contract-reflection"
+    commands: JsonList = ["/wf sim-debug", "/contract-check <ip> --require-sim-freshness"] if owner == "sim-debug" else ["/wf contract-reflection", "/contract-check <ip>"]
+    return {
+        "generated_at": _utc(),
+        "ip": ip_dir.name,
+        "owner_workflow": owner,
+        "reason": f"{run.label}: {run.stdout}",
+        "rerun_after_repair": ["contract-check"],
+        "schema_version": 1,
+        "status": "blocked",
+        "suggested_commands": commands,
+        "type": "contract_owner_routing",
+    }
+
+
+def _stale_child_failure(reflection: JsonMap, evidence: JsonMap, reflection_run: StepRun, evidence_run: StepRun) -> StepRun | None:
+    if reflection_run.returncode != 0 and reflection.get("status") == "pass":
+        return reflection_run
+    if evidence_run.returncode != 0 and evidence.get("status") == "pass":
+        return evidence_run
+    return None
+
+
+def _write_owner_route(ip_dir: Path, route: JsonMap) -> None:
+    out = ip_dir / "signoff" / "contract_owner_routing.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    _ = out.write_text(json.dumps(route, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
 def _write_report(ip_dir: Path, status: str, runs: list[StepRun], reflection: JsonMap, evidence: JsonMap, route: JsonMap) -> JsonMap:
     report: JsonMap = {
         "artifacts": [
+            "verify/semantic_contracts.json",
             "verify/requirements_index.json",
             "verify/evidence_contract.json",
             "verify/contract_reflection.json",
             "signoff/contract_reflection_coverage.json",
             "signoff/evidence_contract_coverage.json",
+            "sim/evidence_freshness.json",
+            "signoff/sim_evidence_freshness.json",
             "signoff/contract_owner_routing.json",
         ],
         "evidence": evidence,
@@ -170,24 +214,46 @@ def _print_report(report: JsonMap) -> None:
 
 
 def main() -> int:
-    ip, root = _parse_args(sys.argv[1:])
+    ip, root, require_contract_closure, require_sim_freshness = _parse_args(sys.argv[1:])
     ip_dir = _resolve_ip_dir(root, ip)
     runs: list[StepRun] = []
-    overlay = StepRun("contract_overlay", 0, "skipped: verify/equivalence_goals.json not present")
+    semantic_overlay = StepRun("semantic_contract_overlay", 0, "skipped: verify/semantic_contracts.json not present")
+    if (ip_dir / "verify" / "semantic_contracts.json").is_file():
+        semantic_overlay = _run("semantic_contract_overlay", _script("emit_semantic_contract_overlay.py"), ip, root)
+    elif require_contract_closure:
+        semantic_overlay = StepRun("semantic_contract_overlay", 1, "required: missing verify/semantic_contracts.json")
+    runs.append(semantic_overlay)
+    overlay = StepRun("goal_contract_overlay", 0, "skipped: verify/equivalence_goals.json not present")
     if (ip_dir / "verify" / "equivalence_goals.json").is_file():
-        overlay = _run("contract_overlay", _script("emit_goal_contract_overlay.py"), ip, root)
+        overlay = _run("goal_contract_overlay", _script("emit_goal_contract_overlay.py"), ip, root)
     runs.append(overlay)
+    sim_freshness = StepRun("sim_evidence_freshness", 0, "skipped: --require-sim-freshness not set")
+    if require_sim_freshness:
+        sim_freshness = _run("sim_evidence_freshness", _script("check_sim_evidence_freshness.py"), ip, root)
+    runs.append(sim_freshness)
     reflection_run = _run("contract_reflection", _script("check_contract_reflection.py"), ip, root)
     evidence_run = _run("evidence_contract", _script("check_evidence_contract.py"), ip, root)
     runs.extend([reflection_run, evidence_run])
     reflection = _load_json(ip_dir / "signoff" / "contract_reflection_coverage.json")
     evidence = _load_json(ip_dir / "signoff" / "evidence_contract_coverage.json")
     route: JsonMap = {}
-    status = _status(reflection, evidence, overlay, reflection_run, evidence_run)
-    if status != "pass":
+    status = _status(reflection, evidence, [semantic_overlay, overlay, sim_freshness], reflection_run, evidence_run)
+    stale_child = _stale_child_failure(reflection, evidence, reflection_run, evidence_run)
+    if status == "pass":
+        route = route_from_reports(ip_dir)
+        _write_owner_route(ip_dir, route)
+    elif stale_child is not None:
+        route = _failed_step_route(ip_dir, stale_child)
+        _write_owner_route(ip_dir, route)
+    else:
         owner_run = _run("contract_owner", _script("classify_contract_owner.py"), ip, root)
         runs.append(owner_run)
         route = _load_json(ip_dir / "signoff" / "contract_owner_routing.json")
+        for run in (sim_freshness, semantic_overlay, overlay):
+            if run.returncode != 0:
+                route = _failed_step_route(ip_dir, run)
+                _write_owner_route(ip_dir, route)
+                break
     report = _write_report(ip_dir, status, runs, reflection, evidence, route)
     _print_report(report)
     return 0 if status == "pass" else 1

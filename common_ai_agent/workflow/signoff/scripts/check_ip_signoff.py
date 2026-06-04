@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
@@ -20,6 +21,17 @@ from pathlib import Path
 from typing import Any, cast
 
 import yaml
+
+# Reuse the canonical sim-evidence freshness checker so check_ip_signoff and
+# run_contract_check render the IDENTICAL freshness verdict (VCM final rule:
+# PASS = correctness AND freshness).
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
+try:
+    from workflow.contract_reflection.sim_freshness import sim_freshness_issues as _sim_freshness_issues
+except Exception:  # pragma: no cover - freshness module optional for legacy trees
+    _sim_freshness_issues = None
 
 
 RTL_TODO_HASH_VOLATILE_KEYS = {
@@ -177,11 +189,12 @@ class Gate:
 
 
 class SignoffChecker:
-    def __init__(self, ip: str, root: Path, *, require_human_waiver_approval: bool) -> None:
+    def __init__(self, ip: str, root: Path, *, require_human_waiver_approval: bool, require_sim_freshness: bool = False) -> None:
         self.ip = ip
         self.root = root.resolve()
         self.ip_dir = self.root / ip
         self.require_human_waiver_approval = require_human_waiver_approval
+        self.require_sim_freshness = require_sim_freshness
         self.gates: list[Gate] = []
         self.ip_contract: dict[str, Any] = {}
 
@@ -483,6 +496,27 @@ class SignoffChecker:
             limitations = doc.get("limitations") if isinstance(doc.get("limitations"), list) else []
             if limitations:
                 issues.append(f"coverage limitations require review: {len(limitations)}")
+            # A code-coverage metric that reports measured=False (or status
+            # 'not_instrumented') has a vacuous meets_target on 0/0 counters; it
+            # must NOT be allowed to pass silently. Either the metric was actually
+            # measured, or its absence must carry an explicit waived_limitations
+            # rationale. This closes the "coverage passes though no lines were ever
+            # instrumented" gap while staying backward-compatible: a coverage.json
+            # that makes no claim about a metric (key absent) is left untouched.
+            waived = doc.get("waived_limitations") if isinstance(doc.get("waived_limitations"), dict) else {}
+            for waiver_key, metric_key in (("line", "lines"), ("branch", "branches")):
+                metric = doc.get(metric_key)
+                if not isinstance(metric, dict):
+                    continue  # no claim about this metric -> no new obligation
+                not_measured = (metric.get("measured") is False) or (
+                    str(metric.get("status") or "") == "not_instrumented"
+                )
+                if not_measured and not str(waived.get(waiver_key) or "").strip():
+                    issues.append(
+                        f"coverage {metric_key}.measured is False/not_instrumented but no "
+                        f"waived_limitations.{waiver_key} rationale is recorded "
+                        f"(a vacuous meets_target on 0/0 counters is not accepted)"
+                    )
         self.add("coverage", "fail" if issues else "pass", path, f"status={doc.get('status')}", issues)
 
     def check_truth_coverage(self) -> None:
@@ -613,6 +647,127 @@ class SignoffChecker:
             issues,
         )
 
+    def check_contract_content_coverage(self) -> None:
+        # VCM closure rule: an IP that opted into the SEMANTIC contract layer must
+        # prove at least one CONTENT-granularity obligation, so count/structural
+        # coverage alone can never sign it off. This is the gate that structurally
+        # closes the "count passes, content untested" gap (the class that hid
+        # multi-beat payload loss).
+        #
+        # Applicability keys off verify/semantic_contracts.json (the VCM opt-in
+        # signal), NOT evidence_contract.json: the goal-overlay writes a count-only
+        # evidence_contract.json for EVERY contract IP, so keying off its presence
+        # would over-reach and fail every pre-VCM/unmigrated IP. A bare IP or a
+        # legacy goal-overlay-only IP (no semantic_contracts.json) is not-applicable.
+        sc_path = self.ip_dir / "verify" / "semantic_contracts.json"
+        ec_path = self.ip_dir / "verify" / "evidence_contract.json"
+        cov_path = self.ip_dir / "signoff" / "evidence_contract_coverage.json"
+        if not sc_path.is_file():
+            self.add(
+                "contract_content_coverage",
+                "pass",
+                sc_path,
+                "no semantic contract layer (not applicable)",
+                [],
+            )
+            return
+        issues: list[str] = []
+        ec, ec_err = _read_json(ec_path)
+        if ec_err:
+            issues.append(ec_err)
+        obligations = ec.get("obligations") if isinstance(ec.get("obligations"), list) else []
+        content_obs = [
+            o for o in obligations
+            if isinstance(o, dict) and str(o.get("granularity")) == "content"
+        ]
+        if not content_obs:
+            issues.append(
+                "no granularity:content obligation; count/structural coverage alone is "
+                "not accepted for a contract IP (a payload-bearing IP must prove content "
+                "equivalence, e.g. a payload-digest observed_equals_fl_expected)"
+            )
+        cov, cov_err = _read_json(cov_path)
+        if cov_err:
+            issues.append(cov_err)
+        elif cov.get("status") != "pass":
+            summary = cov.get("summary") if isinstance(cov.get("summary"), dict) else {}
+            issues.append(
+                f"contract-check (evidence_contract_coverage) status is "
+                f"{cov.get('status')!r}, expected pass (failed={summary.get('failed')}); "
+                "run workflow/contract-reflection/scripts/run_contract_check.py"
+            )
+        self.add(
+            "contract_content_coverage",
+            "fail" if issues else "pass",
+            cov_path,
+            f"content_obligations={len(content_obs)} contract_check={cov.get('status')}",
+            issues,
+        )
+
+    def check_contract_sim_freshness(self) -> None:
+        # VCM final rule: PASS = correctness AND freshness. Enforced for contract
+        # IPs (option 1.5 — legacy stays unbroken):
+        #   - no contract sim-owned obligation and no --require-sim-freshness
+        #       -> not applicable (legacy IPs do not regress)
+        #   - contract IP carrying a sim-owned / content / temporal obligation
+        #       -> sim-stage freshness REQUIRED
+        #   - --require-sim-freshness -> always REQUIRED
+        # Required-but-missing stamp -> blocked; fingerprint/staleness mismatch -> fail.
+        # The verdict reuses sim_freshness.sim_freshness_issues, so it is IDENTICAL to
+        # run_contract_check --require-sim-freshness.
+        ec_path = self.ip_dir / "verify" / "evidence_contract.json"
+        manifest_path = self.ip_dir / "sim" / "evidence_freshness.json"
+        sim_obligation = False
+        if ec_path.is_file():
+            ec, _ec_err = _read_json(ec_path)
+            obligations = ec.get("obligations") if isinstance(ec.get("obligations"), list) else []
+            for ob in obligations:
+                if not isinstance(ob, dict):
+                    continue
+                gran = str(ob.get("granularity") or "")
+                stages = ob.get("required_stages") if isinstance(ob.get("required_stages"), list) else []
+                owned = str(ob.get("owned_by_stage") or ob.get("closure_stage") or "")
+                if gran in {"content", "temporal"} or owned == "sim" or "sim" in stages:
+                    sim_obligation = True
+                    break
+        if not (self.require_sim_freshness or sim_obligation):
+            self.add(
+                "contract_sim_freshness",
+                "pass",
+                manifest_path,
+                "no sim-owned contract obligation; freshness not applicable",
+                [],
+            )
+            return
+        if _sim_freshness_issues is None:
+            self.add(
+                "contract_sim_freshness", "fail", manifest_path,
+                "freshness required but sim_freshness module unavailable",
+                ["cannot import workflow.contract_reflection.sim_freshness"],
+            )
+            return
+        if not manifest_path.is_file():
+            self.add(
+                "contract_sim_freshness", "blocked", manifest_path,
+                "sim-stage freshness stamp required but missing",
+                ["missing sim/evidence_freshness.json; run the sim stage then "
+                 "ATLAS_SIM_FRESHNESS_SOURCE=sim_stage stamp_sim_evidence_freshness.py"],
+            )
+            return
+        try:
+            issues = list(_sim_freshness_issues(self.ip_dir))
+        except SystemExit as exc:
+            issues = [f"sim_freshness check failed: {exc}"]
+        except Exception as exc:  # pragma: no cover
+            issues = [f"sim_freshness check error: {exc}"]
+        self.add(
+            "contract_sim_freshness",
+            "fail" if issues else "pass",
+            manifest_path,
+            "PASS = correctness AND freshness (sim evidence current vs SSOT/FL/CL/TB/RTL inputs)",
+            issues[:20],
+        )
+
     def check_waivers(self) -> None:
         path = self.ip_dir / "signoff" / "goal_ledger.json"
         doc, err = _read_json(path)
@@ -656,6 +811,8 @@ class SignoffChecker:
             self.check_truth_coverage()
             self.check_mutation_guard()
             self.check_verification_hardening()
+            self.check_contract_content_coverage()
+            self.check_contract_sim_freshness()
             self.check_waivers()
 
         failing = [gate for gate in self.gates if gate.status == "fail"]
@@ -724,12 +881,18 @@ def main() -> int:
         action="store_true",
         help="Block signoff when known waivers do not carry approved_by.",
     )
+    parser.add_argument(
+        "--require-sim-freshness",
+        action="store_true",
+        help="Require a valid sim-stage freshness stamp regardless of contract obligations.",
+    )
     args = parser.parse_args()
 
     checker = SignoffChecker(
         args.ip,
         Path(args.root),
         require_human_waiver_approval=args.require_human_waiver_approval,
+        require_sim_freshness=args.require_sim_freshness,
     )
     report = checker.run()
 

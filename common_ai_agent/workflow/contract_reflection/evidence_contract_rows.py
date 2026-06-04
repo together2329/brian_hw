@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from workflow.contract_reflection.evidence_contract_json import JsonMap, as_list, as_map, load_rows, strings, text
+from workflow.contract_reflection.semantic_freshness import require_fresh_semantic_artifact
 
 
 DEFAULT_SCOREBOARD = "sim/scoreboard_events.jsonl"
@@ -11,6 +12,7 @@ RowsByArtifact = dict[str, list[JsonMap]]
 
 
 def load_scoreboard_rows(ip_dir: Path, contract: JsonMap) -> RowsByArtifact:
+    require_fresh_semantic_artifact(ip_dir, "verify/evidence_contract.json", contract, "evidence_contract")
     artifacts = {DEFAULT_SCOREBOARD}
     for item in as_list(contract.get("obligations")):
         obligation = as_map(item)

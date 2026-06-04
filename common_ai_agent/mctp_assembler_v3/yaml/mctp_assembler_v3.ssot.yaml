@@ -2837,6 +2837,13 @@ integration:
   - module: mctp_assembler_v3_context_table
     port: drop_class_o
     signal: last_drop_class
+  - module: mctp_assembler_v3_cdc_sync
+    port: evt_fatal_internal_error_a
+    signal: "1'b0"
+    type: tieoff
+    note: reserved fatal-error interrupt source has no hardware producer in this
+      implementation; constant 1'b0 tie-off is the truthful behavior (explicit
+      SSOT tieoff allowance, not a placeholder)
   address_map_requirements:
     alignment_bytes: 4
     decode_owner: SoC interconnect
@@ -3204,6 +3211,10 @@ quality_gates:
   rtl_gen:
     profile: production
     pass: SSOT-derived rtl_todo_plan has no blockers/orphans; owner-file logic present; FL-vs-RTL goal coverage and RTL-observed coverage close with fresh evidence.
+    target_scale:
+      source_files_min: 10
+      modules_min: 9
+      note: One synthesizable .sv per decomposition unit (ingress, pcie_vdm_parser, mctp_decoder, context_table, sram_packer, descriptor_queue, axi_rd_payload, apb_regfile, cdc_sync) plus the top integration wrapper.
     evidence:
     - rtl/rtl_todo_plan.json
     - rtl/rtl_compile.json

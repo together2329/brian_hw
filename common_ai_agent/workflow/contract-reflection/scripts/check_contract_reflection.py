@@ -17,6 +17,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from workflow.contract_reflection.evidence_contract_vcd import sampled_vcd_signals
+from workflow.contract_reflection.semantic_freshness import semantic_freshness_issues
 
 
 JsonValue = TypeAliasType("JsonValue", Union[None, bool, int, float, str, list["JsonValue"], dict[str, "JsonValue"]])
@@ -173,6 +174,10 @@ def _check_ref(ip_dir: Path, contract_ref: str, reflection: JsonMap) -> Contract
 def _analyze(ip_dir: Path) -> JsonMap:
     evidence = _load_json(ip_dir / "verify" / "evidence_contract.json")
     reflection = _load_json(ip_dir / "verify" / "contract_reflection.json")
+    freshness_issues = [
+        *semantic_freshness_issues(ip_dir, "verify/evidence_contract.json", evidence),
+        *semantic_freshness_issues(ip_dir, "verify/contract_reflection.json", reflection),
+    ]
     required_refs = sorted(_contract_refs_from_evidence(evidence))
     reflections = _reflection_map(reflection)
     results = [_check_ref(ip_dir, contract_ref, reflections.get(contract_ref, {})) for contract_ref in required_refs]
@@ -190,9 +195,10 @@ def _analyze(ip_dir: Path) -> JsonMap:
         "contract_refs": contract_reports,
         "generated_at": _utc(),
         "ip": ip_dir.name,
+        "issues": _json_strings(tuple(freshness_issues)),
         "schema_version": 1,
-        "status": "pass" if failed == 0 else "fail",
-        "summary": {"failed": failed, "passed": passed, "total": len(results)},
+        "status": "pass" if failed == 0 and not freshness_issues else "fail",
+        "summary": {"artifact_issues": len(freshness_issues), "failed": failed, "passed": passed, "total": len(results)},
         "type": "contract_reflection_coverage",
     }
 
@@ -222,6 +228,8 @@ def main() -> int:
     out.parent.mkdir(parents=True, exist_ok=True)
     _ = out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"[contract_reflection] {report['status']}: wrote {out}")
+    for issue in _strings(report.get("issues")):
+        print(f"[contract_reflection] artifact: {issue}")
     for item in _as_list(report.get("contract_refs")):
         data = _as_map(item)
         for issue in _strings(data.get("issues")):

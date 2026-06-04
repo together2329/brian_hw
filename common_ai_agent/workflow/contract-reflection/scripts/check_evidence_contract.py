@@ -25,9 +25,19 @@ from workflow.contract_reflection.evidence_contract_json import (
 )
 from workflow.contract_reflection.evidence_contract_rows import RowsByArtifact, load_scoreboard_rows, matching_rows
 from workflow.contract_reflection.evidence_contract_vcd import VCD_CONDITION_KINDS, check_vcd_condition, vcd_observable_names
+from workflow.contract_reflection.semantic_freshness import semantic_freshness_issues
 
 
-CONDITION_KINDS: set[str] = {"observed_equals", "observed_masked_equals", "observed_nonzero", "observed_present", "row_passed", "strobe_contiguous"}
+CONDITION_KINDS: set[str] = {
+    "observed_equals",
+    "observed_equals_fl_expected",
+    "observed_masked_equals",
+    "observed_nonzero",
+    "observed_present",
+    "row_passed",
+    "row_passed_with_fl_expected",
+    "strobe_contiguous",
+}
 
 
 @dataclass(frozen=True)
@@ -91,6 +101,21 @@ def _field(row: JsonMap, field: str) -> JsonValue:
     observed = _as_map(row.get("rtl_observed"))
     return observed.get(field)
 
+def _path_value(row: JsonMap, path: str) -> tuple[bool, JsonValue]:
+    if not path.startswith("fl_expected."):
+        return False, None
+    value: JsonValue = row
+    for segment in path.split("."):
+        data = _as_map(value)
+        if segment not in data:
+            return False, None
+        value = data[segment]
+    return True, value
+
+def _has_fl_expected(row: JsonMap) -> bool:
+    expected = _as_map(row.get("fl_expected"))
+    return bool(_as_map(expected.get("model_result")))
+
 def _contiguous_nonzero(value: JsonValue) -> bool:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         return False
@@ -114,6 +139,12 @@ def _condition(ip_dir: Path, row: JsonMap, condition: JsonMap) -> tuple[str, boo
         return cid, False, f"unknown condition kind {kind}"
     if kind == "row_passed":
         return cid, row.get("passed") is True, "scoreboard row did not pass"
+    if kind == "row_passed_with_fl_expected":
+        if row.get("passed") is not True:
+            return cid, False, "scoreboard row did not pass"
+        if _text(row.get("mismatch")):
+            return cid, False, "scoreboard row reports mismatch"
+        return cid, _has_fl_expected(row), "scoreboard row lacks FL expected model_result"
     if not field:
         return cid, False, "condition missing field"
     observed = _field(row, field)
@@ -124,6 +155,12 @@ def _condition(ip_dir: Path, row: JsonMap, condition: JsonMap) -> tuple[str, boo
     if kind == "observed_equals":
         expected = condition.get("value")
         return cid, observed == expected, f"{field}={observed!r} expected {expected!r}"
+    if kind == "observed_equals_fl_expected":
+        expected_path = _text(condition.get("expected_path"))
+        found, expected = _path_value(row, expected_path)
+        if not found:
+            return cid, False, f"missing FL expected path {expected_path}"
+        return cid, observed == expected, f"{field}={observed!r} expected {expected!r} from {expected_path}"
     if kind == "observed_masked_equals":
         observed_int = _condition_int(observed)
         mask = _condition_int(condition.get("mask"))
@@ -195,17 +232,19 @@ def _analyze(ip_dir: Path) -> JsonMap:
     obligations = [_as_map(item) for item in _as_list(contract.get("obligations")) if _required(_as_map(item))]
     known_obligations = {_text(item.get("obligation_id")) for item in obligations if _text(item.get("obligation_id"))}
     index_issues = _requirement_obligation_issues(index, known_obligations)
+    artifact_issues = semantic_freshness_issues(ip_dir, "verify/requirements_index.json", index)
     results = [_check_obligation(ip_dir, _as_map(item), known_reqs, rows) for item in obligations]
     passed = sum(1 for item in results if item.status == "pass")
     failed = sum(1 for item in results if item.status != "pass")
+    issues = [*index_issues, *artifact_issues]
     return {
         "generated_at": _utc(),
         "ip": ip_dir.name,
-        "issues": _json_strings(index_issues),
+        "issues": _json_strings(issues),
         "obligations": _obligation_reports(results),
         "schema_version": 1,
-        "status": "pass" if failed == 0 and not index_issues else "fail",
-        "summary": {"failed": failed, "index_issues": len(index_issues), "passed": passed, "total": len(results)},
+        "status": "pass" if failed == 0 and not issues else "fail",
+        "summary": {"failed": failed, "index_issues": len(issues), "passed": passed, "total": len(results)},
         "type": "evidence_contract_coverage",
     }
 

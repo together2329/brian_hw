@@ -6,7 +6,7 @@ from typing import Final
 from workflow.contract_reflection.evidence_contract_json import JsonMap, JsonValue, as_map, strings, text
 
 
-VCD_CONDITION_KINDS: Final[set[str]] = {"vcd_signal_ever_equals", "vcd_stable_while"}
+VCD_CONDITION_KINDS: Final[set[str]] = {"vcd_event_order", "vcd_signal_ever_equals", "vcd_stable_while"}
 SignalSamples = dict[str, list[tuple[int, int]]]
 
 
@@ -24,6 +24,10 @@ def vcd_observable_names(condition: JsonMap) -> set[str]:
         if while_signal:
             names.add(while_signal)
         return names
+    if kind == "vcd_event_order":
+        first_signal = text(as_map(condition.get("first")).get("signal"))
+        second_signal = text(as_map(condition.get("second")).get("signal"))
+        return {name for name in (first_signal, second_signal) if name}
     return set()
 
 
@@ -33,6 +37,8 @@ def check_vcd_condition(ip_dir: Path, condition: JsonMap) -> tuple[bool, str]:
         return _check_ever_equals(ip_dir, condition)
     if kind == "vcd_stable_while":
         return _check_stable_while(ip_dir, condition)
+    if kind == "vcd_event_order":
+        return _check_event_order(ip_dir, condition)
     return False, f"unknown VCD condition kind {kind}"
 
 
@@ -115,6 +121,13 @@ def _expected_int(value: JsonValue) -> int | None:
     return value if isinstance(value, int) and not isinstance(value, bool) else None
 
 
+def _first_time(samples: SignalSamples, signal: str, expected: int) -> int | None:
+    for sample_time, value in samples.get(signal, []):
+        if value == expected:
+            return sample_time
+    return None
+
+
 def _check_ever_equals(ip_dir: Path, condition: JsonMap) -> tuple[bool, str]:
     signal = text(condition.get("signal"))
     expected = _expected_int(condition.get("value"))
@@ -131,6 +144,38 @@ def _check_ever_equals(ip_dir: Path, condition: JsonMap) -> tuple[bool, str]:
     if any(value == expected for _, value in samples[signal]):
         return True, ""
     return False, f"VCD signal {signal} never reached {expected!r}"
+
+
+def _check_event_order(ip_dir: Path, condition: JsonMap) -> tuple[bool, str]:
+    first = as_map(condition.get("first"))
+    second = as_map(condition.get("second"))
+    first_signal = text(first.get("signal"))
+    second_signal = text(second.get("signal"))
+    first_value = _expected_int(first.get("value"))
+    second_value = _expected_int(second.get("value"))
+    path, issue = _artifact_path(ip_dir, text(condition.get("artifact")))
+    if path is None:
+        return False, issue
+    if not first_signal or not second_signal or first_value is None or second_value is None:
+        return False, "event-order condition is incomplete"
+    samples = _read_samples(path, {first_signal, second_signal})
+    missing = sorted(name for name, values in samples.items() if not values)
+    if missing:
+        return False, f"VCD missing samples for {', '.join(missing)}"
+    first_time = _first_time(samples, first_signal, first_value)
+    second_time = _first_time(samples, second_signal, second_value)
+    if first_time is None:
+        return False, f"VCD event {first_signal}={first_value} was not observed"
+    if second_time is None:
+        return False, f"VCD event {second_signal}={second_value} was not observed"
+    relation = text(condition.get("relation")) or "after"
+    relations = {"after": second_time > first_time, "same_or_after": second_time >= first_time}
+    if relation not in relations:
+        return False, f"unknown event-order relation {relation}"
+    passed = relations[relation]
+    if passed:
+        return True, ""
+    return False, f"{second_signal}={second_value} at {second_time} is not {relation} {first_signal}={first_value} at {first_time}"
 
 
 def _check_stable_while(ip_dir: Path, condition: JsonMap) -> tuple[bool, str]:

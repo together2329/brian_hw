@@ -51,6 +51,23 @@ async def axi_write_burst(dut, n_beats, awsize=5, awburst=1, bytes_per_beat=32):
     await RisingEdge(dut.axi_aclk)             # AW handshake consummated here
     dut.s_axi_awvalid.value = 0
 
+    aw_is_legal = awsize == 5 and awburst == 1
+    if not aw_is_legal:
+        dut.s_axi_wvalid.value = 0
+        dut.s_axi_wlast.value = 0
+        dut.s_axi_bready.value = 1
+        while True:
+            await FallingEdge(dut.axi_aclk)
+            if dut.s_axi_bvalid.value == 1:
+                break
+        bresp = int(dut.s_axi_bresp.value)
+        await RisingEdge(dut.axi_aclk)
+        dut.s_axi_bready.value = 0
+        await FallingEdge(dut.axi_aclk)
+        accept = int(dut.tlp_accept.value)
+        byte_count = int(dut.tlp_byte_count.value)
+        return bresp, accept, byte_count
+
     # ---- W phase ---- (contiguous LSB-aligned strobe => wstrb_contiguous=1)
     strb = (1 << bytes_per_beat) - 1
     for i in range(n_beats):
@@ -208,4 +225,3 @@ async def test_ingress_contiguity_gap(dut):
         "RTL ingress does not implement the wstrb_contiguous check the oracle requires; "
         "ingress equivalence is NOT closed."
     )
-
