@@ -1950,6 +1950,32 @@ def chat_loop():
                     print(f"[Keepalive] DEBUG: user_input was empty/whitespace, skipping: {repr(user_input[:80])}")
                 continue
 
+            # Plan-mode reconcile across the process boundary. In the Atlas web
+            # UI this loop runs inside a `core.session_worker` subprocess; a
+            # `/plan` toggle in the server process reaches us only via the
+            # per-prompt envelope, which session_worker.input() stamps onto this
+            # process's AGENT_MODE_OVERRIDE / PLAN_MODE env. Honor it here so the
+            # system prompt (toolset) and process_chat_turn see the right
+            # agent_mode. Coarse plan<->normal only: the plan_q->plan->normal
+            # progression is owned by process_chat_turn, so never downgrade an
+            # in-flight plan back to plan_q. No-op under Textual/CLI, where
+            # AGENT_MODE_OVERRIDE is unset and agent_mode is driven in-process.
+            _mode_ovr = os.environ.get("AGENT_MODE_OVERRIDE", "").strip()
+            if _mode_ovr in ("plan", "plan_q", "normal"):
+                _ovr_wants_plan = _mode_ovr in ("plan", "plan_q")
+                _local_is_plan = agent_mode in ("plan", "plan_q")
+                if _ovr_wants_plan and not _local_is_plan:
+                    agent_mode = "plan_q"
+                    os.environ["PLAN_MODE"] = "true"
+                    if messages and messages[0].get("role") == "system":
+                        messages[0]["content"] = _build_system_prompt_str(messages=messages, agent_mode=agent_mode)
+                elif not _ovr_wants_plan and _local_is_plan:
+                    agent_mode = "normal"
+                    os.environ["PLAN_MODE"] = "false"
+                    os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+                    if messages and messages[0].get("role") == "system":
+                        messages[0]["content"] = _build_system_prompt_str(messages=messages, agent_mode=agent_mode)
+
             _atlas_active_session = _get_active_session_str()
             if _atlas_active_session and _atlas_active_session != os.environ.get("ATLAS_SESSION_APPLIED", ""):
                 try:

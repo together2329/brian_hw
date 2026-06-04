@@ -4092,7 +4092,18 @@ def create_app():
             if "state" in body and body.get("state") is not None:
                 from lib.todo_tracker import STATUS_ALIASES
                 raw_state = str(body.get("state")).strip()
-                todo.status = STATUS_ALIASES.get(raw_state, raw_state)
+                new_status = STATUS_ALIASES.get(raw_state, raw_state)
+                # Plan-mode gate (mirror core/tools.py:todo_update). While plan
+                # mode is active the plan stays read-only until the user approves,
+                # so reject UI status transitions just as the agent's todo_update
+                # tool is blocked. Content/detail/criteria/priority edits above
+                # remain allowed; no-op (same-status) writes pass through.
+                if os.environ.get("PLAN_MODE") == "true" and new_status != getattr(todo, "status", None):
+                    return JSONResponse(
+                        {"error": "Changing status is blocked in plan mode. Approve the plan first."},
+                        status_code=409,
+                    )
+                todo.status = new_status
             if todo.status == "approved" and not str(getattr(todo, "approved_reason", "") or "").strip():
                 return JSONResponse({"error": "approved_reason is required"}, status_code=400)
             if todo.status == "rejected" and not str(getattr(todo, "rejection_reason", "") or "").strip():

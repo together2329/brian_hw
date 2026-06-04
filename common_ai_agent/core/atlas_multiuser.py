@@ -1590,6 +1590,29 @@ class _MultiUserBridge:
         manager = self._process_manager
         if manager is None:
             return False
+        # Plan-mode propagation across the process boundary. The agent runs in a
+        # separate `core.session_worker` subprocess whose env is frozen at spawn,
+        # so a `/plan` toggle handled in THIS (web-server) process never reaches
+        # it via os.environ. When plan mode is active, stamp it onto the prompt
+        # envelope so the worker can apply it per turn (session_worker.input ->
+        # main.chat_loop reconcile). A normal prompt carries NO mode key and the
+        # worker treats key-absence as "normal", which also RESETS a worker left
+        # in plan by a prior unconfirmed plan turn — so normal-path payloads stay
+        # byte-identical (no envelope bloat). NOTE: os.environ is process-global
+        # in the web server, correct for the single-active session policy; true
+        # per-session isolation would read the per-connection plan contextvar.
+        if msg_type == "prompt":
+            _amode = os.environ.get("AGENT_MODE_OVERRIDE", "normal").strip()
+            _plan_on = (
+                os.environ.get("PLAN_MODE", "false").strip().lower() == "true"
+                or _amode in ("plan", "plan_q")
+            )
+            if _plan_on:
+                payload = dict(payload or {})
+                payload.setdefault("plan_mode", "true")
+                payload.setdefault(
+                    "agent_mode", _amode if _amode in ("plan", "plan_q") else "plan_q"
+                )
         session = self._ensure_session(session_id)
         if spawn:
             # Owner-slot switch BEFORE the prompt-driven spawn so a prompt for a

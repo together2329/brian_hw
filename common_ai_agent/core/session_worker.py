@@ -775,6 +775,30 @@ class SessionWorker:
         msg = self.wait_matching(("prompt", "interrupt"), timeout=None)
         if msg is None:
             raise KeyboardInterrupt
+        # Plan-mode crosses the web-server -> worker process boundary on the
+        # prompt envelope (atlas_multiuser._send_process_input_for_session) and
+        # is authoritative per prompt: key present => that mode; key ABSENT on a
+        # prompt => normal, which RESETS a worker left in plan by a prior,
+        # unconfirmed plan turn. Apply it to THIS process's env before the turn
+        # runs so the tools.py PLAN_MODE gate and main.chat_loop's agent_mode
+        # reconcile both see it. Only reset on a real `prompt` (an `interrupt`
+        # injects text mid-turn and must not flip the running turn's mode).
+        if _message_type(msg) == "prompt":
+            payload = _decode_payload(msg.get("payload"))
+            if isinstance(payload, dict) and payload.get("plan_mode") is not None:
+                _plan_on = str(payload.get("plan_mode")).strip().lower() == "true"
+                _am = str(payload.get("agent_mode") or "").strip()
+                _am = _am or ("plan_q" if _plan_on else "normal")
+            else:
+                _plan_on = False
+                _am = "normal"
+            os.environ["PLAN_MODE"] = "true" if _plan_on else "false"
+            os.environ["AGENT_MODE_OVERRIDE"] = _am
+            if not _plan_on:
+                # Resetting to normal also clears the plan-mode write counter so
+                # a stale count never leaks into the next plan session (parity
+                # across the keyless-reset and explicit plan_mode=false paths).
+                os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
         return _message_text(msg)
 
     def emit_content(self, text: str, cls: str = "") -> None:

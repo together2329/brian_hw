@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-03T23:21:49Z",
+  "generated_at": "2026-06-04T12:13:55Z",
   "root": "doc/wiki",
-  "node_count": 136,
-  "edge_count": 611,
+  "node_count": 138,
+  "edge_count": 615,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603"
@@ -57,6 +57,9 @@
       "atcwdt200-flow-debugging-lessons",
       "evidence-contract-obligation-traceability"
     ],
+    "contract-reflection": [
+      "verification-contract-model"
+    ],
     "cosim": [
       "multi-cycle-production-wiring-20260520"
     ],
@@ -104,7 +107,8 @@
       "contract-reflection-workflow",
       "evidence-contract-obligation-traceability",
       "orchestrator-chat-only-product-plan",
-      "orchestrator-llm-loop-phase3"
+      "orchestrator-llm-loop-phase3",
+      "verification-contract-model"
     ],
     "exception-register": [
       "atlas-refactoring-exceptions"
@@ -124,6 +128,9 @@
     ],
     "formal": [
       "general-ip-flow-trial-and-error-20260601"
+    ],
+    "freshness": [
+      "verification-contract-model"
     ],
     "frontend": [
       "project_ts_vite_tauri_cutover",
@@ -184,7 +191,8 @@
       "contract-reflection-workflow",
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531",
-      "mctp-assembler-v3-ingress-fidelity-20260603"
+      "mctp-assembler-v3-ingress-fidelity-20260603",
+      "verification-contract-model"
     ],
     "multi-user": [
       "atlas-db-router-runtime-sharding-20260602"
@@ -310,7 +318,8 @@
       "evidence-contract-obligation-traceability",
       "general-ip-flow-trial-and-error-20260601",
       "mctp-assembler-scratch-flow-20260531",
-      "truth-coverage-gate"
+      "truth-coverage-gate",
+      "verification-contract-model"
     ],
     "silent-green": [
       "silent-pass-exposure-tb-stimulus-gap-20260520"
@@ -341,7 +350,8 @@
       "multi-cycle-production-wiring-20260520",
       "ssot-conversion-flow-20260519",
       "ssot-rtl-flow-verify-20260519",
-      "truth-coverage-gate"
+      "truth-coverage-gate",
+      "verification-contract-model"
     ],
     "ssot-gen": [
       "atlas-e2e-validation-20260519",
@@ -474,6 +484,7 @@
       "atlas-new-ip-recipe",
       "atlas-pipeline-db-state",
       "atlas-pipeline-screen",
+      "atlas-plan-mode-process-boundary-20260604",
       "atlas-pytest-hygiene",
       "atlas-refactoring-review-20260528",
       "atlas-single-active-orchestrator-subworkers-20260603",
@@ -570,6 +581,7 @@
       "uart-tx-end-to-end-findings-20260530",
       "ui-design-references",
       "ui-resolution-matrix-20260519",
+      "verification-contract-model",
       "wiki-curation-policy",
       "worker-model-gpt-switch",
       "workflow-feedback-and-scheduling",
@@ -1015,7 +1027,7 @@
       "updated": "",
       "summary": "Date: 2026-06-03 Branch: `feat/atlas-context-root-model`",
       "path": "doc/wiki/atlas-context-root-model-20260603.md",
-      "size_bytes": 56235
+      "size_bytes": 59139
     },
     {
       "id": "atlas-dag-ip-flow-runbook",
@@ -1273,6 +1285,24 @@
       "size_bytes": 8691
     },
     {
+      "id": "atlas-plan-mode-process-boundary-20260604",
+      "title": "Atlas Plan Mode Across The Process Boundary",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-single-active-orchestrator-subworkers-20260603",
+        "multi-user-worker-isolation",
+        "orchestrator-worker-handoff"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Date: 2026-06-04 — **IMPLEMENTED 2026-06-04**",
+      "path": "doc/wiki/atlas-plan-mode-process-boundary-20260604.md",
+      "size_bytes": 5149
+    },
+    {
       "id": "atlas-pytest-hygiene",
       "title": "atlas-pytest-hygiene",
       "type": "reference",
@@ -1347,6 +1377,7 @@
       "related": [],
       "outgoing": [],
       "incoming": [
+        "atlas-plan-mode-process-boundary-20260604",
         "index",
         "log"
       ],
@@ -1582,13 +1613,14 @@
       ],
       "incoming": [
         "index",
-        "log"
+        "log",
+        "verification-contract-model"
       ],
       "broken_refs": [],
-      "updated": "2026-06-03",
+      "updated": "2026-06-04",
       "summary": "This page captures the next design layer after `truth_coverage` and `evidence_contract`: every important contract item must be reflected through FL, CL, RTL, TB, and simulation evidence with the same stable ID.",
       "path": "doc/wiki/contract-reflection-workflow.md",
-      "size_bytes": 38628
+      "size_bytes": 52594
     },
     {
       "id": "cross-user-permission-20260519",
@@ -2380,7 +2412,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 31459
+      "size_bytes": 31510
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2541,12 +2573,12 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "contract-reflection-workflow",
         "orchestrator-worker-handoff",
         "atlas-context-root-deep-test-plan-20260604",
         "atlas-context-root-model-20260603",
         "tauri-desktop-shell",
         "admin-operational-dashboard-db-snapshot-20260603",
-        "contract-reflection-workflow",
         "atlas-single-active-orchestrator-subworkers-20260603",
         "pipeline-progress-debugging",
         "atlas-db-router-runtime-sharding-20260602",
@@ -2589,9 +2621,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Documented the orchestrator supervisor IPC runtime shipped in commit `a96dbf29` in [[orchestrator-worker-handoff]]. The route now resolves `get_orchestrator_runtime`, keeps legacy `thread` transport available, and uses IPC supervisor subprocesses for orchestrator mode. The wiki records the route/runtime/subprocess chain,…",
+      "summary": "- Extended [[contract-reflection-workflow]] freshness downward from semantic source artifacts into simulator evidence. Added `workflow/contract_reflection/sim_freshness.py`, `stamp_sim_evidence_freshness.py`, `check_sim_evidence_freshness.py`, and `run_contract_check.py --require-sim-freshness`. MCTP v3 was rerun through cocotb (`TESTS=10 PASS=10 FAIL=0`),…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 98787
+      "size_bytes": 101258
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -2750,6 +2782,7 @@
         "atcuart100-pipeline-run",
         "atlas-db-router-runtime-sharding-20260602",
         "atlas-pipeline-worker-workspace-jump",
+        "atlas-plan-mode-process-boundary-20260604",
         "flow-fixes-r2-verify-20260519",
         "index",
         "log",
@@ -3085,6 +3118,7 @@
         "atcdmac100-document-flow-ui-honesty-20260518",
         "atlas-e2e-validation-20260519",
         "atlas-pipeline-worker-workspace-jump",
+        "atlas-plan-mode-process-boundary-20260604",
         "default-agent-ip-flow",
         "full-flow-pipeline",
         "gpio-orchestrator-multiworker-run",
@@ -3111,7 +3145,7 @@
       "updated": "",
       "summary": "This page defines the control-plane concept for cross-workflow repair and pipeline execution.",
       "path": "doc/wiki/orchestrator-worker-handoff.md",
-      "size_bytes": 26142
+      "size_bytes": 20995
     },
     {
       "id": "orchestrator-worker-handoff-review",
@@ -4007,7 +4041,7 @@
       "updated": "",
       "summary": "A native desktop window for ATLAS, for distribution + native file access (OS file dialogs, arbitrary local paths) beyond what a sandboxed browser tab allows.",
       "path": "doc/wiki/tauri-desktop-shell.md",
-      "size_bytes": 8650
+      "size_bytes": 8918
     },
     {
       "id": "tech-direction-recommendation-20260529",
@@ -4189,6 +4223,32 @@
       "summary": "Goal: assert that the ATLAS chat input bar at the bottom of the page and the dir-switcher top bar remain reachable / not clipped across the requested 12 combinations of viewport × view × theme. Owned by worker-14 of the `orch-ux-hardcore` team (handoff `team-plan-orch-ux-hardcore.md`).",
       "path": "doc/wiki/ui-resolution-matrix-20260519.md",
       "size_bytes": 12228
+    },
+    {
+      "id": "verification-contract-model",
+      "title": "Verification Contract Model (VCM)",
+      "type": "reference",
+      "tags": [
+        "contract-reflection",
+        "ssot",
+        "freshness",
+        "evidence",
+        "signoff",
+        "mctp"
+      ],
+      "related": [],
+      "outgoing": [
+        "contract-reflection-workflow",
+        "project_classify_survivors_clobber"
+      ],
+      "incoming": [],
+      "broken_refs": [
+        "project_classify_survivors_clobber"
+      ],
+      "updated": "",
+      "summary": "Agreed design (2026-06-04) for how a `requirement` is proven against locked truth in the ATLAS workflow. Consolidates the contract-reflection + evidence-contract + semantic-freshness layers into one model. See [[contract-reflection-workflow]].",
+      "path": "doc/wiki/verification-contract-model.md",
+      "size_bytes": 8523
     },
     {
       "id": "wiki-curation-policy",
