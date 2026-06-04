@@ -259,8 +259,9 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
     assert Path(health_data["session_dir"]).resolve() == session_dir.resolve()
 
     (workspace_root / "NEWIP_MCTP" / "yaml").mkdir(parents=True, exist_ok=True)
+    ssot_text = "ip: NEWIP_MCTP\ntop_module:\n  name: NEWIP_MCTP\n"
     (workspace_root / "NEWIP_MCTP" / "yaml" / "NEWIP_MCTP.ssot.yaml").write_text(
-        "ip: NEWIP_MCTP\n",
+        ssot_text,
         encoding="utf-8",
     )
     ip_list = client.get("/api/ip/list?session_id=alice/s1/NEWIP_MCTP/ssot-gen")
@@ -276,6 +277,107 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
     assert files.status_code == 200, files.text
     assert files.json()["path"] == "NEWIP_MCTP"
     assert {entry["name"] for entry in files.json()["entries"]} == {"yaml"}
+
+    rootless_dir = client.get(
+        "/api/files",
+        params={
+            "path": "yaml",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert rootless_dir.status_code == 200, rootless_dir.text
+    assert rootless_dir.json()["path"] == "NEWIP_MCTP/yaml"
+    assert {entry["name"] for entry in rootless_dir.json()["entries"]} == {"NEWIP_MCTP.ssot.yaml"}
+
+    rootless_file = client.get(
+        "/api/file",
+        params={
+            "path": "yaml/NEWIP_MCTP.ssot.yaml",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert rootless_file.status_code == 200, rootless_file.text
+    assert rootless_file.json()["path"] == "NEWIP_MCTP/yaml/NEWIP_MCTP.ssot.yaml"
+    assert rootless_file.json()["content"] == ssot_text
+
+    raw_file = client.get(
+        "/api/file/raw",
+        params={
+            "path": "yaml/NEWIP_MCTP.ssot.yaml",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert raw_file.status_code == 200, raw_file.text
+    assert raw_file.text == ssot_text
+
+    fold_symbols = client.get(
+        "/api/fold-symbols",
+        params={
+            "path": "yaml/NEWIP_MCTP.ssot.yaml",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert fold_symbols.status_code == 200, fold_symbols.text
+    assert fold_symbols.json()["path"] == "NEWIP_MCTP/yaml/NEWIP_MCTP.ssot.yaml"
+
+    scratch_path = workspace_root / "NEWIP_MCTP" / "rtl" / "scratch.log"
+    scratch_path.parent.mkdir(parents=True, exist_ok=True)
+    scratch_path.write_text("delete me\n", encoding="utf-8")
+    deleted = client.delete(
+        "/api/file/delete",
+        params={
+            "ip": "NEWIP_MCTP",
+            "path": "rtl/scratch.log",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert deleted.status_code == 200, deleted.text
+    assert deleted.json()["deleted"] is True
+    assert not scratch_path.exists()
+
+    ssot_list = client.get(
+        "/api/ssot",
+        params={"session_id": "alice/s1/NEWIP_MCTP/ssot-gen"},
+    )
+    assert ssot_list.status_code == 200, ssot_list.text
+    assert {item["path"] for item in ssot_list.json()["files"]} == {
+        "NEWIP_MCTP/yaml/NEWIP_MCTP.ssot.yaml"
+    }
+
+    ssot_file = client.get(
+        "/api/ssot",
+        params={
+            "file": "yaml/NEWIP_MCTP.ssot.yaml",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert ssot_file.status_code == 200, ssot_file.text
+    assert ssot_file.json()["path"] == "NEWIP_MCTP/yaml/NEWIP_MCTP.ssot.yaml"
+    assert ssot_file.json()["content"] == ssot_text
+
+    doc_source = client.get(
+        "/api/ssot/doc-source",
+        params={
+            "ip": "NEWIP_MCTP",
+            "path": "top_module.name",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert doc_source.status_code == 200, doc_source.text
+    assert doc_source.json()["value"] == "NEWIP_MCTP"
+    assert doc_source.json()["ssot_path"] == "NEWIP_MCTP/yaml/NEWIP_MCTP.ssot.yaml"
+
+    doc_export = client.get(
+        "/api/ssot/export",
+        params={
+            "ip": "NEWIP_MCTP",
+            "format": "html",
+            "inline": "1",
+            "session_id": "alice/s1/NEWIP_MCTP/ssot-gen",
+        },
+    )
+    assert doc_export.status_code == 200, doc_export.text
+    assert (workspace_root / "NEWIP_MCTP" / "doc" / "NEWIP_MCTP_ssot.html").is_file()
 
 
 def test_ip_list_scopes_v2_workspace_session_per_user(tmp_path, monkeypatch):

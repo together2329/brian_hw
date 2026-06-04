@@ -18,12 +18,35 @@ import asyncio
 import os
 from collections import OrderedDict
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, cast
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from core.atlas_context import AtlasContext
+
+IP_LOCAL_ROOTS = frozenset({
+    "artifacts",
+    "cov",
+    "coverage",
+    "doc",
+    "lint",
+    "list",
+    "logs",
+    "model",
+    "mutation",
+    "pnr",
+    "req",
+    "rtl",
+    "signoff",
+    "sim",
+    "syn",
+    "tb",
+    "todo",
+    "verify",
+    "workflow",
+    "yaml",
+})
 
 
 def register_file_routes(
@@ -34,7 +57,7 @@ def register_file_routes(
     skip_dirs: Any,
     is_hidden_artifact_fn: Callable[[Path, Path], bool],
     max_read_bytes: int,
-    safe_ip_delete_fn: Callable[[str, str], tuple],
+    safe_ip_delete_fn: Callable[[str, str], tuple[Path | None, str | None]],
     bridge: Any,
     fs_authz: Any = None,
     fold_max_bytes: int = 5 * 1024 * 1024,
@@ -47,7 +70,7 @@ def register_file_routes(
     """
 
     # Module-private fold cache (mtime-keyed LRU).
-    fold_cache: "OrderedDict[str, tuple]" = OrderedDict()
+    fold_cache: "OrderedDict[str, tuple[float, list[Any]]]" = OrderedDict()
 
     # ── B1 read/write gate (injected by create_app; None only in old/direct
     # callers, where it is a no-op to preserve their behavior). ──────────────
@@ -78,8 +101,28 @@ def register_file_routes(
             return context.workspace_root
         return project_root
 
+    def _clean_rel_path(rel_path: str) -> str:
+        return str(rel_path or "").replace("\\", "/").lstrip("/")
+
+    def _session_rel_path(context: AtlasContext | None, rel_path: str) -> str:
+        rel = _clean_rel_path(rel_path)
+        if context is None or context.legacy or not rel or str(rel_path or "").startswith("/"):
+            return rel
+        ip_name = str(context.ip_name or "").strip()
+        if not ip_name or ip_name == "default":
+            return rel
+        first = rel.split("/", 1)[0]
+        if first == ip_name:
+            return rel
+        if first in IP_LOCAL_ROOTS:
+            return f"{ip_name}/{rel}"
+        candidate = context.workspace_root / ip_name / rel
+        if candidate.exists():
+            return f"{ip_name}/{rel}"
+        return rel
+
     def _safe_in_base(base: Path, rel_path: str) -> Optional[Path]:
-        rel = str(rel_path or "").lstrip("/")
+        rel = _clean_rel_path(rel_path)
         try:
             candidate = (base / rel).resolve()
             candidate.relative_to(base.resolve())
@@ -87,12 +130,26 @@ def register_file_routes(
         except (OSError, ValueError):
             return None
 
-    def _target_for_session(path: str, session_id: str) -> tuple[Optional[Path], Path, AtlasContext | None]:
+    def _target_for_session(path: str, session_id: str) -> tuple[Optional[Path], Path, AtlasContext | None, str]:
         context = _context_for_session(session_id)
         base = _context_base(context)
         if base == project_root:
-            return safe_path_fn(path), project_root, context
-        return _safe_in_base(base, path), base, context
+            target = safe_path_fn(path)
+            rel = _clean_rel_path(path)
+            if target is not None:
+                try:
+                    rel = target.resolve().relative_to(project_root.resolve()).as_posix()
+                except (OSError, ValueError):
+                    pass
+            return target, project_root, context, rel
+        rel = _session_rel_path(context, path)
+        target = _safe_in_base(base, rel)
+        if target is not None:
+            try:
+                rel = target.resolve().relative_to(base.resolve()).as_posix()
+            except (OSError, ValueError):
+                pass
+        return target, base, context, rel
 
     def _deny_context_request(request: Request, context: AtlasContext | None):
         if context is None or context.legacy:
@@ -128,13 +185,15 @@ def register_file_routes(
     async def api_files(request: Request, path: str = "", recursive: int = 0,
                           max_depth: int = 4, max_entries: int = 800,
                           session_id: str = "", session: str = ""):
-        target, root, context = _target_for_session(path, session_id or session)
+        target, root, context, requested_rel = _target_for_session(path, session_id or session)
         if target is None:
             return JSONResponse({"error": "path outside project root"},
                                 status_code=400)
         if not target.exists():
             return JSONResponse({"error": "not found"}, status_code=404)
         rel = "" if target == root else target.relative_to(root).as_posix()
+        if not rel:
+            requested_rel = ""
         denied = _deny_context_request(request, context)
         if denied is not None:
             return denied
@@ -143,7 +202,7 @@ def register_file_routes(
         # entries (shared roots + owned/granted IPs) so the IP-rooted file tree
         # keeps working without leaking other tenants' IP directories.
         if rel:
-            denied = _gate_for_context_path(request, rel, context)
+            denied = _gate_for_context_path(request, requested_rel or rel, context)
             if denied is not None:
                 return denied
         if target.is_file():
@@ -158,10 +217,10 @@ def register_file_routes(
         shared_files = getattr(fs_authz, "shared_root_files", frozenset()) if fs_authz is not None else frozenset()
         restrict_top = (rel == "" and allowed_ips is not None)
 
-        entries: list = []
+        entries: list[dict[str, Any]] = []
 
         def _top_allowed(name: str) -> bool:
-            return name in shared_roots or name in allowed_ips
+            return name in shared_roots or name in cast(set[str], allowed_ips)
 
         def _list_one(d, depth):
             try:
@@ -204,8 +263,8 @@ def register_file_routes(
 
     @app.get("/api/file")
     async def api_file(request: Request, path: str, session_id: str = "", session: str = ""):
-        target, _root, context = _target_for_session(path, session_id or session)
-        denied = _gate_for_context_path(request, path, context)
+        target, _root, context, rel_path = _target_for_session(path, session_id or session)
+        denied = _gate_for_context_path(request, rel_path, context)
         if denied is not None:
             return denied
         if target is None or not target.is_file():
@@ -220,21 +279,65 @@ def register_file_routes(
             return JSONResponse({"error": str(e)}, status_code=500)
         truncated = stat.st_size > max_read_bytes
         return JSONResponse({
-            "path": path, "size": stat.st_size, "mtime": stat.st_mtime,
+            "path": rel_path or path, "size": stat.st_size, "mtime": stat.st_mtime,
             "truncated": truncated, "content": content,
         })
 
     @app.delete("/api/file/delete")
-    async def api_file_delete(request: Request, ip: str = "", path: str = ""):
-        denied = _gate_ip(request, ip, "write")
-        if denied is not None:
-            return denied
-        target, error = safe_ip_delete_fn(ip, path)
-        if target is None:
-            status = 404 if error in {"IP not found", "file not found"} else 400
-            return JSONResponse({"error": error or "not found"}, status_code=status)
+    async def api_file_delete(
+        request: Request,
+        ip: str = "",
+        path: str = "",
+        session_id: str = "",
+        session: str = "",
+    ):
+        session_name = session_id or session
+        context = _context_for_session(session_name)
         clean_ip = str(ip or "").strip().strip("/")
-        clean_path = str(path or "").strip().strip("/")
+        clean_path = _clean_rel_path(path)
+        rel_path = clean_path
+
+        if context is not None and not context.legacy:
+            denied = _deny_context_request(request, context)
+            if denied is not None:
+                return denied
+            if not clean_ip or clean_ip == "default":
+                clean_ip = context.ip_name
+            if context.ip_name and context.ip_name != "default" and clean_ip != context.ip_name:
+                return JSONResponse({"error": "session ip mismatch"}, status_code=400)
+            if not clean_ip or not clean_path:
+                return JSONResponse({"error": "ip and path are required"}, status_code=400)
+            parts = [part for part in clean_path.split("/") if part]
+            if any(part in {".", ".."} for part in parts):
+                return JSONResponse({"error": "invalid path"}, status_code=400)
+            if any(part.startswith(".") for part in parts):
+                return JSONResponse({"error": "hidden/internal files cannot be deleted from the UI"}, status_code=400)
+            target, root, _context, rel_path = _target_for_session(clean_path, session_name)
+            ip_root = (root / clean_ip).resolve()
+            if target is None:
+                return JSONResponse({"error": "path outside project root"}, status_code=400)
+            try:
+                resolved_target = target.resolve()
+                resolved_target.relative_to(ip_root)
+            except (OSError, ValueError):
+                return JSONResponse({"error": "path is outside the selected IP"}, status_code=400)
+            if resolved_target == ip_root:
+                return JSONResponse({"error": "cannot delete the IP root"}, status_code=400)
+            if not ip_root.is_dir():
+                return JSONResponse({"error": "IP not found"}, status_code=404)
+            if target.is_dir():
+                return JSONResponse({"error": "directory delete is not supported from the UI"}, status_code=400)
+            if not target.is_file():
+                return JSONResponse({"error": "file not found"}, status_code=404)
+            clean_path = rel_path or clean_path
+        else:
+            denied = _gate_ip(request, ip, "write")
+            if denied is not None:
+                return denied
+            target, error = safe_ip_delete_fn(ip, path)
+            if target is None:
+                status = 404 if error in {"IP not found", "file not found"} else 400
+                return JSONResponse({"error": error or "not found"}, status_code=status)
         try:
             await asyncio.to_thread(target.unlink)
         except OSError as exc:
@@ -253,8 +356,8 @@ def register_file_routes(
         images (.png/.jpg/...) and other binary previews. Text files also
         flow through here when the caller wants the un-decoded bytes.
         """
-        target, _root, context = _target_for_session(path, session_id or session)
-        denied = _gate_for_context_path(request, path, context)
+        target, _root, context, rel_path = _target_for_session(path, session_id or session)
+        denied = _gate_for_context_path(request, rel_path, context)
         if denied is not None:
             return denied
         if target is None or not target.is_file():
@@ -280,21 +383,23 @@ def register_file_routes(
 
     @app.get("/api/fold-symbols")
     async def api_fold_symbols(request: Request, path: str, session_id: str = "", session: str = ""):
-        target, _root, context = _target_for_session(path, session_id or session)
-        denied = _gate_for_context_path(request, path, context)
+        target, _root, context, rel_path = _target_for_session(path, session_id or session)
+        denied = _gate_for_context_path(request, rel_path, context)
         if denied is not None:
             return denied
         if target is None or not target.is_file():
             return JSONResponse({"error": "not found"}, status_code=404)
         stat = target.stat()
-        # mtime-keyed LRU
-        cached = fold_cache.get(path)
+        payload_path = rel_path or path
+        scope = context.active_session_key if context is not None else ""
+        cache_key = f"{scope}\n{payload_path}" if scope else payload_path
+        cached = fold_cache.get(cache_key)
         if cached and cached[0] == stat.st_mtime:
-            fold_cache.move_to_end(path)
-            return JSONResponse({"path": path, "ranges": cached[1], "cached": True})
+            fold_cache.move_to_end(cache_key)
+            return JSONResponse({"path": payload_path, "ranges": cached[1], "cached": True})
         if stat.st_size > fold_max_bytes:
             return JSONResponse({
-                "path": path, "ranges": [], "skipped": True,
+                "path": payload_path, "ranges": [], "skipped": True,
                 "reason": f"file > {fold_max_bytes // (1024*1024)} MB",
             })
         try:
@@ -305,18 +410,18 @@ def register_file_routes(
             return JSONResponse({"error": str(e)}, status_code=500)
         if text.count("\n") > fold_max_lines:
             return JSONResponse({
-                "path": path, "ranges": [], "skipped": True,
+                "path": payload_path, "ranges": [], "skipped": True,
                 "reason": f"more than {fold_max_lines} lines",
             })
         try:
             from core.fold_extractor import folds_for_path
-            ranges = await asyncio.to_thread(folds_for_path, path, text)
+            ranges = await asyncio.to_thread(folds_for_path, payload_path, text)
         except Exception as e:
             return JSONResponse({
-                "path": path, "ranges": [], "error": f"extractor failed: {e}",
+                "path": payload_path, "ranges": [], "error": f"extractor failed: {e}",
             }, status_code=422)
-        fold_cache[path] = (stat.st_mtime, ranges)
-        fold_cache.move_to_end(path)
+        fold_cache[cache_key] = (stat.st_mtime, ranges)
+        fold_cache.move_to_end(cache_key)
         while len(fold_cache) > fold_cache_cap:
             fold_cache.popitem(last=False)
-        return JSONResponse({"path": path, "ranges": ranges, "cached": False})
+        return JSONResponse({"path": payload_path, "ranges": ranges, "cached": False})
