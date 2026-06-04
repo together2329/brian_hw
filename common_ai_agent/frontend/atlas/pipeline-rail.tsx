@@ -80,6 +80,38 @@ interface AtlasGlue {
 }
 const w = window as unknown as AtlasGlue;
 
+const normalizeRailSession = (value: unknown): string => (
+  String(value || '')
+    .trim()
+    .replace(/\\/g, '/')
+    .split('/')
+    .filter(Boolean)
+    .join('/')
+);
+
+const activeRailWorkspaceSession = (): string => {
+  const explicit = normalizeRailSession(w.ATLAS_WORKSPACE_SESSION_ID);
+  if (explicit) return explicit;
+  const parts = normalizeRailSession(w.ACTIVE_SESSION || '').split('/').filter(Boolean);
+  return parts.length >= 4 ? parts[1] || '' : '';
+};
+
+const activeOrchestratorRailSession = (ip?: string): string => {
+  const activeSession = normalizeRailSession(w.ACTIVE_SESSION || '');
+  const parts = activeSession.split('/').filter(Boolean);
+  if (parts.length >= 4 && (!ip || parts[2] === ip)) {
+    return `${parts[0]}/${parts[1]}/${ip || parts[2]}/orchestrator`;
+  }
+  const owner = normalizeRailSession(
+    (w.ATLAS_USER && w.ATLAS_USER.username)
+      || w.ATLAS_USER_SESSION_ID
+      || parts[0]
+      || '',
+  );
+  const workspaceSession = activeRailWorkspaceSession();
+  return owner && workspaceSession && ip ? `${owner}/${workspaceSession}/${ip}/orchestrator` : '';
+};
+
 // ── HierarchyList ─────────────────────────────────────────────────────────────
 // list with the active IP if the workspace endpoint is missing.
 export interface HierarchyListProps {
@@ -493,7 +525,13 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     let currentSince = since;
     const fetchOnce = async () => {
       try {
-        const url = `/api/orchestrator/chat/messages?ip=${encodeURIComponent(ip!)}&since=${currentSince}`;
+        const params = new URLSearchParams({
+          ip: ip!,
+          since: String(currentSince),
+        });
+        const workspaceSession = activeRailWorkspaceSession();
+        if (workspaceSession) params.set('workspace_session', workspaceSession);
+        const url = `/api/orchestrator/chat/messages?${params.toString()}`;
         const r = await fetch(url);
         if (!r.ok) return;
         const j = await r.json();
@@ -522,14 +560,16 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     if (!text || !hasIp || sending) return;
     setSending(true);
     try {
+      const workspaceSession = activeRailWorkspaceSession();
+      const session = activeOrchestratorRailSession(ip);
       await fetch('/api/pipeline/orchestrator/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: text,
           ip,
-          session: w.ACTIVE_SESSION || '',
-          session_id: w.ATLAS_DB_SESSION_ID || w.ACTIVE_SESSION || '',
+          ...(session ? { session } : {}),
+          ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
         }),
       });
       setDraft('');
