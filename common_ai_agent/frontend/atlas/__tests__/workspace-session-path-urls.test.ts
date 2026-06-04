@@ -5,10 +5,13 @@ import {
   atlasResourceUrl,
   readAtlasAsyncResource,
 } from '../workspace-async-resource';
+import { createDataLoaders } from '../data-loaders';
 import { parseAtQuery } from '../workspace-rootdata-feed-completion';
+import { appendActiveSessionParam } from '../workspace-session-routing';
 
 describe('workspace session-aware path URLs', () => {
   beforeEach(() => {
+    window.history.pushState({}, '', '/');
     Object.values(ATLAS_ASYNC_RESOURCE_CACHES).forEach(cache => cache.clear());
     (window as any).ACTIVE_SESSION = 'alice/hi/jjj/rtl-gen';
     (window as any).CONTEXT = { activeIp: 'jjj' };
@@ -26,6 +29,12 @@ describe('workspace session-aware path URLs', () => {
     );
   });
 
+  it('appends the active session to workspace resource query params', () => {
+    const params = appendActiveSessionParam(new URLSearchParams({ path: 'rtl/top.sv' }));
+
+    expect(params.get('session_id')).toBe('alice/hi/jjj/rtl-gen');
+  });
+
   it('treats rootless @ paths as active-IP relative for lookup', () => {
     const query = parseAtQuery('open @rtl/');
 
@@ -41,6 +50,53 @@ describe('workspace session-aware path URLs', () => {
     expect(query.parentAbs).toBe('doc');
     expect(query.absoluteEscape).toBe(true);
     expect(query.ipScoped).toBe(false);
+  });
+
+  it('prefers an explicit browser route over stale active session globals', () => {
+    window.history.pushState(
+      {},
+      '',
+      '/?session=alice%2Fhi%2Fnew_ip%2Fsim_debug&session_id=alice&workspace_session=hi&ip=new_ip&workflow=sim_debug',
+    );
+    (window as any).ACTIVE_SESSION = 'alice/hi/old_ip/orchestrator';
+
+    const params = appendActiveSessionParam(new URLSearchParams({ ip: 'new_ip' }));
+
+    expect(params.get('session_id')).toBe('alice/hi/new_ip/sim_debug');
+  });
+
+  it('loads the file tree from the explicit route IP and session', async () => {
+    window.history.pushState(
+      {},
+      '',
+      '/?session=alice%2Fhi%2Fnew_ip%2Fsim_debug&session_id=alice&workspace_session=hi&ip=new_ip&workflow=sim_debug',
+    );
+    (window as any).ACTIVE_SESSION = 'alice/hi/old_ip/orchestrator';
+    const fetchCalls: string[] = [];
+    global.fetch = (async (input: RequestInfo | URL) => {
+      fetchCalls.push(String(input));
+      return new Response(JSON.stringify({ entries: [], truncated: false }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    const loaders = createDataLoaders({
+      sessionStateCache: new Map(),
+      workerSnapshotCache: new Map(),
+      URL_ACTIVE_SESSION: '',
+      SESSION_STATE_CACHE_MS: 100,
+      CHAT_RECENT_LIMIT: 10,
+      CHAT_SWITCH_LIMIT: 10,
+      WORKER_SNAPSHOT_CACHE_MS: 100,
+    });
+
+    await loaders.refreshFileTree();
+
+    const url = new URL(fetchCalls[0], 'http://localhost');
+    expect(url.pathname).toBe('/api/files');
+    expect(url.searchParams.get('path')).toBe('new_ip');
+    expect(url.searchParams.get('session_id')).toBe('alice/hi/new_ip/sim_debug');
   });
 
   it('does not reuse file preview cache entries across active sessions', async () => {

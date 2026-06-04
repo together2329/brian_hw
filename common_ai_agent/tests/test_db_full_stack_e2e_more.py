@@ -198,6 +198,75 @@ def test_admin_usage_full_payload_via_http(atlas_server):
 
 
 # ============================================================
+# Section 3b — /api/admin/session-flow (Task 4 read-only payload)
+# ============================================================
+
+
+def test_admin_session_flow_payload_via_http(atlas_server):
+    # Seed a session with a worker run + an LLM call so the rollup has lineage.
+    db = AtlasDB(atlas_server["db_path"])
+    u = db.get_user_by_username("sf_owner") or db.create_user("sf_owner", "SF", "pw")
+    ws = db.upsert_workspace("sf-ws", owner_user_id=u["id"], local_path="/sf")
+    ip = db.upsert_ip_block(ws["id"], "sf-ip", ip_type="x",
+                            created_by_user_id=u["id"])
+    sid = f"{u['id']}/sf-ip/rtl-gen"
+    s = db.create_session(u["id"], "sf-title", workflow="rtl-gen",
+                          ip="sf-ip", ip_id=ip["id"])
+    sid = s["id"]
+    db.record_session_input(sid, source="enqueue", source_ref_id="q1",
+                            user_id=u["id"], char_count=12, token_estimate=4,
+                            attribution_confidence="exact")
+    wr = db.start_worker_run(session_id=sid, user_id=u["id"], workflow="rtl-gen",
+                             worker_kind="workflow", status="running")
+    db.record_llm_call(session_id=sid, run_id=None, ip_id=ip["id"],
+                       workspace_id=ws["id"], workflow="rtl-gen", model="m1",
+                       cost_usd=0.09, tokens_input=200, tokens_output=20,
+                       status="ok", worker_run_id=wr["id"],
+                       attribution_confidence="exact")
+
+    r = httpx.get(f"{atlas_server['base']}/api/admin/session-flow", timeout=10)
+    assert r.status_code == 200, r.text
+    payload = r.json()
+    # Top-level shape per the plan (note: pagination, not limits).
+    for k in ("generated_at", "runtime_mode", "range", "lens", "summary",
+              "needs_attention", "funnel", "sessions", "ip_flow",
+              "attribution_gaps", "pagination"):
+        assert k in payload, f"missing top-level key {k}"
+    assert payload["range"] == "7d"
+    assert payload["lens"] == "team_lead"
+    assert isinstance(payload["sessions"], list)
+    assert isinstance(payload["funnel"], list)
+    assert payload["pagination"]["max_limit"] == 500
+
+    # Our seeded session is present with the required row fields + next_action.
+    rows = {row["session_id"]: row for row in payload["sessions"]}
+    assert sid in rows, f"seeded session {sid} not in payload"
+    row = rows[sid]
+    for field in ("session_id", "session_uid", "namespace", "title", "user_id",
+                  "username", "ip_id", "ip", "workflow", "flow_state",
+                  "risk_level", "risk_reason", "next_action", "input_count",
+                  "input_chars", "input_tokens_est", "llm_attempts",
+                  "llm_success", "llm_errors", "tokens_input", "tokens_output",
+                  "tokens_reasoning", "cost_usd", "worker_runs", "active_workers",
+                  "failed_workers", "workflow_runs", "workflow_errors",
+                  "artifact_count", "attribution_confidence", "missing_reason",
+                  "created_at", "updated_at"):
+        assert field in row, f"session row missing field {field}"
+    assert row["input_count"] == 1
+    assert row["llm_attempts"] == 1
+    assert row["worker_runs"] == 1
+
+
+def test_admin_session_flow_limit_clamped_to_500(atlas_server):
+    r = httpx.get(f"{atlas_server['base']}/api/admin/session-flow?limit=999999",
+                  timeout=10)
+    assert r.status_code == 200, r.text
+    pg = r.json()["pagination"]
+    assert pg["limit"] == 500
+    assert pg["max_limit"] == 500
+
+
+# ============================================================
 # Section 4 — /api/feedback + /api/admin/feedback + resolve
 # ============================================================
 

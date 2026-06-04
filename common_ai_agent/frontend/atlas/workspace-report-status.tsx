@@ -55,6 +55,39 @@ export const WORKFLOW_REPORT_TABS: Record<string, any> = {
       `gpio/${ip}/sim/${ip}.vcd`,
     ],
   },
+  sim: {
+    label: 'sim report',
+    title: 'Simulation Report',
+    folders: ['sim', 'tb/cocotb', 'tb/cocotb/sim_build'],
+    paths: (ip: string) => [
+      `${ip}/sim/sim_summary.json`,
+      `${ip}/sim/sim_report.md`,
+      `${ip}/sim/sim_report.txt`,
+      `${ip}/sim/results.xml`,
+      `${ip}/sim/scoreboard_events.jsonl`,
+      `${ip}/sim/${ip}.vcd`,
+      `${ip}/sim/${ip}.fst`,
+      `${ip}/tb/cocotb/results.xml`,
+      `${ip}/tb/cocotb/sim_build/results.xml`,
+      `${ip}/tb/cocotb/sim_build/${ip}.vcd`,
+      `${ip}/tb/cocotb/sim_build/${ip}.fst`,
+    ],
+  },
+  sim_debug: {
+    label: 'sim_debug report',
+    title: 'Simulation Debug Report',
+    folders: ['sim', 'sim_debug', 'debug', 'logs'],
+    paths: (ip: string) => [
+      `${ip}/sim/sim_debug_report.md`,
+      `${ip}/sim/fl_rtl_compare.json`,
+      `${ip}/sim/mismatch_classification.json`,
+      `${ip}/sim/scoreboard_events.jsonl`,
+      `${ip}/sim/sim_summary.json`,
+      `${ip}/sim/${ip}.vcd`,
+      `${ip}/sim/${ip}.fst`,
+      `${ip}/sim_debug/sim_debug_report.md`,
+    ],
+  },
   syn: {
     label: 'syn_report',
     title: 'Synthesis Report',
@@ -80,6 +113,26 @@ export const WORKFLOW_REPORT_TABS: Record<string, any> = {
       `${ip}/sta/out/hold.rpt`,
       `${ip}/sta/out/sta.log`,
       `${ip}/reports/sta/timing.json`,
+    ],
+  },
+  'sta-post': {
+    label: 'sta_post_report',
+    title: 'Post-Route STA Report',
+    folders: ['sta-post', 'sta_post', 'sta', 'reports/sta-post', 'reports/sta_post', 'signoff'],
+    paths: (ip: string) => [
+      `${ip}/sta-post/out/sta.report.md`,
+      `${ip}/sta-post/out/sta_post.report.md`,
+      `${ip}/sta-post/out/wns.json`,
+      `${ip}/sta-post/out/timing.rpt`,
+      `${ip}/sta-post/out/setup.rpt`,
+      `${ip}/sta-post/out/hold.rpt`,
+      `${ip}/sta-post/out/skew.rpt`,
+      `${ip}/sta-post/out/sta.log`,
+      `${ip}/sta/sta_post_report.md`,
+      `${ip}/sta/out/sta_post.report.md`,
+      `${ip}/sta/out/sta-post.report.md`,
+      `${ip}/reports/sta-post/timing.json`,
+      `${ip}/reports/sta_post/timing.json`,
     ],
   },
   pnr: {
@@ -115,6 +168,8 @@ export const WORKFLOW_REPORT_TABS: Record<string, any> = {
     ],
   },
 };
+WORKFLOW_REPORT_TABS['sim-debug'] = WORKFLOW_REPORT_TABS.sim_debug;
+WORKFLOW_REPORT_TABS.sta_post = WORKFLOW_REPORT_TABS['sta-post'];
 (window as any).WORKFLOW_REPORT_TABS = WORKFLOW_REPORT_TABS;  // Phase 13b: consumed by workflow-report.jsx
 
 // Detect success/error in a tool result body. Used by ObsCard to

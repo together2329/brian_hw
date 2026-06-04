@@ -12,6 +12,8 @@
 // .jsx files keep resolving `window.SsotReviewPane`.
 import { useState, useEffect, useRef, useMemo, type ChangeEvent } from 'react';
 import type { ReactNode } from 'react';
+import { appendActiveSessionParam } from './active-session-query';
+import { activeIpFromSession } from './data-helpers';
 
 // ── Cross-file globals owned by OTHER (unmigrated) files. These are NOT
 // declared in types/atlas-window.d.ts yet, so we read them through a locally
@@ -131,11 +133,7 @@ export const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }: Ssot
   const handleImportDocFiles = async (fileList: FileList | File[] | null) => {
     const fileArr = Array.from(fileList || []);
     if (!fileArr.length) return;
-    const ip = (String(g.ACTIVE_IP || '').trim()) ||
-      (() => {
-        const parts = String(g.ACTIVE_SESSION || '').split('/').filter(Boolean);
-        return parts.length >= 2 ? parts[1] : parts[0] || '';
-      })();
+    const ip = (String(g.ACTIVE_IP || '').trim()) || activeIpFromSession(g.ACTIVE_SESSION || '');
     setImportDocBusy(true);
     setImportDocStatus('');
     try {
@@ -490,17 +488,13 @@ export const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }: Ssot
             onChange={e => {
               const fmt = e.target.value;
               if (!fmt) return;
-              const ip = (String(g.ACTIVE_IP || '').trim()) ||
-                (() => {
-                  const parts = String(g.ACTIVE_SESSION || '').split('/').filter(Boolean);
-                  return parts.length >= 2 ? parts[1] : parts[0] || '';
-                })();
+              const ip = (String(g.ACTIVE_IP || '').trim()) || activeIpFromSession(g.ACTIVE_SESSION || '');
               if (!ip) {
                 setExportFormat('');
                 return;
               }
-              const url = `/api/ssot/export?ip=${encodeURIComponent(ip)}&format=${encodeURIComponent(fmt)}`;
-              window.location.href = url;
+              const params = appendActiveSessionParam(new URLSearchParams({ ip, format: fmt }));
+              window.location.href = `/api/ssot/export?${params.toString()}`;
               setExportFormat('');
             }}
             title="Download the canonical ssot yaml as Markdown, Word, or HTML"

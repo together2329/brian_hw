@@ -163,6 +163,180 @@ _SOURCES = (
 ROLLUP_LAG_TARGET_S = 10.0
 
 
+# --------------------------------------------------------------------------- #
+# Session Flow fold (Task 7 / RS-2): fold the runtime session_inputs /
+# worker_runs / session_flow_events (+ the runtime llm_calls / session_queue
+# already present in the runtime subset) INTO the control session_flow_rollups,
+# then derive ip_flow_rollups by GROUP BY ip_id. Same high-water idempotency
+# contract as _SOURCES above, but keyed on DISTINCT ``flow:<table>`` offset keys
+# so the usage fold and the flow fold never clobber each other's high-water.
+#
+# DM-2: ONLY the additive counters below are summed via the high-water slice.
+# The non-additive STATE (flow_state/risk_level/stale_age_s/attribution_confidence
+# /missing_reason/rollup_status) is RECOMPUTED-from-latest by rollup_session_flow
+# using core.session_flow_usage (same recompute the central/full read path uses).
+# --------------------------------------------------------------------------- #
+
+_FLOW_OFFSET_PREFIX = "flow:"
+
+_INPUTS_AGG_SQL = """
+    SELECT
+        COUNT(*)                          AS input_count,
+        COALESCE(SUM(char_count), 0)      AS input_chars,
+        COALESCE(SUM(token_estimate), 0)  AS input_tokens_est,
+        MAX(created_at)                   AS last_input_at,
+        COALESCE(MAX(rowid), 0)           AS max_rowid
+      FROM session_inputs
+     WHERE rowid > ?
+"""
+_INPUTS_RECOUNT_SQL = """
+    SELECT
+        COUNT(*)                          AS input_count,
+        COALESCE(SUM(char_count), 0)      AS input_chars,
+        COALESCE(SUM(token_estimate), 0)  AS input_tokens_est,
+        MAX(created_at)                   AS last_input_at,
+        COALESCE(MAX(rowid), 0)           AS max_rowid
+      FROM session_inputs
+"""
+
+# active/failed worker-status buckets mirror core.session_flow_usage so the
+# runtime fold and the central recompute classify worker_runs identically.
+_WORKER_AGG_SQL = """
+    SELECT
+        COUNT(*) AS worker_runs,
+        COALESCE(SUM(CASE WHEN status IN ('running','started','active','in_progress') THEN 1 ELSE 0 END), 0) AS active_workers,
+        COALESCE(SUM(CASE WHEN status IN ('failed','error','errored','crashed') THEN 1 ELSE 0 END), 0) AS failed_workers,
+        MAX(updated_at) AS last_worker_at,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM worker_runs
+     WHERE rowid > ?
+"""
+_WORKER_RECOUNT_SQL = """
+    SELECT
+        COUNT(*) AS worker_runs,
+        COALESCE(SUM(CASE WHEN status IN ('running','started','active','in_progress') THEN 1 ELSE 0 END), 0) AS active_workers,
+        COALESCE(SUM(CASE WHEN status IN ('failed','error','errored','crashed') THEN 1 ELSE 0 END), 0) AS failed_workers,
+        MAX(updated_at) AS last_worker_at,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM worker_runs
+"""
+
+# llm_calls lives in the runtime subset too; folding it keeps cost/attempts
+# (and therefore the no_artifact_after_llm risk + executive spend) non-empty.
+_FLOW_LLM_AGG_SQL = """
+    SELECT
+        COUNT(*) AS llm_attempts,
+        COALESCE(SUM(CASE WHEN status IN ('ok','success','completed') THEN 1 ELSE 0 END), 0) AS llm_success,
+        COALESCE(SUM(CASE WHEN status IN ('error','failed','timeout')
+                          OR (error_type IS NOT NULL AND status NOT IN ('ok','success','completed'))
+                     THEN 1 ELSE 0 END), 0) AS llm_errors,
+        COALESCE(SUM(tokens_input), 0)     AS tokens_input,
+        COALESCE(SUM(tokens_output), 0)    AS tokens_output,
+        COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
+        COALESCE(SUM(cost_usd), 0)        AS cost_usd,
+        MAX(created_at) AS last_llm_at,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM llm_calls
+     WHERE rowid > ?
+"""
+_FLOW_LLM_RECOUNT_SQL = """
+    SELECT
+        COUNT(*) AS llm_attempts,
+        COALESCE(SUM(CASE WHEN status IN ('ok','success','completed') THEN 1 ELSE 0 END), 0) AS llm_success,
+        COALESCE(SUM(CASE WHEN status IN ('error','failed','timeout')
+                          OR (error_type IS NOT NULL AND status NOT IN ('ok','success','completed'))
+                     THEN 1 ELSE 0 END), 0) AS llm_errors,
+        COALESCE(SUM(tokens_input), 0)     AS tokens_input,
+        COALESCE(SUM(tokens_output), 0)    AS tokens_output,
+        COALESCE(SUM(tokens_reasoning), 0) AS tokens_reasoning,
+        COALESCE(SUM(cost_usd), 0)        AS cost_usd,
+        MAX(created_at) AS last_llm_at,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM llm_calls
+"""
+
+# session_flow_events: append-only lineage. The fold tracks ONLY last_event/
+# verification STATE signals (no additive counter column in the rollup) plus the
+# high-water advance, so the offset stays repeat-safe.
+_EVENTS_AGG_SQL = """
+    SELECT
+        MAX(created_at) AS last_event_at,
+        COALESCE(SUM(CASE WHEN event_type LIKE 'verification%'
+                            OR event_type LIKE '%verified%' THEN 1 ELSE 0 END), 0) AS verification_count,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM session_flow_events
+     WHERE rowid > ?
+"""
+_EVENTS_RECOUNT_SQL = """
+    SELECT
+        MAX(created_at) AS last_event_at,
+        COALESCE(SUM(CASE WHEN event_type LIKE 'verification%'
+                            OR event_type LIKE '%verified%' THEN 1 ELSE 0 END), 0) AS verification_count,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM session_flow_events
+"""
+
+# session_queue (runtime subset): current-window backlog drives the
+# queue_backlog_no_worker risk. It is drained mid-life (rowid reuse), so it uses
+# the recount branch frequently — like the usage fold's session_queue source.
+_FLOW_QUEUE_AGG_SQL = """
+    SELECT
+        COALESCE(SUM(CASE WHEN direction='in' AND processed_at IS NULL THEN 1 ELSE 0 END), 0) AS queue_in,
+        COALESCE(SUM(CASE WHEN direction='out' AND delivered_at IS NULL THEN 1 ELSE 0 END), 0) AS queue_out,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM session_queue
+     WHERE rowid > ?
+"""
+_FLOW_QUEUE_RECOUNT_SQL = """
+    SELECT
+        COALESCE(SUM(CASE WHEN direction='in' AND processed_at IS NULL THEN 1 ELSE 0 END), 0) AS queue_in,
+        COALESCE(SUM(CASE WHEN direction='out' AND delivered_at IS NULL THEN 1 ELSE 0 END), 0) AS queue_out,
+        COALESCE(MAX(rowid), 0) AS max_rowid
+      FROM session_queue
+"""
+
+# (source_table, incremental SQL, recount SQL, additive counter columns,
+#  always_recount).
+# ``worker_runs`` active/failed are status-snapshot counts (always recount).
+# ``session_queue`` is drained mid-life (rowid reuse) so always recount.
+# ``session_flow_events`` has no additive counter columns in the rollup schema —
+# it is included ONLY to advance its high-water offset so the fold is idempotent;
+# its STATE signals (verification presence, last_event_at) are collected by the
+# SEPARATE _SIGNAL_RECOUNT_SQLS below (MAJOR-1 fix: always full-recount so they
+# never flicker to zero on a no-new-rows pass).
+_FLOW_SOURCES = (
+    ("session_inputs", _INPUTS_AGG_SQL, _INPUTS_RECOUNT_SQL,
+     ("input_count", "input_chars", "input_tokens_est"), False),
+    ("worker_runs", _WORKER_AGG_SQL, _WORKER_RECOUNT_SQL,
+     ("worker_runs", "active_workers", "failed_workers"), True),
+    ("llm_calls", _FLOW_LLM_AGG_SQL, _FLOW_LLM_RECOUNT_SQL,
+     ("llm_attempts", "llm_success", "llm_errors", "tokens_input",
+      "tokens_output", "tokens_reasoning", "cost_usd"), False),
+    ("session_flow_events", _EVENTS_AGG_SQL, _EVENTS_RECOUNT_SQL,
+     (), False),
+    ("session_queue", _FLOW_QUEUE_AGG_SQL, _FLOW_QUEUE_RECOUNT_SQL,
+     ("queue_in", "queue_out"), True),
+)
+
+# MAJOR-1 fix: STATE-determining signals are collected as FULL recounts over ALL
+# current runtime rows every fold pass — regardless of whether there are new rows.
+# This prevents verification_count/last_*_at from resetting to zero/null on a
+# no-new-rows pass (which would flicker flow_state down from verification_seen →
+# running every 30s with the scheduler).  These are cheap single-row aggregates
+# run after the counter loop, on the already-open runtime DB.
+_SIGNAL_RECOUNT_SQLS = {
+    "last_input_at": "SELECT MAX(created_at) AS v FROM session_inputs",
+    "last_llm_at": "SELECT MAX(created_at) AS v FROM llm_calls",
+    "last_worker_at": "SELECT MAX(updated_at) AS v FROM worker_runs",
+    "last_event_at": "SELECT MAX(created_at) AS v FROM session_flow_events",
+    "verification_count": (
+        "SELECT COALESCE(SUM(CASE WHEN event_type LIKE 'verification%' "
+        "OR event_type LIKE '%verified%' THEN 1 ELSE 0 END), 0) AS v "
+        "FROM session_flow_events"
+    ),
+}
+
+
 @dataclass
 class RollupResult:
     """Outcome of rolling up ONE session."""
@@ -420,6 +594,512 @@ def rollup_all_active(
             control.close()
         except Exception:
             pass
+
+
+# --------------------------------------------------------------------------- #
+# Session Flow fold (Task 7 / RS-2): fold runtime flow rows into the control
+# session_flow_rollups (+ derive ip_flow_rollups). OUT-OF-BAND, never on a read.
+# --------------------------------------------------------------------------- #
+
+
+def _flow_offset_key(source_table: str) -> str:
+    """The runtime_rollup_offsets ``source_table`` key for the FLOW fold.
+
+    Distinct from the usage fold's bare table name so the two folds keep
+    INDEPENDENT high-water marks for the same physical runtime table (e.g.
+    ``llm_calls`` is folded by BOTH; ``flow:llm_calls`` vs ``llm_calls``).
+    """
+    return _FLOW_OFFSET_PREFIX + source_table
+
+
+def rollup_session_flow(
+    session_id: str,
+    router: Optional[AtlasDBRouter] = None,
+    *,
+    control: Optional[AtlasDB] = None,
+) -> RollupResult:
+    """Idempotently fold one session's runtime flow rows into the control rollup.
+
+    Reads the runtime ``session_inputs`` / ``worker_runs`` / ``session_flow_events``
+    (+ runtime ``llm_calls`` / ``session_queue``) for *session_id*, folds the
+    additive counters into ``session_flow_rollups`` via the EXISTING
+    ``runtime_rollup_offsets`` high-water (under ``flow:<table>`` keys, so it is
+    idempotent / repeat-safe), RECOMPUTES the non-additive STATE from latest
+    (DM-2) using :mod:`core.session_flow_usage`, populates
+    ``attribution_gap_count``, and advances the offsets in the SAME control-DB
+    transaction (:meth:`AtlasDB.fold_session_flow_rollup`).
+
+    A MISSING/corrupt runtime DB does NOT raise: the rollup row is flipped to
+    ``rollup_status='stale'`` (missing) / ``'error'`` (corrupt) with a lag so a
+    reader surfaces a non-silent staleness signal instead of a false-empty.
+    """
+    from core import session_flow_usage as sf
+
+    router = router or AtlasDBRouter()
+    own_control = control is None
+    control = control or router.control_db()
+    try:
+        manifest = control.get_session_runtime_db(session_id)
+        if not manifest:
+            return RollupResult(session_id=session_id, status="skipped")
+
+        session_uid = manifest.get("session_uid")
+        runtime_path = manifest.get("runtime_db_path") or ""
+        identity = _flow_identity_from_manifest(control, session_id, manifest)
+
+        if not runtime_path or not os.path.exists(runtime_path):
+            lag = _manifest_lag(manifest)
+            control.mark_session_flow_rollup_status(
+                session_id, status="stale", rollup_lag_s=lag,
+                identity=identity, state={"flow_state": "stale", "risk_level": "warning"},
+            )
+            return RollupResult(
+                session_id=session_id, session_uid=session_uid,
+                status="stale", rollup_lag_s=lag,
+                error="runtime DB file missing",
+            )
+
+        try:
+            runtime_db = router.runtime_db(session_id, create=False)
+        except (RuntimeDBError, sqlite3.DatabaseError) as exc:
+            return _mark_flow_error(control, session_id, identity, manifest, str(exc))
+
+        deltas: Dict[str, float] = {}
+        absolutes: Dict[str, float] = {}
+        offset_updates: Dict[str, int] = {}
+        signals: Dict[str, Any] = {}
+        try:
+            # --- Counter loop: additive fold with high-water idempotency ---
+            for (source_table, agg_sql, recount_sql, counters,
+                 always_recount) in _FLOW_SOURCES:
+                okey = _flow_offset_key(source_table)
+                offset = control.get_rollup_offset(session_id, okey)
+                probe = runtime_db._fetchone(
+                    _MAX_ROWID_SQL.format(table=source_table)
+                )
+                cur_max = int(dict(probe).get("max_rowid") or 0) if probe else 0
+                # Recount when forced (status-snapshot/current-window tables) OR
+                # when the table was drained/reused (cur_max < offset).
+                if always_recount or cur_max < offset:
+                    row = runtime_db._fetchone(recount_sql)
+                    rowd = dict(row) if row is not None else {}
+                    for col in counters:
+                        absolutes[col] = _num(rowd.get(col))
+                    offset_updates[okey] = int(rowd.get("max_rowid") or 0)
+                else:
+                    row = runtime_db._fetchone(agg_sql, (offset,))
+                    rowd = dict(row) if row is not None else {}
+                    for col in counters:
+                        deltas[col] = deltas.get(col, 0) + _num(rowd.get(col))
+                    max_rowid = int(rowd.get("max_rowid") or 0)
+                    new_offset = max(offset, max_rowid)
+                    if new_offset > offset:
+                        offset_updates[okey] = new_offset
+
+            # --- MAJOR-1: signal recounts (always full-scan, never high-water) ---
+            # verification_count / last_*_at are non-additive STATE signals.
+            # They MUST reflect ALL current runtime rows — not just the new slice —
+            # so a no-new-rows fold pass does NOT reset them to zero/null, which
+            # would flicker flow_state down from verification_seen on every cycle.
+            for sig_key, sig_sql in _SIGNAL_RECOUNT_SQLS.items():
+                sig_row = runtime_db._fetchone(sig_sql)
+                signals[sig_key] = (dict(sig_row).get("v") if sig_row is not None
+                                    else None)
+        except sqlite3.DatabaseError as exc:
+            return _mark_flow_error(control, session_id, identity, manifest, str(exc))
+        finally:
+            try:
+                runtime_db.close()
+            except Exception:
+                pass
+
+        lag = _runtime_age_seconds(runtime_path)
+
+        # --- MAJOR-2: read artifact_count + workflow signals from control DB ---
+        # artifact_versions and workflow_runs live in the CONTROL DB (full schema
+        # only, not in the runtime subset). Read them here — control reads are
+        # zero-fanout (no runtime file opens). This populates artifact_count,
+        # workflow_runs, workflow_errors, and workflow_blocked so flow_state can
+        # reach artifact_produced and workflow_blocked → critical, and so
+        # no_artifact_after_llm only fires for sessions that truly lack artifacts.
+        ctrl_facts = _control_facts_for_session(control, session_id)
+
+        # Build the MERGED counter view (existing control row + this fold) so the
+        # STATE recompute reflects the post-fold totals, then recompute STATE.
+        existing_rows = control.list_session_flow_rollups(session_id=session_id)
+        base = existing_rows[0] if existing_rows else {}
+        merged = _merged_flow_counters(base, deltas, absolutes)
+        # Overwrite the control-only counters from the just-read control facts.
+        # These are absolutes (full recount from control) so they win over any
+        # stale value in the base row.
+        merged.update(ctrl_facts)
+        # Also register them as absolutes so fold_session_flow_rollup stores them.
+        for col, val in ctrl_facts.items():
+            absolutes[col] = val
+
+        sess = control.find_session(session_id) or {}
+        state, gap_count = _recompute_flow_state_fields(
+            sf, sess, merged, signals, lag, now=time.time()
+        )
+        # attribution_gap_count is RECOMPUTED-from-latest (a STATE-like derived
+        # value), so pass it as an absolute, not a summed delta.
+        absolutes["attribution_gap_count"] = gap_count
+
+        control.fold_session_flow_rollup(
+            session_id,
+            deltas=deltas,
+            absolutes=absolutes,
+            offsets=offset_updates,
+            identity=identity,
+            state=state,
+            status="ok",
+            rollup_lag_s=lag,
+        )
+
+        reported = dict(deltas)
+        reported.update(absolutes)
+        int_deltas = {k: (int(round(v)) if k != "cost_usd" else v)
+                      for k, v in reported.items()}
+        return RollupResult(
+            session_id=session_id, session_uid=session_uid,
+            status="ok", rollup_lag_s=lag, deltas=int_deltas,
+        )
+    finally:
+        if own_control:
+            try:
+                control.close()
+            except Exception:
+                pass
+
+
+def _control_facts_for_session(control: AtlasDB, session_id: str) -> Dict[str, float]:
+    """Read artifact_count + workflow counters from the control DB (MAJOR-2).
+
+    These tables live in the FULL control schema (not in the runtime subset), so
+    they must be read from the control DB. This is NOT fanout — it is a single
+    control-DB read, same as any other control read in the fold path.
+
+    Returns a dict of counters suitable for merging into the fold's ``absolutes``
+    so the STATE recompute sees real artifact/workflow signals.
+    """
+    facts: Dict[str, float] = {
+        "artifact_count": 0.0,
+        "workflow_runs": 0.0,
+        "workflow_errors": 0.0,
+    }
+    # artifact_versions (control-only full schema)
+    try:
+        row = control._fetchone(
+            "SELECT COUNT(*) AS c FROM artifact_versions "
+            "WHERE source_session_id = ?",
+            (session_id,),
+        )
+        if row is not None:
+            facts["artifact_count"] = _num(dict(row).get("c"))
+    except Exception:
+        pass
+    # workflow_runs (control-only full schema) — also derives workflow_blocked
+    try:
+        row = control._fetchone(
+            "SELECT COUNT(*) AS c, "
+            "COALESCE(SUM(CASE WHEN status IN ('error','failed') THEN 1 ELSE 0 END),0) AS err_c, "
+            "COALESCE(SUM(CASE WHEN status IN ('blocked','waiting') THEN 1 ELSE 0 END),0) AS blk_c "
+            "FROM workflow_runs WHERE session_id = ?",
+            (session_id,),
+        )
+        if row is not None:
+            rd = dict(row)
+            facts["workflow_runs"] = _num(rd.get("c"))
+            facts["workflow_errors"] = _num(rd.get("err_c"))
+            # workflow_blocked is a boolean signal stored as 0/1 float here
+            facts["workflow_blocked"] = 1.0 if _num(rd.get("blk_c")) > 0 else 0.0
+    except Exception:
+        pass
+    return facts
+
+
+def _flow_identity_from_manifest(
+    control: AtlasDB, session_id: str, manifest: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Descriptive columns for a session_flow_rollups row (control sessions row)."""
+    identity: Dict[str, Any] = {"session_uid": manifest.get("session_uid")}
+    sess = control.find_session(session_id)
+    if sess:
+        identity["user_id"] = sess.get("user_id")
+        identity["workspace_id"] = sess.get("workspace_id")
+        identity["ip_id"] = sess.get("ip_id") or sess.get("ip")
+        identity["ip"] = sess.get("ip") or sess.get("ip_id")
+        identity["workflow"] = sess.get("workflow")
+    return identity
+
+
+def _merged_flow_counters(
+    base: Dict[str, Any], deltas: Dict[str, float], absolutes: Dict[str, float]
+) -> Dict[str, float]:
+    """Post-fold counter view = base + deltas, with absolutes OVERWRITING."""
+    cols = AtlasDB._SESSION_FLOW_COUNTERS
+    out: Dict[str, float] = {}
+    for col in cols:
+        if col in absolutes:
+            out[col] = _num(absolutes.get(col))
+        else:
+            out[col] = _num(base.get(col)) + _num(deltas.get(col))
+    return out
+
+
+def _recompute_flow_state_fields(
+    sf, sess: Dict[str, Any], merged: Dict[str, float],
+    signals: Dict[str, Any], lag: float, *, now: float,
+) -> tuple:
+    """Recompute the NON-additive STATE (DM-2) from the post-fold counters.
+
+    Returns ``(state_dict, attribution_gap_count)``. Reuses the SAME
+    recompute_flow_state / recompute_risk_level the central read path uses, so a
+    runtime-folded session and a central-recomputed session classify identically.
+    """
+    status = str(sess.get("status") or "").strip().lower()
+
+    last_candidates = [
+        sess.get("updated_at"), signals.get("last_input_at"),
+        signals.get("last_llm_at"), signals.get("last_worker_at"),
+        signals.get("last_event_at"),
+    ]
+    last_activity = max((c for c in last_candidates if c is not None), default=None)
+    if last_activity is not None:
+        stale_age_s = max(0.0, now - _num(last_activity))
+    else:
+        stale_age_s = max(0.0, now - _num(sess.get("created_at")))
+
+    input_count = int(merged.get("input_count") or 0)
+    worker_runs = int(merged.get("worker_runs") or 0)
+    active_workers = int(merged.get("active_workers") or 0)
+    failed_workers = int(merged.get("failed_workers") or 0)
+    artifact_count = int(merged.get("artifact_count") or 0)
+    llm_attempts = int(merged.get("llm_attempts") or 0)
+    cost_usd = _num(merged.get("cost_usd"))
+    queue_in = int(merged.get("queue_in") or 0)
+
+    has_input = input_count > 0
+    has_worker = worker_runs > 0
+    has_artifact = artifact_count > 0
+    has_ip = bool(str(sess.get("ip_id") or sess.get("ip") or "").strip())
+    has_workflow = bool(str(sess.get("workflow") or "").strip())
+    verification_seen = int(signals.get("verification_count") or 0) > 0
+    worker_active = active_workers > 0
+    worker_failed = failed_workers > 0
+    # MAJOR-2: workflow_blocked from control facts (0.0/1.0 float stored in merged)
+    workflow_blocked = _num(merged.get("workflow_blocked")) > 0
+
+    flow_state = sf.recompute_flow_state(
+        sess, has_input=has_input, worker_started=has_worker,
+        worker_active=worker_active, worker_failed=worker_failed,
+        workflow_blocked=workflow_blocked, has_artifact=has_artifact,
+        verification_seen=verification_seen, stale_age_s=stale_age_s,
+    )
+    recent_progress = stale_age_s < (6 * 3600.0) and (
+        has_input or has_worker or has_artifact or llm_attempts > 0
+    )
+    risk_level, _reason = sf.recompute_risk_level(
+        flow_state=flow_state, status=status, stale_age_s=stale_age_s,
+        worker_active=worker_active, worker_failed=worker_failed,
+        workflow_blocked=workflow_blocked, queue_in=queue_in,
+        has_active_worker=worker_active, has_input=has_input,
+        has_worker=has_worker, has_artifact=has_artifact, llm_cost=cost_usd,
+        has_ip=has_ip, has_workflow=has_workflow, pending_todos=0,
+        recent_progress=recent_progress,
+    )
+
+    # MINOR-1: use shared helper so runtime and central modes agree on confidence.
+    confidence, missing_reason, gap_count = sf.derive_attribution_confidence(
+        has_input=has_input, has_worker=has_worker,
+        llm_attempts=llm_attempts, has_artifact=has_artifact,
+        has_ip=has_ip, has_workflow=has_workflow,
+    )
+
+    state = {
+        "flow_state": flow_state,
+        "risk_level": risk_level,
+        "stale_age_s": stale_age_s,
+        "attribution_confidence": confidence,
+        "missing_reason": missing_reason,
+    }
+    return state, gap_count
+
+
+def _mark_flow_error(
+    control: AtlasDB, session_id: str, identity: Dict[str, Any],
+    manifest: Dict[str, Any], message: str,
+) -> RollupResult:
+    """Quarantine a corrupt/unreadable runtime DB for the flow rollup (no raise)."""
+    lag = _manifest_lag(manifest)
+    control.mark_session_flow_rollup_status(
+        session_id, status="error", rollup_lag_s=lag,
+        identity=identity, state={"flow_state": "stale", "risk_level": "warning"},
+    )
+    return RollupResult(
+        session_id=session_id, session_uid=manifest.get("session_uid"),
+        status="error", rollup_lag_s=lag, error=message,
+    )
+
+
+def rollup_all_active_flow(
+    limit: Optional[int] = None,
+    router: Optional[AtlasDBRouter] = None,
+    *,
+    status_filter: Optional[str] = None,
+) -> List[RollupResult]:
+    """Fold every active session's runtime flow rows, then derive ip_flow_rollups.
+
+    NEVER raises out of the per-session loop (a missing/corrupt runtime DB for one
+    session is recorded stale/error and the loop CONTINUES). After folding all
+    sessions it derives the ``ip_flow_rollups`` by GROUP BY ip_id over the freshly
+    written ``session_flow_rollups`` (Task 3 RS-3 approach) so the IP read-model is
+    populated in runtime mode too.
+    """
+    router = router or AtlasDBRouter()
+    control = router.control_db()
+    results: List[RollupResult] = []
+    try:
+        rows = control.list_session_runtime_dbs(
+            status=status_filter if status_filter is not None else None
+        )
+        if status_filter is None:
+            rows = [r for r in rows if r.get("status") in ("active", "stale", "error")]
+        if limit is not None:
+            rows = rows[: max(0, int(limit))]
+        for manifest in rows:
+            session_id = manifest.get("session_id")
+            if not session_id:
+                continue
+            try:
+                results.append(
+                    rollup_session_flow(session_id, router=router, control=control)
+                )
+            except Exception as exc:
+                results.append(RollupResult(
+                    session_id=session_id,
+                    session_uid=manifest.get("session_uid"),
+                    status="error", error=f"unexpected: {exc}",
+                ))
+        # Derive ip_flow_rollups from the freshly written session rollups (RS-3).
+        try:
+            from core import session_flow_usage as sf
+
+            sessions = {s["id"]: s for s in control.list_all_sessions()}
+            sf._recompute_ip_rollups(control, sessions, now=time.time())
+        except Exception:
+            pass
+        return results
+    finally:
+        try:
+            control.close()
+        except Exception:
+            pass
+
+
+# --------------------------------------------------------------------------- #
+# Out-of-band rollup scheduler (Task 7 / B2 / RS-1): the REAL production trigger.
+# Wired at server bootstrap (src/atlas_ui.py create_app) so rollups actually get
+# populated in session/runtime mode. Folds BOTH the pre-existing usage rollup
+# (which ALSO had a missing-trigger gap) AND the new session-flow rollup.
+# --------------------------------------------------------------------------- #
+
+
+def run_rollup_pass(
+    *,
+    limit: Optional[int] = None,
+    router: Optional[AtlasDBRouter] = None,
+) -> Dict[str, Any]:
+    """Run ONE out-of-band rollup pass (usage + session-flow). Ops/test entrypoint.
+
+    Manually callable (ops + tests) so a pass can be triggered without the daemon
+    thread. Folds the runtime usage rollup (``rollup_all_active``) AND the new
+    session-flow rollup (``rollup_all_active_flow``). NEVER raises: a per-session
+    failure is already captured as a stale/error RollupResult by the callees.
+    Returns a small JSON-able summary.
+    """
+    router = router or AtlasDBRouter()
+    summary: Dict[str, Any] = {"usage": 0, "flow": 0, "errors": 0}
+    try:
+        usage = rollup_all_active(limit=limit, router=router)
+        summary["usage"] = len(usage)
+        summary["errors"] += sum(1 for r in usage if r.status == "error")
+    except Exception as exc:  # defensive: a pass must never crash the scheduler
+        summary["usage_exc"] = str(exc)
+    try:
+        flow = rollup_all_active_flow(limit=limit, router=router)
+        summary["flow"] = len(flow)
+        summary["errors"] += sum(1 for r in flow if r.status == "error")
+    except Exception as exc:
+        summary["flow_exc"] = str(exc)
+    return summary
+
+
+def _rollup_interval_seconds() -> float:
+    """Configurable scheduler interval (env ``ATLAS_FLOW_ROLLUP_INTERVAL_S``)."""
+    raw = os.environ.get("ATLAS_FLOW_ROLLUP_INTERVAL_S", "").strip()
+    try:
+        val = float(raw) if raw else 30.0
+    except (TypeError, ValueError):
+        val = 30.0
+    return max(1.0, val)
+
+
+def scheduler_should_run() -> bool:
+    """Decide whether the background rollup scheduler should start.
+
+    Test-guard: under pytest the scheduler does NOT start unless explicitly
+    enabled with ``ATLAS_FLOW_ROLLUP_ENABLE=1`` (so the daemon thread never spins
+    up and dirties timing-sensitive suites). Outside pytest it runs only in
+    SESSION mode (central mode has no per-session runtime files to fold) unless
+    forced on. ``ATLAS_FLOW_ROLLUP_ENABLE=0`` hard-disables it everywhere.
+    """
+    raw = os.environ.get("ATLAS_FLOW_ROLLUP_ENABLE", "").strip().lower()
+    if raw in ("0", "false", "no", "off"):
+        return False
+    forced = raw in ("1", "true", "yes", "on")
+    under_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST")) or (
+        "pytest" in os.environ.get("ATLAS_TEST_RUNNER", "")
+    )
+    if under_pytest and not forced:
+        return False
+    if forced:
+        return True
+    # Default (not under pytest, not explicitly set): run only in session mode.
+    return runtime_mode_active()
+
+
+def start_rollup_scheduler(
+    *,
+    interval_s: Optional[float] = None,
+    router: Optional[AtlasDBRouter] = None,
+    limit: Optional[int] = None,
+) -> Any:
+    """Start the background daemon thread that periodically runs a rollup pass.
+
+    Returns the started ``threading.Thread`` (daemon) or ``None`` when the guard
+    (:func:`scheduler_should_run`) declines (e.g. under pytest without the explicit
+    enable env, or central mode). The thread NEVER raises out of its loop: a pass
+    failure is swallowed so a transient DB hiccup cannot kill the scheduler.
+    """
+    if not scheduler_should_run():
+        return None
+    import threading
+
+    interval = interval_s if interval_s is not None else _rollup_interval_seconds()
+    shared_router = router or AtlasDBRouter()
+
+    def _loop() -> None:
+        while True:
+            try:
+                run_rollup_pass(limit=limit, router=shared_router)
+            except Exception:
+                pass
+            time.sleep(interval)
+
+    t = threading.Thread(target=_loop, daemon=True, name="atlas-flow-rollup")
+    t.start()
+    return t
 
 
 # --------------------------------------------------------------------------- #

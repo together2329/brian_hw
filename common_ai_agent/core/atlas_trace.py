@@ -411,6 +411,11 @@ class TraceRecorder:
         error_type: str = "",
         idempotency_key: str = "",
     ) -> dict[str, Any]:
+        # WP-1: stamp the worker_run_id from the spawn env when present so the
+        # trace-scoped LLM call is attributed to its worker run; resolvable ->
+        # exact, absent -> inferred (never claim exact for an unknown link).
+        worker_run_id = os.environ.get("ATLAS_WORKER_RUN_ID", "").strip()
+        attr = "exact" if worker_run_id else "inferred"
         call = self.db.record_llm_call(
             session_id=self.context.session_id or self.context.session_key,
             message_id=message_id,
@@ -432,6 +437,8 @@ class TraceRecorder:
             latency_ms=latency_ms,
             status=status,
             error_type=error_type,
+            worker_run_id=worker_run_id,
+            attribution_confidence=attr,
         )
         self._record_event(
             "llm_call.completed" if status in {"ok", "completed", "success"} else "llm_call.failed",

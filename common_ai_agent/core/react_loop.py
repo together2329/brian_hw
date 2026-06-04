@@ -1386,8 +1386,13 @@ def run_react_agent_impl(
                     cfg,
                     _workflow,
                 )
+                # WP-1: stamp the worker_run_id when the interactive worker (or a
+                # job spawn) exported it. Resolvable -> exact; absent -> mark the
+                # gap as inferred rather than claiming exact attribution.
+                _worker_run_id = os.environ.get("ATLAS_WORKER_RUN_ID", "").strip()
+                _attr = "exact" if _worker_run_id else "inferred"
                 with AtlasDB(_db_path) as _db:
-                    _db.record_llm_call(
+                    _call = _db.record_llm_call(
                         session_id=_session_id,
                         ip_id=_ip_id,
                         workflow=_workflow,
@@ -1401,7 +1406,30 @@ def run_react_agent_impl(
                         cost_usd=_cost_usd,
                         latency_ms=round(llm_elapsed * 1000.0, 1),
                         status="ok",
+                        worker_run_id=_worker_run_id,
+                        attribution_confidence=_attr,
                     )
+                    # Flow event linked by llm_call_id (after insert).
+                    try:
+                        _db.record_session_flow_event(
+                            event_type="llm_call.completed",
+                            idempotency_key=f"llm-call:{_call['id']}",
+                            session_id=_session_id,
+                            ip_id=_ip_id,
+                            workflow=_workflow,
+                            worker_run_id=_worker_run_id,
+                            llm_call_id=_call["id"],
+                            attribution_confidence=_attr,
+                            payload={
+                                "call_role": "worker",
+                                "tokens_input": int(_in_tok),
+                                "tokens_output": int(_out_tok),
+                                "cost_usd": _cost_usd,
+                                "status": "ok",
+                            },
+                        )
+                    except Exception:
+                        pass
             except Exception:
                 pass
 

@@ -2,6 +2,26 @@
 
 ## 2026-06-04
 
+- Refined [[perforce-integration-20260530]] after the worktree
+  checkout/edit/submit report. The Perforce lower panel now uses bottom tabs
+  for Diff, History, and Pending List instead of keeping history/history diff
+  expanded in the middle of the panel. New temporary-`p4d` regressions verify
+  UI-style local worktree checkout into a depot target and submit for both
+  default and numbered changelists, including no pending leftovers and matching
+  `p4 print` depot content. Verification: Perforce/API pytest `43 passed,
+  3 skipped`, Perforce UI Vitest `16 passed`, and `frontend/atlas` Vite build
+  pass. `p4v` GUI was unavailable; validation used real Helix Core `p4d` plus
+  `p4` CLI.
+- Added [[session-flow-dashboard-20260604]] documenting the new Session Flow
+  admin tab: session as primary unit, metric definitions (input count, LLM
+  attempts/success/errors, cost, worker runs, flow state, risk level,
+  attribution confidence), three stakeholder lenses (builder/team_lead/
+  executive), historical attribution limitations (inferred ≠ exact; conflict
+  deferred), runtime no-fanout design with out-of-band fold scheduler
+  (`rollup_all_active_flow` via `start_rollup_scheduler`), freshness/stale
+  semantics, and operator quick-reference. API registered at
+  `GET /api/admin/session-flow` in both `src/atlas_admin.py` and
+  `src/atlas_ui.py`.
 - Extended [[contract-reflection-workflow]] freshness downward from semantic
   source artifacts into simulator evidence. Added
   `workflow/contract_reflection/sim_freshness.py`,

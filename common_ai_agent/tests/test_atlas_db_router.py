@@ -107,10 +107,19 @@ def test_session_mode_runtime_db_has_only_subset_tables(paths):
     db = r.runtime_db("alice/ip_deep/rtl-gen")
     names = {row[0] for row in db._fetchall(
         "SELECT name FROM sqlite_master WHERE type='table'")}
-    assert names == {"session_queue", "messages", "parts", "trace_events", "llm_calls"}
+    # The runtime subset is the 5 IPC/trace tables PLUS the 3 Session Flow
+    # tables that workers write into their runtime file (session_inputs,
+    # worker_runs, session_flow_events). The CONTROL-only *_flow_rollups and
+    # the ~24 control tables must still NOT materialize here.
+    assert names == {
+        "session_queue", "messages", "parts", "trace_events", "llm_calls",
+        "session_inputs", "worker_runs", "session_flow_events",
+    }
     # no control tables materialized.
     assert "users" not in names
     assert "workspaces" not in names
+    assert "session_flow_rollups" not in names
+    assert "ip_flow_rollups" not in names
 
 
 def test_session_mode_basename_not_raw_for_traversal_like_id(paths):

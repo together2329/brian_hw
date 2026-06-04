@@ -780,6 +780,30 @@ class SessionWorker:
         msg = self.wait_matching(("prompt", "interrupt"), timeout=None)
         if msg is None:
             raise KeyboardInterrupt
+        # Plan-mode crosses the web-server -> worker process boundary on the
+        # prompt envelope (atlas_multiuser._send_process_input_for_session) and
+        # is authoritative per prompt: key present => that mode; key ABSENT on a
+        # prompt => normal, which RESETS a worker left in plan by a prior,
+        # unconfirmed plan turn. Apply it to THIS process's env before the turn
+        # runs so the tools.py PLAN_MODE gate and main.chat_loop's agent_mode
+        # reconcile both see it. Only reset on a real `prompt` (an `interrupt`
+        # injects text mid-turn and must not flip the running turn's mode).
+        if _message_type(msg) == "prompt":
+            payload = _decode_payload(msg.get("payload"))
+            if isinstance(payload, dict) and payload.get("plan_mode") is not None:
+                _plan_on = str(payload.get("plan_mode")).strip().lower() == "true"
+                _am = str(payload.get("agent_mode") or "").strip()
+                _am = _am or ("plan_q" if _plan_on else "normal")
+            else:
+                _plan_on = False
+                _am = "normal"
+            os.environ["PLAN_MODE"] = "true" if _plan_on else "false"
+            os.environ["AGENT_MODE_OVERRIDE"] = _am
+            if not _plan_on:
+                # Resetting to normal also clears the plan-mode write counter so
+                # a stale count never leaks into the next plan session (parity
+                # across the keyless-reset and explicit plan_mode=false paths).
+                os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
         return _message_text(msg)
 
     def emit_content(self, text: str, cls: str = "") -> None:
@@ -1255,6 +1279,26 @@ def run_worker(session_id: str, db_path: str) -> int:
         return 0
     worker = SessionWorker(session_id=session_id, db_path=db_path)
     _install_signal_handlers()
+    worker_run_id = ""
+
+    def _close_worker_run(status: str) -> None:
+        if not worker_run_id:
+            return
+        try:
+            worker.db.finish_worker_run(worker_run_id, status=status)
+            worker.db.record_session_flow_event(
+                event_type="worker.stopped",
+                idempotency_key=f"worker-stopped:{worker_run_id}:{status}",
+                session_id=session_id,
+                user_id=owner,
+                ip_id=ip,
+                workflow=workflow,
+                worker_run_id=worker_run_id,
+                attribution_confidence="exact",
+                payload={"status": status},
+            )
+        except Exception:
+            pass
 
     try:
         if _start_parent_monitor(parent_pid) is False:
@@ -1293,18 +1337,51 @@ def run_worker(session_id: str, db_path: str) -> int:
         except Exception as exc:
             worker.emit("error", {"message": f"QA callback registration failed: {exc}"})
 
+        try:
+            wr = worker.db.start_worker_run(
+                session_id=session_id,
+                user_id=owner,
+                ip_id=ip,
+                workflow=workflow,
+                worker_kind="interactive",
+                worker_label="session_worker",
+                status="running",
+            )
+            worker_run_id = wr.get("id") or ""
+            if worker_run_id:
+                os.environ["ATLAS_WORKER_RUN_ID"] = worker_run_id
+                try:
+                    worker.db.record_session_flow_event(
+                        event_type="worker.started",
+                        idempotency_key=f"worker-started:{worker_run_id}",
+                        session_id=session_id,
+                        user_id=owner,
+                        ip_id=ip,
+                        workflow=workflow,
+                        worker_run_id=worker_run_id,
+                        attribution_confidence="exact",
+                        payload={"worker_kind": "interactive"},
+                    )
+                except Exception:
+                    pass
+        except Exception:
+            worker_run_id = ""
+
         worker.emit("worker_started", {"pid": os.getpid()})
         # Task 5 (Wave-3 line 271): fence ALL pending inbound rows left by a
         # previous process BEFORE the loop, so a stale stop/interrupt/answer/
         # prompt can never drive the new worker.
         worker.fence_stale_startup_inputs()
         agent.chat_loop()
+        _close_worker_run("completed")
         return 0
     except KeyboardInterrupt:
         worker.emit("worker_stopped", {"reason": "signal"})
+        _close_worker_run("cancelled")
         return 0
     except Exception as exc:
         worker.emit("error", {"message": str(exc), "type": type(exc).__name__})
+        _close_worker_run("error")
         raise
     finally:
         worker.set_agent_running(False)

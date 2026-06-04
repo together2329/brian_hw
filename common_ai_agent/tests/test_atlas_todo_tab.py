@@ -103,6 +103,23 @@ def test_atlas_ui_exposes_todo_crud_endpoints() -> None:
     assert '"rejection_reason is required"' in update_endpoint
 
 
+def test_todos_update_endpoint_gates_status_changes_in_plan_mode() -> None:
+    """The /api/todos/update endpoint must refuse UI status transitions while
+    plan mode is active — mirroring the core/tools.py:todo_update gate — so the
+    frontend cannot bypass plan approval the way the agent tool is blocked.
+    Content/detail/criteria/priority edits stay allowed."""
+    atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
+
+    update_start = atlas_ui.index('@app.post("/api/todos/update")')
+    update_endpoint = atlas_ui[update_start:atlas_ui.index('@app.post("/api/todos/remove")')]
+
+    # Gate keys on the same PLAN_MODE signal core/tools.py uses, only blocks a
+    # *changed* status (no-op writes pass), and returns a 409 conflict.
+    assert 'os.environ.get("PLAN_MODE") == "true"' in update_endpoint
+    assert "Changing status is blocked in plan mode" in update_endpoint
+    assert "status_code=409" in update_endpoint
+
+
 def test_web_slash_todo_uses_active_session_todo_file() -> None:
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
 

@@ -129,7 +129,7 @@ export const WorkflowReportPane = ({ workflow, activeIp }: WorkflowReportPanePro
       })
       .filter(p => folderPrefixes.some((prefix: string) => p.startsWith(prefix)))
       .sort((a, b) => a.localeCompare(b));
-    return Array.from(new Set([...candidatePaths, ...related]));
+    return Array.from(new Set([...related, ...candidatePaths]));
   }, [meta, ip, dataTick]);
 
   const pathsKey = paths.join('\n');

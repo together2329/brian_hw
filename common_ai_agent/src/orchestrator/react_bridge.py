@@ -836,7 +836,11 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                 # row keeps session_id as its query key; the FILE is chosen by
                 # the router (no cross-DB transaction).
                 with _runtime_db_for_session(db, ctx.session_id or "") as _acct_db:
-                    _acct_db.record_llm_call(
+                    # WP-1: orchestrator-scoped calls have NO worker_run (the
+                    # orchestrator is not a worker run), so worker_run_id is left
+                    # empty and attribution is marked 'inferred' — never claimed
+                    # exact for a link we cannot resolve.
+                    _call = _acct_db.record_llm_call(
                         session_id=ctx.session_id or "",
                         run_id=ctx.run_id,
                         workspace_id=getattr(ctx, "workspace_id", "") or "",
@@ -852,7 +856,30 @@ def build_orchestrator_deps(*, ctx: Any, runner: Any, db: Any) -> OrchestratorRe
                         cost_usd=cost_usd,
                         latency_ms=(time.monotonic() - started) * 1000.0,
                         status="ok",
+                        attribution_confidence="inferred",
+                        missing_reason="orchestrator_scope_no_worker_run",
                     )
+                    try:
+                        _acct_db.record_session_flow_event(
+                            event_type="llm_call.completed",
+                            idempotency_key=f"llm-call:{_call['id']}",
+                            session_id=ctx.session_id or "",
+                            workspace_id=getattr(ctx, "workspace_id", "") or "",
+                            ip_id=ctx.ip_id or "",
+                            workflow="orchestrator",
+                            llm_call_id=_call["id"],
+                            attribution_confidence="inferred",
+                            missing_reason="orchestrator_scope_no_worker_run",
+                            payload={
+                                "call_role": "orchestrator",
+                                "tokens_input": int(tokens_input),
+                                "tokens_output": int(tokens_output),
+                                "cost_usd": cost_usd,
+                                "status": "ok",
+                            },
+                        )
+                    except Exception:
+                        pass
             except Exception:
                 # Accounting must not break the LLM call itself.
                 pass

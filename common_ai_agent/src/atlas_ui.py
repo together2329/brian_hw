@@ -1209,6 +1209,23 @@ def create_app():
             _chat_autostart()
         except Exception as _e:
             print(f"[chat-responder] autostart failed: {_e}")
+    # Session Flow / runtime usage rollup scheduler (Task 7 / B2 / RS-1): the
+    # REAL out-of-band production trigger that folds per-session runtime rows into
+    # the control-side session_flow_rollups + runtime_usage_rollups. Without this
+    # the dashboard reads empty/stale in session mode (the admin read is
+    # no-fanout by design and never folds on-read). The scheduler is its own
+    # guard: it starts ONLY in session mode (or when forced), and is test-disabled
+    # unless ATLAS_FLOW_ROLLUP_ENABLE=1 so pytest never spins the daemon. Interval
+    # is ATLAS_FLOW_ROLLUP_INTERVAL_S (default 30s). NOTE: the pre-existing
+    # runtime_usage_rollups had the SAME missing-trigger gap; this scheduler wires
+    # BOTH folds (run_rollup_pass) so both are populated.
+    try:
+        from core.runtime_rollup import start_rollup_scheduler as _start_flow_rollup
+        _flow_rollup_thread = _start_flow_rollup()
+        if _flow_rollup_thread is not None:
+            print("[atlas] Session Flow rollup scheduler started")
+    except Exception as _e:
+        print(f"[atlas] flow rollup scheduler not started: {_e}")
     clients: set[Any] = set()
     broadcaster_task: asyncio.Task | None = None
 
@@ -4259,7 +4276,18 @@ def create_app():
             if "state" in body and body.get("state") is not None:
                 from lib.todo_tracker import STATUS_ALIASES
                 raw_state = str(body.get("state")).strip()
-                todo.status = STATUS_ALIASES.get(raw_state, raw_state)
+                new_status = STATUS_ALIASES.get(raw_state, raw_state)
+                # Plan-mode gate (mirror core/tools.py:todo_update). While plan
+                # mode is active the plan stays read-only until the user approves,
+                # so reject UI status transitions just as the agent's todo_update
+                # tool is blocked. Content/detail/criteria/priority edits above
+                # remain allowed; no-op (same-status) writes pass through.
+                if os.environ.get("PLAN_MODE") == "true" and new_status != getattr(todo, "status", None):
+                    return JSONResponse(
+                        {"error": "Changing status is blocked in plan mode. Approve the plan first."},
+                        status_code=409,
+                    )
+                todo.status = new_status
             if todo.status == "approved" and not str(getattr(todo, "approved_reason", "") or "").strip():
                 return JSONResponse({"error": "approved_reason is required"}, status_code=400)
             if todo.status == "rejected" and not str(getattr(todo, "rejection_reason", "") or "").strip():
@@ -8672,8 +8700,73 @@ def create_app():
             "command": command,
         })
 
+    def _ssot_context_for_session(session_name: str) -> tuple[AtlasContext | None, JSONResponse | None]:
+        raw = normalize_session_name(str(session_name or ""))
+        if not raw:
+            return None, None
+        try:
+            return AtlasContext.from_session_key(
+                raw,
+                atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+            ), None
+        except ValueError as exc:
+            return None, JSONResponse({"ok": False, "error": str(exc)}, status_code=400)
+
+    def _ssot_base_root_for_context(context: AtlasContext | None) -> Path | None:
+        if context is not None and not context.legacy:
+            return context.workspace_root
+        return None
+
+    def _ssot_ip_root_for_context(ip: str, context: AtlasContext | None) -> Path:
+        if context is not None and not context.legacy:
+            return context.ip_root
+        return _ip_root(ip)
+
+    def _ssot_relative_path(path: Path, context: AtlasContext | None) -> str:
+        base = context.workspace_root if context is not None and not context.legacy else PROJECT_ROOT
+        try:
+            return str(path.relative_to(base))
+        except Exception:
+            return str(path)
+
+    def _ssot_context_denied(request: Request, context: AtlasContext | None, ip: str):
+        if context is None or context.legacy:
+            return None
+        if context.ip_name and context.ip_name != "default" and ip != context.ip_name:
+            return JSONResponse({"ok": False, "error": "session ip mismatch"}, status_code=400)
+        uid, uname, is_admin = _authz_identity(request)
+        if not uid or uid == "default":
+            return JSONResponse({"ok": False, "error": "login required"}, status_code=401)
+        if is_admin or uname == context.user_name:
+            return None
+        return JSONResponse({"ok": False, "error": "session owner mismatch"}, status_code=403)
+
+    def _ssot_html_doc_url(ip: str, session_name: str = "") -> str:
+        from urllib.parse import urlencode
+
+        params = {"ip": ip, "format": "html", "inline": "1"}
+        if session_name:
+            params["session_id"] = session_name
+        return f"/api/ssot/export?{urlencode(params)}"
+
+    def _load_ssot_yaml_for_export(ip: str, base_root: Path | None = None) -> dict[str, Any]:
+        import yaml as _yaml  # type: ignore
+
+        path = _ssot_yaml_path(ip, base_root=base_root)
+        if not path.is_file():
+            raise FileNotFoundError(str(path))
+        try:
+            data = _yaml.safe_load(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise ValueError(f"invalid yaml: {exc}") from exc
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            raise ValueError("invalid yaml: top-level must be a mapping")
+        return data
+
     @app.post("/api/ssot/doc-feedback")
-    async def api_ssot_doc_feedback(request: Request):
+    async def api_ssot_doc_feedback(request: Request, session_id: str = "", session: str = ""):
         """Apply DOC-tab feedback to the SSOT draft and anchored DOC export."""
         try:
             body = await request.json()
@@ -8685,10 +8778,14 @@ def create_app():
         if not _valid_ip_name(ip):
             return JSONResponse({"ok": False, "error": "no active IP found"}, status_code=400)
 
-        session_id = normalize_session_name(str(body.get("session_id") or body.get("session") or ""))
-        base_root, denied = _ssot_base_root_for_request(request, ip, session_id)
+        active_session = str(body.get("session_id") or body.get("session") or session_id or session or "").strip()
+        context, context_error = _ssot_context_for_session(active_session)
+        if context_error is not None:
+            return context_error
+        denied = _ssot_context_denied(request, context, ip)
         if denied is not None:
             return denied
+        base_root = _ssot_base_root_for_context(context)
         path = _ssot_yaml_path(ip, base_root=base_root)
         if not path.is_file():
             return JSONResponse({"ok": False, "error": f"ssot yaml not found for ip {ip!r}"}, status_code=404)
@@ -8787,14 +8884,7 @@ def create_app():
         except Exception as exc:
             return JSONResponse({"ok": False, "error": f"failed to save ssot: {exc}"}, status_code=500)
 
-        rel_base = base_root or PROJECT_ROOT
-        try:
-            rel_path = str(path.relative_to(rel_base))
-        except Exception:
-            rel_path = str(path)
-        doc_url = f"/api/ssot/export?ip={ip}&format=html&inline=1"
-        if session_id:
-            doc_url += f"&session_id={quote(session_id, safe='')}"
+        rel_path = _ssot_relative_path(path, context)
         return JSONResponse({
             "ok": True,
             "ip": ip,
@@ -8804,20 +8894,30 @@ def create_app():
             "feedback_id": feedback_id,
             "feedback_count": len(feedback_rows),
             "ssot_path": rel_path,
-            "doc_url": doc_url,
+            "doc_url": _ssot_html_doc_url(ip, active_session),
         })
 
     @app.get("/api/ssot/doc-source")
-    async def api_ssot_doc_source(request: Request, ip: str = "", path: str = "", session_id: str = "", session: str = ""):
+    async def api_ssot_doc_source(
+        request: Request,
+        ip: str = "",
+        path: str = "",
+        session_id: str = "",
+        session: str = "",
+    ):
         yaml_path = str(path or "").strip()
         if not yaml_path:
             return JSONResponse({"ok": False, "error": "path is required"}, status_code=400)
         clean_ip = str(ip or "").strip()
         if not _valid_ip_name(clean_ip):
             return JSONResponse({"ok": False, "error": f"invalid ip {ip!r}"}, status_code=400)
-        base_root, denied = _ssot_base_root_for_request(request, clean_ip, session_id or session)
+        context, context_error = _ssot_context_for_session(session_id or session)
+        if context_error is not None:
+            return context_error
+        denied = _ssot_context_denied(request, context, clean_ip)
         if denied is not None:
             return denied
+        base_root = _ssot_base_root_for_context(context)
         ssot_path = _ssot_yaml_path(clean_ip, base_root=base_root)
         if not ssot_path.is_file():
             return JSONResponse({"ok": False, "error": f"ssot yaml not found for ip {clean_ip!r}"}, status_code=404)
@@ -8831,11 +8931,7 @@ def create_app():
         try:
             from src.atlas_ssot_doc_map import lookup_ssot_doc_source
 
-            rel_base = base_root or PROJECT_ROOT
-            try:
-                rel_path = str(ssot_path.relative_to(rel_base))
-            except Exception:
-                rel_path = str(ssot_path)
+            rel_path = _ssot_relative_path(ssot_path, context)
             payload = lookup_ssot_doc_source(doc, path=yaml_path, tokens=tokens, ip=clean_ip, ssot_path=rel_path)
         except KeyError:
             return JSONResponse({"ok": False, "error": "path not found"}, status_code=404)
@@ -8844,7 +8940,14 @@ def create_app():
         return JSONResponse(payload)
 
     @app.get("/api/ssot/export")
-    async def api_ssot_export(request: Request, ip: str, format: str = "md", inline: bool = False, session_id: str = "", session: str = ""):
+    async def api_ssot_export(
+        request: Request,
+        ip: str,
+        format: str = "md",
+        inline: bool = False,
+        session_id: str = "",
+        session: str = "",
+    ):
         """Export the canonical ssot yaml as md/docx/html for human review.
 
         Reverse direction of /api/ssot/import/upload. Writes
@@ -8857,11 +8960,15 @@ def create_app():
             return JSONResponse({"error": f"invalid format {format!r}"}, status_code=400)
         if not _valid_ip_name(ip):
             return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
-        base_root, denied = _ssot_base_root_for_request(request, ip, session_id or session)
+        context, context_error = _ssot_context_for_session(session_id or session)
+        if context_error is not None:
+            return context_error
+        denied = _ssot_context_denied(request, context, ip)
         if denied is not None:
             return denied
+        base_root = _ssot_base_root_for_context(context)
         try:
-            data = _load_ssot_yaml_from_path(_ssot_yaml_path(ip, base_root=base_root)) if base_root is not None else _load_ssot_yaml(ip)
+            data = _load_ssot_yaml_for_export(ip, base_root=base_root)
         except FileNotFoundError:
             return JSONResponse(
                 {"error": f"ssot yaml not found for ip {ip!r}"},
@@ -8870,7 +8977,7 @@ def create_app():
         except ValueError as exc:
             return JSONResponse({"error": str(exc)}, status_code=400)
 
-        out_dir = ((base_root / ip) if base_root is not None else _ip_root(ip)) / "doc"
+        out_dir = _ssot_ip_root_for_context(ip, context) / "doc"
         try:
             out_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
@@ -10095,6 +10202,34 @@ def create_app():
                 return JSONResponse(build_admin_usage_payload(db))
         except Exception as e:
             print(f"api_admin_usage error: {e}")
+            return JSONResponse({"error": str(e)}, status_code=500)
+
+    @app.get("/api/admin/session-flow")
+    async def api_admin_session_flow(request: Request):
+        """Read-only Session Flow read-model: per-session flow state, risk, input/
+        LLM/worker/artifact counters, IP flow, and attribution gaps. Admin-only."""
+        if _admin_required(request) is None:
+            return _admin_denied(request)
+        try:
+            with AtlasDB() as db:
+                from core.session_flow_usage import build_session_flow_payload
+                qp = request.query_params
+                payload = build_session_flow_payload(db, {
+                    "range": (qp.get("range") or "7d").strip(),
+                    "lens": (qp.get("lens") or "team_lead").strip(),
+                    "risk": (qp.get("risk") or "all").strip(),
+                    "ip_id": (qp.get("ip_id") or "").strip() or None,
+                    "workflow": (qp.get("workflow") or "").strip() or None,
+                    "user_id": (qp.get("user_id") or "").strip() or None,
+                    "session_id": (qp.get("session_id") or "").strip() or None,
+                    "limit": qp.get("limit"),
+                    "offset": qp.get("offset"),
+                })
+                # Plan response shape exposes the page window as `pagination`.
+                payload["pagination"] = payload.pop("limits", {})
+                return JSONResponse(payload)
+        except Exception as e:
+            print(f"api_admin_session_flow error: {e}")
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/api/admin/runtime")

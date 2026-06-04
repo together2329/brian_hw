@@ -617,10 +617,19 @@ def _record_job_db_start(job: dict[str, Any]) -> None:
                 local_path=str(project_root),
             )
             ip_name = str(job.get("ip") or "").strip()
+            # WP-3: pass IP provenance. The session id is created just below, so
+            # source_session_id is best-effort here (any pre-existing db_session_id
+            # from the job dict). upsert_ip_block writes provenance write-once on
+            # INSERT only, so a later call with the session id backfills an empty
+            # source_session_id without clobbering an existing one.
             ip_row = db.upsert_ip_block(
                 workspace["id"],
                 ip_name or "soc",
                 ssot_path=f"{ip_name}/yaml/{ip_name}.ssot.yaml" if ip_name else "",
+                created_by_user_id=db_user_id,
+                source_session_id=str(job.get("db_session_id") or ""),
+                source_type="workflow",
+                source_confidence="exact",
             )
             db_session_id = str(job.get("db_session_id") or "").strip()
             if not db_session_id:
@@ -676,6 +685,47 @@ def _record_job_db_start(job: dict[str, Any]) -> None:
             job["db_user_id"] = db_user_id
             job["db_workspace_id"] = workspace["id"]
             job["db_ip_id"] = ip_row["id"]
+            # WP-1: open a worker_runs ledger row for this job at start and
+            # persist its id on the job dict. _finish_job_db_run closes it. The
+            # remote worker process keeps writing its own llm_calls rows; this
+            # control-side worker_run is the first-class worker ledger entry the
+            # Session Flow read model joins workers/workflows/artifacts through.
+            try:
+                worker_run = db.start_worker_run(
+                    session_id=db_session_id,
+                    user_id=db_user_id,
+                    workspace_id=workspace["id"],
+                    ip_id=ip_row["id"],
+                    workflow=str(job.get("workflow") or ""),
+                    worker_id=str(job.get("worker") or ""),
+                    worker_kind="workflow",
+                    worker_label=str(job.get("worker") or job.get("stage_id") or ""),
+                    workflow_run_id=str(job.get("workflow_run_id") or ""),
+                    orchestrator_run_id=str(job.get("orchestrator_run_id") or ""),
+                    status="running",
+                    task_label=str(job.get("stage_id") or ""),
+                )
+                job["worker_run_id"] = worker_run.get("id") or ""
+                if job["worker_run_id"]:
+                    db.record_session_flow_event(
+                        event_type="worker.started",
+                        idempotency_key=f"worker-started:{job['worker_run_id']}",
+                        session_id=db_session_id,
+                        user_id=db_user_id,
+                        workspace_id=workspace["id"],
+                        ip_id=ip_row["id"],
+                        workflow=str(job.get("workflow") or ""),
+                        workflow_run_id=str(job.get("workflow_run_id") or ""),
+                        worker_run_id=job["worker_run_id"],
+                        attribution_confidence="exact",
+                        payload={
+                            "worker_kind": "workflow",
+                            "stage_id": str(job.get("stage_id") or ""),
+                            "job_id": str(job.get("job_id") or ""),
+                        },
+                    )
+            except Exception:
+                pass
             db.record_trace_event(
                 event_type="workflow_dispatch",
                 payload=summary,
@@ -726,6 +776,7 @@ def _record_job_db_running(job: dict[str, Any]) -> None:
                 stage_id=str(job.get("stage_id") or ""),
                 actor_user_id=str(job.get("db_user_id") or ""),
                 idempotency_key=f"worker-start:{job.get('job_id')}",
+                worker_run_id=str(job.get("worker_run_id") or ""),
             )
     except Exception as exc:
         job["db_error"] = str(exc)
@@ -755,6 +806,31 @@ def _finish_job_db_run(job: dict[str, Any], status: str | None = None, error_sum
         error_text = error_summary if error_summary is not None else str(job.get("error") or "")
         with AtlasDB(_atlas_job_db_path(project_root)) as db:
             db.finish_workflow_run(run_id, final_status, error_summary=error_text or None)
+            # WP-1: close the worker_runs row opened at start, mapping the
+            # workflow-finish status onto the worker_run status.
+            worker_run_id = str(job.get("worker_run_id") or "")
+            if worker_run_id:
+                try:
+                    _wr_status = "completed" if final_status == "completed" else (
+                        "error" if final_status == "error" else final_status
+                    )
+                    db.finish_worker_run(worker_run_id, status=_wr_status)
+                    db.record_session_flow_event(
+                        event_type="worker.stopped",
+                        idempotency_key=f"worker-stopped:{worker_run_id}:{final_status}",
+                        session_id=str(job.get("db_session_id") or ""),
+                        user_id=str(job.get("db_user_id") or ""),
+                        workspace_id=str(job.get("db_workspace_id") or ""),
+                        ip_id=str(job.get("db_ip_id") or ""),
+                        workflow=str(job.get("workflow") or ""),
+                        workflow_run_id=run_id,
+                        worker_run_id=worker_run_id,
+                        severity="error" if final_status == "error" else "",
+                        attribution_confidence="exact",
+                        payload={"status": final_status, "job_id": str(job.get("job_id") or "")},
+                    )
+                except Exception:
+                    pass
             db.record_trace_event(
                 event_type="workflow_finished",
                 payload={
@@ -776,6 +852,8 @@ def _finish_job_db_run(job: dict[str, Any], status: str | None = None, error_sum
                 stage_id=str(job.get("stage_id") or ""),
                 actor_user_id=str(job.get("db_user_id") or ""),
                 idempotency_key=f"worker-finish:{job.get('job_id')}:{final_status}",
+                worker_run_id=str(job.get("worker_run_id") or ""),
+                severity="error" if final_status == "error" else "",
             )
             for item in _artifact_versions_map(job).values():
                 artifact_version_id = item.get("id") or ""
@@ -1765,6 +1843,14 @@ def _ensure_stage_artifact_version_for_job(
                 git_commit=git_commit,
                 git_tag=git_tag,
                 status="generated",
+                # Task 2 artifact provenance: link the produced artifact back to
+                # the session and worker_run that generated it (exact when both
+                # are known on the job dict).
+                source_session_id=str(job.get("db_session_id") or ""),
+                source_worker_run_id=str(job.get("worker_run_id") or ""),
+                attribution_confidence=(
+                    "exact" if job.get("worker_run_id") else "inferred"
+                ),
                 metadata={
                     "job_id": job.get("job_id") or "",
                     "pipeline_id": job.get("pipeline_id") or "",
@@ -4974,10 +5060,14 @@ def register_jobs_routes(
 
     def _orchestrator_session_hint_from_body(body: dict[str, Any] | None = None) -> str:
         data = body or {}
-        for key in ("orchestrator_session_id", "session_id", "session", "namespace", "active_session"):
+        for key in ("orchestrator_session_id", "session", "namespace", "active_session"):
             raw = normalize_session_name(str(data.get(key) or ""))
             if raw:
                 return raw
+        raw_session_id = normalize_session_name(str(data.get("session_id") or ""))
+        parts = [part for part in raw_session_id.split("/") if part]
+        if len(parts) >= 4:
+            return raw_session_id
         return ""
 
     def _pipeline_session_prefix_for_owner(

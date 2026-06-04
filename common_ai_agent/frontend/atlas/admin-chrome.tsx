@@ -20,6 +20,7 @@ export interface AdminTabCounts {
   costContexts: number;
   todoUsage: number;
   todoFlow: number;
+  sessionFlowNeedsAttention: number;
   traceEvents: number;
   toolUsage: number;
   rtlRunHistory: number;
@@ -74,6 +75,9 @@ export function AdminTabRow({ activeTab, setActiveTab, counts }: AdminTabRowProp
       </button>
       <button style={tabStyle(activeTab === 'flow')} onClick={() => setActiveTab('flow')}>
         Flow ({counts.todoFlow})
+      </button>
+      <button style={tabStyle(activeTab === 'session-flow')} onClick={() => setActiveTab('session-flow')}>
+        Session Flow ({counts.sessionFlowNeedsAttention})
       </button>
       <button style={tabStyle(activeTab === 'trace')} onClick={() => setActiveTab('trace')}>
         Trace ({counts.traceEvents})

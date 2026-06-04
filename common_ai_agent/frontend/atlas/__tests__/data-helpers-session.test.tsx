@@ -6,6 +6,7 @@ import {
 } from '../data-helpers';
 import {
   resolveActiveSession,
+  ssotIpFromSession,
 } from '../workspace-session-routing';
 
 describe('workspace session normalization', () => {
@@ -24,6 +25,8 @@ describe('workspace session normalization', () => {
     expect(normalizeSessionName('webalice/s1/NEWIP_MCTP/default'))
       .toBe('webalice/s1/NEWIP_MCTP/default');
     expect(activeIpFromSession('webalice/s1/NEWIP_MCTP/default'))
+      .toBe('NEWIP_MCTP');
+    expect(ssotIpFromSession('webalice/s1/NEWIP_MCTP/rtl-gen'))
       .toBe('NEWIP_MCTP');
   });
 

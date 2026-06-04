@@ -44,6 +44,7 @@ import {
   markSsotDocSelection,
 } from './ssot-doc-feedback-dom';
 import type { SsotDocSelectedTarget, SsotDocSourceResponse } from './ssot-doc-feedback-types';
+import { appendActiveSessionParam } from './active-session-query';
 
 // ── Local typed view of the cross-file window globals this file reads. ──
 // Owned by workspace.jsx (not yet migrated); mirror their runtime shapes
@@ -60,11 +61,6 @@ interface SsotDocWindow {
 // Typed accessor for the cross-file globals. Cast preserves the exact
 // runtime `window.X` lookups while giving TS the shapes above.
 const ssotWin = window as unknown as SsotDocWindow;
-
-const activeSsotSessionId = (): string => {
-  const raw = String(ssotWin.ACTIVE_SESSION || '').trim();
-  return raw === 'default' ? '' : raw;
-};
 
 export interface SsotDocPaneProps {
   uiLang?: string;
@@ -91,23 +87,18 @@ export const SsotDocPane = ({ uiLang = 'ko', ip = '', onBack }: SsotDocPaneProps
   const [sourceInfo, setSourceInfo] = useState<SsotDocSourceResponse | null>(null);
   const docFrameRef = useRef<HTMLIFrameElement>(null);
   const effectiveIp = String(ip || ssotWin.ACTIVE_IP || ssotIpFromSession(ssotWin.ACTIVE_SESSION) || '').trim();
-  const sessionId = activeSsotSessionId();
-  const qs = effectiveIp ? (() => {
-    const params = new URLSearchParams({
-      ip: effectiveIp,
-      format: 'html',
-      inline: '1',
-      v: String(reloadKey),
-    });
-    if (sessionId) params.set('session_id', sessionId);
-    return params.toString();
-  })() : '';
-  const inlineUrl = qs ? `/api/ssot/export?${qs}` : '';
-  const downloadUrl = effectiveIp ? (() => {
-    const params = new URLSearchParams({ ip: effectiveIp, format: 'html' });
-    if (sessionId) params.set('session_id', sessionId);
-    return `/api/ssot/export?${params.toString()}`;
-  })() : '';
+  const inlineParams = effectiveIp ? appendActiveSessionParam(new URLSearchParams({
+    ip: effectiveIp,
+    format: 'html',
+    inline: '1',
+    v: String(reloadKey),
+  })) : null;
+  const inlineUrl = inlineParams ? `/api/ssot/export?${inlineParams.toString()}` : '';
+  const downloadParams = effectiveIp ? appendActiveSessionParam(new URLSearchParams({
+    ip: effectiveIp,
+    format: 'html',
+  })) : null;
+  const downloadUrl = downloadParams ? `/api/ssot/export?${downloadParams.toString()}` : '';
   const title = uiLang === 'en' ? 'SSOT Document' : 'SSOT Document';
   const subtitle = uiLang === 'en'
     ? 'Rendered from the same HTML export artifact.'

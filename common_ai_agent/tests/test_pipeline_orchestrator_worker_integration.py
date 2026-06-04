@@ -664,6 +664,67 @@ def test_pipeline_state_hides_foreign_rtl_version_from_scoped_user(
     assert "foreign-rtl-v001" not in json.dumps(body)
 
 
+def test_orchestrator_chat_uses_canonical_session_when_db_session_id_is_present(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={
+            "ip": "jjj",
+            "message": "status",
+            "workspace_session": "demo",
+            "session": "u/demo/jjj/orchestrator",
+            "session_id": "db-row-id",
+        },
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "answered"
+
+
+def test_orchestrator_chat_ignores_owner_style_session_id_when_workspace_is_present(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={
+            "ip": "jjj",
+            "message": "status",
+            "workspace_session": "demo",
+            "session_id": "u",
+        },
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["status"] == "answered"
+
+
+def test_orchestrator_chat_rejects_wrong_canonical_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={
+            "ip": "jjj",
+            "message": "status",
+            "workspace_session": "demo",
+            "session": "other/demo/jjj/orchestrator",
+        },
+    )
+
+    assert resp.status_code == 403
+    assert resp.json()["error"] == "session owner/workspace mismatch"
+
+
 def test_pipeline_dispatch_fans_out_to_other_worker_and_surfaces_handoff_state(
     tmp_path: Path,
     monkeypatch,

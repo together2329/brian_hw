@@ -2048,17 +2048,27 @@ class HeadlessWorkflowRunner:
                 os.environ.get("ATLAS_DB_PATH")
                 or str(_Path.home() / ".common_ai_agent" / "atlas.db")
             )
+            # WP-1: stamp worker_run_id when the job spawn exported it via
+            # build_worker_env (ATLAS_WORKER_RUN_ID). Resolvable -> exact;
+            # absent -> inferred (never claim exact for an unknown worker run).
+            _worker_run_id = os.environ.get("ATLAS_WORKER_RUN_ID", "").strip()
+            _attr = "exact" if _worker_run_id else "inferred"
+            _status = "ok" if not response.error else "error"
+            _ip_id = (
+                os.environ.get("ATLAS_IP_ID", "")
+                or os.environ.get("ATLAS_ACTIVE_IP", "") or ip
+            )
+            _workflow = (
+                os.environ.get("ATLAS_WORKFLOW", "")
+                or os.environ.get("ATLAS_WORKER_NAME", "")
+                or os.environ.get("ACTIVE_WORKSPACE", "")
+                or stage
+            )
             with AtlasDB(_db_path) as _db:
-                _db.record_llm_call(
+                _call = _db.record_llm_call(
                     session_id=_session_id,
-                    ip_id=os.environ.get("ATLAS_IP_ID", "")
-                        or os.environ.get("ATLAS_ACTIVE_IP", "") or ip,
-                    workflow=(
-                        os.environ.get("ATLAS_WORKFLOW", "")
-                        or os.environ.get("ATLAS_WORKER_NAME", "")
-                        or os.environ.get("ACTIVE_WORKSPACE", "")
-                        or stage
-                    ),
+                    ip_id=_ip_id,
+                    workflow=_workflow,
                     model=self.model,
                     provider=os.environ.get("ATLAS_PROVIDER", ""),
                     call_role="worker",
@@ -2067,8 +2077,34 @@ class HeadlessWorkflowRunner:
                     cache_read_tokens=_cache_tok,
                     cost_usd=_cost_usd,
                     latency_ms=round(llm_elapsed * 1000, 1),
-                    status="ok" if not response.error else "error",
+                    status=_status,
+                    worker_run_id=_worker_run_id,
+                    attribution_confidence=_attr,
                 )
+                # Flow event linked by llm_call_id (after insert). Attempts and
+                # failures stay distinct rows — we do not collapse retries.
+                try:
+                    _db.record_session_flow_event(
+                        event_type="llm_call.completed" if _status == "ok"
+                            else "llm_call.failed",
+                        idempotency_key=f"llm-call:{_call['id']}",
+                        session_id=_session_id,
+                        ip_id=_ip_id,
+                        workflow=_workflow,
+                        worker_run_id=_worker_run_id,
+                        llm_call_id=_call["id"],
+                        severity="error" if _status != "ok" else "",
+                        attribution_confidence=_attr,
+                        payload={
+                            "call_role": "worker",
+                            "tokens_input": int(_in_tok),
+                            "tokens_output": int(_out_tok),
+                            "cost_usd": _cost_usd,
+                            "status": _status,
+                        },
+                    )
+                except Exception:
+                    pass
         except WorkerSessionRoutingError:
             raise
         except Exception:
