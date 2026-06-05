@@ -61,14 +61,28 @@ REQUIRED_ORDER = [
 
 
 def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    root_source = root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ""
     project_root = Path(os.path.expandvars(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".")).expanduser().resolve()
+    if ip and (project_root / ip / "yaml" / f"{ip}.ssot.yaml").is_file():
+        return project_root
+    if ip and (project_root / "yaml" / f"{ip}.ssot.yaml").is_file():
+        return project_root.parent
     ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
     if ip_root_raw:
         ip_root = Path(os.path.expandvars(ip_root_raw)).expanduser()
         if not ip_root.is_absolute():
             ip_root = project_root / ip_root
         ip_root = ip_root.resolve()
-        if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
+        if root_source:
+            try:
+                if ip_root != project_root:
+                    ip_root.relative_to(project_root)
+            except ValueError:
+                return project_root
+        candidate_root = ip_root.parent if (not ip or ip_root.name == ip or (ip_root / "yaml").is_dir()) else ip_root
+        if ip and (candidate_root / ip / "yaml" / f"{ip}.ssot.yaml").is_file():
+            return candidate_root
+        if not ip and ip_root.is_dir():
             return ip_root.parent
     return project_root
 
@@ -95,6 +109,9 @@ SIGNOFF_CRITICAL_DEFAULT_PATHS = {
     "test_requirements",
     "timing",
 }
+REPAIR_TRANSACTION_STATE_MARKER = "Auto-injected transaction coverage/state marker"
+REPAIR_TRANSACTION_RULE_MARKER = "Repair marker making this transaction machine-checkable"
+REPAIR_OBSERVABLE_RULE_MARKER = "Auto-injected placeholder rule for observable state"
 
 
 def _normalize_run_mode(value: Any) -> str:
@@ -858,6 +875,12 @@ def _ensure_submodule_behavior_ownership(doc: dict[str, Any], ip: str) -> list[d
         owner = _choose_behavior_owner(candidates, {"input", "interface", "control"})
         if owner is not None:
             _append_unique_ref(owner, "function_model_refs", "function_model.inputs")
+
+    if fm.get("invariants"):
+        owner = _choose_behavior_owner(candidates, {"invariant", "error", "state", "control", "core"})
+        if owner is not None:
+            _append_unique_ref(owner, "function_model_refs", "function_model.invariants")
+            _append_unique_ref(owner, "source_sections", "function_model")
 
     if isinstance(doc.get("cycle_model"), dict) and doc["cycle_model"]:
         owner = _choose_behavior_owner(candidates, {"cycle", "handshake", "pipeline", "control"})
@@ -1998,6 +2021,96 @@ def _ensure_transaction_machine_rule_completeness(doc: dict[str, Any]) -> None:
         fm["state_variables"] = states
 
 
+def _machine_rule_name(item: dict[str, Any]) -> str:
+    return str(
+        item.get("name")
+        or item.get("state")
+        or item.get("target")
+        or item.get("port")
+        or ""
+    ).strip()
+
+
+def _is_repair_transaction_marker(item: Any) -> bool:
+    if not isinstance(item, dict):
+        return False
+    text = str(item.get("description") or "")
+    return REPAIR_TRANSACTION_RULE_MARKER in text or REPAIR_TRANSACTION_STATE_MARKER in text
+
+
+def _has_non_repair_machine_rule(tx: dict[str, Any]) -> bool:
+    for rule in _machine_rule_items(tx.get("output_rules")):
+        if not _is_repair_transaction_marker(rule) and _machine_rule_name(rule) and _machine_rule_has_expr(rule):
+            return True
+    for update in _machine_rule_items(tx.get("state_updates")):
+        if not _is_repair_transaction_marker(update) and _machine_rule_name(update) and _machine_rule_has_expr(update):
+            return True
+    return False
+
+
+def _remove_stale_repair_machine_markers(doc: dict[str, Any]) -> None:
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    if not isinstance(fm, dict):
+        return
+    txs = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
+    if not txs:
+        return
+
+    stale_states: set[str] = set()
+    for tx in txs:
+        if not _has_non_repair_machine_rule(tx):
+            continue
+        kept_updates: list[Any] = []
+        for update in tx.get("state_updates") or []:
+            if isinstance(update, dict) and _is_repair_transaction_marker(update):
+                name = _machine_rule_name(update)
+                if name:
+                    stale_states.add(name)
+                continue
+            kept_updates.append(update)
+        if kept_updates:
+            tx["state_updates"] = kept_updates
+        else:
+            tx.pop("state_updates", None)
+
+        kept_outputs: list[Any] = []
+        for output in tx.get("outputs") or []:
+            if isinstance(output, dict) and _is_repair_transaction_marker(output):
+                name = _machine_rule_name(output)
+                if name:
+                    stale_states.add(name)
+                continue
+            kept_outputs.append(output)
+        if kept_outputs:
+            tx["outputs"] = kept_outputs
+        else:
+            tx.pop("outputs", None)
+
+    if not stale_states:
+        return
+
+    live_rule_targets: set[str] = set()
+    for tx in txs:
+        for item in (tx.get("output_rules") or []) + (tx.get("state_updates") or []):
+            if isinstance(item, dict) and not _is_repair_transaction_marker(item):
+                name = _machine_rule_name(item)
+                if name:
+                    live_rule_targets.add(name)
+
+    states = fm.get("state_variables")
+    if isinstance(states, list):
+        fm["state_variables"] = [
+            state
+            for state in states
+            if not (
+                isinstance(state, dict)
+                and str(state.get("name") or "").strip() in stale_states
+                and str(state.get("name") or "").strip() not in live_rule_targets
+                and REPAIR_TRANSACTION_STATE_MARKER in str(state.get("description") or "")
+            )
+        ]
+
+
 _RULE_HELPER_NAMES: frozenset[str] = frozenset({
     "gray_to_bin", "bin_to_gray", "popcount", "parity",
     "clog2", "min", "max", "abs",
@@ -2240,6 +2353,33 @@ def _ensure_parameters_section(doc: dict[str, Any], state: dict[str, Any]) -> li
     ]
 
 
+def _canonical_interface_ports(iface: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_ports = iface.get("ports") if isinstance(iface.get("ports"), list) else []
+    source = raw_ports if raw_ports else iface.get("signals") if isinstance(iface.get("signals"), list) else []
+    ports: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in source:
+        if isinstance(item, str):
+            name = item.strip()
+            row: dict[str, Any] = {"name": name}
+        elif isinstance(item, dict):
+            name = str(item.get("name") or item.get("signal") or item.get("port") or "").strip()
+            row = dict(item)
+            row["name"] = name
+        else:
+            continue
+        if not name or name in seen:
+            continue
+        row["direction"] = _normalize_port_direction(
+            row.get("direction") or row.get("dir") or _infer_legacy_port_direction(name, iface)
+        )
+        row.setdefault("width", _infer_legacy_port_width(name))
+        row.setdefault("description", f"Recovered from io_list.interfaces.{iface.get('name', 'unnamed')}.signals")
+        ports.append(row)
+        seen.add(name)
+    return ports
+
+
 def _ensure_io_list(doc: dict[str, Any]) -> dict[str, Any]:
     io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
     if io.get("interfaces") and not _has_tbd(io):
@@ -2261,7 +2401,9 @@ def _ensure_io_list(doc: dict[str, Any]) -> dict[str, Any]:
         for iface in io.get("interfaces") or []:
             if not isinstance(iface, dict):
                 continue
-            ports = iface.get("ports") if isinstance(iface.get("ports"), list) else []
+            ports = _canonical_interface_ports(iface)
+            if ports:
+                iface["ports"] = ports
             names = {str(port.get("name") or "") for port in ports if isinstance(port, dict)}
             has_valid_ready = any(name.endswith("valid") for name in names) and any(name.endswith("ready") for name in names)
             iface.setdefault("type", "native_valid_ready" if has_valid_ready else "custom")
@@ -3582,10 +3724,34 @@ def _synthesize_rtl_workflow_todos(doc: dict[str, Any], ip: str) -> list[dict[st
     return todos
 
 
+def _current_transaction_ids(doc: dict[str, Any]) -> set[str]:
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    return {
+        str(tx.get("id") or tx.get("name") or "").strip()
+        for tx in fm.get("transactions") or []
+        if isinstance(tx, dict) and str(tx.get("id") or tx.get("name") or "").strip()
+    }
+
+
+def _has_stale_repair_todo_artifacts(doc: dict[str, Any], todos: list[Any]) -> bool:
+    tx_ids = _current_transaction_ids(doc)
+    stale_ids = {f"FM{i}" for i in range(1, 5) if f"FM{i}" not in tx_ids}
+    for item in todos:
+        if not isinstance(item, dict):
+            continue
+        text = json.dumps(item, sort_keys=True, default=str)
+        if REPAIR_TRANSACTION_RULE_MARKER in text or REPAIR_TRANSACTION_STATE_MARKER in text:
+            return True
+        for tx_id in stale_ids:
+            if f"function_model.transactions.{tx_id}" in text or f"`{tx_id}`" in text:
+                return True
+    return False
+
+
 def _ensure_workflow_todos(doc: dict[str, Any], ip: str) -> dict[str, Any]:
     todos = doc.get("workflow_todos") if isinstance(doc.get("workflow_todos"), dict) else {}
     rtl_todos = todos.get("rtl-gen") if isinstance(todos.get("rtl-gen"), list) else []
-    if not rtl_todos:
+    if not rtl_todos or _has_stale_repair_todo_artifacts(doc, rtl_todos):
         rtl_todos = _synthesize_rtl_workflow_todos(doc, ip)
     if _rtl_quality_profile(doc, ip) != "production":
         rtl_todos = [item for item in rtl_todos if not _is_target_scale_policy_todo(item)]
@@ -3901,6 +4067,7 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     _ensure_function_model_machine_rules(out)
     _ensure_rule_expr_input_map_completeness(out)
     _ensure_transaction_machine_rule_completeness(out)
+    _remove_stale_repair_machine_markers(out)
     _ensure_state_update_widths(out)
     _ensure_transaction_output_summaries(out)
     out["timing"] = _ensure_timing(out)

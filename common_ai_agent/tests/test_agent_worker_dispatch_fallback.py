@@ -449,7 +449,7 @@ def test_dispatch_workflow_direct_fallback_routes_model_bundle_to_fl_worker(monk
     assert data["worker"] == "fl-model-gen"
     _assert_scoped_worker_url(data["worker_url"], "http://127.0.0.1:5622")
     assert calls[0]["worker"] == data["worker_url"]
-    assert "do not run /ssot-fl-model or emit_fl_model.py" in calls[0]["task"]
+    assert "/ssot-fl-model new_axi" in calls[0]["task"]
     assert "check_fl_model_artifacts.py" in calls[0]["task"]
     assert "/ssot-cycle-model new_axi" in calls[0]["task"]
     assert "/ssot-dual-fcov new_axi" in calls[0]["task"]
