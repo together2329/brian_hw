@@ -151,15 +151,16 @@ def _access_url(host: str, port: int) -> str:
     return f"http://{display_host}:{port}/admin"
 
 if TYPE_CHECKING:
-    from fastapi import Request
+    from starlette.requests import Request
 else:
     class Request:
         pass
 
 
 def create_admin_app(project_root: Path):
-    from fastapi import FastAPI, Request as FastAPIRequest
+    from fastapi import FastAPI
     from fastapi.responses import JSONResponse, HTMLResponse
+    from starlette.requests import Request as StarletteRequest
     from starlette.staticfiles import StaticFiles
 
     from core.atlas_db import AtlasDB
@@ -172,7 +173,7 @@ def create_admin_app(project_root: Path):
         is_local_admin_mode,
     )
 
-    globals()["Request"] = FastAPIRequest
+    globals()["Request"] = StarletteRequest
     app = FastAPI(title="ATLAS Admin")
 
     auth = GuestAuth(

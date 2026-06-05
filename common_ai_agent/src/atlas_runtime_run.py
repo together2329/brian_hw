@@ -53,6 +53,15 @@ def _subprocess_env_with_pythonpath() -> dict[str, str]:
     return env
 
 
+def _admin_subprocess_kwargs() -> dict[str, Any]:
+    kwargs: dict[str, Any] = {"env": _subprocess_env_with_pythonpath()}
+    if os.name == "nt":
+        creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+        if creationflags:
+            kwargs["creationflags"] = creationflags
+    return kwargs
+
+
 def _hydrate_atlas_ui_globals() -> None:
     """One-time backport of the symbols Phase 4 extracted-but-didn't-import.
 
@@ -984,7 +993,7 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
             str(_source_root()),
         ],
         cwd=str(_source_root()),
-        env=_subprocess_env_with_pythonpath(),
+        **_admin_subprocess_kwargs(),
     )
     atexit.register(lambda p=proc: (p.terminate() if p.poll() is None else None))
     print(

@@ -52,6 +52,34 @@ def test_atlas_admin_dependency_bootstrap_checks_windows_user_site(monkeypatch, 
     assert user_site in paths
 
 
+def test_create_admin_app_does_not_require_fastapi_request_reexport(monkeypatch):
+    import fastapi
+    import src.atlas_admin as atlas_admin
+
+    monkeypatch.delattr(fastapi, "Request", raising=False)
+
+    app = atlas_admin.create_admin_app(PROJECT_ROOT)
+
+    assert app.title == "ATLAS Admin"
+
+
+def test_runtime_admin_subprocess_uses_new_windows_process_group(monkeypatch):
+    import src.atlas_runtime_run as atlas_runtime_run
+
+    monkeypatch.setattr(atlas_runtime_run.os, "name", "nt")
+    monkeypatch.setattr(
+        atlas_runtime_run.subprocess,
+        "CREATE_NEW_PROCESS_GROUP",
+        512,
+        raising=False,
+    )
+
+    kwargs = atlas_runtime_run._admin_subprocess_kwargs()
+
+    assert kwargs["creationflags"] == 512
+    assert "env" in kwargs
+
+
 def test_atlas_admin_script_boots_when_home_changes():
     port = _free_port()
     env = os.environ.copy()
