@@ -18,11 +18,17 @@ import {
   useState,
   useEffect,
   useRef,
+  type Ref,
   type ReactNode,
   type ChangeEvent,
   type KeyboardEvent,
 } from 'react';
 import { useStickyChatScroll } from './use-sticky-chat-scroll';
+import {
+  cleanAtlasTerminalText,
+  coalesceAtlasFeedEntries,
+  trimAtlasFeedState,
+} from './workspace-tool-theme';
 
 // ── Local typed view of the legacy window-glue surface this file touches ──
 type AnyComponent = (...a: unknown[]) => ReactNode;
@@ -55,6 +61,30 @@ interface PipelineStageInfo {
   progress?: number;
   [key: string]: unknown;
 }
+interface AtlasOrchestratorChatEvent {
+  session_id?: string;
+  session?: string;
+  namespace?: string;
+  room?: string;
+  workspace_session?: string;
+  ip?: string;
+  ip_id?: string;
+  workspace_id?: string;
+  id?: string | number;
+  role?: string;
+  content?: string;
+  payload?: {
+    role?: string;
+    content?: string;
+    display_name?: string;
+    [key: string]: unknown;
+  };
+  created_at?: number;
+  [key: string]: unknown;
+}
+interface AtlasBackendLike {
+  subscribe?: (ev: string, cb: (m: AtlasOrchestratorChatEvent) => void) => (() => void) | void;
+}
 interface PipelineState {
   stages?: Record<string, PipelineStageInfo>;
   orchestrator?: {
@@ -78,6 +108,7 @@ interface AtlasGlue {
   ATLAS_WORKSPACE_SESSION_ID?: unknown;
   ACTIVE_SESSION?: string;
   ATLAS_DB_SESSION_ID?: string;
+  backend?: AtlasBackendLike;
 }
 const w = window as unknown as AtlasGlue;
 
@@ -111,6 +142,44 @@ const activeOrchestratorRailSession = (ip?: string): string => {
   );
   const workspaceSession = activeRailWorkspaceSession();
   return owner && workspaceSession && ip ? `${owner}/${workspaceSession}/${ip}/orchestrator` : '';
+};
+
+const eventSessionFromOrchestratorMessage = (message: AtlasOrchestratorChatEvent): string => (
+  normalizeRailSession(message?.session_id || message?.session || message?.namespace || message?.room || '')
+);
+
+const matchesOrchestratorSession = (
+  targetSession: string,
+  messageSession: string,
+  messageIp?: string,
+  ip?: string,
+  workspaceSession?: string,
+): boolean => {
+  const canonicalTarget = normalizeRailSession(targetSession);
+  const canonicalMessage = normalizeRailSession(messageSession);
+  if (!canonicalTarget && !workspaceSession && !ip) return true;
+  if (!canonicalMessage && canonicalTarget) return false;
+  if (!canonicalMessage) {
+    const msgIp = normalizeRailSession(messageIp || '');
+    const hasIpMatch = !!(ip && msgIp && msgIp === normalizeRailSession(ip));
+    if (!hasIpMatch) return false;
+    return true;
+  }
+  if (canonicalTarget) {
+    const targetParts = canonicalTarget.split('/').filter(Boolean);
+    const messageParts = canonicalMessage.split('/').filter(Boolean);
+    const minLen = Math.min(targetParts.length, messageParts.length);
+    if (minLen >= 2 && messageParts.slice(-minLen).join('/') === targetParts.slice(-minLen).join('/')) {
+      return true;
+    }
+    if (canonicalMessage.startsWith(`${canonicalTarget}/`)) return true;
+    return false;
+  }
+  if (!workspaceSession) return false;
+  if (!canonicalMessage) return false;
+  const wsParts = normalizeRailSession(workspaceSession).split('/').filter(Boolean);
+  const msgParts = canonicalMessage.split('/').filter(Boolean);
+  return wsParts.length >= 1 && msgParts.some((part) => wsParts.includes(part));
 };
 
 // ── HierarchyList ─────────────────────────────────────────────────────────────
@@ -502,59 +571,357 @@ interface ChatMessage {
   };
   [key: string]: unknown;
 }
+type OrchestratorFeedEntry = {
+  id: string;
+  kind: 'agent' | 'thought' | 'action' | 'obs' | 'agent_delta' | string;
+  text: string;
+  tool?: string;
+  args?: string;
+  createdAt?: number;
+  streamId?: string;
+};
+
+const ORCH_CHAT_POLL_INTERVAL_ACTIVE_MS = 1500;
+const ORCH_CHAT_POLL_INTERVAL_IDLE_MS = 4500;
+const ORCH_CHAT_POLL_INTERVAL_ERROR_MS = 8000;
+const ORCH_CHAT_FEED_MAX_ENTRIES = 300;
+const ORCH_TS_TO_MS_CEILING = 1e12;
+const ORCH_TOOL_CALL_RE = /^(?:[▶⏺*]\s*)?([A-Za-z_][\w.-]*)(?:\s*\(([\s\S]*)\))?\s*$/;
+
+function isOrchestratorHousekeepingLine(text: string): boolean {
+  const normalized = String(text || '')
+    .replace(/\u2026/g, '...')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!normalized) return false;
+  if (/^streaming\s+\d+s?\s+idle\s+\(limit\s+\d+s?\)$/i.test(normalized)) return true;
+  return /^(?:\*?\s*)?(?:running|runn+ing|writinng|writing|loading|waiting|processing)(?:\s+(?:output|cache|state))?(?:\s*[.]{3,})?(?:\s*\(\d+\/\d+\))?$/i.test(normalized);
+}
+
+function cleanChatMessageLine(text: string): string {
+  return cleanAtlasTerminalText(text).replace(/\x00/g, '').trim();
+}
+
+function toEpochMs(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return n < ORCH_TS_TO_MS_CEILING ? n * 1000 : n;
+}
+
+function formatEpoch(value?: number): string {
+  if (!value) return '';
+  const d = new Date(value);
+  return Number.isFinite(d.getTime())
+    ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    : '';
+}
+
+function formatFeedHeader(entry: OrchestratorFeedEntry): string {
+  const pieces: string[] = [];
+  const role = roleFromFeedEntry(entry);
+  if (role) pieces.push(role);
+  if (entry.tool) pieces.push(entry.tool);
+  if (entry.args) pieces.push(entry.args);
+  if (entry.kind === 'obs' && !entry.tool) pieces.push('observation');
+  if (entry.kind === 'thought') pieces.push('reasoning');
+  const time = formatEpoch(entry.createdAt);
+  if (time) pieces.push(time);
+  return pieces.join(' · ');
+}
+
+function parseToolLine(content: string): { tool: string; args: string } | null {
+  const match = String(content).match(ORCH_TOOL_CALL_RE);
+  if (!match) return null;
+  const tool = String(match[1] || '').trim();
+  const args = String(match[2] || '').trim();
+  if (!tool) return null;
+  return {
+    tool,
+    args: args ? `(${args})` : '',
+  };
+}
+
+function mapOrchestratorMessageToFeedEntry(message: ChatMessage): OrchestratorFeedEntry | null {
+  const globalLogic = (window as Window & { AtlasOrchestratorChatLogic?: { feedEntryFromChatMessage?: (m: ChatMessage) => {
+    kind?: string;
+    text?: string;
+    tool?: string;
+    args?: string;
+    createdAt?: number;
+    streamId?: string;
+  } } }).AtlasOrchestratorChatLogic;
+  if (globalLogic && typeof globalLogic.feedEntryFromChatMessage === 'function') {
+    const parsed = globalLogic.feedEntryFromChatMessage(message);
+    if (!parsed || typeof parsed !== 'object') return null;
+    const kind = String(parsed.kind || 'agent');
+    const text = String(parsed.text || '').trim();
+    if (!text) return null;
+    const createdAt = toEpochMs(parsed.createdAt == null ? message.created_at : parsed.createdAt, 0);
+    const rawId = message.id != null ? String(message.id) : `${kind}:${createdAt || 0}:${text}`;
+    return {
+      id: rawId,
+      kind,
+      text,
+      tool: parsed.tool ? String(parsed.tool) : undefined,
+      args: parsed.args ? String(parsed.args) : undefined,
+      createdAt,
+      streamId: parsed.streamId ? String(parsed.streamId) : undefined,
+    };
+  }
+
+  const payload = message.payload || {};
+  const role = String(message.role || payload.role || '').toLowerCase();
+  const rawContent = String(
+    (payload && (payload.content || payload.display_name))
+    || message.content
+    || '',
+  );
+  const content = cleanChatMessageLine(rawContent);
+  if (!content) return null;
+
+  if (role === 'user') return null;
+  const createdAt = toEpochMs(message.created_at, 0);
+  const messageId = String(message.id || `${role}:${createdAt}:${content}`);
+
+  if (role === 'assistant_delta') {
+    return {
+      id: messageId,
+      kind: 'agent_delta',
+      text: content,
+      createdAt,
+      streamId: String(payload.stream_id || ''),
+    };
+  }
+  if (role === 'assistant') {
+    return { id: messageId, kind: 'agent', text: content, createdAt };
+  }
+  if (role === 'thought' || role === 'reasoning') {
+    if (isOrchestratorHousekeepingLine(content)) return null;
+    return { id: messageId, kind: 'thought', text: content, createdAt };
+  }
+  if (role === 'tool') {
+    const parsed = parseToolLine(content);
+    if (!parsed) return null;
+    if (isOrchestratorHousekeepingLine(parsed.tool)) return null;
+    return {
+      id: messageId,
+      kind: 'action',
+      text: content,
+      tool: parsed.tool,
+      args: parsed.args,
+      createdAt,
+    };
+  }
+  if (role === 'tool_result' || role === 'observation' || role === 'obs') {
+    const tool = String((payload.tool || payload.name || payload.display_name || payload.role || '') as string).trim();
+    if (tool && isOrchestratorHousekeepingLine(tool)) return null;
+    return {
+      id: messageId,
+      kind: 'obs',
+      text: content,
+      tool,
+      createdAt,
+    };
+  }
+  return { id: messageId, kind: 'agent', text: content, createdAt };
+}
+
+function eventSinceFromSeconds(value: number | undefined): number {
+  if (!Number.isFinite(Number(value)) || Number(value) <= 0) return 0;
+  const n = Number(value);
+  return n < ORCH_TS_TO_MS_CEILING ? n / 1000 : n;
+}
+
+function eventSinceFromPayload(message: AtlasOrchestratorChatEvent): number {
+  const created = toEpochMs(
+    message.created_at,
+    Number(message.payload && message.payload.created_at),
+  );
+  return eventSinceFromSeconds(created);
+}
+
+function roleFromFeedEntry(entry: OrchestratorFeedEntry): string {
+  if (entry.kind === 'action') return entry.tool || 'action';
+  if (entry.kind === 'obs') return entry.tool || 'observation';
+  if (entry.kind === 'thought') return 'thought';
+  return 'assistant';
+}
 export interface PipelineOrchestratorChatPanelProps {
   ip?: string;
   pipelineState?: PipelineState | null;
 }
 function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrchestratorChatPanelProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<OrchestratorFeedEntry[]>([]);
   const [since, setSince] = useState(0);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sinceRef = useRef(0);
+  const subscriptionRef = useRef<(() => void) | void>();
   const {
     scrollRef: bodyRef,
     onScroll: onBodyScroll,
     scrollToBottom: scrollBodyToBottom,
   } = useStickyChatScroll<HTMLDivElement>([messages.length]);
 
+  useEffect(() => {
+    setMessages([]);
+    setSince(0);
+    sinceRef.current = 0;
+  }, [ip]);
+
   const isActive = !!(pipelineState && pipelineState.orchestrator && pipelineState.orchestrator.active);
   const hasIp = !!(ip && ip !== 'default');
 
   useEffect(() => {
+    sinceRef.current = since;
+  }, [since]);
+
+  useEffect(() => {
     if (!hasIp) {
-      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+      if (pollingRef.current) {
+        clearTimeout(pollingRef.current);
+        pollingRef.current = null;
+      }
+      if (subscriptionRef.current) {
+        const unsub = subscriptionRef.current;
+        subscriptionRef.current = undefined;
+        if (typeof unsub === 'function') unsub();
+      }
       return;
     }
     let dead = false;
-    let currentSince = since;
+    const activeWorkspaceSession = activeRailWorkspaceSession();
+    const targetSession = activeOrchestratorRailSession(ip);
+    const hasLiveBackend = !!(w.backend && typeof w.backend.subscribe === 'function');
+    const activeTargetIp = String(ip || '');
+
+    const clearPoll = () => {
+      if (pollingRef.current) {
+        clearTimeout(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+
+    const schedulePoll = (delayMs: number) => {
+      clearPoll();
+      if (dead) return;
+      const delay = Number.isFinite(delayMs) && delayMs > 0 ? Math.max(200, Math.round(delayMs)) : ORCH_CHAT_POLL_INTERVAL_IDLE_MS;
+      pollingRef.current = setTimeout(() => { void fetchOnce(); }, delay);
+    };
+
+    const appendEntries = (incoming: OrchestratorFeedEntry[]) => {
+      if (!incoming.length) return;
+      setMessages(prev => {
+        const merged = coalesceAtlasFeedEntries(prev, incoming as any[]) as OrchestratorFeedEntry[];
+        return trimAtlasFeedState(merged, ORCH_CHAT_FEED_MAX_ENTRIES);
+      });
+      const latest = incoming.reduce((acc, item) => {
+        const raw = Number(item.createdAt || 0);
+        if (!raw || !Number.isFinite(raw)) return acc;
+        return Math.max(acc, eventSinceFromSeconds(raw));
+      }, 0);
+      if (latest > 0 && latest > sinceRef.current) {
+        sinceRef.current = latest;
+        setSince(latest);
+      }
+    };
+
+    const onBackendEvent = (message: AtlasOrchestratorChatEvent) => {
+      if (!message || dead) return;
+      const session = eventSessionFromOrchestratorMessage(message);
+      if (!matchesOrchestratorSession(targetSession, session, String(message.ip || ''), activeTargetIp, activeWorkspaceSession)) return;
+      const messageAsChat = mapOrchestratorMessageToFeedEntry(message as ChatMessage);
+      if (!messageAsChat) return;
+      if (isOrchestratorHousekeepingLine(messageAsChat.text || '')) return;
+      appendEntries([messageAsChat]);
+      const incomingSince = eventSinceFromPayload(message);
+      if (incomingSince > 0 && incomingSince > sinceRef.current) {
+        sinceRef.current = incomingSince;
+        setSince(incomingSince);
+      }
+    };
+
     const fetchOnce = async () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        if (!hasLiveBackend) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+        return;
+      }
       try {
         const params = new URLSearchParams({
           ip: ip!,
-          since: String(currentSince),
+          since: String(sinceRef.current),
         });
         const workspaceSession = activeRailWorkspaceSession();
         if (workspaceSession) params.set('workspace_session', workspaceSession);
         const url = `/api/orchestrator/chat/messages?${params.toString()}`;
         const r = await fetch(url);
-        if (!r.ok) return;
-        const j = await r.json();
-        if (!dead && j.ok && Array.isArray(j.messages) && j.messages.length > 0) {
-          setMessages(prev => {
-            const ids = new Set(prev.map(m => m.id));
-            const fresh = j.messages.filter((m: ChatMessage) => !ids.has(m.id));
-            return fresh.length ? [...prev, ...fresh] : prev;
-          });
-          currentSince = j.next_since || currentSince;
-          setSince(currentSince);
+        if (!r.ok) {
+          if (!hasLiveBackend) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+          return;
         }
-      } catch (_) {}
+        const j = await r.json();
+        if (!dead && j.ok && Array.isArray(j.messages)) {
+          setMessages(prev => {
+            const incoming = Array.isArray(j.messages) ? (j.messages as ChatMessage[]) : [];
+            const seen = new Set(prev.map((item) => item.id));
+            const fresh = incoming
+              .map(mapOrchestratorMessageToFeedEntry)
+              .filter((entry): entry is OrchestratorFeedEntry => !!entry && !seen.has(entry.id));
+            if (fresh.length === 0) return prev;
+            const merged = coalesceAtlasFeedEntries(prev, fresh as any[]) as OrchestratorFeedEntry[];
+            return trimAtlasFeedState(merged, ORCH_CHAT_FEED_MAX_ENTRIES);
+          });
+          const nextSince = Number((j as { next_since?: unknown }).next_since || sinceRef.current);
+          if (Number.isFinite(nextSince) && nextSince > sinceRef.current) {
+            sinceRef.current = nextSince;
+            setSince(nextSince);
+          }
+        }
+        if (!hasLiveBackend) {
+          schedulePoll(isActive ? ORCH_CHAT_POLL_INTERVAL_ACTIVE_MS : ORCH_CHAT_POLL_INTERVAL_IDLE_MS);
+        }
+        return;
+      } catch (_) {
+        if (!hasLiveBackend) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+      }
     };
+
+    const onVisibility = () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        clearPoll();
+        return;
+      }
+      clearPoll();
+      void fetchOnce();
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility);
+    }
+    if (hasLiveBackend && w.backend && typeof w.backend.subscribe === 'function') {
+      const off = w.backend.subscribe('orchestrator_chat', onBackendEvent);
+      subscriptionRef.current = off;
+    } else {
+      subscriptionRef.current = undefined;
+    }
+
     fetchOnce();
-    pollingRef.current = setInterval(fetchOnce, 1500);
-    return () => { dead = true; clearInterval(pollingRef.current!); pollingRef.current = null; };
-  }, [ip, isActive]);
+    return () => {
+      dead = true;
+      clearPoll();
+      const unsub = subscriptionRef.current;
+      subscriptionRef.current = undefined;
+      if (typeof unsub === 'function') unsub();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility);
+      }
+    };
+  }, [ip, isActive, hasIp]);
+
+  const visibleMessages = messages;
 
   const handleSend = async () => {
     const text = draft.trim();
@@ -587,7 +954,8 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
   const roleClass = (role?: string): string => {
     if (role === 'assistant') return 'md-bubble md-agent';
     if (role === 'user') return 'md-bubble md-user md-agent';
-    if (role === 'tool') return 'md-bubble md-tool';
+    if (role === 'action' || role === 'obs') return 'md-bubble md-tool';
+    if (role === 'thought') return 'md-bubble md-tool';
     return 'md-bubble md-agent';
   };
 
@@ -599,23 +967,31 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           {isActive ? 'live' : 'idle'}
         </span>
       </div>
-      <div className="orch-chat-body" ref={bodyRef} onScroll={onBodyScroll}>
-        {messages.length === 0 ? (
+      <div className="orch-chat-body" ref={bodyRef as Ref<HTMLDivElement>} onScroll={onBodyScroll}>
+        {visibleMessages.length === 0 ? (
           <div className="orch-chat-empty mute">
             {hasIp
               ? `No orchestrator activity yet for ${ip}. Send a chat message or run a workflow to see logs here.`
               : 'Pick an IP to see orchestrator chat.'}
           </div>
-        ) : messages.map((m, i) => (
-          <div key={m.id || i} className={roleClass(m.role || (m.payload && m.payload.role))}>
-            <span className="orch-chat-role">
-              {(m.role || (m.payload && m.payload.role) || 'assistant').toUpperCase()}
-            </span>
-            <span className="orch-chat-content">
-              {m.content || (m.payload && (m.payload.content || m.payload.display_name)) || ''}
-            </span>
-          </div>
-        ))}
+        ) : visibleMessages.map((m, i) => {
+          const role = roleFromFeedEntry(m);
+          const header = formatFeedHeader(m);
+          return (
+            <div
+              key={m.id || i}
+              className={`orch-chat-row ${roleClass(role)}`.trim()}
+              data-category={m.kind}
+            >
+              <span className="orch-chat-role">
+                {(role || 'assistant').toUpperCase()} {header ? `(${header})` : ''}
+              </span>
+              <span className="orch-chat-content">
+                {m.text || ''}
+              </span>
+            </div>
+          );
+        })}
       </div>
       <div className="orch-chat-input-row">
         <textarea

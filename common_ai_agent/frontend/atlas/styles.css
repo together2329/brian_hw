@@ -3879,6 +3879,11 @@ body[data-resize-cursor="col"] {
   flex-direction: column;
   gap: 6px;
 }
+.orch-chat-row {
+  padding: 4px 6px;
+  border-radius: 3px;
+  border-left: 2px solid transparent;
+}
 .orch-chat-empty { color: var(--fg-dim); padding: 12px 4px; font-style: italic; }
 .orch-chat-role  { color: var(--fg-mute); font-size: var(--ui-small-font-size, 11px); margin-right: 6px; }
 .orch-chat-content { white-space: pre-wrap; word-break: break-word; }
