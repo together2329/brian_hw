@@ -17,7 +17,7 @@ export function cleanTerminalControlText(text) {
       let clean = String(line || '');
       clean = clean.replace(/^\s*(?:[\u2612\uFFFD])?\]0;/, '');
       clean = clean.replace(/[\x07\x1b\\]+$/g, '');
-      if (/^\s*(?:\[\d+\s*\/\s*\d+\]|[▶⏸👀✅❌]|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])/.test(clean)) {
+      if (/^\s*(?:\[\d+\s*\/\s*\d+\]|[▶⏸👀✅❌*]|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])/.test(clean)) {
         clean = clean.replace(/[\u2612\uFFFD]+$/g, '');
       }
       return clean.trimEnd();
@@ -32,7 +32,12 @@ function isRuntimeHousekeepingTool(tool) {
 function isRuntimeHousekeepingLine(line) {
   const text = String(line || '').trim().replace(/^⏳\s*/, '');
   if (!text) return false;
-  return /^streaming[.\u2026]*\s+\d+s\?\s+idle\s+\(limit\s+\d+s\?\)$/i.test(text);
+  if (/^streaming[.\u2026]*\s+\d+s\?\s+idle\s+\(limit\s+\d+s\?\)$/i.test(text)) return true;
+  const normalized = text.replace(/\u2026/g, '...').replace(/\s+/g, ' ').trim();
+  if (/^(?:\*?\s*)?(?:running|runn+ing|writinng|writ(?:e|ing)|loading|waiting|processing)(?:\s+(?:output|cache|state))?(?:\s*[.]{3,})?(?:\s*\(\d+\/\d+\))?\s*$/i.test(normalized)) {
+    return true;
+  }
+  return false;
 }
 
 function stripRuntimeHousekeepingLines(text) {
@@ -46,14 +51,14 @@ function stripRuntimeHousekeepingLines(text) {
 export function toolEntryFromDisplayLine(content) {
   const text = cleanTerminalControlText(content).trim();
   if (!text) return null;
-  const call = text.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
+  const call = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
     || text.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
   if (call) {
     const tool = String(call[1] || '').trim() || 'tool';
     const args = call[2] === undefined ? '' : `(${String(call[2] || '').trim()})`;
     return { tool, args, text };
   }
-  const loose = text.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(.*)$/);
+  const loose = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(.*)$/);
   if (loose) {
     return {
       tool: String(loose[1] || '').trim() || 'tool',
@@ -193,6 +198,8 @@ const WORKER_TODO_STATUS_MARKS = {
   '👀': 'completed',
   '✅': 'approved',
   '❌': 'rejected',
+  '-': 'pending',
+  '>': 'in_progress',
   '[ ]': 'pending',
   '[>]': 'in_progress',
   '[.]': 'completed',
@@ -201,13 +208,15 @@ const WORKER_TODO_STATUS_MARKS = {
 };
 
 function workerTodoState(glyph, status) {
-  const mark = WORKER_TODO_STATUS_MARKS[String(glyph || '').trim()];
   const raw = String(status || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-  if (mark) return mark;
   if (raw === 'in_progress' || raw === 'inprogress' || raw === 'active' || raw === 'running') return 'in_progress';
   if (raw === 'done' || raw === 'completed') return 'completed';
-  if (raw === 'approved') return 'approved';
-  if (raw === 'rejected' || raw === 'blocked' || raw === 'failed' || raw === 'error') return 'rejected';
+  if (raw === 'approved' || raw === 'ok' || raw === 'passed') return 'approved';
+  if (raw === 'rejected' || raw === 'blocked' || raw === 'failed' || raw === 'error' || raw === 'fail') return 'rejected';
+  if (raw === 'stale') return 'blocked';
+  if (raw === 'locked') return 'blocked';
+  const mark = WORKER_TODO_STATUS_MARKS[String(glyph || '').trim()];
+  if (mark) return mark;
   return 'pending';
 }
 
@@ -226,9 +235,9 @@ function parseWorkerTodoLine(line, workflow, ordinal) {
     .replace(/^[-*•]\s*/, '')
     .trim();
   if (!row || /^total:/i.test(row) || /^\d+\s+tasks?\b/i.test(row)) return null;
-  const match = row.match(/^(?:\[(\d+)\s*\/\s*(\d+)\]\s*)?(?:(⏸|▶|👀|✅|❌|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s*)?(?:(pending|in[_\s-]?progress|inprogress|active|running|completed|done|approved|rejected|blocked|failed|error)\s*)?(?:\|\s*)?(.+?)\s*$/i);
+  const match = row.match(/^(?:\[(\d+)\s*\/\s*(\d+)\]\s*)?(?:(⏸|▶|👀|✅|❌|-|>|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s*)?(?:(pending|in[_\s-]?progress|inprogress|active|running|completed|done|approved|rejected|blocked|failed|error|ok|passed|stale|locked)\s*)?(?:\|\s*)?(.+?)\s*$/i);
   if (!match) return null;
-  const hasTodoMarker = !!(match[1] || match[4] || (match[3] && row.includes('|')));
+  const hasTodoMarker = !!(match[1] || match[2] || match[4] || (match[3] && row.includes('|')));
   if (!hasTodoMarker) return null;
   const title = String(match[5] || '').trim();
   if (!title || /^[-─]+$/.test(title) || /^todo\b/i.test(title)) return null;

@@ -10,6 +10,8 @@ from __future__ import annotations
 import json
 from typing import Any, Dict
 
+from src import config
+
 
 _MAX_VALUE_CHARS = 700
 _MAX_LINE_CHARS = 2_400
@@ -39,5 +41,6 @@ def format_tool_call(tool_name: str, args: Dict[str, Any]) -> str:
     """Render ``(tool_name, args)`` without summarizing or translating it."""
     name = str(tool_name or "tool").strip() or "tool"
     rendered_args = _render_args(args if isinstance(args, dict) else {})
-    line = f"⏺ {name}({rendered_args})"
+    prefix = "*" if config.OUTPUT_ASCII_ONLY else "⏺"
+    line = f"{prefix} {name}({rendered_args})"
     return _truncate(line, _MAX_LINE_CHARS)

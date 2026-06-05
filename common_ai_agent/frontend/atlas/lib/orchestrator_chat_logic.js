@@ -22,7 +22,7 @@
         var clean = String(line || '');
         clean = clean.replace(/^\s*(?:[\u2612\uFFFD])?\]0;/, '');
         clean = clean.replace(/[\x07\x1b\\]+$/g, '');
-        if (/^\s*(?:\[\d+\s*\/\s*\d+\]|[▶⏸👀✅❌]|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])/.test(clean)) {
+        if (/^\s*(?:\[\d+\s*\/\s*\d+\]|[▶⏸👀✅❌*]|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])/.test(clean)) {
           clean = clean.replace(/[\u2612\uFFFD]+$/g, '');
         }
         return clean.trimEnd();
@@ -34,10 +34,15 @@
     return !!RUNTIME_HOUSEKEEPING_TOOLS[String(tool || '').trim().toLowerCase()];
   }
 
-  function isRuntimeHousekeepingLine(line) {
+ function isRuntimeHousekeepingLine(line) {
     var text = String(line || '').trim().replace(/^⏳\s*/, '');
     if (!text) return false;
-    return /^streaming[.\u2026]*\s+\d+s\?\s+idle\s+\(limit\s+\d+s\?\)$/i.test(text);
+    var normalized = String(text || '').replace(/\u2026/g, '...').replace(/\s+/g, ' ').trim();
+    if (/^streaming[.\u2026]*\s+\d+s\?\s+idle\s+\(limit\s+\d+s\?\)$/i.test(text)) return true;
+    if (/^(?:\*?\s*)?(?:running|runn+ing|writinng|writ(?:e|ing)|loading|waiting|processing)(?:\s+(?:output|cache|state))?(?:\s*[.]{3,})?(?:\s*\(\d+\/\d+\))?\s*$/i.test(normalized)) {
+      return true;
+    }
+    return false;
   }
 
   function stripRuntimeHousekeepingLines(text) {
@@ -51,14 +56,14 @@
   function toolEntryFromDisplayLine(content) {
     var text = cleanTerminalControlText(content).trim();
     if (!text) return null;
-    var call = text.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
+    var call = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
       || text.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
     if (call) {
       var callTool = String(call[1] || '').trim() || 'tool';
       var callArgs = call[2] === undefined ? '' : '(' + String(call[2] || '').trim() + ')';
       return { tool: callTool, args: callArgs, text: text };
     }
-    var loose = text.match(/^[▶⏺]\s*([A-Za-z_][\w.-]*)\s*(.*)$/);
+    var loose = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(.*)$/);
     if (loose) {
       return {
         tool: String(loose[1] || '').trim() || 'tool',
@@ -206,6 +211,8 @@
     '👀': 'completed',
     '✅': 'approved',
     '❌': 'rejected',
+    '-': 'pending',
+    '>': 'in_progress',
     '[ ]': 'pending',
     '[>]': 'in_progress',
     '[.]': 'completed',
@@ -214,13 +221,14 @@
   };
 
   function workerTodoState(glyph, status) {
-    var mark = WORKER_TODO_STATUS_MARKS[String(glyph || '').trim()];
     var raw = String(status || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-    if (mark) return mark;
     if (raw === 'in_progress' || raw === 'inprogress' || raw === 'active' || raw === 'running') return 'in_progress';
     if (raw === 'done' || raw === 'completed') return 'completed';
-    if (raw === 'approved') return 'approved';
-    if (raw === 'rejected' || raw === 'blocked' || raw === 'failed' || raw === 'error') return 'rejected';
+    if (raw === 'approved' || raw === 'ok' || raw === 'passed') return 'approved';
+    if (raw === 'rejected' || raw === 'blocked' || raw === 'failed' || raw === 'error' || raw === 'fail') return 'rejected';
+    if (raw === 'stale' || raw === 'locked') return 'blocked';
+    var mark = WORKER_TODO_STATUS_MARKS[String(glyph || '').trim()];
+    if (mark) return mark;
     return 'pending';
   }
 
@@ -239,9 +247,9 @@
       .replace(/^[-*•]\s*/, '')
       .trim();
     if (!row || /^total:/i.test(row) || /^\d+\s+tasks?\b/i.test(row)) return null;
-    var match = row.match(/^(?:\[(\d+)\s*\/\s*(\d+)\]\s*)?(?:(⏸|▶|👀|✅|❌|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s*)?(?:(pending|in[_\s-]?progress|inprogress|active|running|completed|done|approved|rejected|blocked|failed|error)\s*)?(?:\|\s*)?(.+?)\s*$/i);
+    var match = row.match(/^(?:\[(\d+)\s*\/\s*(\d+)\]\s*)?(?:(⏸|▶|👀|✅|❌|-|>|\[\s?\]|\[>\]|\[\.]|\[v\]|\[x\])\s*)?(?:(pending|in[_\s-]?progress|inprogress|active|running|completed|done|approved|rejected|blocked|failed|error|ok|passed|stale|locked)\s*)?(?:\|\s*)?(.+?)\s*$/i);
     if (!match) return null;
-    var hasTodoMarker = !!(match[1] || match[4] || (match[3] && row.indexOf('|') >= 0));
+    var hasTodoMarker = !!(match[1] || match[2] || match[4] || (match[3] && row.indexOf('|') >= 0));
     if (!hasTodoMarker) return null;
     var title = String(match[5] || '').trim();
     if (!title || /^[-─]+$/.test(title) || /^todo\b/i.test(title)) return null;

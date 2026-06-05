@@ -18,6 +18,7 @@ import {
   useState,
   useEffect,
   useRef,
+  type Ref,
   type ReactNode,
   type ChangeEvent,
   type KeyboardEvent,
@@ -502,6 +503,45 @@ interface ChatMessage {
   };
   [key: string]: unknown;
 }
+
+const ORCH_CHAT_POLL_INTERVAL_ACTIVE_MS = 1500;
+const ORCH_CHAT_POLL_INTERVAL_IDLE_MS = 4500;
+const ORCH_CHAT_POLL_INTERVAL_ERROR_MS = 8000;
+
+function isOrchestratorHousekeepingLine(text: string): boolean {
+  const normalized = String(text || '')
+    .replace(/\u2026/g, '...')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!normalized) return false;
+  if (/^streaming\s+\d+s?\s+idle\s+\(limit\s+\d+s?\)$/i.test(normalized)) return true;
+  return /^(?:\*?\s*)?(?:running|runn+ing|writinng|writing|loading|waiting|processing)(?:\s+(?:output|cache|state))?(?:\s*[.]{3,})?(?:\s*\(\d+\/\d+\))?$/i.test(normalized);
+}
+
+function cleanChatMessageLine(text: string): string {
+  return String(text || '')
+    .replace(/\x00/g, '')
+    .replace(/\x1b\[[0-9;?]*[ -/]*[@-~]/g, '')
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, '')
+    .replace(/\x1b[@-Z\\-_]/g, '')
+    .trim();
+}
+
+function shouldDropOrchestratorMessage(message: ChatMessage): boolean {
+  const role = String(message.role || (message.payload && message.payload.role) || '').toLowerCase();
+  const content = cleanChatMessageLine(
+    String(
+      (message.payload && (message.payload.content || message.payload.display_name))
+      || message.content
+      || '',
+    ),
+  );
+  if (!content) return true;
+  if (role === 'thought' || role === 'reasoning' || role === 'tool' || role === 'tool_result') {
+    return isOrchestratorHousekeepingLine(content);
+  }
+  return false;
+}
 export interface PipelineOrchestratorChatPanelProps {
   ip?: string;
   pipelineState?: PipelineState | null;
@@ -511,7 +551,8 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
   const [since, setSince] = useState(0);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sinceRef = useRef(0);
   const {
     scrollRef: bodyRef,
     onScroll: onBodyScroll,
@@ -522,39 +563,109 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
   const hasIp = !!(ip && ip !== 'default');
 
   useEffect(() => {
+    sinceRef.current = since;
+  }, [since]);
+
+  useEffect(() => {
     if (!hasIp) {
-      if (pollingRef.current) { clearInterval(pollingRef.current); pollingRef.current = null; }
+      if (pollingRef.current) {
+        clearTimeout(pollingRef.current);
+        pollingRef.current = null;
+      }
       return;
     }
     let dead = false;
-    let currentSince = since;
+
+    const clearPoll = () => {
+      if (pollingRef.current) {
+        clearTimeout(pollingRef.current);
+        pollingRef.current = null;
+      }
+    };
+
+    const schedulePoll = (delayMs: number) => {
+      clearPoll();
+      if (dead) return;
+      const delay = Number.isFinite(delayMs) && delayMs > 0 ? Math.max(200, Math.round(delayMs)) : ORCH_CHAT_POLL_INTERVAL_IDLE_MS;
+      pollingRef.current = setTimeout(() => { void fetchOnce(); }, delay);
+    };
+
     const fetchOnce = async () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+        return;
+      }
       try {
         const params = new URLSearchParams({
           ip: ip!,
-          since: String(currentSince),
+          since: String(sinceRef.current),
         });
         const workspaceSession = activeRailWorkspaceSession();
         if (workspaceSession) params.set('workspace_session', workspaceSession);
         const url = `/api/orchestrator/chat/messages?${params.toString()}`;
         const r = await fetch(url);
-        if (!r.ok) return;
+        if (!r.ok) {
+          schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+          return;
+        }
         const j = await r.json();
         if (!dead && j.ok && Array.isArray(j.messages) && j.messages.length > 0) {
           setMessages(prev => {
-            const ids = new Set(prev.map(m => m.id));
-            const fresh = j.messages.filter((m: ChatMessage) => !ids.has(m.id));
+            const ids = new Set(
+              (prev || []).map((m) => String(
+                m.id
+                  || `${m.role || ''}:${m.created_at || ''}:${m.content || ''}`
+              )),
+            );
+            const incoming = (Array.isArray(j.messages) ? (j.messages as ChatMessage[]) : []);
+            const fresh = incoming
+              .map((entry: ChatMessage): ChatMessage | null => {
+                if (shouldDropOrchestratorMessage(entry)) return null;
+                const key = String(entry.id || `${entry.role || ''}:${entry.created_at || ''}:${entry.content || ''}`);
+                return ids.has(key) ? null : entry;
+              })
+              .filter((entry): entry is ChatMessage => !!entry);
             return fresh.length ? [...prev, ...fresh] : prev;
           });
-          currentSince = j.next_since || currentSince;
-          setSince(currentSince);
+          const nextSince = Number(j.next_since || sinceRef.current);
+          if (Number.isFinite(nextSince) && nextSince > sinceRef.current) {
+            sinceRef.current = nextSince;
+            setSince(nextSince);
+          }
         }
-      } catch (_) {}
+        schedulePoll(isActive ? ORCH_CHAT_POLL_INTERVAL_ACTIVE_MS : ORCH_CHAT_POLL_INTERVAL_IDLE_MS);
+        return;
+      } catch (_) {
+        schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+      }
     };
+
+    const onVisibility = () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        clearPoll();
+        return;
+      }
+      clearPoll();
+      void fetchOnce();
+    };
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', onVisibility);
+    }
+
     fetchOnce();
-    pollingRef.current = setInterval(fetchOnce, 1500);
-    return () => { dead = true; clearInterval(pollingRef.current!); pollingRef.current = null; };
-  }, [ip, isActive]);
+    return () => {
+      dead = true;
+      clearPoll();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', onVisibility);
+      }
+    };
+  }, [ip, isActive, hasIp]);
+
+  const visibleMessages = messages.filter((m) => !shouldDropOrchestratorMessage(m));
 
   const handleSend = async () => {
     const text = draft.trim();
@@ -599,14 +710,14 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           {isActive ? 'live' : 'idle'}
         </span>
       </div>
-      <div className="orch-chat-body" ref={bodyRef} onScroll={onBodyScroll}>
-        {messages.length === 0 ? (
+      <div className="orch-chat-body" ref={bodyRef as Ref<HTMLDivElement>} onScroll={onBodyScroll}>
+        {visibleMessages.length === 0 ? (
           <div className="orch-chat-empty mute">
             {hasIp
               ? `No orchestrator activity yet for ${ip}. Send a chat message or run a workflow to see logs here.`
               : 'Pick an IP to see orchestrator chat.'}
           </div>
-        ) : messages.map((m, i) => (
+        ) : visibleMessages.map((m, i) => (
           <div key={m.id || i} className={roleClass(m.role || (m.payload && m.payload.role))}>
             <span className="orch-chat-role">
               {(m.role || (m.payload && m.payload.role) || 'assistant').toUpperCase()}
