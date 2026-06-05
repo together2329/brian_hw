@@ -161,6 +161,101 @@ def _load_derive_rtl_todos():
     return module
 
 
+def test_derive_rtl_todos_prefers_explicit_root_over_stale_relative_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "ipc_root_poison_ip"
+    root = tmp_path / "alice" / "default"
+    _write_ssot_doc(root, ip, _base_ssot_doc(ip))
+    monkeypatch.setenv("ATLAS_IP_ROOT", f"alice/default/{ip}")
+
+    result = _run_derive_rtl_todos(root, ip)
+
+    assert result.returncode in {0, 2}, result.stderr + result.stdout
+    assert "missing SSOT" not in result.stderr
+    assert f"default/alice/default/{ip}" not in result.stderr
+
+
+def test_derive_rtl_todos_ignores_external_absolute_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "ipc_external_root_ip"
+    root = tmp_path / "alice" / "default"
+    external_root = tmp_path / "bob" / "default"
+    _write_ssot_doc(root, ip, _base_ssot_doc(ip))
+    _write_ssot_doc(external_root, ip, _base_ssot_doc(ip))
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(external_root / ip))
+
+    result = _run_derive_rtl_todos(root, ip)
+
+    assert result.returncode in {0, 2}, result.stderr + result.stdout
+    assert "missing SSOT" not in result.stderr
+    assert str(external_root) not in result.stderr
+    assert (root / ip / "rtl" / "rtl_todo_plan.json").is_file()
+    assert not (external_root / ip / "rtl" / "rtl_todo_plan.json").exists()
+
+
+def test_derive_rtl_todos_ignores_external_symlink_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "ipc_external_link_ip"
+    root = tmp_path / "alice" / "default"
+    external_root = tmp_path / "bob" / "default"
+    _write_ssot_doc(root, ip, _base_ssot_doc(ip))
+    _write_ssot_doc(external_root, ip, _base_ssot_doc(ip))
+    poison_link = tmp_path / "poison-ip-root"
+    poison_link.symlink_to(external_root / ip, target_is_directory=True)
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(poison_link))
+
+    result = _run_derive_rtl_todos(root, ip)
+
+    assert result.returncode in {0, 2}, result.stderr + result.stdout
+    assert "missing SSOT" not in result.stderr
+    assert (root / ip / "rtl" / "rtl_todo_plan.json").is_file()
+    assert not (external_root / ip / "rtl" / "rtl_todo_plan.json").exists()
+
+
+def test_repair_ssot_schema_ignores_external_absolute_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "repair_external_root_ip"
+    root = tmp_path / "alice" / "default"
+    external_root = tmp_path / "bob" / "default"
+    _write_ssot_doc(root, ip, _base_ssot_doc(ip))
+    poison_path = _write_ssot_doc(external_root, ip, _base_ssot_doc(ip))
+    poison_before = poison_path.read_text(encoding="utf-8")
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(external_root / ip))
+
+    repaired = _run_repair_ssot(root, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stderr + repaired.stdout
+    assert poison_path.read_text(encoding="utf-8") == poison_before
+
+
+def test_repair_ssot_schema_ignores_external_symlink_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    ip = "repair_external_link_ip"
+    root = tmp_path / "alice" / "default"
+    external_root = tmp_path / "bob" / "default"
+    _write_ssot_doc(root, ip, _base_ssot_doc(ip))
+    poison_path = _write_ssot_doc(external_root, ip, _base_ssot_doc(ip))
+    poison_before = poison_path.read_text(encoding="utf-8")
+    poison_link = tmp_path / "poison-repair-root"
+    poison_link.symlink_to(external_root / ip, target_is_directory=True)
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(poison_link))
+
+    repaired = _run_repair_ssot(root, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stderr + repaired.stdout
+    assert poison_path.read_text(encoding="utf-8") == poison_before
+
+
 def test_parse_llm_artifacts_tolerates_trailing_json_mode_noise():
     raw = json.dumps(
         {
@@ -1104,6 +1199,50 @@ def test_repair_ssot_schema_reuses_conceptual_behavior_owner(tmp_path: Path):
     assert "function_model.transactions.FM_PRIMARY" in owners[0]["function_model_refs"]
 
 
+def test_repair_ssot_schema_assigns_function_invariants_to_behavior_owner(tmp_path: Path):
+    ip = "repair_invariant_owner_ip"
+    doc = _base_ssot_doc(ip)
+    doc["sub_modules"] = [
+        {
+            "name": "vdm_filter",
+            "file": "rtl/vdm_filter.sv",
+            "ownership": "manifest",
+            "description": "Protocol behavior owner for transactions, ordering, dataflow, and FSM state.",
+            "function_model_refs": ["function_model.transactions.FM_PRIMARY"],
+            "cycle_model_refs": ["cycle_model"],
+            "dataflow_refs": ["dataflow"],
+            "fsm_refs": ["fsm"],
+            "test_refs": ["test_requirements"],
+        },
+    ]
+    doc["function_model"]["invariants"] = [
+        {
+            "name": "error_sources_raise_error_state",
+            "description": "Every declared error source must drive the error state or drop path exactly once.",
+        }
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    owner = next(row for row in loaded["sub_modules"] if row["name"] == "vdm_filter")
+    assert "function_model.invariants" in owner["function_model_refs"]
+
+    derived = _run_derive_rtl_todos(tmp_path, ip)
+    assert derived.returncode in {0, 2}, derived.stdout + derived.stderr
+    plan = json.loads((tmp_path / ip / "rtl" / "rtl_todo_plan.json").read_text(encoding="utf-8"))
+    invariant_task = next(task for task in plan["tasks"] if task["category"] == "function_model.invariant")
+    assert invariant_task["owner_module"] == "vdm_filter"
+    assert invariant_task["owner_match"] == "function_model.invariants"
+    assert not [
+        orphan
+        for orphan in plan.get("orphans", [])
+        if orphan.get("category") == "function_model.invariant"
+    ]
+
+
 def test_repair_ssot_schema_migrates_top_level_interfaces(tmp_path: Path):
     ip = "repair_legacy_interfaces_ip"
     doc = _base_ssot_doc(ip)
@@ -1586,6 +1725,58 @@ def test_repair_ssot_schema_adds_observable_state_output_rules(tmp_path: Path):
     tx_rules = loaded["function_model"]["transactions"][0]["output_rules"]
     assert any(rule["port"] == "accepted_count" and rule["expr"] == "accepted_count" for rule in contract_rules)
     assert any(rule["port"] == "accepted_count" and rule["expr"] == "accepted_count" for rule in tx_rules)
+
+
+def test_repair_ssot_schema_backfills_ports_and_output_rules_for_ui_generated_ssot(tmp_path: Path):
+    ip = "repair_ui_generated_ssot_ip"
+    doc = _base_ssot_doc(ip)
+    doc["io_list"] = {
+        "interfaces": [
+            {
+                "name": "tlp_stream",
+                "protocol": "valid_ready",
+                "role": "target",
+                "signals": [
+                    {"name": "clk", "direction": "input", "width": 1},
+                    {"name": "rst_n", "direction": "input", "width": 1},
+                    {"name": "tlp_valid", "direction": "input", "width": 1},
+                    {"name": "tlp_ready", "direction": "output", "width": 1},
+                    {"name": "tlp_data", "direction": "input", "width": 128},
+                ],
+                "ports": [],
+            },
+            {
+                "name": "descriptor",
+                "protocol": "valid_ready",
+                "role": "source",
+                "signals": [
+                    {"name": "desc_valid", "direction": "output", "width": 1},
+                    {"name": "desc_ready", "direction": "input", "width": 1},
+                    {"name": "desc_data", "direction": "output", "width": 64},
+                ],
+                "ports": [],
+            },
+        ]
+    }
+    doc["function_model"]["transactions"] = [
+        {"id": "FM_PARSE", "name": "parse", "outputs": ["descriptor becomes visible"], "side_effects": ["payload count changes"]},
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip, ["--mode", "engineering"])
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    interfaces = {row["name"]: row for row in loaded["io_list"]["interfaces"]}
+    assert {port["name"] for port in interfaces["tlp_stream"]["ports"]} >= {"tlp_valid", "tlp_ready", "tlp_data"}
+    assert {port["name"] for port in interfaces["descriptor"]["ports"]} >= {"desc_valid", "desc_ready", "desc_data"}
+    rules = loaded["function_model"]["transactions"][0]["output_rules"]
+    assert any(
+        rule.get("name") and rule.get("expr") is not None and rule.get("width") is not None and rule.get("port")
+        for rule in rules
+    )
+    check = _run_check_ssot(tmp_path, ip, ["--mode", "engineering"])
+    assert check.returncode == 0, check.stdout + check.stderr
 
 
 def test_headless_ssot_generation_canonicalizes_llm_ssot_before_pass(tmp_path: Path):

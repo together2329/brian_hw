@@ -63,6 +63,7 @@ TO_SSOT_SKILL = ROOT / "workflow" / "ssot-gen" / "skills" / "to-ssot" / "SKILL.m
 SSOT_SYSTEM_PROMPT = ROOT / "workflow" / "ssot-gen" / "system_prompt.md"
 COMMON_ENGINE_FLOW = ROOT / "workflow" / "COMMON_ENGINE_FLOW.md"
 VERIFY_SSOT_SCRIPT = ROOT / "workflow" / "ssot-gen" / "scripts" / "verify_ssot.py"
+REPAIR_SSOT_SCRIPT = ROOT / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
 VERIFY_SSOT_COMMAND = ROOT / "workflow" / "ssot-gen" / "commands" / "verify-ssot.json"
 
 
@@ -488,6 +489,214 @@ ssot:
     assert "Top-level wrapper key" in result.stdout
     report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
     assert any(item["id"] == "ssot.wrapper_key" for item in report["blockers"])
+
+
+def test_verify_ssot_script_rejects_locked_truth_placeholders_when_manifest_exists(tmp_path):
+    ip = "locked_placeholder_ip"
+    req_dir = tmp_path / ip / "req"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    req_dir.mkdir(parents=True)
+    ssot_path.parent.mkdir(parents=True)
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps(
+            {
+                "type": "requirement_approval_manifest",
+                "ip": ip,
+                "approved_by": "qa",
+                "approved_at_utc": "2026-06-05T00:00:00Z",
+                "target": f"{ip}/req/{ip}_requirements.md",
+                "target_sha256": "deadbeef",
+                "source": f"{ip}/review/decision_needed_req_requirement_approval.json",
+                "source_sha256": "deadbeef",
+            }
+        ),
+        encoding="utf-8",
+    )
+    ssot_path.write_text(
+        """
+top_module:
+  name: locked_placeholder_ip
+  description: ready
+io_list:
+  interfaces:
+    - name: control
+      type: custom
+      ports:
+        - { name: clk, direction: input, width: 1, description: clock }
+function_model:
+  transactions:
+    - id: FM1
+      name: feature_1
+      description: Auto-injected transaction coverage/state marker
+fsm:
+  states:
+    - EXEC_FEATURE_1
+  transitions:
+    - from: EXEC_FEATURE_1
+      to: EXEC_FEATURE_2
+test_requirements:
+  scenarios:
+    - name: replace with IP-specific
+      description: placeholder
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(VERIFY_SSOT_SCRIPT),
+            ip,
+            "--root",
+            str(tmp_path),
+            "--mode",
+            "starter",
+            "--preview",
+            "off",
+            "--skip-disk-check",
+        ],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode != 0
+    assert "locked requirement-specific" in result.stdout
+    report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
+    assert any(item["id"] == "ssot.locked_truth_placeholders" for item in report["blockers"])
+    assert any("locked requirement-specific" in item["fix"] for item in report["blockers"])
+
+
+def test_repair_ssot_removes_stale_locked_truth_markers_when_real_rules_exist(tmp_path):
+    ip = "locked_marker_repaired_ip"
+    req_dir = tmp_path / ip / "req"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    req_dir.mkdir(parents=True)
+    ssot_path.parent.mkdir(parents=True)
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps(
+            {
+                "type": "requirement_approval_manifest",
+                "ip": ip,
+                "approved_by": "qa",
+                "approved_at_utc": "2026-06-05T00:00:00Z",
+                "target": f"{ip}/req/{ip}_requirements.md",
+                "target_sha256": "deadbeef",
+                "source": f"{ip}/review/decision_needed_req_requirement_approval.json",
+                "source_sha256": "deadbeef",
+            }
+        ),
+        encoding="utf-8",
+    )
+    ssot_path.write_text(
+        """
+top_module:
+  name: locked_marker_repaired_ip
+  description: ready
+  target: { technology: generic, clock_freq_mhz: 100 }
+parameters:
+  - { name: DATA_W, default: 32, type: int, description: width }
+io_list:
+  interfaces:
+    - name: apb
+      type: apb
+      ports:
+        - { name: psel, direction: input, width: 1, description: select }
+        - { name: penable, direction: input, width: 1, description: enable }
+        - { name: pwrite, direction: input, width: 1, description: write }
+        - { name: paddr, direction: input, width: 8, description: address }
+        - { name: prdata, direction: output, width: 32, description: read data }
+        - { name: pready, direction: output, width: 1, description: ready }
+function_model:
+  state_variables:
+    - name: payload_count
+      width: 16
+      reset: 0
+    - name: apb_read_status_txn_observed
+      source: function_model.transactions.APB_READ_STATUS_TXN
+      width: 1
+      reset: 0
+      description: Auto-injected transaction coverage/state marker because the transaction had prose outputs or side effects but no executable output_rules/state_updates.
+  transactions:
+    - id: APB_READ_STATUS_TXN
+      name: read APB payload count and status
+      preconditions: [psel && penable && !pwrite]
+      outputs:
+        - prdata returns payload count
+        - state: apb_read_status_txn_observed
+          expr: "1"
+          description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+      output_rules:
+        - name: prdata
+          port: prdata
+          width: 32
+          expr: zero_extend(payload_count)
+        - name: pready
+          port: pready
+          width: 1
+          expr: "1"
+      state_updates:
+        - name: apb_read_status_txn_observed
+          width: 1
+          expr: "1"
+          description: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+  invariants:
+    - APB read data follows declared output_rules.
+workflow_todos:
+  rtl-gen:
+    - id: RTL_FM_TX_FM2
+      detail: Repair marker making this transaction machine-checkable; ssot-gen should replace with IP-specific architectural state/output equations before signoff.
+      source_refs: [function_model.transactions.FM2]
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+
+    repair = subprocess.run(
+        [
+            sys.executable,
+            str(REPAIR_SSOT_SCRIPT),
+            ip,
+            "--root",
+            str(tmp_path),
+            "--mode",
+            "engineering",
+        ],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+    assert repair.returncode == 0, repair.stdout + repair.stderr
+    repaired = ssot_path.read_text(encoding="utf-8")
+    assert "Auto-injected transaction coverage/state marker" not in repaired
+    assert "Repair marker making this transaction machine-checkable" not in repaired
+    assert "function_model.transactions.FM2" not in repaired
+
+    verify = subprocess.run(
+        [
+            sys.executable,
+            str(VERIFY_SSOT_SCRIPT),
+            ip,
+            "--root",
+            str(tmp_path),
+            "--mode",
+            "starter",
+            "--preview",
+            "off",
+            "--skip-disk-check",
+        ],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+    assert verify.returncode == 0, verify.stdout + verify.stderr
 
 
 def test_ssot_qa_api_does_not_seed_default_required_decisions(tmp_path, monkeypatch):

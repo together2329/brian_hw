@@ -40,6 +40,7 @@ RUNTIME_DIR = WORKFLOW_ROOT / "tb-gen" / "runtime"
 
 
 def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    root_source = root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ""
     project_root = Path(os.path.expandvars(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".")).expanduser().resolve()
     ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
     if ip_root_raw:
@@ -47,6 +48,12 @@ def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
         if not ip_root.is_absolute():
             ip_root = project_root / ip_root
         ip_root = ip_root.resolve()
+        if root_source:
+            try:
+                if ip_root != project_root:
+                    ip_root.relative_to(project_root)
+            except ValueError:
+                return project_root
         if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
             return ip_root.parent
     return project_root

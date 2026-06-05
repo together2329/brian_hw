@@ -63,6 +63,7 @@ CANONICAL_ORDER = [
 
 
 def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
+    root_source = root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ""
     project_root = Path(os.path.expandvars(root_arg or os.environ.get("ATLAS_PROJECT_ROOT") or ".")).expanduser().resolve()
     ip_root_raw = (ip_root_arg or os.environ.get("ATLAS_IP_ROOT") or "").strip()
     if ip_root_raw:
@@ -70,6 +71,12 @@ def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
         if not ip_root.is_absolute():
             ip_root = project_root / ip_root
         ip_root = ip_root.resolve()
+        if root_source:
+            try:
+                if ip_root != project_root:
+                    ip_root.relative_to(project_root)
+            except ValueError:
+                return project_root
         if not ip or ip_root.name == ip or (ip_root / "yaml").is_dir():
             return ip_root.parent
     return project_root
@@ -97,6 +104,13 @@ LEGACY_TOP_LEVEL_ALIASES = {
     "dv_plan": "test_requirements",
     "verification_plan": "test_requirements",
 }
+LOCKED_TRUTH_TRANSACTION_PLACEHOLDERS = {f"FM{i}" for i in range(1, 5)} | {
+    f"feature_{i}" for i in range(1, 5)
+}
+LOCKED_TRUTH_TEXT_MARKERS = (
+    "Auto-injected transaction coverage/state marker",
+    "replace with IP-specific",
+)
 
 
 def _normalize_mode(value: Any) -> str:
@@ -270,7 +284,8 @@ def _top_level_shape_issues(doc: Any, mode: str) -> tuple[list[dict[str, str]], 
 
 
 def _interface_ports(doc: dict[str, Any]) -> list[dict[str, Any]]:
-    io = doc.get("io_list") if isinstance(doc.get("io_list"), dict) else {}
+    io_raw = doc.get("io_list")
+    io: dict[str, Any] = io_raw if isinstance(io_raw, dict) else {}
     ports: list[dict[str, Any]] = []
     for iface in _as_list(io.get("interfaces")):
         if not isinstance(iface, dict):
@@ -318,7 +333,8 @@ def _preview_issues(doc: Any, mode: str, severity: str) -> list[dict[str, str]]:
         return []
     issues: list[dict[str, str]] = []
 
-    top = doc.get("top_module") if isinstance(doc.get("top_module"), dict) else {}
+    top_raw = doc.get("top_module")
+    top: dict[str, Any] = top_raw if isinstance(top_raw, dict) else {}
     if not _present(top.get("description")):
         issues.append(_issue(
             severity,
@@ -338,7 +354,8 @@ def _preview_issues(doc: Any, mode: str, severity: str) -> list[dict[str, str]]:
             "Add io_list.interfaces entries with ports containing name, direction, width, and description where known.",
         ))
 
-    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    fm_raw = doc.get("function_model")
+    fm: dict[str, Any] = fm_raw if isinstance(fm_raw, dict) else {}
     if not _as_list(fm.get("transactions")):
         issues.append(_issue(
             severity,
@@ -351,7 +368,8 @@ def _preview_issues(doc: Any, mode: str, severity: str) -> list[dict[str, str]]:
     if mode == "starter":
         return issues
 
-    cm = doc.get("cycle_model") if isinstance(doc.get("cycle_model"), dict) else {}
+    cm_raw = doc.get("cycle_model")
+    cm: dict[str, Any] = cm_raw if isinstance(cm_raw, dict) else {}
     if not _as_list(cm.get("pipeline")):
         issues.append(_issue(
             severity,
@@ -395,7 +413,8 @@ def _preview_issues(doc: Any, mode: str, severity: str) -> list[dict[str, str]]:
             "Add fsm.<machine>.states and transitions, or fsm.no_fsm with reason/policy.",
         ))
 
-    tr = doc.get("test_requirements") if isinstance(doc.get("test_requirements"), dict) else {}
+    tr_raw = doc.get("test_requirements")
+    tr: dict[str, Any] = tr_raw if isinstance(tr_raw, dict) else {}
     if not _as_list(tr.get("scenarios")):
         issues.append(_issue(
             severity,
@@ -406,6 +425,71 @@ def _preview_issues(doc: Any, mode: str, severity: str) -> list[dict[str, str]]:
         ))
 
     return issues
+
+
+def _locked_truth_placeholder_issues(doc: Any, approval_manifest_exists: bool) -> list[dict[str, str]]:
+    if not approval_manifest_exists or not isinstance(doc, dict):
+        return []
+
+    hits: list[tuple[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def add_hit(path: str, value: str) -> None:
+        key = (path, value)
+        if key not in seen:
+            seen.add(key)
+            hits.append(key)
+
+    def walk(value: Any, path: str, parent_key: str = "") -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                key_text = str(key)
+                child_path = f"{path}.{key_text}" if path else key_text
+                walk(child, child_path, key_text)
+            return
+        if isinstance(value, list):
+            for idx, child in enumerate(value):
+                walk(child, f"{path}[{idx}]", parent_key)
+            return
+        if not isinstance(value, str):
+            return
+
+        text = value.strip()
+        if not text:
+            return
+        if any(marker in text for marker in LOCKED_TRUTH_TEXT_MARKERS):
+            add_hit(path, text)
+        if text.startswith("EXEC_FEATURE_"):
+            add_hit(path, text)
+        if (
+            parent_key in {"id", "name"}
+            and "function_model.transactions" in path
+            and text in LOCKED_TRUTH_TRANSACTION_PLACEHOLDERS
+        ):
+            add_hit(path, text)
+
+    walk(doc, "")
+    if not hits:
+        return []
+
+    summary = ", ".join(f"{path}={value}" for path, value in hits[:6])
+    if len(hits) > 6:
+        summary += f", +{len(hits) - 6} more"
+    return [
+        _issue(
+            "blocker",
+            "ssot.locked_truth_placeholders",
+            "function_model/fsm/test_requirements",
+            (
+                "req/approval_manifest.json exists, but generic repair placeholders remain in the SSOT: "
+                f"{summary}."
+            ),
+            (
+                "Owner: ssot-gen. Replace generic repair placeholders with locked requirement-specific "
+                "function_model/fsm/test_requirements content before signoff."
+            ),
+        )
+    ]
 
 
 def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
@@ -593,6 +677,8 @@ def main() -> int:
             shape_blockers, shape_warnings = _top_level_shape_issues(doc, mode)
             blockers.extend(shape_blockers)
             warnings.extend(shape_warnings)
+            manifest_path = root / ip / "req" / "approval_manifest.json"
+            blockers.extend(_locked_truth_placeholder_issues(doc, manifest_path.is_file()))
             if ns.preview != "off":
                 severity = "blocker" if ns.preview == "strict" else "warning"
                 target = blockers if severity == "blocker" else warnings
