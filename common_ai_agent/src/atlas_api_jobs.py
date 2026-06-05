@@ -6094,7 +6094,11 @@ def register_jobs_routes(
             except Exception:
                 pass
 
-        if os.getenv("ATLAS_ASCII_OUTPUT", "false").lower() in ("1", "true", "yes", "on"):
+        try:
+            import src.config as config  # noqa: WPS433 (config not imported at module top)
+        except ModuleNotFoundError:  # pragma: no cover - direct-src launch
+            import config  # noqa: WPS433
+        if config.OUTPUT_ASCII_ONLY:
             _GLYPHS: dict[str, str] = {
                 "idle": "-", "ready": "-", "running": ">", "passed": "OK",
                 "failed": "FAIL", "blocked": "BLK", "stale": "STA", "locked": "LCK",
