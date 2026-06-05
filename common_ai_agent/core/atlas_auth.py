@@ -33,7 +33,8 @@ if TYPE_CHECKING:
     from starlette.requests import Request as StarletteRequest
 else:
     try:
-        from fastapi import FastAPI, Request, Response, HTTPException
+        from fastapi import FastAPI, Response, HTTPException
+        from starlette.requests import Request
         from starlette.requests import Request as StarletteRequest
     except Exception:  # pragma: no cover
         FastAPI = None  # type: ignore

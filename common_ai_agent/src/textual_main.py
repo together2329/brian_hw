@@ -48,6 +48,13 @@ def _subprocess_env_with_pythonpath():
     return env
 
 
+def _admin_creationflags():
+    if os.name == "nt":
+        import subprocess as _sp_admin
+        return getattr(_sp_admin, "CREATE_NEW_PROCESS_GROUP", 0)
+    return 0
+
+
 # ── Python 3.7 compatibility: backport typing helpers via typing_extensions ──
 if sys.version_info < (3, 8):
     import typing
@@ -389,10 +396,11 @@ if __name__ == "__main__":
                 _admin_host = (_args.host or _admin_host or '127.0.0.1')
             _admin_proc = _sp_admin.Popen(
                 [_sys_admin.executable, _admin_script,
-                 "--port", _admin_port, "--host", _admin_host],
+                "--port", _admin_port, "--host", _admin_host],
                 stdout=None, stderr=None,
                 cwd=_os_admin.path.dirname(_os_admin.path.dirname(_admin_script)),
                 env=_subprocess_env_with_pythonpath(),
+                creationflags=_admin_creationflags(),
             )
             _atexit.register(lambda p=_admin_proc: (p.terminate() if p.poll() is None else None))
             print(f"\n  [admin] launched standalone admin server → http://{_admin_host}:{_admin_port}/admin", flush=True)
