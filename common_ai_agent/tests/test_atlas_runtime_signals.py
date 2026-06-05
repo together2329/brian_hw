@@ -8,19 +8,32 @@ class _ServerState:
         self._captured_signals = []
 
 
-def test_atlas_uvicorn_exit_signal_does_not_reraise_first_sigint():
+def test_atlas_uvicorn_exit_signal_ignores_first_sigint():
     import src.atlas_runtime_run as atlas_runtime_run
 
     state = _ServerState()
 
     atlas_runtime_run._handle_atlas_uvicorn_exit_signal(state, signal.SIGINT)
 
-    assert state.should_exit is True
+    assert state.should_exit is False
     assert state.force_exit is False
     assert state._captured_signals == []
 
 
-def test_atlas_uvicorn_exit_signal_forces_second_sigint_without_reraise():
+def test_atlas_uvicorn_exit_signal_ignores_repeated_sigint():
+    import src.atlas_runtime_run as atlas_runtime_run
+
+    state = _ServerState()
+
+    atlas_runtime_run._handle_atlas_uvicorn_exit_signal(state, signal.SIGINT)
+    atlas_runtime_run._handle_atlas_uvicorn_exit_signal(state, signal.SIGINT)
+
+    assert state.should_exit is False
+    assert state.force_exit is False
+    assert state._captured_signals == []
+
+
+def test_atlas_uvicorn_exit_signal_sigint_does_not_force_existing_shutdown():
     import src.atlas_runtime_run as atlas_runtime_run
 
     state = _ServerState(should_exit=True)
@@ -28,7 +41,7 @@ def test_atlas_uvicorn_exit_signal_forces_second_sigint_without_reraise():
     atlas_runtime_run._handle_atlas_uvicorn_exit_signal(state, signal.SIGINT)
 
     assert state.should_exit is True
-    assert state.force_exit is True
+    assert state.force_exit is False
     assert state._captured_signals == []
 
 

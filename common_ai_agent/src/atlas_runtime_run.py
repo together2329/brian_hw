@@ -63,9 +63,9 @@ def _admin_subprocess_kwargs() -> dict[str, Any]:
 
 
 def _atlas_uvicorn_exit_signal_decision(sig: int, should_exit: bool) -> tuple[bool, bool, bool]:
-    force_exit = should_exit and sig == signal.SIGINT
-    should_capture = sig != signal.SIGINT
-    return True, force_exit, should_capture
+    if sig == signal.SIGINT:
+        return should_exit, False, False
+    return True, False, True
 
 
 def _handle_atlas_uvicorn_exit_signal(server: Any, sig: int) -> None:
