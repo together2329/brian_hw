@@ -19,6 +19,8 @@ import traceback
 from pathlib import Path
 from typing import Any, Optional
 
+from core.codex_delegate import CodexDelegate
+
 # Ensure import paths
 _script_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(_script_dir)
@@ -37,7 +39,6 @@ class DelegateRunner:
             "sub-agent": SubAgentDelegate,
             "http-worker": HTTPWorkerDelegate,
             "cursor-agent": CursorAgentDelegate,
-            "codex": CodexDelegate,
             "gemini": GeminiDelegate,
             "api": APIDelegate,
         }
@@ -63,6 +64,16 @@ class DelegateRunner:
         Returns:
             Result string from the backend
         """
+        if backend == "codex":
+            return CodexDelegate(project_root=self.project_root).run(
+                task, context, workflow_name=workflow_name,
+                model_override=model_override,
+                system_prompt=system_prompt,
+                allowed_tools=allowed_tools,
+                reasoning_effort=reasoning_effort,
+                custom_agent_name=custom_agent_name,
+            )
+
         cls = self._backends.get(backend)
         if not cls:
             available = ", ".join(sorted(self._backends.keys()))
@@ -334,36 +345,6 @@ class CursorAgentDelegate:
             return result or "(no output)"
         except FileNotFoundError:
             return "[cursor-agent error] cursor-agent not found. Install it or check PATH."
-
-
-# ============================================================
-# Backend: Codex CLI
-# ============================================================
-
-class CodexDelegate:
-    """Delegates to OpenAI Codex CLI."""
-
-    def __init__(self, project_root: Optional[Path] = None):
-        self.project_root = project_root or Path.cwd()
-
-    def run(self, task: str, context: str = "", workflow_name: str = "") -> str:
-        """Execute task via codex CLI."""
-        full_prompt = task
-        if context:
-            full_prompt = f"[Context]\n{context}\n\n[Task]\n{task}"
-
-        try:
-            proc = subprocess.run(
-                ["codex", "--quiet", full_prompt],
-                capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=300,
-            )
-            if proc.returncode != 0:
-                return f"[codex error] {proc.stderr.strip() or f'exit code {proc.returncode}'}"
-            return proc.stdout.strip() or "(no output)"
-        except FileNotFoundError:
-            return "[codex error] codex CLI not found. Install with: npm install -g @openai/codex"
-        except subprocess.TimeoutExpired:
-            return "[codex error] Command timed out after 300s"
 
 
 # ============================================================
