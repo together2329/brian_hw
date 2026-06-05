@@ -15,9 +15,11 @@
 // shared types/atlas-window.d.ts. The transitional window.* bridges for these
 // symbols still run in pipeline.tsx in the original order.
 import {
+  memo,
   useState,
   useEffect,
   useRef,
+  useCallback,
   type Ref,
   type ReactNode,
   type ChangeEvent,
@@ -753,12 +755,72 @@ export interface PipelineOrchestratorChatPanelProps {
   ip?: string;
   pipelineState?: PipelineState | null;
 }
+
+interface OrchestratorChatComposerProps {
+  hasIp: boolean;
+  ip?: string;
+  onSubmit: (text: string) => Promise<void>;
+  scrollToBottom: () => void;
+}
+
+const OrchestratorChatComposer = memo(function OrchestratorChatComposer({
+  hasIp,
+  ip,
+  onSubmit,
+  scrollToBottom,
+}: OrchestratorChatComposerProps) {
+  const [draft, setDraft] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const handleSend = async () => {
+    const text = draft.trim();
+    if (!text || !hasIp || sending) return;
+    setSending(true);
+    scrollToBottom();
+    try {
+      await onSubmit(text);
+      setDraft('');
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      console.warn(`orchestrator chat send failed: ${detail}`);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void handleSend();
+    }
+  };
+
+  return (
+    <div className="orch-chat-input-row">
+      <textarea
+        className="orch-chat-input"
+        placeholder={hasIp ? `Message orchestrator for ${ip}…` : 'Select an IP first'}
+        value={draft}
+        disabled={sending}
+        rows={1}
+        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDraft(e.target.value)}
+        onKeyDown={handleKeyDown}
+      />
+      <button
+        className="orch-chat-send-btn"
+        disabled={!draft.trim() || !hasIp || sending}
+        onClick={() => { void handleSend(); }}
+      >
+        {sending ? '…' : '▶'}
+      </button>
+    </div>
+  );
+});
+
 function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrchestratorChatPanelProps) {
   const [messages, setMessages] = useState<OrchestratorFeedEntry[]>([]);
   const [filterCategory, setFilterCategory] = useState<'all' | 'thought' | 'action' | 'obs'>('all');
   const [since, setSince] = useState(0);
-  const [draft, setDraft] = useState('');
-  const [sending, setSending] = useState(false);
   const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sinceRef = useRef(0);
   const subscriptionRef = useRef<(() => void) | void>();
@@ -934,33 +996,20 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     return `orch-chat-filter-btn${filterCategory === value ? ' active' : ''}`;
   };
 
-  const handleSend = async () => {
-    const text = draft.trim();
-    if (!text || !hasIp || sending) return;
-    setSending(true);
-    scrollBodyToBottom();
-    try {
-      const workspaceSession = activeRailWorkspaceSession();
-      const session = activeOrchestratorRailSession(ip);
-      await fetch('/api/pipeline/orchestrator/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          ip,
-          ...(session ? { session } : {}),
-          ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
-        }),
-      });
-      setDraft('');
-    } catch (_) {} finally {
-      setSending(false);
-    }
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
-  };
+  const submitMessage = useCallback(async (text: string) => {
+    const workspaceSession = activeRailWorkspaceSession();
+    const session = activeOrchestratorRailSession(ip);
+    await fetch('/api/pipeline/orchestrator/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: text,
+        ip,
+        ...(session ? { session } : {}),
+        ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
+      }),
+    });
+  }, [ip]);
 
   const roleClass = (role?: string): string => {
     if (role === 'assistant') return 'md-bubble md-agent';
@@ -1034,24 +1083,12 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           );
         })}
       </div>
-      <div className="orch-chat-input-row">
-        <textarea
-          className="orch-chat-input"
-          placeholder={hasIp ? `Message orchestrator for ${ip}…` : 'Select an IP first'}
-          value={draft}
-          disabled={sending}
-          rows={1}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button
-          className="orch-chat-send-btn"
-          disabled={!draft.trim() || !hasIp || sending}
-          onClick={handleSend}
-        >
-          {sending ? '…' : '▶'}
-        </button>
-      </div>
+      <OrchestratorChatComposer
+        hasIp={hasIp}
+        ip={ip}
+        onSubmit={submitMessage}
+        scrollToBottom={scrollBodyToBottom}
+      />
     </div>
   );
 }

@@ -379,27 +379,39 @@ export interface WorkspacePromptRowProps {
   defaultWorkflowForExecMode: () => string;
 }
 
-export const WorkspacePromptRow = ({
-  workflow,
-  activeIp,
-  feed,
-  orchWorkers,
-  workerProgress,
+interface WorkspacePromptComposerProps {
+  input: string;
+  setInput: (value: string) => void;
+  inputResetToken: number;
+  inputRef: any;
+  inputRouteType: string;
+  inputRouteTitle: string;
+  inputRouteLabel: string;
+  showRoutePill: boolean;
+  inputHistoryIndexRef: any;
+  inputHistoryDraftRef: any;
+  onKey: (event: KeyboardEvent<HTMLTextAreaElement>) => WorkspacePromptKeyResult;
+  pendingQcard: any;
+  workflowReady: any;
+  workflowReadyBlocking: boolean;
+}
+
+const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
   input,
   setInput,
-  inputResetToken = 0,
+  inputResetToken,
   inputRef,
-  inputRouteState,
-  inputRouteRef,
+  inputRouteType,
+  inputRouteTitle,
+  inputRouteLabel,
+  showRoutePill,
   inputHistoryIndexRef,
   inputHistoryDraftRef,
   onKey,
   pendingQcard,
   workflowReady,
-  atlasUiOrchestratorMode,
-  workflowForExecMode,
-  defaultWorkflowForExecMode,
-}: WorkspacePromptRowProps) => {
+  workflowReadyBlocking,
+}: WorkspacePromptComposerProps) {
   const [draftInput, setDraftInput] = useState<string>(input);
   const draftInputRef = useRef<string>(input);
   const localDraftDirtyRef = useRef<boolean>(false);
@@ -467,6 +479,87 @@ export const WorkspacePromptRow = ({
   useEffect(() => {
     requestAnimationFrame(() => resizeInput(inputRef.current));
   }, [draftInput, inputRef, resizeInput]);
+
+  return (
+    <div className="prompt-row">
+      <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
+      {showRoutePill ? (
+        <span
+          className="prompt-route-pill"
+          data-route={inputRouteType}
+          title={inputRouteTitle}
+        >
+          {inputRouteLabel}
+        </span>
+      ) : null}
+      <textarea ref={inputRef} value={draftInput}
+        rows={1}
+        disabled={workflowReadyBlocking}
+        onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
+          updateDraftFromUser(e.target.value, e.target);
+        }}
+        onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
+          if (e.key === 'Enter' && e.altKey) {
+            e.preventDefault();
+            const el = e.currentTarget;
+            const lo = el.selectionStart;
+            const hi = el.selectionEnd;
+            const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
+            updateDraftFromUser(next, el);
+            requestAnimationFrame(() => {
+              el.selectionStart = el.selectionEnd = lo + 1;
+              resizeInput(el);
+            });
+            return;
+          }
+          const result = onKey(e);
+          if (result === 'submitted') {
+            clearDraftAfterSubmittedKey(e.currentTarget);
+          }
+        }}
+        placeholder={workflowReadyBlocking
+          ? `Preparing ${workflowReady.target || 'workflow'}...`
+          : (pendingQcard
+              ? 'Answer pending Q&A here · "/" for commands'
+              : 'Type a message · "/" for commands · "@" for files · ⌥↵ newline')}
+        autoFocus
+      />
+      <span className="mute" style={{ fontSize: 11 }}>
+        {pendingQcard ? (
+          <>
+            <Kbd>↵</Kbd> answer · <Kbd>/</Kbd> cmd · <Kbd>↑</Kbd><Kbd>↓</Kbd> history
+          </>
+        ) : (
+          <>
+            <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send · <Kbd>⌥↵</Kbd> newline
+          </>
+        )}
+      </span>
+    </div>
+  );
+});
+
+export const WorkspacePromptRow = ({
+  workflow,
+  activeIp,
+  feed,
+  orchWorkers,
+  workerProgress,
+  input,
+  setInput,
+  inputResetToken = 0,
+  inputRef,
+  inputRouteState,
+  inputRouteRef,
+  inputHistoryIndexRef,
+  inputHistoryDraftRef,
+  onKey,
+  pendingQcard,
+  workflowReady,
+  atlasUiOrchestratorMode,
+  workflowForExecMode,
+  defaultWorkflowForExecMode,
+}: WorkspacePromptRowProps) => {
   const orchestratorIdle = (window as any).AtlasBannerLogic
     ? (window as any).AtlasBannerLogic.shouldShowSelectIpBanner({ workflow, activeIp })
     : (workflow === 'orchestrator' && (!activeIp || String(activeIp).toLowerCase() === 'default'));
@@ -560,61 +653,22 @@ export const WorkspacePromptRow = ({
         </div>
       ) : null}
       {renderWorkspaceWorkerProgress({ workflow, workerProgress })}
-      <div className="prompt-row">
-        <span className="ps" style={{ color: 'var(--fg-mute)' }}>❯</span>
-        {atlasUiOrchestratorMode() && !pendingQcard ? (
-          <span
-            className="prompt-route-pill"
-            data-route={inputRouteType}
-            title={inputRouteTitle}
-          >
-            {inputRouteLabel}
-          </span>
-        ) : null}
-        <textarea ref={inputRef} value={draftInput}
-          rows={1}
-          disabled={workflowReadyBlocking}
-          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-            updateDraftFromUser(e.target.value, e.target);
-          }}
-          onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
-            if (e.key === 'Enter' && e.altKey) {
-              e.preventDefault();
-              const el = e.currentTarget;
-              const lo = el.selectionStart;
-              const hi = el.selectionEnd;
-              const next = el.value.slice(0, lo) + '\n' + el.value.slice(hi);
-              updateDraftFromUser(next, el);
-              requestAnimationFrame(() => {
-                el.selectionStart = el.selectionEnd = lo + 1;
-                resizeInput(el);
-              });
-              return;
-            }
-            const result = onKey(e);
-            if (result === 'submitted') {
-              clearDraftAfterSubmittedKey(e.currentTarget);
-            }
-          }}
-          placeholder={workflowReadyBlocking
-            ? `Preparing ${workflowReady.target || 'workflow'}...`
-            : (pendingQcard
-                ? 'Answer pending Q&A here · "/" for commands'
-                : 'Type a message · "/" for commands · "@" for files · ⌥↵ newline')}
-          autoFocus
-        />
-        <span className="mute" style={{ fontSize: 11 }}>
-          {pendingQcard ? (
-            <>
-              <Kbd>↵</Kbd> answer · <Kbd>/</Kbd> cmd · <Kbd>↑</Kbd><Kbd>↓</Kbd> history
-            </>
-          ) : (
-            <>
-              <Kbd>/</Kbd> cmd · <Kbd>@</Kbd> file · <Kbd>↑</Kbd><Kbd>↓</Kbd> history · <Kbd>↵</Kbd> send · <Kbd>⌥↵</Kbd> newline
-            </>
-          )}
-        </span>
-      </div>
+      <WorkspacePromptComposer
+        input={input}
+        setInput={setInput}
+        inputResetToken={inputResetToken}
+        inputRef={inputRef}
+        inputRouteType={inputRouteType}
+        inputRouteTitle={inputRouteTitle}
+        inputRouteLabel={inputRouteLabel}
+        showRoutePill={atlasUiOrchestratorMode() && !pendingQcard}
+        inputHistoryIndexRef={inputHistoryIndexRef}
+        inputHistoryDraftRef={inputHistoryDraftRef}
+        onKey={onKey}
+        pendingQcard={pendingQcard}
+        workflowReady={workflowReady}
+        workflowReadyBlocking={workflowReadyBlocking}
+      />
     </div>
   );
 };
