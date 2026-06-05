@@ -9,8 +9,10 @@ functional rules. FL stays the only oracle.
 from __future__ import annotations
 
 import argparse
+import ast
 import importlib.util
 import json
+import re
 import time
 from pathlib import Path
 from typing import Any
@@ -77,6 +79,14 @@ def _check_trigger(ssot: dict[str, Any], ip: str) -> tuple[bool, str]:
     ordering = cm.get("ordering")
     if ordering and (isinstance(ordering, (list, dict)) and len(ordering) > 0):
         return True, "cycle_model.ordering is non-empty"
+
+    pipeline = cm.get("pipeline")
+    if pipeline and (isinstance(pipeline, (list, dict)) and len(pipeline) > 0):
+        return True, "cycle_model.pipeline is non-empty"
+
+    backpressure = cm.get("backpressure")
+    if backpressure and (isinstance(backpressure, (list, dict)) and len(backpressure) > 0):
+        return True, "cycle_model.backpressure is non-empty"
 
     arbitration = cm.get("arbitration")
     if arbitration and (isinstance(arbitration, (list, dict)) and len(arbitration) > 0):
@@ -198,9 +208,11 @@ def _extract_outstanding(cm: dict[str, Any]) -> int:
 
 
 def _extract_performance(cm: dict[str, Any]) -> dict[str, Any]:
-    perf = cm.get("performance") if isinstance(cm.get("performance"), dict) else {}
-    depth = perf.get("depth") if isinstance(perf.get("depth"), dict) else {}
-    throughput = perf.get("throughput") if isinstance(perf.get("throughput"), dict) else perf.get("throughput")
+    perf_raw = cm.get("performance")
+    perf = perf_raw if isinstance(perf_raw, dict) else {}
+    depth_raw = perf.get("depth")
+    depth = depth_raw if isinstance(depth_raw, dict) else {}
+    throughput = perf.get("throughput")
     outstanding = perf.get("outstanding")
     if isinstance(outstanding, dict):
         outstanding = {
@@ -219,7 +231,8 @@ def _extract_performance(cm: dict[str, Any]) -> dict[str, Any]:
 
 def _extract_self_check_kinds(ssot: dict[str, Any]) -> list[str]:
     """Derive at generation time: list of transaction id/name strings from function_model."""
-    fm = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
+    fm_raw = ssot.get("function_model")
+    fm = fm_raw if isinstance(fm_raw, dict) else {}
     kinds: list[str] = []
     for idx, tx in enumerate(fm.get("transactions") or []):
         if isinstance(tx, dict):
@@ -244,6 +257,451 @@ def _extract_cl_bins(
         key = _safe_name(tx_kind, "transaction")
         bins[f"latency_{key}"] = f"latency bin for {tx_kind}"
     return bins
+
+
+_PY_BOOL_WORDS = {
+    "False",
+    "None",
+    "True",
+    "and",
+    "else",
+    "false",
+    "if",
+    "in",
+    "is",
+    "not",
+    "or",
+    "true",
+    "when",
+}
+_IDENT_RE = re.compile(r"\b[A-Za-z_][A-Za-z0-9_]*\b")
+_SYMBOLIC_EXPR_RE = re.compile(r"[A-Za-z0-9_\s()[\]+\-*/%<>=!&|~^,]+")
+_OPERATOR_RE = re.compile(r"(==|!=|<=|>=|&&|\|\||[+\-*/%<>&|^~!])")
+_ADJACENT_IDENT_RE = re.compile(
+    r"\b[A-Za-z_][A-Za-z0-9_]*\b\s+\b(?!and\b|or\b|not\b|if\b|else\b|is\b|in\b)[A-Za-z_][A-Za-z0-9_]*\b"
+)
+
+
+def _normalize_expr(expr: Any) -> str:
+    text = str(expr or "").strip()
+    if not text:
+        return ""
+    text = text.replace("&&", " and ").replace("||", " or ")
+    text = re.sub(r"(?<![=!<>])!(?!=)", " not ", text)
+    text = re.sub(r"^(.+?)\s+when\s+(.+?)\s+else\s+(.+)$", r"\1 if \2 else \3", text)
+    return text
+
+
+def _fallback_ident_names(text: str) -> set[str]:
+    if not _OPERATOR_RE.search(text) or not _SYMBOLIC_EXPR_RE.fullmatch(text):
+        return set()
+    if _ADJACENT_IDENT_RE.search(text):
+        return set()
+    return {name for name in _IDENT_RE.findall(text) if name not in _PY_BOOL_WORDS}
+
+
+def _expr_names(expr: Any) -> set[str]:
+    text = _normalize_expr(expr)
+    if not text:
+        return set()
+    try:
+        node = ast.parse(text, mode="eval")
+    except SyntaxError:
+        return _fallback_ident_names(text)
+    names = {item.id for item in ast.walk(node) if isinstance(item, ast.Name)}
+    for item in ast.walk(node):
+        if isinstance(item, ast.Attribute):
+            path = _attribute_path(item)
+            if path:
+                names.add(path)
+    return names
+
+
+def _cycle_expr_names(expr: Any, field: str) -> set[str]:
+    if field != "rule":
+        return _expr_names(expr)
+    text = str(expr or "").strip()
+    if not text:
+        return set()
+    normalized = _normalize_expr(text)
+    try:
+        node = ast.parse(normalized, mode="eval")
+    except SyntaxError:
+        if not re.search(r"(&&|\|\||==|!=|<=|>=|<|>)", text):
+            return set()
+        return _fallback_ident_names(normalized)
+    names = {item.id for item in ast.walk(node) if isinstance(item, ast.Name)}
+    for item in ast.walk(node):
+        if isinstance(item, ast.Attribute):
+            path = _attribute_path(item)
+            if path:
+                names.add(path)
+    return names
+
+
+def _attribute_path(node: ast.AST) -> str:
+    parts: list[str] = []
+    cur: ast.AST | None = node
+    while isinstance(cur, ast.Attribute):
+        parts.append(cur.attr)
+        cur = cur.value
+    if isinstance(cur, ast.Name):
+        parts.append(cur.id)
+        return ".".join(reversed(parts))
+    return ""
+
+
+def _expand_derived_names(
+    direct_names: set[str],
+    derived_exprs: dict[str, Any],
+    helper_names: set[str],
+) -> set[str]:
+    expanded = set(direct_names)
+    pending = list(direct_names)
+    seen: set[str] = set()
+    while pending:
+        name = pending.pop()
+        if name in seen:
+            continue
+        seen.add(name)
+        if name not in derived_exprs:
+            continue
+        for dep in _expr_names(derived_exprs[name]):
+            if dep in helper_names or dep in expanded:
+                continue
+            expanded.add(dep)
+            pending.append(dep)
+    return expanded
+
+
+def _rule_items(value: Any) -> list[dict[str, Any]]:
+    if isinstance(value, dict):
+        items = []
+        for key, val in value.items():
+            if isinstance(val, dict):
+                merged = dict(val)
+                merged.setdefault("name", key)
+                items.append(merged)
+            else:
+                items.append({"name": key, "expr": val})
+        return items
+    return [item for item in value or [] if isinstance(item, dict)]
+
+
+def _rule_name(item: dict[str, Any], fallback: str) -> str:
+    return str(
+        item.get("name")
+        or item.get("signal")
+        or item.get("output")
+        or item.get("port")
+        or item.get("state")
+        or fallback
+    ).strip()
+
+
+def _rule_expr(item: dict[str, Any]) -> Any:
+    return item.get("expr", item.get("expression", item.get("value", "")))
+
+
+def _symbol_names_from_decl(value: Any) -> set[str]:
+    names: set[str] = set()
+    if isinstance(value, str):
+        if value.strip():
+            names.add(value.strip())
+        return names
+    if isinstance(value, list):
+        for item in value:
+            names.update(_symbol_names_from_decl(item))
+        return names
+    if not isinstance(value, dict):
+        return names
+    direct = value.get("name") or value.get("signal") or value.get("field") or value.get("port")
+    if direct is not None and str(direct).strip():
+        names.add(str(direct).strip())
+    for key, item in value.items():
+        if key in {"inputs", "input_symbols", "sample_context", "sample_inputs", "symbols", "derived"}:
+            names.update(_symbol_names_from_decl(item))
+        elif isinstance(item, dict) and any(k in item for k in ("width", "bits", "expr", "type", "default")):
+            names.add(str(key))
+        elif isinstance(item, list):
+            names.update(_symbol_names_from_decl(item))
+    return names
+
+
+def _map_symbol_names(value: Any) -> set[str]:
+    names: set[str] = set()
+    if not isinstance(value, dict):
+        return names
+    for key, item in value.items():
+        key_text = str(key).strip()
+        if key_text:
+            names.add(key_text)
+        if isinstance(item, str) and item.strip():
+            names.add(item.strip())
+        else:
+            names.update(_symbol_names_from_decl(item))
+    return names
+
+
+def _input_symbol_names(value: Any) -> set[str]:
+    if value is None:
+        return set()
+    if isinstance(value, list):
+        names: set[str] = set()
+        for item in value:
+            names.update(_input_symbol_names(item))
+        return names
+    if isinstance(value, dict):
+        return _symbol_names_from_decl(value)
+    text = str(value).strip()
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*", text):
+        return {text}
+    return set()
+
+
+def _declared_state_names(fm: dict[str, Any]) -> set[str]:
+    names: set[str] = set()
+    for idx, item in enumerate(fm.get("state_variables") or []):
+        if isinstance(item, dict):
+            names.add(str(item.get("name") or f"state_{idx}"))
+    names.update({"busy", "error"})
+    return {name for name in names if name}
+
+
+def _declared_register_names(ssot: dict[str, Any]) -> set[str]:
+    regs_raw = ssot.get("registers")
+    regs = regs_raw if isinstance(regs_raw, dict) else {}
+    names: set[str] = set()
+    if regs.get("register_list"):
+        names.add("registers")
+    for idx, item in enumerate(regs.get("register_list") or []):
+        if not isinstance(item, dict):
+            continue
+        reg_name = str(item.get("name") or f"REG{idx}")
+        names.add(reg_name)
+        names.add(f"registers.{reg_name}")
+        names.add(f"{reg_name}.data")
+        names.add(f"registers.{reg_name}.data")
+        for field in item.get("fields") or []:
+            if isinstance(field, dict) and field.get("name"):
+                field_name = str(field["name"])
+                names.add(field_name)
+                names.add(f"{reg_name}.{field_name}")
+                names.add(f"registers.{reg_name}.{field_name}")
+    return {name for name in names if name}
+
+
+def _declared_io_names(ssot: dict[str, Any]) -> set[str]:
+    names: set[str] = set()
+    for key in ("io_list", "interfaces", "ports", "signals"):
+        names.update(_symbol_names_from_decl(ssot.get(key)))
+    top_raw = ssot.get("top_module")
+    top = top_raw if isinstance(top_raw, dict) else {}
+    names.update(_symbol_names_from_decl(top.get("ports")))
+    names.update(_symbol_names_from_decl(top.get("interfaces")))
+    return {name for name in names if name}
+
+
+_CYCLE_SECTIONS = (
+    "handshake_rules",
+    "ordering",
+    "pipeline",
+    "backpressure",
+    "arbitration",
+)
+_CYCLE_EXPR_KEYS = {
+    "condition",
+    "expr",
+    "expression",
+    "hold_when",
+    "predicate",
+    "ready_when",
+    "rule",
+    "sample_condition",
+    "signal",
+    "valid_when",
+}
+
+
+def _walk_cycle_rule_exprs(section: str, value: Any, name_hint: str) -> list[dict[str, Any]]:
+    rules: list[dict[str, Any]] = []
+    if isinstance(value, list):
+        for idx, item in enumerate(value):
+            rules.extend(_walk_cycle_rule_exprs(section, item, f"{name_hint}_{idx}"))
+        return rules
+    if not isinstance(value, dict):
+        return rules
+    item_name = str(value.get("name") or value.get("id") or value.get("signal") or name_hint)
+    for key, item in value.items():
+        if key in _CYCLE_EXPR_KEYS:
+            rules.extend(_cycle_expr_entries(section, item, item_name, key))
+            continue
+        if isinstance(item, (dict, list)):
+            child_name = item_name if key in {"rules", "items", "entries"} else f"{item_name}_{key}"
+            rules.extend(_walk_cycle_rule_exprs(section, item, child_name))
+    return rules
+
+
+def _cycle_expr_entries(section: str, value: Any, name: str, field: str) -> list[dict[str, Any]]:
+    if value in (None, ""):
+        return []
+    if isinstance(value, list):
+        rules: list[dict[str, Any]] = []
+        for idx, item in enumerate(value):
+            rules.extend(_cycle_expr_entries(section, item, f"{name}_{idx}", field))
+        return rules
+    if isinstance(value, dict):
+        rules = []
+        for key, item in value.items():
+            child_name = f"{name}_{key}"
+            child_field = str(key)
+            if isinstance(item, (dict, list)):
+                rules.extend(_cycle_expr_entries(section, item, child_name, child_field))
+            elif item not in (None, ""):
+                rules.append({
+                    "section": section,
+                    "name": child_name,
+                    "field": child_field,
+                    "expr": item,
+                })
+        return rules
+    return [{
+        "section": section,
+        "name": name,
+        "field": field,
+        "expr": value,
+    }]
+
+
+def _cycle_rule_items(cm: dict[str, Any]) -> list[dict[str, Any]]:
+    rules: list[dict[str, Any]] = []
+    for section in _CYCLE_SECTIONS:
+        for idx, item in enumerate(_as_list(cm.get(section))):
+            rules.extend(_walk_cycle_rule_exprs(section, item, f"{section}_{idx}"))
+    return rules
+
+
+def _build_symbol_contract(ssot: dict[str, Any]) -> dict[str, Any]:
+    fm_raw = ssot.get("function_model")
+    fm = fm_raw if isinstance(fm_raw, dict) else {}
+    cm_raw = ssot.get("cycle_model")
+    cm = cm_raw if isinstance(cm_raw, dict) else {}
+    helper_names = {
+        "abs",
+        "all",
+        "any",
+        "bin_to_gray",
+        "clog2",
+        "false",
+        "gray_to_bin",
+        "len",
+        "max",
+        "min",
+        "parity",
+        "popcount",
+        "range",
+        "read_mux",
+        "reduction_or",
+        "sum",
+        "true",
+    }
+    global_declared = set(helper_names)
+    global_declared.update(str(name) for name in (ssot.get("parameters") or {}) if isinstance(name, str))
+    global_declared.update(_symbol_names_from_decl(ssot.get("parameters")))
+    global_declared.update(_declared_state_names(fm))
+    global_declared.update(_declared_register_names(ssot))
+    global_declared.update(_declared_io_names(ssot))
+    rtl_contract_raw = ssot.get("rtl_contract")
+    rtl_contract = rtl_contract_raw if isinstance(rtl_contract_raw, dict) else {}
+    global_declared.update(_map_symbol_names(rtl_contract.get("input_map")))
+    global_declared.update(_map_symbol_names(rtl_contract.get("output_map")))
+    global_declared.update(_symbol_names_from_decl(fm.get("symbol_table")))
+    global_declared.update(_symbol_names_from_decl(fm.get("inputs")))
+    global_declared.update(_symbol_names_from_decl(fm.get("input_symbols")))
+    global_declared.update(_symbol_names_from_decl(fm.get("sample_context")))
+    global_declared.update(_symbol_names_from_decl(fm.get("sample_inputs")))
+
+    derived_items = _rule_items(fm.get("derived_signals"))
+    derived_exprs: dict[str, Any] = {}
+    derived_names = set()
+    for idx, item in enumerate(derived_items):
+        name = _rule_name(item, f"derived_{idx}")
+        if name:
+            derived_names.add(name)
+            derived_exprs[name] = _rule_expr(item)
+    global_declared.update(derived_names)
+
+    transactions: list[dict[str, Any]] = []
+    cycle_rules: list[dict[str, Any]] = []
+    unknown_symbols: set[str] = set()
+    for idx, tx in enumerate(fm.get("transactions") or []):
+        if not isinstance(tx, dict):
+            continue
+        required = {str(name).strip() for name in tx.get("required_fields") or [] if str(name).strip()}
+        required.update(_input_symbol_names(tx.get("inputs")))
+        output_rules = _rule_items(tx.get("output_rules"))
+        state_updates = _rule_items(tx.get("state_updates"))
+        output_names = {
+            name
+            for rule_idx, item in enumerate(output_rules)
+            if (name := _rule_name(item, f"output_{rule_idx}"))
+        }
+        update_names = {
+            name
+            for rule_idx, item in enumerate(state_updates)
+            if (name := _rule_name(item, f"state_{rule_idx}"))
+        }
+        declared = set(global_declared) | required | output_names | update_names
+        direct_names = set(_expr_names(tx.get("sample_condition", "")))
+        direct_names.update(_expr_names(tx.get("preconditions_expr", "")))
+        direct_names.update(_expr_names(tx.get("condition", "")))
+        for item in output_rules + state_updates:
+            direct_names.update(_expr_names(_rule_expr(item)))
+        direct_names = _expand_derived_names(direct_names, derived_exprs, helper_names)
+        used = sorted(name for name in direct_names if name not in helper_names)
+        missing = sorted(name for name in direct_names - declared if name not in helper_names)
+        unknown_symbols.update(missing)
+        transactions.append({
+            "id": str(tx.get("id") or tx.get("name") or f"transaction_{idx}"),
+            "declared_symbols": sorted(name for name in declared if name not in helper_names),
+            "used_symbols": used,
+            "missing_symbols": missing,
+        })
+
+    for rule in _cycle_rule_items(cm):
+        direct_names = _cycle_expr_names(rule["expr"], str(rule["field"]))
+        direct_names = _expand_derived_names(direct_names, derived_exprs, helper_names)
+        used = sorted(name for name in direct_names if name not in helper_names)
+        missing = sorted(name for name in direct_names - global_declared if name not in helper_names)
+        unknown_symbols.update(missing)
+        cycle_rules.append({
+            "section": rule["section"],
+            "name": rule["name"],
+            "field": rule["field"],
+            "used_symbols": used,
+            "missing_symbols": missing,
+        })
+
+    status = "pass" if not unknown_symbols else "blocked"
+    return {
+        "schema_version": 1,
+        "status": status,
+        "failure_owner": "" if status == "pass" else "fl-model-gen",
+        "stage": "cl-model",
+        "reason": "" if status == "pass" else "undeclared FL/CL rule symbols",
+        "unknown_symbols": sorted(unknown_symbols),
+        "required_rerun": [] if status == "pass" else [
+            "cl-model",
+            "equivalence",
+            "rtl",
+            "lint",
+            "tb",
+            "sim",
+            "contract-check",
+        ],
+        "transactions": transactions,
+        "cycle_rules": cycle_rules,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -641,6 +1099,7 @@ def main() -> int:
     performance_targets = _extract_performance(cm)
     self_check_kinds = _extract_self_check_kinds(ssot)
     cl_bins = _extract_cl_bins(handshake_rules, ordering_rules, latency, self_check_kinds)
+    symbol_contract = _build_symbol_contract(ssot)
 
     # SSOT snapshot baked into generated file.  The snapshot is for trace/debug
     # context only; sanitize it so CL cannot appear to own FL rule evaluation.
@@ -677,7 +1136,7 @@ def main() -> int:
 
     # 7. Run self-check via importlib
     check = _run_generated_self_check(model_path)
-    passed = bool(check.get("passed"))
+    passed = bool(check.get("passed")) and symbol_contract.get("status") == "pass"
 
     # 8. Write cl_model_check.json
     report: dict[str, Any] = {
@@ -689,6 +1148,7 @@ def main() -> int:
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "passed": passed,
         "self_check": check,
+        "symbol_contract": symbol_contract,
         "performance_targets": performance_targets,
         "decomposition_units": len(ssot.get("sub_modules") or []) or 1,
         "fcov_bins": len(cl_bins),
@@ -700,6 +1160,11 @@ def main() -> int:
     print(f"[emit_cycle_model] CL self-check passed={passed}")
     if not passed and check.get("error"):
         print(f"[emit_cycle_model] error: {check['error']}")
+    if symbol_contract.get("status") != "pass":
+        print(
+            "[emit_cycle_model] symbol contract blocked: "
+            + ", ".join(symbol_contract.get("unknown_symbols") or [])
+        )
 
     # 10. Exit
     return 0 if passed else 1

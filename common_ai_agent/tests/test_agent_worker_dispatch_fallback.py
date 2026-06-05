@@ -382,6 +382,9 @@ def test_dispatch_workflow_direct_fallback_routes_cl_model_to_fl_worker(monkeypa
     assert calls[0]["workflow"] == "fl-model-gen"
     assert "/ssot-cycle-model new_axi" in calls[0]["task"]
     assert "/ssot-dual-fcov new_axi" in calls[0]["task"]
+    assert "symbol_contract" in calls[0]["task"]
+    assert "derived_signals" in calls[0]["task"]
+    assert "io_list" in calls[0]["task"]
     assert "Generate the cycle-level model." in calls[0]["task"]
 
 

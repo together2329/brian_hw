@@ -3018,7 +3018,14 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
         ),
         "cl-model": (
             f"run /ssot-cycle-model {ip} and /ssot-dual-fcov {ip}; generate the SSOT-derived "
-            "cycle model when cycle_model requires executable CL, and split FL/CL coverage bins"
+            "cycle model when cycle_model requires executable CL, and split FL/CL coverage bins. "
+            "Treat function_model symbol names as a contract: every FL/CL rule symbol must be "
+            "declared in required_fields, function_model.derived_signals, symbol_table, input_symbols, "
+            "sample_context, state_variables, registers, or io_list before use. Do not invent "
+            "undeclared symbols in cycle_model rules. "
+            "If model/cl_model_check.json reports symbol_contract.status=blocked, report "
+            "failure_owner=fl-model-gen, stage=cl-model, and its required_rerun list instead of "
+            "claiming CL is complete."
         ),
         "equivalence": (
             f"run /ssot-equiv-goals {ip}; derive SSOT-traced FL-vs-RTL goals for "
