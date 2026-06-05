@@ -6094,10 +6094,16 @@ def register_jobs_routes(
             except Exception:
                 pass
 
-        _GLYPHS: dict[str, str] = {
-            "idle": "◯", "ready": "◯", "running": "▶", "passed": "✓",
-            "failed": "!", "blocked": "⏸", "stale": "⊘", "locked": "⊘",
-        }
+        if config.OUTPUT_ASCII_ONLY:
+            _GLYPHS: dict[str, str] = {
+                "idle": "-", "ready": "-", "running": ">", "passed": "OK",
+                "failed": "FAIL", "blocked": "BLK", "stale": "STA", "locked": "LCK",
+            }
+        else:
+            _GLYPHS: dict[str, str] = {
+                "idle": "◯", "ready": "◯", "running": "▶", "passed": "✓",
+                "failed": "!", "blocked": "⏸", "stale": "⊘", "locked": "⊘",
+            }
 
         def _stage_top_secondary(stage_id: str, ip_dir: Path, ip: str) -> tuple[str, str]:
             if stage_id in ("rtl", "rtl-gen"):
@@ -8519,8 +8525,8 @@ def register_jobs_routes(
             if since > 0:
                 start = max(start, int(since))
             ansi_re = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
-            action_re = re.compile(r"^[▶⏺]\s*([A-Za-z_][\w.-]*)")
-            thought_re = re.compile(r"^(?:THOUGHT|REASONING)(?:\s|\(|:|$)|^───|^✽|^⚡")
+            action_re = re.compile(r"^(?:[▶⏺]|\*|->)\s*([A-Za-z_][\w.-]*)")
+            thought_re = re.compile(r"^(?:THOUGHT|REASONING)(?:\s|\(|:|$)|^───|^✽|^⚡|^TASK:")
             obs_prefixes = ("⎿", "└", "├", "│")
             normalized: list[dict[str, Any]] = []
             current: dict[str, Any] | None = None

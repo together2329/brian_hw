@@ -2026,6 +2026,8 @@ TODO_TEXT_ONLY_LIMIT = int(os.getenv("TODO_TEXT_ONLY_LIMIT", "50"))
 EXECUTION_NO_ACTION_GUARD = os.getenv("EXECUTION_NO_ACTION_GUARD", "true").lower() in ("true", "1", "yes")
 EXECUTION_NO_ACTION_RETRY_LIMIT = int(os.getenv("EXECUTION_NO_ACTION_RETRY_LIMIT", "3"))
 EXECUTION_NO_ACTION_COMPACT_CHARS = int(os.getenv("EXECUTION_NO_ACTION_COMPACT_CHARS", "4000"))
+# Force ASCII-only logs/status indicators (helps Windows terminals and legacy consoles).
+OUTPUT_ASCII_ONLY = os.getenv("ATLAS_ASCII_OUTPUT", "false").lower() in ("1", "true", "yes", "on")
 PLAN_TODO_WRITE_MAX = int(os.getenv("PLAN_TODO_WRITE_MAX", "10"))
 MAX_REJECTION_LIMIT = int(os.getenv("MAX_REJECTION_LIMIT", "50"))
 

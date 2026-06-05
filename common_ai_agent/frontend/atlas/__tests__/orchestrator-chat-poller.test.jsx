@@ -71,6 +71,20 @@ describe('orchestrator chat poll mapping', () => {
       args: '(ip="new_axi", stage="ssot")',
       createdAt: 1716400001000,
     });
+    expect(feedEntryFromChatMessage({
+      id: 'm2ascii',
+      created_at: 1716400002,
+      payload: {
+        role: 'tool',
+        content: '* read_artifact(ip="new_axi", stage="ssot")',
+      },
+    })).toEqual({
+      kind: 'action',
+      text: '* read_artifact(ip="new_axi", stage="ssot")',
+      tool: 'read_artifact',
+      args: '(ip="new_axi", stage="ssot")',
+      createdAt: 1716400002000,
+    });
   });
 
   it('parses raw orchestrator call lines without translated status mapping', () => {
@@ -78,6 +92,11 @@ describe('orchestrator chat poll mapping', () => {
       tool: 'dispatch_workflow',
       args: '(workflow="pnr", ip="new_axi")',
       text: '⏺ dispatch_workflow(workflow="pnr", ip="new_axi")',
+    });
+    expect(toolEntryFromDisplayLine('* read_artifact(ip="new_axi", stage="ssot")')).toEqual({
+      tool: 'read_artifact',
+      args: '(ip="new_axi", stage="ssot")',
+      text: '* read_artifact(ip="new_axi", stage="ssot")',
     });
     expect(toolEntryFromDisplayLine('read_artifact(ip="new_axi", stage="sta")')).toEqual({
       tool: 'read_artifact',
@@ -198,6 +217,44 @@ describe('orchestrator chat poll mapping', () => {
       role: 'stdout',
       content: '⏳ streaming… 110s? idle (limit 1200s?)',
     }, { workflow: 'ssot-gen' })).toBeNull();
+
+    expect(feedEntryFromChatMessage({
+      id: 'm-runtime-thought-running',
+      payload: {
+        role: 'thought',
+        content: 'running...',
+      },
+    })).toBeNull();
+
+    expect(feedEntryFromChatMessage({
+      id: 'm-runtime-thought-writing',
+      payload: {
+        role: 'thought',
+        content: 'writing...',
+      },
+    })).toBeNull();
+
+    expect(feedEntryFromChatMessage({
+      id: 'm-runtime-thought-writinng',
+      payload: {
+        role: 'thought',
+        content: 'writinng...',
+      },
+    })).toBeNull();
+
+    expect(feedEntryFromWorkerLogEntry({
+      type: 'log',
+      role: 'stdout',
+      content: '      running...',
+      timestamp: 1716400010,
+    }, { workflow: 'ssot-gen' })).toBeNull();
+
+    expect(feedEntryFromWorkerLogEntry({
+      type: 'log',
+      role: 'stdout',
+      content: '     writinng...',
+      timestamp: 1716400011,
+    }, { workflow: 'ssot-gen' })).toBeNull();
   });
 
   it('cleans terminal title control text without losing worker todo status', () => {
@@ -210,15 +267,31 @@ describe('orchestrator chat poll mapping', () => {
       { kind: 'action', text: '▶ Todo (6 tasks)', worker: { workflow: 'ssot-gen' } },
       { kind: 'action', text: '▶ ssot-gen running' },
       { kind: 'obs', text: '☒]0;[1/6] ▶ in_progress | Check for rtl_blocked.json and existing SSOT state☒' },
+      { kind: 'obs', text: '☒]0;[1/6] - in_progress | Update stage contracts from SSOT constraints☒' },
+      { kind: 'obs', text: '☒]0;[2/6] > completed | Emit readback evidence report☒' },
       { kind: 'thought', text: 'THOUGHT (2)\nChecking existing artifacts' },
     ], 'ssot-gen');
 
-    expect(todos).toEqual([expect.objectContaining({
-      id: expect.stringContaining('worker-ssot-gen-'),
-      state: 'in_progress',
-      section: 'worker-local',
-      title: 'Check for rtl_blocked.json and existing SSOT state',
-    })]);
+    expect(todos).toEqual([
+      expect.objectContaining({
+        id: expect.stringContaining('worker-ssot-gen-'),
+        state: 'in_progress',
+        section: 'worker-local',
+        title: 'Check for rtl_blocked.json and existing SSOT state',
+      }),
+      expect.objectContaining({
+        id: expect.stringContaining('worker-ssot-gen-'),
+        state: 'in_progress',
+        section: 'worker-local',
+        title: 'Update stage contracts from SSOT constraints',
+      }),
+      expect.objectContaining({
+        id: expect.stringContaining('worker-ssot-gen-'),
+        state: 'completed',
+        section: 'worker-local',
+        title: 'Emit readback evidence report',
+      }),
+    ]);
   });
 
   it('maps raw IPC stdout tool prefixes into action and observation entries', () => {
