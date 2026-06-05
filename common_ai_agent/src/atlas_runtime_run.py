@@ -62,6 +62,24 @@ def _admin_subprocess_kwargs() -> dict[str, Any]:
     return kwargs
 
 
+def _atlas_uvicorn_exit_signal_decision(sig: int, should_exit: bool) -> tuple[bool, bool, bool]:
+    force_exit = should_exit and sig == signal.SIGINT
+    should_capture = sig != signal.SIGINT
+    return True, force_exit, should_capture
+
+
+def _handle_atlas_uvicorn_exit_signal(server: Any, sig: int) -> None:
+    should_exit, force_exit, should_capture = _atlas_uvicorn_exit_signal_decision(
+        sig,
+        bool(getattr(server, "should_exit", False)),
+    )
+    if should_capture:
+        getattr(server, "_captured_signals").append(sig)
+    server.should_exit = should_exit
+    if force_exit:
+        server.force_exit = True
+
+
 def _hydrate_atlas_ui_globals() -> None:
     """One-time backport of the symbols Phase 4 extracted-but-didn't-import.
 
@@ -964,7 +982,19 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 "(set ATLAS_WORKER_WARM_POOL=0 to disable)"
             )
 
-    uvicorn.run(app, host=host, port=port, log_level="warning", loop="asyncio", http="h11")
+    class _AtlasUvicornServer(uvicorn.Server):
+        def handle_exit(self, sig, frame) -> None:
+            _handle_atlas_uvicorn_exit_signal(self, sig)
+
+    uvicorn_config = uvicorn.Config(
+        app,
+        host=host,
+        port=port,
+        log_level="warning",
+        loop="asyncio",
+        http="h11",
+    )
+    _AtlasUvicornServer(uvicorn_config).run()
 
 def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
     """Launch the standalone admin server next to the main Atlas UI."""
