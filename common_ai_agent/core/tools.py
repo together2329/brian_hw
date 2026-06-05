@@ -6987,6 +6987,17 @@ def _direct_needs_fl_authoring_instruction(workflow=None, stages=None):
     )
 
 
+def _direct_needs_cl_symbol_contract_instruction(workflow=None, stages=None):
+    names = _normalize_dispatch_stages(stages)
+    if workflow:
+        names.insert(0, str(workflow).strip())
+    return any(
+        str(name or "").strip().lower()
+        in {"cl", "cl-model", "cl-model-gen", "cycle-model", "ssot-cycle-model", "model-equivalence"}
+        for name in names
+    )
+
+
 def _normalize_dispatch_stages(stages):
     if not stages:
         return []
@@ -7083,6 +7094,18 @@ def _build_direct_dispatch_task(target, scope, prompt, ip, payload, schedule, ru
         )
         if fl_instruction not in task:
             task = f"{fl_instruction}\n\n{task}"
+
+    if ip and target == "fl-model-gen" and _direct_needs_cl_symbol_contract_instruction(workflow=workflow, stages=stages):
+        cl_instruction = (
+            f"CL symbol contract rule for {ip}: every FL/CL rule symbol must be declared in "
+            "required_fields, function_model.derived_signals, symbol_table, input_symbols, "
+            "sample_context, state_variables, registers, or io_list before use. Do not invent "
+            "undeclared cycle_model symbols. If "
+            "model/cl_model_check.json reports symbol_contract.status=blocked, report "
+            "failure_owner=fl-model-gen, stage=cl-model, and required_rerun instead of claiming DONE."
+        )
+        if cl_instruction not in task:
+            task = f"{cl_instruction}\n\n{task}"
 
     commands = _direct_stage_commands(workflow=workflow, stages=stages)
     if commands and ip:

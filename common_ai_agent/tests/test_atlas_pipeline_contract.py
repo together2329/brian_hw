@@ -61,6 +61,9 @@ def test_fl_model_workflow_prompt_is_stage_specific() -> None:
     assert "FunctionalModel.apply(txn)" in fl_prompt
     assert "/ssot-cycle-model demo_ip" in cl_prompt
     assert "/ssot-dual-fcov demo_ip" in cl_prompt
+    assert "symbol_contract" in cl_prompt
+    assert "derived_signals" in cl_prompt
+    assert "io_list" in cl_prompt
     assert "/ssot-equiv-goals demo_ip" in eq_prompt
     assert len({fl_prompt, cl_prompt, eq_prompt}) == 3
 
