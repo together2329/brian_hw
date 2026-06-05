@@ -42,6 +42,17 @@ from core.atlas_exec_policy import (
 from core.atlas_context import AtlasContext, default_atlas_root
 
 
+def _subprocess_env_with_pythonpath() -> dict[str, str]:
+    env = os.environ.copy()
+    paths = [str(path) for path in sys.path if path]
+    existing = env.get("PYTHONPATH", "").strip()
+    if existing:
+        paths.append(existing)
+    if paths:
+        env["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(paths))
+    return env
+
+
 def _hydrate_atlas_ui_globals() -> None:
     """One-time backport of the symbols Phase 4 extracted-but-didn't-import.
 
@@ -973,7 +984,7 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
             str(_source_root()),
         ],
         cwd=str(_source_root()),
-        env=os.environ.copy(),
+        env=_subprocess_env_with_pythonpath(),
     )
     atexit.register(lambda p=proc: (p.terminate() if p.poll() is None else None))
     print(

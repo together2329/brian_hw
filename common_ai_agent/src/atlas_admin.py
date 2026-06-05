@@ -24,6 +24,7 @@ import argparse
 import errno
 import os
 import re
+import site
 import socket
 import subprocess
 import sys
@@ -40,6 +41,53 @@ _ROOT = _SRC.parent
 for _p in (str(_ROOT), str(_SRC)):
     if _p not in sys.path:
         sys.path.insert(0, _p)
+
+
+def _account_home() -> Path | None:
+    raw_home = os.environ.get("USERPROFILE", "").strip()
+    if raw_home:
+        return Path(raw_home).expanduser()
+    try:
+        import pwd
+    except ImportError:
+        raw_home = os.environ.get("HOME", "").strip()
+        return Path(raw_home).expanduser() if raw_home else None
+    try:
+        raw = pwd.getpwuid(os.getuid()).pw_dir
+    except KeyError:
+        return None
+    return Path(raw).expanduser()
+
+
+def _account_user_site_paths(home: Path) -> list[Path]:
+    version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    windows_version = f"Python{sys.version_info.major}{sys.version_info.minor}"
+    paths = [
+        home / "AppData" / "Roaming" / "Python" / windows_version / "site-packages",
+        home / "AppData" / "Local" / "Python" / windows_version / "site-packages",
+        home / "Library" / "Python" / version / "lib" / "python" / "site-packages",
+        home / ".local" / "lib" / f"python{version}" / "site-packages",
+    ]
+    for env_name in ("APPDATA", "LOCALAPPDATA"):
+        raw = os.environ.get(env_name, "").strip()
+        if raw:
+            paths.append(Path(raw) / "Python" / windows_version / "site-packages")
+    return [
+        path for path in paths
+        if path.is_dir()
+    ]
+
+
+def _bootstrap_dependency_paths() -> None:
+    home = _account_home()
+    if home is None:
+        return
+    for path in _account_user_site_paths(home):
+        if str(path) not in sys.path:
+            site.addsitedir(str(path))
+
+
+_bootstrap_dependency_paths()
 
 
 def _local_ipv4_addresses() -> list[str]:

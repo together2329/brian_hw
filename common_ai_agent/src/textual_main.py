@@ -36,6 +36,18 @@ _vendor_dir = os.path.join(_project_root, "vendor")
 if _vendor_dir not in sys.path:
     sys.path.insert(0, _vendor_dir)
 
+
+def _subprocess_env_with_pythonpath():
+    env = os.environ.copy()
+    paths = [str(path) for path in sys.path if path]
+    existing = env.get("PYTHONPATH", "").strip()
+    if existing:
+        paths.append(existing)
+    if paths:
+        env["PYTHONPATH"] = os.pathsep.join(dict.fromkeys(paths))
+    return env
+
+
 # ── Python 3.7 compatibility: backport typing helpers via typing_extensions ──
 if sys.version_info < (3, 8):
     import typing
@@ -380,6 +392,7 @@ if __name__ == "__main__":
                  "--port", _admin_port, "--host", _admin_host],
                 stdout=None, stderr=None,
                 cwd=_os_admin.path.dirname(_os_admin.path.dirname(_admin_script)),
+                env=_subprocess_env_with_pythonpath(),
             )
             _atexit.register(lambda p=_admin_proc: (p.terminate() if p.poll() is None else None))
             print(f"\n  [admin] launched standalone admin server → http://{_admin_host}:{_admin_port}/admin", flush=True)
