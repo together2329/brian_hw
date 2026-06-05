@@ -610,13 +610,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       setDiffText('');
       setDiffSource('pending');
       setBottomTab('pending');
-      setPane(current => current ? {
-        ...current,
-        pending: current.pending.filter(row => (row.change || 'default') !== submittedChange),
-        pendingChanges: submittedChange === 'default'
-          ? current.pendingChanges
-          : (current.pendingChanges || []).filter(change => change.id !== submittedChange),
-      } : current);
+      // Show live p4 state like p4v: post()'s `finally` always re-fetches the pane
+      // via loadPane(), so don't optimistically mutate pending here. The old
+      // client-side guess (esp. the default-changelist branch, which left
+      // pendingChanges untouched) could contradict/mask the live result, so a
+      // just-submitted changelist kept showing in the pending list.
       if (submittedChange !== 'default') setSelectedChange('default');
     });
   };
