@@ -9,6 +9,7 @@ or handoff logic.
 from __future__ import annotations
 
 import json
+import importlib
 import os
 import re
 import subprocess
@@ -170,17 +171,17 @@ def _annotate_freshness(entry: Dict[str, Any], path: Path, ip_dir: Path) -> None
 # ----------------------------------------------------------------------
 
 
-def _read_pipeline_state_bridge() -> Optional[Callable]:
+def _read_pipeline_state_bridge() -> Optional[Callable[..., Any]]:
     try:
-        from core import tools as core_tools  # type: ignore
+        core_tools = importlib.import_module("core.tools")
     except Exception:
         return None
     return getattr(core_tools, "_read_pipeline_state_callback", None)
 
 
-def _dispatch_workflow_bridge() -> Optional[Callable]:
+def _dispatch_workflow_bridge() -> Optional[Callable[..., Any]]:
     try:
-        from core import tools as core_tools  # type: ignore
+        core_tools = importlib.import_module("core.tools")
     except Exception:
         return None
     return getattr(core_tools, "_dispatch_workflow_callback", None)
@@ -192,9 +193,7 @@ def _atlas_api_jobs_module() -> Optional[ModuleType]:
     if isinstance(module, ModuleType):
         return module
     try:
-        import atlas_api_jobs  # type: ignore
-
-        return atlas_api_jobs
+        return importlib.import_module("atlas_api_jobs")
     except Exception:
         pass
     try:
@@ -262,7 +261,7 @@ def dispatch_workflow(
     *,
     workflow: str = "",
     ip: str,
-    stages: Optional[list] = None,
+    stages: Optional[list[Any]] = None,
     payload: Optional[Dict[str, Any]] = None,
     prompt: str = "",
     schedule: str = "auto",
@@ -289,11 +288,10 @@ def dispatch_workflow(
     bridge = _dispatch_workflow_bridge()
     if bridge is None:
         try:
-            from core import tools as core_tools  # type: ignore
-
+            core_tools = importlib.import_module("core.tools")
             direct = getattr(core_tools, "_dispatch_workflow_direct_fallback", None)
             if callable(direct):
-                result, skip_reason = direct(
+                direct_result = direct(
                     workflow=workflow,
                     ip=ip,
                     stages=stages,
@@ -305,6 +303,13 @@ def dispatch_workflow(
                     run_mode=run_mode,
                     exec_mode=exec_mode,
                 )
+                if not isinstance(direct_result, tuple) or len(direct_result) != 2:
+                    return (
+                        {"ok": False, "error": "dispatch_workflow direct fallback returned invalid result"},
+                        "bridge unavailable; direct fallback returned invalid result",
+                    )
+                result = direct_result[0]
+                skip_reason = str(direct_result[1] or "")
                 if isinstance(result, dict):
                     summary_payload = _dispatch_summary_payload(result)
                     summary_payload.update({
@@ -366,6 +371,24 @@ def wait_job(job_id: str) -> ToolResult:
     again on the next iteration if the job is still running, so a long-running
     worker never holds an orchestrator thread.
     """
+    bridge_dir = os.environ.get("ATLAS_ORCHESTRATOR_TOOL_BRIDGE_DIR", "").strip()
+    if bridge_dir:
+        try:
+            from src.orchestrator.ipc_tool_bridge import call_bridge
+
+            response = call_bridge(
+                bridge_dir,
+                tool="wait_job",
+                kwargs={"job_id": job_id},
+                timeout_s=60.0,
+            )
+            result = response.get("result") if isinstance(response, dict) else None
+            summary = str(response.get("summary") or "") if isinstance(response, dict) else ""
+            if isinstance(result, dict):
+                return result, summary or _safe_json(result)
+            return {"ok": False, "error": "invalid wait_job bridge response"}, "bridge response invalid"
+        except Exception as exc:
+            return {"ok": False, "error": f"wait_job bridge failed: {exc}"}, f"bridge failed: {exc}"
     registry = _jobs_registry()
     if registry is None:
         return (
@@ -872,14 +895,16 @@ def run_command(
         )
         return result, _truncate(summary, cap)
     except subprocess.TimeoutExpired as exc:
+        timeout_stdout = exc.stdout.decode("utf-8", "replace") if isinstance(exc.stdout, bytes) else str(exc.stdout or "")
+        timeout_stderr = exc.stderr.decode("utf-8", "replace") if isinstance(exc.stderr, bytes) else str(exc.stderr or "")
         result = {
             "ok": False,
             "ip": ip,
             "cwd": cwd,
             "command": cmd,
             "error": f"timeout after {timeout_s}s",
-            "stdout": _truncate(exc.stdout or "", cap // 2),
-            "stderr": _truncate(exc.stderr or "", cap // 2),
+            "stdout": _truncate(timeout_stdout, cap // 2),
+            "stderr": _truncate(timeout_stderr, cap // 2),
         }
         return result, _truncate(
             f"timeout after {timeout_s}s\n--- stdout ---\n{result['stdout']}\n--- stderr ---\n{result['stderr']}",
@@ -998,7 +1023,7 @@ def read_artifact(ip: str, stage: str, project_root: Optional[Path] = None) -> T
             preview["error"] = entry.get("error")
         return preview
 
-    artifacts: list = []
+    artifacts: list[Dict[str, Any]] = []
     for rel in relatives:
         path = ip_dir / rel.format(ip=ip)
         entry: Dict[str, Any] = {"rel": rel, "path": str(path), "exists": path.exists()}
@@ -1136,9 +1161,9 @@ def mark_downstream_stale(
             {"ok": False, "error": "pipeline stage graph unavailable"},
             "graph missing",
         )
-    downstream: list = []
-    seen: set = set()
-    frontier = [
+    downstream: list[str] = []
+    seen: set[str] = set()
+    frontier: list[str] = [
         s for s, parents in deps.items() if from_stage in parents
     ]
     while frontier:
@@ -1388,7 +1413,10 @@ def import_document(
 def web_search(query: str, limit: int = 5) -> ToolResult:
     """Search the web via cursor-cli and return results as text."""
     try:
-        from core.tools_web import web_search as _impl  # type: ignore
+        tools_web = importlib.import_module("core.tools_web")
+        _impl = getattr(tools_web, "web_search", None)
+        if not callable(_impl):
+            return ({"ok": False, "error": "web_search implementation unavailable"}, "web_search unavailable")
         result_text = _impl(query=query, limit=int(limit), lang="en")
         return (
             {"ok": True, "results": result_text},
@@ -1401,7 +1429,10 @@ def web_search(query: str, limit: int = 5) -> ToolResult:
 def web_fetch(url: str, formats: str = "markdown") -> ToolResult:
     """Fetch a URL and return its content as markdown."""
     try:
-        from core.tools_web import web_fetch as _impl  # type: ignore
+        tools_web = importlib.import_module("core.tools_web")
+        _impl = getattr(tools_web, "web_fetch", None)
+        if not callable(_impl):
+            return ({"ok": False, "error": "web_fetch implementation unavailable"}, "web_fetch unavailable")
         result_text = _impl(url=url, formats=formats)
         return (
             {"ok": True, "content": result_text},

@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
+import pytest
 from fastapi.testclient import TestClient
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -89,6 +91,86 @@ def test_dispatch_job_routes_ipc_without_http_urlopen(monkeypatch, tmp_path: Pat
     })
 
     assert called == ["job-ipc"]
+
+
+def test_ipc_worker_paths_reject_symlinked_session_parent(tmp_path: Path) -> None:
+    import atlas_api_jobs as jobs
+
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    os.symlink(outside, tmp_path / ".session", target_is_directory=True)
+    paths = jobs._ipc_worker_paths(
+        {"project_root": str(tmp_path), "job_id": "job-ipc"},
+        "ipc-job-ipc",
+    )
+
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        jobs._prepare_ipc_worker_paths(paths, tmp_path)
+
+
+def test_ipc_worker_paths_reject_symlinked_request_file(tmp_path: Path) -> None:
+    import atlas_api_jobs as jobs
+
+    paths = jobs._ipc_worker_paths(
+        {"project_root": str(tmp_path), "job_id": "job-ipc"},
+        "ipc-job-ipc",
+    )
+    paths["run_dir"].mkdir(parents=True)
+    outside = tmp_path / "outside-request.json"
+    outside.write_text("{}", encoding="utf-8")
+    os.symlink(outside, paths["request"])
+
+    with pytest.raises(ValueError, match="file must not be a symlink"):
+        jobs._prepare_ipc_worker_paths(paths, tmp_path)
+
+
+def test_ipc_worker_paths_create_private_run_directories(tmp_path: Path) -> None:
+    import atlas_api_jobs as jobs
+
+    paths = jobs._ipc_worker_paths(
+        {"project_root": str(tmp_path), "job_id": "job-ipc"},
+        "ipc-job-ipc",
+    )
+
+    jobs._prepare_ipc_worker_paths(paths, tmp_path)
+
+    for directory in (tmp_path / ".session", tmp_path / ".session" / "workers-ipc", paths["run_dir"]):
+        assert directory.is_dir()
+        assert (directory.stat().st_mode & 0o777) == 0o700
+
+
+def test_ipc_worker_paths_reject_symlinked_run_dir(tmp_path: Path) -> None:
+    import atlas_api_jobs as jobs
+
+    paths = jobs._ipc_worker_paths(
+        {"project_root": str(tmp_path), "job_id": "job-ipc"},
+        "ipc-job-ipc",
+    )
+    outside = tmp_path / "outside-run"
+    outside.mkdir()
+    paths["run_dir"].parent.mkdir(parents=True)
+    paths["run_dir"].symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(ValueError, match="must not be a symlink"):
+        jobs._prepare_ipc_worker_paths(paths, tmp_path)
+
+    assert not list(outside.rglob("request.json"))
+
+
+def test_ipc_worker_paths_reject_dot_segment_job_id(tmp_path: Path) -> None:
+    import atlas_api_jobs as jobs
+
+    paths = jobs._ipc_worker_paths(
+        {"project_root": str(tmp_path), "job_id": ".."},
+        "ipc-unsafe",
+    )
+
+    jobs._prepare_ipc_worker_paths(paths, tmp_path)
+
+    assert paths["run_dir"].parent == tmp_path / ".session" / "workers-ipc"
+    assert paths["run_dir"].name != ".."
+    assert paths["request"].parent == paths["run_dir"]
+    assert not (tmp_path / ".session" / "request.json").exists()
 
 
 def test_ipc_global_limit_keeps_ready_job_queued(monkeypatch, tmp_path: Path) -> None:
@@ -272,6 +354,95 @@ def test_ipc_dispatch_watcher_updates_job_from_response(tmp_path: Path, monkeypa
     assert (tmp_path / str(job["worker_response_path"])).is_file()
     assert finishes[-1] == ("abc123", "completed")
     assert advances == ["completed"]
+
+
+def test_ipc_dispatch_rejects_symlinked_session_parent(tmp_path: Path, monkeypatch) -> None:
+    import atlas_api_jobs as jobs
+
+    outside = tmp_path / "outside-session"
+    outside.mkdir()
+    (tmp_path / ".session").symlink_to(outside, target_is_directory=True)
+    popen_calls: list[list[str]] = []
+    monkeypatch.setattr(jobs.subprocess, "Popen", lambda cmd, **_kwargs: popen_calls.append(list(cmd)))
+    monkeypatch.setattr(jobs, "_finish_job_db_run", lambda *_args, **_kwargs: None)
+    job = {
+        "job_id": "j-symlink",
+        "worker": "ipc://u/orchestrator/rtl-gen",
+        "worker_transport": "ipc",
+        "workflow": "rtl-gen",
+        "status": "pending",
+        "attempt": 1,
+        "max_attempts": 1,
+        "project_root": str(tmp_path),
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[job["job_id"]] = job
+
+    jobs._dispatch_job_to_ipc_worker(job)
+
+    assert popen_calls == []
+    assert job["status"] == "error"
+    assert ".session" in str(job["error"])
+    assert not list(outside.rglob("request.json"))
+
+
+def test_ipc_dispatch_rejects_symlinked_workers_parent(tmp_path: Path, monkeypatch) -> None:
+    import atlas_api_jobs as jobs
+
+    outside = tmp_path / "outside-workers"
+    outside.mkdir()
+    (tmp_path / ".session").mkdir()
+    (tmp_path / ".session" / "workers-ipc").symlink_to(outside, target_is_directory=True)
+    popen_calls: list[list[str]] = []
+    monkeypatch.setattr(jobs.subprocess, "Popen", lambda cmd, **_kwargs: popen_calls.append(list(cmd)))
+    monkeypatch.setattr(jobs, "_finish_job_db_run", lambda *_args, **_kwargs: None)
+    job = {
+        "job_id": "j-workers",
+        "worker": "ipc://u/orchestrator/rtl-gen",
+        "worker_transport": "ipc",
+        "workflow": "rtl-gen",
+        "status": "pending",
+        "attempt": 1,
+        "max_attempts": 1,
+        "project_root": str(tmp_path),
+    }
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+        jobs._jobs[job["job_id"]] = job
+
+    jobs._dispatch_job_to_ipc_worker(job)
+
+    assert popen_calls == []
+    assert job["status"] == "error"
+    assert "workers-ipc" in str(job["error"])
+    assert not list(outside.rglob("request.json"))
+
+
+def test_worker_ipc_write_response_rejects_missing_parent(tmp_path: Path) -> None:
+    from src.atlas_worker_ipc import _write_response
+
+    response_path = tmp_path / ".session" / "workers-ipc" / "missing" / "response.json"
+
+    with pytest.raises(ValueError, match="parent"):
+        _write_response(response_path, {"status": "error"})
+
+    assert not response_path.exists()
+
+
+def test_worker_ipc_write_response_rejects_symlinked_response(tmp_path: Path) -> None:
+    from src.atlas_worker_ipc import _write_response
+
+    run_dir = tmp_path / ".session" / "workers-ipc" / "run"
+    run_dir.mkdir(parents=True)
+    outside = tmp_path / "outside-response.json"
+    response_path = run_dir / "response.json"
+    response_path.symlink_to(outside)
+
+    with pytest.raises(ValueError, match="symlink"):
+        _write_response(response_path, {"status": "error"})
+
+    assert not outside.exists()
 
 
 def test_ipc_job_log_streams_stdout_before_response(tmp_path: Path, monkeypatch) -> None:

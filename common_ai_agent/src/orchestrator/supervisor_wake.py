@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import time
 import uuid
@@ -13,11 +14,33 @@ TERMINAL_JOB_STATUSES = {"completed", "error", "cancelled", "blocked"}
 
 def safe_run_id(run_id: str) -> str:
     safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(run_id or "").strip())
+    if safe in {".", ".."}:
+        return "run"
     return safe or "run"
 
 
 def supervisor_control_dir(project_root: Path | str, run_id: str) -> Path:
     return Path(project_root).resolve() / ".session" / "orchestrators-ipc" / safe_run_id(run_id)
+
+
+def _prepare_job_complete_wake_path(project_root: Path | str, run_id: str) -> Path:
+    root = Path(project_root).resolve()
+    control = supervisor_control_dir(root, run_id)
+    for directory in (root / ".session", root / ".session" / "orchestrators-ipc", control):
+        if directory.is_symlink():
+            raise ValueError(f"supervisor wake path must not be a symlink: {directory}")
+        directory.mkdir(parents=True, exist_ok=True)
+        resolved = directory.resolve()
+        if resolved != root and root not in resolved.parents:
+            raise ValueError(f"supervisor wake path escapes project root: {directory}")
+        try:
+            directory.chmod(0o700)
+        except OSError:
+            pass
+    wake_path = control / "wake.jsonl"
+    if wake_path.is_symlink():
+        raise ValueError(f"supervisor wake path must not be a symlink: {wake_path}")
+    return wake_path
 
 
 def append_wake_event(path: Path | str, event: dict[str, Any]) -> dict[str, Any]:
@@ -27,7 +50,11 @@ def append_wake_event(path: Path | str, event: dict[str, Any]) -> dict[str, Any]
     payload.setdefault("event_id", uuid.uuid4().hex)
     payload.setdefault("at", time.time())
     line = json.dumps(payload, ensure_ascii=False, sort_keys=True, default=str)
-    with wake_path.open("a", encoding="utf-8") as fh:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(wake_path, flags, 0o600)
+    with os.fdopen(fd, "a", encoding="utf-8") as fh:
         fh.write(line + "\n")
     return payload
 
@@ -58,7 +85,7 @@ def append_job_complete_wake(
     if not run_id or not job_id or status not in TERMINAL_JOB_STATUSES:
         return False
     append_wake_event(
-        supervisor_control_dir(project_root, run_id) / "wake.jsonl",
+        _prepare_job_complete_wake_path(project_root, run_id),
         {"type": "job_complete", "job_id": job_id, "status": status},
     )
     return True

@@ -829,6 +829,7 @@ class WorkflowStageEngine:
         self.source_root = Path(source_root).resolve() if source_root else SOURCE_ROOT
         self.workflow_root = self.source_root / "workflow"
         self.run_mode = _normalize_run_mode(run_mode) or "signoff"
+        self._active_ip = ""
 
     def ip_dir(self, ip: str) -> Path:
         return self.project_root / safe_ip_name(ip)
@@ -887,15 +888,29 @@ class WorkflowStageEngine:
             "goal-audit": self._run_goal_audit,
             "contract-check": self._run_contract_check,
         }
-        result = dispatch[stage](ip)
+        previous_ip = self._active_ip
+        self._active_ip = ip
+        try:
+            result = dispatch[stage](ip)
+        finally:
+            self._active_ip = previous_ip
         self._write_run_log(result)
         return result
 
     def _run_tool(self, label: str, command: list[str], timeout_s: int = 180) -> ToolRun:
         try:
+            env = os.environ.copy()
+            env["ATLAS_PROJECT_ROOT"] = str(self.project_root)
+            env["ATLAS_SOURCE_ROOT"] = str(self.source_root)
+            env["ATLAS_WORKFLOW_ROOT"] = str(self.workflow_root)
+            if self._active_ip:
+                env["ATLAS_ACTIVE_IP"] = self._active_ip
+                env["ATLAS_IP_ID"] = self._active_ip
+                env["ATLAS_IP_ROOT"] = str(self.ip_dir(self._active_ip))
             proc = subprocess.run(
                 command,
                 cwd=str(self.project_root),
+                env=env,
                 text=True,
                 encoding="utf-8",
                 errors="replace",

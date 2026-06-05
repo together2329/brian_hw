@@ -63,6 +63,7 @@ def _isolate_worker_env(monkeypatch):
         ):
             monkeypatch.setenv(key, "")
     monkeypatch.setenv("WORKER_URL_DEFAULT", "http://127.0.0.1:9")
+    monkeypatch.setenv("ATLAS_WORKER_TRANSPORT", "http")
     monkeypatch.setenv("ATLAS_LAZY_WORKERS", "0")
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_MODEL", "")
     monkeypatch.setenv("ATLAS_ORCHESTRATOR_REASONING_EFFORT", "")
@@ -1059,6 +1060,55 @@ def test_multiuser_pipeline_state_reads_user_workspace_artifacts(
     assert not (tmp_path / ip).exists()
 
 
+@pytest.mark.parametrize("poison_mode", ["absolute", "symlink"])
+def test_multiuser_pipeline_state_ignores_external_env_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+    poison_mode: str,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "state_poison_ip"
+    user_workspace_root = tmp_path / "u" / "default"
+    ssot_path = user_workspace_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.parent.mkdir(parents=True)
+    ssot_path.write_text(
+        f"ip: {ip}\nsections:\n  - name: locked_truth\n    description: user scoped\n",
+        encoding="utf-8",
+    )
+    external_root = tmp_path / "bob" / "default"
+    poison_ssot = external_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    poison_ssot.parent.mkdir(parents=True)
+    poison_ssot.write_text(
+        (
+            f"ip: {ip}\nsections:\n"
+            "  - name: poison_a\n"
+            "  - name: poison_b\n"
+            "  - name: poison_c\n"
+        ),
+        encoding="utf-8",
+    )
+    if poison_mode == "symlink":
+        poison_link = tmp_path / "state-poison-root"
+        poison_link.symlink_to(external_root / ip, target_is_directory=True)
+        monkeypatch.setenv("ATLAS_IP_ROOT", str(poison_link))
+    else:
+        monkeypatch.setenv("ATLAS_IP_ROOT", str(external_root / ip))
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    client = _make_client(tmp_path, monkeypatch)
+    state = client.get(f"/api/pipeline/state?ip={ip}")
+
+    assert state.status_code == 200, state.text
+    payload = state.json()
+    assert payload["stages"]["ssot"]["top"].startswith(f"yaml/{ip}.ssot.yaml")
+    assert "1 sect" in payload["stages"]["ssot"]["top"]
+    assert "3 sect" not in payload["stages"]["ssot"]["top"]
+
+
 def test_ipc_completion_gate_prefers_job_project_root_over_env_ip_root(
     tmp_path: Path,
     monkeypatch,
@@ -1130,6 +1180,45 @@ def test_ipc_completion_gate_prefers_job_project_root_over_env_ip_root(
 
     with jobs._jobs_lock:
         jobs._jobs.clear()
+
+
+def test_api_jobs_ip_dir_ignores_external_absolute_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+
+    ip = "same_name_ip"
+    project_root = tmp_path / "alice" / "default"
+    local_ip_root = project_root / ip
+    external_ip_root = tmp_path / "bob" / "default" / ip
+    local_ip_root.mkdir(parents=True)
+    external_ip_root.mkdir(parents=True)
+    monkeypatch.setenv("ATLAS_IP_ROOT", str(external_ip_root))
+
+    assert jobs._ip_dir_for(project_root, ip) == local_ip_root
+
+
+def test_stage_engine_ssot_rtl_overrides_stale_relative_ip_root(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    from src.workflow_stage_engine import WorkflowStageEngine
+
+    ip = "stage_root_poison_ip"
+    user_root = tmp_path / "alice" / "default"
+    _write_minimal_valid_ssot_rtl_fixture(user_root / ip, ip)
+    monkeypatch.setenv("ATLAS_IP_ROOT", f"alice/default/{ip}")
+
+    result = WorkflowStageEngine(
+        user_root,
+        source_root=PROJECT_ROOT,
+        run_mode="engineering",
+    ).run_stage("ssot-rtl", ip)
+
+    derive_run = next(run for run in result.runs if run.label == "derive_rtl_todos")
+    assert "missing SSOT" not in derive_run.stderr
+    assert f"default/alice/default/{ip}" not in derive_run.stderr
 
 
 def test_refresh_recovers_terminal_missing_evidence_job_from_user_project_root(
@@ -2383,6 +2472,100 @@ def test_orchestrator_dispatch_workflow_tool_uses_payload_workspace_session(
         payload = rtl_worker.requests[0]["payload"]
         assert payload["session"].startswith(f"happy_alt/alt/{ip}/pipeline/{result['pipeline_id']}/")
         assert payload["project_root"] == str(tmp_path / "happy_alt" / "alt")
+
+
+def test_orchestrator_dispatch_workflow_tool_payload_context_overrides_stale_active_session(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "tool_payload_stale_active_ip"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"stale/default/{ip}/orchestrator")
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            owner = db.ensure_user_by_username("ipc_owner")
+
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            payload={
+                "db_user_id": owner["id"],
+                "orchestrator_session_id": f"ipc_owner/default/{ip}/orchestrator",
+                "workspace_session": "default",
+                "orchestrator_run_id": "run-ipc-owner",
+                "trigger_source": "orchestrator_chat",
+            },
+            reason="dispatch from ipc owner context",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
+        payload = rtl_worker.requests[0]["payload"]
+        assert payload["db_user_id"] == owner["id"]
+        assert payload["trigger_source"] == "orchestrator_chat"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_orchestrator_dispatch_workflow_tool_uses_control_db_for_payload_owner_when_trace_db_is_separate(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    import atlas_api_jobs as jobs
+    from core import tools
+    from core.atlas_db import AtlasDB
+
+    ip = "tool_payload_split_trace_ip"
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+        monkeypatch.delenv("ATLAS_ACTIVE_USER", raising=False)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+        trace_path = tmp_path / "trace.db"
+        trace_db = AtlasDB(str(trace_path))
+        trace_db.init_db()
+        trace_db.close()
+        monkeypatch.setenv("ATLAS_TRACE_DB_PATH", str(trace_path))
+
+        with AtlasDB(str(tmp_path / "atlas.db")) as db:
+            owner = db.ensure_user_by_username("ipc_split_owner")
+
+        raw = tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip=ip,
+            payload={
+                "db_user_id": owner["id"],
+                "orchestrator_session_id": f"ipc_split_owner/default/{ip}/orchestrator",
+                "workspace_session": "default",
+                "trigger_source": "orchestrator_chat",
+            },
+            reason="dispatch from split trace db ipc owner context",
+        )
+        result = json.loads(raw)
+
+        assert result["ok"] is True
+        assert result["user_id"] == "ipc_split_owner"
+        assert result["db_user_id"] == owner["id"]
+        assert len(rtl_worker.runs_for_workflow("rtl-gen")) == 1
 
     with jobs._jobs_lock:
         jobs._jobs.clear()

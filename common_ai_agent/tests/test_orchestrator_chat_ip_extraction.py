@@ -41,6 +41,7 @@ def _make_client(tmp_path: Path, monkeypatch) -> TestClient:
     monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
     monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
     monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_TRANSPORT", "thread")
     monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
     monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
     monkeypatch.chdir(tmp_path)
