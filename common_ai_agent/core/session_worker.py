@@ -1216,7 +1216,48 @@ def _worker_parent_pid_from_env() -> int | None:
     return parent_pid
 
 
+def _win_parent_pid_alive(parent_pid: int) -> bool:
+    """Side-effect-free Windows liveness check (OpenProcess + WaitForSingleObject).
+
+    os.getppid()/os.kill(pid, 0) are unreliable on Windows: there is no
+    reparent-to-init on parent death, the env-provided parent PID is the
+    *logical* orchestrator (not necessarily the OS creator), and os.kill(pid, 0)
+    maps to CTRL_C_EVENT (a console control signal) rather than an existence
+    probe. Querying the process handle directly avoids both false positives and
+    accidental signalling of the parent.
+    """
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        SYNCHRONIZE = 0x00100000
+        WAIT_TIMEOUT = 0x00000102  # handle not signalled -> process still running
+        ERROR_ACCESS_DENIED = 5
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+        handle = kernel32.OpenProcess(SYNCHRONIZE, False, int(parent_pid))
+        if not handle:
+            # Access-denied means the process exists but we lack rights -> alive.
+            return ctypes.get_last_error() == ERROR_ACCESS_DENIED
+        try:
+            return kernel32.WaitForSingleObject(handle, 0) == WAIT_TIMEOUT
+        finally:
+            kernel32.CloseHandle(handle)
+    except Exception:
+        # Never self-terminate the worker because the probe itself failed.
+        return True
+
+
 def _worker_parent_is_alive(parent_pid: int) -> bool:
+    if os.name == "nt":
+        # Windows: getppid()/kill(pid,0) give false "parent dead" -> handle check.
+        return _win_parent_pid_alive(parent_pid)
+    if os.name != "posix":
+        # Unknown platform: do not self-terminate on an unverifiable parent.
+        return True
+    # POSIX: a dead parent reparents the child to init, so getppid() diverges
+    # from the recorded spawner PID -- a reliable "parent died" signal here.
     if os.getppid() != parent_pid:
         return False
     try:
