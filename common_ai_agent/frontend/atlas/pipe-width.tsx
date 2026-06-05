@@ -293,7 +293,7 @@ export async function pipelineFetchWorkerSnapshot(opts: WorkerSnapshotOpts = {})
     coverage:     { lane: 'verify', y: 168 },
     'sim-debug':  { lane: 'verify', y: 384 },
     'contract-check': { lane: 'verify', y: 492 },
-    'goal-audit': { lane: 'verify', y: 542 },
+    'goal-audit': { lane: 'eda',    y: 540 },
     syn:          { lane: 'eda',    y: 150 },
     sta:          { lane: 'eda',    y: 250 },
     pnr:          { lane: 'eda',    y: 350 },
