@@ -133,6 +133,47 @@ describe('PipelineOrchestratorChatPanel session scoping', () => {
     expect(scrollTop).toBe(100);
   });
 
+  it('shows replayed user messages while the orchestrator run is still responding', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
+      const url = String(input);
+      if (url.startsWith('/api/orchestrator/chat/messages')) {
+        return new Response(JSON.stringify({
+          ok: true,
+          messages: [{
+            id: 'm_user',
+            role: 'user',
+            content: 'Build the new IP from this locked requirement.',
+            payload: {
+              role: 'user',
+              content: 'Build the new IP from this locked requirement.',
+            },
+            created_at: 1,
+          }],
+          next_since: 1,
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, status: 'started' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { container, getByText } = render(
+      <PipelineOrchestratorChatPanel
+        ip="jjj"
+        pipelineState={{ orchestrator: { active: true } }}
+      />,
+    );
+
+    await waitFor(() => expect(getByText('Build the new IP from this locked requirement.')).toBeInTheDocument());
+    expect(container.textContent).toContain('USER');
+    expect(container.textContent).not.toContain('No orchestrator activity yet');
+  });
+
   it('streams orchestrator chat rows from backend subscription', async () => {
     let messageSink: ((message: Record<string, unknown>) => void) | null = null;
     const w = window as AtlasTestWindow;

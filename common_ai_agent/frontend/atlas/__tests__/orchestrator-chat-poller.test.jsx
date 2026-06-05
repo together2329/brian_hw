@@ -135,11 +135,16 @@ describe('orchestrator chat poll mapping', () => {
     });
   });
 
-  it('ignores user rows because the submit path already mirrors them', () => {
+  it('renders user rows so a pending orchestrator turn is visible before the assistant replies', () => {
     expect(feedEntryFromChatMessage({
       id: 'm3',
+      created_at: 1716400004,
       payload: { role: 'user', content: 'Hi' },
-    })).toBeNull();
+    })).toEqual({
+      kind: 'user',
+      text: 'Hi',
+      createdAt: 1716400004000,
+    });
   });
 
   it('maps worker log action/result rows as live raw feed entries', () => {

@@ -95,6 +95,9 @@
     var createdAt = created > 0 ? created * 1000 : 0;
     var payloadTool = String(payload.tool || payload.name || payload.display_name || '').trim();
 
+    if (role === 'user') {
+      return { kind: 'user', text: content, createdAt: createdAt };
+    }
     if (role === 'assistant') {
       return { kind: 'agent', text: content, createdAt: createdAt };
     }

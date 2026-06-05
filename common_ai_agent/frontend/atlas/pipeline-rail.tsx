@@ -679,10 +679,12 @@ function mapOrchestratorMessageToFeedEntry(message: ChatMessage): OrchestratorFe
   const content = cleanChatMessageLine(rawContent);
   if (!content) return null;
 
-  if (role === 'user') return null;
   const createdAt = toEpochMs(message.created_at, 0);
   const messageId = String(message.id || `${role}:${createdAt}:${content}`);
 
+  if (role === 'user') {
+    return { id: messageId, kind: 'user', text: content, createdAt };
+  }
   if (role === 'assistant_delta') {
     return {
       id: messageId,
@@ -741,6 +743,7 @@ function eventSinceFromPayload(message: AtlasOrchestratorChatEvent): number {
 }
 
 function roleFromFeedEntry(entry: OrchestratorFeedEntry): string {
+  if (entry.kind === 'user') return 'user';
   if (entry.kind === 'action') return entry.tool || 'action';
   if (entry.kind === 'obs') return entry.tool || 'observation';
   if (entry.kind === 'thought') return 'thought';

@@ -6094,7 +6094,7 @@ def register_jobs_routes(
             except Exception:
                 pass
 
-        if config.OUTPUT_ASCII_ONLY:
+        if os.getenv("ATLAS_ASCII_OUTPUT", "false").lower() in ("1", "true", "yes", "on"):
             _GLYPHS: dict[str, str] = {
                 "idle": "-", "ready": "-", "running": ">", "passed": "OK",
                 "failed": "FAIL", "blocked": "BLK", "stale": "STA", "locked": "LCK",
@@ -6912,6 +6912,8 @@ def register_jobs_routes(
             model=ORCHESTRATOR_MODEL,
             reasoning_effort=ORCHESTRATOR_REASONING_EFFORT,
         )
+        ack = f"Orchestrator run {outcome.status}: {outcome.run_id}. Waiting for worker output."
+        _record_orchestrator_chat(request, ip=ip, message="", reply=ack, body=body)
         return JSONResponse({
             "ok": True,
             "ip": ip,

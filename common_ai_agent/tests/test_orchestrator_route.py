@@ -147,6 +147,24 @@ def test_chat_returns_run_id_and_started_status(tmp_path, monkeypatch, stub_runn
         db.close()
 
 
+def test_chat_start_records_replayable_ack_before_worker_reply(tmp_path, monkeypatch, stub_runner):
+    client = _make_client(tmp_path, monkeypatch)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={"message": "create ipA and run to green", "ip": "ipA"},
+    )
+
+    assert resp.status_code == 200, resp.text
+    body = resp.json()
+    messages = client.get("/api/orchestrator/chat/messages?ip=ipA").json()["messages"]
+    roles = [m["payload"]["role"] for m in messages]
+    assert roles == ["user", "assistant"]
+    assert messages[0]["payload"]["content"] == "create ipA and run to green"
+    assert body["run_id"] in messages[1]["payload"]["content"]
+    assert "started" in messages[1]["payload"]["content"]
+
+
 def test_chat_body_workspace_session_sets_orchestrator_workspace(
     tmp_path, monkeypatch, stub_runner
 ):
