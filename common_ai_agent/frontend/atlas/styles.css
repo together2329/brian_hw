@@ -3868,6 +3868,32 @@ body[data-resize-cursor="col"] {
 .orch-chat-title { font-weight: 600; color: var(--fg-dim); }
 .orch-chat-status[data-active="yes"] { color: var(--ok, #76c893); }
 .orch-chat-status[data-active="no"]  { color: var(--fg-dim); }
+.orch-chat-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel, #0f1118);
+}
+.orch-chat-filter-btn {
+  border: 1px solid var(--line);
+  background: color-mix(in oklch, var(--line) 20%, transparent);
+  color: var(--fg);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 10px;
+  line-height: 1.2;
+}
+.orch-chat-filter-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.orch-chat-filter-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in oklch, var(--accent) 18%, transparent);
+}
 .orch-chat-body {
   flex: 1 1 auto;
   min-height: 0;
@@ -3883,6 +3909,18 @@ body[data-resize-cursor="col"] {
   padding: 4px 6px;
   border-radius: 3px;
   border-left: 2px solid transparent;
+}
+.orch-chat-row.cat-thought {
+  border-left-color: var(--magenta);
+  background: color-mix(in oklch, var(--magenta) 6%, transparent);
+}
+.orch-chat-row.cat-action {
+  border-left-color: var(--tool-accent);
+  background: color-mix(in oklch, var(--tool-accent) 10%, transparent);
+}
+.orch-chat-row.cat-obs {
+  border-left-color: var(--warn);
+  background: color-mix(in oklch, var(--warn) 10%, transparent);
 }
 .orch-chat-empty { color: var(--fg-dim); padding: 12px 4px; font-style: italic; }
 .orch-chat-role  { color: var(--fg-mute); font-size: var(--ui-small-font-size, 11px); margin-right: 6px; }
