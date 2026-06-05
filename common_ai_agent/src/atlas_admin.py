@@ -102,22 +102,15 @@ def _access_url(host: str, port: int) -> str:
             display_host = lan[0]
     return f"http://{display_host}:{port}/admin"
 
-# `from __future__ import annotations` stores `request: Request` as a
-# string. FastAPI resolves that string against module globals, not the
-# local imports inside create_admin_app(), so expose Request here or
-# pydantic treats `request` as a required query parameter and returns 422.
 if TYPE_CHECKING:
     from fastapi import Request
 else:
-    try:
-        from fastapi import Request  # noqa: F401  (runtime forward-ref target)
-    except ImportError:
-        class Request:  # fallback name for annotations when FastAPI is absent
-            pass
+    class Request:
+        pass
 
 
 def create_admin_app(project_root: Path):
-    from fastapi import FastAPI, Request
+    from fastapi import FastAPI, Request as FastAPIRequest
     from fastapi.responses import JSONResponse, HTMLResponse
     from starlette.staticfiles import StaticFiles
 
@@ -131,6 +124,7 @@ def create_admin_app(project_root: Path):
         is_local_admin_mode,
     )
 
+    globals()["Request"] = FastAPIRequest
     app = FastAPI(title="ATLAS Admin")
 
     auth = GuestAuth(
