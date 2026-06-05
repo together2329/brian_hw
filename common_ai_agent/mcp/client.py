@@ -17,7 +17,25 @@ Protocol flow:
 import json
 import subprocess
 import threading
+from dataclasses import dataclass
 from typing import Dict, List, Optional
+
+
+@dataclass(frozen=True)
+class MCPToolResult:
+    text: str
+    structured_content: Optional[Dict[str, object]] = None
+
+    def to_observation(self) -> str:
+        if not self.structured_content:
+            return self.text
+        return json.dumps(
+            {
+                "content": self.text,
+                "structuredContent": self.structured_content,
+            },
+            ensure_ascii=False,
+        )
 
 
 class MCPStdioClient:
@@ -58,15 +76,23 @@ class MCPStdioClient:
         self._tools = resp.get("result", {}).get("tools", [])
         return self._tools
 
-    def call_tool(self, tool_name: str, arguments: dict) -> str:
+    def call_tool(self, tool_name: str, arguments: Dict[str, object]) -> str:
         """Call a tool and return its text output."""
+        return self.call_tool_result(tool_name, arguments).to_observation()
+
+    def call_tool_result(self, tool_name: str, arguments: Dict[str, object]) -> MCPToolResult:
         resp = self._rpc("tools/call", {"name": tool_name, "arguments": arguments})
         if "error" in resp:
             err = resp["error"]
             raise RuntimeError(f"MCP tool error ({err.get('code')}): {err.get('message')}")
-        content = resp.get("result", {}).get("content", [])
+        result = resp.get("result", {})
+        content = result.get("content", [])
         parts = [c.get("text", "") for c in content if c.get("type") == "text"]
-        return "\n".join(parts)
+        structured = result.get("structuredContent")
+        return MCPToolResult(
+            text="\n".join(parts),
+            structured_content=structured if isinstance(structured, dict) else None,
+        )
 
     def stop(self) -> None:
         """Terminate the server subprocess."""
