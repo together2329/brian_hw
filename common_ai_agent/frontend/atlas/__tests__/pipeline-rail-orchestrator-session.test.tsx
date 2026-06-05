@@ -7,6 +7,9 @@ type AtlasTestWindow = typeof window & {
   ACTIVE_SESSION?: string;
   ATLAS_WORKSPACE_SESSION_ID?: string;
   ATLAS_DB_SESSION_ID?: string;
+  backend?: {
+    subscribe?: (ev: string, cb: (message: Record<string, unknown>) => void) => () => void;
+  };
 };
 
 describe('PipelineOrchestratorChatPanel session scoping', () => {
@@ -129,4 +132,56 @@ describe('PipelineOrchestratorChatPanel session scoping', () => {
     await waitFor(() => expect(container.textContent).toContain('new orchestrator event'));
     expect(scrollTop).toBe(100);
   });
+
+  it('streams orchestrator chat rows from backend subscription', async () => {
+    let messageSink: ((message: Record<string, unknown>) => void) | null = null;
+    const w = window as AtlasTestWindow;
+    w.backend = {
+      subscribe: (event: string, cb: (message: Record<string, unknown>) => void) => {
+        if (event !== 'orchestrator_chat') return () => {};
+        messageSink = cb;
+        return () => {
+          messageSink = null;
+        };
+      },
+    };
+
+    const fetchMock = vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
+      const url = String(input);
+      if (url.startsWith('/api/orchestrator/chat/messages')) {
+        return new Response(JSON.stringify({ ok: true, messages: [], next_since: 0 }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, status: 'started' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { container } = render(
+      <PipelineOrchestratorChatPanel
+        ip="jjj"
+        pipelineState={{ orchestrator: { active: true } }}
+      />,
+    );
+
+    const message = {
+      id: 'stream-1',
+      role: 'tool',
+      content: 'inspect_pipeline(args=abc)',
+      created_at: 10,
+      ip: 'jjj',
+    };
+
+    await waitFor(() => expect(messageSink).toBeTruthy());
+    await act(async () => {
+      messageSink && messageSink(message);
+    });
+
+    await waitFor(() => expect(container.textContent).toContain('INSPECT_PIPELINE'));
+  });
+
 });
