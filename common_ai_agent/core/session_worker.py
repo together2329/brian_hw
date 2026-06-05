@@ -1249,7 +1249,50 @@ def _win_parent_pid_alive(parent_pid: int) -> bool:
         return True
 
 
+_parent_proc_cache = None
+_parent_proc_pid = None
+
+
+def _parent_psutil_alive(parent_pid: int):
+    """Identity-safe parent liveness via psutil, bound to the process create-time.
+
+    Returns True/False, or None if psutil is unavailable so the caller falls
+    back to the OS-specific probe. The psutil.Process handle is captured once
+    and reused: psutil compares the cached create-time, so a *reused* PID cannot
+    masquerade as the original parent (closes the per-poll PID-reuse orphan edge).
+    """
+    global _parent_proc_cache, _parent_proc_pid
+    try:
+        import psutil
+    except Exception:
+        return None
+    try:
+        if _parent_proc_cache is None or _parent_proc_pid != parent_pid:
+            _parent_proc_cache = psutil.Process(parent_pid)  # binds create_time
+            _parent_proc_pid = parent_pid
+        proc = _parent_proc_cache
+        if not proc.is_running():
+            return False
+        try:
+            if proc.status() == psutil.STATUS_ZOMBIE:
+                return False  # a reaped/defunct parent is effectively dead
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
+        return True
+    except psutil.NoSuchProcess:
+        return False
+    except psutil.AccessDenied:
+        return True  # exists but we lack rights -> treat as alive
+    except Exception:
+        return None  # uncertain -> fall back to OS probe
+
+
 def _worker_parent_is_alive(parent_pid: int) -> bool:
+    # Primary: psutil, create-time bound -> immune to PID reuse, cross-platform.
+    res = _parent_psutil_alive(parent_pid)
+    if res is not None:
+        return res
+    # Fallback (psutil unavailable): OS-specific probe.
     if os.name == "nt":
         # Windows: getppid()/kill(pid,0) give false "parent dead" -> handle check.
         return _win_parent_pid_alive(parent_pid)
