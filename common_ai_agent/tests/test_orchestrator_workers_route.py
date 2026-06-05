@@ -24,6 +24,7 @@ _EXPECTED_WORKFLOWS = [
 def _isolate_worker_route_state(monkeypatch):
     # These tests assert explicit worker-routing modes. Do not let a
     # developer shell's production env leak into the route behavior.
+    monkeypatch.setenv("ATLAS_WORKER_TRANSPORT", "http")
     monkeypatch.delenv("ATLAS_WORKFLOW_WORKER_PER_USER", raising=False)
     monkeypatch.delenv("ATLAS_WORKFLOW_WORKER_PER_SESSION", raising=False)
     monkeypatch.delenv("ATLAS_LAZY_WORKERS", raising=False)

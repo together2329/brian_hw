@@ -1,16 +1,23 @@
 from __future__ import annotations
 
-import importlib
-import json
 import os
 import subprocess
 import sys
 import threading
-import time
 from pathlib import Path
 from typing import Any, Callable, Optional
 
+from src.orchestrator.ipc_tool_bridge import write_json_atomic
+from src.orchestrator.ipc_tool_bridge_server import (
+    prepare_tool_bridge_dir,
+    start_tool_bridge,
+)
 from src.orchestrator.runtime_types import SubmitOutcome
+from src.orchestrator.supervisor_manifest import (
+    supervisor_job_metadata,
+    supervisor_process_env,
+    supervisor_request_payload,
+)
 from src.orchestrator.supervisor_wake import (
     append_user_message_wake,
     supervisor_control_dir,
@@ -21,9 +28,35 @@ from src.orchestrator.supervisor_watch import watch_supervisor_job
 ProcessFactory = Callable[..., Any]
 
 
-def _resolve_ip_workflow_root(project_root: Path, source_root: Path, ip_name: str = "") -> Path:
-    resolver = importlib.import_module("core.atlas_context").resolve_ip_workflow_root
-    return resolver(project_root, source_root, ip_name)
+def _prepare_supervisor_paths(paths: dict[str, Path], project_root: Path) -> None:
+    root = project_root.resolve()
+    control = paths["control"]
+    for directory in (root / ".session", root / ".session" / "orchestrators-ipc", control):
+        if directory.is_symlink():
+            raise ValueError(f"supervisor IPC path must not be a symlink: {directory}")
+        directory.mkdir(parents=True, exist_ok=True)
+        resolved = directory.resolve()
+        if resolved != root and root not in resolved.parents:
+            raise ValueError(f"supervisor IPC path escapes project root: {directory}")
+        try:
+            directory.chmod(0o700)
+        except OSError:
+            pass
+    control_root = control.resolve()
+    for name in ("request", "response", "wake", "cancel", "log", "bridge"):
+        path = paths[name]
+        if path.is_symlink():
+            raise ValueError(f"supervisor IPC file must not be a symlink: {path}")
+        if path.parent.resolve() != control_root:
+            raise ValueError(f"supervisor IPC file escapes control directory: {path}")
+
+
+def _open_supervisor_log(path: Path) -> Any:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(path, flags, 0o600)
+    return os.fdopen(fd, "ab")
 
 
 class OrchestratorSupervisorRuntime:
@@ -119,6 +152,8 @@ class OrchestratorSupervisorRuntime:
     def _append_user_reply(
         self, run_id: str, message_text: str, chat_message_id: str
     ) -> SubmitOutcome:
+        paths = self._paths(run_id)
+        _prepare_supervisor_paths(paths, self._project_root)
         self._db.append_orchestrator_step(
             run_id,
             tool_name="user_reply",
@@ -127,7 +162,7 @@ class OrchestratorSupervisorRuntime:
             verdict="user_input",
         )
         append_user_message_wake(
-            supervisor_control_dir(self._project_root, run_id) / "wake.jsonl",
+            paths["wake"],
             message=message_text,
             chat_message_id=chat_message_id,
         )
@@ -136,12 +171,16 @@ class OrchestratorSupervisorRuntime:
     def _spawn_supervisor(self, **data: str) -> None:
         run_id = data["run_id"]
         paths = self._paths(run_id)
-        paths["control"].mkdir(parents=True, exist_ok=True)
-        request = self._request_payload(paths=paths, **data)
-        paths["request"].write_text(
-            json.dumps(request, indent=2, ensure_ascii=False, default=str),
-            encoding="utf-8",
+        _prepare_supervisor_paths(paths, self._project_root)
+        request = supervisor_request_payload(
+            db=self._db,
+            project_root=self._project_root,
+            source_root=self._source_root,
+            paths=paths,
+            data=data,
         )
+        prepare_tool_bridge_dir(paths["bridge"])
+        write_json_atomic(paths["request"], request)
         cmd = [
             sys.executable,
             "-m",
@@ -153,12 +192,16 @@ class OrchestratorSupervisorRuntime:
             "--run-id",
             run_id,
         ]
-        log_fh = paths["log"].open("ab")
+        log_fh = _open_supervisor_log(paths["log"])
         try:
             proc = self._process_factory(
                 cmd,
                 cwd=str(self._project_root),
-                env=self._env(ip_name=str(data.get("ip_name") or "")),
+                env=supervisor_process_env(
+                    project_root=self._project_root,
+                    source_root=self._source_root,
+                    ip_name=str(data.get("ip_name") or ""),
+                ),
                 stdout=log_fh,
                 stderr=subprocess.STDOUT,
             )
@@ -166,9 +209,22 @@ class OrchestratorSupervisorRuntime:
             log_fh.close()
         process_key = f"ipc-orch-{run_id}"
         job_id = f"orch-{run_id}"
-        job = self._job_metadata(job_id, process_key, paths, proc, data)
+        job = supervisor_job_metadata(
+            project_root=self._project_root,
+            job_id=job_id,
+            process_key=process_key,
+            paths=paths,
+            proc=proc,
+            data=data,
+        )
         self._register_job(job_id, job)
         self._register_process(process_key, proc)
+        start_tool_bridge(
+            run_id=run_id,
+            proc=proc,
+            bridge_dir=paths["bridge"],
+            token=str(request.get("tool_bridge_token") or ""),
+        )
         if self._start_watcher:
             threading.Thread(
                 target=watch_supervisor_job,
@@ -195,77 +251,5 @@ class OrchestratorSupervisorRuntime:
             "wake": control / "wake.jsonl",
             "cancel": control / "cancel.json",
             "log": control / "supervisor.log",
+            "bridge": control / "tool-bridge",
         }
-
-    def _request_payload(self, *, paths: dict[str, Path], **data: str) -> dict[str, Any]:
-        run_id = data["run_id"]
-        return {
-            "schema_version": 1,
-            "kind": "orchestrator-supervisor",
-            "run_id": run_id,
-            "resume": False,
-            "project_root": str(self._project_root),
-            "source_root": str(self._source_root),
-            "db_path": str(getattr(self._db, "db_path", "") or getattr(self._db, "path", "")),
-            "user_id": data["user_id"],
-            "db_user_id": data["user_id"],
-            "workspace_id": data.get("workspace_id", ""),
-            "ip_id": data["ip_id"],
-            "ip_name": data["ip_name"],
-            "session_id": data.get("session_id", ""),
-            "chat_message_id": data.get("chat_message_id", ""),
-            "initial_user_message": data.get("message_text", ""),
-            "model": data.get("model", ""),
-            "reasoning_effort": data.get("reasoning_effort", ""),
-            "control_dir": str(paths["control"]),
-            "wake_path": str(paths["wake"]),
-            "cancel_path": str(paths["cancel"]),
-            "response_path": str(paths["response"]),
-        }
-
-    def _env(self, ip_name: str = "") -> dict[str, str]:
-        env = os.environ.copy()
-        env["ATLAS_PROJECT_ROOT"] = str(self._project_root)
-        env["ATLAS_SOURCE_ROOT"] = str(self._source_root)
-        env["ATLAS_WORKFLOW_ROOT"] = str(
-            _resolve_ip_workflow_root(self._project_root, self._source_root, ip_name)
-        )
-        env["ATLAS_EXEC_MODE"] = "orchestrator"
-        env["ATLAS_ORCHESTRATOR_MODE"] = "1"
-        env["ATLAS_WORKER_TRANSPORT"] = "ipc"
-        env["ATLAS_SINGLE_MAIN_LOOP"] = "0"
-        env["PYTHONPATH"] = f"{self._source_root}{os.pathsep}{env.get('PYTHONPATH', '')}".rstrip(os.pathsep)
-        return env
-
-    def _job_metadata(
-        self,
-        job_id: str,
-        process_key: str,
-        paths: dict[str, Path],
-        proc: Any,
-        data: dict[str, str],
-    ) -> dict[str, Any]:
-        return {
-            "job_id": job_id,
-            "run_id": process_key,
-            "job_kind": "orchestrator-supervisor",
-            "workflow": "orchestrator",
-            "worker_transport": "ipc",
-            "status": "running",
-            "started_at": time.time(),
-            "project_root": str(self._project_root),
-            "db_user_id": data["user_id"],
-            "db_ip_id": data["ip_id"],
-            "ip": data["ip_name"],
-            "orchestrator_run_id": data["run_id"],
-            "worker_pid": getattr(proc, "pid", ""),
-            "worker_request_path": self._rel(paths["request"]),
-            "worker_response_path": self._rel(paths["response"]),
-            "worker_log_path": self._rel(paths["log"]),
-        }
-
-    def _rel(self, path: Path) -> str:
-        try:
-            return path.resolve().relative_to(self._project_root).as_posix()
-        except Exception:
-            return str(path)

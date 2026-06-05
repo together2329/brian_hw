@@ -62,7 +62,7 @@ _jobs_lock = threading.Lock()
 _jobs: dict[str, dict[str, Any]] = {}   # job_id (uuid hex) → job metadata
 _SOURCE_ROOT = Path(__file__).resolve().parents[1]
 _LAZY_WORKER_LOCK = threading.Lock()
-_LAZY_WORKER_PROCS: dict[str, subprocess.Popen] = {}
+_LAZY_WORKER_PROCS: dict[str, subprocess.Popen[bytes]] = {}
 _LAZY_WORKER_ATEXIT_REGISTERED = False
 # Per-URL locks so concurrent dispatches to *different* worker URLs do
 # not serialize through a single global lock during cold-start storms.
@@ -99,7 +99,7 @@ _LAZY_WORKER_LAST_BUSY: dict[str, float] = {}
 _WARM_WORKER_LOCK = threading.Lock()
 _WARM_WORKER_INFLIGHT: set[str] = set()
 _IPC_WORKER_LOCK = threading.Lock()
-_IPC_WORKER_PROCS: dict[str, subprocess.Popen] = {}
+_IPC_WORKER_PROCS: dict[str, subprocess.Popen[bytes]] = {}
 
 
 def _env_int(name: str, default: int, *, minimum: int = 0) -> int:
@@ -256,6 +256,12 @@ def _configured_ip_root(project_root: Path, ip: str) -> Path | None:
         return None
     if not root.is_dir():
         return None
+    try:
+        project_root_resolved = project_root.resolve()
+        if root != project_root_resolved:
+            root.relative_to(project_root_resolved)
+    except Exception:
+        return None
     if root.name == ip:
         return root
     yaml_dir = root / "yaml"
@@ -266,10 +272,6 @@ def _configured_ip_root(project_root: Path, ip: str) -> Path | None:
     nested = root / ip
     if nested.is_dir():
         return nested
-    try:
-        root.relative_to(project_root.resolve())
-    except Exception:
-        return None
     return None
 
 
@@ -564,6 +566,14 @@ def _workflow_toolchain_for(workflow: str) -> str:
 def _atlas_job_db_path(project_root: Path) -> str:
     return (
         os.environ.get("ATLAS_TRACE_DB_PATH")
+        or os.environ.get("ATLAS_DB_PATH")
+        or str(Path.home() / ".common_ai_agent" / "atlas.db")
+    )
+
+
+def _atlas_control_db_path(project_root: Path) -> str:
+    return (
+        os.environ.get("ATLAS_CONTROL_DB_PATH")
         or os.environ.get("ATLAS_DB_PATH")
         or str(Path.home() / ".common_ai_agent" / "atlas.db")
     )
@@ -1129,7 +1139,7 @@ def _register_orchestrator_supervisor_job(job_id: str, job: dict[str, Any]) -> N
         _jobs[job_id] = job
 
 
-def _register_orchestrator_supervisor_process(run_id: str, proc: subprocess.Popen) -> None:
+def _register_orchestrator_supervisor_process(run_id: str, proc: subprocess.Popen[bytes]) -> None:
     with _IPC_WORKER_LOCK:
         _IPC_WORKER_PROCS[run_id] = proc
 
@@ -3246,9 +3256,17 @@ def _worker_run_payload(job: dict[str, Any]) -> dict[str, Any]:
     return body
 
 
+def _safe_ipc_leaf_id(value: str, fallback: str = "job") -> str:
+    for candidate in (value, fallback, "job"):
+        safe = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(candidate or "").strip())
+        if safe and safe not in {".", ".."}:
+            return safe
+    return "job"
+
+
 def _ipc_worker_paths(job: dict[str, Any], run_id: str) -> dict[str, Path]:
     project_root = Path(job.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
-    safe_job_id = re.sub(r"[^A-Za-z0-9_.-]+", "_", str(job.get("job_id") or run_id or "job"))
+    safe_job_id = _safe_ipc_leaf_id(str(job.get("job_id") or ""), run_id or "job")
     run_dir = project_root / ".session" / "workers-ipc" / safe_job_id
     return {
         "run_dir": run_dir,
@@ -3256,6 +3274,37 @@ def _ipc_worker_paths(job: dict[str, Any], run_id: str) -> dict[str, Path]:
         "response": run_dir / "response.json",
         "log": run_dir / "worker.log",
     }
+
+
+def _prepare_ipc_worker_paths(paths: dict[str, Path], project_root: Path) -> None:
+    root = project_root.resolve()
+    run_dir = paths["run_dir"]
+    for directory in (root / ".session", root / ".session" / "workers-ipc", run_dir):
+        if directory.is_symlink():
+            raise ValueError(f"IPC worker path must not be a symlink: {directory}")
+        directory.mkdir(parents=True, exist_ok=True)
+        resolved = directory.resolve()
+        if resolved != root and root not in resolved.parents:
+            raise ValueError(f"IPC worker path escapes project root: {directory}")
+        try:
+            directory.chmod(0o700)
+        except OSError:
+            pass
+    run_root = run_dir.resolve()
+    for name in ("request", "response", "log"):
+        path = paths[name]
+        if path.is_symlink():
+            raise ValueError(f"IPC worker file must not be a symlink: {path}")
+        if path.parent.resolve() != run_root:
+            raise ValueError(f"IPC worker file escapes run directory: {path}")
+
+
+def _open_ipc_worker_log(path: Path) -> Any:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_APPEND
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    fd = os.open(path, flags, 0o600)
+    return os.fdopen(fd, "ab")
 
 
 def _rel_path_for_job(path: Path, job: dict[str, Any]) -> str:
@@ -3307,7 +3356,7 @@ def _read_ipc_response(response_path: Path) -> dict[str, Any]:
     return data if isinstance(data, dict) else {"status": "error", "error": "non-dict IPC response"}
 
 
-def _terminate_ipc_process(proc: subprocess.Popen, *, grace_sec: float = 5.0) -> None:
+def _terminate_ipc_process(proc: subprocess.Popen[bytes], *, grace_sec: float = 5.0) -> None:
     try:
         if proc.poll() is None:
             proc.terminate()
@@ -3394,7 +3443,7 @@ def _record_job_db_retry(job: dict[str, Any], reason: str) -> None:
         job["db_error"] = str(exc)
 
 
-def _watch_ipc_worker(job_id: str, run_id: str, response_path: Path, proc: subprocess.Popen) -> None:
+def _watch_ipc_worker(job_id: str, run_id: str, response_path: Path, proc: subprocess.Popen[bytes]) -> None:
     timed_out = False
     try:
         timeout_s = _ipc_worker_timeout_sec(_jobs.get(job_id, {}) if job_id else {})
@@ -3462,36 +3511,37 @@ def _watch_ipc_worker(job_id: str, run_id: str, response_path: Path, proc: subpr
         return
 
     status = _normalize_worker_result_status(data, returncode)
-    result = data.get("result") if isinstance(data.get("result"), dict) else data
+    result_raw = data.get("result")
+    result = result_raw if isinstance(result_raw, dict) else {}
+    result_source = result or data
     live["status"] = status
     live["finished_at"] = now
     live["returncode"] = returncode
-    live["files_modified"] = result.get("files_modified") or data.get("files_modified") or []
-    live["files_examined"] = result.get("files_examined") or data.get("files_examined") or []
-    live["iterations"] = result.get("iterations") or data.get("iterations") or live.get("iterations") or 0
+    live["files_modified"] = result_source.get("files_modified") or data.get("files_modified") or []
+    live["files_examined"] = result_source.get("files_examined") or data.get("files_examined") or []
+    live["iterations"] = result_source.get("iterations") or data.get("iterations") or live.get("iterations") or 0
     summary = result.get("result") or data.get("summary") or data.get("result_summary") or ""
     live["result_summary"] = str(summary or "")[:600]
-    error_text = result.get("error") or data.get("error") or ""
+    error_text = result_source.get("error") or data.get("error") or ""
     if status == "error" and not error_text:
         error_text = f"IPC worker exited with returncode {returncode}"
     live["error"] = str(error_text or "")
-    if data.get("started_at"):
+    started_at_raw = data.get("started_at")
+    if started_at_raw is not None:
         try:
-            live["worker_started_at"] = float(data.get("started_at"))
+            live["worker_started_at"] = float(started_at_raw)
         except Exception:
             pass
-    if data.get("finished_at"):
+    finished_at_raw = data.get("finished_at")
+    if finished_at_raw is not None:
         try:
-            live["worker_finished_at"] = float(data.get("finished_at"))
+            live["worker_finished_at"] = float(finished_at_raw)
         except Exception:
             pass
     if live.get("started_at") and live.get("finished_at"):
         live["duration_ms"] = int(max(0.0, live["finished_at"] - live["started_at"]) * 1000)
-    try:
-        entries = data.get("entries") if isinstance(data.get("entries"), list) else []
-        live["worker_log_entries"] = len(entries)
-    except Exception:
-        pass
+    entries_raw = data.get("entries")
+    live["worker_log_entries"] = len(entries_raw) if isinstance(entries_raw, list) else 0
 
     if live.get("status") == "completed":
         _enforce_completion_evidence_gate(live, Path(live.get("project_root") or ".").resolve())
@@ -3507,7 +3557,8 @@ def _dispatch_job_to_ipc_worker(job: dict[str, Any]) -> None:
     run_id = f"ipc-{job_id_text}" if attempt <= 1 else f"ipc-{job_id_text}-r{attempt}"
     paths = _ipc_worker_paths(job, run_id)
     try:
-        paths["run_dir"].mkdir(parents=True, exist_ok=True)
+        project_root = Path(job.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
+        _prepare_ipc_worker_paths(paths, project_root)
         try:
             paths["response"].unlink()
         except FileNotFoundError:
@@ -3520,10 +3571,9 @@ def _dispatch_job_to_ipc_worker(job: dict[str, Any]) -> None:
         body["attempt"] = attempt
         body["max_attempts"] = job.get("max_attempts") or _ipc_worker_max_attempts(job)
         body["idempotency_key"] = job.get("idempotency_key") or job_id_text
-        paths["request"].write_text(
-            json.dumps(body, indent=2, ensure_ascii=False, default=str),
-            encoding="utf-8",
-        )
+        from src.orchestrator.ipc_tool_bridge import write_json_atomic
+
+        write_json_atomic(paths["request"], body, create_parent=False)
         cmd = [
             sys.executable,
             "-m",
@@ -3535,7 +3585,7 @@ def _dispatch_job_to_ipc_worker(job: dict[str, Any]) -> None:
             "--run-id",
             run_id,
         ]
-        log_fh = paths["log"].open("ab")
+        log_fh = _open_ipc_worker_log(paths["log"])
         try:
             proc = subprocess.Popen(
                 cmd,
@@ -5221,6 +5271,9 @@ def register_jobs_routes(
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", owner_name):
             return legacy_root
         workspace_session = _workspace_session_from_body(body)
+        root_parts = root.resolve().parts
+        if len(root_parts) >= 2 and root_parts[-2:] == (owner_name, workspace_session):
+            return root.resolve()
         owner_root = root / owner_name
         workspace_path = owner_root / workspace_session
         if owner_root.is_symlink() or workspace_path.is_symlink():
@@ -6568,6 +6621,10 @@ def register_jobs_routes(
                 candidate = m.group(1).strip()
                 break
         if not candidate:
+            m = re.search(r"\bfor\s+([A-Za-z][A-Za-z0-9_]*[_0-9][A-Za-z0-9_]*)\b", msg)
+            if m:
+                candidate = m.group(1).strip()
+        if not candidate:
             candidate = str(fallback or "").strip()
         # `default` is the placeholder IP that the IP dropdown shows when
         # nothing real is selected. The orchestrator's job is to progress
@@ -6804,7 +6861,8 @@ def register_jobs_routes(
 
         user = request.scope.get("user") or {}
         _raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
-        with AtlasDB(_atlas_job_db_path(pr)) as db:
+        control_db_path = _atlas_control_db_path(pr)
+        with AtlasDB(control_db_path) as db:
             db_user_id = _canonical_user_id(db, _raw_user_id)
             workspace = db.upsert_workspace(
                 pr.name or "default",
@@ -6829,7 +6887,7 @@ def register_jobs_routes(
                 return JSONResponse({"error": str(exc)}, status_code=403)
 
         runtime = get_orchestrator_runtime(
-            _atlas_job_db_path(pr),
+            control_db_path,
             project_root=pr,
             source_root=_SOURCE_ROOT,
             register_job=_register_orchestrator_supervisor_job,
@@ -6895,7 +6953,7 @@ def register_jobs_routes(
         pr = _request_project_root(request, ip)
         user = request.scope.get("user") or {}
         raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
-        with AtlasDB(_atlas_job_db_path(pr)) as db:
+        with AtlasDB(_atlas_control_db_path(pr)) as db:
             db_user_id = _canonical_user_id(db, raw_user_id)
             workspace = db.upsert_workspace(
                 pr.name or "default",
@@ -6944,7 +7002,7 @@ def register_jobs_routes(
         if not _assert_ip_access(request_db_user or request_user, ip, request_is_admin, pr):
             return JSONResponse({"error": "forbidden"}, status_code=403)
         _raw_user_id = request_db_user or request_user or "local-admin"
-        with AtlasDB(_atlas_job_db_path(pr)) as db:
+        with AtlasDB(_atlas_control_db_path(pr)) as db:
             db_user_id = _canonical_user_id(db, _raw_user_id)
             workspace = db.upsert_workspace(
                 pr.name or "default",
@@ -7058,8 +7116,9 @@ def register_jobs_routes(
             context_owner = normalize_session_name(context_session.split("/", 1)[0])
         context_db_user = str(body.get("db_user_id") or "").strip()
         active_owner = _active_tool_owner()
+        active_owner_for_auth = "" if context_db_user else active_owner
         run_user_id = ""
-        _raw_owner = context_owner or active_owner or context_db_user
+        _raw_owner = context_owner or active_owner_for_auth or context_db_user
         owner_display_id = normalize_session_name(_raw_owner) or "local-admin"
         owner_user_id = context_db_user or _raw_owner
         chat_context = ""
@@ -7067,7 +7126,7 @@ def register_jobs_routes(
             from core.atlas_db import AtlasDB
 
             pr_for_chat = project_root()
-            with AtlasDB(_atlas_job_db_path(pr_for_chat)) as db:
+            with AtlasDB(_atlas_control_db_path(pr_for_chat)) as db:
                 if orchestrator_run_id_resolved:
                     run_row = db.get_orchestrator_run(orchestrator_run_id_resolved)
                     if run_row:
@@ -7081,15 +7140,16 @@ def register_jobs_routes(
                             run_parts = [part for part in run_session.split("/") if part]
                             if run_parts:
                                 context_owner = normalize_session_name(run_parts[0])
-                if _multi_user_enabled() and not (context_db_user or active_owner):
+                active_owner_for_auth = "" if context_db_user else active_owner
+                if _multi_user_enabled() and not (context_db_user or active_owner_for_auth):
                     return {
                         "ok": False,
                         "error": "authenticated tool context required",
                         "source": "dispatch_workflow_tool",
                         "ip": ip_name,
                     }
-                _raw_owner = context_owner or active_owner or context_db_user
-                owner_user_id = _canonical_user_id(db, context_db_user or active_owner or context_owner)
+                _raw_owner = context_owner or active_owner_for_auth or context_db_user
+                owner_user_id = _canonical_user_id(db, context_db_user or active_owner_for_auth or context_owner)
                 owner_row = db.get_user(owner_user_id) if owner_user_id else None
                 run_canonical_user_id = _canonical_user_id(db, run_user_id) if run_user_id else ""
                 if run_canonical_user_id and owner_user_id and owner_user_id != run_canonical_user_id:
@@ -7113,14 +7173,14 @@ def register_jobs_routes(
                 trusted_owner_candidates = (
                     (owner_username, owner_user_id, context_db_user)
                     if owner_row or context_db_user
-                    else (active_owner, owner_user_id)
+                    else (active_owner_for_auth, owner_user_id)
                 )
                 for candidate in trusted_owner_candidates:
                     owner_identifier = normalize_session_name(str(candidate or ""))
                     if owner_identifier:
                         owner_identifiers.add(owner_identifier)
                 if _multi_user_enabled():
-                    if active_owner and active_owner not in owner_identifiers:
+                    if active_owner_for_auth and active_owner_for_auth not in owner_identifiers:
                         return {
                             "ok": False,
                             "error": "session owner/workspace mismatch",
@@ -7155,7 +7215,7 @@ def register_jobs_routes(
                     local_path=str(pr_for_chat),
                 )
                 chat_owner_ids: list[str] = []
-                for candidate in (owner_user_id, context_db_user, owner_display_id, active_owner, context_owner):
+                for candidate in (owner_user_id, context_db_user, owner_display_id, active_owner_for_auth, context_owner):
                     text = str(candidate or "").strip()
                     if text and text not in chat_owner_ids:
                         chat_owner_ids.append(text)

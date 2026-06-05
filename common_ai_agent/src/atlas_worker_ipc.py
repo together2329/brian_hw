@@ -11,11 +11,16 @@ import argparse
 import importlib
 import json
 import os
+import re
 import sys
 import time
 import traceback
 from pathlib import Path
 from typing import Any
+
+from src.orchestrator.ipc_tool_bridge import write_json_atomic
+
+_SAFE_IP_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]{0,63}$")
 
 
 def _read_request(path: Path) -> dict[str, Any]:
@@ -25,14 +30,36 @@ def _read_request(path: Path) -> dict[str, Any]:
     return data
 
 
+def _reject_symlink_chain(path: Path) -> None:
+    for candidate in (path, *path.parents):
+        if candidate.is_symlink():
+            raise ValueError(f"IPC worker path must not be a symlink: {candidate}")
+        if candidate.name == ".session":
+            return
+    raise ValueError("IPC worker path must stay under .session")
+
+
+def _validate_ipc_paths(request_path: Path, response_path: Path, request: dict[str, Any]) -> None:
+    _reject_symlink_chain(request_path)
+    _reject_symlink_chain(response_path)
+    project_root = Path(request.get("project_root") or os.environ.get("ATLAS_PROJECT_ROOT") or ".").resolve()
+    worker_root = (project_root / ".session" / "workers-ipc").resolve()
+    request_parent = request_path.parent.resolve()
+    response_parent = response_path.parent.resolve()
+    try:
+        request_parent.relative_to(worker_root)
+        response_parent.relative_to(worker_root)
+    except ValueError as exc:
+        raise ValueError("IPC worker paths must stay under the project worker root") from exc
+    if request_parent != response_parent:
+        raise ValueError("IPC worker response path must share the request directory")
+
+
 def _write_response(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    tmp.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False, default=str),
-        encoding="utf-8",
-    )
-    tmp.replace(path)
+    _reject_symlink_chain(path)
+    if not path.parent.is_dir():
+        raise ValueError(f"IPC worker response parent does not exist: {path.parent}")
+    write_json_atomic(path, payload, create_parent=False)
 
 
 def _resolve_ip_workflow_root(project_root: str, source_root: str, ip: str) -> Path:
@@ -50,6 +77,13 @@ def _configure_env(request: dict[str, Any]) -> None:
     workflow = str(request.get("workflow") or "").strip()
     session = str(request.get("session") or "").strip()
     ip = str(request.get("ip") or "").strip()
+    if ip and not _SAFE_IP_RE.fullmatch(ip):
+        raise ValueError(f"invalid IPC ip {ip!r}")
+    project_root_path = Path(project_root).expanduser().resolve()
+    ip_root = ""
+    if ip:
+        ip_root_path = project_root_path if project_root_path.name == ip else project_root_path / ip
+        ip_root = str(ip_root_path.resolve())
 
     os.environ["ATLAS_PROJECT_ROOT"] = project_root
     os.environ["ATLAS_SOURCE_ROOT"] = source_root
@@ -70,6 +104,7 @@ def _configure_env(request: dict[str, Any]) -> None:
     if ip:
         os.environ["ATLAS_ACTIVE_IP"] = ip
         os.environ["ATLAS_IP_ID"] = ip
+        os.environ["ATLAS_IP_ROOT"] = ip_root
     if source_root not in sys.path:
         sys.path.insert(0, source_root)
 
@@ -77,14 +112,15 @@ def _configure_env(request: dict[str, Any]) -> None:
 def run_request(request: dict[str, Any], *, run_id: str) -> dict[str, Any]:
     _configure_env(request)
 
-    from core.agent_server import RunEntry, _run_react_task  # type: ignore
-    import core.agent_server as agent_server  # type: ignore
+    agent_server = importlib.import_module("core.agent_server")
+    RunEntry = agent_server.RunEntry
+    _run_react_task = agent_server._run_react_task
 
     workflow = str(request.get("workflow") or "").strip()
     session = str(request.get("session") or "").strip()
-    agent_server._SERVER_WORKFLOW = workflow
-    agent_server._SERVER_SESSION = session
-    agent_server._SERVER_ACCEPT_ANY_WORKFLOW = False
+    setattr(agent_server, "_SERVER_WORKFLOW", workflow)
+    setattr(agent_server, "_SERVER_SESSION", session)
+    setattr(agent_server, "_SERVER_ACCEPT_ANY_WORKFLOW", False)
 
     started_at = time.time()
     entry = RunEntry(
@@ -135,8 +171,13 @@ def main(argv: list[str] | None = None) -> int:
     request_path = Path(args.request)
     response_path = Path(args.response)
     run_id = str(args.run_id or "").strip()
+    response_path_validated = False
     try:
+        _reject_symlink_chain(request_path)
+        _reject_symlink_chain(response_path)
         request = _read_request(request_path)
+        _validate_ipc_paths(request_path, response_path, request)
+        response_path_validated = True
         run_id = run_id or str(request.get("run_id") or "").strip() or f"ipc-{int(time.time() * 1000)}"
         response = run_request(request, run_id=run_id)
         _write_response(response_path, response)
@@ -158,10 +199,11 @@ def main(argv: list[str] | None = None) -> int:
             "entries": [],
             "finished_at": time.time(),
         }
-        try:
-            _write_response(response_path, error_response)
-        except Exception:
-            pass
+        if response_path_validated:
+            try:
+                _write_response(response_path, error_response)
+            except Exception:
+                pass
         return 1
 
 

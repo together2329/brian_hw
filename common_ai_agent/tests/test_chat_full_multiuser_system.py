@@ -25,6 +25,7 @@ Scenarios covered as a single end-to-end:
 """
 from __future__ import annotations
 
+import os
 import socket
 import sys
 import threading
@@ -59,6 +60,19 @@ from core.orchestrator_inject import (
     register_bridge,
 )
 import atlas_api_chat as chat_api
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _central_runtime_db_mode_for_full_multiuser_suite():
+    previous = os.environ.get("ATLAS_RUNTIME_DB_MODE")
+    os.environ["ATLAS_RUNTIME_DB_MODE"] = "central"
+    try:
+        yield
+    finally:
+        if previous is None:
+            os.environ.pop("ATLAS_RUNTIME_DB_MODE", None)
+        else:
+            os.environ["ATLAS_RUNTIME_DB_MODE"] = previous
 
 
 # ---------------------------------------------------------------------------

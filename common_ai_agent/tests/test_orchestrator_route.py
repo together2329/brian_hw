@@ -80,6 +80,28 @@ def _make_unauthenticated_client(tmp_path: Path, monkeypatch) -> TestClient:
     return TestClient(atlas_ui.create_app())
 
 
+def _make_client_with_project_root(tmp_path: Path, monkeypatch, project_root: Path, username: str = "u") -> TestClient:
+    import src.atlas_ui as atlas_ui
+
+    project_root.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ADMIN_AUTH_MODE", "db")
+    monkeypatch.setenv("ATLAS_ADMIN_LOGIN_REQUIRED", "1")
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_TRANSPORT", "thread")
+    monkeypatch.delenv("ATLAS_LOCAL_ADMIN", raising=False)
+    monkeypatch.delenv("ATLAS_ADMIN_BYPASS", raising=False)
+    monkeypatch.chdir(project_root)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", project_root)
+
+    client = TestClient(atlas_ui.create_app())
+    reg = client.post("/api/auth/register", json={"username": username, "password": "pw"})
+    assert reg.status_code == 200, reg.text
+    return client
+
+
 @pytest.fixture
 def stub_runner(monkeypatch):
     stub = _StubRunner()
@@ -516,6 +538,91 @@ def test_chat_route_uses_runtime_selector_not_direct_runner(
     assert len(stub.calls) == 1
 
 
+def test_chat_route_uses_auth_db_for_ipc_runtime_when_trace_db_is_separate(
+    tmp_path,
+    monkeypatch,
+):
+    import importlib
+
+    import src.atlas_ui as atlas_ui
+
+    runtime_mod = importlib.import_module("src.orchestrator.runtime")
+
+    stub = _StubRunner()
+    runtime_calls = []
+
+    def fake_runtime_selector(db_path: str, *, project_root: Path, **kwargs):
+        runtime_calls.append((db_path, project_root, kwargs))
+        return stub
+
+    monkeypatch.setattr(runtime_mod, "get_orchestrator_runtime", fake_runtime_selector)
+    monkeypatch.setenv("ATLAS_ORCHESTRATOR_TRANSPORT", "ipc")
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = _make_client(tmp_path, monkeypatch)
+    auth_db_path = tmp_path / "atlas.db"
+    trace_db_path = tmp_path / "trace.db"
+    monkeypatch.setenv("ATLAS_TRACE_DB_PATH", str(trace_db_path))
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={"message": "create ipA and run to green", "ip": "ipA"},
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert runtime_calls
+    assert runtime_calls[0][0] == str(auth_db_path)
+    assert runtime_calls[0][0] != str(trace_db_path)
+    assert stub.calls[0]["session_id"] == "u/default/ipA/orchestrator"
+
+
+def test_chat_route_does_not_double_append_already_scoped_project_root(
+    tmp_path,
+    monkeypatch,
+):
+    import importlib
+
+    import src.atlas_ui as atlas_ui
+
+    runtime_mod = importlib.import_module("src.orchestrator.runtime")
+
+    stub = _StubRunner()
+    runtime_calls = []
+
+    def fake_runtime_selector(db_path: str, *, project_root: Path, **kwargs):
+        runtime_calls.append((db_path, project_root, kwargs))
+        return stub
+
+    scoped_root = tmp_path / "u" / "default"
+    monkeypatch.setattr(runtime_mod, "get_orchestrator_runtime", fake_runtime_selector)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", scoped_root)
+    client = _make_client_with_project_root(tmp_path, monkeypatch, scoped_root)
+
+    resp = client.post(
+        "/api/pipeline/orchestrator/chat",
+        json={
+            "message": "continue ipA",
+            "ip": "ipA",
+            "session_id": "u",
+            "workspace_session": "default",
+            "workflow": "orchestrator",
+        },
+    )
+
+    assert resp.status_code == 200, resp.text
+    assert runtime_calls
+    assert runtime_calls[0][1] == scoped_root
+
+    AtlasDB = _atlas_db_cls()
+    db = AtlasDB(str(tmp_path / "atlas.db"))
+    try:
+        workspace = db._execute("SELECT * FROM workspaces WHERE name = ?", ("default",)).fetchone()
+        assert workspace is not None
+        assert workspace["local_path"] == str(scoped_root)
+    finally:
+        db.close()
+
+
 def test_run_detail_requires_ip_scope(tmp_path, monkeypatch, stub_runner):
     client = _make_client(tmp_path, monkeypatch)
     resp = client.get("/api/orchestrator/runs/does-not-exist")
@@ -569,3 +676,50 @@ def test_active_run_is_scoped_to_request_workspace(
     assert owner_resp.json()["run"]["id"] == run["id"]
     assert alt_resp.status_code == 200, alt_resp.text
     assert alt_resp.json()["run"] is None
+
+
+def test_orchestrator_run_surfaces_use_control_db_when_trace_db_is_separate(
+    tmp_path,
+    monkeypatch,
+    stub_runner,
+):
+    AtlasDB = _atlas_db_cls()
+    control_db_path = tmp_path / "atlas.db"
+    trace_db_path = tmp_path / "trace.db"
+    monkeypatch.setenv("ATLAS_TRACE_DB_PATH", str(trace_db_path))
+
+    client = _make_client(tmp_path, monkeypatch)
+    with AtlasDB(str(control_db_path)) as db:
+        user = db.get_user_by_username("u")
+        assert user is not None
+        workspace = db.upsert_workspace(
+            "default",
+            owner_user_id=user["id"],
+            local_path=str(tmp_path / "u" / "default"),
+        )
+        ip_row = db.upsert_ip_block(workspace["id"], "ipA")
+        run = db.create_orchestrator_run(
+            user_id=user["id"],
+            ip_id=ip_row["id"],
+            workspace_id=workspace["id"],
+            session_id="u/default/ipA/orchestrator",
+        )
+        db.append_orchestrator_step(
+            run["id"],
+            tool_name="dispatch_workflow",
+            decision={"args": {"workflow": "contract-check"}},
+            verdict="ok",
+        )
+
+    run_detail = client.get(
+        f"/api/orchestrator/runs/{run['id']}?ip=ipA&workspace_session=default"
+    )
+    active_run = client.get(
+        "/api/orchestrator/active_run?ip=ipA&workspace_session=default"
+    )
+
+    assert run_detail.status_code == 200, run_detail.text
+    assert run_detail.json()["run"]["id"] == run["id"]
+    assert run_detail.json()["steps"][0]["tool_name"] == "dispatch_workflow"
+    assert active_run.status_code == 200, active_run.text
+    assert active_run.json()["run"]["id"] == run["id"]
