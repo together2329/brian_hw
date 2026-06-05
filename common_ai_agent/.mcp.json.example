@@ -19,6 +19,11 @@
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/allowed/dir"],
       "env": {}
+    },
+    "codex": {
+      "command": "codex",
+      "args": ["mcp-server"],
+      "env": {}
     }
   }
 }
