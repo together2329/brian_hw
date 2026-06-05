@@ -752,6 +752,7 @@ export interface PipelineOrchestratorChatPanelProps {
 }
 function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrchestratorChatPanelProps) {
   const [messages, setMessages] = useState<OrchestratorFeedEntry[]>([]);
+  const [filterCategory, setFilterCategory] = useState<'all' | 'thought' | 'action' | 'obs'>('all');
   const [since, setSince] = useState(0);
   const [draft, setDraft] = useState('');
   const [sending, setSending] = useState(false);
@@ -766,6 +767,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
 
   useEffect(() => {
     setMessages([]);
+    setFilterCategory('all');
     setSince(0);
     sinceRef.current = 0;
   }, [ip]);
@@ -921,7 +923,13 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     };
   }, [ip, isActive, hasIp]);
 
-  const visibleMessages = messages;
+  const visibleMessages = messages.filter((entry) => {
+    if (filterCategory === 'all') return true;
+    return entry.kind === filterCategory;
+  });
+  const filterButtonClass = (value: 'all' | 'thought' | 'action' | 'obs'): string => {
+    return `orch-chat-filter-btn${filterCategory === value ? ' active' : ''}`;
+  };
 
   const handleSend = async () => {
     const text = draft.trim();
@@ -967,6 +975,36 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           {isActive ? 'live' : 'idle'}
         </span>
       </div>
+      <div className="orch-chat-filter-bar" aria-label="Orchestrator log category filter">
+        <button
+          type="button"
+          className={filterButtonClass('all')}
+          onClick={() => setFilterCategory('all')}
+        >
+          all
+        </button>
+        <button
+          type="button"
+          className={filterButtonClass('thought')}
+          onClick={() => setFilterCategory('thought')}
+        >
+          only thought
+        </button>
+        <button
+          type="button"
+          className={filterButtonClass('action')}
+          onClick={() => setFilterCategory('action')}
+        >
+          only action
+        </button>
+        <button
+          type="button"
+          className={filterButtonClass('obs')}
+          onClick={() => setFilterCategory('obs')}
+        >
+          only obs
+        </button>
+      </div>
       <div className="orch-chat-body" ref={bodyRef as Ref<HTMLDivElement>} onScroll={onBodyScroll}>
         {visibleMessages.length === 0 ? (
           <div className="orch-chat-empty mute">
@@ -980,7 +1018,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           return (
             <div
               key={m.id || i}
-              className={`orch-chat-row ${roleClass(role)}`.trim()}
+              className={`orch-chat-row ${roleClass(role)} ${`cat-${m.kind}`}`.trim()}
               data-category={m.kind}
             >
               <span className="orch-chat-role">

@@ -184,4 +184,56 @@ describe('PipelineOrchestratorChatPanel session scoping', () => {
     await waitFor(() => expect(container.textContent).toContain('INSPECT_PIPELINE'));
   });
 
+  it('filters log categories with only-thought/action/obs modes', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
+      const url = String(input);
+      if (url.startsWith('/api/orchestrator/chat/messages')) {
+        return new Response(JSON.stringify({
+          ok: true,
+          messages: [
+            { id: 'm_agent', role: 'assistant', content: 'agent response', created_at: 1 },
+            { id: 'm_thought', role: 'thought', content: 'thinking about path', created_at: 2 },
+            { id: 'm_action', role: 'tool', content: 'dispatch_workflow(stage)', created_at: 3 },
+            { id: 'm_obs', role: 'tool_result', payload: { tool: 'sim', content: 'result done' }, created_at: 4 },
+          ],
+          next_since: 4,
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, status: 'started' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const { container, getByText, getByRole } = render(
+      <PipelineOrchestratorChatPanel
+        ip="jjj"
+        pipelineState={{ orchestrator: { active: true } }}
+      />,
+    );
+
+    await waitFor(() => expect(getByText('agent response')).toBeInTheDocument());
+
+    fireEvent.click(getByRole('button', { name: /only thought/i }));
+    expect(container.textContent).toContain('thinking about path');
+    expect(container.textContent).not.toContain('dispatch_workflow(stage)');
+    expect(container.textContent).not.toContain('result done');
+    expect(container.textContent).not.toContain('agent response');
+
+    fireEvent.click(getByRole('button', { name: /only action/i }));
+    expect(container.textContent).toContain('dispatch_workflow(stage)');
+    expect(container.textContent).not.toContain('thinking about path');
+    expect(container.textContent).not.toContain('agent response');
+    expect(container.textContent).not.toContain('result done');
+
+    fireEvent.click(getByRole('button', { name: /only obs/i }));
+    expect(container.textContent).toContain('result done');
+    expect(container.textContent).not.toContain('thinking about path');
+    expect(container.textContent).not.toContain('agent response');
+    expect(container.textContent).not.toContain('dispatch_workflow(stage)');
+  });
 });
