@@ -480,13 +480,6 @@ def make_slash_handlers(
         extracted_path = ip_dir / "req" / "extracted_decisions.json"
         evidence_path = ip_dir / "wiki" / "import-evidence.md"
         imports_dir = ip_dir / "req" / "imports"
-        import_files: list[Path] = []
-        if imports_dir.is_dir():
-            for path in sorted(imports_dir.rglob("*"), key=lambda p: p.as_posix()):
-                if path.is_file() and path.suffix.lower() in _SSOT_IMPORT_EXTENSIONS:
-                    import_files.append(path)
-                    if len(import_files) >= 12:
-                        break
 
         def _emit_to_ssot_blocked(msg: str) -> bool:
             _append_session_message(session, "user", text)
@@ -498,6 +491,48 @@ def make_slash_handlers(
             _emit_workflow_result(msg, "to-ssot")
             _emit_ssot_approval_ready(ip, state)
             return True
+
+        locked_manifest_path = ip_dir / "req" / "approval_manifest.json"
+        locked_req_paths = [
+            ip_dir / "req" / "requirements_index.json",
+            ip_dir / "req" / "obligations.json",
+            ip_dir / "req" / "contract_refs.json",
+            ip_dir / "req" / "evidence_plan.json",
+            ip_dir / "req" / "locked_truth.md",
+        ]
+        locked_truth_active = False
+        locked_truth_sources: list[str] = []
+        if locked_manifest_path.is_file():
+            try:
+                locked_manifest = json.loads(locked_manifest_path.read_text(encoding="utf-8"))
+            except Exception as exc:
+                return _emit_to_ssot_blocked(
+                    f"[SSOT GATE] blocked: locked truth manifest is unreadable for {ip}\n"
+                    f"manifest: `{_relative_project_path(locked_manifest_path)}`\n"
+                    f"error: {exc}"
+                )
+            locked_status = str(locked_manifest.get("status") or locked_manifest.get("locked_truth_status") or "").strip()
+            if locked_status == "requirements_locked":
+                missing_locked_files = [p for p in locked_req_paths if not p.is_file()]
+                if missing_locked_files:
+                    listed = "\n".join(f"- `{_relative_project_path(path)}`" for path in missing_locked_files)
+                    return _emit_to_ssot_blocked(
+                        f"[SSOT GATE] blocked: locked truth bundle is incomplete for {ip}\n"
+                        f"manifest: `{_relative_project_path(locked_manifest_path)}`\n"
+                        f"missing locked-truth files:\n{listed}"
+                    )
+                locked_truth_active = True
+                locked_truth_sources = [
+                    _relative_project_path(locked_manifest_path),
+                    *[_relative_project_path(path) for path in locked_req_paths],
+                ]
+        import_files: list[Path] = []
+        if imports_dir.is_dir():
+            for path in sorted(imports_dir.rglob("*"), key=lambda p: p.as_posix()):
+                if path.is_file() and path.suffix.lower() in _SSOT_IMPORT_EXTENSIONS:
+                    import_files.append(path)
+                    if len(import_files) >= 12:
+                        break
 
         if import_files and (not manifest_path.is_file() or not extracted_path.is_file() or not evidence_path.is_file()):
             listed = "\n".join(f"- `{_relative_project_path(path)}`" for path in import_files[:8])
@@ -512,7 +547,7 @@ def make_slash_handlers(
             )
 
         missing = _missing_ssot_decisions(ip, state)
-        if missing:
+        if missing and not locked_truth_active:
             return _emit_to_ssot_blocked(
                 f"[SSOT GATE] blocked: {ip} still has missing SSOT decisions\n"
                 f"missing: {', '.join(missing)}\n"
@@ -521,20 +556,27 @@ def make_slash_handlers(
             )
 
         # /to-ssot queues a Normal-mode LLM turn only after the deterministic
-        # import/decision preflight is complete. Structure is derived from
-        # manifest, extracted decisions, wiki evidence, and approved Q&A; the
-        # template is a schema contract only, never a source of IP behavior.
-        spec = _render_approved_ssot_spec(ip, state) if state else f"[to-ssot] {ip}: no SSOT state yet."
+        # import/decision preflight is complete. When locked truth exists,
+        # req/ is the authority and missing legacy decision slots must be
+        # projected into SSOT fields instead of blocking on grill-me.
+        spec = _render_approved_ssot_spec(ip, state) if (state or locked_truth_active) else f"[to-ssot] {ip}: no SSOT state yet."
         _append_session_message(session, "user", text)
         _append_session_message(session, "assistant", spec)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
         ssot_path = _ssot_yaml_path(ip)
+        source_summary = (
+            "Sources: locked truth bundle "
+            + ", ".join(f"`{src}`" for src in locked_truth_sources)
+            + "."
+            if locked_truth_active
+            else f"Sources: `{ip}/req/import_manifest.json`, `{ip}/req/extracted_decisions.json`, `{ip}/wiki/import-evidence.md`, Web Q&A."
+        )
         ready_msg = (
             f"[to-ssot] {ip} — queueing LLM SSOT write.\n"
             f"Target: {ssot_path}\n"
-            f"Sources: `{ip}/req/import_manifest.json`, `{ip}/req/extracted_decisions.json`, `{ip}/wiki/import-evidence.md`, Web Q&A."
+            f"{source_summary}"
         )
         _append_session_message(session, "assistant", ready_msg)
         _append_workflow_history("ssot-gen", "assistant", ready_msg)
@@ -560,11 +602,23 @@ def make_slash_handlers(
             "Environment aliases for commands: `$ATLAS_PROJECT_ROOT` is the IP/project artifact root, "
             "`$ATLAS_WORKFLOW_ROOT` is the workflow script root, and `$ATLAS_IP_ROOT` may pin this IP root.\n\n"
             "Source-of-truth inputs (READ these first):\n"
-            f"  1. `{ip}/req/import_manifest.json`     — authoritative import inventory, candidate facts, source excerpts, conflicts, next action.\n"
-            f"  2. `{ip}/req/extracted_decisions.json` — per-decision evidence extracted by /import.\n"
-            f"  3. `{ip}/wiki/import-evidence.md`, `{ip}/wiki/index.md`, `_graph.json`, `log.md`, `notes.md` — accumulated wiki evidence.\n"
-            f"  4. `{ip}/req/imports/`                 — uploaded/converted requirement evidence referenced by the manifest.\n"
-            "  5. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
+            + (
+                f"  1. `{ip}/req/approval_manifest.json`  — locked-truth approval, approver, and bundle hash.\n"
+                f"  2. `{ip}/req/requirements_index.json` — canonical locked requirements.\n"
+                f"  3. `{ip}/req/obligations.json`        — atomic testable obligations split from requirements.\n"
+                f"  4. `{ip}/req/contract_refs.json`      — machine-checkable central/stage contract references.\n"
+                f"  5. `{ip}/req/evidence_plan.json`      — planned artifacts, validators, and pass conditions.\n"
+                f"  6. `{ip}/req/locked_truth.md`         — deterministic human-readable projection of the locked bundle.\n"
+                f"  7. Existing `{ip}/yaml/{ip}.ssot.yaml` is only a prior Design Spec projection; if it is a TBD skeleton, replace/repair it from req/.\n"
+                f"  8. Import/wiki evidence may be read if present, but locked req/ wins on conflicts.\n\n"
+                if locked_truth_active else
+                f"  1. `{ip}/req/import_manifest.json`     — authoritative import inventory, candidate facts, source excerpts, conflicts, next action.\n"
+                f"  2. `{ip}/req/extracted_decisions.json` — per-decision evidence extracted by /import.\n"
+                f"  3. `{ip}/wiki/import-evidence.md`, `{ip}/wiki/index.md`, `_graph.json`, `log.md`, `notes.md` — accumulated wiki evidence.\n"
+                f"  4. `{ip}/req/imports/`                 — uploaded/converted requirement evidence referenced by the manifest.\n"
+                "  5. Web Q&A snapshot (already inline above in the [SSOT SPEC] block).\n\n"
+            )
+            +
             "Canonical YAML shape required by SSOT Preview and gates:\n"
             "  - Top level must be one YAML mapping. Do NOT wrap the document in `ssot:`, `sections:`, `spec:`, or markdown fences.\n"
             "  - Use these exact top-level keys, in this order:\n"
@@ -578,11 +632,10 @@ def make_slash_handlers(
             "  - `script` is the deterministic workflow script that validates or expands that handoff (for example `$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py`).\n"
             "  - `instructions` must be IP-specific and source-backed; do not leave generic template language when imported evidence is available.\n\n"
             "Rules for the write:\n"
-            "  - Derive structure from the imports themselves. Do NOT stamp a "
-            "33-section template; do NOT invent sections the imports don't "
-            "support; do NOT use placeholder strings like '(TBD)' as a "
-            "shortcut — if a fact isn't in the imports or Q&A, omit the "
-            "field or leave a single-line comment explaining the gap.\n"
+            "  - Derive missing SSOT Preview fields from locked requirements, obligations, contract_refs, and evidence_plan before asking the user.\n"
+            "  - Map req/obligation/contract facts into canonical Design Spec sections: purpose -> top_module.description; interface obligations -> io_list.interfaces[].ports[]; register obligations -> registers.register_list[]; reset obligations -> clock_reset_domains; interrupt obligations -> interrupts; evidence_plan -> test_requirements.scenarios[] and quality_gates.\n"
+            "  - If locked truth does not specify memory blocks, FSMs, child submodules, DFT, power, or security behavior, add an explicit no-memory/no-FSM/external-owner/non-goal policy with source_refs instead of leaving TBD.\n"
+            "  - Do NOT stamp a 33-section template; do NOT invent behavior beyond req/. Do NOT use placeholder strings like '(TBD)' as a shortcut. If a fact is truly absent from locked truth and affects RTL behavior, record a focused blocker/assumption in `custom.assumptions` or `[SSOT QUESTION]`.\n"
             f"  - Do not copy DMA/AXI example content from `{WORKFLOW_ROOT / 'ssot-gen' / 'rules' / 'ssot-template.yaml'}`. The template is a schema/order reference only; imported evidence and Q&A are the behavior source.\n"
             "  - Quote register addresses, signal names, encodings, and "
             "interface widths verbatim from the imports.\n"

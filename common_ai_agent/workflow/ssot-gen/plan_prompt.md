@@ -14,7 +14,7 @@ tb-gen, and sim workflow responsibilities.
    - `assumed`: conservative assumptions with rationale
    - `blocking_questions`: only items that prevent a correct SSOT
    - `deferred`: non-blocking future enhancements
-4. Ask user only for blocking gaps. If a reasonable safe assumption is enough, record it in `custom.assumptions` instead of stopping.
+4. Ask user only for blocking gaps. If locked truth exists, first derive missing SSOT validation fields from `requirements_index.json`, `obligations.json`, `contract_refs.json`, and `evidence_plan.json`; a missing YAML field is a projection gap, not automatically a missing truth gap. If a reasonable safe assumption is enough, record it in `custom.assumptions` instead of stopping.
 5. Confirm the leaf IP boundary: what this SSOT owns, what is external, and which submodules are manifest-owned versus child SSOTs.
 6. Do not write or modify canonical `req/*.json` authority files from ssot-gen. If locked truth is missing, stop with a lock/approval gap or proceed only as an unlocked draft when the user explicitly requested that.
 
@@ -43,6 +43,7 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 8. Avoid IP-specific fixed templates. The SSOT must describe behavior, interfaces, constraints, and acceptance criteria; downstream workflows generate implementation from those facts.
 9. If locked truth exists, put authority metadata under `custom.locked_truth_authority` and put projection coverage under `traceability.locked_truth_projection`. Do not add a new top-level `authority:` key because the canonical top-level section set is fixed.
 10. Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to important Design Spec items such as interfaces, register fields, function_model transactions, cycle_model rules, test scenarios, coverage bins, and quality gates.
+11. When locked truth is silent about memory, FSM, child submodules, DFT, power, security, or another optional capability, write an explicit no-feature/external-owner/non-goal policy with source_refs instead of leaving TBD placeholders.
 
 ## Phase 3: Validation Gate
 - Parse `<ip>/yaml/<ip>.ssot.yaml` as YAML

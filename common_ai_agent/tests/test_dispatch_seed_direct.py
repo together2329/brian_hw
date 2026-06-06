@@ -55,10 +55,16 @@ class _StubApp:
         raise AttributeError(name)
 
 
-def _write_approval_manifest(project_root: Path, ip: str, *, status: str = "approved") -> None:
+def _write_approval_manifest(project_root: Path, ip: str, *, status: str = "requirements_locked") -> None:
     manifest = project_root / ip / "req" / "approval_manifest.json"
     manifest.parent.mkdir(parents=True, exist_ok=True)
-    manifest.write_text(json.dumps({"status": status}), encoding="utf-8")
+    manifest.write_text(
+        json.dumps({
+            "status": status,
+            "requirements": [{"requirement_id": "REQ_GRAY", "status": "locked", "required": True}],
+        }),
+        encoding="utf-8",
+    )
 
 
 def _install_dispatch_route(
@@ -74,7 +80,7 @@ def _install_dispatch_route(
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "gray")
     monkeypatch.setenv("ATLAS_ACTIVE_USER", "local-admin")
     if approve_truth:
-        _write_approval_manifest(tmp_path, "gray", status="approved")
+        _write_approval_manifest(tmp_path, "gray")
 
     callbacks: Dict[str, Any] = {}
     fake_core_tools = types.SimpleNamespace(

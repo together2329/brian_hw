@@ -6792,22 +6792,84 @@ def create_app():
 
     def _render_approved_ssot_spec(ip: str, state: dict[str, Any]) -> str:
         decisions = _ssot_decisions(ip, state)
+        req_dir = _ip_root(ip) / "req"
+
+        def _read_json_file(path: Path) -> dict[str, Any]:
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+                return doc if isinstance(doc, dict) else {}
+            except Exception:
+                return {}
+
+        approval = _read_json_file(req_dir / "approval_manifest.json")
+        requirements_doc = _read_json_file(req_dir / "requirements_index.json")
+        obligations_doc = _read_json_file(req_dir / "obligations.json")
+        contracts_doc = _read_json_file(req_dir / "contract_refs.json")
+        evidence_doc = _read_json_file(req_dir / "evidence_plan.json")
+        locked_truth_active = str(approval.get("status") or approval.get("locked_truth_status") or "").strip() == "requirements_locked"
+
         lines = [
             f"[WEB TO SSOT SPEC] {ip}",
             f"kind: {state.get('kind') or 'simple APB peripheral'}",
-            "source: Web UI Plan Mode + SSOT draft decisions + per-IP wiki/import evidence",
+            (
+                "source: Approved Locked Truth req/ bundle + Web UI Plan Mode / import evidence"
+                if locked_truth_active else
+                "source: Web UI Plan Mode + SSOT draft decisions + per-IP wiki/import evidence"
+            ),
             "",
-            "Use this with the per-IP wiki as the source of truth for /to-ssot. Do not invent over missing fields.",
+            (
+                "Use req/ as the authority for /to-ssot. Existing YAML is only a Design Spec projection and may be a stale TBD skeleton."
+                if locked_truth_active else
+                "Use this with the per-IP wiki as the source of truth for /to-ssot. Do not invent over missing fields."
+            ),
             "Required evidence navigation before writing SSOT:",
-            f"- {ip}/wiki/index.md",
-            f"- {ip}/wiki/_graph.json",
-            f"- {ip}/wiki/import-evidence.md",
-            f"- {ip}/wiki/log.md",
-            f"- {ip}/wiki/notes.md",
-            f"- {ip}/req/imports/",
-            f"- relevant files linked by the wiki/import evidence under {ip}/req, {ip}/doc, {ip}/rtl, {ip}/model, {ip}/tb, {ip}/sim, {ip}/lint, and {ip}/logs",
-            "Generation rule: reconcile current decisions with import history, wiki summaries, source excerpts, conflicts, and downstream TODO evidence.",
         ]
+        if locked_truth_active:
+            req_count = len(requirements_doc.get("requirements") or [])
+            obl_count = len(obligations_doc.get("obligations") or [])
+            contract_count = len(contracts_doc.get("contract_refs") or [])
+            evidence_count = len(evidence_doc.get("evidence_plan") or [])
+            lines.extend([
+                f"- {ip}/req/approval_manifest.json (status=requirements_locked, bundle_sha256={approval.get('bundle_sha256') or '(missing)'})",
+                f"- {ip}/req/requirements_index.json ({req_count} requirements)",
+                f"- {ip}/req/obligations.json ({obl_count} obligations)",
+                f"- {ip}/req/contract_refs.json ({contract_count} contract refs)",
+                f"- {ip}/req/evidence_plan.json ({evidence_count} evidence plan entries)",
+                f"- {ip}/req/locked_truth.md",
+                f"- {ip}/yaml/{ip}.ssot.yaml only as prior projection; replace/repair it if it is TBD-filled.",
+                "",
+                "Locked Truth projection rule:",
+                "- Derive SSOT Preview blockers from req/ before asking the user: top_module.description, io_list.interfaces[].ports[], registers.register_list[], clock_reset_domains, interrupts, scenarios, quality_gates, and traceability.",
+                "- Map requirements -> obligations -> contract_refs -> evidence_plan into source_refs/contract_refs/evidence_refs on Design Spec items.",
+                "- If req/ does not specify memory, FSM, child submodules, DFT, power, or security behavior, write an explicit no-feature/external-owner/non-goal policy instead of a TBD placeholder.",
+                "- Do not modify canonical req/*.json from ssot-gen; write only the YAML projection and SSOT-side validation artifacts.",
+                "",
+                "Locked requirements:",
+            ])
+            for row in requirements_doc.get("requirements") or []:
+                if not isinstance(row, dict):
+                    continue
+                rid = str(row.get("requirement_id") or row.get("id") or "").strip()
+                title = str(row.get("title") or "").strip()
+                statement = str(row.get("statement") or row.get("requirement") or "").strip()
+                obligations = row.get("obligation_refs") or row.get("obligations") or []
+                lines.append(f"- {rid or '(unnamed)'}: {title} — {statement}")
+                if obligations:
+                    if all(isinstance(item, str) for item in obligations):
+                        lines.append(f"  obligation_refs: {', '.join(str(item) for item in obligations[:8])}")
+                    else:
+                        lines.append(f"  obligations: {len(obligations)} inline item(s)")
+        else:
+            lines.extend([
+                f"- {ip}/wiki/index.md",
+                f"- {ip}/wiki/_graph.json",
+                f"- {ip}/wiki/import-evidence.md",
+                f"- {ip}/wiki/log.md",
+                f"- {ip}/wiki/notes.md",
+                f"- {ip}/req/imports/",
+                f"- relevant files linked by the wiki/import evidence under {ip}/req, {ip}/doc, {ip}/rtl, {ip}/model, {ip}/tb, {ip}/sim, {ip}/lint, and {ip}/logs",
+                "Generation rule: reconcile current decisions with import history, wiki summaries, source excerpts, conflicts, and downstream TODO evidence.",
+            ])
         for key, _label in _SSOT_REQUIRED_DECISIONS:
             lines.append(f"- {key}: {decisions.get(key) or '(missing)'}")
         return "\n".join(lines)

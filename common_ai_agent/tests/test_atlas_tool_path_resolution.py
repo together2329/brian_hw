@@ -237,7 +237,7 @@ def test_llm_replace_lines_refuses_locked_requirement_authority_files(tmp_path, 
     target.write_text("line 1\nline 2\n", encoding="utf-8")
     (req_dir / "approval_manifest.json").write_text(
         (
-            '{"requirements":['
+            '{"status":"requirements_locked","requirements":['
             '{"requirement_id":"REQ_1","status":"locked","required":true}'
             "]}\n"
         ),

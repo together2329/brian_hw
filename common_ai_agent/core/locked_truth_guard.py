@@ -19,8 +19,8 @@ LOCKED_TRUTH_GLOBS: Final[Tuple[str, ...]] = (
     "req/source_references.md",
     "req/approval_manifest.json",
 )
-LOCKED_STATUSES: Final[Set[str]] = {"approved", "locked", "all_locked", "requirements_locked"}
-LOCKED_REQUIREMENT_STATUSES: Final[Set[str]] = {"approved", "locked"}
+LOCKED_STATUSES: Final[Set[str]] = {"requirements_locked"}
+LOCKED_REQUIREMENT_STATUSES: Final[Set[str]] = {"locked"}
 UNLOCKED_STATUSES: Final[Set[str]] = {"draft", "pending", "rejected", "unapproved", "unlocked"}
 DISABLE_VALUES: Final[Set[str]] = {"0", "false", "no", "off", "disabled"}
 
@@ -152,6 +152,8 @@ def _lock_active(ip_dir: Path) -> bool:
         return False
     requirements = raw.get("requirements")
     if isinstance(requirements, list):
+        if status != "requirements_locked":
+            return False
         return _all_required_requirements_locked(requirements)
     return status in LOCKED_STATUSES
 

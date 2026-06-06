@@ -41,6 +41,7 @@ def test_requirement_manifest_stays_unlocked_until_all_required_items_lock(tmp_p
     requirements_index.write_text("{}\n", encoding="utf-8")
 
     _write_guard_manifest(ip_dir, {
+        "status": "requirements_locked",
         "requirements": [
             {"id": "REQ_MCTP_HEADER", "status": "locked", "required": True},
             {"id": "REQ_MCTP_PAYLOAD", "status": "pending", "required": True},
@@ -51,6 +52,7 @@ def test_requirement_manifest_stays_unlocked_until_all_required_items_lock(tmp_p
     assert locked_truth_guard.locked_truth_write_error(project_root, ip, str(req_file)) is None
 
     _write_guard_manifest(ip_dir, {
+        "status": "requirements_locked",
         "requirements": [
             {"id": "REQ_MCTP_HEADER", "status": "locked", "required": True},
             {"id": "REQ_MCTP_PAYLOAD", "status": "locked", "required": True},
@@ -73,8 +75,9 @@ def test_requirement_manifest_ignores_optional_unlocked_items(tmp_path: Path) ->
     ip = "timer"
     ip_dir = project_root / ip
     _write_guard_manifest(ip_dir, {
+        "status": "requirements_locked",
         "requirements": [
-            {"id": "REQ_TIMER_COUNT", "status": "approved", "required": True},
+            {"id": "REQ_TIMER_COUNT", "status": "locked", "required": True},
             {"id": "REQ_TIMER_INTERRUPT", "status": "pending", "required": False},
         ],
     })
@@ -99,6 +102,22 @@ def test_requirement_manifest_status_does_not_lock_pending_required_items(tmp_pa
     assert locked_truth_guard.is_locked_truth_active(project_root, ip) is False
 
 
+def test_approved_manifest_status_alone_does_not_lock_truth(tmp_path: Path) -> None:
+    locked_truth_guard = importlib.import_module("core.locked_truth_guard")
+
+    project_root = tmp_path
+    ip = "timer"
+    ip_dir = project_root / ip
+    _write_guard_manifest(ip_dir, {
+        "status": "approved",
+        "requirements": [
+            {"id": "REQ_TIMER_COUNT", "status": "approved", "required": True},
+        ],
+    })
+
+    assert locked_truth_guard.is_locked_truth_active(project_root, ip) is False
+
+
 def test_worker_run_restores_locked_truth_mutation_under_request_project_root(
     tmp_path: Path,
     monkeypatch,
@@ -117,7 +136,11 @@ def test_worker_run_restores_locked_truth_mutation_under_request_project_root(
     source_root.mkdir(parents=True)
     req_file.write_text("locked requirement\n", encoding="utf-8")
     manifest_file.write_text(
-        json.dumps({"artifact": f"req/{ip}_requirements.md", "status": "approved"}) + "\n",
+        json.dumps({
+            "artifact": f"req/{ip}_requirements.md",
+            "status": "requirements_locked",
+            "requirements": [{"id": "REQ_PL330", "status": "locked", "required": True}],
+        }) + "\n",
         encoding="utf-8",
     )
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))

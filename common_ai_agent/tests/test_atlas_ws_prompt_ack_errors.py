@@ -72,11 +72,11 @@ def test_locked_truth_draft_overlay_wraps_unapproved_ip(tmp_path):
     assert "req -> obligation" in wrapped
 
 
-def test_locked_truth_draft_overlay_skips_approved_ip(tmp_path):
+def test_locked_truth_draft_overlay_skips_requirements_locked_ip(tmp_path):
     import src.atlas_ui as atlas_ui
 
     ip = "mctp_locked"
-    _write_approval_manifest(tmp_path, ip, status="approved")
+    _write_approval_manifest(tmp_path, ip, status="requirements_locked")
 
     wrapped, applied = atlas_ui._apply_locked_truth_draft_overlay(
         tmp_path,
@@ -89,13 +89,13 @@ def test_locked_truth_draft_overlay_skips_approved_ip(tmp_path):
     assert wrapped == "Implement the RTL now"
 
 
-def test_locked_truth_draft_overlay_skips_approved_ip_in_session_workspace(tmp_path, monkeypatch):
+def test_locked_truth_draft_overlay_skips_requirements_locked_ip_in_session_workspace(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     ip = "timer_new_concept"
     monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
     workspace_root = tmp_path / "brian" / "brian_session"
-    _write_approval_manifest(workspace_root, ip, status="approved")
+    _write_approval_manifest(workspace_root, ip, status="requirements_locked")
 
     wrapped, applied = atlas_ui._apply_locked_truth_draft_overlay(
         tmp_path,

@@ -19,7 +19,8 @@ Requirement   →   Obligation   →   Contract   →   Evidence   →   Validat
 ```text
 documents / interview / spec
   → decompose into atomic, verifiable obligations
-  → normalize into SSOT YAML / interface / timing / SVA contracts
+  → lock req/obligation/contract/evidence as the authority
+  → project into SSOT YAML / interface / timing / SVA contracts
   → generate RTL, assertions, testbench, sim/formal results, lint
   → check evidence against contracts and close the trace
 ```
@@ -27,8 +28,9 @@ documents / interview / spec
 Core sentence:
 
 ```text
-The document is the source. The SSOT/contract is the promise.
-The RTL is a verifiable artifact, not the authority.
+The locked req bundle is the source. The Design Spec/SSOT projection and
+contracts are the machine-readable promises. The RTL is a verifiable artifact,
+not the authority.
 ```
 
 One-liner:
@@ -40,6 +42,13 @@ contract  = that duty made machine-checkable
 evidence  = the artifact proving the duty was kept
 validation= the judgment that the whole req→evidence chain is unbroken
 ```
+
+In the newer locked-truth flow, `req/requirements_index.json`,
+`req/obligations.json`, `req/contract_refs.json`, `req/evidence_plan.json`, and
+`req/approval_manifest.json` are the authority. `yaml/<ip>.ssot.yaml` is the
+generator-ready Design Spec projection. If the YAML is missing fields, the
+worker should first project from locked req facts before asking the user for new
+truth.
 
 This page is the plain definition. For the realized layers, read:
 

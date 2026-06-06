@@ -80,6 +80,26 @@ Existing sections remain valuable. Do not replace `io_list`, `registers`,
 single requirement table. Instead, project the locked truth into those sections
 and preserve the trace.
 
+If SSOT validation reports missing Preview fields while a locked truth bundle
+exists, treat that as a projection gap, not as an immediate user-interview gap.
+Resolve it from req/ first:
+
+- `top_module.description` from requirement purpose/title/statement.
+- `io_list.interfaces[].ports[]` from interface requirements, obligations, and
+  contract_refs.
+- `registers.register_list[]` from register/CSR requirements and contracts.
+- `clock_reset_domains` from clock/reset requirements and obligations.
+- `interrupts` from interrupt requirements.
+- `test_requirements.scenarios[]` and quality gates from evidence_plan entries,
+  obligations, and pass_conditions.
+- FSM, memory, child submodule, DFT, power, security, and transport features as
+  explicit no-feature/external-owner/non-goal policies when req/ is silent.
+
+Ask the user only when the locked req/ bundle is genuinely under-specified for
+an RTL-affecting fact. Missing YAML sections alone are not proof that the truth
+is missing; they may only mean the Design Spec projection has not been written
+yet.
+
 If `/import` was run first, use `<ip>/req/import_manifest.json`,
 `<ip>/req/extracted_decisions.json`, `<ip>/req/imports/`, and
 `<ip>/wiki/import-evidence.md` as evidence. Do not treat imported RTL as the

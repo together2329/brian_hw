@@ -120,6 +120,44 @@ What truth was approved?
 
 That answer belongs to Locked Truth.
 
+## Locked Truth To Design Spec Projection
+
+When `/to-ssot` runs and a complete locked truth bundle exists, missing SSOT
+Preview fields are projection work first, not user-interview blockers.
+
+The projection rule is:
+
+```text
+req/requirements_index.json  -> purpose, top module intent, feature ownership
+req/obligations.json         -> observable duties, ports, reset, registers, IRQs
+req/contract_refs.json       -> machine-checkable Design Spec contract anchors
+req/evidence_plan.json       -> test scenarios, validators, quality gates
+req/approval_manifest.json   -> authority, approver, hashes, lock status
+```
+
+Therefore a YAML validation message like "missing `top_module.description`" or
+"missing `registers.register_list[]`" does not automatically mean the user must
+answer more questions. The SSOT worker must first project from locked req facts:
+
+```text
+purpose requirement        -> top_module.description
+interface obligations      -> io_list.interfaces[].ports[]
+register obligations       -> registers.register_list[]
+clock/reset obligations    -> clock_reset_domains
+interrupt obligations      -> interrupts
+evidence_plan entries      -> test_requirements.scenarios[] / quality_gates
+contract_refs              -> source_refs / contract_refs on Design Spec items
+```
+
+If locked truth is silent about an optional feature such as memory, FSM,
+submodules, DFT, power, security, or transport framing, the Design Spec should
+write an explicit no-feature, external-owner, or non-goal policy with
+`source_refs`. It should not leave `TBD` just because the YAML section exists in
+the canonical schema.
+
+Only ask the user when the locked truth bundle itself is genuinely
+under-specified for an RTL-affecting fact.
+
 ## Trace Structure
 
 The core trace is:
