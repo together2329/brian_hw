@@ -2,6 +2,16 @@
 
 ## 2026-06-06
 
+- Added [[mctp-contract-slice-trial-and-error-20260606]] — the dated process
+  record of building the contract slice with open-source formal: every gotcha hit
+  along the way (yosys SVA `bind` ignored / named-property unsupported / async2sync;
+  mutation-design traps — identity optimized away, NBA precedence, self-hiding
+  trigger, a missing contract; formal-modeling false-failures — reset assume,
+  unbounded wrap, non-k-inductive, assert width, `$past(rst_n)` guard; sim/TB —
+  verilator pragma comment, NBA-read-after-posedge, descriptor scoreboard
+  off-by-one; and shell/git/repo process). Anchored on the rule "if the planted
+  mutant does not die, the verification is wrong, not the RTL." Linked from
+  [[mctp-assembler-contract-breakdown]] and [[formal-verification-evidence]].
 - Added the FULL-ASSEMBLER integration (`examples/mctp_contract_slice/rtl/mctp_rx_full.sv`):
   every proven contract group fused into one DUT — gate, 2-context key lane,
   start/single, per-context sequence, byte-exact payload, first/last header

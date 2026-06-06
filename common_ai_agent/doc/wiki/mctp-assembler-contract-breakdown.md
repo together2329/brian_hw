@@ -3,7 +3,7 @@ title: MCTP Assembler Contract Breakdown
 type: proposal
 tags: [mctp, contract, obligation, evidence, validation, rx-assembly, tx-disassembly, breakdown-matrix, sva, direction]
 updated: 2026-06-06
-related: [llm-contract-repair-loop, locked-truth-concept, locked-truth-design-spec-workflow, contract-reflection-workflow, evidence-contract-obligation-traceability, formal-verification-evidence, mctp-assembler-scratch-flow-20260531, mctp-assembler-v3-ingress-fidelity-20260603, truth-coverage-gate]
+related: [llm-contract-repair-loop, locked-truth-concept, locked-truth-design-spec-workflow, contract-reflection-workflow, evidence-contract-obligation-traceability, formal-verification-evidence, mctp-contract-slice-trial-and-error-20260606, mctp-assembler-scratch-flow-20260531, mctp-assembler-v3-ingress-fidelity-20260603, truth-coverage-gate]
 ---
 
 # MCTP Assembler Contract Breakdown
