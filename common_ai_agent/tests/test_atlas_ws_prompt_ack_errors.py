@@ -1,4 +1,5 @@
 import sys
+import json
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -17,6 +18,135 @@ def _register(client: TestClient, username: str) -> None:
         json={"username": username, "password": "pw"},
     )
     assert response.status_code == 200, response.text
+
+
+def _write_approval_manifest(project_root: Path, ip: str, *, status: str = "approved") -> None:
+    manifest = project_root / ip / "req" / "approval_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"status": status}), encoding="utf-8")
+
+
+def test_locked_truth_draft_overlay_wraps_unapproved_ip(tmp_path):
+    import src.atlas_ui as atlas_ui
+
+    ip = "mctp_draft"
+    (tmp_path / ip).mkdir()
+
+    wrapped, applied = atlas_ui._apply_locked_truth_draft_overlay(
+        tmp_path,
+        f"alice/default/{ip}/default",
+        {"ip": ip},
+        "I want req -> obligation -> contract -> evidence flow to make mctp rtl",
+    )
+
+    assert applied is True
+    assert wrapped.startswith("[ATLAS LOCKED TRUTH DRAFT MODE]")
+    assert "Do not run workflow stages." in wrapped
+    assert "Lock truth per requirement" in wrapped
+    assert "every required requirement is locked or approved" in wrapped
+    assert "Prefer short tiktaka" in wrapped
+    assert "Prefer normal chat for one or two missing decisions" in wrapped
+    assert "Ask one concise natural-language question at a time" in wrapped
+    assert "Ask only for lock-blocking ambiguity" in wrapped
+    assert "Do not ask optional refinement questions" in wrapped
+    assert "If enough information exists, stop interviewing" in wrapped
+    assert "If 3 or more lock-blocking decisions remain" in wrapped
+    assert "Do not launch ask_user automatically" in wrapped
+    assert "Use ask_user only for grill-me/deep-interview" in wrapped
+    assert "batched structured decisions" in wrapped
+    assert "Do not leave lock-blocking open questions as a prose list" in wrapped
+    assert "Existing RTL/doc/SSOT artifacts are read-only candidate evidence" in wrapped
+    assert "Do not mark a legacy-derived requirement locked" in wrapped
+    assert "Final approval must produce files" in wrapped
+    assert "locked-truth-finalize" in wrapped
+    assert "lock_requirement_set.py" in wrapped
+    assert "check_locked_truth_bundle.py" in wrapped
+    assert "Do not manually write canonical req/*.json" in wrapped
+    assert "Do not say approved or locked unless" in wrapped
+    assert "req/approval_manifest.json" in wrapped
+    assert "After ask_user answers, do not dump the full draft" in wrapped
+    assert "Produce only:" not in wrapped
+    assert "[USER MESSAGE]" in wrapped
+    assert "req -> obligation" in wrapped
+
+
+def test_locked_truth_draft_overlay_skips_approved_ip(tmp_path):
+    import src.atlas_ui as atlas_ui
+
+    ip = "mctp_locked"
+    _write_approval_manifest(tmp_path, ip, status="approved")
+
+    wrapped, applied = atlas_ui._apply_locked_truth_draft_overlay(
+        tmp_path,
+        f"alice/default/{ip}/default",
+        {"ip": ip},
+        "Implement the RTL now",
+    )
+
+    assert applied is False
+    assert wrapped == "Implement the RTL now"
+
+
+def test_locked_truth_draft_overlay_skips_approved_ip_in_session_workspace(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    ip = "timer_new_concept"
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    workspace_root = tmp_path / "brian" / "brian_session"
+    _write_approval_manifest(workspace_root, ip, status="approved")
+
+    wrapped, applied = atlas_ui._apply_locked_truth_draft_overlay(
+        tmp_path,
+        f"brian/brian_session/{ip}/default",
+        {"ip": ip},
+        "Generate RTL from SSOT",
+    )
+
+    assert applied is False
+    assert wrapped == "Generate RTL from SSOT"
+
+
+def test_locked_truth_draft_overlay_skips_slash_command(tmp_path):
+    import src.atlas_ui as atlas_ui
+
+    ip = "mctp_draft"
+    (tmp_path / ip).mkdir()
+
+    wrapped, applied = atlas_ui._apply_locked_truth_draft_overlay(
+        tmp_path,
+        f"alice/default/{ip}/default",
+        {"ip": ip},
+        "/verify-ssot",
+    )
+
+    assert applied is False
+    assert wrapped == "/verify-ssot"
+
+
+def test_api_commands_includes_default_locked_truth_finalize(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_DB_PATH", str(tmp_path / "atlas.db"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+    response = client.get("/api/commands")
+    assert response.status_code == 200, response.text
+    commands = response.json()["commands"]
+
+    locked_truth = next(
+        (cmd for cmd in commands if cmd.get("name") == "locked-truth-finalize"),
+        None,
+    )
+    assert locked_truth is not None
+    assert locked_truth["cmd"] == "/locked-truth-finalize"
+    assert "truth-lock" in locked_truth["aliases"]
+    assert "lock-truth" in locked_truth["aliases"]
 
 
 def test_prompt_forbidden_session_returns_delivery_ack(tmp_path, monkeypatch):

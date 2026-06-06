@@ -5202,6 +5202,41 @@ def register_jobs_routes(
     def _valid_ip_name(ip: str) -> bool:
         return bool(ip) and len(ip) <= 64 and bool(re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", ip))
 
+    def _locked_truth_guard_ip(ip: str) -> bool:
+        return _valid_ip_name(ip) and ip not in {"default", "soc", "user"}
+
+    def _locked_truth_active_for_dispatch(root: Path, ip: str) -> bool:
+        try:
+            from core.locked_truth_guard import is_locked_truth_active
+        except ModuleNotFoundError:
+            from locked_truth_guard import is_locked_truth_active  # type: ignore
+        return is_locked_truth_active(root, ip)
+
+    def _truth_not_locked_payload(ip: str, *, source: str = "pipeline_dispatch") -> dict[str, Any]:
+        return {
+            "ok": False,
+            "error": "truth_not_locked",
+            "source": source,
+            "ip": ip,
+            "message": (
+                "Lock requirement truth before running workflow stages. "
+                "Use the default agent to draft requirement, obligation, "
+                "contract_ref, and evidence first."
+            ),
+        }
+
+    def _locked_truth_dispatch_block(
+        root: Path,
+        ip: str,
+        *,
+        source: str = "pipeline_dispatch",
+    ) -> dict[str, Any] | None:
+        if not _locked_truth_guard_ip(ip):
+            return None
+        if _locked_truth_active_for_dispatch(root, ip):
+            return None
+        return _truth_not_locked_payload(ip, source=source)
+
     def _trace_event_visible_to_request(
         event: dict[str, Any],
         request_user: str,
@@ -6524,6 +6559,9 @@ def register_jobs_routes(
         request_project_root = _request_project_root(request, ip, body)
         if ip and not _assert_ip_access(db_user_id or owner_user_id, ip, request_is_admin, request_project_root):
             return JSONResponse({"error": "forbidden"}, status_code=403)
+        locked_truth_block = _locked_truth_dispatch_block(request_project_root, ip)
+        if locked_truth_block is not None:
+            return JSONResponse(locked_truth_block, status_code=409)
         _, _ = _refresh_tracked_jobs(
             request_project_root,
             job_filter=lambda job: _job_visible_to_request(job, owner_user_id, db_user_id, request_is_admin, request_project_root),
@@ -7254,6 +7292,13 @@ def register_jobs_routes(
         tool_project_root = _project_root_for_owner(owner_display_id, ip_name, context_payload)
         if ip_name and not _assert_ip_access(owner_user_id or owner_display_id, ip_name, False, tool_project_root):
             return {"ok": False, "error": "forbidden", "source": "dispatch_workflow_tool", "ip": ip_name}
+        locked_truth_block = _locked_truth_dispatch_block(
+            tool_project_root,
+            ip_name,
+            source="dispatch_workflow_tool",
+        )
+        if locked_truth_block is not None:
+            return locked_truth_block
         _, _ = _refresh_tracked_jobs(
             tool_project_root,
             job_filter=lambda job: _job_visible_to_request(job, owner_display_id, owner_user_id, False, tool_project_root),

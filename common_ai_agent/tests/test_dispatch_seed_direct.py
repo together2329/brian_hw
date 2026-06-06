@@ -55,18 +55,34 @@ class _StubApp:
         raise AttributeError(name)
 
 
-def _install_dispatch_route(tmp_path: Path, monkeypatch) -> tuple[Any, Any]:
+def _write_approval_manifest(project_root: Path, ip: str, *, status: str = "approved") -> None:
+    manifest = project_root / ip / "req" / "approval_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps({"status": status}), encoding="utf-8")
+
+
+def _install_dispatch_route(
+    tmp_path: Path,
+    monkeypatch,
+    *,
+    approve_truth: bool = True,
+) -> tuple[Any, Any]:
     """Register the jobs routes against a stub app, return (app, api_jobs)."""
     monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "gray")
     monkeypatch.setenv("ATLAS_ACTIVE_USER", "local-admin")
+    if approve_truth:
+        _write_approval_manifest(tmp_path, "gray", status="approved")
 
+    callbacks: Dict[str, Any] = {}
     fake_core_tools = types.SimpleNamespace(
-        set_dispatch_workflow_callback=lambda *_a, **_kw: None,
+        set_dispatch_workflow_callback=lambda callback, *_a, **_kw: callbacks.__setitem__("dispatch", callback),
         set_read_pipeline_state_callback=lambda *_a, **_kw: None,
     )
     fake_core_pkg = types.ModuleType("core")
+    fake_core_pkg.__path__ = [str(Path(__file__).resolve().parents[1] / "core")]
     fake_core_pkg.tools = fake_core_tools  # type: ignore[attr-defined]
     monkeypatch.setitem(sys.modules, "core", fake_core_pkg)
     monkeypatch.setitem(sys.modules, "core.tools", fake_core_tools)
@@ -86,6 +102,7 @@ def _install_dispatch_route(tmp_path: Path, monkeypatch) -> tuple[Any, Any]:
         project_root=lambda: tmp_path,
         normalize_session_name=lambda s: (s or "").strip().replace("\\", "/"),
     )
+    setattr(app, "dispatch_workflow_callback", callbacks.get("dispatch"))
     return app, api_jobs
 
 
@@ -96,6 +113,37 @@ def _jobs_from_response(response) -> list[dict[str, Any]]:
     data = json.loads(body.decode("utf-8") if isinstance(body, (bytes, bytearray)) else body)
     assert data.get("ok") is True, f"dispatch failed: {data!r}"
     return data.get("jobs") or []
+
+
+def test_direct_dispatch_blocks_before_locked_truth(tmp_path, monkeypatch):
+    app, api_jobs = _install_dispatch_route(tmp_path, monkeypatch, approve_truth=False)
+    handler = app.routes[("post", "/api/pipeline/dispatch")]
+
+    request = _StubRequest({
+        "ip": "gray",
+        "stages": ["ssot-gen"],
+        "prompt": "build an async FIFO",
+    })
+    response = asyncio.get_event_loop().run_until_complete(handler(request))
+    body = json.loads(response.body.decode("utf-8"))
+
+    assert response.status_code == 409
+    assert body["ok"] is False
+    assert body["error"] == "truth_not_locked"
+    assert body["ip"] == "gray"
+    assert api_jobs._jobs == {}
+
+
+def test_dispatch_workflow_tool_blocks_before_locked_truth(tmp_path, monkeypatch):
+    app, api_jobs = _install_dispatch_route(tmp_path, monkeypatch, approve_truth=False)
+    callback = getattr(app, "dispatch_workflow_callback")
+
+    result = callback(workflow="ssot-gen", ip="gray", payload={"session_id": "local-admin/default/gray/orchestrator"})
+
+    assert result["ok"] is False
+    assert result["error"] == "truth_not_locked"
+    assert result["source"] == "dispatch_workflow_tool"
+    assert api_jobs._jobs == {}
 
 
 def test_direct_dispatch_user_seed_lands_in_worker_prompt(tmp_path, monkeypatch):

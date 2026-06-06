@@ -45,7 +45,7 @@ import threading
 import time
 from urllib.parse import quote
 from pathlib import Path
-from typing import Any, Callable, Optional, TYPE_CHECKING
+from typing import Any, Callable, Final, Optional, TYPE_CHECKING
 
 _THIS_DIR = Path(__file__).resolve().parent
 _REPO_ROOT = _THIS_DIR.parent
@@ -869,6 +869,60 @@ except Exception:
 
 
 _DEFAULT_SESSION_PLACEHOLDERS = {"default/default", "default/default/default"}
+_LOCKED_TRUTH_DRAFT_SENTINEL: Final[str] = "[ATLAS LOCKED TRUTH DRAFT MODE]"
+_LOCKED_TRUTH_DRAFT_SKIP_IPS: Final[frozenset[str]] = frozenset(
+    {"", "default", "soc", "user"}
+)
+_LOCKED_TRUTH_DRAFT_OVERLAY: Final[str] = """[ATLAS LOCKED TRUTH DRAFT MODE]
+Active IP: {ip}
+
+This IP does not have an approved locked-truth manifest yet.
+
+Purpose: collect and refine locked truth only.
+
+Do not run workflow stages.
+Do not generate RTL/TB/SIM.
+Do not call dispatch_workflow.
+Do not modify implementation artifacts.
+
+Conversation rule:
+- Lock truth per requirement. An IP is implementation-locked only when every required requirement is locked or approved.
+- Prefer short tiktaka. Discuss only the next missing or ambiguous decision.
+- Prefer normal chat for one or two missing decisions.
+- Ask one concise natural-language question at a time in normal chat.
+- Ask only for lock-blocking ambiguity.
+- Do not ask optional refinement questions when a reasonable default is available.
+- If enough information exists, stop interviewing and offer to draft or summarize locked truth.
+- If 3 or more lock-blocking decisions remain, suggest grill-me/deep interview in normal chat before asking more one-by-one questions.
+- Do not launch ask_user automatically for grill-me; wait until the user explicitly asks for grill-me/deep interview or final approval.
+- Use ask_user only for grill-me/deep-interview, final approval, or batched structured decisions.
+- If structured approval is needed, call ask_user with the smallest useful question set.
+- Do not leave lock-blocking open questions as a prose list; ask the next one directly or use ask_user for structured approval.
+- Existing RTL/doc/SSOT artifacts are read-only candidate evidence, not authority. If they exist, use them only to extract draft decisions, conflicts, and questions.
+- Do not mark a legacy-derived requirement locked unless the user explicitly approves that requirement.
+- If an existing artifact conflicts with user answers or lacks approval, ask_user whether to keep, update, or ignore that candidate.
+- After ask_user answers, do not dump the full draft. Reply only with captured decisions, remaining blockers, and the next question.
+- Produce the full requirement/obligation/contract_ref/evidence draft only when the user explicitly asks to show/review/export it, or when asking for final approval.
+- Final approval must produce files before you say locked.
+- On final approval, prefer the req-gen locked-truth-finalize todo template. Its command gates run workflow/req-gen/scripts/lock_requirement_set.py and workflow/req-gen/scripts/check_locked_truth_bundle.py.
+- Do not manually write canonical req/*.json authority files when the locked-truth-finalize command gate is available.
+- Do not say approved or locked unless you created or can cite locked-truth files, especially req/requirements_index.json and req/approval_manifest.json.
+- If no writer/tool is available, say the approval was captured in chat only and ask the user to run workflow/req-gen/scripts/lock_requirement_set.py, then check_locked_truth_bundle.py, before /to-ssot.
+- Keep normal replies under 12 lines unless the user asks for detail.
+
+Wait for explicit user approval before implementation.
+
+[USER MESSAGE]
+{user_message}
+"""
+
+
+def _ensure_default_workspace_commands_registered() -> None:
+    from core.slash_commands import get_registry
+    from workflow.loader import load_workspace, register_workspace_commands
+
+    ws = load_workspace("default", project_root=_REPO_ROOT)
+    register_workspace_commands(ws, get_registry())
 
 
 def _normalized_session_or_empty(value: Any) -> str:
@@ -928,6 +982,82 @@ def _atlas_session_route_parts(session_id: str) -> tuple[str, str, str]:
     while len(parts) < 3:
         parts.append("default")
     return parts[0], parts[1], parts[2]
+
+
+def _locked_truth_draft_ip(session_id: str, msg: dict[str, Any]) -> str:
+    for key in ("ip", "scope", "ip_id"):
+        candidate = normalize_session_name(str(msg.get(key) or "")).strip("/")
+        if "/" in candidate:
+            candidate = candidate.split("/")[-1]
+        if candidate not in _LOCKED_TRUTH_DRAFT_SKIP_IPS and re.fullmatch(
+            r"[A-Za-z][A-Za-z0-9_]*",
+            candidate,
+        ):
+            return candidate
+    _, ip, _ = _atlas_session_route_parts(session_id)
+    if ip in _LOCKED_TRUTH_DRAFT_SKIP_IPS:
+        return ""
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", ip):
+        return ""
+    return ip
+
+
+def _locked_truth_active(project_root: Path, ip: str) -> bool:
+    try:
+        from core.locked_truth_guard import is_locked_truth_active
+    except ModuleNotFoundError:
+        from locked_truth_guard import is_locked_truth_active  # type: ignore
+    return is_locked_truth_active(project_root, ip)
+
+
+def _locked_truth_candidate_roots(project_root: Path, session_id: str) -> tuple[Path, ...]:
+    roots: list[Path] = []
+    seen: set[Path] = set()
+
+    def add(root: Path) -> None:
+        resolved = root.expanduser().resolve()
+        if resolved not in seen:
+            seen.add(resolved)
+            roots.append(resolved)
+
+    add(project_root)
+    session = normalize_session_name(str(session_id or ""))
+    if session:
+        atlas_roots = [
+            os.environ.get("ATLAS_ROOT", "").strip(),
+            str(project_root),
+        ]
+        for raw_root in atlas_roots:
+            if not raw_root:
+                continue
+            try:
+                context = AtlasContext.from_session_key(session, atlas_root=raw_root)
+            except ValueError:
+                continue
+            add(context.workspace_root)
+    return tuple(roots)
+
+
+def _locked_truth_active_for_session(project_root: Path, session_id: str, ip: str) -> bool:
+    return any(
+        _locked_truth_active(root, ip)
+        for root in _locked_truth_candidate_roots(project_root, session_id)
+    )
+
+
+def _apply_locked_truth_draft_overlay(
+    project_root: Path,
+    session_id: str,
+    msg: dict[str, Any],
+    text: str,
+) -> tuple[str, bool]:
+    raw_text = str(text or "").strip()
+    if not raw_text or raw_text.startswith("/") or raw_text.startswith(_LOCKED_TRUTH_DRAFT_SENTINEL):
+        return raw_text, False
+    ip = _locked_truth_draft_ip(session_id, msg)
+    if not ip or _locked_truth_active_for_session(project_root, session_id, ip):
+        return raw_text, False
+    return _LOCKED_TRUTH_DRAFT_OVERLAY.format(ip=ip, user_message=raw_text), True
 
 
 def _atlas_fast_identity_response(session_id: str, text: str) -> str:
@@ -4460,6 +4590,7 @@ def create_app():
         workspace-specific ones (e.g. /grill-me, /to-ssot for ssot-gen).
         """
         try:
+            _ensure_default_workspace_commands_registered()
             from core.slash_commands import get_registry as _gr
             reg = _gr()
         except Exception as e:
@@ -5140,6 +5271,7 @@ def create_app():
         else:
             try:
                 from core.slash_commands import get_registry as _get_slash_registry
+                _ensure_default_workspace_commands_registered()
                 _old_memory_user = os.environ.get("ATLAS_MEMORY_USER")
                 _owner_for_memory = active_slash_session.split("/", 1)[0]
                 if _owner_for_memory:
@@ -10920,6 +11052,12 @@ def create_app():
                                     session.emit("error", message=f"acceptance ack failed: {ack_exc}")
                             session.emit("error", message=f"session setup failed: {exc}")
                             continue
+                    _txt, _ = _apply_locked_truth_draft_overlay(
+                        PROJECT_ROOT,
+                        session.session_id,
+                        msg,
+                        _txt,
+                    )
                     import os as _os
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
