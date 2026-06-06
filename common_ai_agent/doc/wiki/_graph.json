@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T09:55:21Z",
+  "generated_at": "2026-06-06T10:23:41Z",
   "root": "doc/wiki",
   "node_count": 149,
   "edge_count": 705,
@@ -2992,7 +2992,7 @@
       "updated": "2026-06-06",
       "summary": "This page captures the current ATLAS workflow direction from the APB timer and MCTP assembler discussions.",
       "path": "doc/wiki/locked-truth-design-spec-workflow.md",
-      "size_bytes": 11887
+      "size_bytes": 13607
     },
     {
       "id": "log",
@@ -3001,9 +3001,9 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "mctp-assembler-contract-breakdown",
         "spec-loop-and-equivalence-check",
         "formal-verification-evidence",
-        "mctp-assembler-contract-breakdown",
         "req-obligation-contract-evidence-validation",
         "contract-reflection-workflow",
         "evidence-contract-obligation-traceability",
@@ -3059,9 +3059,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Extended [[spec-loop-and-equivalence-check]] with a SEC run on the REAL `mctp_rx_assembler` (`examples/mctp_contract_slice/eqcheck/run_asm_eq.sh`): a refactored-equivalent variant (`==` rewritten as `~|(a^b)`) is proven EQUIVALENT by k-induction, while a spec-missing variant (out-of-sequence drop forgotten) is flagged NOT EQUIVALENT with a…",
+      "summary": "- Reflected v3 drop classification (§10.1/§10.2/§10.3) in [[mctp-assembler-contract-breakdown]] with a worked module (`examples/mctp_contract_slice/rtl/mctp_drop_classifier.sv`): 14-step drop priority + packet-vs-assembly class proven across verilator + sby/z3, all three mutants (priority, class boundary, any) killed. Updated the v3 reflection map (PAYLOAD…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 111801
+      "size_bytes": 112416
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3114,7 +3114,7 @@
       "updated": "2026-06-06",
       "summary": "This is the central implementation direction for MCTP assembler work, and the concrete worked instance of [[locked-truth-concept]], [[contract-reflection-workflow]], and [[llm-contract-repair-loop]].",
       "path": "doc/wiki/mctp-assembler-contract-breakdown.md",
-      "size_bytes": 25157
+      "size_bytes": 25546
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",
@@ -4104,7 +4104,7 @@
       "updated": "2026-06-06",
       "summary": "This is the keystone definition of the spine the whole direction set builds on. It normalizes a requirement into a *machine-checkable promise* before any RTL is written, then accumulates proof that the promise was kept.",
       "path": "doc/wiki/req-obligation-contract-evidence-validation.md",
-      "size_bytes": 7822
+      "size_bytes": 8321
     },
     {
       "id": "round2-retry-budget-cross-workflow-routing-20260517",

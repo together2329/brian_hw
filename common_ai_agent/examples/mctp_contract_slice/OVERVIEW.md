@@ -53,6 +53,14 @@ NOT EQUIVALENT. `run_asm_eq.sh` regenerates a refactored-equivalent and a
 spec-missing variant of `mctp_rx_assembler` and SEC-checks both (async reset needs
 `async2sync`). See [[spec-loop-and-equivalence-check]].
 
+### 5. `rtl/mctp_drop_classifier.sv` — drop priority + class deep-dive
+Run: `./run_drop.sh`
+Reflects v3 §10.1/§10.2/§10.3: when several drop conditions hold, report only the
+single highest-priority reason (1..14); reasons 1..8 are packet drops, 9..14
+assembly drops. Formal proves the priority/class policy for all input
+combinations. Note: the `ANY` mutant slips past random sim but is caught by formal
+(needs the rare timeout-bit-alone input). Result: `signoff/validation_closure_drop.json`.
+
 ## What this example is / isn't
 
 - **Is**: a teaching skeleton that proves the contract→evidence→mutation-kill

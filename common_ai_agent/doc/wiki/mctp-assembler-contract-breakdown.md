@@ -547,9 +547,9 @@ reflected:
 | KEY (tag only) | 3-field key `{source_eid, tag_owner, message_tag}` + dest-EID filter + multi-context isolation (§9.1/§9.3) | done in `mctp_rx_mc` |
 | START/SINGLE | `CONTEXT_COUNT` contexts; duplicate-SOM = assembly drop (§9.2) | done in `mctp_rx_mc` |
 | SEQ | per-context mod-4 sequence; OOS = assembly drop (§9.2/§10.2 AD_SEQUENCE_MISMATCH) | done |
-| PAYLOAD (byte count) | SRAM byte-exact packing + strobes + fragment-no-gap + per-context partial word (§9.4) | not yet |
+| PAYLOAD (byte count) | SRAM byte-exact packing + strobes + fragment-no-gap + per-context partial word (§9.4) | done in `mctp_rx_payload` (symbolic-byte) |
 | END | descriptor publish (no descriptor before EOM) + first/last TLP header snapshot queue (§9.3/§9.5) | not yet |
-| DROP (flat) | packet-drop vs assembly-drop split + 14-step drop priority + reason codes (§10.1/§10.2/§10.3) | not yet |
+| DROP (flat) | packet-drop vs assembly-drop split + 14-step drop priority + reason codes (§10.1/§10.2/§10.3) | done in `mctp_drop_classifier` |
 | STATUS | packet/assembly_drop_count + last_drop_class + reason; counter registers (§10/§11.4) | partial |
 | *(none)* | header snapshot queue, descriptor queue, timeout/aging, registers (control/status/irq/counter) | not yet |
 
@@ -557,9 +557,14 @@ Caveat found while harvesting v3: its evidence is 102/106 obligations =
 `LEGACY_SCOREBOARD_GOAL_CLOSURE` (count-semantic), only 4 truly content-semantic —
 so reflect the *requirements* (§7–§14), not v3's thin obligation set. The §14
 "Formal Verification Candidates" list maps directly onto this formal approach.
-Next deep-dives by priority: SRAM byte-exact payload (content-semantic, the
-trust-campaign core) · packet-vs-assembly drop + 14-step priority ·
-descriptor/header-snapshot queue.
+Done so far: KEY/START/SEQ (`mctp_rx_mc`), SRAM byte-exact payload
+(`mctp_rx_payload`, symbolic-byte), drop priority + packet/assembly class
+(`mctp_drop_classifier`). Remaining deep-dives: descriptor publish +
+first/last TLP header-snapshot queue, timeout/aging, and the register file.
+
+The drop-classifier closure also re-confirmed a lane lesson: the `ANY` mutant
+(ignoring the timeout reason) only fires when exactly the timeout bit is set
+alone — random sim missed it, formal caught it. Run multiple lanes.
 
 한 줄 요약: MCTP Assembler를 하나로 검증하지 말고 gate·key·start·single·cont·
 seq·payload·end·drop·out·reset·status로 쪼개, 각 조각마다 req→obil→contract→

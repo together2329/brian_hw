@@ -2,6 +2,15 @@
 
 ## 2026-06-06
 
+- Reflected v3 drop classification (§10.1/§10.2/§10.3) in
+  [[mctp-assembler-contract-breakdown]] with a worked module
+  (`examples/mctp_contract_slice/rtl/mctp_drop_classifier.sv`): 14-step drop
+  priority + packet-vs-assembly class proven across verilator + sby/z3, all three
+  mutants (priority, class boundary, any) killed. Updated the v3 reflection map
+  (PAYLOAD + DROP now done; remaining: descriptor/header-snapshot queue, timeout,
+  registers). The `ANY` mutant re-confirmed the multi-lane lesson — it slipped
+  past random sim (only fires on the rare timeout-bit-alone input) but formal
+  caught it.
 - Extended [[spec-loop-and-equivalence-check]] with a SEC run on the REAL
   `mctp_rx_assembler` (`examples/mctp_contract_slice/eqcheck/run_asm_eq.sh`): a
   refactored-equivalent variant (`==` rewritten as `~|(a^b)`) is proven EQUIVALENT

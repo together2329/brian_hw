@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "type": "validation_closure",
+  "ip": "mctp_drop_classifier",
+  "deep_dive": "drop priority + packet/assembly classification (reflects v3 §10.1/§10.2/§10.3)",
+  "claim": "when several drop conditions hold for one transaction, report only the single highest-priority reason (1..14); reasons 1..8 are packet drops, 9..14 assembly drops",
+  "lanes": ["verilator-5.046 --assert random + reference scoreboard", "SymbiYosys + Yosys + z3"],
+  "correct_design": { "verilator": "PASS", "formal": "PASS" },
+  "contracts": [
+    { "id": "C-DROP-PRIORITY", "mutant": "INJECT_PRIO_BUG (lowest priority wins)",         "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-DROP-CLASS",    "mutant": "INJECT_CLASS_BUG (packet/assembly boundary off)", "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-DROP-ANY",      "mutant": "INJECT_ANY_BUG (ignores reason 14 / timeout)",     "verilator": "PASS", "formal": "FAIL", "killed": true }
+  ],
+  "status": "closed",
+  "lesson": "The ANY mutant only manifests when cond == only-bit-13 (timeout alone), ~1/16384 per cycle, so 2000-cycle random sim MISSED it (verilator=PASS) while formal caught it (verilator=PASS but formal=FAIL). Live evidence that formal closes coverage gaps random sim leaves open.",
+  "caveats": [
+    "Combinational priority encoder; the 14 reason CONDITIONS themselves are produced by the upstream decode/assembly logic (this module only proves the priority+class policy).",
+    "Reflects the policy of v3 §10.3; the per-reason condition derivations (PD_MALFORMED_TLP etc.) are separate decode contracts."
+  ]
+}
