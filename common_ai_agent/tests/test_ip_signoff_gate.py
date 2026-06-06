@@ -269,6 +269,164 @@ def test_ip_signoff_gate_rejects_scoreboard_missing_expected_observable(tmp_path
     assert "y" in "; ".join(gates["scoreboard"]["issues"])
 
 
+def _clean_mutation_artifact() -> dict[str, object]:
+    return {
+        "type": "mutation_contract_check",
+        "schema_version": 1,
+        "ip": "x",
+        "status": "pass",
+        "tools": {"yosys": "Yosys 0.64", "sby": "0.40", "z3": "4.15.4", "verilator": "5.046"},
+        "correct": {"verilator": "PASS", "formal": "PASS"},
+        "targeted": {
+            "total": 2,
+            "killed": 2,
+            "survivors": [],
+            "all_killed": True,
+            "contracts": [
+                {"id": "C-1", "inject": "INJECT_A_BUG", "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": True},
+                {"id": "C-2", "inject": "INJECT_B_BUG", "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": True},
+            ],
+        },
+        "blanket": {
+            "embedded_kill_rate": 0.9,
+            "embedded_killed": 9,
+            "scored": 10,
+            "survivors": 1,
+            "survivors_equivalent": 1,
+            "survivors_sec_caught": 0,
+            "survivors_unknown": 0,
+            "all_survivors_classified": True,
+            "survivor_list": [{"mode": "const1", "src": "rtl/x.sv:40", "embedded": "PASS", "sec": "equivalent"}],
+        },
+        "gate": {
+            "correct_clean": True,
+            "targeted_all_killed": True,
+            "blanket_all_survivors_classified": True,
+            "pass": True,
+        },
+    }
+
+
+def test_ip_signoff_gate_contract_mutation_not_applicable_when_absent(tmp_path: Path) -> None:
+    # Backward compatible: an IP with no mutation/contract_mutation.json still signs off.
+    _make_ip(tmp_path, "no_mut_ip")
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "no_mut_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 0, result.stdout
+    report = json.loads((tmp_path / "no_mut_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "pass"
+    assert "not run" in gates["contract_mutation"]["summary"] + "".join(gates["contract_mutation"]["issues"])
+
+
+def test_ip_signoff_gate_contract_mutation_passes_clean_artifact(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "mut_ok_ip")
+    _write_json(ip_dir / "mutation" / "contract_mutation.json", _clean_mutation_artifact())
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "mut_ok_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 0, result.stdout
+    report = json.loads((tmp_path / "mut_ok_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "pass", gates["contract_mutation"]
+
+
+def test_ip_signoff_gate_contract_mutation_rejects_unclassified_survivor(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "mut_unknown_ip")
+    art = _clean_mutation_artifact()
+    art["blanket"]["survivors_unknown"] = 1  # type: ignore[index]
+    art["blanket"]["all_survivors_classified"] = False  # type: ignore[index]
+    _write_json(ip_dir / "mutation" / "contract_mutation.json", art)
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "mut_unknown_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "mut_unknown_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "fail"
+    assert "unclassified survivor" in "; ".join(gates["contract_mutation"]["issues"])
+
+
+def test_ip_signoff_gate_contract_mutation_rejects_targeted_survivor(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "mut_targeted_ip")
+    art = _clean_mutation_artifact()
+    art["targeted"]["contracts"][1]["killed"] = False  # a real surviving contract row  # type: ignore[index]
+    art["targeted"]["killed"] = 1  # type: ignore[index]
+    art["targeted"]["all_killed"] = False  # type: ignore[index]
+    art["targeted"]["survivors"] = ["C-2"]  # type: ignore[index]
+    _write_json(ip_dir / "mutation" / "contract_mutation.json", art)
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "mut_targeted_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "mut_targeted_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "fail"
+    assert "surviving mutants" in "; ".join(gates["contract_mutation"]["issues"])
+
+
+def test_ip_signoff_gate_contract_mutation_rejects_missing_blanket(tmp_path: Path) -> None:
+    # The blanket (SEC-classified sweep) section is the hard evidence; a targeted-only
+    # artifact must NOT pass — this was the hand-forge seam the reviewer flagged.
+    ip_dir = _make_ip(tmp_path, "mut_noblanket_ip")
+    art = _clean_mutation_artifact()
+    del art["blanket"]
+    _write_json(ip_dir / "mutation" / "contract_mutation.json", art)
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "mut_noblanket_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "mut_noblanket_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "fail"
+    assert "blanket axis is mandatory" in "; ".join(gates["contract_mutation"]["issues"])
+
+
+def test_ip_signoff_gate_contract_mutation_rejects_inconsistent_survivor_counts(tmp_path: Path) -> None:
+    # Scalars must be re-derivable from survivor_list[]; a forged "survivors_unknown:0"
+    # with an actually-unknown row in the list must fail.
+    ip_dir = _make_ip(tmp_path, "mut_forged_ip")
+    art = _clean_mutation_artifact()
+    art["blanket"]["survivor_list"] = [{"mode": "inv", "src": "rtl/x.sv:17", "embedded": "PASS", "sec": "unknown"}]  # type: ignore[index]
+    art["blanket"]["survivors"] = 1  # type: ignore[index]
+    art["blanket"]["survivors_unknown"] = 0  # type: ignore[index]  # lie
+    art["blanket"]["survivors_equivalent"] = 1  # type: ignore[index]  # lie
+    art["blanket"]["all_survivors_classified"] = True  # type: ignore[index]  # lie
+    _write_json(ip_dir / "mutation" / "contract_mutation.json", art)
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "mut_forged_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "mut_forged_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "fail"
+    joined = "; ".join(gates["contract_mutation"]["issues"])
+    assert "disagrees with survivor_list" in joined or "unclassified survivor" in joined
+
+
+def test_ip_signoff_gate_contract_mutation_rejects_missing_tools(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "mut_notools_ip")
+    art = _clean_mutation_artifact()
+    art["tools"] = {"yosys": "unavailable", "sby": ""}  # type: ignore[index]
+    _write_json(ip_dir / "mutation" / "contract_mutation.json", art)
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "mut_notools_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+    assert result.returncode == 1
+    report = json.loads((tmp_path / "mut_notools_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["contract_mutation"]["status"] == "fail"
+    assert "unavailable" in "; ".join(gates["contract_mutation"]["issues"])
+
+
 def test_ip_signoff_gate_rejects_failed_simulation_quality(tmp_path: Path) -> None:
     ip_dir = _make_ip(tmp_path, "bad_quality_ip")
     _write_json(

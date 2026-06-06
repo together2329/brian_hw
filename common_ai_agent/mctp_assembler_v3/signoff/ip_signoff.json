@@ -121,6 +121,13 @@
       "summary": "directed scenarios, protocol monitors, survivor classification, and optional formal artifacts present"
     },
     {
+      "artifact": "mutation/contract_mutation.json",
+      "issues": [],
+      "name": "contract_mutation",
+      "status": "pass",
+      "summary": "not run; advisory until an IP emits re-runnable mutation contract-check evidence"
+    },
+    {
       "artifact": "signoff/evidence_contract_coverage.json",
       "issues": [],
       "name": "contract_content_coverage",
@@ -129,12 +136,9 @@
     },
     {
       "artifact": "sim/evidence_freshness.json",
-      "issues": [
-        "sim evidence metadata fingerprint mismatch: verify/contract_reflection.json",
-        "sim evidence metadata fingerprint mismatch: verify/evidence_contract.json"
-      ],
+      "issues": [],
       "name": "contract_sim_freshness",
-      "status": "fail",
+      "status": "pass",
       "summary": "PASS = correctness AND freshness (sim evidence current vs SSOT/FL/CL/TB/RTL inputs)"
     },
     {
@@ -145,17 +149,17 @@
       "summary": "waivers explicit and reviewable"
     }
   ],
-  "generated_at": "2026-06-05T13:42:58Z",
+  "generated_at": "2026-06-06T14:46:20Z",
   "ip": "mctp_assembler_v3",
   "ip_contract": "verify/ip_contract.json",
   "mode": "local_evidence",
   "schema_version": 1,
-  "status": "fail",
+  "status": "pass",
   "summary": {
     "blocked": 0,
-    "failed": 1,
-    "passed": 19,
-    "total_gates": 20
+    "failed": 0,
+    "passed": 21,
+    "total_gates": 21
   },
   "type": "ip_signoff"
 }

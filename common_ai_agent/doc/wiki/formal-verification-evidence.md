@@ -197,8 +197,41 @@ to the contract set** so each survivor maps to a missing contract, not just a
 kill-rate number.
 
 A complete closure gate runs both: every targeted mutant killed by its contract,
-AND a blanket sweep at a kill-rate threshold (survivors classified equivalent or
-waived). "Pass" then means each contract bites *and* the set has no hole.
+AND a blanket sweep whose survivors are each definitively classified. "Pass" then
+means each contract bites *and* the set has no unaccounted hole.
+
+### Survivor classification needs SEC, not a kill-rate guess (2026-06-06)
+
+The raw blanket kill-rate can never reach 1.0 — equivalent mutants exist, and
+embedded assertions have a structural **blind spot**: an assertion references the
+(possibly mutated) signals, so a mutation on an *input* — or any self-consistent
+perturbation — shifts the assertion's own notion of "expected" and survives. So a
+kill-rate threshold is the wrong gate (it is either too loose or it rejects
+harmless mutants). The right gate classifies each survivor with a **second,
+independent lane**: sequential equivalence checking (a `miter -equiv` between the
+mutated DUT and an unmutated gold copy, `chformal -remove` so only I/O is compared,
+proven by k-induction). A survivor is then exactly one of:
+
+- **equivalent** — SEC proves the outputs identical ⇒ harmless, not a hole;
+- **sec_caught** — SEC finds an observable difference the embedded suite missed ⇒
+  the equivalence lane catches it (covered, not a hole), and it is usually an input
+  / self-consistent mutation no assertion could catch;
+- **unknown** — SEC inconclusive ⇒ a real open item that must block signoff.
+
+Gate = correct clean **AND** every targeted mutant killed **AND** zero `unknown`
+survivors. This is the lesson behind [[spec-loop-and-equivalence-check]]: embedded
+contracts and equivalence checking *compose* — together they leave no mutation
+unaccounted, which neither does alone.
+
+This is implemented and re-runnable in
+[`examples/mctp_contract_slice/contract_check.py`](../../examples/mctp_contract_slice/contract_check.py):
+targeted (`INJECT_*`) + blanket (`yosys mutate`) + SEC survivor classification,
+emitting `signoff/mutation_contract_check.json`. Demonstrated on the assembler
+slice: 11/11 targeted killed; embedded kill-rate ≈0.78; **all 8 blanket survivors
+`sec_caught`, 0 unknown** — and adding the `C-ASM-CONTENT` / `C-ASM-DECODE`
+value-level contracts (closing a hole the sweep first exposed: count + control-flow
+were pinned, output *content* was not — the same "count ≠ content" gap as the v3
+trust campaign) is the find→close loop in miniature.
 
 ## Current Implementation Vs Proposed (this repo)
 
@@ -248,10 +281,22 @@ fail — if it survives, the verification, not the RTL, is wrong):
    passes (an 8-bit counter init=255 made `255+1=0` mask a frozen-counter bug).
    Add a power-on `assume(!rst_n)`.
 
-Still NOT done: wiring this into the repo signoff so `check_ip_signoff.py` demands
-a real verdict (proven + assumes discharged + covers reachable + mutant-killed)
-instead of accepting an unproven `formal_status.json`. That pipeline integration
-is the remaining gap.
+Now wired (2026-06-06): `check_ip_signoff.py` has a `contract_mutation` gate that
+consumes a re-runnable `<ip>/mutation/contract_mutation.json` (the
+`mutation_contract_check` artifact produced by `contract_check.py`). It verifies
+the **structured** verdict — correct clean on both lanes, every targeted mutant
+killed, and every blanket survivor SEC-classified (zero `unknown`) — not a bare
+`status: "pass"` string, so a hand-set status cannot pass without the matrix
+backing it. The gate is backward-compatible (applicable only when the artifact
+exists; legacy IPs are not-applicable). Tests:
+`tests/test_ip_signoff_gate.py::test_ip_signoff_gate_contract_mutation_*`.
+
+Remaining gap: `formal_status.json` itself is still trusted by
+`check_verification_hardening` (status string + property count), and a *production*
+IP like `mctp_assembler_v3` has no `INJECT_*` hooks, so it does not yet feed the
+`contract_mutation` gate. The re-runnable evidence path exists and is demonstrated;
+generating it for real production RTL (hook-free blanket + SEC on the actual
+modules) is the next step.
 
 ## Summary
 

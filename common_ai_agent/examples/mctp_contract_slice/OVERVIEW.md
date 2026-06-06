@@ -24,9 +24,12 @@ Run: `./run_all.sh`
 Contracts: gate / key / start / single / cont / seq / payload / end / drop /
 out / reset / status. Assertions are embedded under `` `ifdef FORMAL `` (they see
 internal `len_q` natively — no debug ports, no `bind`). Each `INJECT_*_BUG`
-breaks exactly one contract.
-Result: `signoff/validation_closure_12.json` — correct PASS on all 3 lanes;
-all 11 mutants killed (verilator + formal).
+breaks exactly one contract. Plus `C-ASM-CONTENT` / `C-ASM-DECODE` value-level
+contracts (added after the blanket sweep below proved the count/control-flow-only
+set left output *content* and branch-priority unpinned).
+Result: `signoff/validation_closure_12.json` (human design record) and
+`signoff/mutation_contract_check.json` (machine evidence, see §8) — correct PASS
+on all 3 lanes; all 11 targeted mutants killed (verilator + formal).
 
 ### 2. `rtl/mctp_rx_mc.sv` — multi-context + 3-field key + interleaving deep-dive
 Run: `./run_mc.sh`
@@ -78,6 +81,29 @@ descriptor publish/queue + drop classification. Correct passes both lanes; all s
 cross-cutting mutants killed (BASE/SEQ/GATE both lanes; FIRST/NOEARLY/FULL formal).
 `signoff/validation_closure_full.json`. Still simplified vs production v3
 (256-bit SRAM words/strobes, full key, timeout, registers).
+
+### 8. `contract_check.py` — re-runnable two-axis mutation gate (MACHINE evidence)
+Run: `python3 contract_check.py` (writes `signoff/mutation_contract_check.json`, exit 0 = pass).
+Turns the hand-authored `killed: true` claims into evidence a solver reproduces:
+
+- **Targeted axis** — for each of the 11 named contracts, define its `INJECT_*_BUG`
+  and prove the matching check *fires* (mutant dies in verilator `--assert` OR sby
+  formal). A surviving targeted mutant = that contract is too weak / missing.
+- **Blanket axis** — `yosys mutate` auto-samples DUT mutations (checker-region
+  mutations are filtered out), each proven by the full embedded-SVA suite; the
+  kill-rate is measured and **every survivor is SEC-classified** (miter equivalence
+  vs an independent gold copy) as `equivalent` (provably harmless) or `sec_caught`
+  (an embedded blind spot the SEC lane catches — e.g. an *input* mutation, which no
+  embedded assertion can catch because the assertion references the mutated input).
+
+Gate = correct clean on both lanes **AND** every targeted mutant killed **AND**
+every blanket survivor definitively classified (zero `unknown`). This is the gate
+`workflow/signoff/scripts/check_ip_signoff.py` consumes as the `contract_mutation`
+gate when an IP places the same artifact at `<ip>/mutation/contract_mutation.json`.
+Demonstrated result: 11/11 targeted; embedded kill-rate ≈0.78; all survivors
+`sec_caught` (0 unknown) — i.e. embedded contracts + SEC together leave no
+unaccounted mutation. See [[formal-verification-evidence]] and
+[[spec-loop-and-equivalence-check]].
 
 ## What this example is / isn't
 

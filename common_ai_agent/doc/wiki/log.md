@@ -2,6 +2,23 @@
 
 ## 2026-06-06
 
+- Built `examples/mctp_contract_slice/contract_check.py` — a re-runnable two-axis
+  mutation gate that turns hand-authored `killed: true` claims into machine
+  evidence: targeted (`INJECT_*` per contract) + blanket (`yosys mutate`, DUT
+  region only) + **SEC survivor classification** (miter `equiv` vs gold,
+  `chformal -remove`) labelling each survivor equivalent / sec_caught / unknown.
+  Key finding recorded in [[formal-verification-evidence]] (`## Mutation` →
+  "Survivor classification needs SEC"): embedded assertions have a blind spot
+  (a mutation on an input is self-consistent with the assertion), so the right gate
+  is "zero unknown survivors", not a kill-rate threshold — embedded contracts and
+  SEC *compose*. On the slice: 11/11 targeted; embedded kill-rate ≈0.78; all 8
+  blanket survivors `sec_caught`, 0 unknown. Adding `C-ASM-CONTENT` / `C-ASM-DECODE`
+  closed a hole the sweep exposed (count + control-flow pinned, output content was
+  not). Wired into `workflow/signoff/scripts/check_ip_signoff.py` as the
+  backward-compatible `contract_mutation` gate (consumes
+  `<ip>/mutation/contract_mutation.json`, verifies the structured verdict not a
+  bare string); 4 new tests in `tests/test_ip_signoff_gate.py`; `mctp_assembler_v3`
+  signoff stays pass (gate not-applicable). Updated "Still NOT done" → "Now wired".
 - Recorded the two-axis mutation strategy in [[formal-verification-evidence]]
   (`## Mutation: Targeted Vs Blanket`): targeted per-contract mutation proves each
   contract's check bites; blanket/mechanical mutation (yosys `mutate`, kill-rate)

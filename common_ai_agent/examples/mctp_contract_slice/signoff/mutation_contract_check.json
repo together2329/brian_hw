@@ -1,0 +1,399 @@
+{
+  "blanket": {
+    "all_survivors_classified": true,
+    "apply_errors": 0,
+    "checker_region_skipped": 31,
+    "dut_mutants": 29,
+    "embedded_kill_rate": 0.7586,
+    "embedded_killed": 22,
+    "meets_threshold": false,
+    "mutants": [
+      {
+        "idx": 0,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:84",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 1,
+        "killed": true,
+        "mode": "const0",
+        "src": "rtl/mctp_rx_assembler.sv:34",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 2,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:110",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 3,
+        "killed": false,
+        "mode": "inv",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:108",
+        "verdict": "PASS"
+      },
+      {
+        "idx": 4,
+        "killed": true,
+        "mode": "inv",
+        "src": "rtl/mctp_rx_assembler.sv:87",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 5,
+        "killed": false,
+        "mode": "cnot1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:118",
+        "verdict": "PASS"
+      },
+      {
+        "idx": 6,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:38",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 7,
+        "killed": true,
+        "mode": "inv",
+        "src": "rtl/mctp_rx_assembler.sv:32",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 8,
+        "killed": true,
+        "mode": "const1",
+        "src": "rtl/mctp_rx_assembler.sv:30",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 9,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:38",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 10,
+        "killed": true,
+        "mode": "inv",
+        "src": "rtl/mctp_rx_assembler.sv:81",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 11,
+        "killed": true,
+        "mode": "const1",
+        "src": "rtl/mctp_rx_assembler.sv:85",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 12,
+        "killed": false,
+        "mode": "inv",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:17",
+        "verdict": "PASS"
+      },
+      {
+        "idx": 13,
+        "killed": true,
+        "mode": "const1",
+        "src": "rtl/mctp_rx_assembler.sv:35",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 14,
+        "killed": true,
+        "mode": "const0",
+        "src": "rtl/mctp_rx_assembler.sv:118",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 15,
+        "killed": false,
+        "mode": "cnot1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:27",
+        "verdict": "UNKNOWN"
+      },
+      {
+        "idx": 16,
+        "killed": true,
+        "mode": "const0",
+        "src": "rtl/mctp_rx_assembler.sv:26",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 17,
+        "killed": false,
+        "mode": "cnot1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:36",
+        "verdict": "UNKNOWN"
+      },
+      {
+        "idx": 18,
+        "killed": false,
+        "mode": "cnot0",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:121",
+        "verdict": "PASS"
+      },
+      {
+        "idx": 19,
+        "killed": true,
+        "mode": "const1",
+        "src": "rtl/mctp_rx_assembler.sv:87",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 20,
+        "killed": true,
+        "mode": "inv",
+        "src": "rtl/mctp_rx_assembler.sv:106",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 21,
+        "killed": true,
+        "mode": "const1",
+        "src": "rtl/mctp_rx_assembler.sv:36",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 22,
+        "killed": false,
+        "mode": "const1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:108",
+        "verdict": "PASS"
+      },
+      {
+        "idx": 23,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:35",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 24,
+        "killed": true,
+        "mode": "inv",
+        "src": "rtl/mctp_rx_assembler.sv:28",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 25,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:34",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 26,
+        "killed": true,
+        "mode": "inv",
+        "src": "rtl/mctp_rx_assembler.sv:38",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 27,
+        "killed": true,
+        "mode": "const1",
+        "src": "rtl/mctp_rx_assembler.sv:118",
+        "verdict": "FAIL"
+      },
+      {
+        "idx": 28,
+        "killed": true,
+        "mode": "cnot0",
+        "src": "rtl/mctp_rx_assembler.sv:38",
+        "verdict": "FAIL"
+      }
+    ],
+    "requested": 60,
+    "scored": 29,
+    "seed": 1,
+    "survivor_list": [
+      {
+        "embedded": "PASS",
+        "mode": "inv",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:108"
+      },
+      {
+        "embedded": "PASS",
+        "mode": "cnot1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:118"
+      },
+      {
+        "embedded": "PASS",
+        "mode": "inv",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:17"
+      },
+      {
+        "embedded": "UNKNOWN",
+        "mode": "cnot1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:27"
+      },
+      {
+        "embedded": "UNKNOWN",
+        "mode": "cnot1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:36"
+      },
+      {
+        "embedded": "PASS",
+        "mode": "cnot0",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:121"
+      },
+      {
+        "embedded": "PASS",
+        "mode": "const1",
+        "sec": "sec_caught",
+        "src": "rtl/mctp_rx_assembler.sv:108"
+      }
+    ],
+    "survivors": 7,
+    "survivors_equivalent": 0,
+    "survivors_sec_caught": 7,
+    "survivors_unknown": 0,
+    "threshold": 0.9,
+    "tool": "yosys mutate -list + SEC (miter equiv) survivor classification"
+  },
+  "correct": {
+    "formal": "PASS",
+    "verilator": "PASS"
+  },
+  "elapsed_s": 53.4,
+  "formal_block_start": 153,
+  "gate": {
+    "blanket_all_survivors_classified": true,
+    "correct_clean": true,
+    "pass": true,
+    "targeted_all_killed": true
+  },
+  "generated_at": "2026-06-06T14:46:11Z",
+  "ip": "mctp_rx_assembler",
+  "lanes": {
+    "formal": "SymbiYosys + yosys-smtbmc + z3 (k-induction / BMC)",
+    "verilator": "constrained-random sim of embedded SVA (--assert)"
+  },
+  "schema_version": 1,
+  "status": "pass",
+  "targeted": {
+    "all_killed": true,
+    "contracts": [
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-GATE",
+        "inject": "INJECT_GATE_BUG",
+        "killed": true,
+        "note": "bad-header packet must be dropped",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-KEY",
+        "inject": "INJECT_KEY_BUG",
+        "killed": true,
+        "note": "foreign tag in continuation must be ignored",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-START",
+        "inject": "INJECT_START_BUG",
+        "killed": true,
+        "note": "START must not commit early",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-SINGLE",
+        "inject": "INJECT_SINGLE_BUG",
+        "killed": true,
+        "note": "SOM&EOM single must not leave stale context",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-SEQ-OOS",
+        "inject": "INJECT_SEQ_BUG",
+        "killed": true,
+        "note": "out-of-sequence must drop + close context",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-PAYLOAD",
+        "inject": "INJECT_PAYLOAD_BUG",
+        "killed": true,
+        "note": "committed length must equal accumulated len",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-END",
+        "inject": "INJECT_END_BUG",
+        "killed": true,
+        "note": "EOM commit must clear context",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-DROP",
+        "inject": "INJECT_DROP_BUG",
+        "killed": true,
+        "note": "dropped assembly must not leave stale payload",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-OUT",
+        "inject": "INJECT_OUT_BUG",
+        "killed": true,
+        "note": "output stable under backpressure",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-RESET",
+        "inject": "INJECT_RESET_BUG",
+        "killed": true,
+        "note": "reset must clear context",
+        "verilator": "ASSERT_FAIL"
+      },
+      {
+        "formal": "FAIL",
+        "id": "C-ASM-STATUS",
+        "inject": "INJECT_STATUS_BUG",
+        "killed": true,
+        "note": "every drop must increment drop_count",
+        "verilator": "ASSERT_FAIL"
+      }
+    ],
+    "killed": 11,
+    "survivors": [],
+    "total": 11
+  },
+  "tools": {
+    "sby": "SBY",
+    "verilator": "Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228",
+    "yosys": "Yosys 0.64 (git sha1 d8dab5b32666564eca8e18f412973853ce006e61, clang++ 17.0.0 -fPIC -O3)",
+    "z3": "Z3 version 4.15.4 - 64 bit"
+  },
+  "type": "mutation_contract_check"
+}

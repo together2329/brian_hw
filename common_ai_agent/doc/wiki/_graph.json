@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T12:18:02Z",
+  "generated_at": "2026-06-06T14:37:45Z",
   "root": "doc/wiki",
   "node_count": 150,
   "edge_count": 715,
@@ -2236,7 +2236,7 @@
       "updated": "2026-06-06",
       "summary": "\"Formal\" here means **RTL formal verification** — mathematically proving (or finding a counterexample to) a property over *all* reachable inputs/states — not running many simulations. It is one evidence type in the `req → obligation → contract → evidence → validation` spine ([[contract-reflection-workflow]], [[evidence-contract-obligation-traceability]])…",
       "path": "doc/wiki/formal-verification-evidence.md",
-      "size_bytes": 13587
+      "size_bytes": 16547
     },
     {
       "id": "frontend-modernization-2026-05-29",
@@ -3086,9 +3086,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Recorded the two-axis mutation strategy in [[formal-verification-evidence]] (`## Mutation: Targeted Vs Blanket`): targeted per-contract mutation proves each contract's check bites; blanket/mechanical mutation (yosys `mutate`, kill-rate) proves the contract *set* has no hole (a survivor = a missing contract). Both are open-source and a complete closure…",
+      "summary": "- Built `examples/mctp_contract_slice/contract_check.py` — a re-runnable two-axis mutation gate that turns hand-authored `killed: true` claims into machine evidence: targeted (`INJECT_*` per contract) + blanket (`yosys mutate`, DUT region only) + **SEC survivor classification** (miter `equiv` vs gold, `chformal -remove`) labelling each survivor equivalent…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 115985
+      "size_bytes": 117330
     },
     {
       "id": "mctp-assembler-contract-breakdown",

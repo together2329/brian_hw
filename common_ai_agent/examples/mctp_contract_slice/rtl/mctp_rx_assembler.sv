@@ -169,6 +169,16 @@ module mctp_rx_assembler #(parameter int DEPTH = 4) (
   wire a_end    = a_inseq & (len_q != DEPTH[7:0]) &  pkt_eom;
   wire a_append = a_inseq & (len_q != DEPTH[7:0]) & ~pkt_eom;
 
+  // Spec-side decode of THIS cycle's drop / commit, derived purely from the
+  // protocol predicates above (real header/tag/seq compares — NOT the *_eff
+  // signals an INJECT mutant may corrupt, and NOT the priority-mux a blanket
+  // mutant may flip). a_single / a_start also drop when a context is already
+  // open (stale-context drop), so those are folded in.
+  wire d_stale    = context_active;
+  wire exp_drop   = a_gate | a_unexp | a_key | a_seq | a_ovf
+                  | (a_single & d_stale) | (a_start & d_stale);
+  wire exp_commit = a_single | a_end;   // single always commits; end commits on EOM
+
   always @(posedge clk) begin
     if (f_past_valid && rst_n && $past(rst_n) && !$past(flush)) begin
       // C-ASM-GATE
@@ -227,6 +237,47 @@ module mctp_rx_assembler #(parameter int DEPTH = 4) (
       end
       // C-ASM-STATUS (drop_count tracks every drop)
       if (drop_pulse) assert (drop_count == $past(drop_count) + 8'd1);
+
+      // -----------------------------------------------------------------------
+      // C-ASM-CONTENT — committed/derived VALUES, not just control flow & length.
+      // Added after a blanket yosys-mutate sweep showed const/inv mutations on
+      // msg_sum/msg_tag/ctx_tag/expected_seq/sum_q/ovf SURVIVING: the count- and
+      // length-only contracts above left the data content unpinned (the same
+      // "count != content" gap as the assembler trust campaign). A surviving
+      // mutant == a missing contract; these close it.
+      // -----------------------------------------------------------------------
+      if ($past(a_single)) begin                                   // C-ASM-CONTENT-SINGLE
+        assert (msg_len == 8'd1);
+        assert (msg_tag == $past(pkt_tag));
+        assert (msg_sum == $past(pkt_data));
+      end
+      if ($past(a_end)) begin                                      // C-ASM-CONTENT-END
+        assert (msg_tag == $past(ctx_tag));
+        assert (msg_sum == $past(sum_q) + $past(pkt_data));
+      end
+      if ($past(a_start)) begin                                    // C-ASM-CTX (START captures key+seq)
+        assert (ctx_tag      == $past(pkt_tag));
+        assert (expected_seq == $past(pkt_seq) + 2'd1);
+      end
+      if ($past(a_append)) begin                                   // C-ASM-ACCUM (running sum + seq advance)
+        assert (expected_seq == $past(expected_seq) + 2'd1);
+        assert (sum_q        == $past(sum_q) + $past(pkt_data));
+      end
+      assert (ovf == $past(a_ovf));                                // C-ASM-OVF (strobe iff append hit DEPTH)
+
+      // -----------------------------------------------------------------------
+      // C-ASM-DECODE — the drop/commit DECISION is exactly the spec decode, so no
+      // branch of the priority chain may be skipped, mis-ordered, or doubled.
+      // Closes the residual holes a blanket yosys-mutate sweep + SEC proved REAL:
+      // const/inv mutations on the SINGLE/KEY/SEQ/overflow branch selects changed
+      // which case fired without tripping any per-case (antecedent-guarded) check.
+      // Pinning drop_pulse and the commit_count delta to the mutation-independent
+      // predicate catches every such priority perturbation.
+      // -----------------------------------------------------------------------
+      assert (drop_pulse == $past(exp_drop));                      // every drop, and only a drop
+      // delta is mod-2^8: at the 255->0 wrap, (0 - 255) == 1 in 8-bit arithmetic, so
+      // the +1 case still holds — do not "simplify" this to a >= / unsigned compare.
+      assert (commit_count - $past(commit_count) == ($past(exp_commit) ? 8'd1 : 8'd0));
     end
   end
 
