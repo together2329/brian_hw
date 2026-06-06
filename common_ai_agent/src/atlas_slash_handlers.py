@@ -74,6 +74,21 @@ def make_slash_handlers(
     original closure-captured names — bodies use them directly as if
     they were the original closures."""
 
+    def _session_ip_root(ip: str, client_session: Any | None = None) -> Path:
+        if _ip_root_for_session is not None:
+            return _ip_root_for_session(ip, client_session)
+        return _ip_root(ip)
+
+    def _session_script_root(ip: str, client_session: Any | None = None) -> Path:
+        if _script_project_root_for_session is not None:
+            return _script_project_root_for_session(ip, client_session)
+        return _script_project_root(ip)
+
+    def _session_ssot_yaml_path(ip: str, client_session: Any | None = None) -> Path:
+        if _ssot_yaml_path_for_session is not None:
+            return _ssot_yaml_path_for_session(ip, client_session)
+        return _ssot_yaml_path(ip)
+
     def _handle_bang_shell_command(text: str, client_session: Any) -> bool:
         raw = str(text or "").strip()
         if not raw.startswith("!"):
@@ -476,10 +491,7 @@ def make_slash_handlers(
             )
             return True
         _set_active_ssot_ip(ip)
-        if _ip_root_for_session is not None:
-            ip_dir = _ip_root_for_session(ip, client_session)
-        else:
-            ip_dir = _ip_root(ip)
+        ip_dir = _session_ip_root(ip, client_session)
         state = _load_ssot_state(ip) or {}
         session = _canonical_session_string(ip)
         manifest_path = ip_dir / "req" / "import_manifest.json"
@@ -571,10 +583,7 @@ def make_slash_handlers(
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
-        if _ssot_yaml_path_for_session is not None:
-            ssot_path = _ssot_yaml_path_for_session(ip, client_session)
-        else:
-            ssot_path = _ssot_yaml_path(ip)
+        ssot_path = _session_ssot_yaml_path(ip, client_session)
         source_summary = (
             "Sources: locked truth bundle "
             + ", ".join(f"`{src}`" for src in locked_truth_sources)
@@ -597,10 +606,7 @@ def make_slash_handlers(
         _queue_prompt_for_session(client_session, "/mode normal")
         _queue_prompt_for_session(client_session, "/wf ssot-gen")
         _queue_prompt_for_session(client_session, "/clear")
-        if _script_project_root_for_session is not None:
-            script_root = _script_project_root_for_session(ip, client_session)
-        else:
-            script_root = _script_project_root(ip)
+        script_root = _session_script_root(ip, client_session)
         repair_script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
         verify_script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         _queue_prompt_for_session(client_session,
@@ -678,7 +684,8 @@ def make_slash_handlers(
 
         script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
         validator = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
-        ssot_path = _ssot_yaml_path(ip)
+        ssot_path = _session_ssot_yaml_path(ip, client_session)
+        stage_root = _session_script_root(ip, client_session)
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
@@ -700,8 +707,8 @@ def make_slash_handlers(
             import subprocess
 
             repair = subprocess.run(
-                [_python_cmd(), str(script), ip, "--root", str(PROJECT_ROOT)],
-                cwd=str(PROJECT_ROOT),
+                [_python_cmd(), str(script), ip, "--root", str(stage_root)],
+                cwd=str(stage_root),
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -709,8 +716,8 @@ def make_slash_handlers(
                 timeout=60,
             )
             validate = subprocess.run(
-                [_python_cmd(), str(validator), ip, "--root", str(PROJECT_ROOT), "--mode", "engineering"],
-                cwd=str(PROJECT_ROOT),
+                [_python_cmd(), str(validator), ip, "--root", str(stage_root), "--mode", "engineering"],
+                cwd=str(stage_root),
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -792,8 +799,9 @@ def make_slash_handlers(
             return True
 
         _set_active_ssot_ip(ip)
-        ssot_path = _ssot_yaml_path(ip)
+        ssot_path = _session_ssot_yaml_path(ip, client_session)
         script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
+        stage_root = _session_script_root(ip, client_session)
         session = _canonical_session_string(ip)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
@@ -815,13 +823,13 @@ def make_slash_handlers(
                     str(script),
                     ip,
                     "--root",
-                    str(PROJECT_ROOT),
+                    str(stage_root),
                     "--mode",
                     mode,
                     "--preview",
                     preview,
                 ],
-                cwd=str(PROJECT_ROOT),
+                cwd=str(stage_root),
                 text=True,
                 encoding="utf-8",
                 errors="replace",
@@ -864,11 +872,11 @@ def make_slash_handlers(
                 "repair-rtl",
             )
             return True
-        ip_dir = _ip_root(ip)
-        ssot_path = _ssot_yaml_path(ip)
+        ip_dir = _session_ip_root(ip, client_session)
+        ssot_path = _session_ssot_yaml_path(ip, client_session)
         if not ssot_path.is_file():
             _emit_workflow_result(
-                f"[repair-rtl] blocked: SSOT not found at {ip}/yaml/{ip}.ssot.yaml\n"
+                f"[repair-rtl] blocked: SSOT not found at {ssot_path}\n"
                 "Run /new-ip if needed, then /to-ssot for the active IP.",
                 "repair-rtl",
             )
@@ -937,7 +945,7 @@ def make_slash_handlers(
                 "repair-equiv",
             )
             return True
-        classify_path = _ip_root(ip) / "sim" / "mismatch_classification.json"
+        classify_path = _session_ip_root(ip, client_session) / "sim" / "mismatch_classification.json"
         if not classify_path.is_file():
             _emit_workflow_result(
                 f"[repair-equiv] blocked: missing {ip}/sim/mismatch_classification.json\n"
@@ -1079,11 +1087,12 @@ def make_slash_handlers(
                 alias,
             )
             return True
-        ip_dir = _ip_root(ip)
-        ssot_path = _ssot_yaml_path(ip)
+        ip_dir = _session_ip_root(ip, client_session)
+        ssot_path = _session_ssot_yaml_path(ip, client_session)
+        stage_root = _session_script_root(ip, client_session)
         if not ssot_path.is_file():
             _emit_workflow_result(
-                f"[{alias}] blocked: SSOT not found at {ip}/yaml/{ip}.ssot.yaml\n"
+                f"[{alias}] blocked: SSOT not found at {ssot_path}\n"
                 "Run /new-ip if needed, then /to-ssot for the active IP.",
                 alias,
             )
@@ -1152,7 +1161,7 @@ def make_slash_handlers(
         if is_common_stage(alias):
             template = str(spec.get("template") or alias)
             surface = run_common_stage_surface(
-                project_root=_script_project_root(ip),
+                project_root=stage_root,
                 source_root=SOURCE_ROOT,
                 alias=alias,
                 ip=ip,
@@ -1235,7 +1244,6 @@ def make_slash_handlers(
                 return True
             try:
                 import subprocess
-                stage_root = _script_project_root(ip)
                 try:
                     runner_rel = runner.relative_to(stage_root).as_posix()
                 except ValueError:
@@ -1340,8 +1348,6 @@ def make_slash_handlers(
             _append_active_history("user", text)
             client_session.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
-            stage_root = _script_project_root(ip)
-
             def _clip(s: str, limit: int = 12000) -> str:
                 if len(s) <= limit:
                     return s
@@ -1508,8 +1514,6 @@ def make_slash_handlers(
             _append_active_history("user", text)
             client_session.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
-            stage_root = _script_project_root(ip)
-
             def _run_local(label: str, cmdline: list[str], timeout_s: int = 60) -> int:
                 try:
                     import subprocess
@@ -1608,8 +1612,6 @@ def make_slash_handlers(
             _append_active_history("user", text)
             client_session.emit("agent_state", running=True)
             runs: list[dict[str, Any]] = []
-            stage_root = _script_project_root(ip)
-
             def _run_tb_tool(label: str, command: list[str], timeout_s: int = 180) -> int:
                 try:
                     import subprocess
@@ -1758,8 +1760,8 @@ def make_slash_handlers(
                 import subprocess
 
                 run = subprocess.run(
-                    [_python_cmd(), str(script), ip, "--root", str(_script_project_root(ip))],
-                    cwd=str(_script_project_root(ip)),
+                    [_python_cmd(), str(script), ip, "--root", str(stage_root)],
+                    cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -1846,8 +1848,8 @@ def make_slash_handlers(
                 import subprocess
 
                 run = subprocess.run(
-                    [_python_cmd(), str(script), ip, "--root", str(_script_project_root(ip))],
-                    cwd=str(_script_project_root(ip)),
+                    [_python_cmd(), str(script), ip, "--root", str(stage_root)],
+                    cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
@@ -1920,8 +1922,8 @@ def make_slash_handlers(
                 import subprocess
 
                 run = subprocess.run(
-                    [_python_cmd(), str(script), ip, "--root", str(_script_project_root(ip))],
-                    cwd=str(_script_project_root(ip)),
+                    [_python_cmd(), str(script), ip, "--root", str(stage_root)],
+                    cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
                     errors="replace",
