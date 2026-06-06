@@ -3355,6 +3355,17 @@ def _get_todo_tracker():
         for module in modules:
             tracker = getattr(module, "todo_tracker", None)
             if tracker is not None and _paths_match(getattr(tracker, "_persist_path", None), desired_path):
+                # Cross-process freshness: the Atlas server (a different process)
+                # may have rewritten this session todo.json — slash template load,
+                # auto-start seed, /api/todos edit — after this worker cached the
+                # tracker at boot. Re-read when the file changed instead of serving
+                # the stale (often empty) in-memory copy. This is the root of the
+                # "No active todo list" while the file clearly exists on disk bug.
+                if hasattr(tracker, "is_stale_vs_disk") and tracker.is_stale_vs_disk():
+                    # Re-read INTO the cached object (preserve identity so
+                    # react_loop's held reference and the module global stay in
+                    # sync) instead of orphaning it with a fresh load.
+                    tracker.reload_from_disk()
                 return tracker
 
         tracker = TodoTracker.load(desired_path, strict=strict_load)

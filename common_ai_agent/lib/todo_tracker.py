@@ -290,6 +290,11 @@ class TodoTracker:
         self._persist_path: Optional[Path] = persist_path or TODO_FILE
         self.template_lock_additions: bool = False
         self.template_name: str = ""
+        # Fingerprint (mtime_ns, size) of the file at last load/save. Used to
+        # detect cross-process writes (the Atlas server rewriting this session
+        # todo.json) so a cached in-process tracker re-reads instead of serving
+        # a stale copy.
+        self._loaded_fingerprint: Optional[tuple] = None
 
     @staticmethod
     def _format_index_ranges(indices: List[int], max_ranges: int = 12) -> str:
@@ -1515,6 +1520,47 @@ class TodoTracker:
         tracker.template_name = str(data.get("template_name", "") or "")
         return tracker
 
+    def _disk_fingerprint(self) -> Optional[tuple]:
+        """(mtime_ns, size) of the persist file, or None if missing/unreadable."""
+        path = self._persist_path
+        if not path:
+            return None
+        try:
+            st = path.stat()
+            return (st.st_mtime_ns, st.st_size)
+        except OSError:
+            return None
+
+    def is_stale_vs_disk(self) -> bool:
+        """True if the on-disk todo file changed since this tracker was loaded
+        or saved — i.e. another process (the Atlas server) wrote it. The worker
+        must re-read instead of serving its cached in-memory copy."""
+        current = self._disk_fingerprint()
+        if current is None:
+            return False  # no file on disk → nothing newer to read
+        return current != getattr(self, "_loaded_fingerprint", None)
+
+    def reload_from_disk(self) -> bool:
+        """Re-read the persist file INTO this instance, preserving object
+        identity so existing holders (react_loop, cached module globals) all see
+        the update. Returns True if the file was reloaded."""
+        path = self._persist_path
+        if not path or not path.exists():
+            return False
+        try:
+            data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, json.JSONDecodeError):
+            return False
+        fresh = type(self).from_dict(data, persist_path=path)
+        self.todos = fresh.todos
+        self.current_index = fresh.current_index
+        self.stagnation_count = fresh.stagnation_count
+        self._last_completed_count = fresh._last_completed_count
+        self.template_lock_additions = fresh.template_lock_additions
+        self.template_name = fresh.template_name
+        self._loaded_fingerprint = self._disk_fingerprint()
+        return True
+
     def save(self):
         """파일에 현재 상태 저장."""
         if not self._persist_path:
@@ -1525,6 +1571,8 @@ class TodoTracker:
             data["stagnation_count"] = self.stagnation_count
             data["_last_completed_count"] = self._last_completed_count
             self._persist_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+            # Record our own write so it is not mistaken for an external change.
+            self._loaded_fingerprint = self._disk_fingerprint()
         except Exception:
             pass
 
@@ -1535,7 +1583,9 @@ class TodoTracker:
         if path.exists():
             try:
                 data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
-                return cls.from_dict(data, persist_path=path)
+                tracker = cls.from_dict(data, persist_path=path)
+                tracker._loaded_fingerprint = tracker._disk_fingerprint()
+                return tracker
             except json.JSONDecodeError as exc:
                 if strict:
                     raise ValueError(f"Todo file is invalid JSON: {path}: {exc}") from exc

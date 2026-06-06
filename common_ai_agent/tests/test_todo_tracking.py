@@ -570,6 +570,33 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.tracker.mark_completed(1)
         self.tracker.mark_approved(1, "setup prerequisite approved")
 
+    def test_worker_rereads_externally_written_session_file(self):
+        """Cross-process freshness: the Atlas server (a different process)
+        rewrites todo.json after this worker cached an empty tracker at boot.
+        _get_todo_tracker must re-read the file instead of serving the stale
+        empty cache — the 'No active todo list while the file exists' bug."""
+        from core.tools import _get_todo_tracker
+        import main as main_mod
+
+        # Worker booted with an empty cached tracker (setUp set main.todo_tracker).
+        self.assertEqual(len(main_mod.todo_tracker.todos), 0)
+
+        # Another process (Atlas server /draft-req) writes the session todo.json.
+        self.todo_file.write_text(json.dumps({"todos": [
+            {"content": "[REQ] Draft requirement JSON bundle", "status": "in_progress"},
+            {"content": "[REQ] Draft handoff summary", "status": "pending"},
+        ]}), encoding="utf-8")
+
+        tracker = _get_todo_tracker()
+        self.assertEqual(len(tracker.todos), 2)
+        self.assertEqual(tracker.todos[0].status, "in_progress")
+
+        # Subsequent reads with no further external write keep serving it
+        # (no churn) — and the worker's own save is not seen as external.
+        tracker.todos[0].tools_since_in_progress = 1
+        tracker.mark_completed(0)
+        self.assertFalse(tracker.is_stale_vs_disk())
+
     def test_sequential_enforcement_blocks_skip(self):
         """Cannot work on task 2 before task 1 is approved."""
         from core.tools import todo_update
