@@ -7,7 +7,7 @@ production RTL, testbenches, or simulations. Those are downstream rtl-gen,
 tb-gen, and sim workflow responsibilities.
 
 ## Phase 1: Requirements Gathering
-1. Read any existing requirement files in the current directory
+1. Read any existing requirement files in the current directory. If `req/approval_manifest.json` exists, treat the locked truth bundle under `req/` as authority and treat the YAML SSOT as a generator-ready Design Spec projection.
 2. Extract IP name, top-level type, purpose, clock/reset, interfaces, parameters, memories, registers, interrupts, function behavior, cycle/latency behavior, debug visibility, security/safety behavior, timing/performance constraints, power intent, reset defaults, error behavior, DFT/testability assumptions, synthesis/PPA targets, and verification intent
 3. Build a requirements ledger before writing YAML:
    - `decided`: concrete facts from user/files
@@ -16,6 +16,7 @@ tb-gen, and sim workflow responsibilities.
    - `deferred`: non-blocking future enhancements
 4. Ask user only for blocking gaps. If a reasonable safe assumption is enough, record it in `custom.assumptions` instead of stopping.
 5. Confirm the leaf IP boundary: what this SSOT owns, what is external, and which submodules are manifest-owned versus child SSOTs.
+6. Do not write or modify canonical `req/*.json` authority files from ssot-gen. If locked truth is missing, stop with a lock/approval gap or proceed only as an unlocked draft when the user explicitly requested that.
 
 ## Phase 1B: Downstream RTL Feedback Enrichment
 
@@ -40,6 +41,8 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 6. Use `ownership: child_ssot` only for reusable or independently verified child IPs
 7. Put enough detail in `features`, `dataflow`, `function_model`, `cycle_model`, `fsm`, `memory`, `registers`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `pnr`, `test_requirements`, and `quality_gates` for downstream workflows to implement and verify without hidden tribal knowledge.
 8. Avoid IP-specific fixed templates. The SSOT must describe behavior, interfaces, constraints, and acceptance criteria; downstream workflows generate implementation from those facts.
+9. If locked truth exists, put authority metadata under `custom.locked_truth_authority` and put projection coverage under `traceability.locked_truth_projection`. Do not add a new top-level `authority:` key because the canonical top-level section set is fixed.
+10. Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to important Design Spec items such as interfaces, register fields, function_model transactions, cycle_model rules, test scenarios, coverage bins, and quality gates.
 
 ## Phase 3: Validation Gate
 - Parse `<ip>/yaml/<ip>.ssot.yaml` as YAML
@@ -54,11 +57,12 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 - Check `quality_gates` gives concrete pass criteria and evidence for SSOT, RTL, DV, coverage, EDA, and signoff
 - Check every assumption that affects RTL behavior is recorded under `custom.assumptions`
 - Run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` or an equivalent YAML parse/structure check
+- If locked truth exists, run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/check_design_spec_trace.py" <ip> --root "$ATLAS_PROJECT_ROOT"` and fix missing requirement/contract reflections before handoff
 - Fix validation errors before handoff
 
 ## Phase 4: Handoff
 - Output a compact `[SSOT HANDOFF]` block for rtl-gen
-- Include IP name, SSOT path, top module, interfaces, parameters, memories, registers, sub_modules, function_model, cycle_model, timing/power/security/error/integration/DFT/synthesis assumptions, reset/clock, verification scenarios, quality gates, and known constraints
+- Include IP name, SSOT path, locked truth authority status, top module, interfaces, parameters, memories, registers, sub_modules, function_model, cycle_model, timing/power/security/error/integration/DFT/synthesis assumptions, reset/clock, verification scenarios, quality gates, and known constraints
 - Include a downstream definition of done:
   - fl-model-gen must write FunctionalModel, decomposition, coverage plan, and equivalence goals from SSOT only
   - rtl-gen must write RTL + filelist and compile with zero errors

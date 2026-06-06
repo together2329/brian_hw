@@ -782,6 +782,15 @@ reuse_modules: []
 # =============================================================================
 custom:
   note: "No custom extensions"
+  locked_truth_authority:
+    kind: "locked_truth_projection"
+    approval_manifest: "req/approval_manifest.json"
+    bundle_sha256: "<approval_manifest.bundle_sha256>"
+    projected_files:
+      - "req/requirements_index.json"
+      - "req/obligations.json"
+      - "req/contract_refs.json"
+      - "req/evidence_plan.json"
 
 # =============================================================================
 # SECTION 27: Dir Structure
@@ -928,6 +937,10 @@ quality_gates:
 # SECTION 31: Traceability
 # =============================================================================
 traceability:
+  locked_truth_projection:
+    requirements: ["REQ_<ID>"]
+    obligations: ["OBL_<ID>"]
+    contract_refs: ["C_<ID>"]
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
     - { yaml: "parameters", output: "<ip>_param.vh (shared parameter include, no package)" }

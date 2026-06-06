@@ -2,13 +2,14 @@
 
 ## name: to-ssot
 
-description: Synthesize the current conversation context (and codebase understanding) into a canonical SSOT YAML, including function_model and cycle_model, and write it to /yaml/.ssot.yaml. Use when the user wants to convert a finished discussion or grill-me session into a concrete SSOT YAML file.
+description: Synthesize the current conversation context or approved Locked Truth bundle into a canonical SSOT YAML Design Spec projection, including source_refs, contract_refs, function_model, and cycle_model, and write it to /yaml/.ssot.yaml. Use when the user wants to convert a finished discussion or grill-me session into a concrete generator-ready SSOT/Design Spec YAML file.
 
 # To SSOT
 
 Take the current conversation context (typically the output of a `grill-me`
-session) and produce a complete SSOT YAML file conforming to the project's
-canonical template. Adapted from
+session) or the approved Locked Truth bundle under `<ip>/req/` and produce a
+complete generator-ready Design Spec YAML file conforming to the project's
+canonical SSOT template. Adapted from
 [https://github.com/mattpocock/skills](https://github.com/mattpocock/skills) (`to-prd` / `to-issues`, MIT) —
 issue-tracker output replaced with a YAML write, story breakdown replaced
 with the SSOT section schema.
@@ -22,6 +23,62 @@ non-blocking conservative assumption in `custom.assumptions`.
 Approved QA may come from a human answer or from explicit `auto-select` mode.
 When it came from auto-select, preserve the fact in `custom.assumptions` or the
 handoff summary so reviewers can audit the generated SSOT before signoff.
+
+## Locked Truth Projection Rule
+
+`req/*.json` is the authority when it exists. `yaml/<ip>.ssot.yaml` is not the
+authority; it is a generator-ready Design Spec projection of that authority.
+
+When `<ip>/req/approval_manifest.json` exists:
+
+- Read `approval_manifest.json`, `requirements_index.json`, `obligations.json`,
+  `contract_refs.json`, and `evidence_plan.json` before writing YAML.
+- Do not write or modify canonical `req/*.json` files from this skill.
+- Add authority metadata under `custom.locked_truth_authority`; do not add a new
+  top-level `authority:` key because the canonical SSOT top-level section set is
+  fixed.
+- Add projection coverage under `traceability.locked_truth_projection`.
+- Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to
+  important Design Spec items.
+
+Use this shape:
+
+```yaml
+custom:
+  locked_truth_authority:
+    kind: "locked_truth_projection"
+    approval_manifest: "req/approval_manifest.json"
+    bundle_sha256: "<approval_manifest.bundle_sha256>"
+    projected_files:
+      - "req/requirements_index.json"
+      - "req/obligations.json"
+      - "req/contract_refs.json"
+      - "req/evidence_plan.json"
+
+traceability:
+  locked_truth_projection:
+    requirements: ["REQ_..."]
+    obligations: ["OBL_..."]
+    contract_refs: ["C_..."]
+```
+
+For section items, use this shape:
+
+```yaml
+source_refs:
+  requirements: ["REQ_..."]
+  obligations: ["OBL_..."]
+contract_refs:
+  central: ["C_..."]
+  stage: ["DESIGN_...", "RTL_...", "TB_..."]
+evidence_refs:
+  planned: ["E_..."]
+```
+
+Existing sections remain valuable. Do not replace `io_list`, `registers`,
+`function_model`, `cycle_model`, `test_requirements`, or `quality_gates` with a
+single requirement table. Instead, project the locked truth into those sections
+and preserve the trace.
 
 If `/import` was run first, use `<ip>/req/import_manifest.json`,
 `<ip>/req/extracted_decisions.json`, `<ip>/req/imports/`, and
@@ -77,6 +134,8 @@ enrichment instead of rewriting the whole SSOT:
   `coding_rules`, `reuse_modules`, `custom`, `dir_structure`,
   `filelist`, `test_requirements`, `quality_gates`, `traceability`,
   `workflow_todos`, `generation_flow`.
+  Do not add `authority` as a new top-level key. Put Locked Truth authority
+  data under `custom.locked_truth_authority`.
   - Do not use legacy top-level aliases such as `interface`,
   `bus_interface`, `register_map`, `clock_reset`, `errors`, `debug`,
   `dv_plan`, or `verification_plan`.
@@ -95,7 +154,9 @@ enrichment instead of rewriting the whole SSOT:
    `/ssot-rtl <ip>`, `/ssot-tb <ip>`) and `script` for the deterministic
    workflow script that validates or expands that handoff. The todo detail and
    instructions must be IP-specific and source-backed; do not leave generic
-   template text when import evidence exists.
+   template text when import evidence exists. When Locked Truth exists,
+   source these todos from `req/contract_refs.json` and `req/evidence_plan.json`
+   where possible.
 6. **Fill the YAML generically from the approved context.**
   - Do not use IP-specific fixed templates.
   - Required behavior fields must come from the conversation, local requirements, or explicit assumptions.
@@ -109,6 +170,9 @@ enrichment instead of rewriting the whole SSOT:
   results, scoreboard checks, coverage goals, quality gates, and traceability.
   - For every interface, include machine-readable protocol/timing/handshake
   rules in addition to ports. Port declarations alone are not enough.
+  - For every important interface, register field, transaction, cycle rule,
+  test scenario, and quality gate, include `source_refs` and `contract_refs`
+  when Locked Truth exists.
   - For every register field, include bit range, access, reset, description,
   reserved behavior, and write/clear side effects where applicable.
   - Split coverage into `coverage_goals.function` and
@@ -128,10 +192,13 @@ enrichment instead of rewriting the whole SSOT:
   first run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`,
    then run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
    `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
-   `<ip>/req/ssot_validation.json`. If validation fails, fix the YAML and
-   rerun. Do not run RTL/TB generators from ssot-gen.
+   `<ip>/req/ssot_validation.json`. If `<ip>/req/approval_manifest.json`
+   exists, also run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/check_design_spec_trace.py" <ip> --root "$ATLAS_PROJECT_ROOT"`.
+   If validation fails, fix the YAML and rerun. Do not run RTL/TB generators
+   from ssot-gen.
 9. **Summary.** After writing, list:
   - the path written
+  - whether it was generated from Locked Truth or unlocked chat context
   - which sections came from conversation vs. template defaults
   - any `# TODO: confirm` lines that need follow-up
   - whether validation passed
@@ -164,8 +231,8 @@ why the YAML should pass.
 
 ```yaml
 # =============================================================================
-# SSOT — <ip_name>
-# Generated: <iso-date> · source: grill-me + to-ssot
+# SSOT / Design Spec — <ip_name>
+# Generated: <iso-date> · source: locked truth projection + to-ssot
 # =============================================================================
 
 top_module:
@@ -179,6 +246,8 @@ top_module:
 ```
 
 (Continue with the remaining canonical sections from `ssot-template.yaml`.)
+When Locked Truth exists, include `custom.locked_truth_authority` and
+`traceability.locked_truth_projection` in their canonical section locations.
 
 ## Do NOT
 
@@ -187,7 +256,8 @@ in `description` fields where they gave one.
 - Do not invent register addresses, bit positions, protocol timing, memory
 depth, security transforms, DFT obligations, PPA targets, quality gates, or
 expected outputs. Ask or record a clearly non-blocking assumption.
+- Do not say the Design Spec is the source of truth. It is a projection from
+Locked Truth when `req/approval_manifest.json` exists.
 - Do not run code generators, deterministic fallback writers, Jinja2
 expansion, RTL generation, TB generation, lint, or simulation. Those are
 downstream workflows.
-
