@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T05:26:10Z",
+  "generated_at": "2026-06-06T07:59:31Z",
   "root": "doc/wiki",
   "node_count": 148,
   "edge_count": 695,
@@ -2188,7 +2188,7 @@
       "updated": "2026-06-06",
       "summary": "\"Formal\" here means **RTL formal verification** — mathematically proving (or finding a counterexample to) a property over *all* reachable inputs/states — not running many simulations. It is one evidence type in the `req → obligation → contract → evidence → validation` spine ([[contract-reflection-workflow]], [[evidence-contract-obligation-traceability]])…",
       "path": "doc/wiki/formal-verification-evidence.md",
-      "size_bytes": 9750
+      "size_bytes": 11756
     },
     {
       "id": "frontend-modernization-2026-05-29",
@@ -3028,9 +3028,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[formal-verification-evidence]] defining RTL formal verification as one evidence type in the contract spine (proving over all reachable states vs simulating prepared cases): assume/assert/cover, the four outcomes (proven/failed/bounded/inconclusive), what formal fits (handshake stability, reset, FSM illegal-state, packet boundary, length bound,…",
+      "summary": "- Landed `examples/mctp_contract_slice/` and updated [[formal-verification-evidence]] + [[mctp-assembler-contract-breakdown]] to reflect the hands-on results from this session (the earlier commit was the pre-sby snapshot). Installed sby + z3 and actually ran the open-source formal flow: the 12-contract single-context skeleton (`mctp_rx_assembler.sv`)…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 108861
+      "size_bytes": 110196
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3082,7 +3082,7 @@
       "updated": "2026-06-06",
       "summary": "This is the central implementation direction for MCTP assembler work, and the concrete worked instance of [[locked-truth-concept]], [[contract-reflection-workflow]], and [[llm-contract-repair-loop]].",
       "path": "doc/wiki/mctp-assembler-contract-breakdown.md",
-      "size_bytes": 22479
+      "size_bytes": 25157
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",

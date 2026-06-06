@@ -1,0 +1,73 @@
+{
+  "ip": "mctp_rx_assembler",
+  "requirements": [
+    {
+      "requirement_id": "REQ_MCTP_ASM_SEQ_001",
+      "title": "Continuation packet sequence and out-of-sequence drop",
+      "statement": "For a multi-packet RX message, each accepted continuation packet shall follow the expected packet sequence number modulo 4; an out-of-sequence continuation packet shall drop the active assembly and shall not emit a completed message from that dropped context.",
+      "required": true,
+      "obligation_refs": ["OBIL_ASM_SEQ_001", "OBIL_ASM_SEQ_002", "OBIL_ASM_SEQ_003", "OBIL_ASM_SEQ_004"]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "OBIL_ASM_SEQ_001",
+      "statement": "On accepting a start packet (SOM=1,EOM=0), expected_seq is initialized to start_seq+1 (mod 4).",
+      "requirement_refs": ["REQ_MCTP_ASM_SEQ_001"],
+      "contract_refs": ["C_ASM_SEQ_MOD4"]
+    },
+    {
+      "obligation_id": "OBIL_ASM_SEQ_002",
+      "statement": "An appended continuation packet's pkt_seq equals expected_seq.",
+      "requirement_refs": ["REQ_MCTP_ASM_SEQ_001"],
+      "contract_refs": ["C_ASM_SEQ_MOD4"]
+    },
+    {
+      "obligation_id": "OBIL_ASM_SEQ_003",
+      "statement": "After an appended continuation packet, expected_seq increments modulo 4.",
+      "requirement_refs": ["REQ_MCTP_ASM_SEQ_001"],
+      "contract_refs": ["C_ASM_SEQ_MOD4"]
+    },
+    {
+      "obligation_id": "OBIL_ASM_SEQ_004",
+      "statement": "An out-of-sequence continuation (pkt_seq != expected_seq) drops the active assembly (context_active->0, drop_pulse=1) and never asserts msg_valid for that context.",
+      "requirement_refs": ["REQ_MCTP_ASM_SEQ_001"],
+      "contract_refs": ["C_ASM_SEQ_OOS_DROP"]
+    }
+  ],
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_ASM_SEQ_MOD4",
+      "statement": "Central contract: continuation packets follow expected_seq modulo 4.",
+      "obligation_refs": ["OBIL_ASM_SEQ_001", "OBIL_ASM_SEQ_002", "OBIL_ASM_SEQ_003"]
+    },
+    {
+      "contract_ref_id": "C_ASM_SEQ_OOS_DROP",
+      "statement": "Central contract: out-of-sequence continuation drops the assembly and never commits.",
+      "obligation_refs": ["OBIL_ASM_SEQ_004"]
+    }
+  ],
+  "evidence_plan": [
+    {
+      "evidence_id": "E_SIM_ASM_SEQ_NORMAL",
+      "contract_ref": "C_ASM_SEQ_MOD4",
+      "artifact": "sim/tb_correct.log",
+      "validator": "tb_mctp_asm_seq:SC_NORMAL",
+      "pass_condition": "exactly one commit, zero drop, msg_len==4 for sequence 0->1->2->3 EOM"
+    },
+    {
+      "evidence_id": "E_SIM_ASM_SEQ_OOS_DROP",
+      "contract_ref": "C_ASM_SEQ_OOS_DROP",
+      "artifact": "sim/tb_correct.log",
+      "validator": "tb_mctp_asm_seq:SC_OOS",
+      "pass_condition": "zero commit and exactly one drop_pulse for sequence 0 then 2; contract monitor reports OOS drop"
+    },
+    {
+      "evidence_id": "E_MUTATION_OOS_KILL",
+      "contract_ref": "C_ASM_SEQ_OOS_DROP",
+      "artifact": "sim/mutation_kill.log",
+      "validator": "mutation:INJECT_OOS_BUG",
+      "pass_condition": "the INJECT_OOS_BUG mutant fails SC_OOS and the contract monitor (evidence has kill power); the correct RTL passes"
+    }
+  ]
+}

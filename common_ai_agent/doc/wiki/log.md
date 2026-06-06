@@ -2,6 +2,23 @@
 
 ## 2026-06-06
 
+- Landed `examples/mctp_contract_slice/` and updated [[formal-verification-evidence]]
+  + [[mctp-assembler-contract-breakdown]] to reflect the hands-on results from
+  this session (the earlier commit was the pre-sby snapshot). Installed sby + z3
+  and actually ran the open-source formal flow: the 12-contract single-context
+  skeleton (`mctp_rx_assembler.sv`) closes on all three lanes (iverilog +
+  verilator --assert + sby/z3) with every one of 11 planted mutants killed; the
+  multi-context + 3-field-key + interleaving deep-dive (`mctp_rx_mc.sv`) proves
+  cross-context isolation/allocation/duplicate-SOM/per-context-sequence, with a
+  formal cover showing two contexts live with different keys at once. Recorded
+  four bring-up gotchas (yosys ignores SVA `bind` → embed `ifdef FORMAL`; identity
+  mutation optimized to a no-op; yosys NBA precedence ≠ Verilog last-wins so the
+  sim lane caught what formal missed; free-init needs a power-on reset assume) and
+  a v3-requirement reflection map (KEY/START/SEQ done; SRAM byte-exact payload,
+  drop priority, descriptor/header-snapshot queue still to reflect; v3's evidence
+  is 102/106 count-semantic so reflect the §7–§14 requirements not its obligation
+  set). The formal-page "no prover wired" note now reads "demonstrated; pipeline
+  integration is the remaining gap".
 - Added [[formal-verification-evidence]] defining RTL formal verification as one
   evidence type in the contract spine (proving over all reachable states vs
   simulating prepared cases): assume/assert/cover, the four outcomes

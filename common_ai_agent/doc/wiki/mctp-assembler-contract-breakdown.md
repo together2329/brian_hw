@@ -519,6 +519,48 @@ direction pages together:
 5. Close each contract one at a time via the repair loop — [[llm-contract-repair-loop]].
 ```
 
+## Worked Example (examples/mctp_contract_slice/)
+
+A runnable proof that this breakdown closes end-to-end across three lanes
+(iverilog compile + verilator `--assert` random sim + sby/z3 formal), with a
+planted bug per contract (mutation kill → non-vacuous):
+
+- `rtl/mctp_rx_assembler.sv` — the 12-contract single-context skeleton. Correct
+  PASS on all lanes; all 11 mutants killed (`signoff/validation_closure_12.json`).
+- `rtl/mctp_rx_mc.sv` — the multi-context + 3-field key + interleaving deep-dive
+  (reflects v3 §9.1/§9.2/§9.3). Cross-context isolation, allocation, duplicate-SOM
+  abort, and per-context sequence all closed; a formal `cover` proves two contexts
+  are live with different keys at once (`signoff/validation_closure_mc.json`).
+
+Toolchain and the bring-up gotchas it documents are in
+[[formal-verification-evidence]] `## Demonstrated With sby + z3`.
+
+## Reflecting The Real v3 Requirements
+
+The example is a teaching skeleton. The production spec is
+`mctp_assembler_v3/req/mctp_assembler_v3_requirements.md` (AXI4 256-bit PCIe VDM
+assembler). Map of each toy contract to the real spec, and what is not yet
+reflected:
+
+| toy contract | real v3 requirement (section) | status |
+|---|---|---|
+| KEY (tag only) | 3-field key `{source_eid, tag_owner, message_tag}` + dest-EID filter + multi-context isolation (§9.1/§9.3) | done in `mctp_rx_mc` |
+| START/SINGLE | `CONTEXT_COUNT` contexts; duplicate-SOM = assembly drop (§9.2) | done in `mctp_rx_mc` |
+| SEQ | per-context mod-4 sequence; OOS = assembly drop (§9.2/§10.2 AD_SEQUENCE_MISMATCH) | done |
+| PAYLOAD (byte count) | SRAM byte-exact packing + strobes + fragment-no-gap + per-context partial word (§9.4) | not yet |
+| END | descriptor publish (no descriptor before EOM) + first/last TLP header snapshot queue (§9.3/§9.5) | not yet |
+| DROP (flat) | packet-drop vs assembly-drop split + 14-step drop priority + reason codes (§10.1/§10.2/§10.3) | not yet |
+| STATUS | packet/assembly_drop_count + last_drop_class + reason; counter registers (§10/§11.4) | partial |
+| *(none)* | header snapshot queue, descriptor queue, timeout/aging, registers (control/status/irq/counter) | not yet |
+
+Caveat found while harvesting v3: its evidence is 102/106 obligations =
+`LEGACY_SCOREBOARD_GOAL_CLOSURE` (count-semantic), only 4 truly content-semantic —
+so reflect the *requirements* (§7–§14), not v3's thin obligation set. The §14
+"Formal Verification Candidates" list maps directly onto this formal approach.
+Next deep-dives by priority: SRAM byte-exact payload (content-semantic, the
+trust-campaign core) · packet-vs-assembly drop + 14-step priority ·
+descriptor/header-snapshot queue.
+
 한 줄 요약: MCTP Assembler를 하나로 검증하지 말고 gate·key·start·single·cont·
 seq·payload·end·drop·out·reset·status로 쪼개, 각 조각마다 req→obil→contract→
 evidence→validation을 따로 닫는다. 첫 산출물은 RTL이 아니라 Contract Breakdown

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "validation_closure",
+  "ip": "mctp_rx_mc",
+  "deep_dive": "multi-context + 3-field key + interleaving (reflects v3 spec §9.1/§9.2/§9.3)",
+  "reflected_from": "mctp_assembler_v3/req/mctp_assembler_v3_requirements.md",
+  "config": "CONTEXT_COUNT=2, key={source_eid(2), tag_owner(1), message_tag(2)}",
+  "interleaving_reachable": "formal cover PASS: c0_v && c1_v && (c0_key != c1_key) reached at step 3 (two contexts live with different keys)",
+  "lanes": ["verilator-5.046 --assert random sim", "SymbiYosys + Yosys + z3 (prove/bmc)"],
+  "correct_design": { "verilator": "PASS", "formal": "PASS (k-induction)" },
+  "contracts": [
+    { "id": "C-ISO",        "claim": "a context NOT written this cycle is byte-for-byte unchanged (cross-context isolation)", "mutant": "INJECT_ISO_BUG (writing ctx1 clobbers ctx0)",            "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ALLOC-NEW",  "claim": "a new-key allocation lands on a FREE slot, never overwrites a live different-key context", "mutant": "INJECT_ALLOC_BUG (always slot0)",  "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ALLOC-FULL", "claim": "new-key start with no free slot changes nothing and drops",                                  "mutant": "(covered by ALLOC bug too)",                "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-DUP-SOM",    "claim": "SOM for an already-active key aborts that context (drop), never silently appends",            "mutant": "INJECT_DUP_BUG",                            "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-SEQ-PERCTX", "claim": "an out-of-sequence continuation aborts its own context and never commits",                    "mutant": "INJECT_SEQ_BUG",                            "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true }
+  ],
+  "status": "closed",
+  "gap_found_via_mutation": "ALLOC mutant initially SURVIVED: it forced all allocations to slot0 so slot1 never filled, so 'table full' never occurred and C-ALLOC-FULL never triggered; and no contract said 'allocation must target a free slot'. Added C-ALLOC-NEW (written slot must have been free) -> mutant now killed by both lanes.",
+  "caveats": [
+    "CONTEXT_COUNT=2 (enough to prove interleaving isolation; more contexts = same shape, larger state).",
+    "Payload is a byte count; SRAM byte-exact packing + descriptor + header-snapshot queue are separate v3 stages not yet reflected.",
+    "KEY-UNIQUE (no two live contexts share a key) is maintained by construction but left as a cover, not a proven inductive invariant (would need an inductive strengthening)."
+  ]
+}

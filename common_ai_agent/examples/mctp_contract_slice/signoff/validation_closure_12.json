@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "validation_closure",
+  "ip": "mctp_rx_assembler",
+  "direction": "RX (packet stream -> message reassembly)",
+  "scope": "12 contracts (CONT folded into SEQ+PAYLOAD => 11 distinct mutation hooks)",
+  "spine": "req -> obligation -> contract -> evidence -> validation",
+  "lanes": {
+    "iverilog": "iverilog-12 compile/elaborate sanity (correct + every mutant)",
+    "verilator": "verilator-5.046 --assert constrained-random sim of embedded SVA",
+    "formal": "SymbiYosys (sby) + Yosys 0.64 + yosys-smtbmc + z3 4.15.4 (k-induction / BMC)"
+  },
+  "anti_vacuity": "model carries 30 $assert + 8 $cover cells; cover(drop_pulse/a_seq/a_end/...) proven reachable; clean power-on reset assumed",
+  "correct_design": { "iverilog": "compiles", "verilator": "PASS", "formal": "PASS (k-induction, all contracts proven)" },
+  "contracts": [
+    { "id": "C-ASM-GATE",    "mutant": "INJECT_GATE_BUG",    "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-KEY",     "mutant": "INJECT_KEY_BUG",     "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-START",   "mutant": "INJECT_START_BUG",   "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-SINGLE",  "mutant": "INJECT_SINGLE_BUG",  "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-SEQ-OOS", "mutant": "INJECT_SEQ_BUG",     "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-PAYLOAD", "mutant": "INJECT_PAYLOAD_BUG", "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-END",     "mutant": "INJECT_END_BUG",     "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-DROP",    "mutant": "INJECT_DROP_BUG",    "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-OUT",     "mutant": "INJECT_OUT_BUG",     "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-RESET",   "mutant": "INJECT_RESET_BUG",   "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-ASM-STATUS",  "mutant": "INJECT_STATUS_BUG",  "verilator": "ASSERT_FAIL", "formal": "FAIL", "killed": true }
+  ],
+  "status": "closed",
+  "bugs_found_via_cross_check": [
+    "verilator BADVLTPRAGMA: a TB comment starting with the word 'verilator' was parsed as a pragma -> reworded.",
+    "STATUS mutation v1 (drop_count <= drop_count) is an identity NBA -> yosys optimized it to a no-op -> vacuous-looking pass. Caught because the mutant did not fail.",
+    "STATUS mutation v2 (later unconditional drop_count <= 0 overriding a conditional +1): yosys formal kept the conditional +1 (NBA-precedence modeling differs from Verilog last-wins) so formal missed it while verilator caught it -> rewrote as a single unambiguous `DROP_INC macro so both lanes catch it.",
+    "First formal run had no reset constraint (free init): solver used drop_count=255 so 255+1=0 masked the first STATUS drop -> added a power-on reset assumption."
+  ],
+  "caveats": [
+    "Single-context, key simplified to pkt_tag (full key adds src_eid/to; same logic shape).",
+    "Payload-data exact ordering is proven only via length accounting + symbolic checks here; full byte-ordering belongs to a scoreboard sim lane.",
+    "Formal proofs are from the reset state (power-on reset assumed)."
+  ]
+}

@@ -189,6 +189,41 @@ trap warned about in [[llm-contract-repair-loop]] `## 11`. The real work is
 wiring an actual formal engine and making the closure gate demand a genuine
 verdict — not adding more assertion text.
 
+## Demonstrated With sby + z3 (worked example, 2026-06-06)
+
+The open-source prover path is now proven runnable end-to-end — the table's
+"Needed" column is feasible, not hypothetical. On
+[`examples/mctp_contract_slice/`](../../examples/mctp_contract_slice/):
+
+```text
+toolchain : yosys + yosys-smtbmc + SymbiYosys (sby) + z3
+            (brew install z3; sby from github.com/YosysHQ/sby, make install PREFIX=~/.local)
+correct RTL : k-induction PASS (mode prove) — unbounded proof of all contracts
+mutant RTL  : BMC FAIL with a machine-found counterexample trace (trace.vcd)
+anti-vacuity: assert-cell count > 0, cover statements reached, power-on reset assumed
+```
+
+Four real gotchas hit during bring-up (each caught because a planted mutant MUST
+fail — if it survives, the verification, not the RTL, is wrong):
+
+1. **`bind` is ignored by the yosys-native frontend** → the checker is dropped as
+   unused → vacuous pass. Fix: embed assertions in the RTL under
+   `` `ifdef FORMAL `` (they observe internal signals natively), or instantiate
+   the checker via an explicit wrapper.
+2. **An identity mutation (`x <= x`) is optimized to a no-op** → looks like a
+   pass. Use an unambiguous mutation (e.g. `x <= 0`).
+3. **yosys formal NBA precedence can differ from Verilog last-wins** on
+   overlapping assignments → the verilator sim lane caught what formal modeled
+   away. Run sim AND formal, never one alone.
+4. **Formal with no reset constraint** starts from a free state → coincidental
+   passes (an 8-bit counter init=255 made `255+1=0` mask a frozen-counter bug).
+   Add a power-on `assume(!rst_n)`.
+
+Still NOT done: wiring this into the repo signoff so `check_ip_signoff.py` demands
+a real verdict (proven + assumes discharged + covers reachable + mutant-killed)
+instead of accepting an unproven `formal_status.json`. That pipeline integration
+is the remaining gap.
+
 ## Summary
 
 ```text
@@ -197,8 +232,10 @@ proving it or returning a counterexample. In an MCTP assembler it locks
 handshake, FSM, packet boundary, length, and reset/error obligations as evidence.
 
 But: discharge every assume, cover every assert, never upgrade bounded to proven,
-and treat liveness as harder than safety. And in THIS repo, formal is currently
-emitted-but-not-proven — wiring a real solver is the outstanding work.
+and treat liveness as harder than safety. In THIS repo the signoff pipeline still
+accepts an emitted-but-not-proven formal_status; the prover itself is now
+demonstrated on examples/mctp_contract_slice/, so the outstanding work is the
+pipeline integration, not feasibility.
 ```
 
 한 줄 요약: formal은 "이 contract를 깨는 경우가 존재하는가?"를 수학적으로
