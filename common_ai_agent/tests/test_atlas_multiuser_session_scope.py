@@ -2350,6 +2350,44 @@ def test_websocket_slash_command_executes_without_agent_prompt(tmp_path, monkeyp
     assert session._inbox.empty()
 
 
+def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/default/timer_ip/default"
+    session = app.state.bridge._ensure_session(session_id)
+
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": "/locked-truth-finalize", "msg_id": "truth-1"})
+        seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
+
+    outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
+    assert outputs
+    assert all("INJECT_TODO_TEMPLATE" not in text for text in outputs)
+    assert any("finalize-req" in text for text in outputs)
+    assert session._inbox.empty()
+
+    todo_path = tmp_path / "alice" / "default" / ".session" / "timer_ip" / "default" / "todo.json"
+    assert todo_path.is_file()
+    data = json.loads(todo_path.read_text(encoding="utf-8"))
+    todos = data.get("todos", [])
+    assert len(todos) == 3
+    assert todos[0]["content"] == "[REQ] Quality review and repair review candidate"
+    assert todos[1]["command"].startswith("python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py\"")
+    assert "--review-candidate" in todos[1]["command"]
+    assert not (tmp_path / ".session" / "alice" / "timer_ip" / "default" / "todo.json").exists()
+
+
 def test_websocket_plain_command_words_are_llm_prompts(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 

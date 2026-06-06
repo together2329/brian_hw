@@ -10,9 +10,12 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 LOCK_SCRIPT = ROOT / "workflow" / "req-gen" / "scripts" / "lock_requirement_set.py"
 CHECK_SCRIPT = ROOT / "workflow" / "req-gen" / "scripts" / "check_locked_truth_bundle.py"
-TEMPLATE = ROOT / "workflow" / "req-gen" / "todo_templates" / "locked-truth-finalize.json"
-DEFAULT_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "locked-truth-finalize.json"
-DEFAULT_COMMAND = ROOT / "workflow" / "default" / "commands" / "locked-truth-finalize.json"
+DRAFT_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "draft-req.json"
+FINALIZE_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "finalize-req.json"
+LOCK_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "lock-req.json"
+DRAFT_COMMAND = ROOT / "workflow" / "default" / "commands" / "draft-req.json"
+FINALIZE_COMMAND = ROOT / "workflow" / "default" / "commands" / "finalize-req.json"
+LOCK_COMMAND = ROOT / "workflow" / "default" / "commands" / "lock-req.json"
 
 
 def _draft(ip: str) -> dict[str, Any]:
@@ -76,9 +79,46 @@ def _lock_bundle(tmp_path: Path, ip: str) -> None:
     assert result.returncode == 0, result.stderr
 
 
-def _check(tmp_path: Path, ip: str) -> subprocess.CompletedProcess[str]:
+def _write_candidate_bundle(tmp_path: Path, ip: str) -> None:
+    draft = _draft(ip)
+    req_dir = tmp_path / ip / "req"
+    req_dir.mkdir(parents=True)
+    docs = {
+        "requirements_index.json": {
+            "schema_version": 1,
+            "type": "requirements_index",
+            "ip": ip,
+            "requirements": draft["requirements"],
+        },
+        "obligations.json": {
+            "schema_version": 1,
+            "type": "obligations",
+            "ip": ip,
+            "obligations": draft["obligations"],
+        },
+        "contract_refs.json": {
+            "schema_version": 1,
+            "type": "contract_refs",
+            "ip": ip,
+            "contract_refs": draft["contract_refs"],
+        },
+        "evidence_plan.json": {
+            "schema_version": 1,
+            "type": "evidence_plan",
+            "ip": ip,
+            "evidence_plan": draft["evidence_plan"],
+        },
+    }
+    for name, doc in docs.items():
+        (req_dir / name).write_text(json.dumps(doc, indent=2, sort_keys=True), encoding="utf-8")
+
+
+def _check(tmp_path: Path, ip: str, *, review_candidate: bool = False) -> subprocess.CompletedProcess[str]:
+    command = [sys.executable, str(CHECK_SCRIPT), ip, "--root", str(tmp_path)]
+    if review_candidate:
+        command.append("--review-candidate")
     return subprocess.run(
-        [sys.executable, str(CHECK_SCRIPT), ip, "--root", str(tmp_path)],
+        command,
         check=False,
         text=True,
         capture_output=True,
@@ -123,33 +163,76 @@ def test_check_locked_truth_bundle_rejects_broken_contract_ref(tmp_path: Path) -
     assert "unknown contract_ref C_MISSING" in result.stdout
 
 
-def test_locked_truth_finalize_template_has_command_gates() -> None:
-    for template_path in (TEMPLATE, DEFAULT_TEMPLATE):
-        template = json.loads(template_path.read_text(encoding="utf-8"))
-        tasks = template["tasks"]
-
-        assert template["name"] == "locked-truth-finalize"
-        assert any("lock_requirement_set.py" in str(task.get("command", "")) for task in tasks)
-        assert any("check_locked_truth_bundle.py" in str(task.get("command", "")) for task in tasks)
-        assert any(int(task.get("on_reject") or 0) == 1 for task in tasks)
-
-
-def test_default_locked_truth_finalize_command_injects_template() -> None:
-    command = json.loads(DEFAULT_COMMAND.read_text(encoding="utf-8"))
-
-    assert command["name"] == "locked-truth-finalize"
-    assert command["handler"] == "todo:template:locked-truth-finalize"
-    assert "truth-lock" in command["aliases"]
-
-
-def test_locked_truth_finalize_template_commands_run_with_env(tmp_path: Path) -> None:
+def test_check_locked_truth_bundle_passes_review_candidate_without_manifest(tmp_path: Path) -> None:
     ip = "brian_timer"
-    draft_dir = tmp_path / ip / "req"
-    draft_dir.mkdir(parents=True)
-    (draft_dir / "locked_truth_draft.json").write_text(json.dumps(_draft(ip)), encoding="utf-8")
-    template = json.loads(TEMPLATE.read_text(encoding="utf-8"))
+    _write_candidate_bundle(tmp_path, ip)
+
+    result = _check(tmp_path, ip, review_candidate=True)
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "[check_locked_truth_bundle] PASS brian_timer" in result.stdout
+    assert "mode=review_candidate" in result.stdout
+
+
+def test_req_lifecycle_templates_have_expected_command_gates() -> None:
+    draft_template = json.loads(DRAFT_TEMPLATE.read_text(encoding="utf-8"))
+    finalize_template = json.loads(FINALIZE_TEMPLATE.read_text(encoding="utf-8"))
+    lock_template = json.loads(LOCK_TEMPLATE.read_text(encoding="utf-8"))
+
+    assert draft_template["name"] == "draft-req"
+    assert finalize_template["name"] == "finalize-req"
+    assert lock_template["name"] == "lock-req"
+    assert any("--review-candidate" in str(task.get("command", "")) for task in finalize_template["tasks"])
+    assert any("lock_requirement_set.py" in str(task.get("command", "")) for task in lock_template["tasks"])
+    assert any("--from-candidate" in str(task.get("command", "")) for task in lock_template["tasks"])
+    assert any("check_locked_truth_bundle.py" in str(task.get("command", "")) for task in lock_template["tasks"])
+    assert any(int(task.get("on_reject") or 0) == 1 for task in finalize_template["tasks"])
+    assert any(int(task.get("on_reject") or 0) == 1 for task in lock_template["tasks"])
+
+
+def test_default_req_lifecycle_commands_inject_templates() -> None:
+    commands = {
+        path.name: json.loads(path.read_text(encoding="utf-8"))
+        for path in (DRAFT_COMMAND, FINALIZE_COMMAND, LOCK_COMMAND)
+    }
+
+    assert commands["draft-req.json"]["handler"] == "todo:template:draft-req"
+    assert commands["finalize-req.json"]["handler"] == "todo:template:finalize-req"
+    assert commands["lock-req.json"]["handler"] == "todo:template:lock-req"
+    assert "locked-truth-finalize" in commands["finalize-req.json"]["aliases"]
+    assert "truth-lock" in commands["lock-req.json"]["aliases"]
+
+
+def test_finalize_req_review_candidate_command_runs_without_approval_env(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _write_candidate_bundle(tmp_path, ip)
+    template = json.loads(FINALIZE_TEMPLATE.read_text(encoding="utf-8"))
     env = {
-        **dict(),
+        "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
+        "ATLAS_WORKFLOW_ROOT": str(ROOT / "workflow"),
+        "ATLAS_PROJECT_ROOT": str(tmp_path),
+        "ATLAS_ACTIVE_IP": ip,
+    }
+
+    checker = subprocess.run(
+        str(template["tasks"][1]["command"]),
+        shell=True,
+        text=True,
+        capture_output=True,
+        env=env,
+        check=False,
+    )
+
+    assert checker.returncode == 0, checker.stdout + checker.stderr
+    assert "[check_locked_truth_bundle] PASS brian_timer" in checker.stdout
+    assert "mode=review_candidate" in checker.stdout
+
+
+def test_lock_req_template_commands_run_with_env(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _write_candidate_bundle(tmp_path, ip)
+    template = json.loads(LOCK_TEMPLATE.read_text(encoding="utf-8"))
+    env = {
         "PATH": "/usr/bin:/bin:/usr/sbin:/sbin",
         "ATLAS_WORKFLOW_ROOT": str(ROOT / "workflow"),
         "ATLAS_PROJECT_ROOT": str(tmp_path),
@@ -177,3 +260,4 @@ def test_locked_truth_finalize_template_commands_run_with_env(tmp_path: Path) ->
     assert writer.returncode == 0, writer.stderr
     assert checker.returncode == 0, checker.stdout + checker.stderr
     assert "[check_locked_truth_bundle] PASS brian_timer" in checker.stdout
+    assert "mode=locked" in checker.stdout

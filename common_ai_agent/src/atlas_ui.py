@@ -903,11 +903,11 @@ Conversation rule:
 - If an existing artifact conflicts with user answers or lacks approval, ask_user whether to keep, update, or ignore that candidate.
 - After ask_user answers, do not dump the full draft. Reply only with captured decisions, remaining blockers, and the next question.
 - Produce the full requirement/obligation/contract_ref/evidence draft only when the user explicitly asks to show/review/export it, or when asking for final approval.
-- Final approval must produce files before you say locked.
-- On final approval, prefer the req-gen locked-truth-finalize todo template. Its command gates run workflow/req-gen/scripts/lock_requirement_set.py and workflow/req-gen/scripts/check_locked_truth_bundle.py.
-- Do not manually write canonical req/*.json authority files when the locked-truth-finalize command gate is available.
-- Do not say approved or locked unless you created or can cite locked-truth files, especially req/requirements_index.json and req/approval_manifest.json.
-- If no writer/tool is available, say the approval was captured in chat only and ask the user to run workflow/req-gen/scripts/lock_requirement_set.py, then check_locked_truth_bundle.py, before /to-ssot.
+- Use /draft-req to write draft req JSON files: requirements_index.json, obligations.json, contract_refs.json, and evidence_plan.json.
+- Use /finalize-req to quality-review/repair those draft files and run check_locked_truth_bundle.py --review-candidate. Finalize means ready_for_human_review, not locked.
+- Use /lock-req only after explicit human approval. It runs lock_requirement_set.py --from-candidate and then check_locked_truth_bundle.py.
+- Do not say approved or locked unless /lock-req created or you can cite req/locked_truth.md and req/approval_manifest.json with status requirements_locked.
+- If no writer/tool is available, say the approval was captured in chat only and ask the user to run /draft-req, /finalize-req, then /lock-req before /to-ssot.
 - Keep normal replies under 12 lines unless the user asks for detail.
 
 Wait for explicit user approval before implementation.
@@ -919,9 +919,15 @@ Wait for explicit user approval before implementation.
 
 def _ensure_default_workspace_commands_registered() -> None:
     from core.slash_commands import get_registry
-    from workflow.loader import load_workspace, register_workspace_commands
+    from workflow.loader import (
+        get_todo_template_registry,
+        load_workspace,
+        register_workspace_commands,
+    )
 
     ws = load_workspace("default", project_root=_REPO_ROOT)
+    if ws.todo_templates_dir:
+        get_todo_template_registry().load_from_dir(ws.todo_templates_dir)
     register_workspace_commands(ws, get_registry())
 
 
@@ -5289,6 +5295,55 @@ def create_app():
                 return True
         if result is None:
             return False
+
+        if result.startswith("INJECT_TODO_TEMPLATE:"):
+            tmpl_name = result[len("INJECT_TODO_TEMPLATE:"):].strip()
+            session_key = normalize_session_name(str(getattr(client_session, "session_id", "") or ""))
+            try:
+                from core.atlas_context_paths import AtlasContext
+                from lib.todo_tracker import TodoTracker
+                from workflow.loader import get_todo_template_registry
+
+                context = AtlasContext.from_session_key(session_key, atlas_root=PROJECT_ROOT)
+                registry = get_todo_template_registry()
+                template = registry.get(tmpl_name) or {}
+                tasks = registry.get_tasks(tmpl_name) or []
+                if not tasks:
+                    available = ", ".join(registry.list()) or "(none)"
+                    _emit_slash_output(
+                        client_session,
+                        f"Todo template '{tmpl_name}' not found. Available: {available}",
+                    )
+                    return True
+                todo_path = context.session_dir / "todo.json"
+                tracker = TodoTracker(persist_path=todo_path)
+                tracker.add_todos(tasks)
+                tracker.save()
+                if bool(template.get("lock_additions", True)):
+                    os.environ["TODO_TEMPLATE_LOCK_ADDITIONS"] = "1"
+                    os.environ["TODO_TEMPLATE_LOCK_NAME"] = tmpl_name
+                else:
+                    os.environ.pop("TODO_TEMPLATE_LOCK_ADDITIONS", None)
+                    os.environ.pop("TODO_TEMPLATE_LOCK_NAME", None)
+                desc = str(template.get("description", "") or "").strip()
+                rel_path = todo_path
+                try:
+                    rel_path = todo_path.relative_to(PROJECT_ROOT)
+                except ValueError:
+                    pass
+                _emit_slash_output(
+                    client_session,
+                    f"Loaded todo template '{tmpl_name}': {len(tasks)} tasks added.\n"
+                    f"Todo: {rel_path}"
+                    + (f"\nDescription: {desc}" if desc else ""),
+                )
+            except ValueError:
+                _emit_slash_output(
+                    client_session,
+                    "Todo template commands require canonical session "
+                    "user/workspace/ip/workflow.",
+                )
+            return True
 
         if result.startswith("MODEL_SWITCH:"):
             msg = _apply_slash_model_switch(result.split(":", 1)[1], client_session)

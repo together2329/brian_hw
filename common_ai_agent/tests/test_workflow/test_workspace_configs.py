@@ -261,14 +261,18 @@ class TestDefaultWorkspace(unittest.TestCase):
     def test_rules_dir_present(self):
         self.assertIsNotNone(self.ws.rules_dir)
 
-    def test_todo_templates_include_locked_truth_finalize(self):
+    def test_todo_templates_include_req_lifecycle(self):
         reg = TodoTemplateRegistry()
         reg.load_from_dir(self.ws.todo_templates_dir)
-        self.assertIn("locked-truth-finalize", reg.list())
+        self.assertIn("draft-req", reg.list())
+        self.assertIn("finalize-req", reg.list())
+        self.assertIn("lock-req", reg.list())
 
-    def test_commands_dir_has_locked_truth_finalize(self):
+    def test_commands_dir_has_req_lifecycle(self):
         self.assertIsNotNone(self.ws.commands_dir)
-        self.assertTrue((self.ws.commands_dir / "locked-truth-finalize.json").exists())
+        self.assertTrue((self.ws.commands_dir / "draft-req.json").exists())
+        self.assertTrue((self.ws.commands_dir / "finalize-req.json").exists())
+        self.assertTrue((self.ws.commands_dir / "lock-req.json").exists())
 
     def test_hook_messages_todo_continuation_has_format_vars(self):
         msg = self.ws.hook_messages.get("todo_continuation", "")

@@ -1,0 +1,39 @@
+{
+  "name": "lock-req",
+  "description": "Lock human-approved requirement review candidate into authority files.",
+  "lock_additions": true,
+  "tasks": [
+    {
+      "content": "[REQ] Confirm explicit human approval",
+      "activeForm": "Confirming human approval before locking requirements",
+      "detail": "Confirm the user/human explicitly approved the current req JSON review candidate. Do not infer approval from draft/finalize pass. Record the approver name that will be used as ATLAS_APPROVED_BY. Do not run lock commands until approval is explicit.",
+      "criteria": "Explicit human approval for the current candidate is cited\nApprover name for ATLAS_APPROVED_BY is known\nThe candidate was finalized or otherwise reviewed\nNo implementation artifacts were modified",
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Gate: stamp human-approved requirement bundle",
+      "activeForm": "Stamping locked truth files from approved req candidate",
+      "detail": "Run the deterministic lock stamper from the existing req candidate files. This is allowed only after explicit human approval. It writes locked_truth.md and approval_manifest.json, and may normalize requirement status to locked.",
+      "criteria": "lock_requirement_set.py --from-candidate exits 0\nreq/locked_truth.md exists\nreq/approval_manifest.json exists\napproval_manifest status is requirements_locked\napproval_manifest records the real human approver\nbundle hashes are recorded",
+      "command": "python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/lock_requirement_set.py\" \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\" --from-candidate --approved-by \"${ATLAS_APPROVED_BY:?set ATLAS_APPROVED_BY to human approver}\"",
+      "on_reject": 1,
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Gate: validate locked requirement bundle",
+      "activeForm": "Running locked requirement bundle checker",
+      "detail": "Run the deterministic locked bundle checker. Failure means the lock is invalid and must be repaired before SSOT or implementation.",
+      "criteria": "check_locked_truth_bundle.py exits 0\nManifest status is requirements_locked\nManifest hashes match disk files\nRequired requirements are locked/approved\nrequirement -> obligation -> contract_ref -> evidence_plan references close\nlocked_truth.md hash matches manifest",
+      "command": "python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py\" \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "on_reject": 1,
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Handoff: locked truth may feed SSOT",
+      "activeForm": "Summarizing locked requirement handoff to SSOT",
+      "detail": "Read req/approval_manifest.json and report locked bundle paths, requirement count, bundle hash, and next allowed action. Only after this task may /to-ssot or SSOT generation proceed.",
+      "criteria": "approval_manifest.json was read from disk\nrequirements_index.json path is reported\nbundle_sha256 is reported\nNext action is SSOT generation, not RTL/TB/SIM directly\nNo workflow stages were run during req lock",
+      "priority": "normal"
+    }
+  ]
+}

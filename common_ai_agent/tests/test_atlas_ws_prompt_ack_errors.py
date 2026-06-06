@@ -57,12 +57,14 @@ def test_locked_truth_draft_overlay_wraps_unapproved_ip(tmp_path):
     assert "Do not leave lock-blocking open questions as a prose list" in wrapped
     assert "Existing RTL/doc/SSOT artifacts are read-only candidate evidence" in wrapped
     assert "Do not mark a legacy-derived requirement locked" in wrapped
-    assert "Final approval must produce files" in wrapped
-    assert "locked-truth-finalize" in wrapped
+    assert "/draft-req" in wrapped
+    assert "/finalize-req" in wrapped
+    assert "ready_for_human_review, not locked" in wrapped
+    assert "/lock-req" in wrapped
     assert "lock_requirement_set.py" in wrapped
     assert "check_locked_truth_bundle.py" in wrapped
-    assert "Do not manually write canonical req/*.json" in wrapped
     assert "Do not say approved or locked unless" in wrapped
+    assert "req/locked_truth.md" in wrapped
     assert "req/approval_manifest.json" in wrapped
     assert "After ask_user answers, do not dump the full draft" in wrapped
     assert "Produce only:" not in wrapped
@@ -123,7 +125,7 @@ def test_locked_truth_draft_overlay_skips_slash_command(tmp_path):
     assert wrapped == "/verify-ssot"
 
 
-def test_api_commands_includes_default_locked_truth_finalize(tmp_path, monkeypatch):
+def test_api_commands_includes_default_req_lifecycle_commands(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
@@ -138,15 +140,14 @@ def test_api_commands_includes_default_locked_truth_finalize(tmp_path, monkeypat
     response = client.get("/api/commands")
     assert response.status_code == 200, response.text
     commands = response.json()["commands"]
+    by_name = {cmd.get("name"): cmd for cmd in commands}
 
-    locked_truth = next(
-        (cmd for cmd in commands if cmd.get("name") == "locked-truth-finalize"),
-        None,
-    )
-    assert locked_truth is not None
-    assert locked_truth["cmd"] == "/locked-truth-finalize"
-    assert "truth-lock" in locked_truth["aliases"]
-    assert "lock-truth" in locked_truth["aliases"]
+    assert by_name["draft-req"]["cmd"] == "/draft-req"
+    assert by_name["finalize-req"]["cmd"] == "/finalize-req"
+    assert "locked-truth-finalize" in by_name["finalize-req"]["aliases"]
+    assert by_name["lock-req"]["cmd"] == "/lock-req"
+    assert "truth-lock" in by_name["lock-req"]["aliases"]
+    assert "lock-truth" in by_name["lock-req"]["aliases"]
 
 
 def test_prompt_forbidden_session_returns_delivery_ack(tmp_path, monkeypatch):

@@ -99,6 +99,52 @@ def test_lock_requirement_set_materializes_json_bundle_and_markdown(tmp_path: Pa
     assert saved_manifest["files"]["req/locked_truth.md"]["sha256"] == md_hash
 
 
+def test_lock_requirement_candidate_stamps_existing_review_candidate_bundle(tmp_path: Path):
+    mod = _load_module()
+    ip = "brian_timer"
+    draft = _draft(ip)
+    req_dir = tmp_path / ip / "req"
+    req_dir.mkdir(parents=True)
+    docs = {
+        "requirements_index.json": {
+            "schema_version": 1,
+            "type": "requirements_index",
+            "ip": ip,
+            "requirements": draft["requirements"],
+        },
+        "obligations.json": {
+            "schema_version": 1,
+            "type": "obligations",
+            "ip": ip,
+            "obligations": draft["obligations"],
+        },
+        "contract_refs.json": {
+            "schema_version": 1,
+            "type": "contract_refs",
+            "ip": ip,
+            "contract_refs": draft["contract_refs"],
+        },
+        "evidence_plan.json": {
+            "schema_version": 1,
+            "type": "evidence_plan",
+            "ip": ip,
+            "evidence_plan": draft["evidence_plan"],
+        },
+    }
+    for name, doc in docs.items():
+        (req_dir / name).write_text(json.dumps(doc, indent=2, sort_keys=True), encoding="utf-8")
+
+    manifest = mod.lock_requirement_candidate(ip, tmp_path, approved_by="brian")
+
+    assert manifest["status"] == "requirements_locked"
+    assert manifest["approved_by"] == "brian"
+    assert manifest["draft"] == f"{ip}/req"
+    assert (req_dir / "locked_truth.md").is_file()
+    assert (req_dir / "approval_manifest.json").is_file()
+    requirements = json.loads((req_dir / "requirements_index.json").read_text(encoding="utf-8"))
+    assert requirements["requirements"][0]["status"] == "locked"
+
+
 def test_lock_requirement_set_rejects_missing_obligation_ref_before_writing(tmp_path: Path):
     mod = _load_module()
     ip = "brian_timer"

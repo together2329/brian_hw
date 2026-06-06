@@ -16,6 +16,8 @@ from typing import Any, Final
 JsonDoc = dict[str, Any]
 DESCRIPTION: Final[str] = "Lock a reviewed requirement set into deterministic req/ authority files."
 OUTPUT_FILES: Final[tuple[str, ...]] = ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json", "locked_truth.md", "approval_manifest.json")
+CANDIDATE_FILES: Final[tuple[str, ...]] = ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json")
+LOCK_OUTPUT_FILES: Final[tuple[str, ...]] = ("locked_truth.md", "approval_manifest.json")
 PLACEHOLDER_APPROVERS: Final[set[str]] = {"dryrun", "test", "placeholder", "unknown", "none", "na"}
 
 
@@ -226,12 +228,58 @@ def _build_docs(ip: str, draft_doc: JsonDoc) -> dict[str, JsonDoc]:
     requirements = _normalize_requirements(requirements_raw, obligation_ids)
     contracts = _normalize_contracts(contracts_raw, obligation_ids)
     evidence = _normalize_evidence(evidence_raw, contract_ids)
+    for obligation in obligations:
+        _check_refs(
+            str(obligation["obligation_id"]),
+            _string_list(obligation, "contract_refs"),
+            contract_ids,
+            "contract_ref",
+        )
     return {
         "requirements_index": {"schema_version": 1, "type": "requirements_index", "ip": ip, "requirements": requirements},
         "obligations": {"schema_version": 1, "type": "obligations", "ip": ip, "obligations": obligations},
         "contract_refs": {"schema_version": 1, "type": "contract_refs", "ip": ip, "contract_refs": contracts},
         "evidence_plan": {"schema_version": 1, "type": "evidence_plan", "ip": ip, "evidence_plan": evidence},
     }
+
+
+def _build_docs_from_candidate(ip: str, req_dir: Path) -> dict[str, JsonDoc]:
+    docs = {
+        "requirements": _load_json(req_dir / "requirements_index.json").get("requirements"),
+        "obligations": _load_json(req_dir / "obligations.json").get("obligations"),
+        "contract_refs": _load_json(req_dir / "contract_refs.json").get("contract_refs"),
+        "evidence_plan": _load_json(req_dir / "evidence_plan.json").get("evidence_plan"),
+    }
+    return _build_docs(ip, {"ip": ip, **docs})
+
+
+def _write_locked_docs(
+    ip: str,
+    root: Path,
+    *,
+    docs: dict[str, JsonDoc],
+    approved_by: str,
+    decision_note: str,
+    source_rel: str,
+    source_sha256: str,
+) -> JsonDoc:
+    req_dir = root / ip / "req"
+    approved_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    file_texts = {"requirements_index.json": _canonical_json(docs["requirements_index"]), "obligations.json": _canonical_json(docs["obligations"]), "contract_refs.json": _canonical_json(docs["contract_refs"]), "evidence_plan.json": _canonical_json(docs["evidence_plan"])}
+    hashes = _file_hashes(root, ip, file_texts)
+    locked_text = _render_locked_truth(ip, approved_by, approved_at, docs, hashes)
+    file_texts["locked_truth.md"] = locked_text
+    hashes = _file_hashes(root, ip, file_texts)
+    bundle_hash = _sha256_bytes(_canonical_json(hashes).encode("utf-8"))
+    requirements = [
+        {"requirement_id": item["requirement_id"], "required": item["required"], "status": item["status"]}
+        for item in docs["requirements_index"]["requirements"]
+    ]
+    manifest: JsonDoc = {"schema_version": 1, "type": "locked_truth_approval_manifest", "status": "requirements_locked", "ip": ip, "approved_by": approved_by, "approved_at_utc": approved_at, "decision_note": decision_note.strip(), "draft": source_rel, "draft_sha256": source_sha256, "bundle_sha256": bundle_hash, "requirements": requirements, "files": hashes}
+    file_texts["approval_manifest.json"] = _canonical_json(manifest)
+    for name, text in file_texts.items():
+        _atomic_write_text(req_dir / name, text)
+    return manifest
 
 
 def lock_requirement_set(
@@ -258,34 +306,72 @@ def lock_requirement_set(
     draft_path = draft if draft.is_absolute() else root / draft
     draft_doc = _load_json(draft_path.resolve())
     docs = _build_docs(ip, draft_doc)
-    approved_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    file_texts = {"requirements_index.json": _canonical_json(docs["requirements_index"]), "obligations.json": _canonical_json(docs["obligations"]), "contract_refs.json": _canonical_json(docs["contract_refs"]), "evidence_plan.json": _canonical_json(docs["evidence_plan"])}
-    hashes = _file_hashes(root, ip, file_texts)
-    locked_text = _render_locked_truth(ip, approver, approved_at, docs, hashes)
-    file_texts["locked_truth.md"] = locked_text
-    hashes = _file_hashes(root, ip, file_texts)
-    bundle_hash = _sha256_bytes(_canonical_json(hashes).encode("utf-8"))
-    requirements = [
-        {"requirement_id": item["requirement_id"], "required": item["required"], "status": item["status"]}
-        for item in docs["requirements_index"]["requirements"]
-    ]
-    manifest: JsonDoc = {"schema_version": 1, "type": "locked_truth_approval_manifest", "status": "requirements_locked", "ip": ip, "approved_by": approver, "approved_at_utc": approved_at, "decision_note": decision_note.strip(), "draft": _rel(draft_path.resolve(), root), "draft_sha256": _sha256_bytes(draft_path.read_bytes()), "bundle_sha256": bundle_hash, "requirements": requirements, "files": hashes}
-    file_texts["approval_manifest.json"] = _canonical_json(manifest)
-    for name, text in file_texts.items():
-        _atomic_write_text(req_dir / name, text)
-    return manifest
+    return _write_locked_docs(
+        ip,
+        root,
+        docs=docs,
+        approved_by=approver,
+        decision_note=decision_note,
+        source_rel=_rel(draft_path.resolve(), root),
+        source_sha256=_sha256_bytes(draft_path.read_bytes()),
+    )
+
+
+def lock_requirement_candidate(
+    ip: str,
+    root: Path,
+    *,
+    approved_by: str,
+    decision_note: str = "",
+    force: bool = False,
+) -> JsonDoc:
+    if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]*", ip):
+        raise SystemExit(f"invalid ip {ip!r}")
+    approver = approved_by.strip()
+    if not approver:
+        raise SystemExit("--approved-by is required")
+    if _placeholder_approver(approver):
+        raise SystemExit("--approved-by must name the real human approver")
+    root = root.resolve()
+    req_dir = root / ip / "req"
+    missing = [name for name in CANDIDATE_FILES if not (req_dir / name).is_file()]
+    if missing:
+        raise SystemExit(f"{ip}/req candidate missing: {', '.join(missing)}")
+    existing_lock = [name for name in LOCK_OUTPUT_FILES if (req_dir / name).exists()]
+    if existing_lock and not force:
+        raise SystemExit(f"{ip}/req already locked; pass --force to replace: {', '.join(existing_lock)}")
+    docs = _build_docs_from_candidate(ip, req_dir)
+    source_hashes = {
+        name: _sha256_bytes((req_dir / name).read_bytes())
+        for name in CANDIDATE_FILES
+    }
+    return _write_locked_docs(
+        ip,
+        root,
+        docs=docs,
+        approved_by=approver,
+        decision_note=decision_note,
+        source_rel=f"{ip}/req",
+        source_sha256=_sha256_bytes(_canonical_json(source_hashes).encode("utf-8")),
+    )
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=DESCRIPTION)
     parser.add_argument("ip")
     parser.add_argument("--root", default=".")
-    parser.add_argument("--draft", required=True)
+    parser.add_argument("--draft")
+    parser.add_argument("--from-candidate", action="store_true")
     parser.add_argument("--approved-by", required=True)
     parser.add_argument("--decision-note", default="")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()
-    lock_requirement_set(args.ip, Path(args.root), draft=Path(args.draft), approved_by=args.approved_by, decision_note=args.decision_note, force=args.force)
+    if args.from_candidate:
+        lock_requirement_candidate(args.ip, Path(args.root), approved_by=args.approved_by, decision_note=args.decision_note, force=args.force)
+    else:
+        if not args.draft:
+            parser.error("--draft is required unless --from-candidate is set")
+        lock_requirement_set(args.ip, Path(args.root), draft=Path(args.draft), approved_by=args.approved_by, decision_note=args.decision_note, force=args.force)
     print(f"[lock_requirement_set] wrote {args.ip}/req/locked_truth.md")
     print(f"[lock_requirement_set] manifest {args.ip}/req/approval_manifest.json")
     return 0
