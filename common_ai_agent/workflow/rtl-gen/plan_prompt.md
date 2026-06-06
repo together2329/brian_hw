@@ -24,7 +24,7 @@ Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the canonical produc
 3. For every ledger row, classify the source as `SSOT-backed`, `TBD (missing in SSOT)`, or `not applicable by SSOT`. Plan RTL implementation only for `SSOT-backed` rows. A `TBD` row is a blocker and must become an SSOT enrichment request, not guessed RTL.
 4. `ssot_gen` is only a complexity hint. It does not mean "use a fixed template"; it means the block might be mechanically derived if the SSOT is explicit enough.
 5. Tasks must be derived from the actual YAML content. Example task shapes: "implement AXI4-Lite slave handshake from io_list + dataflow", "implement encrypted memory transform from features + memory", "implement CSR W1C fields from registers", "implement wrapper-only child_ssot instantiation".
-6. Use `/ssot-rtl <module>` to load SSOT-specific todo structure, then refine task detail/criteria from the current SSOT.
+6. Use `/gen-rtl <module>` to load the SSOT-specific RTL contract ledger and single visible TodoTracker item, then refine task detail/criteria from the current SSOT.
 7. Keep planning bounded. One implementation ledger and one task split are enough; do not loop on architecture alternatives. If the split is ambiguous, choose the simplest compiling partition that preserves the SSOT top-level ports and behavior, then rely on compile/test repair.
 
 ### SSOT Gap Output Requirement

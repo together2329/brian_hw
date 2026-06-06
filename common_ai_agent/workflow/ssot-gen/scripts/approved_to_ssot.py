@@ -1993,7 +1993,7 @@ def _doc(root: Path, ip: str, state: dict[str, Any]) -> dict[str, Any]:
                 {"name": "verify_ssot", "command": f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate production SSOT structure, Preview fields, and model sections"},
                 {"name": "handoff_fl_model", "command": "/wf fl-model-gen", "description": "Generate executable FunctionalModel and decomposition from SSOT"},
                 {"name": "handoff_equivalence_goals", "command": f"/ssot-equiv-goals {ip}", "description": "Derive SSOT-traced FL-vs-RTL equivalence goals before TB generation"},
-                {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL directly from validated SSOT and prove DUT-only compile/lint"},
+                {"name": "handoff_rtl", "command": f"/gen-rtl {ip}", "description": "Generate RTL directly from validated SSOT and prove DUT-only compile/lint"},
                 {"name": "handoff_tb", "command": f"/ssot-tb-cocotb {ip}", "description": "Generate cocotb/pyuvm tests from SSOT scenarios and FL scoreboard"},
                 {"name": "handoff_sim_debug", "command": "/wf sim_debug", "description": "Classify sim/waveform/coverage failures against SSOT, FL, RTL, or TB owner"},
             ]
@@ -2105,7 +2105,7 @@ def main() -> int:
     print(f"SSOT: {out.relative_to(root).as_posix()}")
     print(f"top_module: {ns.ip}")
     print(f"type: {loaded.get('top_module', {}).get('type', 'unknown')}")
-    print("next: /ssot-rtl " + ns.ip)
+    print("next: /gen-rtl " + ns.ip)
     return 0
 
 

@@ -1,7 +1,7 @@
 {
   "name": "gen-rtl",
-  "description": "Legacy alias: hand off validated YAML SSOT to rtl-gen; do not use fixed templates",
+  "description": "Generate RTL from validated YAML SSOT using the common ssot-rtl stage",
   "aliases": ["gr"],
-  "handler": "bash:gen_rtl.sh",
+  "handler": "stage:ssot-rtl",
   "usage": "/gen-rtl <module_name>"
 }

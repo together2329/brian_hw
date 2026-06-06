@@ -57,6 +57,7 @@ STAGE_ALIASES = {
     "protocol-assertions": "ssot-protocol-assertions",
     "ssot-protocol-assertions": "ssot-protocol-assertions",
     "sr": "ssot-rtl",
+    "gen-rtl": "ssot-rtl",
     "rtl": "ssot-rtl",
     "rtl-gen": "ssot-rtl",
     "ssot-rtl": "ssot-rtl",

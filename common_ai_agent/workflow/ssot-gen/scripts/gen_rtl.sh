@@ -9,5 +9,5 @@ if [ -z "$MODULE_NAME" ]; then
 fi
 
 echo "[gen_rtl] BLOCKED: ssot-gen does not run fixed RTL generators."
-echo "[gen_rtl] Validate SSOT, then run: /ssot-rtl $MODULE_NAME"
+echo "[gen_rtl] Validate SSOT, then run: /gen-rtl $MODULE_NAME"
 exit 2

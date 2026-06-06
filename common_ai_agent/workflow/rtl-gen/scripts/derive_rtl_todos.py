@@ -3289,6 +3289,69 @@ def _ui_todo_from_group(group: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _ui_groups_for_ledger_tasks(ledger_tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    groups: dict[str, dict[str, Any]] = {}
+    for task in ledger_tasks:
+        order, key, title = _ui_group_for_task(task)
+        group = groups.setdefault(key, {"order": order, "key": key, "title": title, "tasks": []})
+        group["tasks"].append(task)
+    return sorted(groups.values(), key=lambda item: (int(item.get("order", 999)), str(item.get("key") or "")))
+
+
+def _gen_rtl_tracker_task(plan: dict[str, Any], ledger_tasks: list[dict[str, Any]]) -> dict[str, Any]:
+    ip = str(plan.get("ip") or "unknown")
+    summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
+    gate = plan.get("gate") if isinstance(plan.get("gate"), dict) else {}
+    groups = _ui_groups_for_ledger_tasks(ledger_tasks)
+    group_lines = [
+        f"- {group['key']}: {len(group['tasks'])} ledger item(s) - {group['title']}"
+        for group in groups[:18]
+    ]
+    if len(groups) > 18:
+        group_lines.append(f"- ... {len(groups) - 18} more ledger group(s), see rtl/rtl_todo_plan.json")
+
+    total_tasks = len(ledger_tasks)
+    open_required = summary.get("open_required_todos", "unknown")
+    static_missing = summary.get("static_missing", "unknown")
+    blockers = len(gate.get("blockers") or []) if isinstance(gate.get("blockers"), list) else summary.get("blockers", "unknown")
+    orphans = summary.get("orphans", "unknown")
+    content = f"[gen-rtl] Generate RTL from SSOT contract ledger for {ip}"
+    detail_lines = [
+        f"Single visible UI TODO for {total_tasks} SSOT-derived RTL contract/evidence ledger item(s).",
+        "Internal ledger: rtl/rtl_todo_plan.json.",
+        "Visible tracker source: rtl/rtl_todo_tracker.json and todo/rtl_todo_tracker.json.",
+        "Authoring plan: rtl/rtl_authoring_plan.json; packets: rtl/authoring_packets/.",
+        "Implement or repair RTL, then rerun the command gates. Failed ledger rows route back into this same gen-rtl TODO.",
+        f"Current audit snapshot: gate={gate.get('status') or 'unknown'}, open_required_todos={open_required}, static_missing={static_missing}, blockers={blockers}, orphans={orphans}.",
+    ]
+    if group_lines:
+        detail_lines.append("")
+        detail_lines.append("Ledger groups:")
+        detail_lines.extend(group_lines)
+
+    criteria_lines = [
+        "Read yaml/<ip>.ssot.yaml, rtl/rtl_todo_plan.json, rtl/rtl_authoring_plan.json, and relevant rtl/authoring_packets before editing.",
+        "Implement/repair only RTL-owned artifacts from SSOT authority; do not change SSOT, FL, coverage, or requirement truth from rtl-gen.",
+        "Update rtl/<module>.sv and list/<ip>.f so the SSOT top module, ports, registers, interrupts, function_model, cycle_model, dataflow, feature, and workflow_todos.rtl-gen contracts have live RTL evidence.",
+        "Run workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root> --audit-rtl after the final RTL edit.",
+        "Run workflow/rtl-gen/scripts/rtl_compile_report.py and workflow/lint/scripts/dut_lint_report.py after the final RTL edit.",
+        "rtl/rtl_todo_plan.json gate.status is pass.",
+        "rtl/rtl_todo_plan.json summary shows open_required_todos=0, static_missing=0, blockers=0, orphans=0, and all_required_todos_pass=true.",
+        "Every required ledger item in rtl/rtl_todo_plan.json has todo_completion.status=pass.",
+        "rtl/rtl_compile.json reports no compile errors after the final RTL edit.",
+        "lint/dut_lint.json reports no unwaived DUT-only lint errors after the final RTL edit.",
+        "Any failed command gate or failed ledger item is repaired in RTL and rerun through this same gen-rtl TODO; unresolved SSOT gaps are reported as [SSOT TBD REPORT].",
+    ]
+    return {
+        "content": content,
+        "activeForm": f"Generating RTL from SSOT contract ledger for {ip}",
+        "status": "pending",
+        "detail": "\n".join(detail_lines),
+        "criteria": "\n".join(criteria_lines),
+        "priority": _priority_label(ledger_tasks),
+    }
+
+
 def _tracker_status_for_ledger_task(task: dict[str, Any]) -> str:
     # TodoTracker status is execution state, not audit state.  Even if a
     # ledger row currently passes audit, a fresh workflow run must force the
@@ -3375,26 +3438,39 @@ def _tracker_todo_from_ledger_task(task: dict[str, Any]) -> dict[str, Any]:
 
 def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
     ledger_tasks = [task for task in plan.get("tasks", []) if isinstance(task, dict)]
-    tasks = [_tracker_todo_from_ledger_task(task) for task in ledger_tasks]
+    groups = _ui_groups_for_ledger_tasks(ledger_tasks)
+    tasks = [_gen_rtl_tracker_task(plan, ledger_tasks)]
+    ledger_status_counts = dict(sorted(Counter(_tracker_status_for_ledger_task(task) for task in ledger_tasks).items()))
     status_counts = dict(sorted(Counter(str(task.get("status") or "unknown") for task in tasks).items()))
 
     return {
         "name": f"{plan.get('ip', 'unknown')}-rtl",
         "description": (
-            f"Auto-generated flat TodoTracker list from SSOT RTL plan for {plan.get('ip', '')}. "
-            "Each TodoTracker item maps one-to-one to a task in rtl_todo_plan.json so the existing "
-            "flat TodoTracker can execute ledger items one at a time."
+            f"Auto-generated single gen-rtl TodoTracker item from SSOT RTL plan for {plan.get('ip', '')}. "
+            "The full contract/evidence ledger remains in rtl_todo_plan.json; the UI executes one "
+            "implementation-and-gate repair loop until that ledger closes."
         ),
         "source_plan": "rtl/rtl_todo_plan.json",
         "source_task_count": len(ledger_tasks),
+        "ledger_status_counts": ledger_status_counts,
         "status_counts": status_counts,
         "ui_grouping": {
-            "strategy": "flat_ledger_one_todo_per_rtl_task",
-            "target_min": len(tasks),
-            "target_max": len(tasks),
+            "strategy": "single_gen_rtl_contract_gate",
+            "target_min": 1,
+            "target_max": 1,
             "actual_count": len(tasks),
             "status_counts": status_counts,
-            "detail_policy": "Each TodoTracker item preserves one rtl_todo_plan.json ledger task with source_ref, owner, criteria, and current audit status.",
+            "ledger_status_counts": ledger_status_counts,
+            "ledger_group_count": len(groups),
+            "ledger_groups": [
+                {
+                    "key": str(group.get("key") or ""),
+                    "title": str(group.get("title") or ""),
+                    "task_count": len(group.get("tasks") or []),
+                }
+                for group in groups
+            ],
+            "detail_policy": "One visible gen-rtl TodoTracker item drives implementation, command gates, and repair loops while preserving every per-contract ledger row in rtl_todo_plan.json.",
         },
         "lock_additions": False,
         "tasks": tasks,
@@ -8256,8 +8332,8 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             "rtl_target_scale_waiver": target_scale_waiver,
             "dynamic_task_rule": (
                 "Use every required task in this file as the authoritative RTL implementation/evidence ledger. "
-                "Expose Atlas/UI TodoTracker items as a flat one-to-one projection of this ledger so the "
-                "existing flat TodoTracker executes one SSOT-derived RTL task at a time."
+                "Expose Atlas/UI TodoTracker as one visible gen-rtl implementation/gate loop while keeping "
+                "every per-contract ledger row in rtl_todo_plan.json for audit, repair routing, and evidence closure."
             ),
             "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
             "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",

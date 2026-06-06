@@ -1,7 +1,7 @@
 {
   "name": "ssot-rtl",
-  "description": "Run generic SSOT-driven RTL workflow: internally run derive_rtl_todos.py, load the dynamic RTL TodoTracker, preflight LLM-authored RTL, compile/lint, audit TODO gates, and hand off",
+  "description": "Run SSOT-driven RTL workflow: derive the internal RTL contract ledger, load one visible gen-rtl TodoTracker item, preflight LLM-authored RTL, compile/lint, audit gates, and hand off",
   "aliases": ["sr", "gen-rtl"],
   "handler": "stage:ssot-rtl",
-  "usage": "/ssot-rtl <module_name>"
+  "usage": "/gen-rtl <module_name>"
 }

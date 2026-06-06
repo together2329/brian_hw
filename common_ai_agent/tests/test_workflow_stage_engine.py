@@ -1321,22 +1321,28 @@ def test_dynamic_rtl_todos_scale_from_ssot_complexity(tmp_path: Path):
     assert template_plan["name"] == f"{ip}-rtl"
     assert template_plan["source_plan"] == "rtl/rtl_todo_plan.json"
     assert template_plan["source_task_count"] == summary["total_tasks"]
-    assert template_plan["ui_grouping"]["strategy"] == "flat_ledger_one_todo_per_rtl_task"
+    assert template_plan["ledger_status_counts"] == {"pending": summary["total_tasks"]}
+    assert template_plan["ui_grouping"]["strategy"] == "single_gen_rtl_contract_gate"
     assert template_plan["ui_grouping"]["actual_count"] == len(template_plan["tasks"])
     assert "tasks" in template_plan
-    assert len(template_plan["tasks"]) == summary["total_tasks"]
-    assert template_plan["ui_grouping"]["target_min"] == len(template_plan["tasks"])
-    assert len(template_plan["tasks"]) == template_plan["ui_grouping"]["target_max"]
-    assert template_plan["status_counts"] == {"pending": summary["total_tasks"]}
+    assert len(template_plan["tasks"]) == 1
+    assert template_plan["ui_grouping"]["target_min"] == 1
+    assert template_plan["ui_grouping"]["target_max"] == 1
+    assert template_plan["ui_grouping"]["ledger_status_counts"] == {"pending": summary["total_tasks"]}
+    assert template_plan["ui_grouping"]["ledger_group_count"] >= 6
+    assert template_plan["status_counts"] == {"pending": 1}
     first_task = template_plan["tasks"][0]
+    assert first_task["content"].startswith("[gen-rtl]")
     assert "content" in first_task
     assert "activeForm" in first_task
     assert first_task["status"] == "pending"
     assert "detail" in first_task
     assert "priority" in first_task
     assert "criteria" in first_task
-    assert "todo_completion.status is pass after derive_rtl_todos.py --audit-rtl" in first_task["criteria"]
-    assert any("function_model" in task["detail"] or "function_model" in task["criteria"] for task in template_plan["tasks"])
+    assert "rtl/rtl_todo_plan.json" in first_task["detail"]
+    assert "function_model" in first_task["detail"] or "function_model" in first_task["criteria"]
+    assert "derive_rtl_todos.py <ip> --root <project-root> --audit-rtl" in first_task["criteria"]
+    assert "Every required ledger item in rtl/rtl_todo_plan.json has todo_completion.status=pass" in first_task["criteria"]
     authoring_plan = json.loads((tmp_path / ip / "rtl" / "rtl_authoring_plan.json").read_text(encoding="utf-8"))
     assert authoring_plan["type"] == "rtl_authoring_plan"
     assert authoring_plan["source_plan"] == "rtl/rtl_todo_plan.json"

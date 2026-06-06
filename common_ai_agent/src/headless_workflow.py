@@ -169,6 +169,7 @@ HEADLESS_STAGE_ALIASES = {
     "equiv-goals": "equiv-goals",
     "ssot-equiv-goals": "equiv-goals",
     "rtl": "rtl-gen",
+    "gen-rtl": "rtl-gen",
     "rtl-gen": "rtl-gen",
     "ssot-rtl": "rtl-gen",
     "lint": "lint",
@@ -944,7 +945,7 @@ def _structured_ssot_yaml(ip: str, requirement_text: str) -> str:
             "steps": [
                 {"name": "verify_ssot", "command": f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode ${{ATLAS_RUN_MODE:-signoff}}", "description": "Validate SSOT structure, Preview fields, and gates at the selected Run Mode."},
                 {"name": "handoff_fl_model", "command": f"/ssot-fl-model {ip}", "description": "Generate function model from SSOT."},
-                {"name": "handoff_rtl", "command": f"/ssot-rtl {ip}", "description": "Generate RTL from SSOT."},
+                {"name": "handoff_rtl", "command": f"/gen-rtl {ip}", "description": "Generate RTL from SSOT."},
                 {"name": "handoff_tb", "command": f"/ssot-tb-cocotb {ip}", "description": "Generate cocotb tests from SSOT."},
             ],
         },
@@ -3185,6 +3186,7 @@ class HeadlessWorkflowRunner:
         key = str(owner or "").strip().lower().replace("_", "-")
         mapping = {
             "rtl": "rtl-gen",
+            "gen-rtl": "rtl-gen",
             "rtl-gen": "rtl-gen",
             "ssot-rtl": "rtl-gen",
             "tb": "tb-gen",

@@ -348,6 +348,7 @@ def test_ssot_stage_commands_use_session_scoped_ssot_path(tmp_path: Path):
     client = _FakeClientSession(session_id="brian/brian_session/timer_v12/default")
     assert handlers["_run_stage_command"]("/ssot-fl-model", client) is True
     assert handlers["_run_stage_command"]("/ssot-rtl", client) is True
+    assert handlers["_run_stage_command"]("/gen-rtl", client) is True
 
     result_text = "\n".join(msg for _tool, msg in workflow_results)
     assert "SSOT not found at timer_v12/yaml/timer_v12.ssot.yaml" not in result_text

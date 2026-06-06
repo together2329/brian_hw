@@ -148,6 +148,9 @@ def test_api_commands_includes_default_req_lifecycle_commands(tmp_path, monkeypa
     assert by_name["lock-req"]["cmd"] == "/lock-req"
     assert "truth-lock" in by_name["lock-req"]["aliases"]
     assert "lock-truth" in by_name["lock-req"]["aliases"]
+    assert by_name["gen-rtl"]["cmd"] == "/gen-rtl"
+    assert by_name["ssot-rtl"]["cmd"] == "/ssot-rtl"
+    assert "sr" in by_name["ssot-rtl"]["aliases"]
 
 
 def test_prompt_forbidden_session_returns_delivery_ack(tmp_path, monkeypatch):

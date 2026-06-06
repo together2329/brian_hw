@@ -1059,6 +1059,7 @@ def make_slash_handlers(
         cmd, args = _split_slash(text)
         alias = {
             "sr": "ssot-rtl",
+            "gen-rtl": "ssot-rtl",
             "sfm": "ssot-fl-model",
             "seg": "ssot-equiv-goals",
             "equiv-goals": "ssot-equiv-goals",

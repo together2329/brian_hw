@@ -15,7 +15,7 @@ flowchart TD
     B --> C["/to-ssot <ip> produces <ip>/yaml/<ip>.ssot.yaml"]
     C --> D["/ssot-fl-model <ip>"]
     D --> E["/ssot-equiv-goals <ip>"]
-    E --> F["/ssot-rtl <ip> derives TODOs + preflights RTL"]
+    E --> F["/gen-rtl <ip> derives contract ledger + preflights RTL"]
     F --> G{SSOT/RTL TODO gate blocked?}
     G -->|Yes| H["ATLAS human gate updates SSOT decision"]
     H --> D
@@ -38,15 +38,16 @@ flowchart TD
 - DUT compile report: `workflow/rtl-gen/scripts/rtl_compile_report.py`
 - DUT-only lint report: `workflow/lint/scripts/dut_lint_report.py`
 
-## `/ssot-rtl` Internal Contract
+## `/gen-rtl` Internal Contract
 
-`/ssot-rtl <ip>` is a workflow command, not a shell command and not a plain
-prompt. It first runs the deterministic SSOT-to-RTL TODO derivation path, then
-loads the generated dynamic TodoTracker for the LLM rtl-gen repair loop.
+`/gen-rtl <ip>` is the preferred workflow command; `/ssot-rtl <ip>` and
+`/sr <ip>` are aliases. It is not a shell command and not a plain prompt. It
+first runs the deterministic SSOT-to-RTL TODO derivation path, then loads one
+visible TodoTracker item for the LLM rtl-gen repair loop.
 
 Internal order:
 
-1. `workflow/rtl-gen/commands/ssot-rtl.json` maps `/ssot-rtl` to
+1. `workflow/rtl-gen/commands/ssot-rtl.json` maps `/gen-rtl` and `/ssot-rtl` to
    `handler: stage:ssot-rtl`.
 2. `src/workflow_stage_engine.py` handles the `ssot-rtl` stage.
 3. The stage runs
@@ -56,14 +57,18 @@ Internal order:
    - `rtl/rtl_todo_tracker.json` in the active IP root
    - `todo/rtl_todo_tracker.json` in the active IP root
 5. `workflow/loader.py` loads the dynamic tracker for the existing TodoTracker.
-6. `rtl-gen` implements and repairs RTL from the loaded flat TODO ledger.
+   That tracker intentionally contains one visible `[gen-rtl]` item.
+6. `rtl-gen` implements and repairs RTL from the full internal ledger in
+   `rtl/rtl_todo_plan.json`, using the single visible item as the execution loop.
 7. After RTL edits, the stage reruns compile, DUT-only lint, and
    `derive_rtl_todos.py --audit-rtl` until the required gate TODOs close.
 
 The fixed `workflow/rtl-gen/todo_templates/ssot-rtl.json` file is only a seed
-surface. The authoritative work breakdown is the derived dynamic tracker, so a
-fresh run starts dynamic tracker tasks as `pending`; current audit pass/fail
-state is preserved in each task detail/criteria, not pre-approved.
+surface. The authoritative work breakdown is the full internal ledger in
+`rtl/rtl_todo_plan.json`; `rtl_todo_tracker.json` is the one-item UI execution
+surface. A fresh run starts that visible item as `pending`; current audit
+pass/fail state is preserved in its detail/criteria and in the internal ledger,
+not pre-approved.
 
 ## SSOT Contract Enforcement
 
