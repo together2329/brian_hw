@@ -1,0 +1,39 @@
+{
+  "name": "locked-truth-finalize",
+  "description": "Finalize locked truth with deterministic writer and command gates before SSOT/implementation work.",
+  "lock_additions": true,
+  "tasks": [
+    {
+      "content": "[REQ] Prepare final approved draft JSON",
+      "activeForm": "Preparing final approved locked-truth draft JSON",
+      "detail": "Create or identify $ATLAS_PROJECT_ROOT/$ATLAS_ACTIVE_IP/req/locked_truth_draft.json. It must contain requirements, obligations, contract_refs, and evidence_plan from the explicitly approved conversation/draft. The draft is not authority yet. Do not manually write canonical req/*.json files. Do not run workflow stages, dispatch_workflow, RTL, TB, SIM, lint, or coverage.",
+      "criteria": "$ATLAS_ACTIVE_IP/req/locked_truth_draft.json exists\nThe draft includes requirements, obligations, contract_refs, and evidence_plan\nThe user final approval source is explicit\nNo canonical req/*.json authority files were manually written\nNo implementation artifacts were modified",
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Gate: run deterministic locked-truth writer",
+      "activeForm": "Running lock_requirement_set.py writer gate",
+      "detail": "Run the deterministic writer. Set ATLAS_APPROVED_BY to the explicit human approver before execution. This command is the only allowed way to write canonical locked-truth req files in this workflow.",
+      "criteria": "lock_requirement_set.py exits 0\nreq/requirements_index.json exists\nreq/obligations.json exists\nreq/contract_refs.json exists\nreq/evidence_plan.json exists\nreq/locked_truth.md exists\nreq/approval_manifest.json exists",
+      "command": "python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/lock_requirement_set.py\" \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\" --draft \"$ATLAS_ACTIVE_IP/req/locked_truth_draft.json\" --approved-by \"${ATLAS_APPROVED_BY:?set ATLAS_APPROVED_BY to human approver}\"",
+      "on_reject": 1,
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Gate: validate locked-truth bundle",
+      "activeForm": "Running check_locked_truth_bundle.py validation gate",
+      "detail": "Run the deterministic bundle checker. Any failure means the workflow is blocked and must return to draft repair; do not continue to SSOT or implementation on a failed bundle.",
+      "criteria": "check_locked_truth_bundle.py exits 0\nManifest status is requirements_locked\nManifest hashes match disk files\nRequired requirements are locked/approved\nrequirement -> obligation -> contract_ref -> evidence_plan references close\nlocked_truth.md hash matches manifest",
+      "command": "python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py\" \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "on_reject": 1,
+      "priority": "high"
+    },
+    {
+      "content": "[REQ] Handoff: locked truth may feed SSOT only after gates pass",
+      "activeForm": "Summarizing locked truth handoff to SSOT",
+      "detail": "Read req/approval_manifest.json and report the locked-truth bundle paths, requirement count, bundle hash, and next allowed action. Only after the writer and validator gates are approved may /to-ssot or SSOT generation proceed.",
+      "criteria": "approval_manifest.json was read from disk\nrequirements_index.json path is reported\nbundle_sha256 is reported\nNext action is SSOT generation, not RTL/TB/SIM directly\nNo workflow stages were run during locked-truth finalize",
+      "priority": "normal"
+    }
+  ]
+}

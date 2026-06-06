@@ -1,0 +1,7 @@
+{
+  "name": "locked-truth-finalize",
+  "description": "Finalize requirement locked truth with deterministic writer/checker command gates",
+  "aliases": ["truth-lock", "lock-truth"],
+  "handler": "todo:template:locked-truth-finalize",
+  "usage": "/locked-truth-finalize"
+}

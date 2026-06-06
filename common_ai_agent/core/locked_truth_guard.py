@@ -11,9 +11,16 @@ from typing import Dict, Final, List, Optional, Set, Tuple, Union
 JsonValue = Union[None, bool, int, float, str, List["JsonValue"], Dict[str, "JsonValue"]]
 LOCKED_TRUTH_GLOBS: Final[Tuple[str, ...]] = (
     "req/*_requirements.md",
+    "req/requirements_index.json",
+    "req/obligations.json",
+    "req/contract_refs.json",
+    "req/evidence_plan.json",
+    "req/locked_truth.md",
     "req/source_references.md",
     "req/approval_manifest.json",
 )
+LOCKED_STATUSES: Final[Set[str]] = {"approved", "locked", "all_locked", "requirements_locked"}
+LOCKED_REQUIREMENT_STATUSES: Final[Set[str]] = {"approved", "locked"}
 UNLOCKED_STATUSES: Final[Set[str]] = {"draft", "pending", "rejected", "unapproved", "unlocked"}
 DISABLE_VALUES: Final[Set[str]] = {"0", "false", "no", "off", "disabled"}
 
@@ -47,6 +54,10 @@ def snapshot_locked_truth(project_root: Union[str, Path], ip: str) -> LockedTrut
         except OSError:
             continue
     return LockedTruthSnapshot(active=True, ip_dir=ip_dir, files=files)
+
+
+def is_locked_truth_active(project_root: Union[str, Path], ip: str) -> bool:
+    return snapshot_locked_truth(project_root, ip).active
 
 
 def restore_locked_truth_if_changed(snapshot: LockedTruthSnapshot) -> LockedTruthRestoreResult:
@@ -139,7 +150,28 @@ def _lock_active(ip_dir: Path) -> bool:
     status = status_raw.strip().lower() if isinstance(status_raw, str) else ""
     if status in UNLOCKED_STATUSES:
         return False
+    if status in LOCKED_STATUSES:
+        return True
+    requirements = raw.get("requirements")
+    if isinstance(requirements, list):
+        return _all_required_requirements_locked(requirements)
     return True
+
+
+def _all_required_requirements_locked(requirements: List[JsonValue]) -> bool:
+    found_required = False
+    for entry in requirements:
+        if not isinstance(entry, dict):
+            return True
+        required_raw = entry.get("required")
+        if required_raw is False:
+            continue
+        found_required = True
+        status_raw = entry.get("status")
+        status = status_raw.strip().lower() if isinstance(status_raw, str) else ""
+        if status not in LOCKED_REQUIREMENT_STATUSES:
+            return False
+    return found_required
 
 
 def _current_locked_rel_paths(ip_dir: Path) -> Tuple[str, ...]:

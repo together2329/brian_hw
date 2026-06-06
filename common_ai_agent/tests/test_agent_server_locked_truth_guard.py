@@ -4,6 +4,7 @@ import importlib
 import json
 import sys
 from pathlib import Path
+from typing import List, Union
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -14,6 +15,71 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+
+ManifestRequirement = dict[str, Union[str, bool]]
+ManifestPayload = dict[str, Union[str, List[ManifestRequirement]]]
+
+
+def _write_guard_manifest(ip_dir: Path, payload: ManifestPayload) -> Path:
+    manifest = ip_dir / "req" / "approval_manifest.json"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    manifest.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+    return manifest
+
+
+def test_requirement_manifest_stays_unlocked_until_all_required_items_lock(tmp_path: Path) -> None:
+    locked_truth_guard = importlib.import_module("core.locked_truth_guard")
+
+    project_root = tmp_path
+    ip = "mctp"
+    ip_dir = project_root / ip
+    req_file = ip_dir / "req" / f"{ip}_requirements.md"
+    requirements_index = ip_dir / "req" / "requirements_index.json"
+    req_file.parent.mkdir(parents=True)
+    req_file.write_text("draft requirements\n", encoding="utf-8")
+    requirements_index.write_text("{}\n", encoding="utf-8")
+
+    _write_guard_manifest(ip_dir, {
+        "requirements": [
+            {"id": "REQ_MCTP_HEADER", "status": "locked", "required": True},
+            {"id": "REQ_MCTP_PAYLOAD", "status": "pending", "required": True},
+        ],
+    })
+
+    assert locked_truth_guard.is_locked_truth_active(project_root, ip) is False
+    assert locked_truth_guard.locked_truth_write_error(project_root, ip, str(req_file)) is None
+
+    _write_guard_manifest(ip_dir, {
+        "requirements": [
+            {"id": "REQ_MCTP_HEADER", "status": "locked", "required": True},
+            {"id": "REQ_MCTP_PAYLOAD", "status": "locked", "required": True},
+        ],
+    })
+
+    assert locked_truth_guard.is_locked_truth_active(project_root, ip) is True
+    error = locked_truth_guard.locked_truth_write_error(project_root, ip, str(req_file))
+    assert error is not None
+    assert "locked truth is approved" in error
+    json_error = locked_truth_guard.locked_truth_write_error(project_root, ip, str(requirements_index))
+    assert json_error is not None
+    assert "requirements_index.json" in json_error
+
+
+def test_requirement_manifest_ignores_optional_unlocked_items(tmp_path: Path) -> None:
+    locked_truth_guard = importlib.import_module("core.locked_truth_guard")
+
+    project_root = tmp_path
+    ip = "timer"
+    ip_dir = project_root / ip
+    _write_guard_manifest(ip_dir, {
+        "requirements": [
+            {"id": "REQ_TIMER_COUNT", "status": "approved", "required": True},
+            {"id": "REQ_TIMER_INTERRUPT", "status": "pending", "required": False},
+        ],
+    })
+
+    assert locked_truth_guard.is_locked_truth_active(project_root, ip) is True
 
 
 def test_worker_run_restores_locked_truth_mutation_under_request_project_root(
