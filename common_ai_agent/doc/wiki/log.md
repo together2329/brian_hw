@@ -1,5 +1,14 @@
 # Wiki Log
 
+## 2026-06-06
+
+- Added [[codex-engine-atlas-ui-integration]] as a concept note only. It records
+  the proposed split where Codex is an execution engine behind the existing
+  Atlas UI/API/WebSocket surface, while Atlas keeps locked truth, workflow
+  guards, evidence validators, signoff, and UI state authority. It also captures
+  the MVP role split for Skill, MCP/tools, API guard, Hook, and future
+  subagents.
+
 ## 2026-06-04
 
 - Refined [[perforce-integration-20260530]] after the worktree

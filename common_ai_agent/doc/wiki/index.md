@@ -32,6 +32,7 @@ This section is additive; it does not replace the reading order below.
 | General IP 시행착오 종합 — PyMTL식 FL/CL/RTL, small IP/UART/SPI/CPU/MCTP lessons, mutation/formal/truth_coverage 경계, direct SSOT 허용 정책 | [[general-ip-flow-trial-and-error-20260601]] |
 | Evidence contract proposal — requirement를 atomic obligation / scenario / observable / pass condition / scoreboard row로 연결하는 다음 traceability layer | [[evidence-contract-obligation-traceability]] |
 | Contract reflection workflow — requirement→obligation→contract_ref→stage reflection→evidence→closure 6층 모델; SSOT→FL→CL→RTL→TB→scoreboard trace와 MCTP v3 semantic slice 포함 | [[contract-reflection-workflow]] |
+| Locked Truth and Design Spec workflow — req/*.json을 진짜 authority로 두고, yaml/*.ssot.yaml은 generator-ready Design Spec projection으로 재정의하는 MVP workflow | [[locked-truth-design-spec-workflow]] |
 | ATLAS vite 프론트 자동 E2E 검증(실브라우저) 런북 + `scripts/atlas_vite_e2e_verify.sh` | [[atlas-vite-e2e-verification]] |
 | Sim Debug RTL module-signal panel (pyslang ports+internal, in/out/internal filter, regex search, Ctrl+W/right-click→wave, wave-scroll fix, 50/50 split) | [[sim-debug-module-signals-2026-05-30]] |
 | Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
@@ -80,6 +81,7 @@ This section is additive; it does not replace the reading order below.
 | SSOT export reverse direction 2026-05-19 (`/api/ssot/export?ip=&format=md|docx|html` renders `<ip>/yaml/<ip>.ssot.yaml` → `<ip>/doc/<ip>_ssot.<ext>` deterministically; md via yaml walker, html via python-`markdown`, docx via python-docx; pdf deferred — see [[ssot-conversion-flow-20260519]] `## Export (reverse direction)`) | [[ssot-conversion-flow-20260519]] |
 | DAG pipeline payload, worker command map, and signoff evidence checklist | [[atlas-dag-ip-flow-runbook]] |
 | Clean interactive `ask_user` discovery protocol | [[interactive-ask-user-ip-discovery]] |
+| Codex as Atlas UI execution engine concept: UI stays Atlas-owned, Codex sits behind API/WebSocket as engine, locked truth and validators remain Atlas authority | [[codex-engine-atlas-ui-integration]] |
 | `workspace.jsx` decomposition plan — historical design rationale; decomposition realized via the .tsx migration | [[workspace-jsx-decomposition-plan]] |
 
 Current practical rule: final product-flow claims should be validated through
@@ -98,6 +100,7 @@ regression.
 4c. [[general-ip-flow-trial-and-error-20260601]] — consolidated trial/error record behind the current General IP workflow.
 4d. [[evidence-contract-obligation-traceability]] — proposed next traceability layer between SSOT/truth_coverage and cocotb scoreboard evidence.
 4e. [[contract-reflection-workflow]] — proposed `contract_ref` reflection layer that ties SSOT/FL/CL/RTL/TB/scoreboard evidence together.
+4f. [[locked-truth-design-spec-workflow]] — current decision that Locked Truth under `req/*.json` is the real authority, while `yaml/*.ssot.yaml` is a derived Design Spec projection checked by deterministic validators.
 5. [[run-mode-and-provenance-policy]] — why `Starter` / `Engineering` / `Signoff` are work-maturity modes, why `Exec Mode` is separate, and how clean SSOT YAML pairs with resolved SSOT plus sidecar provenance.
 6. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
 7. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
