@@ -80,6 +80,39 @@ def _handle_atlas_uvicorn_exit_signal(server: Any, sig: int) -> None:
         server.force_exit = True
 
 
+def _terminate_child_process(
+    proc: subprocess.Popen[Any] | None,
+    label: str,
+    *,
+    timeout: float = 3.0,
+) -> None:
+    if proc is None or proc.poll() is not None:
+        return
+    print(f"[{label}] sending SIGTERM to pid={proc.pid}", flush=True)
+    try:
+        proc.terminate()
+        proc.wait(timeout=timeout)
+        return
+    except subprocess.TimeoutExpired:
+        print(f"[{label}] SIGTERM timed out; sending SIGKILL to pid={proc.pid}", flush=True)
+    except Exception as exc:
+        print(f"[{label}] terminate failed for pid={proc.pid}: {exc}", flush=True)
+    if proc.poll() is None:
+        try:
+            proc.kill()
+            proc.wait(timeout=timeout)
+        except Exception as exc:
+            print(f"[{label}] kill failed for pid={proc.pid}: {exc}", flush=True)
+
+
+def _start_shutdown_watcher(server: Any, stop_event: threading.Event) -> None:
+    def _watch() -> None:
+        stop_event.wait()
+        server.should_exit = True
+
+    threading.Thread(target=_watch, name="atlas-shutdown", daemon=True).start()
+
+
 def _hydrate_atlas_ui_globals() -> None:
     """One-time backport of the symbols Phase 4 extracted-but-didn't-import.
 
@@ -793,6 +826,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         "(force agent_running=False + drain inbox), 'sessions' "
         "(list .session/), 'help', 'quit'"
     )
+    _shutdown_requested = threading.Event()
 
     # ── Operator stdin command lane ───────────────────────────────────
     # Lets the user inspect / unstuck the running backend without
@@ -865,7 +899,8 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
                 print("  [help] status | heal | sessions | help | quit")
             elif head in ("quit", "exit"):
                 print("  [quit] shutting down…")
-                os._exit(0)
+                _shutdown_requested.set()
+                return
             else:
                 print(f"  [?] unknown: {cmd!r} — try 'help'")
 
@@ -933,13 +968,7 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         import atexit as _atexit
 
         def _terminate_single_worker(_proc=_single_worker_proc) -> None:
-            if _proc and _proc.poll() is None:
-                print(f"[single-worker] sending SIGTERM to pid={_proc.pid}")
-                import signal as _signal
-                try:
-                    _proc.send_signal(_signal.SIGTERM)
-                except Exception:
-                    pass
+            _terminate_child_process(_proc, "single-worker")
 
         _atexit.register(_terminate_single_worker)
     elif _single_worker_mode:
@@ -994,7 +1023,9 @@ def run_atlas_ui(port: int = 8765, host: str = "127.0.0.1") -> None:
         loop="asyncio",
         http="h11",
     )
-    _AtlasUvicornServer(uvicorn_config).run()
+    _server = _AtlasUvicornServer(uvicorn_config)
+    _start_shutdown_watcher(_server, _shutdown_requested)
+    _server.run()
 
 def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
     """Launch the standalone admin server next to the main Atlas UI."""
@@ -1025,7 +1056,7 @@ def _launch_admin_server(admin_port: str, admin_host: str) -> subprocess.Popen:
         cwd=str(_source_root()),
         **_admin_subprocess_kwargs(),
     )
-    atexit.register(lambda p=proc: (p.terminate() if p.poll() is None else None))
+    atexit.register(_terminate_child_process, proc, "admin")
     print(
         f"\n  [admin] launched standalone admin server -> "
         f"{_access_url(bind_host, port, '/admin')}",
@@ -1249,9 +1280,13 @@ def main() -> None:
             except ValueError:
                 print(f"[atlas_ui] ignoring unknown reasoning effort: {orchestrator_effort}", file=sys.stderr)
     _assert_bind_target_available(args.host, args.port, "ATLAS UI")
+    admin_proc: subprocess.Popen[Any] | None = None
     if args.admin:
-        _launch_admin_server(args.admin, args.admin_host or args.host)
-    run_atlas_ui(port=args.port, host=args.host)
+        admin_proc = _launch_admin_server(args.admin, args.admin_host or args.host)
+    try:
+        run_atlas_ui(port=args.port, host=args.host)
+    finally:
+        _terminate_child_process(admin_proc, "admin")
 
 def _source_root() -> Path:
     """Read _source_root() from atlas_ui dynamically (deferred, avoids circular)."""
