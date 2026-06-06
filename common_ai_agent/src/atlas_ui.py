@@ -5156,6 +5156,7 @@ def create_app():
         _generated=lambda *a, **k: _generated(*a, **k),
         _graph=lambda *a, **k: _graph(*a, **k),
         _ip_root=lambda *a, **k: _ip_root(*a, **k),
+        _ip_root_for_session=lambda *a, **k: _ip_root_for_session(*a, **k),
         _load_ssot_state=lambda *a, **k: _load_ssot_state(*a, **k),
         _merge_import_candidates=lambda *a, **k: _merge_import_candidates(*a, **k),
         _missing_ssot_decisions=lambda *a, **k: _missing_ssot_decisions(*a, **k),
@@ -5173,10 +5174,12 @@ def create_app():
         _run_command=lambda *a, **k: _run_command(*a, **k),
         _save_ssot_state=lambda *a, **k: _save_ssot_state(*a, **k),
         _script_project_root=lambda *a, **k: _script_project_root(*a, **k),
+        _script_project_root_for_session=lambda *a, **k: _script_project_root_for_session(*a, **k),
         _set_active_ssot_ip=lambda *a, **k: _set_active_ssot_ip(*a, **k),
         _split_slash=lambda *a, **k: _split_slash(*a, **k),
         _ssot_session_for_ip=lambda *a, **k: _ssot_session_for_ip(*a, **k),
         _ssot_yaml_path=lambda *a, **k: _ssot_yaml_path(*a, **k),
+        _ssot_yaml_path_for_session=lambda *a, **k: _ssot_yaml_path_for_session(*a, **k),
         _start_sim_human_gate_qna=lambda *a, **k: _start_sim_human_gate_qna(*a, **k),
         _valid_ip_name=lambda *a, **k: _valid_ip_name(*a, **k),
     )
@@ -6651,6 +6654,42 @@ def create_app():
         except Exception:
             pass
         return PROJECT_ROOT
+
+    def _context_for_client_session(client_session: Any | None) -> AtlasContext | None:
+        session_key = normalize_session_name(str(getattr(client_session, "session_id", "") or ""))
+        if not session_key:
+            return None
+        try:
+            return AtlasContext.from_session_key(
+                session_key,
+                atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT),
+            )
+        except ValueError:
+            return None
+
+    def _ip_root_for_session(ip: str, client_session: Any | None = None) -> Path:
+        context = _context_for_client_session(client_session)
+        if context is not None and not context.legacy and context.ip_name == ip:
+            root, error = _validated_context_workspace_root(context)
+            if not error and root is not None:
+                return root / ip
+        return _ip_root(ip)
+
+    def _script_project_root_for_session(ip: str, client_session: Any | None = None) -> Path:
+        context = _context_for_client_session(client_session)
+        if context is not None and not context.legacy and context.ip_name == ip:
+            root, error = _validated_context_workspace_root(context)
+            if not error and root is not None:
+                return root
+        return _script_project_root(ip)
+
+    def _ssot_yaml_path_for_session(ip: str, client_session: Any | None = None) -> Path:
+        ip_dir = _ip_root_for_session(ip, client_session)
+        for name in (f"{ip}.ssot.yaml", f"{ip}_ssot.yaml", f"{ip}.ssot.yml"):
+            candidate = ip_dir / "yaml" / name
+            if candidate.is_file():
+                return candidate
+        return ip_dir / "yaml" / f"{ip}.ssot.yaml"
 
     def _render_new_ip_plan(ip: str, kind: str, state: dict[str, Any]) -> str:
         missing = _missing_ssot_decisions(ip, state)

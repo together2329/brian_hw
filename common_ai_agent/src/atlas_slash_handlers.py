@@ -43,6 +43,7 @@ def make_slash_handlers(
     _generated,
     _graph,
     _ip_root,
+    _ip_root_for_session=None,
     _load_ssot_state,
     _merge_import_candidates,
     _missing_ssot_decisions,
@@ -60,10 +61,12 @@ def make_slash_handlers(
     _run_command,
     _save_ssot_state,
     _script_project_root,
+    _script_project_root_for_session=None,
     _set_active_ssot_ip,
     _split_slash,
     _ssot_session_for_ip,
     _ssot_yaml_path,
+    _ssot_yaml_path_for_session=None,
     _start_sim_human_gate_qna,
     _valid_ip_name,
 ) -> Dict[str, Callable]:
@@ -473,7 +476,10 @@ def make_slash_handlers(
             )
             return True
         _set_active_ssot_ip(ip)
-        ip_dir = _ip_root(ip)
+        if _ip_root_for_session is not None:
+            ip_dir = _ip_root_for_session(ip, client_session)
+        else:
+            ip_dir = _ip_root(ip)
         state = _load_ssot_state(ip) or {}
         session = _canonical_session_string(ip)
         manifest_path = ip_dir / "req" / "import_manifest.json"
@@ -565,7 +571,10 @@ def make_slash_handlers(
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", spec)
         _append_active_history("user", text)
-        ssot_path = _ssot_yaml_path(ip)
+        if _ssot_yaml_path_for_session is not None:
+            ssot_path = _ssot_yaml_path_for_session(ip, client_session)
+        else:
+            ssot_path = _ssot_yaml_path(ip)
         source_summary = (
             "Sources: locked truth bundle "
             + ", ".join(f"`{src}`" for src in locked_truth_sources)
@@ -588,14 +597,17 @@ def make_slash_handlers(
         _queue_prompt_for_session(client_session, "/mode normal")
         _queue_prompt_for_session(client_session, "/wf ssot-gen")
         _queue_prompt_for_session(client_session, "/clear")
-        script_root = _script_project_root(ip)
+        if _script_project_root_for_session is not None:
+            script_root = _script_project_root_for_session(ip, client_session)
+        else:
+            script_root = _script_project_root(ip)
         repair_script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
         verify_script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         _queue_prompt_for_session(client_session,
             f"Write the canonical SSOT YAML for IP `{ip}` at the path\n"
             f"  `{ssot_path}`\n\n"
             "Workspace boundary (do not search or read outside these roots):\n"
-            f"  - PROJECT_ROOT: `{PROJECT_ROOT}`\n"
+            f"  - PROJECT_ROOT: `{script_root}`\n"
             f"  - IP_ROOT:      `{ip_dir}`\n"
             f"  - WORKFLOW_ROOT: `{WORKFLOW_ROOT}`\n"
             f"  - COMMON_AI_AGENT_HOME (read-only): `{SOURCE_ROOT}`\n\n"
