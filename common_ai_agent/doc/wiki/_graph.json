@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T07:59:31Z",
+  "generated_at": "2026-06-06T09:42:56Z",
   "root": "doc/wiki",
-  "node_count": 148,
-  "edge_count": 695,
+  "node_count": 149,
+  "edge_count": 705,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603",
@@ -120,7 +120,8 @@
       "llm-contract-repair-loop",
       "locked-truth-concept",
       "mctp-assembler-contract-breakdown",
-      "req-obligation-contract-evidence-validation"
+      "req-obligation-contract-evidence-validation",
+      "spec-loop-and-equivalence-check"
     ],
     "dma": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -135,6 +136,12 @@
     ],
     "equivalence": [
       "mctp-assembler-v3-ingress-fidelity-20260603"
+    ],
+    "equivalence-check": [
+      "spec-loop-and-equivalence-check"
+    ],
+    "eqy": [
+      "spec-loop-and-equivalence-check"
     ],
     "evidence": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -167,7 +174,8 @@
     ],
     "formal": [
       "formal-verification-evidence",
-      "general-ip-flow-trial-and-error-20260601"
+      "general-ip-flow-trial-and-error-20260601",
+      "spec-loop-and-equivalence-check"
     ],
     "freshness": [
       "project_classify_survivors_clobber",
@@ -374,6 +382,9 @@
       "pl330-real-orchestrator-ui-lessons-20260517",
       "ssot-rtl-flow-verify-20260519"
     ],
+    "rtl-regeneration": [
+      "spec-loop-and-equivalence-check"
+    ],
     "rtl-repair": [
       "llm-contract-repair-loop"
     ],
@@ -390,6 +401,9 @@
       "atcwdt200-flow-debugging-lessons",
       "hardcoded-strip-honest-baseline-20260520",
       "silent-pass-exposure-tb-stimulus-gap-20260520"
+    ],
+    "sec": [
+      "spec-loop-and-equivalence-check"
     ],
     "session-flow": [
       "session-flow-dashboard-20260604"
@@ -425,6 +439,9 @@
     ],
     "single-worker": [
       "orchestrator-singleworker-e2e-20260526"
+    ],
+    "spec-loop": [
+      "spec-loop-and-equivalence-check"
     ],
     "spine": [
       "req-obligation-contract-evidence-validation"
@@ -567,6 +584,9 @@
     "workspace": [
       "atlas-pipeline-worker-workspace-jump",
       "workspace-jsx-decomposition-plan"
+    ],
+    "yosys": [
+      "spec-loop-and-equivalence-check"
     ]
   },
   "types": {
@@ -694,6 +714,7 @@
       "sim-debug-requirements-2026-06-01",
       "sim-debug-waveform-renderer-2026-05-31",
       "single-main-loop-restore-20260519",
+      "spec-loop-and-equivalence-check",
       "ssot-conversion-flow-20260519",
       "ssot-datasheet-authoring-20260527",
       "ssot-gen-pass-pipeline",
@@ -1788,6 +1809,7 @@
         "log",
         "mctp-assembler-contract-breakdown",
         "req-obligation-contract-evidence-validation",
+        "spec-loop-and-equivalence-check",
         "verification-contract-model"
       ],
       "broken_refs": [],
@@ -2161,6 +2183,7 @@
       "related": [
         "mctp-assembler-contract-breakdown",
         "llm-contract-repair-loop",
+        "spec-loop-and-equivalence-check",
         "contract-reflection-workflow",
         "locked-truth-concept",
         "evidence-contract-obligation-traceability",
@@ -2170,6 +2193,7 @@
       "outgoing": [
         "mctp-assembler-contract-breakdown",
         "llm-contract-repair-loop",
+        "spec-loop-and-equivalence-check",
         "contract-reflection-workflow",
         "locked-truth-concept",
         "evidence-contract-obligation-traceability",
@@ -2182,13 +2206,14 @@
         "llm-contract-repair-loop",
         "log",
         "mctp-assembler-contract-breakdown",
-        "req-obligation-contract-evidence-validation"
+        "req-obligation-contract-evidence-validation",
+        "spec-loop-and-equivalence-check"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
       "summary": "\"Formal\" here means **RTL formal verification** — mathematically proving (or finding a counterexample to) a property over *all* reachable inputs/states — not running many simulations. It is one evidence type in the `req → obligation → contract → evidence → validation` spine ([[contract-reflection-workflow]], [[evidence-contract-obligation-traceability]])…",
       "path": "doc/wiki/formal-verification-evidence.md",
-      "size_bytes": 11756
+      "size_bytes": 11789
     },
     {
       "id": "frontend-modernization-2026-05-29",
@@ -2556,6 +2581,7 @@
         "locked-truth-design-spec-workflow",
         "llm-contract-repair-loop",
         "mctp-assembler-contract-breakdown",
+        "spec-loop-and-equivalence-check",
         "formal-verification-evidence",
         "atlas-vite-e2e-verification",
         "sim-debug-module-signals-2026-05-30",
@@ -2661,7 +2687,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 37166
+      "size_bytes": 37825
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2780,6 +2806,7 @@
         "locked-truth-concept",
         "mctp-assembler-contract-breakdown",
         "formal-verification-evidence",
+        "spec-loop-and-equivalence-check",
         "locked-truth-design-spec-workflow",
         "contract-reflection-workflow",
         "evidence-contract-obligation-traceability",
@@ -2794,6 +2821,7 @@
         "locked-truth-concept",
         "mctp-assembler-contract-breakdown",
         "formal-verification-evidence",
+        "spec-loop-and-equivalence-check",
         "locked-truth-design-spec-workflow",
         "contract-reflection-workflow",
         "evidence-contract-obligation-traceability",
@@ -2812,13 +2840,14 @@
         "locked-truth-concept",
         "log",
         "mctp-assembler-contract-breakdown",
-        "req-obligation-contract-evidence-validation"
+        "req-obligation-contract-evidence-validation",
+        "spec-loop-and-equivalence-check"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
       "summary": "This page records the agreed forward direction for how the LLM is positioned in the IP flow. It builds directly on [[locked-truth-design-spec-workflow]] (Locked Truth is the authority) and [[contract-reflection-workflow]] (the req→obligation→contract→evidence spine).",
       "path": "doc/wiki/llm-contract-repair-loop.md",
-      "size_bytes": 16980
+      "size_bytes": 17013
     },
     {
       "id": "llm-wiki-knowledge-graph-discussion-20260602",
@@ -2917,7 +2946,8 @@
         "llm-contract-repair-loop",
         "log",
         "mctp-assembler-contract-breakdown",
-        "req-obligation-contract-evidence-validation"
+        "req-obligation-contract-evidence-validation",
+        "spec-loop-and-equivalence-check"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -2971,6 +3001,7 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "spec-loop-and-equivalence-check",
         "formal-verification-evidence",
         "mctp-assembler-contract-breakdown",
         "req-obligation-contract-evidence-validation",
@@ -3028,9 +3059,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Landed `examples/mctp_contract_slice/` and updated [[formal-verification-evidence]] + [[mctp-assembler-contract-breakdown]] to reflect the hands-on results from this session (the earlier commit was the pre-sby snapshot). Installed sby + z3 and actually ran the open-source formal flow: the 12-contract single-context skeleton (`mctp_rx_assembler.sv`)…",
+      "summary": "- Added [[spec-loop-and-equivalence-check]] recording the SpecLoop methodology (RTL→Requirement→RTL→EQ Check→refine) and confirming, with a worked demo, that its formal core — sequential equivalence checking — is feasible with open-source tools (yosys `equiv_make`+`equiv_induct`+`equiv_status`, `eqy`, or `sby`+miter). Demo at…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 110196
+      "size_bytes": 111343
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3076,7 +3107,8 @@
         "llm-contract-repair-loop",
         "locked-truth-concept",
         "log",
-        "req-obligation-contract-evidence-validation"
+        "req-obligation-contract-evidence-validation",
+        "spec-loop-and-equivalence-check"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -4065,7 +4097,8 @@
         "contract-reflection-workflow",
         "evidence-contract-obligation-traceability",
         "index",
-        "log"
+        "log",
+        "spec-loop-and-equivalence-check"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -4399,6 +4432,48 @@
       "summary": "검증 목표: ATLAS_SINGLE_MAIN_LOOP=1 로 atlas_ui를 띄우면 단일 main-loop worker (port 5601, --all-workflows) 가 자동 spawn되어 모든 워크플로우(SSOT, RTL, …) 를 순차적으로 받아 처리한다는 것을 cmux Chrome 으로 end-to-end 확인.",
       "path": "doc/wiki/single-main-loop-restore-20260519.md",
       "size_bytes": 8757
+    },
+    {
+      "id": "spec-loop-and-equivalence-check",
+      "title": "SpecLoop And Equivalence Check",
+      "type": "reference",
+      "tags": [
+        "spec-loop",
+        "equivalence-check",
+        "sec",
+        "formal",
+        "yosys",
+        "eqy",
+        "rtl-regeneration",
+        "direction"
+      ],
+      "related": [
+        "formal-verification-evidence",
+        "llm-contract-repair-loop",
+        "req-obligation-contract-evidence-validation",
+        "locked-truth-concept",
+        "mctp-assembler-contract-breakdown",
+        "contract-reflection-workflow"
+      ],
+      "outgoing": [
+        "formal-verification-evidence",
+        "llm-contract-repair-loop",
+        "req-obligation-contract-evidence-validation",
+        "locked-truth-concept",
+        "mctp-assembler-contract-breakdown",
+        "contract-reflection-workflow"
+      ],
+      "incoming": [
+        "formal-verification-evidence",
+        "index",
+        "llm-contract-repair-loop",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-06",
+      "summary": "This page records a second methodology in the same family as [[llm-contract-repair-loop]], and confirms (with a worked demo) that its formal core — **equivalence checking** — is doable with open-source tools.",
+      "path": "doc/wiki/spec-loop-and-equivalence-check.md",
+      "size_bytes": 4385
     },
     {
       "id": "ssot-conversion-flow-20260519",

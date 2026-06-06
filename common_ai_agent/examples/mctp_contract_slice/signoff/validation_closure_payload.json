@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "type": "validation_closure",
+  "ip": "mctp_rx_payload",
+  "deep_dive": "payload byte-exact SRAM packing (reflects v3 spec 9.4 + 14 byte-exact candidate)",
+  "claim": "for a published message, every SRAM address base..base+len-1 holds exactly the byte that belongs there (no gap / no offset / no overwrite / no loss)",
+  "technique": "SYMBOLIC-BYTE formal: one (* anyconst *) address proves the content property for ALL addresses at once",
+  "lanes": ["verilator-5.046 --assert write-stream scoreboard", "SymbiYosys + Yosys + z3"],
+  "correct_design": { "verilator": "PASS", "formal": "PASS (k-induction, unbounded)" },
+  "contracts": [
+    { "id": "C-PAYLOAD-ADDR",   "mutant": "INJECT_OFFSET_BUG (byte i -> addr i+1)",       "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-PAYLOAD-NOGAP",  "mutant": "INJECT_GAP_BUG (skip an address)",             "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-PAYLOAD-NODUP",  "mutant": "INJECT_OVERWRITE_BUG (ptr never advances)",    "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-PAYLOAD-NOLOSS", "mutant": "INJECT_LOSS_BUG (drop byte index 2)",          "verilator": "FAIL", "formal": "FAIL", "killed": true }
+  ],
+  "status": "closed",
+  "lessons": [
+    "Correct first FAILED formal: free-state messages longer than the 8-byte SRAM wrapped the 3-bit address and overwrote addr0. Fix reflects v3 10.2 MAX_MESSAGE_BYTES -> overflow drop (room guard); only fitting messages publish.",
+    "Then formal was UNKNOWN (true-but-not-k-inductive). Strengthened with auxiliary invariants (cnt <= DEPTH, wp == cnt) so k-induction closes -> a real unbounded proof.",
+    "The symbolic-byte technique proves a memory-content property over all addresses with a single anyconst, instead of enumerating every byte."
+  ],
+  "caveats": [
+    "One byte per beat, base=0, DEPTH=8; production v3 packs into 256-bit SRAM words with 32-bit strobes and per-context partial words (next refinement).",
+    "Verilator lane scoreboards the exposed SRAM write port (anyconst is formal-only)."
+  ]
+}

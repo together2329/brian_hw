@@ -3,7 +3,7 @@ title: Formal Verification As Evidence
 type: proposal
 tags: [formal, sva, assume-assert-cover, evidence, validation, vacuity, liveness, mctp, direction]
 updated: 2026-06-06
-related: [mctp-assembler-contract-breakdown, llm-contract-repair-loop, contract-reflection-workflow, locked-truth-concept, evidence-contract-obligation-traceability, truth-coverage-gate, golden-todo-evidence]
+related: [mctp-assembler-contract-breakdown, llm-contract-repair-loop, spec-loop-and-equivalence-check, contract-reflection-workflow, locked-truth-concept, evidence-contract-obligation-traceability, truth-coverage-gate, golden-todo-evidence]
 ---
 
 # Formal Verification As Evidence

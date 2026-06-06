@@ -37,6 +37,20 @@ abort, and per-context sequence. Formal `cover` proves two contexts are live wit
 different keys simultaneously (interleaving is actually reachable).
 Result: `signoff/validation_closure_mc.json`.
 
+### 3. `rtl/mctp_rx_payload.sv` — payload byte-exact SRAM packing deep-dive
+Run: `./run_payload.sh`
+Reflects v3 §9.4 / §14 (content-semantic): every byte is written to SRAM at
+`base+i`, no gap / no offset / no overwrite / no loss. The formal lane uses the
+**symbolic-byte** technique (one `anyconst` address proves all addresses), closed
+by k-induction with overflow handling (§10.2) + aux invariants.
+Result: `signoff/validation_closure_payload.json`.
+
+### 4. `eqcheck/` — SpecLoop equivalence-check demo
+Run: `./eqcheck/run_eq.sh`
+Open-source sequential equivalence checking (yosys `equiv_make`+`equiv_induct`):
+a refactored RTL proves EQUIVALENT to the reference; a spec-missing RTL is flagged
+NOT EQUIVALENT. See [[spec-loop-and-equivalence-check]].
+
 ## What this example is / isn't
 
 - **Is**: a teaching skeleton that proves the contract→evidence→mutation-kill

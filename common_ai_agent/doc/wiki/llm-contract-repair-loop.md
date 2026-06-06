@@ -3,7 +3,7 @@ title: LLM Contract Repair Loop
 type: proposal
 tags: [repair-loop, locked-truth, contract, evidence, validation-closure, rtl-repair, mctp, patch-agent, direction]
 updated: 2026-06-06
-related: [locked-truth-concept, mctp-assembler-contract-breakdown, formal-verification-evidence, locked-truth-design-spec-workflow, contract-reflection-workflow, evidence-contract-obligation-traceability, workflow-feedback-and-scheduling, human-review-and-escalation, golden-todo-evidence, parallel-todo-sub-agent-workers, sim-debug-agent-tool-2026-05-31, mctp-assembler-scratch-flow-20260531]
+related: [locked-truth-concept, mctp-assembler-contract-breakdown, formal-verification-evidence, spec-loop-and-equivalence-check, locked-truth-design-spec-workflow, contract-reflection-workflow, evidence-contract-obligation-traceability, workflow-feedback-and-scheduling, human-review-and-escalation, golden-todo-evidence, parallel-todo-sub-agent-workers, sim-debug-agent-tool-2026-05-31, mctp-assembler-scratch-flow-20260531]
 ---
 
 # LLM Contract Repair Loop

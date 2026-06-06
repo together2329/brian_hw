@@ -2,6 +2,21 @@
 
 ## 2026-06-06
 
+- Added [[spec-loop-and-equivalence-check]] recording the SpecLoop methodology
+  (RTL→Requirement→RTL→EQ Check→refine) and confirming, with a worked demo, that
+  its formal core — sequential equivalence checking — is feasible with open-source
+  tools (yosys `equiv_make`+`equiv_induct`+`equiv_status`, `eqy`, or `sby`+miter).
+  Demo at `examples/mctp_contract_slice/eqcheck/`: a refactored RTL proves
+  EQUIVALENT to the reference, a spec-missing RTL is flagged NOT EQUIVALENT. Notes
+  how SpecLoop (golden = original RTL) pairs with the contract-property loop
+  (golden = locked truth/contracts), and the SEC caveats (state-encoding/retiming,
+  FF name matching, SEC proves "same" not "correct").
+- Extended `examples/mctp_contract_slice/` with the payload byte-exact deep-dive
+  (`mctp_rx_payload.sv`, reflecting v3 §9.4/§14): a SYMBOLIC-BYTE formal proof
+  (one anyconst address proves byte-exact content for all addresses) closes by
+  k-induction after adding overflow handling (v3 §10.2 MAX_MESSAGE_BYTES) and
+  auxiliary invariants (cnt≤DEPTH, wp==cnt); all four mutants (offset/gap/
+  overwrite/loss) killed on both lanes.
 - Landed `examples/mctp_contract_slice/` and updated [[formal-verification-evidence]]
   + [[mctp-assembler-contract-breakdown]] to reflect the hands-on results from
   this session (the earlier commit was the pre-sby snapshot). Installed sby + z3
