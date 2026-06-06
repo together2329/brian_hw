@@ -138,10 +138,14 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
   // can see the actual diff without an extra click. Other tools stay
   // collapsed in summary mode.
   const isReplaceTool = entry?.tool && _DIFF_RESULT_TOOL_RE.test(entry.tool);
-  const [open, setOpen] = useState<boolean>(!summaryMode || isReplaceTool);
+  // Read/search tools stay collapsed by default regardless of live/summary
+  // state; every other tool follows summaryMode as before.
+  const _readClosed = _toolResultDefaultsClosed(entry?.tool);
+  const _obsDefaultOpen = _readClosed ? false : (!summaryMode || isReplaceTool);
+  const [open, setOpen] = useState<boolean>(_obsDefaultOpen);
   useEffect(() => {
-    setOpen(!summaryMode || isReplaceTool);
-  }, [summaryMode, isReplaceTool]);
+    setOpen(_obsDefaultOpen);
+  }, [_obsDefaultOpen]);
   let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : cleanAtlasTerminalText(entry.text || '');
   // Strip ANSI escape sequences leaked from terminal-style backends
   // (e.g. `\x1b[1m`, `\x1b[38;5;71m`, `\x1b[0m`) so they don't show as
@@ -580,7 +584,11 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // Read/search tools are useful as audit evidence but too noisy in chat.
   // Keep them collapsed in summary mode; write/replace tools stay open with
   // tool-specific line caps enforced by ObsCard.
-  const defaultObsOpen = summaryMode && defaultsClosed
+  // Read/search tools (read_file, read_lines, grep_file, find_files, list_dir)
+  // are audit noise in the chat flow — default them COLLAPSED always, even
+  // while the worker is live (entrySummaryMode passes summaryMode=false during
+  // a live turn, which previously forced them open). Expand on demand via ▸.
+  const defaultObsOpen = defaultsClosed
     ? false
     : (((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool);
   const [obsOpen, setObsOpen] = useState<boolean>(defaultObsOpen);
