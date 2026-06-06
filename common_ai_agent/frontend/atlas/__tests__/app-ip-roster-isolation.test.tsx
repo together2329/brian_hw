@@ -162,6 +162,11 @@ describe('App IP roster isolation guards', () => {
       count: 1,
       workspace_session: 's1',
     });
+    const s2IpList = deferredJsonResponse({
+      items: [{ name: 'ip_beta' }],
+      count: 1,
+      workspace_session: 's2',
+    });
     const ipListScopes: string[] = [];
     global.fetch = vi.fn(async (input: RequestInfo | URL) => {
       const url = new URL(String(input), 'http://localhost');
@@ -178,7 +183,7 @@ describe('App IP roster isolation guards', () => {
         ipListScopes.push(scope);
         if (scope === 'alice/s1') return s1IpList.response;
         if (scope === 'alice/s2') {
-          return jsonResponse({ items: [{ name: 'ip_beta' }], count: 1, workspace_session: 's2' });
+          return s2IpList.response;
         }
       }
       return jsonResponse({});
@@ -201,6 +206,13 @@ describe('App IP roster isolation guards', () => {
 
     expect(JSON.parse(screen.getByTestId('ip-options').textContent || '[]')).toEqual([WORKFLOW_DEFAULT]);
     expect((window as AnyWindow).IP_OPTIONS).toEqual([WORKFLOW_DEFAULT]);
+
+    await waitFor(() => expect(ipListScopes).toContain('alice/s2'));
+    await act(async () => {
+      s2IpList.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
   });
 
   it('clears stale IP roster options when auth rebinds to a different owner', async () => {

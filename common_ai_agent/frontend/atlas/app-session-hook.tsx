@@ -44,6 +44,19 @@ export interface AtlasSessionSyncDeps {
   setActiveIp: (v: string) => void;
 }
 
+const sameStringList = (left: readonly string[] = [], right: readonly string[] = []): boolean => (
+  left.length === right.length && left.every((value, index) => value === right[index])
+);
+
+const commitStringList = (prev: string[], next: string[]): string[] => (
+  sameStringList(prev || [], next) ? prev : next
+);
+
+const commitIpList = (prev: string[], next: string[]): string[] => {
+  window.IP_OPTIONS = next;
+  return commitStringList(prev, next);
+};
+
 export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
   refreshTopTargets: () => Promise<void>;
 } {
@@ -68,8 +81,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
   }, [normalizeSession, splitSessionNamespace]);
   const resetIpRoster = useCallback(() => {
     const fallback = [WORKFLOW_DEFAULT];
-    setIpOptions(fallback);
-    window.IP_OPTIONS = fallback;
+    setIpOptions(prev => commitIpList(prev, fallback));
   }, [WORKFLOW_DEFAULT, setIpOptions]);
   const invalidateRosterRefreshes = useCallback(() => {
     refreshEpochRef.current += 1;
@@ -196,13 +208,14 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       try { localStorage.setItem('atlasActiveSession', liveNamespace); } catch (_) {}
     }
     if (!liveNamespace) {
-      setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
+      const sortedSessionIds = Array.from(nextSessionIds).sort((a, b) => {
         if (a === currentUserSession) return -1;
         if (b === currentUserSession) return 1;
         if (a === 'default') return -1;
         if (b === 'default') return 1;
         return a.localeCompare(b);
-      }));
+      });
+      setSessionIdOptions(prev => commitStringList(prev, sortedSessionIds));
       const sortedIps = Array.from(nextIps).sort((a, b) => {
         if (a === WORKFLOW_DEFAULT) return -1;
         if (b === WORKFLOW_DEFAULT) return 1;
@@ -216,8 +229,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
           if (b === WORKFLOW_DEFAULT) return 1;
           return a.localeCompare(b);
         });
-        window.IP_OPTIONS = next;
-        return next;
+        return commitIpList(prev, next);
       });
       setActiveSessionId(currentUserSession || 'default');
       setActiveNamespace('');
@@ -239,13 +251,14 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     // and /api/soc actually have, plus whatever createIp() seeded
     // locally (which sticks for one render cycle, then naturally
     // drops if it never lands on disk).
-    setSessionIdOptions(Array.from(nextSessionIds).sort((a, b) => {
+    const sortedSessionIds = Array.from(nextSessionIds).sort((a, b) => {
       if (a === currentUserSession) return -1;
       if (b === currentUserSession) return 1;
       if (a === 'default') return -1;
       if (b === 'default') return 1;
       return a.localeCompare(b);
-    }));
+    });
+    setSessionIdOptions(prev => commitStringList(prev, sortedSessionIds));
     const sortedIps = Array.from(nextIps).sort((a, b) => {
       if (a === WORKFLOW_DEFAULT) return -1;
       if (b === WORKFLOW_DEFAULT) return 1;
@@ -263,8 +276,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
         if (b === WORKFLOW_DEFAULT) return 1;
         return a.localeCompare(b);
       });
-      window.IP_OPTIONS = next;
-      return next;
+      return commitIpList(prev, next);
     });
     setActiveSessionId(currentUserSession || parsedLive.sessionId || 'default');
     setActiveNamespace(liveNamespace);
