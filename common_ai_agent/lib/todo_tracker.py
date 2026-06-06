@@ -588,6 +588,9 @@ class TodoTracker:
                 )
                 full_output = (r.stdout + r.stderr).strip()
                 ok = r.returncode == 0
+                if not ok:
+                    exit_line = f"[exit {r.returncode}]"
+                    full_output = f"{exit_line}\n{full_output}" if full_output else exit_line
             except _sp.TimeoutExpired:
                 full_output = f"[timeout] Command exceeded 300s: {cmd}"
                 ok = False

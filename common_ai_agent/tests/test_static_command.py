@@ -101,6 +101,8 @@ class TestRunCommand:
         log = tmp_path / "out.log"
         ok, tail, lines = tracker._run_command(todo, log)
         assert ok is False
+        assert "[exit 1]" in tail
+        assert "[exit 1]" in log.read_text()
 
     def test_shell_writes_log_file(self, tmp_path):
         tracker = TodoTracker(persist_path=tmp_path / "todo.json")
