@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T12:08:02Z",
+  "generated_at": "2026-06-06T12:18:02Z",
   "root": "doc/wiki",
   "node_count": 150,
-  "edge_count": 714,
+  "edge_count": 715,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603",
@@ -2220,6 +2220,7 @@
         "evidence-contract-obligation-traceability",
         "truth-coverage-gate",
         "golden-todo-evidence",
+        "general-ip-flow-trial-and-error-20260601",
         "mctp-assembler-scratch-flow-20260531"
       ],
       "incoming": [
@@ -2235,7 +2236,7 @@
       "updated": "2026-06-06",
       "summary": "\"Formal\" here means **RTL formal verification** — mathematically proving (or finding a counterexample to) a property over *all* reachable inputs/states — not running many simulations. It is one evidence type in the `req → obligation → contract → evidence → validation` spine ([[contract-reflection-workflow]], [[evidence-contract-obligation-traceability]])…",
       "path": "doc/wiki/formal-verification-evidence.md",
-      "size_bytes": 11835
+      "size_bytes": 13587
     },
     {
       "id": "frontend-modernization-2026-05-29",
@@ -2357,6 +2358,7 @@
       "incoming": [
         "contract-reflection-workflow",
         "evidence-contract-obligation-traceability",
+        "formal-verification-evidence",
         "index",
         "truth-coverage-gate"
       ],
@@ -3025,9 +3027,9 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "formal-verification-evidence",
         "mctp-contract-slice-trial-and-error-20260606",
         "mctp-assembler-contract-breakdown",
-        "formal-verification-evidence",
         "spec-loop-and-equivalence-check",
         "req-obligation-contract-evidence-validation",
         "contract-reflection-workflow",
@@ -3084,9 +3086,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[mctp-contract-slice-trial-and-error-20260606]] — the dated process record of building the contract slice with open-source formal: every gotcha hit along the way (yosys SVA `bind` ignored / named-property unsupported / async2sync; mutation-design traps — identity optimized away, NBA precedence, self-hiding trigger, a missing contract;…",
+      "summary": "- Recorded the two-axis mutation strategy in [[formal-verification-evidence]] (`## Mutation: Targeted Vs Blanket`): targeted per-contract mutation proves each contract's check bites; blanket/mechanical mutation (yosys `mutate`, kill-rate) proves the contract *set* has no hole (a survivor = a missing contract). Both are open-source and a complete closure…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 115370
+      "size_bytes": 115985
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3254,7 +3256,7 @@
       "updated": "2026-06-06",
       "summary": "The dated process record for building `examples/mctp_contract_slice/` — taking the contract-closure methodology from concept to a runnable, open-source, three-lane (iverilog + verilator `--assert` + SymbiYosys/z3) worked example, slice by slice, up to a full-assembler integration. This page is the \"if you repeat this, here are the traps\" log; the design…",
       "path": "doc/wiki/mctp-contract-slice-trial-and-error-20260606.md",
-      "size_bytes": 8148
+      "size_bytes": 8618
     },
     {
       "id": "mini-cpu-rerun-20260517",

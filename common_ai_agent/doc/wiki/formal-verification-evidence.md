@@ -171,6 +171,35 @@ freshness/closure rules in [[golden-todo-evidence]]):
    closure as cheaply as safety. `C-ASM-END-COMMIT-ONCE` (no double commit) is
    safety/easy; "EOM implies commit" is liveness/hard.
 
+## Mutation: Targeted Vs Blanket (two complementary axes)
+
+Mutation answers two different questions — run both:
+
+| | targeted (per-contract) | blanket (mechanical) |
+|---|---|---|
+| how | one deliberate bug per contract (`` `ifdef INJECT_X_BUG ``) | auto-generate many mutations across the RTL (operator flips, dropped assignments, stuck signals) |
+| question | does each contract's evidence actually bite? | does the contract *set* have a hole? |
+| a surviving mutant means | that contract's check is weak / vacuous | a **missing contract** (or an equivalent mutant) |
+| metric | per-contract pass/fail | kill-rate %; survivors are the work list |
+
+Targeted proves each brick is solid; blanket proves the wall has no gap. The
+`mctp_rx_mc` ALLOC case is canonical: a *targeted* mutant survived only because the
+contract itself was missing (added `C-ALLOC-NEW`) — exactly what a blanket sweep is
+meant to surface, hit here by accident. See the worked record in
+[[mctp-contract-slice-trial-and-error-20260606]] `## 2`.
+
+Both are open-source: targeted via `` `ifdef ``; blanket via yosys `mutate`
+(`mutate -list N` emits mutations; run the full contract suite against each and
+classify survivors). The repo already has a blanket / kill-rate concept from
+earlier mutation work — see [[general-ip-flow-trial-and-error-20260601]] and
+[[mctp-assembler-scratch-flow-20260531]]; the new step is **tying blanket survivors
+to the contract set** so each survivor maps to a missing contract, not just a
+kill-rate number.
+
+A complete closure gate runs both: every targeted mutant killed by its contract,
+AND a blanket sweep at a kill-rate threshold (survivors classified equivalent or
+waived). "Pass" then means each contract bites *and* the set has no hole.
+
 ## Current Implementation Vs Proposed (this repo)
 
 Honest gap, verified in the source on 2026-06-06:

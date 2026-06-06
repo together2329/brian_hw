@@ -61,6 +61,12 @@ not the RTL. Every gotcha below was caught by that rule.
   alloc contract never fired → mutant survived. The real gap was a **missing
   contract**, not a weak test → added `C-ALLOC-NEW` ("a new allocation must land on
   a free slot"). A surviving mutant means the contract *set* has a hole.
+- **Targeted vs blanket are two axes — run both.** What we did here is *targeted*
+  per-contract mutation (one bug per contract, proves each check bites). *Blanket*
+  mechanical mutation (yosys `mutate`, many auto mutations, kill-rate) answers the
+  other question — does the contract *set* have a hole? The ALLOC case above was a
+  blanket-class finding hit by a targeted mutant. Full framing:
+  [[formal-verification-evidence]] `## Mutation: Targeted Vs Blanket`.
 
 ## 3. Formal-modeling gotchas (false failures = verification bugs, not RTL bugs)
 

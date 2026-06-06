@@ -2,6 +2,14 @@
 
 ## 2026-06-06
 
+- Recorded the two-axis mutation strategy in [[formal-verification-evidence]]
+  (`## Mutation: Targeted Vs Blanket`): targeted per-contract mutation proves each
+  contract's check bites; blanket/mechanical mutation (yosys `mutate`, kill-rate)
+  proves the contract *set* has no hole (a survivor = a missing contract). Both are
+  open-source and a complete closure gate runs both. Ties the new contract work to
+  the repo's existing blanket/kill-rate pages and notes the ALLOC case as a
+  blanket-class finding caught by a targeted mutant. Pointer added in
+  [[mctp-contract-slice-trial-and-error-20260606]] `## 2`.
 - Added [[mctp-contract-slice-trial-and-error-20260606]] — the dated process
   record of building the contract slice with open-source formal: every gotcha hit
   along the way (yosys SVA `bind` ignored / named-property unsupported / async2sync;
