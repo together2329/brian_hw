@@ -30,9 +30,14 @@ This section is additive; it does not replace the reading order below.
 | uart_tx 직접 end-to-end 실행 — flow 골격 검증 + MSB-first mutation으로 shallow-observation silent-PASS 실증 + same-cycle 생성기 경계 + 직접 구동 cheat-sheet (audit=mutation kill-rate 권고) | [[uart-tx-end-to-end-findings-20260530]] |
 | MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 18/18 pass, mutation advisory interpretation, post-signoff RTL risks | [[mctp-assembler-scratch-flow-20260531]] |
 | General IP 시행착오 종합 — PyMTL식 FL/CL/RTL, small IP/UART/SPI/CPU/MCTP lessons, mutation/formal/truth_coverage 경계, direct SSOT 허용 정책 | [[general-ip-flow-trial-and-error-20260601]] |
+| Req→Obligation→Contract→Evidence→Validation spine (기초 정의/keystone) — 요구사항을 RTL로 바로 만들지 않고 기계검증 가능한 약속으로 정규화 후 증거를 닫는 척추; 5단계 정의 + verification vs validation 구분 + good obligation 6성질 + assume/guarantee split. 방향 세트 전체가 이 위에 섬 | [[req-obligation-contract-evidence-validation]] |
 | Evidence contract proposal — requirement를 atomic obligation / scenario / observable / pass condition / scoreboard row로 연결하는 다음 traceability layer | [[evidence-contract-obligation-traceability]] |
 | Contract reflection workflow — requirement→obligation→contract_ref→stage reflection→evidence→closure 6층 모델; SSOT→FL→CL→RTL→TB→scoreboard trace와 MCTP v3 semantic slice 포함 | [[contract-reflection-workflow]] |
+| Locked Truth 개념 정의 — "회로가 맞다"가 아니라 "정답 기준으로 잠근 truth"; req/contract/evidence와의 구분, 입도(good vs bad), YAML shape, 버전/변경 cascade, 현 구현(bundle hash) vs 제안(per-truth version) | [[locked-truth-concept]] |
 | Locked Truth and Design Spec workflow — req/*.json을 진짜 authority로 두고, yaml/*.ssot.yaml은 generator-ready Design Spec projection으로 재정의하는 MVP workflow | [[locked-truth-design-spec-workflow]] |
+| LLM Contract Repair Loop (앞으로의 방향) — LLM을 RTL generator가 아니라 "닫히지 않은 contract 하나를 고치는 patch agent"로 배치; failure ticket·3단 repair(RTL/collateral/truth)·patch policy·evidence ledger·MCTP contract 단위 | [[llm-contract-repair-loop]] |
+| MCTP Assembler Contract Breakdown (구현 1순위 산출물) — "assemble correctly"를 gate·key·start·single·cont·seq·payload·end·drop·out·reset·status 12개 contract로 쪼개 각자 req→obil→contract→evidence→validation을 닫는 방향; RX(assembly) vs TX(disassembly) 축 구분 + SVA/SSOT YAML 예시. RTL보다 Contract Breakdown Matrix가 먼저 | [[mctp-assembler-contract-breakdown]] |
+| Formal Verification As Evidence — formal=모든 도달 가능 입력/상태에서 property 반례 존재를 수학적으로 증명/탐색(시뮬 아님); assume/assert/cover, 4결과(proven/failed/bounded/inconclusive), formal 적합/부적합+abstraction; 단단히 할 것(assume discharge·cover로 vacuity 방어·bounded≠proven·safety vs liveness); **이 레포 현실: SVA만 emit, prover 미배선 → formal_status가 증명 없이 signoff 통과 가능** | [[formal-verification-evidence]] |
 | ATLAS vite 프론트 자동 E2E 검증(실브라우저) 런북 + `scripts/atlas_vite_e2e_verify.sh` | [[atlas-vite-e2e-verification]] |
 | Sim Debug RTL module-signal panel (pyslang ports+internal, in/out/internal filter, regex search, Ctrl+W/right-click→wave, wave-scroll fix, 50/50 split) | [[sim-debug-module-signals-2026-05-30]] |
 | Sim Debug agent tool `sim_debug` (VCD parser + pyslang; show/goto/cursor/trace/find/value; file-intent + UI polling channel) | [[sim-debug-agent-tool-2026-05-31]] |
@@ -48,6 +53,7 @@ This section is additive; it does not replace the reading order below.
 | Atlas DB Router + Runtime DB sharding concept for multi-user prompt/worker write isolation | [[atlas-db-router-runtime-sharding-20260602]] |
 | Atlas context root model proposal — user/session/IP/workflow isolation, worker cwd at IP root, command/todo/context/SCM/jobs migration plan, and IP-local workflow root rule | [[atlas-context-root-model-20260603]] |
 | Atlas context root deep test plan — branch-level Web/Desktop/API/DB/worker verification before merge | [[atlas-context-root-deep-test-plan-20260604]] |
+| Atlas session canonicalization backlog — keep new writes under `<user>/<workspace>/.session/<ip>/<workflow>` and defer legacy/fallback deletion to a focused migration | [[atlas-session-canonicalization-backlog-20260606]] |
 | Admin operational dashboard priorities from the real local DB snapshot: inactivity, unattributed cost, queue backlog, stale workflows, identity gaps | [[admin-operational-dashboard-db-snapshot-20260603]] |
 | Session Flow admin tab — session as primary unit, metric definitions (input/LLM/worker/flow_state/risk_level/attribution_confidence), three lenses (builder/team_lead/executive), runtime no-fanout rollup design, historical confidence limits, operator quick-reference | [[session-flow-dashboard-20260604]] |
 | Why headless is not product-flow authority | [[pipeline-progress-debugging]] |
@@ -98,9 +104,14 @@ regression.
 4a. [[default-agent-ip-flow]] — conversational front-door flow where the default agent hides stage jargon and directly performs read/edit/run/signoff loops for IP creation.
 4b. [[truth-coverage-gate]] — direct-SSOT or req-ledger locked-truth coverage gate required before signoff.
 4c. [[general-ip-flow-trial-and-error-20260601]] — consolidated trial/error record behind the current General IP workflow.
+4c2. [[req-obligation-contract-evidence-validation]] — keystone definition of the contract spine the direction set builds on: per-stage definitions, the verification-vs-validation distinction, the six properties of a good obligation, the req→obligation accident zone, and the assume/guarantee split. Read this before the layered/realized pages below.
 4d. [[evidence-contract-obligation-traceability]] — proposed next traceability layer between SSOT/truth_coverage and cocotb scoreboard evidence.
 4e. [[contract-reflection-workflow]] — proposed `contract_ref` reflection layer that ties SSOT/FL/CL/RTL/TB/scoreboard evidence together.
+4e1. [[locked-truth-concept]] — definitional reference: what "locked truth" means (a fixed answer-standard generators must not reinterpret, not a claim of circuit correctness), how it differs from req/contract/evidence, right-sized granularity, the versioned change cascade, and current bundle-hash locking vs the proposed per-truth versioning.
 4f. [[locked-truth-design-spec-workflow]] — current decision that Locked Truth under `req/*.json` is the real authority, while `yaml/*.ssot.yaml` is a derived Design Spec projection checked by deterministic validators.
+4g. [[llm-contract-repair-loop]] — forward direction: position the LLM as a contract-closure patch agent (not a generator). Evidence failures become contract-linked failure tickets; the LLM proposes minimal RTL/SVA/TB patches under a patch policy; deterministic tools regenerate evidence; a validation gate decides closure. Loops per contract unit.
+4h. [[mctp-assembler-contract-breakdown]] — concrete instance and first deliverable of the direction above: decompose the MCTP assembler into 12 closure-sized contracts (gate/key/start/single/cont/seq/payload/end/drop/out/reset/status), each closing its own req→obligation→contract→evidence→validation. Fix RX (assembly) vs TX (disassembly) first. The Contract Breakdown Matrix is authored before any RTL/SVA/TB.
+4i. [[formal-verification-evidence]] — formal verification as one evidence type that closes contracts: assume/assert/cover, the four outcomes, what formal fits vs needs abstraction, and the four guards (discharge assumes, cover against vacuity, bounded≠proven, safety vs liveness). Includes the honest current-vs-proposed gap: this repo emits SVA but wires no prover, so `formal_status.json` can pass signoff unproven.
 5. [[run-mode-and-provenance-policy]] — why `Starter` / `Engineering` / `Signoff` are work-maturity modes, why `Exec Mode` is separate, and how clean SSOT YAML pairs with resolved SSOT plus sidecar provenance.
 6. [[rtl-gen-ssot-contract]] — why rtl-gen must follow SSOT exactly before downstream stages run.
 7. [[workflow-feedback-and-scheduling]] — worker-aware serial/DAG scheduling and workflow repair feedback.
@@ -195,6 +206,7 @@ be loaded on a different machine and inspected without recreating the DB.
 - Approval comes from deterministic evidence or human authority, not from LLM prose.
 - When a debugging surface changes, update code, tests, real-use validation notes, and wiki together.
 - For RTL worker handoff, dispatch `/ssot-rtl <ip>` and let `rtl-gen` read the dynamic RTL ledgers from disk. Do not preload the `ssot-rtl` TODO template as an HTTP payload.
+- Direction (forward): do not verify an IP as one "works correctly" claim. Decompose it into closure-sized contracts and author the Contract Breakdown Matrix as the first deliverable, then lock truth, then generate RTL/SVA/TB, then close each contract one at a time via the repair loop. See [[mctp-assembler-contract-breakdown]] (worked instance), [[locked-truth-concept]], and [[llm-contract-repair-loop]]. Validation is the sum of per-contract closures, never a single coarse pass.
 
 ## Source Docs
 

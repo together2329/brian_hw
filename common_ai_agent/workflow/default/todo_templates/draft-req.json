@@ -2,6 +2,8 @@
   "name": "draft-req",
   "description": "Draft requirement JSON from chat, grill-me answers, and read-only candidate artifacts.",
   "lock_additions": true,
+  "auto_start": true,
+  "auto_start_prompt": "Begin executing the loaded TODO plan now. Task 1 is already in_progress — drive it to completion with real tool actions (write the req/*.json files, then re-read them), review against its criteria, then continue through the remaining tasks. Do not wait for further confirmation.",
   "tasks": [
     {
       "content": "[REQ] Draft requirement JSON bundle",

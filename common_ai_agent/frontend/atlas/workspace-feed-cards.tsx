@@ -108,6 +108,21 @@ export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
   );
 };
 
+const _READ_RESULT_TOOL_RE = /^(read_file|read_lines|grep_file|find_files|list_dir)$/i;
+const _WRITE_RESULT_TOOL_RE = /^(write_file|write_to_file)$/i;
+const _REPLACE_RESULT_TOOL_RE = /^(replace_in_file|replace_lines|replace_file_content|edit|patch|update_file|apply_patch)$/i;
+
+export const _toolResultPreviewLines = (tool: unknown): number => {
+  const t = String(tool || '').toLowerCase();
+  if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;
+  if (_REPLACE_RESULT_TOOL_RE.test(t)) return 30;
+  return 0;
+};
+
+export const _toolResultDefaultsClosed = (tool: unknown): boolean => (
+  _READ_RESULT_TOOL_RE.test(String(tool || ''))
+);
+
 // Tool-call observation card — collapsible by default, click to expand.
 // Replaces the previous always-expanded <pre> block that drowned the
 // chat in tool output. Header shows tool name + first line summary +
@@ -136,6 +151,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;
   const lineCount = lines.length;
+  const maxPreviewLines = _toolResultPreviewLines(entry?.tool);
 
   // Diff coloring — opt in by tool name or "Added N, removed M" header.
   const displayFormat = String(entry?.display_format || entry?.syntax || '').toLowerCase();
@@ -210,11 +226,12 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
               tool={entry.tool}
               truncated={entry.truncated}
               hintText={hintText || entry.hintText || entry.path || entry.file || ''}
+              maxLines={maxPreviewLines}
             />
           ) : isGrepTool ? (
-            <GrepOutputPre text={txt} truncated={entry.truncated} />
+            <GrepOutputPre text={txt} truncated={entry.truncated} maxLines={maxPreviewLines} />
           ) : (
-            <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} />
+            <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} maxLines={maxPreviewLines} />
           )
         ) : (
           <>
@@ -550,6 +567,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // trail without hunting through collapsed cards; large bodies remain
   // bounded by .tool-output-pre max-height.
   const isReplaceTool = tool && _DIFF_RESULT_TOOL_RE.test(tool);
+  const defaultsClosed = _toolResultDefaultsClosed(tool);
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
@@ -559,9 +577,12 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
-  // Large read tools dump JSON/escaped YAML. Keep those collapsed by default
-  // and show a short human summary in the card header.
-  const defaultObsOpen = ((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool;
+  // Read/search tools are useful as audit evidence but too noisy in chat.
+  // Keep them collapsed in summary mode; write/replace tools stay open with
+  // tool-specific line caps enforced by ObsCard.
+  const defaultObsOpen = summaryMode && defaultsClosed
+    ? false
+    : (((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool);
   const [obsOpen, setObsOpen] = useState<boolean>(defaultObsOpen);
   useEffect(() => {
     setObsOpen(defaultObsOpen);

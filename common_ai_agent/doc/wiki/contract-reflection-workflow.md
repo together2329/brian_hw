@@ -3,7 +3,7 @@ title: Contract Reflection Workflow
 type: concept
 tags: [ip-flow, ssot, evidence, fl, cl, rtl, tb, signoff, mctp]
 updated: 2026-06-04
-related: [evidence-contract-obligation-traceability, truth-coverage-gate, general-ip-flow-trial-and-error-20260601, mctp-assembler-scratch-flow-20260531, workflow-ownership-and-boundaries]
+related: [req-obligation-contract-evidence-validation, evidence-contract-obligation-traceability, truth-coverage-gate, general-ip-flow-trial-and-error-20260601, mctp-assembler-scratch-flow-20260531, workflow-ownership-and-boundaries]
 ---
 
 # Contract Reflection Workflow

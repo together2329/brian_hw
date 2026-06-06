@@ -386,9 +386,20 @@ export const _toolOutputLanguage = (tool: unknown, text: unknown): string => {
   return 'none';
 };
 
-export const ToolOutputPre = ({ text, tool, truncated }: any): ReactNode => {
+export const _limitToolOutputLines = (text: unknown, maxLines: unknown): string => {
+  const body = _normalizeDisplayedToolPaths(text);
+  const limit = Math.max(0, Math.floor(Number(maxLines || 0)));
+  if (!limit) return body;
+  const lines = body.split('\n');
+  if (lines.length <= limit) return body;
+  const hidden = lines.length - limit;
+  return `${lines.slice(0, limit).join('\n')}\n... ${hidden} more line${hidden === 1 ? '' : 's'} hidden`;
+};
+
+export const ToolOutputPre = ({ text, tool, truncated, maxLines }: any): ReactNode => {
   const codeRef = useRef<any>(null);
-  const body = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+  const fullBody = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+  const body = _limitToolOutputLines(fullBody, maxLines);
   const tooLarge = body.length > 60000;
   const lang = tooLarge ? 'none' : _toolOutputLanguage(tool, body);
   const className = lang && lang !== 'none' ? `language-${lang}` : 'language-none';
@@ -481,8 +492,9 @@ export const _grepOutputRows = (text: unknown): readonly GrepOutputRow[] => {
   });
 };
 
-export const GrepOutputPre = ({ text, truncated }: any): ReactNode => {
-  const body = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+export const GrepOutputPre = ({ text, truncated, maxLines }: any): ReactNode => {
+  const fullBody = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+  const body = _limitToolOutputLines(fullBody, maxLines);
   const rows = _grepOutputRows(body);
 
   return (
@@ -519,8 +531,9 @@ export const _highlightInlineCode = (code: string, lang: string): string => {
   }
 };
 
-export const DiffOutputPre = ({ text, tool, truncated, hintText = '' }: any): ReactNode => {
-  const body = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+export const DiffOutputPre = ({ text, tool, truncated, hintText = '', maxLines }: any): ReactNode => {
+  const fullBody = _normalizeDisplayedToolPaths(text) + (truncated ? '\n…[truncated]' : '');
+  const body = _limitToolOutputLines(fullBody, maxLines);
   // Unified row format from format_diff_snippet:
   //   context  : "{num}  {content}"        (num + 2 spaces + content)
   //   removed  : "{num} -{content}"        (num + space + '-' + content)

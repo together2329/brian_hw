@@ -151,6 +151,11 @@ export function normalizeTodos(rawTodos: any): any[] {
     rejectionReason: t.rejection_reason || '',
     notes:   Array.isArray(t.notes) ? t.notes : [],
     deps:    Array.isArray(t.deps) ? t.deps : [],
+    command: t.command || '',
+    onReject: t.on_reject ?? t.onReject ?? 0,
+    onSuccess: t.on_success ?? t.onSuccess ?? 0,
+    onCondition: Array.isArray(t.on_condition) ? t.on_condition : (Array.isArray(t.onCondition) ? t.onCondition : []),
+    commandLogs: Array.isArray(t.command_logs) ? t.command_logs : (Array.isArray(t.commandLogs) ? t.commandLogs : []),
   }));
 }
 
