@@ -15,7 +15,7 @@ on track with its todo list. The actual strings live in `hook_messages.json`.
 
 ## Variables Available Per Template
 
-**todo_continuation**: `{idx}`, `{total}`, `{content}`, `{first_action}`
+**todo_continuation**: `{idx}`, `{cur_idx}`, `{total}`, `{content}`, `{first_action}`, `{action}`
 
 **todo_rejected**: `{idx}`, `{total}`, `{rejection_reason}`
 
@@ -25,6 +25,10 @@ on track with its todo list. The actual strings live in `hook_messages.json`.
 `{content}`, `{exit_condition}`
 
 **todo_loop_max_reached**: `{idx}`, `{total}`, `{loop_count}`
+
+`idx` and `cur_idx` are aliases. Prefer `cur_idx` in workspace hook
+messages when matching older templates; prefer `first_action` or `action`
+for the state-specific next todo command.
 
 ## Rules
 

@@ -14,6 +14,7 @@ Tests cover:
 10. Edge cases (empty list, out-of-range, concurrent in_progress)
 """
 
+import builtins
 import json
 import os
 import re
@@ -542,6 +543,7 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self._config_patcher.start()
 
     def tearDown(self):
+        os.environ.pop("PLAN_MODE", None)
         os.environ.pop("STRICT_TODO_APPROVAL", None)
         os.environ.pop("STRICT_DELIVERABLE_CHECK", None)
         self._config_patcher.stop()
@@ -759,6 +761,32 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         self.assertIn("Status Conflict", result)
         self.assertIn("awaiting review", result)
 
+    def test_todo_remove_blocked_outside_plan_mode(self):
+        from core.tools import todo_remove
+        os.environ["PLAN_MODE"] = "false"
+        self.tracker.add_todos([
+            {"content": "T1", "status": "pending"},
+            {"content": "T2", "status": "pending"},
+        ])
+
+        result = todo_remove(index=1)
+
+        self.assertIn("disabled outside plan mode", result)
+        self.assertEqual([todo.content for todo in self.tracker.todos], ["T1", "T2"])
+
+    def test_todo_remove_allowed_in_plan_mode(self):
+        from core.tools import todo_remove
+        os.environ["PLAN_MODE"] = "true"
+        self.tracker.add_todos([
+            {"content": "T1", "status": "pending"},
+            {"content": "T2", "status": "pending"},
+        ])
+
+        result = todo_remove(index=1)
+
+        self.assertIn('Removed: "T1"', result)
+        self.assertEqual([todo.content for todo in self.tracker.todos], ["T2"])
+
     def test_rejected_with_reason(self):
         """Rejected task gets reason and becomes current."""
         from core.tools import todo_update
@@ -811,6 +839,21 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         )
         self.assertNotIn("1-based", result)
         self.assertEqual([todo.content for todo in self.tracker.todos], ["Inserted", "T1", "T2"])
+
+    def test_todo_update_reports_missing_session_todo_file(self):
+        from core.tools import todo_update
+
+        missing = Path(self.tmpdir) / ".session" / "ip" / "flow" / "todo.json"
+        sys.modules["config"].TODO_FILE = str(missing)
+        for module_name in ("main", "src.main", "__main__"):
+            module = sys.modules.get(module_name)
+            if module is not None and hasattr(module, "todo_tracker"):
+                module.todo_tracker = None
+
+        result = todo_update(index=1, status="in_progress")
+
+        self.assertIn("TodoTracker load failed", result)
+        self.assertIn(str(missing), result)
 
     def test_out_of_range_error(self):
         """Out of range index returns error."""
@@ -1192,6 +1235,31 @@ class TestContinuationPrompt(unittest.TestCase):
         self.assertIn("Task 2", prompt)
         self.assertIn("to start", prompt)
         self.assertIn("in_progress", prompt)
+
+    def test_workspace_hook_template_renders_pending_first_action(self):
+        had_messages = hasattr(builtins, "_WORKSPACE_HOOK_MESSAGES")
+        old_messages = getattr(builtins, "_WORKSPACE_HOOK_MESSAGES", None)
+        builtins._WORKSPACE_HOOK_MESSAGES = {
+            "todo_continuation": (
+                "HOOK {cur_idx}/{total} {content}\n"
+                "NEXT {first_action}"
+            )
+        }
+        try:
+            tracker = self._make_tracker()
+            tracker.add_todos([
+                {"content": "T1", "status": "pending"},
+            ])
+            tracker.current_index = 0
+            prompt = tracker.get_continuation_prompt()
+        finally:
+            if not had_messages:
+                delattr(builtins, "_WORKSPACE_HOOK_MESSAGES")
+            else:
+                builtins._WORKSPACE_HOOK_MESSAGES = old_messages
+
+        self.assertIn("HOOK 1/1 T1", prompt)
+        self.assertIn("NEXT → todo_update(index=1, status='in_progress') to start", prompt)
 
     def test_in_progress_task_prompt(self):
         """In-progress task shows completion instruction."""

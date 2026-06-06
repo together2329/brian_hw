@@ -1450,12 +1450,10 @@ TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in (
 # ============================================================
 # Mode-gated tool unlocking
 # ============================================================
-# Default ON: all todo tools (todo_write/todo_remove/todo_update/
-# todo_add/todo_status) are exposed in Normal Mode too, so the agent
+# Default ON: todo_write/todo_update/todo_add/todo_status are exposed in Normal Mode too, so the agent
 # can manage its own task list during execution without flipping into
-# Plan Mode first. Set UNLOCK_NORMAL_MODE_TOOLS=false to restore the
-# old gating (todo_write/todo_remove plan-only; todo_update execution-
-# only).
+# Plan Mode first. todo_remove stays plan-only because execution tasks are
+# audit history; failed or stale tasks must be rejected, not deleted.
 UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
 DISABLE_TODO_TOOLS = os.getenv("ATLAS_DISABLE_TODO_TOOLS", "false").lower() in ("true", "1", "yes", "on")
 
@@ -2430,15 +2428,14 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
 
     # Task Management (conditional)
     # todo_write is DESTRUCTIVE — replaces the entire task list — so it stays
-    # plan-mode-only regardless of UNLOCK_NORMAL_MODE_TOOLS. Without this
-    # restriction the agent can wipe a 12-item list down to 3 just by
-    # re-emitting todo_write during execution. Use todo_add / todo_update /
-    # todo_remove for incremental edits in Normal mode.
+    # plan-mode-only regardless of UNLOCK_NORMAL_MODE_TOOLS. todo_remove is
+    # also plan-only: execution TODOs are audit history and stale/failed work
+    # must be marked rejected instead of deleted.
     _unlock_all = UNLOCK_NORMAL_MODE_TOOLS
     task_tools = []
     if plan_mode:
         task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only — REPLACES all existing tasks). Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
-    if plan_mode or _unlock_all:
+    if plan_mode:
         task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (index REQUIRED, 1-based)."))
 
     if todo_active or _unlock_all:
@@ -2773,16 +2770,15 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
 # Tools blocked in Normal/Execution mode. Per user request, todo_write is now
 # permitted in normal mode too — the agent occasionally needs to (re)build
 # the task list mid-execution (e.g. after an unexpected branch in a workflow).
-# UNLOCK_NORMAL_MODE_TOOLS=true continues to unlock todo_remove.
+# todo_remove remains blocked even when UNLOCK_NORMAL_MODE_TOOLS=true because
+# deleting execution tasks destroys the audit trail.
 if DISABLE_TODO_TOOLS:
     NORMAL_MODE_BLOCKED_TOOLS = frozenset({
         'todo_write', 'todo_update', 'todo_add', 'todo_remove', 'todo_status',
         'todo_note', 'todo_check', 'todo_auto_step',
     })
 else:
-    NORMAL_MODE_BLOCKED_TOOLS = frozenset() if UNLOCK_NORMAL_MODE_TOOLS else frozenset({
-        'todo_remove',  # Task removal only during planning when unlock is off
-    })
+    NORMAL_MODE_BLOCKED_TOOLS = frozenset({'todo_remove'})
 
 
 # Update SYSTEM_PROMPT to use new tool description system

@@ -4295,6 +4295,44 @@ def create_app():
         except Exception:
             pass
 
+    def _bind_live_tracker_to_session(
+        session_name: str,
+        session_todo: Path,
+        tracker: Any,
+    ) -> list[str]:
+        errors: list[str] = []
+        session_name = normalize_session_name(session_name)
+        session_todo = session_todo.expanduser().resolve(strict=False)
+        session_dir = session_todo.parent
+        session_cfg = {
+            "TODO_FILE": str(session_todo),
+            "TODO_ERROR_FILE": str(session_dir / "todo_error.json"),
+            "SESSION_DIR": str(session_dir),
+            "ACTIVE_PROJECT": session_name,
+            "ATLAS_ACTIVE_SESSION": session_name,
+        }
+        for cfg_name in ("config", "src.config"):
+            try:
+                cfg_mod = importlib.import_module(cfg_name)
+            except ImportError as exc:
+                errors.append(f"{cfg_name}: {exc}")
+                continue
+            for key, value in session_cfg.items():
+                setattr(cfg_mod, key, value)
+        try:
+            import lib.todo_tracker as todo_tracker_mod  # noqa: WPS433
+        except ImportError as exc:
+            errors.append(f"lib.todo_tracker: {exc}")
+        else:
+            todo_tracker_mod.TODO_FILE = session_todo
+        if hasattr(tracker, "_persist_path"):
+            tracker._persist_path = session_todo
+        for module_name in ("main", "src.main", "__main__"):
+            module = sys.modules.get(module_name)
+            if module is not None:
+                setattr(module, "todo_tracker", tracker)
+        return errors
+
     @app.post("/api/todos/add")
     async def api_todos_add(request: Request):
         """Append one todo to the requested session's todo file."""
@@ -4431,7 +4469,7 @@ def create_app():
             tracker.save()
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
-        _sync_live_tracker_from_session(session_todo)
+        _bind_live_tracker_to_session(session_name, session_todo, tracker)
         return JSONResponse(_gate_for_workflow(tracker.to_dict(), session_name))
 
     @app.post("/api/todos/remove")
@@ -4470,7 +4508,7 @@ def create_app():
             tracker.save()
         except Exception as e:
             return JSONResponse({"error": str(e)}, status_code=500)
-        _sync_live_tracker_from_session(session_todo)
+        _bind_live_tracker_to_session(session_name, session_todo, tracker)
         return JSONResponse(_gate_for_workflow(tracker.to_dict(), session_name))
 
     def _tracker_stage(name: str) -> str:
@@ -5064,6 +5102,25 @@ def create_app():
             client_session.emit("agent_state", running=False)
         client_session.emit("flush")
 
+    def _req_command_workflow_root() -> Path | None:
+        candidates = [
+            Path(WORKFLOW_ROOT),
+            Path(SOURCE_ROOT) / "workflow",
+            _REPO_ROOT / "workflow",
+        ]
+        seen: set[Path] = set()
+        for candidate in candidates:
+            root = candidate.expanduser().resolve()
+            if root in seen:
+                continue
+            seen.add(root)
+            if (
+                (root / "req-gen" / "scripts" / "lock_requirement_set.py").is_file()
+                and (root / "req-gen" / "scripts" / "check_locked_truth_bundle.py").is_file()
+            ):
+                return root
+        return None
+
     # Phase 12b: 14 slash command handlers (1851 lines)
     # moved to src/atlas_slash_handlers.py via make_slash_handlers factory.
     # All callable deps wrapped in lambdas to defer name lookup (forward-refs).
@@ -5221,6 +5278,7 @@ def create_app():
                     cfg_modules.append(cfg_mod)
             session_dir = _session_json_path(active_slash_session).parent
             session_dir.mkdir(parents=True, exist_ok=True)
+            req_workflow_root = _req_command_workflow_root()
             session_cfg = {
                 "TODO_FILE": str(session_dir / "todo.json"),
                 "TODO_ERROR_FILE": str(session_dir / "todo_error.json"),
@@ -5228,6 +5286,8 @@ def create_app():
                 "ACTIVE_PROJECT": active_slash_session,
                 "ATLAS_ACTIVE_SESSION": active_slash_session,
             }
+            if req_workflow_root is not None:
+                session_cfg["ATLAS_WORKFLOW_ROOT"] = str(req_workflow_root)
             for cfg_mod in cfg_modules:
                 for key, value in session_cfg.items():
                     had = hasattr(cfg_mod, key)
@@ -5263,6 +5323,55 @@ def create_app():
                         delattr(cfg_mod, key)
                 except Exception:
                     pass
+
+    def _req_lifecycle_template_guard(context: Any, tmpl_name: str) -> str:
+        req_templates = {"draft-req", "finalize-req", "lock-req"}
+        if tmpl_name not in req_templates:
+            return ""
+        workflow_root = _req_command_workflow_root()
+        if workflow_root is None:
+            return f"Cannot load /{tmpl_name}: no verified workflow root contains req-gen scripts."
+        ip_root = Path(getattr(context, "ip_root", ""))
+        ip_name = str(getattr(context, "ip_name", "") or "active IP")
+        req_dir = ip_root / "req"
+        manifest = req_dir / "approval_manifest.json"
+        if _locked_truth_active(context.workspace_root, ip_name):
+            manifest_state = ""
+            if manifest.exists():
+                try:
+                    payload = json.loads(manifest.read_text(encoding="utf-8"))
+                    if isinstance(payload, dict):
+                        manifest_state = str(payload.get("status") or payload.get("locked_truth_status") or "")
+                except (OSError, json.JSONDecodeError) as exc:
+                    return f"Cannot load /{tmpl_name}: req/approval_manifest.json is invalid: {exc}"
+            state_text = f" ({manifest_state})" if manifest_state else ""
+            return (
+                f"Requirements already locked for {ip_name}{state_text}. "
+                f"Refusing /{tmpl_name} because it would replace the current TODO list. "
+                "Next action: /to-ssot."
+            )
+        if tmpl_name in {"finalize-req", "lock-req"}:
+            candidate_files = [
+                req_dir / "requirements_index.json",
+                req_dir / "obligations.json",
+                req_dir / "contract_refs.json",
+                req_dir / "evidence_plan.json",
+            ]
+            missing = [path.name for path in candidate_files if not path.exists()]
+            if missing:
+                return f"/{tmpl_name} needs draft req files first. Missing: {', '.join(missing)}. Run /draft-req."
+        return ""
+
+    def _req_lifecycle_template_tasks(tmpl_name: str, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        workflow_root = _req_command_workflow_root()
+        copied = json.loads(json.dumps(tasks))
+        if tmpl_name not in {"draft-req", "finalize-req", "lock-req"} or workflow_root is None:
+            return copied
+        for task in copied:
+            command = task.get("command")
+            if isinstance(command, str):
+                task["command"] = command.replace("$ATLAS_WORKFLOW_ROOT", str(workflow_root))
+        return copied
 
     def _execute_generic_slash_command(text: str, client_session: Any) -> bool:
         """Run non-ATLAS slash commands immediately on the command plane."""
@@ -5305,9 +5414,13 @@ def create_app():
                 from workflow.loader import get_todo_template_registry
 
                 context = AtlasContext.from_session_key(session_key, atlas_root=PROJECT_ROOT)
+                req_guard = _req_lifecycle_template_guard(context, tmpl_name)
+                if req_guard:
+                    _emit_slash_output(client_session, req_guard)
+                    return True
                 registry = get_todo_template_registry()
                 template = registry.get(tmpl_name) or {}
-                tasks = registry.get_tasks(tmpl_name) or []
+                tasks = _req_lifecycle_template_tasks(tmpl_name, registry.get_tasks(tmpl_name) or [])
                 if not tasks:
                     available = ", ".join(registry.list()) or "(none)"
                     _emit_slash_output(
@@ -5318,7 +5431,10 @@ def create_app():
                 todo_path = context.session_dir / "todo.json"
                 tracker = TodoTracker(persist_path=todo_path)
                 tracker.add_todos(tasks)
+                tracker.template_lock_additions = bool(template.get("lock_additions", True))
+                tracker.template_name = tmpl_name
                 tracker.save()
+                bind_errors = _bind_live_tracker_to_session(session_key, todo_path, tracker)
                 if bool(template.get("lock_additions", True)):
                     os.environ["TODO_TEMPLATE_LOCK_ADDITIONS"] = "1"
                     os.environ["TODO_TEMPLATE_LOCK_NAME"] = tmpl_name
@@ -5335,7 +5451,11 @@ def create_app():
                     client_session,
                     f"Loaded todo template '{tmpl_name}': {len(tasks)} tasks added.\n"
                     f"Todo: {rel_path}"
-                    + (f"\nDescription: {desc}" if desc else ""),
+                    + (f"\nDescription: {desc}" if desc else "")
+                    + (
+                        "\nTodo runtime bind warning: " + "; ".join(bind_errors)
+                        if bind_errors else ""
+                    ),
                 )
             except ValueError:
                 _emit_slash_output(

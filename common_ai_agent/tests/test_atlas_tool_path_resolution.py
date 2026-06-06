@@ -166,6 +166,102 @@ def test_replace_tools_prefer_atlas_project_root_for_ip_paths(tmp_path, monkeypa
     assert cwd_yaml.read_text(encoding="utf-8") == "cwd line 1\ncwd line 2\n"
 
 
+def test_llm_write_tools_refuse_locked_requirement_authority_files(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    req_dir = project_root / ip / "req"
+    req_dir.mkdir(parents=True)
+    target = req_dir / "requirements_index.json"
+    target.write_text('{"requirements": []}\n', encoding="utf-8")
+    (req_dir / "approval_manifest.json").write_text(
+        (
+            '{"status":"requirements_locked","requirements":['
+            '{"requirement_id":"REQ_1","status":"locked","required":true}'
+            "]}\n"
+        ),
+        encoding="utf-8",
+    )
+
+    server_cwd = tmp_path / "server"
+    server_cwd.mkdir()
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.write_file(path=f"{ip}/req/requirements_index.json", content='{"requirements":[]}\n')
+
+    assert result.startswith("Error: locked truth is approved")
+    assert target.read_text(encoding="utf-8") == '{"requirements": []}\n'
+
+
+def test_llm_replace_tools_allow_unlocked_requirement_candidates(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    req_dir = project_root / ip / "req"
+    req_dir.mkdir(parents=True)
+    target = req_dir / "requirements_index.json"
+    target.write_text("status: draft\n", encoding="utf-8")
+    (req_dir / "approval_manifest.json").write_text(
+        (
+            '{"status":"requirements_locked","requirements":['
+            '{"requirement_id":"REQ_1","status":"pending","required":true}'
+            "]}\n"
+        ),
+        encoding="utf-8",
+    )
+
+    server_cwd = tmp_path / "server"
+    server_cwd.mkdir()
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.replace_in_file(
+        path=f"{ip}/req/requirements_index.json",
+        old_text="draft",
+        new_text="review_candidate",
+    )
+
+    assert "Replaced 1 occurrence" in result
+    assert target.read_text(encoding="utf-8") == "status: review_candidate\n"
+
+
+def test_llm_replace_lines_refuses_locked_requirement_authority_files(tmp_path, monkeypatch):
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    req_dir = project_root / ip / "req"
+    req_dir.mkdir(parents=True)
+    target = req_dir / "obligations.json"
+    target.write_text("line 1\nline 2\n", encoding="utf-8")
+    (req_dir / "approval_manifest.json").write_text(
+        (
+            '{"requirements":['
+            '{"requirement_id":"REQ_1","status":"locked","required":true}'
+            "]}\n"
+        ),
+        encoding="utf-8",
+    )
+
+    server_cwd = tmp_path / "server"
+    server_cwd.mkdir()
+    monkeypatch.chdir(server_cwd)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    result = tools.replace_lines(
+        path=f"{ip}/req/obligations.json",
+        start_line=1,
+        end_line=1,
+        new_content="changed",
+    )
+
+    assert result.startswith("Error: locked truth is approved")
+    assert target.read_text(encoding="utf-8") == "line 1\nline 2\n"
+
+
 def test_file_tools_accept_backslash_ip_paths(tmp_path, monkeypatch):
     ip = "uart_core"
     project_root = tmp_path / "served_root"

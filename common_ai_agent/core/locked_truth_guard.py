@@ -141,21 +141,19 @@ def _lock_active(ip_dir: Path) -> bool:
     try:
         raw = json.loads(manifest.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
-        return True
+        return False
     except OSError:
-        return True
+        return False
     if not isinstance(raw, dict):
-        return True
+        return False
     status_raw = raw.get("status")
     status = status_raw.strip().lower() if isinstance(status_raw, str) else ""
     if status in UNLOCKED_STATUSES:
         return False
-    if status in LOCKED_STATUSES:
-        return True
     requirements = raw.get("requirements")
     if isinstance(requirements, list):
         return _all_required_requirements_locked(requirements)
-    return True
+    return status in LOCKED_STATUSES
 
 
 def _all_required_requirements_locked(requirements: List[JsonValue]) -> bool:

@@ -277,6 +277,7 @@ class TestDefaultWorkspace(unittest.TestCase):
     def test_hook_messages_todo_continuation_has_format_vars(self):
         msg = self.ws.hook_messages.get("todo_continuation", "")
         self.assertIn("{cur_idx}", msg)
+        self.assertIn("{first_action}", msg)
 
     def test_hook_messages_todo_review_present(self):
         self.assertIn("todo_review", self.ws.hook_messages)

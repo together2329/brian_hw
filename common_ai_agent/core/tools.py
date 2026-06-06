@@ -71,6 +71,20 @@ def _paths_match(left, right) -> bool:
         return str(left) == str(right)
 
 
+def _set_todo_tracker_error(message: str) -> None:
+    _TODO_RUNTIME.todo_error = message
+
+
+def _todo_tracker_unavailable_error() -> str:
+    message = str(getattr(_TODO_RUNTIME, "todo_error", "") or "")
+    if message:
+        return f"Error: {message}"
+    return (
+        "Error: TodoTracker is not initialized. Check that ENABLE_TODO_TRACKING=true "
+        "and config.TODO_FILE points to the active session todo.json."
+    )
+
+
 @contextmanager
 def scoped_todo_runtime(todo_tracker=None, todo_file=None):
     """Bind todo tools to a per-run tracker without mutating process globals."""
@@ -514,6 +528,26 @@ def _resolve_write_path(path):
     if first in _IP_SUBDIRS:
         return os.path.join(project_root, active_ip, norm)
     return path
+
+
+def _locked_truth_tool_write_error(path):
+    project_root_raw = _atlas_project_root()
+    if not project_root_raw:
+        return None
+    try:
+        project_root = Path(project_root_raw).expanduser().resolve(strict=False)
+        candidate = Path(path).expanduser().resolve(strict=False)
+        rel_path = candidate.relative_to(project_root)
+    except (OSError, ValueError):
+        return None
+    if len(rel_path.parts) < 2 or rel_path.parts[1] != "req":
+        return None
+    ip = rel_path.parts[0]
+    try:
+        from core.locked_truth_guard import locked_truth_write_error
+    except ModuleNotFoundError:
+        from locked_truth_guard import locked_truth_write_error
+    return locked_truth_write_error(project_root, ip, str(candidate))
 
 
 def _active_ip_dot_search_root(directory):
@@ -995,6 +1029,9 @@ def write_file(path: str = None, content: str = None, append: bool = False) -> s
         # silently flip mode to append. Coerce explicitly.
         append = _as_bool(append, default=False)
         path = _resolve_write_path(path)
+        locked_truth_error = _locked_truth_tool_write_error(path)
+        if locked_truth_error is not None:
+            return locked_truth_error
         dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
@@ -1928,6 +1965,9 @@ def replace_in_file(path=None, old_text=None, new_text=None, count=-1, start_lin
         path = _resolve_asset_path(path)
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
+        locked_truth_error = _locked_truth_tool_write_error(path)
+        if locked_truth_error is not None:
+            return locked_truth_error
 
         # LLM tool-call args arrive as JSON strings. Coerce numeric
         # params to int so `str.replace(text, new, count)` (which
@@ -2682,6 +2722,9 @@ def replace_lines(path=None, start_line=None, end_line=None, new_content=None):
         path = _resolve_asset_path(path)
         if not os.path.exists(path):
             return f"Error: File '{path}' does not exist."
+        locked_truth_error = _locked_truth_tool_write_error(path)
+        if locked_truth_error is not None:
+            return locked_truth_error
 
         with open(path, 'r', encoding='utf-8') as f:
             lines = f.readlines()
@@ -3282,12 +3325,19 @@ def _sync_subagent_todo(output: str):
 def _get_todo_tracker():
     """Helper to lazily load and return the global TodoTracker instance."""
     try:
+        _set_todo_tracker_error("")
         from lib.todo_tracker import TodoTracker
         import config as _cfg
 
         override_tracker = getattr(_TODO_RUNTIME, "todo_tracker", None)
         override_file = getattr(_TODO_RUNTIME, "todo_file", None)
         desired_path = Path(override_file or getattr(_cfg, "TODO_FILE", "current_todos.json"))
+        strict_load = (
+            override_file is not None
+            or ".session" in desired_path.parts
+            or os.environ.get("TODO_TEMPLATE_LOCK_ADDITIONS", "").strip().lower()
+            in ("1", "true", "yes", "on")
+        )
 
         modules = [
             sys.modules.get("main"),
@@ -3307,7 +3357,7 @@ def _get_todo_tracker():
             if tracker is not None and _paths_match(getattr(tracker, "_persist_path", None), desired_path):
                 return tracker
 
-        tracker = TodoTracker.load(desired_path)
+        tracker = TodoTracker.load(desired_path, strict=strict_load)
         if modules:
             for module in modules:
                 module.todo_tracker = tracker
@@ -3322,8 +3372,8 @@ def _get_todo_tracker():
             if main_module is not None:
                 main_module.todo_tracker = tracker
         return tracker
-    except Exception:
-        # Silently fail if tracker cannot be accessed
+    except (ImportError, OSError, ValueError, AttributeError) as exc:
+        _set_todo_tracker_error(f"TodoTracker load failed: {exc}")
         return None
 
 
@@ -3348,9 +3398,21 @@ def _save_todo_write_error(error_msg: str, attempted_todos=None):
 def _todo_template_lock_error(op_name: str) -> str:
     """Return an error when a canonical template disallows todo reshaping."""
     locked = os.environ.get("TODO_TEMPLATE_LOCK_ADDITIONS", "").strip().lower()
-    if locked not in ("1", "true", "yes", "on"):
+    tmpl = os.environ.get("TODO_TEMPLATE_LOCK_NAME", "").strip()
+    is_locked = locked in ("1", "true", "yes", "on")
+    if not is_locked:
+        try:
+            import config as _cfg
+            from lib.todo_tracker import TodoTracker
+
+            tracker = TodoTracker.load(Path(getattr(_cfg, "TODO_FILE", "current_todos.json")))
+            is_locked = bool(getattr(tracker, "template_lock_additions", False))
+            tmpl = tmpl or str(getattr(tracker, "template_name", "") or "")
+        except Exception:
+            is_locked = False
+    if not is_locked:
         return ""
-    tmpl = os.environ.get("TODO_TEMPLATE_LOCK_NAME", "").strip() or "active"
+    tmpl = tmpl or "active"
     return (
         f"Error: todo template '{tmpl}' is locked; do not call {op_name} "
         "to add or replace tasks. Use the existing canonical tasks, repair "
@@ -3645,8 +3707,10 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     """
     todo_tracker = _get_todo_tracker()
 
-    if todo_tracker is None or not todo_tracker.todos:
-        return ""
+    if todo_tracker is None:
+        return _todo_tracker_unavailable_error()
+    if not todo_tracker.todos:
+        return "Error: No active todo list."
 
     if index is None:
         index = id
@@ -4323,7 +4387,7 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
     todo_tracker = _get_todo_tracker()
 
     if todo_tracker is None:
-        return ""
+        return _todo_tracker_unavailable_error()
 
     # Accept LLM-leaked alias names for `content` (Codex/gpt-5.x sometimes
     # emit `text=`, `task=`, `description=`, `title=` instead). Without
@@ -4395,7 +4459,9 @@ def todo_note(index=None, text=""):
         return "Todo notes are disabled (ENABLE_TODO_NOTES=false)."
 
     todo_tracker = _get_todo_tracker()
-    if todo_tracker is None or not todo_tracker.todos:
+    if todo_tracker is None:
+        return _todo_tracker_unavailable_error()
+    if not todo_tracker.todos:
         return "Error: No active todo list."
 
     if index is None:
@@ -4431,10 +4497,15 @@ def todo_remove(index=None, id=None):
     Example:
         todo_remove(index=3)
     """
+    if os.environ.get("PLAN_MODE", "false").lower() != "true":
+        return "Error: todo_remove is disabled outside plan mode. Mark stale or failed tasks rejected instead of deleting them."
+
     todo_tracker = _get_todo_tracker()
 
-    if todo_tracker is None or not todo_tracker.todos:
-        return ""
+    if todo_tracker is None:
+        return _todo_tracker_unavailable_error()
+    if not todo_tracker.todos:
+        return "Error: No active todo list."
 
     if index is None:
         index = id
@@ -4468,8 +4539,10 @@ def todo_status():
     """
     todo_tracker = _get_todo_tracker()
 
-    if todo_tracker is None or not todo_tracker.todos:
-        return ""
+    if todo_tracker is None:
+        return _todo_tracker_unavailable_error()
+    if not todo_tracker.todos:
+        return "Error: No active todo list."
     return todo_tracker.format_progress()
 
 

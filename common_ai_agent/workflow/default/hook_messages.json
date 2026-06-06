@@ -5,7 +5,7 @@
 
   "emergency_recovery": "[Emergency Recovery] {removed_count} messages were removed due to context limit. The conversation was about: {topic}",
 
-  "todo_continuation": "[Task {cur_idx}/{total}] {content}\nIf the work is done, mark it complete:\nAction: todo_update\nAction Input: {\"index\": {cur_idx}, \"status\": \"completed\"}\nThen continue to the next task.",
+  "todo_continuation": "[Task {cur_idx}/{total}] {content}\nFirst required action:\n{first_action}\nDo not skip the todo_update step.",
 
   "todo_rejected": "[Task {cur_idx}/{total} REJECTED] {rejection_reason}\nFix the issue, then call: todo_update(index={cur_idx}, status='in_progress')",
 

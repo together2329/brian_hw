@@ -288,6 +288,8 @@ class TodoTracker:
         self.stagnation_count: int = 0
         self._last_completed_count: int = 0
         self._persist_path: Optional[Path] = persist_path or TODO_FILE
+        self.template_lock_additions: bool = False
+        self.template_name: str = ""
 
     @staticmethod
     def _format_index_ranges(indices: List[int], max_ranges: int = 12) -> str:
@@ -1267,8 +1269,12 @@ class TodoTracker:
                     import builtins as _b
                     _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
                     _tmpl = _msgs.get("todo_rejected", "")
-                    prompt = _tmpl.format(idx=idx, total=total,
-                                         rejection_reason=current.rejection_reason) if _tmpl else _default
+                    prompt = _tmpl.format(
+                        idx=idx,
+                        cur_idx=idx,
+                        total=total,
+                        rejection_reason=current.rejection_reason,
+                    ) if _tmpl else _default
                 except Exception:
                     prompt = _default
             elif current.status == "completed":
@@ -1310,7 +1316,12 @@ class TodoTracker:
                     import builtins as _b
                     _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
                     _tmpl = _msgs.get("todo_review", "")
-                    prompt = _tmpl.format(idx=idx, total=total, content=current.content) if _tmpl else _default
+                    prompt = _tmpl.format(
+                        idx=idx,
+                        cur_idx=idx,
+                        total=total,
+                        content=current.content,
+                    ) if _tmpl else _default
                 except Exception:
                     prompt = _default
             else:
@@ -1330,7 +1341,9 @@ class TodoTracker:
                         _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
                         _tmpl = _msgs.get("todo_loop_continue", "")
                         prompt = _tmpl.format(
-                            idx=idx, total=total,
+                            idx=idx,
+                            cur_idx=idx,
+                            total=total,
                             loop_count=current.loop_count,
                             max_loop=max_iter,
                             content=current.content,
@@ -1373,9 +1386,12 @@ class TodoTracker:
                         _msgs = getattr(_b, "_WORKSPACE_HOOK_MESSAGES", {})
                         _tmpl = _msgs.get("todo_continuation", "")
                         prompt = _tmpl.format(
-                            idx=idx, total=total,
+                            idx=idx,
+                            cur_idx=idx,
+                            total=total,
                             content=current.content,
                             action=_action,
+                            first_action=_action,
                         ) if _tmpl else _default
                     except Exception:
                         prompt = _default
@@ -1448,6 +1464,8 @@ class TodoTracker:
     def to_dict(self) -> Dict:
         """직렬화 (저장용)."""
         return {
+            "template_lock_additions": self.template_lock_additions,
+            "template_name": self.template_name,
             "todos": [
                 {
                     "content": t.content,
@@ -1493,6 +1511,8 @@ class TodoTracker:
         tracker.current_index = data.get("current_index", -1)
         tracker.stagnation_count = data.get("stagnation_count", 0)
         tracker._last_completed_count = data.get("_last_completed_count", 0)
+        tracker.template_lock_additions = bool(data.get("template_lock_additions", False))
+        tracker.template_name = str(data.get("template_name", "") or "")
         return tracker
 
     def save(self):
@@ -1509,15 +1529,21 @@ class TodoTracker:
             pass
 
     @classmethod
-    def load(cls, persist_path: Optional[Path] = None) -> 'TodoTracker':
+    def load(cls, persist_path: Optional[Path] = None, *, strict: bool = False) -> 'TodoTracker':
         """파일에서 로드. 없으면 빈 tracker 반환."""
         path = persist_path or TODO_FILE
         if path.exists():
             try:
                 data = json.loads(path.read_text(encoding="utf-8", errors="replace"))
                 return cls.from_dict(data, persist_path=path)
-            except Exception:
-                pass
+            except json.JSONDecodeError as exc:
+                if strict:
+                    raise ValueError(f"Todo file is invalid JSON: {path}: {exc}") from exc
+            except OSError as exc:
+                if strict:
+                    raise OSError(f"Todo file cannot be read: {path}: {exc}") from exc
+        elif strict:
+            raise FileNotFoundError(f"Todo file not found: {path}")
         return cls(persist_path=path)
 
     def clear(self):

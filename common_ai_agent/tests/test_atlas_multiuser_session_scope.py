@@ -35,6 +35,8 @@ def _isolate_atlas_db_path(tmp_path, monkeypatch):
         "ATLAS_ORCHESTRATOR_MODE",
         "ATLAS_SINGLE_MAIN_LOOP",
         "ATLAS_WORKSPACE_SESSION",
+        "TODO_TEMPLATE_LOCK_ADDITIONS",
+        "TODO_TEMPLATE_LOCK_NAME",
     ):
         monkeypatch.delenv(key, raising=False)
 
@@ -2365,6 +2367,10 @@ def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_pa
 
     session_id = "alice/default/timer_ip/default"
     session = app.state.bridge._ensure_session(session_id)
+    req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
+    req_dir.mkdir(parents=True)
+    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+        (req_dir / name).write_text("{}", encoding="utf-8")
 
     with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
         assert ws.receive_json()["type"] == "hello"
@@ -2383,9 +2389,172 @@ def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_pa
     todos = data.get("todos", [])
     assert len(todos) == 3
     assert todos[0]["content"] == "[REQ] Quality review and repair review candidate"
-    assert todos[1]["command"].startswith("python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py\"")
+    expected_root = (PROJECT_ROOT / "workflow").resolve()
+    assert todos[1]["command"].startswith(f"python3 \"{expected_root}/req-gen/scripts/check_locked_truth_bundle.py\"")
     assert "--review-candidate" in todos[1]["command"]
     assert not (tmp_path / ".session" / "alice" / "timer_ip" / "default" / "todo.json").exists()
+
+
+def test_req_lifecycle_slash_refuses_locked_ip_and_preserves_todos(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/default/timer_ip/default"
+    session_dir = tmp_path / "alice" / "default" / ".session" / "timer_ip" / "default"
+    session_dir.mkdir(parents=True)
+    todo_path = session_dir / "todo.json"
+    original = {
+        "todos": [
+            {
+                "content": "existing audit todo",
+                "status": "pending",
+                "detail": "must not be replaced",
+                "criteria": "same task remains",
+            }
+        ]
+    }
+    todo_path.write_text(json.dumps(original), encoding="utf-8")
+
+    req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
+    req_dir.mkdir(parents=True)
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps({"status": "requirements_locked", "type": "locked_truth_approval_manifest"}),
+        encoding="utf-8",
+    )
+
+    for command in ("/draft-req", "/finalize-req", "/lock-req"):
+        with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+            assert ws.receive_json()["type"] == "hello"
+            ws.send_json({"type": "prompt", "text": command, "msg_id": f"req-{command}"})
+            seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
+
+        outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
+        assert any("Requirements already locked for timer_ip" in text for text in outputs)
+        assert any("Refusing" in text and "replace the current TODO list" in text for text in outputs)
+        assert json.loads(todo_path.read_text(encoding="utf-8")) == original
+
+
+def test_req_lifecycle_slash_allows_manifest_with_pending_required_req(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/default/timer_ip/default"
+    req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
+    req_dir.mkdir(parents=True)
+    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+        (req_dir / name).write_text("{}", encoding="utf-8")
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps({
+            "status": "requirements_locked",
+            "type": "locked_truth_approval_manifest",
+            "requirements": [
+                {"requirement_id": "REQ_DONE", "status": "locked", "required": True},
+                {"requirement_id": "REQ_TODO", "status": "pending", "required": True},
+            ],
+        }),
+        encoding="utf-8",
+    )
+
+    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+        assert ws.receive_json()["type"] == "hello"
+        ws.send_json({"type": "prompt", "text": "/finalize-req", "msg_id": "req-finalize"})
+        seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
+
+    outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
+    assert any("Loaded todo template" in text for text in outputs)
+
+    todo_path = tmp_path / "alice" / "default" / ".session" / "timer_ip" / "default" / "todo.json"
+    data = json.loads(todo_path.read_text(encoding="utf-8"))
+    todos = data.get("todos", [])
+    assert len(todos) == 3
+    assert todos[0]["content"] == "[REQ] Quality review and repair review candidate"
+
+
+def test_req_lifecycle_slash_uses_verified_absolute_workflow_root(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session_id = "alice/default/timer_ip/default"
+    req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
+    req_dir.mkdir(parents=True)
+    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+        (req_dir / name).write_text("{}", encoding="utf-8")
+
+    expected_root = (PROJECT_ROOT / "workflow").resolve()
+    assert (expected_root / "req-gen" / "scripts" / "check_locked_truth_bundle.py").is_file()
+    assert (expected_root / "req-gen" / "scripts" / "lock_requirement_set.py").is_file()
+
+    for command, expected_tasks in (("/draft-req", 2), ("/finalize-req", 3), ("/lock-req", 4)):
+        todo_path = tmp_path / "alice" / "default" / ".session" / "timer_ip" / "default" / "todo.json"
+        if todo_path.exists():
+            todo_path.unlink()
+        with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+            assert ws.receive_json()["type"] == "hello"
+            ws.send_json({"type": "prompt", "text": command, "msg_id": f"req-{command}"})
+            seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
+
+        outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
+        assert any("Loaded todo template" in text for text in outputs)
+        data = json.loads(todo_path.read_text(encoding="utf-8"))
+        todos = data.get("todos", [])
+        assert len(todos) == expected_tasks
+        import config as runtime_config
+        import lib.todo_tracker as todo_tracker_module
+
+        assert Path(runtime_config.TODO_FILE).resolve() == todo_path.resolve()
+        assert Path(todo_tracker_module.TODO_FILE).resolve() == todo_path.resolve()
+        for module_name in ("main", "src.main", "__main__"):
+            module = sys.modules.get(module_name)
+            if module is None or not hasattr(module, "todo_tracker"):
+                continue
+            live_tracker = getattr(module, "todo_tracker", None)
+            assert live_tracker is not None
+            assert Path(getattr(live_tracker, "_persist_path")).resolve() == todo_path.resolve()
+            assert len(getattr(live_tracker, "todos")) == expected_tasks
+        commands = [todo.get("command", "") for todo in todos if todo.get("command")]
+        if command == "/draft-req":
+            from core.tools import todo_add
+
+            add_result = todo_add(
+                content="unexpected extra task",
+                detail="This should not be added to a locked template.",
+                criteria="The existing template remains unchanged.",
+            )
+            assert "template 'draft-req' is locked" in add_result
+            data_after_add = json.loads(todo_path.read_text(encoding="utf-8"))
+            assert len(data_after_add.get("todos", [])) == expected_tasks
+            assert not commands
+            continue
+        assert commands
+        assert all(str(expected_root) in cmd for cmd in commands)
+        assert all("$ATLAS_WORKFLOW_ROOT" not in cmd for cmd in commands)
 
 
 def test_websocket_plain_command_words_are_llm_prompts(tmp_path, monkeypatch):

@@ -82,6 +82,23 @@ def test_requirement_manifest_ignores_optional_unlocked_items(tmp_path: Path) ->
     assert locked_truth_guard.is_locked_truth_active(project_root, ip) is True
 
 
+def test_requirement_manifest_status_does_not_lock_pending_required_items(tmp_path: Path) -> None:
+    locked_truth_guard = importlib.import_module("core.locked_truth_guard")
+
+    project_root = tmp_path
+    ip = "timer"
+    ip_dir = project_root / ip
+    _write_guard_manifest(ip_dir, {
+        "status": "requirements_locked",
+        "requirements": [
+            {"id": "REQ_TIMER_COUNT", "status": "locked", "required": True},
+            {"id": "REQ_TIMER_IRQ", "status": "pending", "required": True},
+        ],
+    })
+
+    assert locked_truth_guard.is_locked_truth_active(project_root, ip) is False
+
+
 def test_worker_run_restores_locked_truth_mutation_under_request_project_root(
     tmp_path: Path,
     monkeypatch,

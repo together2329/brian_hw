@@ -2228,7 +2228,7 @@ def run_react_agent_impl(
                     # Refresh Textual sidebar immediately after todo changes
                     if deps.emit_todo_fn and tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove") and todo_tracker:
                         # load() is a classmethod — must capture return value
-                        _reloaded = type(todo_tracker).load()
+                        _reloaded = type(todo_tracker).load(getattr(todo_tracker, "_persist_path", None))
                         if _reloaded.todos:
                             deps.emit_todo_fn(_reloaded.format_simple())
 
