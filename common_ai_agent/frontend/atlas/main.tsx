@@ -24,6 +24,7 @@ async function bootstrapAtlas(): Promise<void> {
   await import("./shared");
   await import("./ui-utils");
   await import("./ssot-doc");
+  await import("./req-doc");
   await import("./workflow-report");
   await import("./preview-pane");
   await import("./block-diagram");

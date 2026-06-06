@@ -71,6 +71,7 @@ const Kbd: any = ({ children }: { children?: ReactNode }) => {
 const SsotReviewPane: any = windowPanel('SsotReviewPane', 'SSOT Review');
 const SsotQaBoard: any = windowPanel('SsotQaBoard', 'SSOT Q&A');
 const SsotDocPane: any = windowPanel('SsotDocPane', 'SSOT DOC');
+const ReqDocPane: any = windowPanel('ReqDocPane', 'REQ');
 const PreviewPane: any = windowPanel('PreviewPane', 'Preview');
 const AskUserPrompt: any = windowPanel('AskUserPrompt', 'Q&A');
 const ProgressPanel: any = windowPanel('ProgressPanel', 'Progress');
@@ -486,6 +487,12 @@ export const Workspace = ({
             />
           ) : mainTab === 'doc' ? (
             <SsotDocPane
+              uiLang={uiLang}
+              ip={activeSsotIp()}
+              onBack={() => setMainTab('chat')}
+            />
+          ) : mainTab === 'req' ? (
+            <ReqDocPane
               uiLang={uiLang}
               ip={activeSsotIp()}
               onBack={() => setMainTab('chat')}

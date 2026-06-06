@@ -1710,6 +1710,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';
   const showSsotTab = workflow === 'ssot-gen' || (w.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
   const showSsotDocTab = showSsotTab;
+  // REQ aggregates the per-IP locked-truth bundle (req+obligations+contract+
+  // evidence). Surface it wherever SSOT/DOC appear, and always in the default
+  // workflow so it is the standing human-review surface there.
+  const showReqTab = showSsotTab || workflow === 'default';
   const showSimSummaryTab = workflow === 'sim_debug';
   const showDebugTab = workflow === 'sim_debug';
   const showCoverageTab = workflow === 'coverage';
@@ -3398,7 +3402,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     currentSession, activeIp, activeSsotIp,
     // tab visibility
     showQaTab, showSsotChecklistTab, showSsotImportExportTab,
-    showSsotTab, showSsotDocTab, showSimSummaryTab, showDebugTab,
+    showSsotTab, showSsotDocTab, showReqTab, showSimSummaryTab, showDebugTab,
     showCoverageTab, workflowReportMeta, showWorkflowReportTab,
     // file tree
     filePanelIp, visibleFileTree, filePanelStatus, deleteIpTreeFile,

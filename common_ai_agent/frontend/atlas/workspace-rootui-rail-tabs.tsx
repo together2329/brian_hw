@@ -398,6 +398,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
     setMainTab, mainTab,
     showSimSummaryTab, showDebugTab, showCoverageTab, showWorkflowReportTab,
     showSsotImportExportTab, showQaTab, showSsotChecklistTab, showSsotTab, showSsotDocTab,
+    showReqTab,
     showBuiltinGitTab,
     workflowReportMeta, workflow, pendingQcard,
     previewPath, activeIp, scmTabLabel,
@@ -535,6 +536,21 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
           }}
         >Validation</span>
       )}
+      {showReqTab && (
+        <span
+          className="tab-chip"
+          onClick={() => setMainTab('req')}
+          title="REQ: requirements + obligations + contract + evidence in one reviewable view"
+          style={{
+            cursor: 'pointer',
+            padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+            color: mainTab === 'req' ? 'var(--accent)' : 'var(--fg-mute)',
+            background: mainTab === 'req' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+            border: '1px solid ' + (mainTab === 'req' ? 'var(--accent)' : 'transparent'),
+            fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+          }}
+        >req</span>
+      )}
       {showSsotTab && (
         <span
           className="tab-chip"
@@ -659,6 +675,10 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
               title={previewPath || ''}>
           chat + {isSsotYamlPath(previewPath) ? 'ssot' : 'preview'} · {previewPath || '(no file selected)'}
         </span>
+      ) : mainTab === 'req' ? (
+        <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+          REQ bundle · requirements · obligations · contract · evidence
+        </span>
       ) : mainTab === 'ssot' ? (
         <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
           SSOT section review
@@ -720,7 +740,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
           }}
         >💬 chat{debugChatOpen ? ' ✕' : ''}</span>
       )}
-      {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'doc' || mainTab === 'checklist' || mainTab === 'import_export') && (
+      {(mainTab === 'preview' || mainTab === 'split' || mainTab === 'ssot' || mainTab === 'doc' || mainTab === 'req' || mainTab === 'checklist' || mainTab === 'import_export') && (
         <span style={{ fontSize: 10 }}>
           <span className="mute" style={{ marginRight: 8 }}>{mainTab === 'split' ? 'chat only' : 'back to chat'}</span>
           <span onClick={() => setMainTab('chat')} className="acc"
