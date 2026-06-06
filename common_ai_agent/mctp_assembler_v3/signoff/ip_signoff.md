@@ -1,7 +1,7 @@
 # IP Signoff - mctp_assembler_v3
 
-- Status: `pass`
-- Generated: `2026-06-04T08:08:50Z`
+- Status: `fail`
+- Generated: `2026-06-05T13:42:58Z`
 - Contract: `IP_SIGNOFF.md`
 
 | Gate | Status | Artifact | Summary |
@@ -24,5 +24,9 @@
 | `mutation_guard` | `pass` | `mutation/mutation_report.json` | status=pass kill_rate=0.5833 |
 | `verification_hardening` | `pass` | `sim/scenario_e2e_summary.json + sim/monitor_evidence.json + mutation/survivor_classification.json + verify/formal_status.json` | directed scenarios, protocol monitors, survivor classification, and optional formal artifacts present |
 | `contract_content_coverage` | `pass` | `signoff/evidence_contract_coverage.json` | content_obligations=1 contract_check=pass |
-| `contract_sim_freshness` | `pass` | `sim/evidence_freshness.json` | PASS = correctness AND freshness (sim evidence current vs SSOT/FL/CL/TB/RTL inputs) |
+| `contract_sim_freshness` | `fail` | `sim/evidence_freshness.json` | PASS = correctness AND freshness (sim evidence current vs SSOT/FL/CL/TB/RTL inputs) |
 | `waivers` | `pass` | `signoff/goal_ledger.json` | waivers explicit and reviewable |
+
+## Issues
+
+- `contract_sim_freshness`: sim evidence metadata fingerprint mismatch: verify/contract_reflection.json; sim evidence metadata fingerprint mismatch: verify/evidence_contract.json

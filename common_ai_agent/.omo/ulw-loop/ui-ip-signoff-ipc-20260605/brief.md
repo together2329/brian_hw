@@ -1,0 +1,1 @@
+나오는 모든 UI 이슈를 해결하고 실제 UI에서 새 IP orchestrator 흐름을 진행한다. 기본 transport는 IPC다. 최종 목표는 새 IP가 req -> obligation -> contract_ref -> evidence -> validator_result 흐름으로 signoff까지 가는지 확인하고, 실패/blocked가 나오면 UI/workflow/tooling 이슈를 고쳐 다시 UI에서 진행하는 것이다. MCTP 산출물을 손으로 green 처리하지 않는다.

@@ -1,0 +1,88 @@
+=== config/runtime ===
+363:ATLAS_ORCHESTRATOR_TRANSPORT=ipc
+runtime_transport=ipc
+=== py_compile ===
+py_compile=pass
+=== focused pytest ===
+...................                                                      [100%]
+19 passed in 2.54s
+=== live server ===
+pid=55456 port=50131 tmp=/tmp/atlas_c001_ipc_20260605_55317
+--- register ---
+{"user":{"id":"ef13e6dbfeb6409b9e2b4ad35dc6e56b","username":"ipc_c001","display_name":"ipc_c001","email":null,"role":"user","created_at":1780605533.992272,"last_login_at":null}}
+--- login ---
+{"user":{"id":"ef13e6dbfeb6409b9e2b4ad35dc6e56b","username":"ipc_c001","display_name":"ipc_c001","email":null,"role":"user","created_at":1780605533.992272,"last_login_at":null}}
+--- create ip ---
+{"ok":true,"ip":"mctp_pcie_vdm_c001_ipc","created":true,"path":"mctp_pcie_vdm_c001_ipc","ssot_path":"mctp_pcie_vdm_c001_ipc/yaml/mctp_pcie_vdm_c001_ipc.ssot.yaml","paths":["mctp_pcie_vdm_c001_ipc/doc","mctp_pcie_vdm_c001_ipc/req","mctp_pcie_vdm_c001_ipc/yaml","mctp_pcie_vdm_c001_ipc/rtl","mctp_pcie_vdm_c001_ipc/list","mctp_pcie_vdm_c001_ipc/tb/cocotb","mctp_pcie_vdm_c001_ipc/tc","mctp_pcie_vdm_c001_ipc/sim","mctp_pcie_vdm_c001_ipc/cov","mctp_pcie_vdm_c001_ipc/lint","mctp_pcie_vdm_c001_ipc/wiki"],"session":"ipc_c001/default/mctp_pcie_vdm_c001_ipc/orchestrator","active_session":"ipc_c001/default/mctp_pcie_vdm_c001_ipc/orchestrator","context_key":"ipc_c001/default/mctp_pcie_vdm_c001_ipc/orchestrator","workspace_session":"default","workspace_root":"/Users/brian/ATLAS/ipc_c001/default","ip_root":"/Users/brian/ATLAS/ipc_c001/default/mctp_pcie_vdm_c001_ipc","session_dir":"/Users/brian/ATLAS/ipc_c001/default/.session/mctp_pcie_vdm_c001_ipc/orchestrator","workflow":"orchestrator","exec_mode":"orchestrator","policy":{"exec_mode":"orchestrator","initial_workflow":"orchestrator","dispatch_schedule":"serial","worker_strategy":"workflow-workers","single_worker_url":"http://127.0.0.1:5601","preserve_running_on_workflow_switch":true,"allow_orchestrator_namespace":true},"session_uid":"7ea806740e83498abaa76d4c83f1fd9c","workspace_id":"0941642dab8d49008ebe2349053ed7f3","ip_block_id":"c7968d901bc8424d90309ae3bb7bf4e3","worker_warmup":{"enabled":false,"reason":"disabled","scheduled":[]}}
+--- orchestrator chat submit ---
+{"ok":true,"ip":"mctp_pcie_vdm_c001_ipc","run_id":"e2c6107b9f564cd19bcb424b7b64ee23","status":"started","model":"gpt-5.5","reasoning_effort":"low"}
+=== db run rows ===
+--- orchestrator_runs ---
+[
+  {
+    "id": "e2c6107b9f564cd19bcb424b7b64ee23",
+    "session_id": "ipc_c001/default/mctp_pcie_vdm_c001_ipc/orchestrator",
+    "workspace_id": "db45d390445d4297aa6e8d66390fe3ea",
+    "ip_id": "f0b68846c73c4493b0468c2da62dc8af",
+    "user_id": "ef13e6dbfeb6409b9e2b4ad35dc6e56b",
+    "chat_message_id": "",
+    "pipeline_run_id": "",
+    "model": "gpt-5.5",
+    "reasoning_effort": "low",
+    "status": "running",
+    "final_state": null,
+    "started_at": 1780605534.493553,
+    "ended_at": null,
+    "updated_at": 1780605534.493553
+  }
+]
+--- orchestrator_steps ---
+[
+  {
+    "id": "451fa48a168c448296cd7be47b58d059",
+    "run_id": "e2c6107b9f564cd19bcb424b7b64ee23",
+    "step_index": 0,
+    "tool_name": "dispatch_workflow",
+    "observed_state_json": null,
+    "decision_json": "{\"args\": {\"workflow\": \"ssot-gen\", \"ip\": \"mctp_pcie_vdm_c001_ipc\", \"payload\": {\"traceability_required\": true, \"traceability_chain\": [\"requirement_id\", \"obligation_id\", \"contract_ref\", \"evidence\", \"validator_result\"], \"ipc_dispatch\": true}, \"prompt\": \"Generate the SSOT for this fresh IP using IPC worker dispatch. Preserve full traceability through requirement_id -> obligation_id -> contract_ref -> evidence -> validator_result in generated artifacts and validation evidence.\", \"reason\": \"User requested one ssot-gen dispatch for fresh IP with explicit traceability preservation.\"}}",
+    "dispatched_workflow": "",
+    "dispatched_job_id": "",
+    "evidence_read_json": "{\"summary\": \"{\\\"error\\\": null, \\\"exec_mode\\\": \\\"orchestrator\\\", \\\"job_ids\\\": [\\\"078debba1d76\\\"], \\\"model\\\": \\\"gpt-5.5\\\", \\\"ok\\\": true, \\\"pipeline_run_id\\\": \\\"fff00cf97980\\\", \\\"reasoning_effort\\\": \\\"\\\", \\\"run_mode\\\": \\\"engineering\\\", \\\"schedule\\\": \\\"serial\\\", \\\"source\\\": \\\"dispatch_workflow_tool\\\", \\\"worker\\\": \\\"ipc://ef13e6dbfeb6409b9e2b4ad35dc6e56b_ipc_c001_default_mctp_pcie_vdm_c001_ipc_pipeline_fff00cf97980_01-ssot-gen/orchestrator/ssot-gen\\\"}\", \"result\": {\"ok\": true, \"source\": \"dispatch_workflow_tool\", \"pipeline_id\": \"fff00cf97980\", \"pipeline_run_id\": \"fff00cf97980\", \"user_id\": \"ipc_c001\", \"db_user_id\": \"ef13e6dbfeb6409b9e2b4ad35dc6e56b\", \"ip\": \"mctp_pcie_vdm_c001_ipc\", \"schedule\": \"serial\", \"requested_schedule\": \"auto\", \"run_mode\": \"engineering\", \"exec_mode\": \"orchestrator\", \"stages\": [{\"id\": \"ssot\", \"workflow\": \"ssot-gen\", \"label\": \"SSOT gen\"}], \"jobs\": [{\"job_id\": \"078debba1d76\", \"run_id\": \"ipc-078debba1d76\", \"worker\": \"ipc://ef13e6dbfeb6409b9e2b4ad35dc6e56b_ipc_c001_default_mctp_pcie_vdm_c001_ipc_pipeline_fff00cf97980_01-ssot-gen/orchestrator/ssot-gen\", \"worker_transport\": \"ipc\", \"worker_owner\": \"ipc_c001\", \"worker_partition\": \"ef13e6dbfeb6409b9e2b4ad35dc6e56b_ipc_c001_default_mctp_pcie_vdm_c001_ipc_pipeline_fff00cf97980_01-ssot-gen\", \"workflow\": \"ssot-gen\", \"stage_id\": \"ssot\", \"template\": \"atlas-pipeline-ssot\", \"ip\": \"mctp_pcie_vdm_c001_ipc\", \"model\": \"gpt-5.5\", \"reasoning_effort\": \"\", \"toolchain\": \"\", \"session\": \"ipc_c001/default/mctp_pcie_vdm_c001_ipc/pipeline/fff00cf97980/01-ssot-gen\", \"session_dir\": \".session/mctp_pcie_vdm_c001_ipc/pipeline/fff00cf97980/01-ssot-gen\", \"scope_path\": \"mctp_pcie_vdm_c001_ipc\", \"project_root\": \"/Users/brian/ATLAS/ipc_c001/default\", \"source_root\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent\", \"worker_command\": \"cd /Users/brian/ATLAS/ipc_c001/default && ATLAS_PROJECT_ROOT=/Users/brian/ATLAS/ipc_c001/default ATLAS_WORKER_TRANSPORT=ipc EXECUTION_NO_ACTION_GUARD=false PYTHONPATH=/Users/brian/Desktop/Project/brian_hw/common_ai_agent:$PYTHONPATH python3 -m src.atlas_worker_ipc --request <job-request.json> --response <job-response.json> --model gpt-5.5\", \"prompt\": \"[ATLAS ARCHITECT WORKFLOW CONTEXT]\\n- ip: mctp_pcie_vdm_c001_ipc\\n- workflow: ssot-gen\\n- stage_id: ssot\\n- pipeline_id: fff00cf97980\\n- pipeline_run_id: fff00cf97980\\n- session_namespace: .session/mctp_pcie_vdm_c001_ipc/pipeline/fff00cf97980/01-ssot-gen\\n- canonical_session: ipc_c001/default/mctp_pcie_vdm_c001_ipc/pipeline/fff00cf97980/01-ssot-gen\\n- project_root: /Users/brian/ATLAS/ipc_c001/default\\n- source_root: /Users/brian/Desktop/Project/brian_hw/common_ai_agent\\n- run_mode: engineering\\n- exec_mode: orchestrator\\n- model: gpt-5.5\\n- reasoning_effort: (default)\\n- scope_path: mctp_pcie_vdm_c001_ipc\\n- write_boundary: only modify files under mctp_pcie_vdm_c001_ipc/, except workflow-owned status/session files under .session/mctp_pcie_vdm_c001_ipc/pipeline/fff00cf97980/01-ssot-gen/. Do not edit other IP directories or unrelated workflows.\\n- parallelism: assume other IP/workflow jobs may be running; never revert or overwrite their files.\\n\\nanswer the mctp_pcie_vdm_c001_ipc/rtl/rtl_blocked.json questions inline so SSOT-gen records them; then run /resolve-rtl-blockers mctp_pcie_vdm_c001_ipc --use-recommended-defaults; then run /repair-ssot mctp_pcie_vdm_c001_ipc; then python3 \\\"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\\\" mctp_pcie_vdm_c001_ipc --root \\\"$ATLAS_PROJECT_ROOT\\\" --mode engineering. This is an RTL blocker repair pass; do not rewrite the IP from scratch.\\n\\n[Orchestrator worker instruction]\\n[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\\ncreate or refresh mctp_pcie_vdm_c001_ipc/yaml/mctp_pcie_vdm_c001_ipc.ssot.yaml as the canonical SSOT for IP `mctp_pcie_vdm_c001_ipc`. Read mctp_pcie_vdm_c001_ipc/req/mctp_pcie_vdm_c001_ipc_requirements.md, mctp_pcie_vdm_c001_ipc/req/source_references.md, and mctp_pcie_vdm_c001_ipc/req/approval_manifest.json before writing the SSOT when those files exist. Do not write or update locked truth files under req/*_requirements.md, req/source_references.md, or req/approval_manifest.json. Requirement promotion and approval are human/requirement-ledger work, not ssot-gen worker work. If no locked requirement exists yet, use the orchestrator chat goal as starter input, record the source and assumptions in the SSOT, and report any missing approval as a blocker instead of inventing or approving requirements. This is an ATLAS pipeline worker run, not an exploratory interview: after the locked truth read, do not read, grep, or list unrelated repository files before writing the SSOT unless the write path is impossible. The first successful content-changing tool call should write mctp_pcie_vdm_c001_ipc/yaml/mctp_pcie_vdm_c001_ipc.ssot.yaml with concrete draft sections, including machine-readable fun
+--- workflow_runs ---
+[
+  {
+    "id": "a36f00610c864d54b9401d64504e7270",
+    "session_id": "0a32a4d9fbf6433685807b42c2cfec80",
+    "workspace_id": "db45d390445d4297aa6e8d66390fe3ea",
+    "ip_id": "f0b68846c73c4493b0468c2da62dc8af",
+    "rtl_version_id": "",
+    "workflow": "ssot-gen",
+    "mode": "orchestrator",
+    "model_profile": "gpt-5.5",
+    "reasoning_effort": "",
+    "status": "running",
+    "started_at": 1780605540.341954,
+    "ended_at": null,
+    "duration_ms": null,
+    "trigger": "pipeline_dispatch",
+    "input_summary": "{\"ip\": \"mctp_pcie_vdm_c001_ipc\", \"workflow\": \"pipeline\", \"stage_id\": \"ssot\", \"pipeline_run_id\": \"fff00cf97980\", \"pipeline_id\": \"fff00cf97980\", \"job_id\": \"078debba1d76\", \"user_id\": \"ipc_c001\", \"worker_session\": \"ipc_c001/default/mctp_pcie_vdm_c001_ipc/pipeline/fff00cf97980/01-ssot-gen\", \"worker\": \"ipc://ef13e6dbfeb6409b9e2b4ad35dc6e56b_ipc_c001_default_mctp_pcie_vdm_c001_ipc_pipeline_fff00cf97980_01-ssot-gen/orchestrator/ssot-gen\", \"worker_transport\": \"ipc\", \"model\": \"gpt-5.5\", \"toolchain\": \"\", \"run_mode\": \"engineering\", \"exec_mode\": \"orchestrator\", \"project_root\": \"/Users/brian/ATLAS/ipc_c001/default\"}",
+    "error_summary": null,
+    "created_at": 1780605540.341954,
+    "updated_at": 1780605540.3542411,
+    "orchestrator_run_id": "e2c6107b9f564cd19bcb424b7b64ee23",
+    "trigger_source": "orchestrator_chat"
+  }
+]
+=== workflow_rows summary ===
+[
+  {
+    "error": "no such column: worker"
+  }
+]=== mismatch log search ===
+mismatch_found=false
+=== cancel if job exists ===
+no job id discovered
+=== cleanup ===
+server_stopped=55456
+port_clear=50131
+tmp_retained=/tmp/atlas_c001_ipc_20260605_55317

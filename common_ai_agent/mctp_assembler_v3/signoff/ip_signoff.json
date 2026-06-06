@@ -129,9 +129,12 @@
     },
     {
       "artifact": "sim/evidence_freshness.json",
-      "issues": [],
+      "issues": [
+        "sim evidence metadata fingerprint mismatch: verify/contract_reflection.json",
+        "sim evidence metadata fingerprint mismatch: verify/evidence_contract.json"
+      ],
       "name": "contract_sim_freshness",
-      "status": "pass",
+      "status": "fail",
       "summary": "PASS = correctness AND freshness (sim evidence current vs SSOT/FL/CL/TB/RTL inputs)"
     },
     {
@@ -142,16 +145,16 @@
       "summary": "waivers explicit and reviewable"
     }
   ],
-  "generated_at": "2026-06-04T08:08:50Z",
+  "generated_at": "2026-06-05T13:42:58Z",
   "ip": "mctp_assembler_v3",
   "ip_contract": "verify/ip_contract.json",
   "mode": "local_evidence",
   "schema_version": 1,
-  "status": "pass",
+  "status": "fail",
   "summary": {
     "blocked": 0,
-    "failed": 0,
-    "passed": 20,
+    "failed": 1,
+    "passed": 19,
     "total_gates": 20
   },
   "type": "ip_signoff"

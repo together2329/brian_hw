@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "createdAt": "2026-06-04T20:37:07.305Z",
+  "updatedAt": "2026-06-04T21:00:18.215Z",
+  "briefPath": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/brief.md",
+  "goalsPath": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/goals.json",
+  "ledgerPath": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/ledger.jsonl",
+  "codexGoalMode": "aggregate",
+  "goals": [
+    {
+      "id": "G001-ui-ui-ip-orchestrator-transport",
+      "title": "나오는 모든 UI 이슈를 해결하고 실제 UI에서 새 IP orchestrator 흐름을 진행한다. 기본 transport는...",
+      "objective": "나오는 모든 UI 이슈를 해결하고 실제 UI에서 새 IP orchestrator 흐름을 진행한다. 기본 transport는 IPC다. 최종 목표는 새 IP가 req -> obligation -> contract_ref -> evidence -> validator_result 흐름으로 signoff까지 가는지 확인하고, 실패/blocked가 나오면 UI/workflow/tooling 이슈를 고쳐 다시 UI에서 진행하는 것이다. MCTP 산출물을 손으로 green 처리하지 않는다.",
+      "status": "pending",
+      "successCriteria": [
+        {
+          "id": "C001",
+          "scenario": "CLI + HTTP: verify .config sets ATLAS_ORCHESTRATOR_TRANSPORT=ipc, runtime resolves ipc, py_compile passes changed IPC files, focused IPC/orchestrator tests pass, and a live HTTP orchestrator chat dispatch creates an ipc:// worker without session owner/workspace mismatch.",
+          "userModel": "happy",
+          "expectedEvidence": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/evidence/C001-ipc-runtime-http.txt containing config/runtime output, pytest output, live HTTP response, DB run/job rows, mismatch log search, cleanup receipt.",
+          "capturedEvidence": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/evidence/C001-ipc-runtime-http.txt: config_transport ipc, runtime_transport ipc, py_compile pass, focused pytest 19 passed, live HTTP orchestrator chat run e2c6107b9f564cd19bcb424b7b64ee23 dispatched ssot-gen via ipc:// worker; mismatch_found=false | cleanup: killed server pid 55456, port 50131 clear, verified no atlas_worker_ipc/atlas_orchestrator_supervisor_ipc leftovers for C001",
+          "status": "pass",
+          "capturedAt": "2026-06-04T20:39:19.518Z",
+          "notes": "workflow_rows summary query used a non-existent worker column, but the authoritative orchestrator_steps evidence_read_json and workflow_runs rows show worker_transport=ipc, trigger_source=orchestrator_chat, status=running."
+        },
+        {
+          "id": "C002",
+          "scenario": "Computer-use UI: open Atlas in Chrome with a fresh DB/user/IP, confirm Orchestrator mode and GPT-5.5 are visible, submit the locked-truth MCTP/PCIe VDM prompt through the UI, and capture screenshot/action log plus API/DB state showing the run advances or reports a specific fail/blocked owner route. If a UI issue appears, fix workflow/UI/tooling and rerun through the UI.",
+          "userModel": "edge",
+          "expectedEvidence": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/evidence/C002-ui-computer-use.txt plus screenshot path, action log, run_id/job_id, and cleanup receipt.",
+          "capturedEvidence": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/evidence/C002-ui-ipc-smoke.txt; screenshots C002-after-chat-submit.png and C002-after-ip-create.png; Playwright UI created fresh user/IP, confirmed Orchestrator mode and gpt-5.5, submitted locked-truth prompt, DB trace recorded dispatch_workflow to ipc worker without owner/workspace mismatch.",
+          "status": "pass",
+          "capturedAt": "2026-06-04T20:47:06.102Z"
+        },
+        {
+          "id": "C003",
+          "scenario": "Signoff/closure: inspect generated fresh-IP artifacts and run the appropriate workflow signoff/contract validators. PASS only if requirement -> obligation -> contract_ref -> evidence -> validator_result closes through IP signoff. If not, record fail/blocked with owner workflow, artifact evidence, and next rerun path; do not hand-edit generated evidence.",
+          "userModel": "regression",
+          "expectedEvidence": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/evidence/C003-signoff-closure.txt containing artifact inventory, validator/signoff command output, pass/fail/blocked owner routing, and cleanup receipt.",
+          "capturedEvidence": ".omo/ulw-loop/ui-ip-signoff-ipc-20260605/evidence/C003-signoff-closure.txt: UI-created IP reached SSOT/FL/CL/equivalence pass; ssot-rtl human_gate via rtl/rtl_blocked.json; signoff fail 8/20 passed, owner route rtl-gen + ssot-gen ownership repair; cleanup: no C003 server/browser spawned in this step",
+          "status": "blocked",
+          "capturedAt": "2026-06-04T21:00:18.215Z",
+          "notes": "Not signoff-pass. Next rerun path: record RTL_DYNAMIC_TODO_OWNERSHIP decision in SSOT, rerun FL/CL/equivalence, dispatch rtl-gen, then TB/sim/contract-check/signoff."
+        }
+      ],
+      "attempt": 0,
+      "createdAt": "2026-06-04T20:37:07.305Z",
+      "updatedAt": "2026-06-04T21:00:18.215Z"
+    }
+  ],
+  "codexObjective": "Complete the durable ulw-loop plan in .omo/ulw-loop/ui-ip-signoff-ipc-20260605/goals.json, including later accepted/appended stories, under the original brief constraints; use .omo/ulw-loop/ui-ip-signoff-ipc-20260605/ledger.jsonl as the audit trail."
+}

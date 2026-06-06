@@ -2,6 +2,8 @@
   "name": "lock-req",
   "description": "Lock human-approved requirement review candidate into authority files.",
   "lock_additions": true,
+  "auto_start": true,
+  "auto_start_prompt": "Begin executing the loaded TODO plan now. The human explicitly approved locking by invoking /lock-req — cite that invocation as the explicit human approval for Task 1, and use the current session owner as ATLAS_APPROVED_BY. Task 1 is already in_progress — satisfy it on that basis, then drive the remaining gate commands (stamp the human-approved bundle, validate the locked bundle) to completion and produce the handoff. Do not wait for further confirmation.",
   "tasks": [
     {
       "content": "[REQ] Confirm explicit human approval",

@@ -11,7 +11,7 @@
     "signoff/contract_owner_routing.json"
   ],
   "evidence": {
-    "generated_at": "2026-06-04T08:09:35Z",
+    "generated_at": "2026-06-05T13:43:05Z",
     "ip": "mctp_assembler_v3",
     "issues": [],
     "obligations": [
@@ -1524,10 +1524,10 @@
     },
     "type": "evidence_contract_coverage"
   },
-  "generated_at": "2026-06-04T08:09:35Z",
+  "generated_at": "2026-06-05T13:43:05Z",
   "ip": "mctp_assembler_v3",
   "owner_route": {
-    "generated_at": "2026-06-04T08:09:35Z",
+    "generated_at": "2026-06-05T13:43:05Z",
     "ip": "mctp_assembler_v3",
     "owner_workflow": "",
     "reason": "contract reflection and evidence both pass",
@@ -1565,7 +1565,7 @@
         "status": "pass"
       }
     ],
-    "generated_at": "2026-06-04T08:09:33Z",
+    "generated_at": "2026-06-05T13:43:03Z",
     "ip": "mctp_assembler_v3",
     "issues": [],
     "schema_version": 1,

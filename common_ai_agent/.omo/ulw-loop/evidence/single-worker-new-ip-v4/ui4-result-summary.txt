@@ -1,0 +1,51 @@
+UI4 single-worker/no-workspace retry summary
+
+Worktree:
+/Users/brian/Desktop/Project/brian_hw-single-worker-mctp-pcie-v4/common_ai_agent
+
+Runtime:
+- ATLAS UI: http://127.0.0.1:50128/
+- single-worker port: 5601
+- ATLAS_ROOT: .omo/ulw-loop/evidence/single-worker-new-ip-v4/runtime_root_ui4
+- DB: /tmp/atlas_single_worker_ui4_20260605/atlas.db
+
+UI path executed:
+- Opened Atlas from root URL with no explicit workspace/IP selection.
+- Registered local user swui4_v4.
+- Confirmed Workspace screen started with IP_ID=default, visible select-IP/no-IP panel.
+- Confirmed Exec Mode Single Worker, orch: off, workers: 0.
+- Created new IP from UI + IP:
+  mctp_pcie_vdm_ingress_ui4_sw_v4
+- Submitted a spec-derived locked-truth prompt through the UI chat.
+- Prompt target lock and all internal IP names used:
+  mctp_pcie_vdm_ingress_ui4_sw_v4
+
+Observed result:
+- No nested stale IP directory was created.
+- The only generated verification-relevant artifact is:
+  runtime_root_ui4/swui4_v4/default/mctp_pcie_vdm_ingress_ui4_sw_v4/yaml/mctp_pcie_vdm_ingress_ui4_sw_v4.ssot.yaml
+- That SSOT is still the placeholder scaffold:
+  description: TBD
+  F_TBD
+  TX_TBD
+  REQ_TBD
+- Missing:
+  verify/requirements_index.json
+  verify/evidence_contract.json
+  verify/contract_reflection.json
+  signoff/*.json
+  sim/scoreboard_events.jsonl
+
+Classification:
+- BLOCKED.
+- First owner: ssot-gen / requirement-lock path.
+- Reason: visible UI single-worker/default chat path does not transform the user locked-truth prompt into a non-placeholder SSOT. It writes or keeps the generic TBD scaffold, so downstream req->obligation->contract_ref->evidence closure cannot start.
+
+Evidence:
+- screens/ui4-no-workspace-single-worker-new-ip.png
+- screens/ui4-prompt-submitted-agent-responding.png
+- yaml/mctp_pcie_vdm_ingress_ui4_sw_v4.ssot.yaml content inspection
+
+Cleanup:
+- Sent Ctrl-C to server session 72912.
+- Verified no listener remains on ports 50128 or 5601.

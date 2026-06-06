@@ -1,0 +1,92 @@
+Timestamp: 2026-06-04T20:59:18Z
+Criterion: C003 signoff/closure
+
+Fresh UI IP:
+  project_root: /Users/brian/ATLAS/uic002_mpzysix2/default
+  ip: mctp_pcie_vdm_ui_mpzysix2
+
+What was tested:
+  - Did not hand-edit generated MCTP/IP evidence to make it green.
+  - Repaired workflow-generated SSOT shape using repair_ssot_schema.py after UI-created SSOT had empty interface ports.
+  - Reran verify_ssot.py.
+  - Ran common stage engine through FL, CL, equivalence, and RTL preflight.
+  - Ran final check_ip_signoff.py.
+
+Workflow repair made:
+  source file: workflow/ssot-gen/scripts/repair_ssot_schema.py
+  change: io_list.interfaces[].signals are backfilled into canonical ports when ports is empty.
+  test: tests/test_headless_llm_contracts.py::test_repair_ssot_schema_backfills_ports_and_output_rules_for_ui_generated_ssot
+
+Focused tests:
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest tests/test_headless_llm_contracts.py::test_repair_ssot_schema_backfills_ports_and_output_rules_for_ui_generated_ssot -q
+    -> 1 passed
+
+  PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 python3 -m pytest \
+    tests/test_headless_llm_contracts.py::test_repair_ssot_schema_backfills_ports_and_output_rules_for_ui_generated_ssot \
+    tests/test_headless_llm_contracts.py::test_repair_ssot_schema_migrates_top_level_interfaces \
+    tests/test_headless_llm_contracts.py::test_repair_ssot_schema_adds_machine_rule_for_each_non_reset_tx \
+    tests/test_headless_llm_contracts.py::test_repair_ssot_schema_adds_observable_state_output_rules -q
+    -> 4 passed
+
+SSOT validation:
+  command:
+    python3 workflow/ssot-gen/scripts/repair_ssot_schema.py mctp_pcie_vdm_ui_mpzysix2 --root /Users/brian/ATLAS/uic002_mpzysix2/default --mode engineering
+    python3 workflow/ssot-gen/scripts/verify_ssot.py mctp_pcie_vdm_ui_mpzysix2 --root /Users/brian/ATLAS/uic002_mpzysix2/default --mode engineering
+
+  result:
+    [verify_ssot] PASS
+    blockers: 0
+    check_ssot_disk exit: 0
+
+Stage engine closure attempt:
+  ssot-fl-model: pass
+  ssot-cycle-model: pass
+  ssot-equiv-goals: pass, goals total=41 required=41 blocked=0
+  ssot-rtl: human_gate
+
+RTL owner route:
+  artifact: /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/rtl/rtl_blocked.json
+  reason: SSOT-derived dynamic RTL TODO gate is blocked.
+  owner: rtl-gen, with SSOT ownership repair required before LLM RTL authoring can close.
+  required decision: RTL_DYNAMIC_TODO_OWNERSHIP
+  orphan ref: function_model.invariants.invariant_2
+  next action from artifact:
+    Answer these questions inline so SSOT-gen records them, update SSOT,
+    regenerate FL/equivalence goals, then rerun /ssot-rtl.
+
+Signoff validator:
+  command:
+    python3 workflow/signoff/scripts/check_ip_signoff.py mctp_pcie_vdm_ui_mpzysix2 --root /Users/brian/ATLAS/uic002_mpzysix2/default
+
+  result:
+    status=fail
+    total_gates=20
+    passed=8
+    failed=12
+    blocked=0
+
+  first material failure:
+    RTL todo/static audit gate failed because RTL has not been authored yet.
+
+Artifacts:
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/req/ssot_validation.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/logs/stage_engine/ssot-fl-model.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/logs/stage_engine/ssot-cycle-model.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/logs/stage_engine/ssot-equiv-goals.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/logs/stage_engine/ssot-rtl.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/rtl/rtl_blocked.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/rtl/rtl_todo_plan.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/signoff/ip_signoff.json
+  - /Users/brian/ATLAS/uic002_mpzysix2/default/mctp_pcie_vdm_ui_mpzysix2/signoff/ip_signoff.md
+
+Conclusion:
+  C003 is not signoff-pass. It is owner-routed closure evidence.
+  The UI-created fresh IP now reaches SSOT/FL/CL/equivalence, then correctly stops
+  at RTL owner/human_gate instead of producing fake green signoff.
+
+Next rerun path:
+  1. ssot-gen records the ownership decision for function_model.invariants.invariant_2.
+  2. Rerun /ssot-fl-model, /ssot-cycle-model, /ssot-equiv-goals.
+  3. Dispatch rtl-gen to author real RTL and provenance.
+  4. Rerun /ssot-rtl until compile/lint/todo gates pass.
+  5. Rerun TB, sim, contract-check, and ip-signoff.

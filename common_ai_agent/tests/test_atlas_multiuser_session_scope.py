@@ -2404,7 +2404,7 @@ def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_pa
     assert not (tmp_path / ".session" / "alice" / "timer_ip" / "default" / "todo.json").exists()
 
 
-def test_draft_req_auto_starts_first_task_and_kicks_worker(tmp_path, monkeypatch):
+def test_req_lifecycle_templates_auto_start_and_kick(tmp_path, monkeypatch):
     import src.atlas_ui as atlas_ui
 
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
@@ -2417,14 +2417,7 @@ def test_draft_req_auto_starts_first_task_and_kicks_worker(tmp_path, monkeypatch
     client = TestClient(app)
     _register(client, "alice")
 
-    session_id = "alice/default/timer_ip/default"
-    app.state.bridge._ensure_session(session_id)
-    req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
-    req_dir.mkdir(parents=True)
-    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
-        (req_dir / name).write_text("{}", encoding="utf-8")
-
-    # Record the auto-start kick deterministically (no agent thread / inbox race).
+    # Record auto-start kicks deterministically (no agent thread / inbox race).
     kicks = []
     monkeypatch.setattr(
         app.state.bridge,
@@ -2432,28 +2425,37 @@ def test_draft_req_auto_starts_first_task_and_kicks_worker(tmp_path, monkeypatch
         lambda sid, text: kicks.append((sid, text)) or True,
     )
 
-    with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
-        assert ws.receive_json()["type"] == "hello"
-        ws.send_json({"type": "prompt", "text": "/draft-req", "msg_id": "draft-1"})
-        seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
+    # All three req-lifecycle templates seed task 1 → in_progress (runtime owns
+    # the first transition, not the LLM) AND kick exactly one worker turn so the
+    # loop drives without a user message. lock-req drives too: invoking /lock-req
+    # is itself the explicit human approval.
+    cases = [("/draft-req", "ip_draft", 2), ("/finalize-req", "ip_final", 3), ("/lock-req", "ip_lock", 4)]
+    for command, ip, n_tasks in cases:
+        session_id = f"alice/default/{ip}/default"
+        app.state.bridge._ensure_session(session_id)
+        req_dir = tmp_path / "alice" / "default" / ip / "req"
+        req_dir.mkdir(parents=True)
+        for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+            (req_dir / name).write_text("{}", encoding="utf-8")
 
-    outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
-    assert any("Loaded todo template 'draft-req'" in text for text in outputs)
+        with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
+            assert ws.receive_json()["type"] == "hello"
+            ws.send_json({"type": "prompt", "text": command, "msg_id": f"m-{ip}"})
+            _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
 
-    # (1) Runtime — not the LLM — seeded the first task to in_progress, so the
-    #     loop no longer depends on the model making the first todo_update call.
-    todo_path = tmp_path / "alice" / "default" / ".session" / "timer_ip" / "default" / "todo.json"
-    data = json.loads(todo_path.read_text(encoding="utf-8"))
-    todos = data.get("todos", [])
-    assert len(todos) == 2
-    assert todos[0]["status"] == "in_progress"
-    assert todos[1]["status"] == "pending"
+        todo_path = tmp_path / "alice" / "default" / ".session" / ip / "default" / "todo.json"
+        todos = json.loads(todo_path.read_text(encoding="utf-8")).get("todos", [])
+        assert len(todos) == n_tasks, command
+        assert todos[0]["status"] == "in_progress", command
 
-    # (2) Auto-start kicked a worker turn so the loop drives without a user
-    #     message ("고고"). Exactly one kick, carrying the template's prompt.
-    assert len(kicks) == 1
-    assert kicks[0][0] == session_id
-    assert "executing the loaded TODO plan" in kicks[0][1]
+        my_kicks = [k for k in kicks if k[0] == session_id]
+        assert len(my_kicks) == 1, command
+        assert "executing the loaded TODO plan" in my_kicks[0][1], command
+
+    # lock-req's kick must carry the "invocation == approval" semantics so the
+    # human-approval gate is satisfied by the /lock-req call, not bypassed blindly.
+    lock_kick = [k for k in kicks if k[0] == "alice/default/ip_lock/default"][0][1]
+    assert "/lock-req" in lock_kick and "ATLAS_APPROVED_BY" in lock_kick
 
 
 def test_req_lifecycle_slash_refuses_locked_ip_and_preserves_todos(tmp_path, monkeypatch):
