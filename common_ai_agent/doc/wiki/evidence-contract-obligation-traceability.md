@@ -3,7 +3,7 @@ title: Evidence Contract And Obligation Traceability
 type: proposal
 tags: [ip-flow, ssot, verification, evidence, signoff, cocotb, truth-coverage]
 updated: 2026-06-02
-related: [truth-coverage-gate, general-ip-flow-trial-and-error-20260601, mctp-assembler-scratch-flow-20260531, workflow-ownership-and-boundaries]
+related: [req-obligation-contract-evidence-validation, contract-reflection-workflow, truth-coverage-gate, general-ip-flow-trial-and-error-20260601, mctp-assembler-scratch-flow-20260531, workflow-ownership-and-boundaries]
 ---
 
 # Evidence Contract And Obligation Traceability

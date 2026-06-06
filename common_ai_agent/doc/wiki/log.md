@@ -2,6 +2,83 @@
 
 ## 2026-06-06
 
+- Added [[formal-verification-evidence]] defining RTL formal verification as one
+  evidence type in the contract spine (proving over all reachable states vs
+  simulating prepared cases): assume/assert/cover, the four outcomes
+  (proven/failed/bounded/inconclusive), what formal fits (handshake stability,
+  reset, FSM illegal-state, packet boundary, length bound, no-stale-after-drop)
+  vs what needs abstraction (full payload ordering, big-buffer integrity, long
+  fragmentation → symbolic byte, count/FIFO invariants, boundary-formal +
+  payload-sim). Adds four hardening guards: discharge every `assume` (vacuous
+  "proven about an impossible world" is the worst outcome), pair every `assert`
+  with a reachable `cover` (vacuity defense, the formal analog of mutation-kill),
+  strength honesty (`bounded`/`inconclusive` must never be upgraded to `proven`),
+  and safety-vs-liveness (EOM⇒commit liveness is far harder than "never X"
+  safety). Records the honest current-vs-proposed gap verified in source:
+  `emit_formal_properties.py` emits `verify/<ip>_assertions.sv` (with placeholder
+  TODO asserts when unspecified) but NO prover (`sby`/SymbiYosys/`yosys-smtbmc`/
+  Jasper/Pono) is invoked anywhere; `formal_status.json` is written by
+  `classify_survivors.py` (not a proof run) and `check_ip_signoff.py` accepts
+  `status in {pass, optional_not_run}` with ≥5 properties — so formal can pass
+  signoff unproven. The outstanding work is wiring a real solver, not adding
+  more assertion text.
+- Expanded [[mctp-assembler-contract-breakdown]] with an SSOT spine rollup view,
+  an obligation-taxonomy→unit map, and an assume-guarantee contract shape
+  (C-MCTP-ASM-PAYLOAD-ORDER) that maps onto formal assume/assert. Also flagged
+  that the consolidated "packet construction / header generation / segmentation"
+  framing is TX-leaning vs the RX 12-unit breakdown — reinforcing fix-RX/TX-first.
+- Added [[req-obligation-contract-evidence-validation]] as the keystone
+  definition of the spine the whole direction set builds on: crisp per-stage
+  definitions (req = why / obligation = what must hold / contract = machine-
+  checkable promise / evidence = proof artifact / validation = trace-chain
+  closure), the verification-vs-validation distinction, the six properties of a
+  good obligation, the req→obligation accident zone, and the assume/guarantee
+  split (RTL meets guarantees, env meets assumptions). Defers the realized
+  six-layer mechanics to [[contract-reflection-workflow]] and the closure
+  plumbing to [[evidence-contract-obligation-traceability]] rather than
+  duplicating them; serves as the hub the locked-truth / repair-loop / MCTP /
+  formal pages orbit.
+- Added [[mctp-assembler-contract-breakdown]] as the central implementation
+  direction and the concrete worked instance of [[locked-truth-concept]],
+  [[contract-reflection-workflow]], and [[llm-contract-repair-loop]]. It fixes
+  RX (message assembly) vs TX (disassembly/packetization) per DSP0236 before any
+  contract is written, decomposes the RX assembler into 12 closure-sized
+  contracts (gate / key / start / single / cont / seq / payload / end / drop /
+  out / reset / status), and gives each one a req→obligation→contract→evidence→
+  validation matrix with SVA snippets (continuation seq match, OOS drop, output
+  stable under backpressure), the sequence-unit SSOT YAML, and a separate TX
+  packetization axis (header gen / SOM-EOM / payload slicing). Establishes the
+  rule that the Contract Breakdown Matrix is the first deliverable, authored
+  before RTL/SVA/TB, and that validation is the sum of per-contract closures, not
+  one coarse "assembles correctly" pass. Recorded as a new Hard Rule in [[index]]
+  and linked into the 4e1/4f/4g/4h direction reading order.
+- Added [[locked-truth-concept]] as the definitional companion to
+  [[llm-contract-repair-loop]] and [[locked-truth-design-spec-workflow]]. It
+  defines locked truth as a fixed answer-standard that generators/reviewers must
+  not reinterpret (explicitly *not* a claim that the circuit is correct —
+  correctness is proven against it by evidence). Covers position in the spine
+  (req → interpreted obligation → locked truth → contract → evidence →
+  validation, with the human lock at the obligation step), locked-truth-vs-
+  evidence-vs-contract-vs-req distinctions, good-vs-bad granularity (MCTP
+  "assemble correctly" too coarse → per-rule LT-ASM-* truths), proposed YAML
+  shape with per-truth `version`, the versioned change cascade (new version →
+  invalidate affected evidence → regenerate → re-validate), and an honest
+  "current vs proposed" table noting today's shipped locking is bundle-level
+  (`bundle_sha256` + requirement status) while the per-truth versioned model is
+  the forward direction.
+- Added [[llm-contract-repair-loop]] recording the agreed forward direction:
+  the LLM is positioned as a contract-closure patch agent, not an RTL generator.
+  Locked truth and contracts stay fixed; evidence failures are normalized into
+  contract-linked failure tickets; the LLM proposes minimal RTL/SVA/TB patches
+  under a deterministic patch policy; the toolchain regenerates evidence; and a
+  validation gate decides closure. Includes the failure-ticket schema, six loop
+  roles, the three repair levels (RTL / verification collateral / truth
+  clarification), the per-contract loop algorithm with targeted-vs-impacted
+  evidence split, a cheap-to-expensive evidence ladder, the evidence ledger,
+  the anti-cheating patch policy, and the MCTP assembler contract units. Builds
+  on [[locked-truth-design-spec-workflow]] and [[contract-reflection-workflow]];
+  references VerilogEval (golden-sim evaluation) and RTLFixer (compiler-feedback
+  repair) as related external work we extend to contract-level functional repair.
 - Added [[codex-engine-atlas-ui-integration]] as a concept note only. It records
   the proposed split where Codex is an execution engine behind the existing
   Atlas UI/API/WebSocket surface, while Atlas keeps locked truth, workflow
