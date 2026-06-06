@@ -537,10 +537,15 @@ html[data-platform="windows"] .app {
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-start;
-  gap: 3px;
+  /* row-gap > column-gap so wrapped rows never visually touch */
+  gap: 5px 3px;
   align-content: flex-start;
-  min-height: var(--atlas-topbar-h);
-  padding: 1px 4px;
+  /* Size to content. Was a fixed 2-row `min-height: var(--atlas-topbar-h)`;
+     when the first control row wrapped (narrow canvas width or large UI
+     font) the bar stayed ~80px and the wrapped 3rd row overflowed onto the
+     content below it. Sizing to content lets the bar grow instead. */
+  min-height: 0;
+  padding: 4px;
   box-sizing: border-box;
   border-bottom: 1px solid var(--line);
   background: var(--panel);
