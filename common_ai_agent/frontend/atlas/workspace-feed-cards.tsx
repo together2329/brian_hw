@@ -116,6 +116,7 @@ export const _toolResultPreviewLines = (tool: unknown): number => {
   const t = String(tool || '').toLowerCase();
   if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;
   if (_REPLACE_RESULT_TOOL_RE.test(t)) return 30;
+  if (/^run_command$/i.test(t)) return 4;
   return 0;
 };
 
@@ -133,7 +134,7 @@ export const _toolResultDefaultsClosed = (tool: unknown): boolean => (
 // Optional `embedded` prop: when true, render WITHOUT the outer
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
-export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: any) => {
+export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', maxLinesOverride }: any) => {
   // Replace/edit tools default to OPEN even in summary mode so the user
   // can see the actual diff without an extra click. Other tools stay
   // collapsed in summary mode.
@@ -155,7 +156,9 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '' }: 
   const lines = txt.split('\n');
   const isMulti = lines.length > 1;
   const lineCount = lines.length;
-  const maxPreviewLines = _toolResultPreviewLines(entry?.tool);
+  const maxPreviewLines = (maxLinesOverride !== undefined && maxLinesOverride !== null)
+    ? maxLinesOverride
+    : _toolResultPreviewLines(entry?.tool);
 
   // Diff coloring — opt in by tool name or "Added N, removed M" header.
   const displayFormat = String(entry?.display_format || entry?.syntax || '').toLowerCase();
@@ -572,6 +575,12 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // bounded by .tool-output-pre max-height.
   const isReplaceTool = tool && _DIFF_RESULT_TOOL_RE.test(tool);
   const defaultsClosed = _toolResultDefaultsClosed(tool);
+  const previewLines = _toolResultPreviewLines(tool);
+  // Preview tools (write/replace/run_command) show a short N-line preview of
+  // their output and expand to the FULL body on click — like Claude Code's
+  // "+N lines (expand)". The body is always visible; the chevron toggles
+  // preview ↔ full, not show ↔ hide.
+  const isPreviewTool = previewLines > 0;
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
   const obsIsMulti = obsLines.length > 1;
@@ -589,6 +598,8 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // while the worker is live (entrySummaryMode passes summaryMode=false during
   // a live turn, which previously forced them open). Expand on demand via ▸.
   const defaultObsOpen = defaultsClosed
+    ? false
+    : isPreviewTool
     ? false
     : (((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool);
   const [obsOpen, setObsOpen] = useState<boolean>(defaultObsOpen);
@@ -659,13 +670,14 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
           </>
         ) : null}
       </div>
-      {obs && obsOpen && <div className="tool-card-sep" />}
-      {obs && obsOpen && (
+      {obs && (isPreviewTool || obsOpen) && <div className="tool-card-sep" />}
+      {obs && (isPreviewTool || obsOpen) && (
         <ObsCard
           entry={{ ...obs, tool: obs?.tool || tool, text: obsText }}
           embedded={true}
           summaryMode={summaryMode}
           hintText={[tool, rawArgsText, argsText].filter(Boolean).join('\n')}
+          maxLinesOverride={isPreviewTool ? (obsOpen ? 0 : previewLines) : undefined}
           forceOpen
           hideHeader
         />
