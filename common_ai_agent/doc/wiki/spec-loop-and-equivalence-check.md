@@ -56,12 +56,24 @@ Command shape:
 ```tcl
 read_verilog gold.sv eq.sv
 proc
+async2sync                 # REQUIRED if the design uses async reset ($adff)
 equiv_make dut_gold dut_eq m
 hierarchy -top m
 equiv_simple
 equiv_induct
 equiv_status -assert      # exits non-zero if any $equiv point is unproven
 ```
+
+It also works on a **real** design, not just the toy. `run_asm_eq.sh` regenerates
+two variants of `mctp_rx_assembler` from the reference and SEC-checks them:
+
+```text
+gold vs refactored   (== rewritten as ~|(a^b))   ->  EQUIVALENT (proven by k-induction)
+gold vs spec-missing (OOS-drop forgotten)         ->  NOT EQUIVALENT (1 unproven $equiv cell)
+```
+
+So a regeneration that only restyles the logic is proven identical, while one that
+drops a required behavior is caught — exactly the SpecLoop EQ-check gate.
 
 ## SpecLoop Vs The Contract Repair Loop
 

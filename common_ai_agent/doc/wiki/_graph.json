@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T09:42:56Z",
+  "generated_at": "2026-06-06T09:55:21Z",
   "root": "doc/wiki",
   "node_count": 149,
   "edge_count": 705,
@@ -3059,9 +3059,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[spec-loop-and-equivalence-check]] recording the SpecLoop methodology (RTL→Requirement→RTL→EQ Check→refine) and confirming, with a worked demo, that its formal core — sequential equivalence checking — is feasible with open-source tools (yosys `equiv_make`+`equiv_induct`+`equiv_status`, `eqy`, or `sby`+miter). Demo at…",
+      "summary": "- Extended [[spec-loop-and-equivalence-check]] with a SEC run on the REAL `mctp_rx_assembler` (`examples/mctp_contract_slice/eqcheck/run_asm_eq.sh`): a refactored-equivalent variant (`==` rewritten as `~|(a^b)`) is proven EQUIVALENT by k-induction, while a spec-missing variant (out-of-sequence drop forgotten) is flagged NOT EQUIVALENT with a…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 111343
+      "size_bytes": 111801
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -4473,7 +4473,7 @@
       "updated": "2026-06-06",
       "summary": "This page records a second methodology in the same family as [[llm-contract-repair-loop]], and confirms (with a worked demo) that its formal core — **equivalence checking** — is doable with open-source tools.",
       "path": "doc/wiki/spec-loop-and-equivalence-check.md",
-      "size_bytes": 4385
+      "size_bytes": 4976
     },
     {
       "id": "ssot-conversion-flow-20260519",

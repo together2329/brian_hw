@@ -2,6 +2,12 @@
 
 ## 2026-06-06
 
+- Extended [[spec-loop-and-equivalence-check]] with a SEC run on the REAL
+  `mctp_rx_assembler` (`examples/mctp_contract_slice/eqcheck/run_asm_eq.sh`): a
+  refactored-equivalent variant (`==` rewritten as `~|(a^b)`) is proven EQUIVALENT
+  by k-induction, while a spec-missing variant (out-of-sequence drop forgotten) is
+  flagged NOT EQUIVALENT with a counterexample. Recorded the async-reset gotcha:
+  `$adff` cells need `async2sync` before `equiv_induct`.
 - Added [[spec-loop-and-equivalence-check]] recording the SpecLoop methodology
   (RTL→Requirement→RTL→EQ Check→refine) and confirming, with a worked demo, that
   its formal core — sequential equivalence checking — is feasible with open-source

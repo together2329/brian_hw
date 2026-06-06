@@ -46,10 +46,12 @@ by k-induction with overflow handling (§10.2) + aux invariants.
 Result: `signoff/validation_closure_payload.json`.
 
 ### 4. `eqcheck/` — SpecLoop equivalence-check demo
-Run: `./eqcheck/run_eq.sh`
+Run: `./eqcheck/run_eq.sh` (toy) and `./eqcheck/run_asm_eq.sh` (real assembler).
 Open-source sequential equivalence checking (yosys `equiv_make`+`equiv_induct`):
 a refactored RTL proves EQUIVALENT to the reference; a spec-missing RTL is flagged
-NOT EQUIVALENT. See [[spec-loop-and-equivalence-check]].
+NOT EQUIVALENT. `run_asm_eq.sh` regenerates a refactored-equivalent and a
+spec-missing variant of `mctp_rx_assembler` and SEC-checks both (async reset needs
+`async2sync`). See [[spec-loop-and-equivalence-check]].
 
 ## What this example is / isn't
 
