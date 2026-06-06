@@ -42,6 +42,7 @@ export interface ImportedFileRow {
   md_path?: string;
   original_path?: string;
   image_count?: number;
+  visual_count?: number;
   pending?: boolean;
   error?: boolean;
   ts?: number;
@@ -121,6 +122,7 @@ export function ImportedFilesList({ t, importedFiles, setImportedFiles }: Import
               <span className="mute" style={{ fontSize: 10 }}>
                 {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
                 {f.image_count ? ` · ${f.image_count} img` : ''}
+                {f.visual_count ? ` · ${f.visual_count} visual` : ''}
               </span>
             </div>
           ))}
@@ -342,15 +344,9 @@ export function ImportExportPane(props: ImportExportPaneProps) {
               }}
             >
               <option value="markitdown">markitdown (default)</option>
-              <option value="cursor-agent">cursor-agent only</option>
-              <option value="auto">auto (cursor-agent → markitdown)</option>
             </select>
             <span style={{ opacity: 0.65 }}>
-              {importConverter === 'cursor-agent'
-                ? 'Routes every doc through cursor-agent.'
-                : importConverter === 'auto'
-                  ? 'Tries cursor-agent first, falls back to markitdown.'
-                  : 'Python markitdown CLI (python3.12 on Windows).'}
+              Python markitdown CLI (python3.12 on Windows).
             </span>
           </div>
           <div
@@ -487,6 +483,7 @@ export function ChecklistImportInline({
                 <span className="mute" style={{ fontSize: 10 }}>
                   {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
                   {f.image_count ? ` · ${f.image_count} img` : ''}
+                  {f.visual_count ? ` · ${f.visual_count} visual` : ''}
                 </span>
               </div>
             ))}

@@ -17,7 +17,9 @@
 //     defaultWorkflowForExecMode are passed in as props (owned by
 //     workspace-session-routing; the root composer supplies them).
 //
-// This .tsx is an INERT mirror — the live app is still served by workspace.jsx.
+// This .tsx is used by the Vite workspace entry; workspace.jsx remains only as
+// the legacy reference while the extracted helpers continue to carry the same
+// workspace closure contracts.
 import {
   type ReactNode,
   type CSSProperties,
@@ -32,6 +34,11 @@ import {
 } from 'react';
 import { orchestratorFlowFromFeed } from './workspace-tool-theme';
 import { ToolCard, FeedEntry, LiveAgentPreview } from './workspace-feed-cards';
+import {
+  promptImageFilesFromClipboard,
+  readPromptImageFiles,
+  type PromptImageAttachment,
+} from './workspace-prompt-images';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
 // read it through window here (the type decls live in atlas-window.d.ts but we
@@ -365,6 +372,9 @@ export interface WorkspacePromptRowProps {
   input: string;
   setInput: (value: string) => void;
   inputResetToken?: number;
+  promptImages?: readonly PromptImageAttachment[];
+  onPastedPromptImages?: (images: readonly PromptImageAttachment[]) => void;
+  onRemovePromptImage?: (id: string) => void;
   inputRef: any;
   inputRouteState: any;
   inputRouteRef: any;
@@ -388,6 +398,9 @@ export const WorkspacePromptRow = ({
   input,
   setInput,
   inputResetToken = 0,
+  promptImages = [],
+  onPastedPromptImages,
+  onRemovePromptImage,
   inputRef,
   inputRouteState,
   inputRouteRef,
@@ -489,6 +502,19 @@ export const WorkspacePromptRow = ({
     ? orchestratorFlowFromFeed(feed, orchWorkers, activeIp)
     : null;
   const workflowReadyBlocking = !!(workflowReady && workflowReady.phase !== 'ready');
+  const handlePasteImages = useCallback((clipboardData: DataTransfer | null) => {
+    const files = promptImageFilesFromClipboard(clipboardData);
+    if (!files.length || !onPastedPromptImages) return false;
+    void readPromptImageFiles(files)
+      .then((images) => {
+        if (images.length) onPastedPromptImages(images);
+      })
+      .catch((error: unknown) => {
+        const message = error instanceof Error ? error.message : String(error);
+        console.warn('Unable to attach pasted image:', message);
+      });
+    return true;
+  }, [onPastedPromptImages]);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
       {orchestratorIdle ? (
@@ -571,11 +597,59 @@ export const WorkspacePromptRow = ({
             {inputRouteLabel}
           </span>
         ) : null}
+        {promptImages.length ? (
+          <span style={{
+            display: 'inline-flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 4,
+            maxWidth: 260,
+          }}>
+            {promptImages.map((image, index) => (
+              <button
+                key={image.id}
+                type="button"
+                title={`Remove ${image.name}`}
+                onClick={() => onRemovePromptImage?.(image.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  maxWidth: 130,
+                  minHeight: 24,
+                  padding: '2px 6px',
+                  borderRadius: 4,
+                  border: '1px solid var(--line-2)',
+                  background: 'var(--bg-2)',
+                  color: 'var(--fg)',
+                  fontFamily: 'var(--mono)',
+                  fontSize: 11,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                }}
+              >
+                <span style={{ color: 'var(--accent)' }}>▧{index + 1}</span>
+                <span style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {image.name}
+                </span>
+                <span aria-hidden="true" style={{ color: 'var(--fg-mute)' }}>×</span>
+              </button>
+            ))}
+          </span>
+        ) : null}
         <textarea ref={inputRef} value={draftInput}
           rows={1}
           disabled={workflowReadyBlocking}
           onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
             updateDraftFromUser(e.target.value, e.target);
+          }}
+          onPaste={(e) => {
+            if (!handlePasteImages(e.clipboardData)) return;
+            e.preventDefault();
           }}
           onKeyDown={(e: KeyboardEvent<HTMLTextAreaElement>) => {
             if (e.key === 'Enter' && e.altKey) {

@@ -1,8 +1,11 @@
 import json
 import base64
+import importlib
 import subprocess
 import sys
+from io import BytesIO
 from pathlib import Path
+from typing import Optional, Tuple
 
 from fastapi.testclient import TestClient
 
@@ -841,6 +844,140 @@ def test_ssot_import_upload_normalizes_markdown_image_data_uri(tmp_path, monkeyp
     assert image_refs
     for rel in image_refs:
         assert (saved.parent / rel).is_file()
+
+
+def test_ssot_import_converter_rejects_removed_cursor_agent_choice(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_IMPORT_CONVERTER", "cursor-agent")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client)
+
+    current_response = client.get("/api/ssot/import/converter")
+    assert current_response.status_code == 500, current_response.text
+    current_payload = current_response.json()
+    assert current_payload["ok"] is False
+    assert current_payload["options"] == ["markitdown"]
+    assert "cursor-agent" in current_payload["error"]
+
+    set_response = client.post("/api/ssot/import/converter", json={"converter": "cursor-agent"})
+    assert set_response.status_code == 400, set_response.text
+    assert set_response.json()["ok"] is False
+
+
+def test_ssot_import_upload_describes_every_materialized_markdown_image(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+    from PIL import Image
+
+    core_tools = importlib.import_module("core.tools")
+
+    def _png_data_uri(color: Tuple[int, int, int]) -> str:
+        image = Image.new("RGB", (4, 4), color)
+        buf = BytesIO()
+        image.save(buf, format="PNG")
+        encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+        return f"data:image/png;base64,{encoded}"
+
+    described: list[str] = []
+
+    def fake_read_image(path: Optional[str] = None, prompt: str = "") -> str:
+        assert path is not None
+        assert "SSOT import evidence" in prompt
+        described.append(Path(path).name)
+        return f"description for {Path(path).name}"
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(core_tools, "read_image", fake_read_image)
+
+    diagram_uri = _png_data_uri((255, 0, 0))
+    content = "\n".join(
+        [
+            f"![red-front]({diagram_uri})",
+            f"![red-back]({diagram_uri})",
+            "",
+        ]
+    ).encode("utf-8")
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client)
+    response = client.post(
+        "/api/ssot/import/upload",
+        json={
+            "ip": "mctp_assembler",
+            "files": [
+                {
+                    "name": "diagrams.md",
+                    "content_b64": base64.b64encode(content).decode("ascii"),
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    saved = tmp_path / payload["paths"][0]
+    saved_text = saved.read_text(encoding="utf-8")
+    image_refs = [part.split(")", 1)[0] for part in saved_text.split("](")[1:3]]
+
+    assert len(described) == 2
+    assert len(set(image_refs)) == 2
+    assert payload["saved"][0]["image_paths"] == [
+        f"mctp_assembler/req/imports/images/{described[0]}",
+        f"mctp_assembler/req/imports/images/{described[1]}",
+    ]
+    assert "description skipped" not in saved_text
+    assert "multimodal model unavailable" not in saved_text
+    for name in described:
+        assert f"description for {name}" in saved_text
+
+
+def test_ssot_import_image_read_failure_is_reported_not_hidden(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    core_tools = importlib.import_module("core.tools")
+
+    def fake_read_image(path: Optional[str] = None, prompt: str = "") -> str:
+        raise RuntimeError("vision config missing")
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    monkeypatch.setattr(core_tools, "read_image", fake_read_image)
+
+    client = TestClient(atlas_ui.create_app())
+    _register(client)
+    response = client.post(
+        "/api/ssot/import/upload",
+        json={
+            "ip": "mctp_assembler",
+            "files": [
+                {
+                    "name": "diagram.png",
+                    "content_b64": base64.b64encode(b"not an image").decode("ascii"),
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    saved = payload["saved"][0]
+    assert saved["md_path"] is None
+    assert saved["path"] == saved["original_path"]
+    assert "vision config missing" in saved["convert_error"]
+    assert any("vision config missing" in err for err in payload["errors"])
 
 
 def test_ssot_qa_sessions_list_does_not_parse_ssot_yaml(tmp_path, monkeypatch):

@@ -55,18 +55,39 @@ This workflow's `workspace.json` deliberately leaves `env` empty — it never ov
 
 ## Image reading
 
-Image read is pinned to **Z.AI GLM-4.6V** at the global `.config` level so it works regardless of which LLM the user picks. All four settings live in `.config` (no `.env` split):
+Image read uses the active multimodal LLM client by default. Leave
+`IMAGE_READ_MODEL` unset when the selected `MODEL_NAME` / Azure deployment
+already supports image input:
 
 ```
 ENABLE_IMAGE_READ=true
-IMAGE_READ_BASE_URL=https://api.z.ai/api/paas/v4
-IMAGE_READ_API_KEY=<your Z.AI key, same value as PROFILE_glm_API_KEY>
-IMAGE_READ_MODEL=glm-4.6v
+# default: inherits MODEL_NAME
+# IMAGE_READ_MODEL=
 ```
 
-Note the base URL: `/api/paas/v4` (NOT `/api/coding/paas/v4` — the coding subpath only serves chat completions for coding GLM, not vision models, so it returns 404 on `read_image` calls).
+For a Windows/Azure SOC deployment, point both the active deployment and the
+optional image-read override at the Azure deployment name:
 
-Without an explicit `IMAGE_READ_API_KEY` and base URL, the system falls back to `LLM_API_KEY` / `LLM_BASE_URL`, which breaks image read whenever the main LLM is not on Z.AI.
+```
+LLM_PROVIDER=azure
+AZURE_OPENAI_DEPLOYMENT=soc-sol-gpt-5.5
+USE_RESPONSES_API=true
+# Optional when the active deployment is already soc-sol-gpt-5.5:
+IMAGE_READ_MODEL=soc-sol-gpt-5.5
+```
+
+Document imports also render PDF pages that contain figure captions and append
+their image-read notes under `## Visual Evidence`. DOCX/PPTX imports use the
+same path after conversion to PDF through LibreOffice/soffice. This catches
+vector drawings and slide/page layouts that are not embedded raster images:
+
+```
+ATLAS_IMPORT_VISUAL_EVIDENCE=true
+ATLAS_IMPORT_VISUAL_EVIDENCE_MAX_PAGES=100
+ATLAS_IMPORT_VISUAL_EVIDENCE_SCALE=2.0
+# Optional when soffice/libreoffice is not on PATH:
+ATLAS_OFFICE_RENDERER_BIN=/path/to/soffice
+```
 
 ## Why `@<file>` does not work in this agent
 

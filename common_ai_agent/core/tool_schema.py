@@ -117,7 +117,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
     "read_image": _fn(
         "read_image",
         (
-            "Analyze an image file using a vision-capable AI model.\n"
+            "Analyze an image file using the current multimodal LLM client.\n"
             "Supports PNG, JPEG, GIF, WebP, BMP formats.\n"
             "Use this when:\n"
             "  • User shares a screenshot and asks what it shows\n"

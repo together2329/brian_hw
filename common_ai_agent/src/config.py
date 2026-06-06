@@ -1688,13 +1688,12 @@ ENABLE_WEB_TOOLS = os.getenv("ENABLE_WEB_TOOLS", "false").lower() in ("true", "1
 FIRECRAWL_API_URL = os.getenv("FIRECRAWL_API_URL", "http://localhost:3002")
 FIRECRAWL_TIMEOUT = int(os.getenv("FIRECRAWL_TIMEOUT", "30"))
 
-# Image Read — analyze images using vision-capable models
-# When enabled, adds read_image() tool that sends images to a vision model.
-# Uses OpenAI Chat Completions API format (compatible with Z.AI, OpenRouter, etc.)
+# Image Read — analyze images using the active multimodal LLM client.
+# IMAGE_READ_MODEL can override MODEL_NAME when a dedicated vision model is desired.
 ENABLE_IMAGE_READ     = os.getenv("ENABLE_IMAGE_READ", "false").lower() in ("true", "1", "yes")
 IMAGE_READ_API_KEY    = os.getenv("IMAGE_READ_API_KEY", API_KEY)
 IMAGE_READ_BASE_URL   = os.getenv("IMAGE_READ_BASE_URL", BASE_URL)
-IMAGE_READ_MODEL      = os.getenv("IMAGE_READ_MODEL", "glm-4.6v")  # Z.AI GLM-4.6V by default
+IMAGE_READ_MODEL      = os.getenv("IMAGE_READ_MODEL", MODEL_NAME)
 IMAGE_READ_MAX_SIZE   = int(os.getenv("IMAGE_READ_MAX_SIZE", "8"))  # max MB per image
 IMAGE_READ_TIMEOUT    = int(os.getenv("IMAGE_READ_TIMEOUT", "30"))  # seconds
 
@@ -2571,7 +2570,7 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     # Image tools (conditional — requires ENABLE_IMAGE_READ=true)
     if ENABLE_IMAGE_READ and "read_image" in tool_list:
         tool_lines["Image"] = [
-            _tool_line("read_image", 'path, prompt="Describe this image in detail."', "Analyze image via vision model. Supports PNG/JPEG/GIF/WebP/BMP."),
+            _tool_line("read_image", 'path, prompt="Describe this image in detail."', "Analyze image via current multimodal LLM. Supports PNG/JPEG/GIF/WebP/BMP."),
         ]
 
     # ── BUILD PROMPT ──

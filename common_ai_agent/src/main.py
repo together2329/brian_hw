@@ -66,6 +66,7 @@ from core.action_parser import (
     parse_value,
 )
 from core.observation_processor import process_observation as _process_observation_impl
+from core.prompt_input import prompt_content_for_llm, prompt_has_content
 from core.history_manager import (
     save_conversation_history as _save_history_impl,
     load_conversation_history as _load_history_impl,
@@ -1945,7 +1946,7 @@ def chat_loop():
             if user_input.lower() in ["exit", "quit"]:
                 break
 
-            if not user_input.strip():
+            if not prompt_has_content(user_input):
                 if getattr(config, "DEBUG_MODE", False):
                     print(f"[Keepalive] DEBUG: user_input was empty/whitespace, skipping: {repr(user_input[:80])}")
                 continue
@@ -2976,7 +2977,7 @@ def chat_loop():
             current_turn_id += 1
             messages.append({
                 "role": "user",
-                "content": user_input,
+                "content": prompt_content_for_llm(user_input),
                 "turn_id": current_turn_id,
                 "timestamp": time.time(),
             })

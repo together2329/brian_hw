@@ -46,6 +46,7 @@ interface ImportSavedFile {
   md_path?: string;
   original_path?: string;
   image_paths?: unknown[];
+  visual_paths?: unknown[];
 }
 interface ImportUploadPayload {
   ok?: boolean;
@@ -109,6 +110,7 @@ interface ImportedFileEntry {
   md_path: string;
   original_path: string;
   image_count: number;
+  visual_count: number;
   ts: number;
 }
 
@@ -175,6 +177,7 @@ export const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }: Ssot
             md_path: s.md_path || '',
             original_path: s.original_path || '',
             image_count: Array.isArray(s.image_paths) ? s.image_paths.length : 0,
+            visual_count: Array.isArray(s.visual_paths) ? s.visual_paths.length : 0,
             ts: Date.now(),
           }));
           return [...next, ...prev].slice(0, 20);
@@ -389,6 +392,7 @@ export const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }: Ssot
                   <span className="mute" style={{ fontSize: 10 }}>
                     {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
                     {f.image_count ? ` · ${f.image_count} img` : ''}
+                    {f.visual_count ? ` · ${f.visual_count} visual` : ''}
                   </span>
                 </div>
               ))}
@@ -576,6 +580,7 @@ export const SsotReviewPane = ({ uiLang = 'ko', initialPath = '', onBack }: Ssot
                 <span className="mute" style={{ fontSize: 10 }}>
                   {f.bytes ? (f.bytes < 1024 ? `${f.bytes}B` : `${(f.bytes/1024).toFixed(1)}K`) : ''}
                   {f.image_count ? ` · ${f.image_count} img` : ''}
+                  {f.visual_count ? ` · ${f.visual_count} visual` : ''}
                 </span>
                 {f.md_path ? (
                   <button type="button"

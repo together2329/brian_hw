@@ -111,6 +111,20 @@ def test_prompt_envelope_is_minimal_when_normal(monkeypatch):
     assert payload == {"text": "go"}
 
 
+def test_prompt_envelope_preserves_image_attachments(monkeypatch):
+    monkeypatch.delenv("PLAN_MODE", raising=False)
+    monkeypatch.setenv("AGENT_MODE_OVERRIDE", "normal")
+
+    bridge, mgr = _bridge_with_capture()
+    images = [{"image_url": "data:image/png;base64,aGVsbG8=", "detail": "high"}]
+    bridge._send_process_input_for_session(
+        SESSION, "prompt", {"text": "inspect", "images": images}, spawn=False
+    )
+
+    payload = mgr.sent[-1][2]
+    assert payload == {"text": "inspect", "images": images}
+
+
 def test_non_prompt_messages_never_get_mode_keys(monkeypatch):
     """Only prompts carry mode; control messages (stop/interrupt) do not."""
     monkeypatch.setenv("PLAN_MODE", "true")
