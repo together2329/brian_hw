@@ -22,9 +22,9 @@
 //
 // The session-half state (workflow / activeSession / feed / refs / route
 // helpers) lives in useWorkspaceSession; it is threaded in here through the
-// `deps` parameter so the two extracted hooks compose inside the Workspace
-// render. This is an INERT mirror — legacy workspace.jsx still serves the live
-// app. Window-sourced values are typed `any` on purpose; do not tighten them.
+// `deps` parameter so the two extracted hooks compose inside the Vite Workspace
+// entry. workspace.jsx remains the legacy reference for behavior parity.
+// Window-sourced values are typed `any` on purpose; do not tighten them.
 
 import { type SetStateAction, useState, useEffect, useRef, useCallback, useMemo, useReducer } from 'react';
 
@@ -42,6 +42,11 @@ import {
 } from './workspace-tool-theme';
 import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
 import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } from './workspace-root-render';
+import {
+  normalizePromptSubmit,
+  promptFeedText,
+  type PromptImageAttachment,
+} from './workspace-prompt-images';
 import {
   WORKFLOW_REPORT_TABS,
   workspaceTelemetryFromMessages,
@@ -659,9 +664,18 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // ── Input + input history ───────────────────────────────────────
   const [input, setInput] = useState<string>('');
   const [inputResetToken, setInputResetToken] = useState<number>(0);
+  const [promptImages, setPromptImages] = useState<PromptImageAttachment[]>([]);
   const replaceInput = useCallback((value: SetStateAction<string>) => {
     setInput(value);
     setInputResetToken((token: number) => token + 1);
+  }, []);
+  const addPromptImages = useCallback((images: readonly PromptImageAttachment[]) => {
+    setPromptImages((prev: PromptImageAttachment[]) => [...prev, ...images]);
+  }, []);
+  const removePromptImage = useCallback((id: string) => {
+    setPromptImages((prev: PromptImageAttachment[]) => prev.filter((
+      image: PromptImageAttachment,
+    ) => image.id !== id));
   }, []);
   const heldSubmitRef = useRef<any>(null);
   const submittedInputConsumedRef = useRef<boolean>(false);
@@ -2184,9 +2198,15 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // TYPED deps above — the old `deps as any` cast (which left setStreamText
   // undefined at runtime) is gone. setStreamText is the data hook's OWN state.
   const submitMsg = useCallback((cmd?: any, opts?: { clearCurrentInput?: boolean }) => {
-    const raw = String(cmd ?? inputRef.current?.value ?? input).trim();
+    const submitted = normalizePromptSubmit(
+      cmd,
+      String(inputRef.current?.value ?? input),
+      promptImages,
+    );
+    const raw = submitted.text;
+    const submittedImages = submitted.images;
     submittedInputConsumedRef.current = false;
-    if (!raw) return;
+    if (!raw && !submittedImages.length) return;
     requestFeedScrollToBottom();
     const clearCurrentInput = !!(opts && opts.clearCurrentInput);
 
@@ -2201,6 +2221,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const clearSubmittedInput = () => {
       submittedInputConsumedRef.current = true;
       recordInputHistory(raw);
+      setPromptImages([]);
       replaceInput((cur: string) => {
         const curText = String(cur || '').trim();
         if (clearCurrentInput) return '';
@@ -2213,7 +2234,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const acknowledgeLocalSend = () => {
       clearSubmittedInput();
       if (!isAckMissReplay) {
-        setFeed((f: any) => [...f, { kind: 'user', text: raw, createdAt: Date.now() }]);
+        setFeed((f: any) => [...f, {
+          kind: 'user',
+          text: promptFeedText(raw, submittedImages),
+          createdAt: Date.now(),
+        }]);
       }
     };
     const holdSubmittedInput = (reason: string, opts?: { msgId?: any; autoReplay?: boolean }) => {
@@ -2227,6 +2252,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       heldSubmitRef.current = {
         raw,
         cmd,
+        images: submittedImages,
         createdAt: Date.now(),
         msgId: opts?.msgId || null,
         autoReplay: opts?.autoReplay !== false,
@@ -2235,6 +2261,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const curText = String(cur || '').trim();
         return curText ? cur : raw;
       });
+      setPromptImages([...submittedImages]);
       setShowSlash(false);
       setStreaming(false);
       awaitingRunStartRef.current = false;
@@ -2380,7 +2407,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       // action:"held" while switching; if the gate already reopened (ready) we
       // fall through to the normal single-slot hold below.
       if (switchingNow && switchGateRef.current) {
-        const outcome = switchGateRef.current.submit({ text: raw, meta: { cmd: cmd ?? null } });
+        const outcome = switchGateRef.current.submit({
+          text: raw,
+          meta: { cmd: cmd ?? null, images: submittedImages },
+        });
         queued = Number((outcome as any)?.queued || 0);
       }
       const gateRoute = switchGateRef?.current?.route?.();
@@ -2656,6 +2686,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       && dispatchWorkflow !== 'orchestrator'
       && orchIp
       && orchIp.toLowerCase() !== 'default'
+      && !submittedImages.length
       && !raw.startsWith('/')
     ) {
       clearSubmittedInput();
@@ -2723,7 +2754,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         });
       return;
     }
-    if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !raw.startsWith('/')) {
+    if (isOrch && orchIp && orchIp.toLowerCase() !== 'default' && !submittedImages.length && !raw.startsWith('/')) {
       clearSubmittedInput();
       const sessionParts = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || activeSession || '').split('/').filter(Boolean);
       const orchOwner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || sessionParts[0] || 'default';
@@ -2847,7 +2878,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       holdSubmittedInput(`Input held. Backend is ${promptBackendState()}; it will send automatically if unchanged.`);
       return;
     }
-    const sent = sendPrompt(raw, undefined, replayMsgId);
+    const promptPayload = submittedImages.length
+      ? { text: raw, images: submittedImages }
+      : raw;
+    const sent = sendPrompt(promptPayload, undefined, replayMsgId);
     if (!sent || sent.ok === false) {
       holdSubmittedInput(`Input held. Backend is not ready (${sent?.error || backendState || 'unknown'}); it will send automatically if unchanged.`);
       return;
@@ -2865,7 +2899,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // Keep the submitted user message clean. Active IP/path scope is already
     // injected into the workflow system prompt by the backend.
   }, [
-    input, workflow, activeIp, activeSession, currentSession,
+    input, promptImages, workflow, activeIp, activeSession, currentSession,
     backendState, pendingQcard, qaState,
     recordInputHistory, setFeed, setInput, setShowSlash, setStreaming, setStreamText,
     setQaState, setQaHistory, setMainTab, setAskSel, setCommandBusy, setActiveSession, setIntent, setWorkflow,
@@ -2914,7 +2948,19 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // The last held prompt was mirrored into the box (single-slot UX). The gate
     // FIFO entries are already-committed prompts and replay unconditionally; only
     // the single-slot held entry is gated on the box being unchanged.
-    if (held && String(input || '').trim() !== held.raw && !queuedDepth) {
+    const heldImagesMatchCurrent = (heldImages: any[] = []) => (
+      !heldImages.length
+      || (
+        heldImages.length === promptImages.length
+        && heldImages.every((image: any, index: number) => (
+          image && promptImages[index] && image.id === promptImages[index].id
+        ))
+      )
+    );
+    if (held && (
+      String(input || '').trim() !== held.raw
+      || !heldImagesMatchCurrent(held.images || [])
+    ) && !queuedDepth) {
       heldSubmitRef.current = null;
       return undefined;
     }
@@ -2930,14 +2976,32 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       // it (i.e. it was a backend-down hold, not a switch hold) and the box still
       // matches it. A switch hold already lives in the FIFO, so we skip it here
       // to avoid a duplicate send.
-      if (latest && latest.autoReplay !== false && !fifo.length && String(input || '').trim() === latest.raw) {
+      if (
+        latest
+        && latest.autoReplay !== false
+        && !fifo.length
+        && String(input || '').trim() === latest.raw
+        && heldImagesMatchCurrent(latest.images || [])
+      ) {
         // Carry the ack-miss hold's ORIGINAL msg_id so the re-fire below re-sends
         // under the same id (BUG A: backend has_msg_id dedup collapses the dup).
-        fifo.push({ text: latest.raw, meta: { cmd: latest.cmd ?? null, msgId: latest.msgId || null } });
+        fifo.push({
+          text: latest.raw,
+          meta: {
+            cmd: latest.cmd ?? null,
+            msgId: latest.msgId || null,
+            images: latest.images || [],
+          },
+        });
       }
       for (const m of fifo) {
         const meta = (m && m.meta) || {};
-        const replayCmd = meta.cmd != null ? meta.cmd : (m ? m.text : undefined);
+        const replayImages = Array.isArray(meta.images) ? meta.images : [];
+        const replayCmd = meta.cmd != null
+          ? meta.cmd
+          : replayImages.length
+            ? { text: m ? m.text : '', images: replayImages }
+            : (m ? m.text : undefined);
         // Switch-hold FIFO entries were never sent (no msgId) → submitMsg mints a
         // fresh id. Only an ack-miss replay carries the original id to reuse.
         replayMsgIdRef.current = meta.msgId || null;
@@ -2946,7 +3010,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       replayMsgIdRef.current = null;
     }, 80);
     return () => clearTimeout(timer);
-  }, [backendState, input, workflowReady, submitMsg, switchGateRef]);
+  }, [backendState, input, promptImages, workflowReady, submitMsg, switchGateRef]);
 
   // ── Brief live-worker strip for the orchestrator chat ───────────────────
   // Shows which workers the orchestrator currently has running, inline in the
@@ -3249,6 +3313,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       input={input}
       setInput={setInput}
       inputResetToken={inputResetToken}
+      promptImages={promptImages}
+      onPastedPromptImages={addPromptImages}
+      onRemovePromptImage={removePromptImage}
       inputRef={inputRef}
       inputRouteState={inputRouteState}
       inputRouteRef={inputRouteRef}

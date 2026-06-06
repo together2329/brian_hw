@@ -40,6 +40,7 @@ sys.path.insert(0, _src_dir)
 sys.path.insert(0, _project_root)
 
 from core.atlas_db import AtlasDB  # noqa: E402
+from core.prompt_input import prompt_input_from_payload  # noqa: E402
 
 _agent: Any = None
 
@@ -788,8 +789,8 @@ class SessionWorker:
         # runs so the tools.py PLAN_MODE gate and main.chat_loop's agent_mode
         # reconcile both see it. Only reset on a real `prompt` (an `interrupt`
         # injects text mid-turn and must not flip the running turn's mode).
+        payload = _decode_payload(msg.get("payload"))
         if _message_type(msg) == "prompt":
-            payload = _decode_payload(msg.get("payload"))
             if isinstance(payload, dict) and payload.get("plan_mode") is not None:
                 _plan_on = str(payload.get("plan_mode")).strip().lower() == "true"
                 _am = str(payload.get("agent_mode") or "").strip()
@@ -804,7 +805,7 @@ class SessionWorker:
                 # a stale count never leaks into the next plan session (parity
                 # across the keyless-reset and explicit plan_mode=false paths).
                 os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-        return _message_text(msg)
+        return prompt_input_from_payload(_message_text(msg), payload)
 
     def emit_content(self, text: str, cls: str = "") -> None:
         payload: dict[str, Any] = {"text": text}

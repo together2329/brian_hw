@@ -145,6 +145,58 @@ class TestResponsesRequestBodyNormalization:
         )
         assert data["input"][0]["content"] == [{"type": "input_text", "text": "hello"}]
 
+    def test_openai_keeps_input_image_content(self):
+        data = lc._build_responses_request_body(
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "inspect this"},
+                    {
+                        "type": "input_image",
+                        "image_url": "data:image/png;base64,aGVsbG8=",
+                        "detail": "high",
+                    },
+                ],
+            }],
+            model="gpt-5.5-codex",
+            stream=True,
+            base_url="https://api.openai.com/v1/responses",
+        )
+        assert data["input"][0]["content"] == [
+            {"type": "input_text", "text": "inspect this"},
+            {
+                "type": "input_image",
+                "image_url": "data:image/png;base64,aGVsbG8=",
+                "detail": "high",
+            },
+        ]
+
+    def test_chatgpt_codex_backend_keeps_input_image_content(self):
+        data = lc._build_responses_request_body(
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "inspect this"},
+                    {
+                        "type": "input_image",
+                        "image_url": "data:image/png;base64,aGVsbG8=",
+                        "detail": "high",
+                    },
+                ],
+            }],
+            model="gpt-5.5-codex",
+            stream=True,
+            base_url="https://chatgpt.com/backend-api/codex/responses",
+        )
+        assert data["input"][0]["content"] == [
+            {"type": "input_text", "text": "inspect this"},
+            {
+                "type": "input_image",
+                "image_url": "data:image/png;base64,aGVsbG8=",
+                "detail": "high",
+            },
+        ]
+
     def test_openrouter_stringifies_block_content(self):
         data = lc._build_responses_request_body(
             messages=[{"role": "user", "content": [{"type": "text", "text": "hello"}, {"type": "text", "text": "world"}]}],

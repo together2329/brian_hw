@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional, Tuple
 
 from lib.iteration_control import IterationTracker
+from core.prompt_input import prompt_has_content
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +146,7 @@ def process_chat_turn(
         return state, "break"
 
     # --- Empty input ---
-    if not user_input.strip():
+    if not prompt_has_content(user_input):
         return state, "skip"
 
     # --- Plan mode confirmation ---

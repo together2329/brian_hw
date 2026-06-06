@@ -332,6 +332,10 @@ def make_qa_helpers(
             for img in images:
                 if isinstance(img, str) and img:
                     seen_import_paths.add(img)
+            visuals = row.get("visual_paths") if isinstance(row.get("visual_paths"), list) else []
+            for visual in visuals:
+                if isinstance(visual, str) and visual:
+                    seen_import_paths.add(visual)
             imported_files.append({
                 "name": name,
                 "bytes": int(row.get("bytes") or row.get("size_bytes") or 0),
@@ -340,6 +344,8 @@ def make_qa_helpers(
                 "original_path": original,
                 "image_paths": images,
                 "image_count": len(images),
+                "visual_paths": visuals,
+                "visual_count": len(visuals),
                 "convert_error": str(row.get("convert_error") or ""),
             })
 

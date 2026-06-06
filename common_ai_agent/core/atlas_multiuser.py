@@ -16,6 +16,7 @@ from typing import Any, Callable, cast
 from core.session_process_manager import SessionProcessManager  # pyright: ignore[reportMissingImports]
 from core.session_worker_policy import SessionWorkerPolicy  # pyright: ignore[reportMissingImports]
 from core.session_names import normalize_session_name
+from core.prompt_input import prompt_input_from_payload
 
 try:  # The defined non-silent absent-cursor signal (plan §2.4 / R5).
     from core.atlas_db import QueueCursorNotFound as _QueueCursorNotFound
@@ -94,6 +95,13 @@ _WRITE_TOOL_RE = re.compile(
     r"^(?:write_file|write_to_file|replace_in_file|replace_lines|replace_file_content|multi_replace_file_content|edit_file|patch_file|apply_patch|patch|update_file)\b",
     re.IGNORECASE,
 )
+
+
+def _prompt_payload(text: str, images: Any = None) -> dict[str, Any]:
+    payload: dict[str, Any] = {"text": text}
+    if images:
+        payload["images"] = images
+    return payload
 
 
 def changed_paths_from_tool_result(tool: str, text: str) -> list[str]:
@@ -1672,18 +1680,26 @@ class _MultiUserBridge:
                 )
         return msg_id is not None
 
-    def queue_prompt_for_session(self, session_id: str | None, text: str) -> bool:
+    def queue_prompt_for_session(
+        self, session_id: str | None, text: str, images: Any = None
+    ) -> bool:
+        payload = _prompt_payload(text, images)
         if self._process_manager is not None:
             return self._send_process_input_for_session(
-                session_id, "prompt", {"text": text}, spawn=True
+                session_id, "prompt", payload, spawn=True
             )
-        self._ensure_session(session_id).queue_prompt(text)
+        self._ensure_session(session_id).queue_prompt(
+            prompt_input_from_payload(text, payload)
+        )
         return True
 
-    def submit_prompt_for_session(self, session_id: str | None, text: str) -> bool:
+    def submit_prompt_for_session(
+        self, session_id: str | None, text: str, images: Any = None
+    ) -> bool:
+        payload = _prompt_payload(text, images)
         if self._process_manager is not None:
             return self._send_process_input_for_session(
-                session_id, "prompt", {"text": text}, spawn=True
+                session_id, "prompt", payload, spawn=True
             )
         session = self._ensure_session(session_id)
         session._stop_flag = False
@@ -1691,7 +1707,7 @@ class _MultiUserBridge:
             session.set_agent_starter(self._agent_starter)
         session.ensure_agent_alive()
         session.touch()
-        session._inbox.put(text)
+        session._inbox.put(prompt_input_from_payload(text, payload))
         return True
 
     def session_worker_policy(self):
@@ -1712,7 +1728,7 @@ class _MultiUserBridge:
         return policy
 
     def submit_prompt_result_for_session(
-        self, session_id: str | None, text: str
+        self, session_id: str | None, text: str, images: Any = None
     ) -> PromptDeliveryResult:
         """Prompt delivery that surfaces capacity_wait as a structured result.
 
@@ -1729,7 +1745,9 @@ class _MultiUserBridge:
         manager = self._process_manager
         # Thread mode keeps the historical always-deliver behavior.
         if manager is None:
-            delivered = self.submit_prompt_for_session(session.session_id, text)
+            delivered = self.submit_prompt_for_session(
+                session.session_id, text, images=images
+            )
             return PromptDeliveryResult(
                 ok=bool(delivered),
                 status="delivered" if delivered else "not_delivered",
@@ -1823,7 +1841,7 @@ class _MultiUserBridge:
         # Normal path: reuse the bool delivery (spawn=True), which now finds the
         # worker already admitted/spawned above in the strict net-new case.
         delivered = self._send_process_input_for_session(
-            session.session_id, "prompt", {"text": text}, spawn=True
+            session.session_id, "prompt", _prompt_payload(text, images), spawn=True
         )
         return PromptDeliveryResult(
             ok=bool(delivered),

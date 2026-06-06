@@ -54,6 +54,14 @@ for _p in (str(_THIS_DIR), str(_REPO_ROOT)):
         sys.path.insert(0, _p)
 
 from core.atlas_context import AtlasContext
+from core.import_evidence_assets import extract_markdown_import_assets
+from core.prompt_input import normalize_prompt_images
+from core.visual_evidence import (
+    VisualSurface,
+    render_office_visual_surfaces,
+    render_pdf_visual_surfaces,
+    visual_evidence_prompt,
+)
 
 
 def _configure_utf8_process_io() -> None:
@@ -7435,11 +7443,17 @@ def create_app():
                 continue
             text = raw[:262_144]
             rel = _relative_project_path(path)
-            artifacts.append({
+            assets = extract_markdown_import_assets(text, rel)
+            artifact: dict[str, Any] = {
                 "path": rel,
                 "bytes": len(raw.encode("utf-8", errors="ignore")),
                 "truncated": len(raw) > len(text),
-            })
+            }
+            if assets.image_paths:
+                artifact["image_paths"] = list(assets.image_paths)
+            if assets.visual_paths:
+                artifact["visual_paths"] = list(assets.visual_paths)
+            artifacts.append(artifact)
             for line in _purpose_lines(ip, path, text):
                 if line not in snippets["purpose"]:
                     snippets["purpose"].append(line)
@@ -8332,52 +8346,6 @@ def create_app():
             )
         return "", last_err or "markitdown not runnable"
 
-    def _cursor_agent_convert(src_path: Path) -> tuple[str, str]:
-        """Convert any supported document to Markdown via cursor-agent CLI.
-
-        cursor-agent has a vision-capable model and tool access, so it can
-        open a file, parse heading/table/list structure, and emit clean
-        Markdown without depending on per-format Python libs (markitdown,
-        python-docx, pymupdf4llm). Returns (md_text, error); empty error
-        string means success.
-        """
-        import shutil as _shutil
-        cursor_exe = _shutil.which("cursor-agent")
-        if not cursor_exe:
-            return "", "cursor-agent not on PATH"
-        prompt = (
-            f"Read the file at this absolute path and convert it to clean "
-            f"GitHub-Flavored Markdown.\n\nFile: {src_path}\n\n"
-            "Requirements:\n"
-            "- Preserve headings (#, ##, ###).\n"
-            "- Render tables as Markdown tables (| col | col | with the "
-            "  --- separator row).\n"
-            "- Preserve numbered + bulleted lists.\n"
-            "- Quote code, signal names, register addresses with backticks "
-            "  or fenced code blocks.\n"
-            "- Do NOT add commentary, summaries, or explanations — emit the "
-            "  document content only.\n"
-            "- If the file is an image, describe its content in 2-3 "
-            "  sentences under a `## Image Description` heading.\n"
-        )
-        try:
-            proc = subprocess.run(
-                [cursor_exe, "--print", "--model", "auto", "-p", prompt],
-                capture_output=True, text=True,
-                encoding="utf-8", errors="replace",
-                timeout=180,
-            )
-        except subprocess.TimeoutExpired:
-            return "", "cursor-agent convert timed out (180s)"
-        except Exception as exc:
-            return "", f"cursor-agent convert error: {exc}"
-        if proc.returncode != 0:
-            return "", f"cursor-agent convert failed (rc={proc.returncode}): {(proc.stderr or '')[:300]}"
-        text = (proc.stdout or "").strip()
-        if not text:
-            return "", "cursor-agent returned empty output"
-        return text, ""
-
     _DATA_IMAGE_BASE64_RE = re.compile(
         r"data:(image/[A-Za-z0-9.+-]+)\s*[:;]\s*base64\s*,",
         re.IGNORECASE,
@@ -8390,14 +8358,9 @@ def create_app():
     def _describe_image(img: Path) -> str:
         """Describe an image for SSOT import evidence.
 
-        Order of attempts:
-          1. cursor-agent CLI when available — bypasses the dedicated
-             IMAGE_READ_* vision provider entirely (it 403's on accounts
-             that don't have glm-4.6v enabled). cursor-agent uses its
-             own vision-capable model and only needs the absolute file
-             path.
-          2. core.tools.read_image — legacy IMAGE_READ_* path; only
-             tried when cursor-agent is unavailable or fails.
+        Uses core.tools.read_image, which sends the image through the active
+        multimodal LLM client. Import should fail visibly when image reading
+        is not configured, so development does not hide missing vision support.
         """
         prompt_text = (
             "Describe this image for SSOT import evidence in 2-3 sentences. "
@@ -8405,63 +8368,69 @@ def create_app():
             "signals, states, registers, or requirements if present."
         )
 
-        import shutil as _shutil
-        cursor_exe = _shutil.which("cursor-agent")
-        if cursor_exe:
-            try:
-                full_prompt = (
-                    f"Please read the image at this absolute path and "
-                    f"describe it.\n\nImage: {img}\n\n{prompt_text}"
-                )
-                proc = subprocess.run(
-                    [cursor_exe, "--print", "--model", "auto", "-p", full_prompt],
-                    capture_output=True, text=True, encoding="utf-8",
-                    errors="replace", timeout=90,
-                )
-                if proc.returncode == 0:
-                    desc = (proc.stdout or "").strip()
-                    if desc:
-                        return desc
-            except subprocess.TimeoutExpired:
-                pass
-            except Exception:
-                pass
+        from core.tools import read_image  # type: ignore
 
+        desc = str(read_image(path=str(img), prompt=prompt_text) or "").strip()
+        if not desc:
+            raise RuntimeError(f"read_image returned an empty description for {img}")
+        return desc
+
+    def _import_visual_evidence_enabled() -> bool:
+        raw = str(os.environ.get("ATLAS_IMPORT_VISUAL_EVIDENCE", "true") or "true").strip().lower()
+        return raw not in {"0", "false", "no", "off"}
+
+    def _import_visual_evidence_max_pages() -> int:
+        raw = str(os.environ.get("ATLAS_IMPORT_VISUAL_EVIDENCE_MAX_PAGES", "100") or "100").strip()
         try:
-            from core.tools import read_image  # type: ignore
-        except Exception as exc:
-            return f"Image description unavailable: read_image import failed: {exc}"
+            value = int(raw)
+        except ValueError:
+            return 100
+        return max(0, min(value, 100))
+
+    def _import_visual_evidence_scale() -> float:
+        raw = str(os.environ.get("ATLAS_IMPORT_VISUAL_EVIDENCE_SCALE", "2.0") or "2.0").strip()
         try:
-            desc = read_image(path=str(img), prompt=prompt_text)
-            return str(desc or "").strip()
-        except Exception as exc:
-            return f"Image description unavailable: {exc}"
+            value = float(raw)
+        except ValueError:
+            return 2.0
+        return max(1.0, min(value, 4.0))
+
+    def _describe_visual_surface(surface: VisualSurface) -> str:
+        from core.tools import read_image  # type: ignore
+
+        desc = str(read_image(path=str(surface.image_path), prompt=visual_evidence_prompt(surface)) or "").strip()
+        if not desc:
+            raise RuntimeError(f"read_image returned an empty visual evidence description for {surface.image_path}")
+        return desc
 
     def _convert_upload_to_markdown(
         original_path: Path,
         suffix: str,
         dest_dir: Path,
         images_dir: Path,
+        visual_dir: Path,
         stamp: int,
         idx: int,
         basename: str,
-    ) -> tuple[Optional[Path], list[Path], str]:
+    ) -> tuple[Optional[Path], list[Path], list[Path], str]:
         """Convert an uploaded document to Markdown plus extracted images.
 
-        Strategy: try markitdown via subprocess (Python 3.10) first for the
-        text rendering; on failure fall back to the per-format extractor
-        (pymupdf4llm / python-pptx / python-docx). Image extraction always
-        runs the per-format path (PyMuPDF / python-pptx / python-docx) since
-        markitdown does not emit clean image files. Image descriptions are
-        appended at the bottom of the Markdown under '## Extracted Images'.
+        Strategy: use markitdown for document-to-markdown conversion, and
+        return its error directly when it is unavailable. Image extraction
+        still runs the per-format path (PyMuPDF / python-pptx / python-docx)
+        since markitdown does not emit clean image files. Image descriptions
+        are appended at the bottom of the Markdown under '## Extracted Images'.
+        PDF figure pages are rendered and appended under '## Visual Evidence'
+        so vector drawings and page-layout diagrams are visible to image read.
 
-        Returns (md_path, image_paths, error). md_path is None when conversion
-        fails; the caller keeps the saved original regardless.
+        Returns (md_path, image_paths, visual_paths, error). md_path is None
+        when conversion fails; the caller keeps the saved original regardless.
         """
         md_target = dest_dir / f"{stamp}_{idx}_{basename}.md"
         image_paths: list[Path] = []
+        visual_paths: list[Path] = []
+        visual_surfaces: list[VisualSurface] = []
         image_seq = 0
-        image_hashes: dict[str, Path] = {}
 
         def _low_information_import_image_reason(blob: bytes, ext: str) -> str:
             normalized_ext = (ext or "png").lower().lstrip(".")
@@ -8511,26 +8480,11 @@ def create_app():
                 ext = "svg"
             elif not re.match(r"^[A-Za-z0-9]+$", ext):
                 ext = "png"
-            # Collapse byte-identical images to one file. Datasheet PDFs repeat
-            # the same page logo/glyph on every page, so PyMuPDF emits dozens of
-            # identical blobs (one SPI import produced the same 161x65 logo 58x,
-            # 129 files -> 62 unique). Dedup by content hash: write+list the
-            # first occurrence, and have later identical blobs reuse the
-            # canonical path (so inline `![](...)` references still resolve)
-            # without spawning a new file, an extra "Extracted Images" entry, or
-            # a redundant vision-describe call.
-            digest = hashlib.sha1(blob).hexdigest() if blob else None
-            if digest is not None:
-                existing = image_hashes.get(digest)
-                if existing is not None:
-                    return existing
             if filter_noise and _low_information_import_image_reason(blob, ext):
                 return None
             img_path = images_dir / f"{stamp}_{idx}_{n}.{ext}"
             img_path.write_bytes(blob)
             image_paths.append(img_path)
-            if digest is not None:
-                image_hashes[digest] = img_path
             return img_path
 
         def _inline_image_rel(path: Path) -> str:
@@ -8589,16 +8543,29 @@ def create_app():
                 encoding="utf-8",
             )
 
+        def _add_office_visual_surfaces() -> None:
+            if not _import_visual_evidence_enabled():
+                return
+            surfaces = render_office_visual_surfaces(
+                original_path,
+                visual_dir,
+                stamp,
+                idx,
+                max_pages=_import_visual_evidence_max_pages(),
+                scale=_import_visual_evidence_scale(),
+            )
+            visual_surfaces.extend(surfaces)
+            visual_paths.extend(surface.image_path for surface in surfaces)
+
         try:
             if suffix in _SSOT_IMPORT_PASSTHROUGH:
                 text = original_path.read_bytes().decode("utf-8", errors="replace")
                 _write_markdown(text)
-                return md_target, image_paths, ""
 
-            if suffix == ".doc":
-                return None, [], "legacy .doc not supported (save as .docx)"
+            elif suffix == ".doc":
+                return None, [], [], "legacy .doc not supported (save as .docx)"
 
-            if suffix in _SSOT_IMPORT_IMAGE_EXTENSIONS:
+            elif suffix in _SSOT_IMPORT_IMAGE_EXTENSIONS:
                 desc = _describe_image(original_path)
                 try:
                     rel = original_path.relative_to(PROJECT_ROOT).as_posix()
@@ -8618,104 +8585,59 @@ def create_app():
                     encoding="utf-8",
                 )
                 err = desc if desc.startswith("Error:") else ""
-                return md_target, [original_path], err
+                return md_target, [original_path], [], err
 
-            md_written = False
-            mk_err = ""
-            # Converter selection (user picks via Import / Export
-            # dropdown → POST /api/ssot/import/converter → env var).
-            #   markitdown   (default): markitdown only, fall through
-            #                           to per-format extractor on fail.
-            #   cursor-agent          : cursor-agent only, no fallback.
-            #   auto                  : cursor-agent first, markitdown
-            #                           on fail, then per-format.
-            converter = (os.environ.get("ATLAS_IMPORT_CONVERTER", "markitdown") or "markitdown").strip().lower()
-            if converter == "cursor-agent":
-                md_text, mk_err = _cursor_agent_convert(original_path)
-                if not mk_err and md_text:
-                    _write_markdown(md_text)
-                    md_written = True
-            elif converter == "auto":
-                md_text, mk_err = _cursor_agent_convert(original_path)
-                if not mk_err and md_text:
-                    _write_markdown(md_text)
-                    md_written = True
-                else:
-                    md_text, mk_err = _markitdown_convert(original_path)
-                    if not mk_err and md_text:
-                        _write_markdown(md_text)
-                        md_written = True
             else:
                 md_text, mk_err = _markitdown_convert(original_path)
-                if not mk_err and md_text:
-                    _write_markdown(md_text)
-                    md_written = True
-
-            # cursor-agent-only mode: skip per-format extraction so the
-            # user gets a clean error pointing at cursor-agent instead
-            # of silently switching strategies.
-            if converter == "cursor-agent" and not md_written:
-                return None, image_paths, mk_err or "cursor-agent did not produce markdown"
+                if mk_err:
+                    return None, image_paths, visual_paths, mk_err
+                if not md_text:
+                    return None, image_paths, visual_paths, "markitdown produced no markdown output"
+                _write_markdown(md_text)
 
             if suffix == ".pdf":
-                if not md_written:
-                    try:
-                        import pymupdf4llm  # type: ignore
-                        _write_markdown(pymupdf4llm.to_markdown(str(original_path)))
-                        md_written = True
-                    except Exception as exc:
-                        if mk_err:
-                            return None, image_paths, f"{mk_err}; pdf fallback: {exc}"
-                        return None, image_paths, f"pdf convert failed: {exc}"
-                try:
-                    import fitz  # type: ignore
-                    doc = fitz.open(str(original_path))
-                    n = 0
-                    for page in doc:
-                        for img in page.get_images(full=True):
-                            xref = img[0]
-                            extracted = doc.extract_image(xref)
-                            if not extracted or not extracted.get("image"):
-                                continue
-                            n += 1
-                            _write_image(
-                                extracted["image"],
-                                extracted.get("ext") or "png",
-                                n,
-                                filter_noise=True,
-                            )
-                    doc.close()
-                except Exception:
-                    pass
+                import fitz  # type: ignore
+                doc = fitz.open(str(original_path))
+                n = 0
+                for page in doc:
+                    for img in page.get_images(full=True):
+                        xref = img[0]
+                        extracted = doc.extract_image(xref)
+                        if not extracted or not extracted.get("image"):
+                            continue
+                        n += 1
+                        _write_image(
+                            extracted["image"],
+                            extracted.get("ext") or "png",
+                            n,
+                            filter_noise=True,
+                        )
+                doc.close()
+                if _import_visual_evidence_enabled():
+                    surfaces = render_pdf_visual_surfaces(
+                        original_path,
+                        visual_dir,
+                        stamp,
+                        idx,
+                        max_pages=_import_visual_evidence_max_pages(),
+                        scale=_import_visual_evidence_scale(),
+                    )
+                    visual_surfaces.extend(surfaces)
+                    visual_paths.extend(surface.image_path for surface in surfaces)
 
             elif suffix == ".pptx":
                 from pptx import Presentation  # type: ignore
                 from pptx.enum.shapes import MSO_SHAPE_TYPE  # type: ignore
 
                 prs = Presentation(str(original_path))
-                if not md_written:
-                    md_lines: list[str] = []
-                    for slide_idx, slide in enumerate(prs.slides, 1):
-                        md_lines.append(f"## Slide {slide_idx}")
-                        for shape in slide.shapes:
-                            if getattr(shape, "has_text_frame", False):
-                                for para in shape.text_frame.paragraphs:
-                                    line = (para.text or "").strip()
-                                    if line:
-                                        md_lines.append(line)
-                        md_lines.append("")
-                    _write_markdown("\n".join(md_lines))
-                    md_written = True
                 n = 0
                 for slide in prs.slides:
                     for shape in slide.shapes:
                         if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
-                            try:
-                                image = shape.image
-                                n += 1
-                                _write_image(image.blob, image.ext or "png", n, filter_noise=True)
-                            except Exception:
-                                continue
+                            image = shape.image
+                            n += 1
+                            _write_image(image.blob, image.ext or "png", n, filter_noise=True)
+                _add_office_visual_surfaces()
 
             elif suffix == ".docx":
                 from docx import Document  # type: ignore
@@ -8726,12 +8648,9 @@ def create_app():
                     """Render every <w:tbl> in the docx as a Markdown table.
 
                     markitdown frequently flattens .docx tables (loses the
-                    separator row or collapses cells) and the paragraphs-
-                    only fallback below misses them entirely because
-                    python-docx exposes tables on `Document.tables`, not on
-                    `Document.paragraphs`. Re-emit them here so the SSOT
-                    importer always has a faithful copy of register maps,
-                    pin lists, etc.
+                    separator row or collapses cells). Re-emit tables from
+                    `Document.tables` so the SSOT importer keeps register
+                    maps, pin lists, and similar structured evidence.
                     """
                     blocks: list[str] = []
                     for tbl in getattr(d, "tables", []) or []:
@@ -8754,31 +8673,12 @@ def create_app():
 
                 docx_tables_md = _docx_tables_as_markdown(doc)
 
-                if not md_written:
-                    md_lines = []
-                    for para in doc.paragraphs:
-                        style_name = (getattr(para.style, "name", "") or "").strip()
-                        text = (para.text or "").strip()
-                        if not text:
-                            md_lines.append("")
-                            continue
-                        if style_name.startswith("Heading 1"):
-                            md_lines.append(f"# {text}")
-                        elif style_name.startswith("Heading 2"):
-                            md_lines.append(f"## {text}")
-                        elif style_name.startswith("Heading 3"):
-                            md_lines.append(f"### {text}")
-                        else:
-                            md_lines.append(text)
-                    _write_markdown("\n".join(md_lines))
-                    md_written = True
-
                 # Always append the python-docx-rendered tables after the
                 # main body (whether markitdown wrote it or the
-                # paragraphs fallback did). They sit under a "## Source
-                # Tables" heading so downstream consumers can locate them
-                # deterministically even when markitdown silently dropped
-                # the originals.
+                # original document did). They sit under a "## Source Tables"
+                # heading so downstream consumers can locate them
+                # deterministically even when markitdown flattened the
+                # originals.
                 if docx_tables_md:
                     existing = md_target.read_text(encoding="utf-8", errors="replace")
                     if "## Source Tables" not in existing:
@@ -8790,68 +8690,89 @@ def create_app():
                             _fh.write("\n")
 
                 n = 0
-                try:
-                    for rel in doc.part.rels.values():
-                        if "image" in (rel.reltype or ""):
-                            target = rel.target_part
-                            blob = getattr(target, "blob", None)
-                            if not blob:
-                                continue
-                            content_type = getattr(target, "content_type", "") or ""
-                            ext = content_type.split("/")[-1] or "png"
-                            n += 1
-                            _write_image(blob, ext, n, filter_noise=True)
-                except Exception:
-                    pass
-
-            else:
-                if not md_written:
-                    text = original_path.read_bytes().decode("utf-8", errors="replace")
-                    _write_markdown(text)
-                    md_written = True
+                for rel in doc.part.rels.values():
+                    if "image" in (rel.reltype or ""):
+                        target = rel.target_part
+                        blob = getattr(target, "blob", None)
+                        if not blob:
+                            continue
+                        content_type = getattr(target, "content_type", "") or ""
+                        ext = content_type.split("/")[-1] or "png"
+                        n += 1
+                        _write_image(blob, ext, n, filter_noise=True)
+                _add_office_visual_surfaces()
 
             if image_paths:
                 desc_lines = ["", "", "## Extracted Images", ""]
                 from concurrent.futures import ThreadPoolExecutor
-                with ThreadPoolExecutor(max_workers=8) as pool:
+                with ThreadPoolExecutor(max_workers=min(8, len(image_paths))) as pool:
                     descs = list(pool.map(_describe_image, image_paths))
-                for img_path, desc in zip(image_paths, descs):
+                for image_index, img_path in enumerate(image_paths):
                     try:
                         rel = img_path.relative_to(PROJECT_ROOT).as_posix()
                     except ValueError:
                         rel = img_path.as_posix()
                     desc_lines.append(f"### `{rel}`")
-                    desc_text = (desc or "").strip()
-                    # Suppress vision-provider error noise (HTTP 403,
-                    # quota, model-not-enabled, etc.) so the imported
-                    # markdown stays readable. The image file is still
-                    # linked above; the agent can re-describe later if
-                    # vision comes back online.
-                    is_err = (
-                        not desc_text
-                        or desc_text.lower().startswith("error")
-                        or desc_text.lower().startswith("image description unavailable")
-                    )
-                    if is_err:
-                        desc_lines.append("_(image not described — vision provider unavailable)_")
-                    else:
-                        desc_lines.append(desc_text)
+                    desc_text = str(descs[image_index]).strip()
+                    if not desc_text:
+                        raise RuntimeError(f"read_image returned an empty description for {img_path}")
+                    desc_lines.append(desc_text)
                     desc_lines.append("")
                 with open(md_target, "a", encoding="utf-8") as fh:
                     fh.write("\n".join(desc_lines))
 
-            return md_target, image_paths, ""
-        except Exception as exc:
-            return None, image_paths, f"convert failed: {exc}"
+            if visual_surfaces:
+                desc_lines = ["", "", "## Visual Evidence", ""]
+                from concurrent.futures import ThreadPoolExecutor
+                with ThreadPoolExecutor(max_workers=min(4, len(visual_surfaces))) as pool:
+                    descs = list(pool.map(_describe_visual_surface, visual_surfaces))
+                for surface_index, surface in enumerate(visual_surfaces):
+                    try:
+                        source_rel = surface.image_path.relative_to(PROJECT_ROOT).as_posix()
+                    except ValueError:
+                        source_rel = surface.image_path.as_posix()
+                    desc_text = str(descs[surface_index]).strip()
+                    if not desc_text:
+                        raise RuntimeError(
+                            f"read_image returned an empty visual evidence description for {surface.image_path}"
+                    )
+                    title = surface.title or "rendered document page"
+                    labels = {
+                        "pdf_page": "PDF page",
+                        "docx_page": "DOCX page",
+                        "pptx_slide": "PPTX slide",
+                    }
+                    surface_label = labels.get(surface.source_kind, surface.source_kind.replace("_", " "))
+                    desc_lines.append(f"### {surface_label} {surface.page_number} — {title}")
+                    desc_lines.append("")
+                    desc_lines.append(f"Source: `{source_rel}`")
+                    desc_lines.append(f"Reason: {surface.reason}")
+                    desc_lines.append(f"Rendered: ![]({_inline_image_rel(surface.image_path)})")
+                    if surface.text_hint:
+                        desc_lines.append("")
+                        desc_lines.append(f"Text hint: {surface.text_hint}")
+                    desc_lines.append("")
+                    desc_lines.append(desc_text)
+                    desc_lines.append("")
+                with open(md_target, "a", encoding="utf-8") as fh:
+                    fh.write("\n".join(desc_lines))
 
-    _SSOT_IMPORT_CONVERTERS = ("markitdown", "cursor-agent", "auto")
+            return md_target, image_paths, visual_paths, ""
+        except Exception as exc:
+            return None, image_paths, visual_paths, f"convert failed: {exc}"
+
+    _SSOT_IMPORT_CONVERTERS = ("markitdown",)
 
     @app.get("/api/ssot/import/converter")
     async def api_ssot_import_converter_get():
         """Return the active document→markdown converter preference."""
         current = (os.environ.get("ATLAS_IMPORT_CONVERTER", "markitdown") or "markitdown").strip().lower()
         if current not in _SSOT_IMPORT_CONVERTERS:
-            current = "markitdown"
+            return JSONResponse({
+                "ok": False,
+                "error": f"unsupported import converter {current!r}; expected one of {_SSOT_IMPORT_CONVERTERS}",
+                "options": list(_SSOT_IMPORT_CONVERTERS),
+            }, status_code=500)
         return JSONResponse({
             "ok": True,
             "converter": current,
@@ -8860,12 +8781,7 @@ def create_app():
 
     @app.post("/api/ssot/import/converter")
     async def api_ssot_import_converter_set(request: Request):
-        """Set the active document→markdown converter preference.
-
-        Body: {"converter": "markitdown" | "cursor-agent" | "auto"}.
-        Persists into .env via _persist_env_values so the choice
-        survives a backend restart.
-        """
+        """Set the active document→markdown converter preference."""
         try:
             body = await request.json()
         except Exception:
@@ -8947,10 +8863,12 @@ def create_app():
         dest_dir = _ip_root(ip) / "req" / "imports"
         originals_dir = dest_dir / "originals"
         images_dir = dest_dir / "images"
+        visual_dir = dest_dir / "visual"
         try:
             dest_dir.mkdir(parents=True, exist_ok=True)
             originals_dir.mkdir(parents=True, exist_ok=True)
             images_dir.mkdir(parents=True, exist_ok=True)
+            visual_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
             return JSONResponse({"error": f"cannot create import dir: {exc}"}, status_code=500)
 
@@ -8975,9 +8893,9 @@ def create_app():
                 errors.append(f"{filename}: write failed: {exc}")
                 continue
 
-            md_path, image_paths, conv_err = await asyncio.to_thread(
+            md_path, image_paths, visual_paths, conv_err = await asyncio.to_thread(
                 _convert_upload_to_markdown,
-                original_target, suffix, dest_dir, images_dir, stamp, idx, basename,
+                original_target, suffix, dest_dir, images_dir, visual_dir, stamp, idx, basename,
             )
             entry: dict[str, Any] = {
                 "name": filename,
@@ -8987,6 +8905,11 @@ def create_app():
                 "image_paths": [
                     p.relative_to(PROJECT_ROOT).as_posix() for p in image_paths
                 ],
+                "visual_paths": [
+                    p.relative_to(PROJECT_ROOT).as_posix() for p in visual_paths
+                ],
+                "image_count": len(image_paths),
+                "visual_count": len(visual_paths),
             }
             if conv_err:
                 entry["convert_error"] = conv_err
@@ -10988,6 +10911,12 @@ def create_app():
                 parts[3 if len(parts) >= 4 else 2] = workflow
             return _authorize_ws_session("/".join(parts[:4] if len(parts) >= 4 else parts[:3]))
 
+        def _prompt_images_for_bridge(msg: dict) -> list[dict[str, str]]:
+            return [
+                {"image_url": image.image_url, "detail": image.detail}
+                for image in normalize_prompt_images(msg.get("images"))
+            ]
+
         # Identity-driven default: empty / legacy "default" session_id
         # collapses to the user's default namespace. Full
         # <user>/<ip>/<workflow> namespaces are allowed for that user, so
@@ -11083,10 +11012,16 @@ def create_app():
                         "session_id": session.session_id,
                     })
                     continue
-                if t in ("prompt", "send") and msg.get("text"):
-                    _txt = msg["text"].strip()
+                if t in ("prompt", "send"):
+                    _images = _prompt_images_for_bridge(msg)
+                    if not (msg.get("text") or _images):
+                        continue
+                    _txt = str(msg.get("text") or "").strip()
                     _msg_id = str(msg.get("msg_id") or "").strip()
-                    _txt_preview = str(msg.get("text") or "")[:80].replace("\n", " ")
+                    _txt_preview = (
+                        str(msg.get("text") or "")[:80].replace("\n", " ")
+                        or ("[image]" if _images else "")
+                    )
                     _session_raw = str(msg.get("session") or "").strip()
                     _session = session.session_id
                     if _session_raw:
@@ -11159,7 +11094,9 @@ def create_app():
                         # the frontend transport-retry/hold path armed. The bool
                         # submit_prompt_for_session is intentionally left intact
                         # for non-WS callers/tests.
-                        _result = bridge.submit_prompt_result_for_session(session.session_id, _txt)
+                        _result = bridge.submit_prompt_result_for_session(
+                            session.session_id, _txt, images=_images
+                        )
                         delivered = bool(getattr(_result, "ok", False))
                         _submit_ms = (_t.monotonic() - _t0) * 1000.0
                         if delivered and _msg_id:

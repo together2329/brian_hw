@@ -982,7 +982,7 @@ def _responses_api_supports_block_content(base_url: str = None) -> bool:
     base = (base_url or getattr(config, "BASE_URL", "") or "").lower()
     if is_azure_provider() or ".azure.com" in base:
         return True
-    return "api.openai.com" in base
+    return "api.openai.com" in base or "chatgpt.com/backend-api/codex" in base
 
 
 def _flatten_responses_content_to_text(content) -> str:
@@ -3138,7 +3138,10 @@ def _chat_completion_nonstream(messages, stop=None, model=None, skip_rate_limit=
     if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
         processed_messages = copy.deepcopy(messages)
         processed_messages = apply_cache_breakpoints(processed_messages)
-    elif any(isinstance(m.get("content"), list) for m in messages):
+    elif (
+        any(isinstance(m.get("content"), list) for m in messages)
+        and not use_responses_api(model or config.MODEL_NAME)
+    ):
         # Non-Anthropic provider: flatten list-of-blocks content to plain string
         processed_messages = copy.deepcopy(messages)
         for m in processed_messages:
@@ -3655,7 +3658,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
     if config.ENABLE_PROMPT_CACHING and is_anthropic_provider():
         processed_messages = copy.deepcopy(messages)
         processed_messages = apply_cache_breakpoints(processed_messages)
-    elif any(isinstance(m.get("content"), list) for m in messages):
+    elif (
+        any(isinstance(m.get("content"), list) for m in messages)
+        and not use_responses_api(model or config.MODEL_NAME)
+    ):
         # Non-Anthropic provider: flatten list-of-blocks content to plain string
         # (optimized mode builds blocks for Anthropic cache; non-Anthropic needs strings)
         processed_messages = copy.deepcopy(messages)
@@ -3720,7 +3726,10 @@ def chat_completion_stream(messages, stop=None, model=None, skip_rate_limit=Fals
         _is_tool_msg = m.get("role") == "tool"
         _prev_has_tool_calls = bool(_merged[-1].get("tool_calls"))
         _cur_has_tool_calls = bool(m.get("tool_calls"))
+        _prev_content_is_blocks = isinstance(_merged[-1].get("content"), list)
+        _cur_content_is_blocks = isinstance(m.get("content"), list)
         if (not _is_tool_msg and not _prev_has_tool_calls and not _cur_has_tool_calls
+                and not _prev_content_is_blocks and not _cur_content_is_blocks
                 and _merged[-1].get("role") == m.get("role")):
             _merged[-1]["content"] = str(_merged[-1].get("content", "") or "") + "\n\n" + str(m.get("content", ""))
             # Preserve reasoning_content when merging assistant messages

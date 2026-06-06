@@ -38,7 +38,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // default under load; widen the budget (mirrors the render-smoke gate).
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 });
 
-import { render, cleanup, fireEvent, act } from '@testing-library/react';
+import { render, cleanup, fireEvent, act, waitFor } from '@testing-library/react';
 
 // Same load-order bridge the live app + the render-smoke gate rely on:
 // ui-utils.tsx publishes window.CopyBtn / window._copyToClipboard on import, and
@@ -367,6 +367,50 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
       ([url]) => String(url) === '/api/pipeline/orchestrator/chat',
     );
     expect(usedOrchestrator).toBe(false);
+  });
+
+  it('(c-image) an image-only paste sends a prompt with image attachments', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ACTIVE_SESSION = 'alice/myip/rtl_gen';
+    w.ACTIVE_IP = 'myip';
+    bk.setAckMode('accept');
+
+    const { container } = await mountWorkspace();
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+    const file = new File([new Uint8Array([137, 80, 78, 71])], 'clip.png', {
+      type: 'image/png',
+    });
+
+    await act(async () => {
+      fireEvent.paste(textarea, {
+        clipboardData: {
+          items: [{
+            kind: 'file',
+            type: 'image/png',
+            getAsFile: () => file,
+          }],
+          files: [file],
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(container.textContent || '').toContain('clip.png');
+    });
+
+    await act(async () => {
+      fireEvent.keyDown(textarea, { key: 'Enter', code: 'Enter' });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const promptMsg = bk.sent.find((m) => m && m.type === 'prompt');
+    expect(promptMsg).toBeTruthy();
+    expect(promptMsg.text).toBe('');
+    expect(promptMsg.images).toHaveLength(1);
+    expect(promptMsg.images[0].detail).toBe('high');
+    expect(promptMsg.images[0].image_url).toMatch(/^data:image\/png;base64,/);
   });
 
   it('(c2) keeps the composer empty after a fast submit and deferred parent sync expiry', async () => {

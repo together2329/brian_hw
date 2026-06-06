@@ -274,6 +274,7 @@ export function SsotQaBoard({
         if (!target.md_path && item.md_path) target.md_path = item.md_path;
         if (!target.original_path && item.original_path) target.original_path = item.original_path;
         if (!target.image_count && item.image_count) target.image_count = item.image_count;
+        if (!target.visual_count && item.visual_count) target.visual_count = item.visual_count;
         if (item.bytes && (!target.bytes || item.bytes > target.bytes)) target.bytes = item.bytes;
         if (target.pending && !item.pending) {
           target.pending = false;
@@ -322,6 +323,7 @@ export function SsotQaBoard({
       md_path: item.md_path || (String(item.path || '').endsWith('.md') ? item.path : ''),
       original_path: item.original_path || item.path || '',
       image_count: item.image_count || (Array.isArray(item.image_paths) ? item.image_paths.length : 0),
+      visual_count: item.visual_count || (Array.isArray(item.visual_paths) ? item.visual_paths.length : 0),
       pending: false,
       error: !!item.convert_error,
       ts: item.updated_at || item.mtime || idx,
@@ -355,6 +357,7 @@ export function SsotQaBoard({
         md_path: '',
         original_path: '',
         image_count: 0,
+        visual_count: 0,
         pending: true,
         ts: uploadStartedAt + idx,
       }));
@@ -390,6 +393,7 @@ export function SsotQaBoard({
             md_path: s.md_path || '',
             original_path: s.original_path || '',
             image_count: Array.isArray(s.image_paths) ? s.image_paths.length : 0,
+            visual_count: Array.isArray(s.visual_paths) ? s.visual_paths.length : 0,
             pending: false,
             ts: Date.now(),
           })));

@@ -1,10 +1,9 @@
 // workspace-root-session-hook.tsx — the session/workflow/feed/streaming state
 // machine carved out of the Workspace closure (strangler-fig TS split).
 //
-// Workspace in workspace.jsx is a ~5,315-line monolith that cannot fit under the
-// per-file <1000-line ceiling, so the inert TS mirror splits its render body into
-// cohesive custom hooks consumed by workspace-root.tsx. THIS file owns the upper
-// half of that closure: the two-axis intent/workflow mode model, the
+// Workspace used to live in workspace.jsx as a ~5,315-line monolith. The Vite
+// workspace entry now composes cohesive TS hooks from workspace-root.tsx. THIS
+// file owns the upper half of that closure: the two-axis intent/workflow mode model, the
 // workflow-ready overlay timers (begin/dismiss/finish/fail/update), the mobile
 // drawer state, the activeSession + refs cluster, the input-route resolution
 // (setInputRoute / sessionForInputRoute / setOrchestratorInputRoute /
@@ -21,9 +20,8 @@
 // app-session-hook.tsx uses. The hook runs inside Workspace's render context so
 // behavior is identical to the inlined closure.
 //
-// INERT mirror: legacy workspace.jsx still serves the live app. Typed in the
-// permissive house style — window-sourced and dynamically-shaped values are
-// `any` on purpose; do NOT tighten them.
+// Typed in the permissive house style: window-sourced and dynamically-shaped
+// values are `any` on purpose; do NOT tighten them in this migration slice.
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { MutableRefObject, Dispatch, SetStateAction } from 'react';
 // PURE, unit-tested switch-gate (session-machine.test.ts: 16 green). Unlike the
@@ -47,6 +45,7 @@ import {
   workflowFromSession,
   atlasUiOrchestratorMode,
 } from './workspace-session-routing';
+import { toPromptWireImages } from './workspace-prompt-images';
 // NOTE: workspace-async-resource is listed as a permitted sibling import, but
 // this slice references none of its preview-path symbols — those effects belong
 // to the useWorkspaceData hook. No import is emitted here to keep the module
@@ -496,6 +495,10 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     if (!w.backend || typeof w.backend.send !== 'function') {
       return { ok: false, error: 'backend unavailable' };
     }
+    const promptText = typeof text === 'string' ? text : String(text?.text ?? '');
+    const promptImages = typeof text === 'string'
+      ? []
+      : toPromptWireImages(Array.isArray(text?.images) ? text.images : []);
     const activeSessionWorkflow = workflowFromSession(
       w.ACTIVE_SESSION
       || activeSessionRef.current
@@ -648,15 +651,18 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
         }, 7000);
       });
     })();
-    const msg = {
+    const msg: any = {
       type: 'prompt',
       msg_id,
-      text,
+      text: promptText,
       session,
       ip: promptScope,
       workflow: promptWorkflow,
       ui_lang: w.ATLAS_UI_LANG || uiLang,
     };
+    if (promptImages.length) {
+      msg.images = promptImages;
+    }
     try {
       w.backend.send(msg);
     } catch (e: any) {
