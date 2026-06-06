@@ -494,7 +494,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
           fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
         }}
       >chat</span>
-      {showQaTab && workflow === 'ssot-gen' && (
+      {showQaTab && (workflow === 'ssot-gen' || pendingQcard) && (
         <span
           className="tab-chip"
           onClick={() => setMainTab('qa')}

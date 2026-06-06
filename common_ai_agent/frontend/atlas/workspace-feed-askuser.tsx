@@ -162,6 +162,13 @@ export const AskUserQuestionBlock = ({
   const blockSubtitle = block.subtitle || '';
   const blockQuestion = block.question || '';
   const ensureActive = () => onEnsureActive(index);
+  const customSelected = !!blockState.custom;
+  const customBackground = customSelected
+    ? 'color-mix(in oklch, var(--warn) 12%, transparent)'
+    : 'transparent';
+  const customBorderColor = customSelected
+    ? 'var(--warn)'
+    : 'transparent';
   return (
     <div
       key={index}
@@ -230,6 +237,12 @@ export const AskUserQuestionBlock = ({
         {blockOpts.map((o: any, oi: number) => {
           const isSel = o.selected;
           const focused = isActive && selectedIndex === oi;
+          const rowBackground = isSel
+            ? 'color-mix(in oklch, var(--accent) 14%, transparent)'
+            : 'transparent';
+          const rowBorderColor = isSel
+            ? 'var(--accent)'
+            : 'transparent';
           return (
             <div
               key={o.id}
@@ -240,8 +253,8 @@ export const AskUserQuestionBlock = ({
                 alignItems: 'baseline',
                 gap: 6,
                 padding: '4px 8px',
-                background: focused ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-                borderLeft: `2px solid ${focused ? 'var(--accent)' : 'transparent'}`,
+                background: rowBackground,
+                borderLeft: `2px solid ${rowBorderColor}`,
                 cursor: 'pointer',
                 fontFamily: 'var(--mono)',
                 fontSize: 13,
@@ -273,8 +286,8 @@ export const AskUserQuestionBlock = ({
             alignItems: 'baseline',
             gap: 6,
             padding: '4px 8px',
-            background: isActive && selectedIndex === customIdx ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
-            borderLeft: `2px solid ${isActive && selectedIndex === customIdx ? 'var(--accent)' : 'transparent'}`,
+            background: customBackground,
+            borderLeft: `2px solid ${customBorderColor}`,
             cursor: 'text',
             fontFamily: 'var(--mono)',
             fontSize: 13,

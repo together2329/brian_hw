@@ -1520,17 +1520,20 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     [feed, qaState, flowMatchesCurrentSession],
   );
 
-  // Tabbed center layout — auto-switch to Q&A tab when ask_user fires.
   const _qcardActiveFlow = pendingQcard?.flowId || null;
   const _qcardSubmitted = !!(pendingQcard && qaState[pendingQcard.flowId]?.submitted);
+  const lastAutoOpenedQcardFlowRef = useRef<string | null>(null);
   useEffect(() => {
-    if (centerLayout !== 'tabbed') return;
-    if (_qcardActiveFlow && !_qcardSubmitted && mainTab !== 'qa') {
-      setMainTab('qa');
-    } else if (!_qcardActiveFlow && mainTab === 'qa' && workflow !== 'ssot-gen') {
-      setMainTab('chat');
+    if (!_qcardActiveFlow) {
+      lastAutoOpenedQcardFlowRef.current = null;
+      if (mainTab === 'qa' && workflow !== 'ssot-gen') setMainTab('chat');
+      return;
     }
-  }, [centerLayout, mainTab, _qcardActiveFlow, _qcardSubmitted, setMainTab, workflow]);
+    if (!_qcardSubmitted && lastAutoOpenedQcardFlowRef.current !== _qcardActiveFlow) {
+      lastAutoOpenedQcardFlowRef.current = _qcardActiveFlow;
+      if (mainTab !== 'qa') setMainTab('qa');
+    }
+  }, [mainTab, _qcardActiveFlow, _qcardSubmitted, setMainTab, workflow]);
 
   const [askSel, setAskSel] = useState<number>(0);
 
@@ -1873,7 +1876,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           { kind: 'qcard', flowId: built.flowId, createdAt: Date.now(), live: true },
         ]);
       });
-      if (centerLayout === 'tabbed') setMainTab('qa');
+      setMainTab('qa');
       requestFeedScrollToBottom();
     });
     const closePending = (message: any) => {
@@ -1894,7 +1897,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     };
   }, [
     activateAskUserSession,
-    centerLayout,
     eventMatchesCurrentSession,
     feedRef,
     liveFeedStartedRef,

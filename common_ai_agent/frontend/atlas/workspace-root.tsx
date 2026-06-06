@@ -253,7 +253,6 @@ export const Workspace = ({
     previewPath, setPreviewPath,
     gitShow, setGitShow,
     openFile, setOpenFile,
-    centerLayout,
     // tab visibility flags
     showSimSummaryTab,
     showDebugTab,
@@ -895,24 +894,7 @@ export const Workspace = ({
               </div>
             );
           })()}
-          {/* Bottom prompt area — four rendering modes (see legacy comment). */}
-          {pendingQcard && centerLayout === 'classic' && mainTab !== 'qa' ? (
-            <AskUserPrompt
-              flowId={pendingQcard.flowId}
-              state={qaState[pendingQcard.flowId]}
-              sel={askSel}
-              intent={intent}
-              onSel={setAskSel}
-              onToggle={toggleOpt}
-              onCustom={setCustom}
-              onSubmit={submitCard}
-              onChat={() => { setAskSel(0); inputRef.current?.focus(); }}
-              onSetTab={setActiveTab}
-              onAdvance={advanceBatchedQuestion}
-            />
-          ) : pendingQcard && centerLayout === 'classic' && mainTab === 'qa' ? (
-            renderPromptRow()
-          ) : pendingQcard && centerLayout === 'tabbed' && mainTab !== 'qa' ? (
+          {pendingQcard && mainTab !== 'qa' ? (
             <>
               <div
                 onClick={() => setMainTab('qa')}
@@ -937,8 +919,6 @@ export const Workspace = ({
               </div>
               {renderPromptRow()}
             </>
-          ) : pendingQcard && centerLayout === 'tabbed' && mainTab === 'qa' ? (
-            renderPromptRow() /* AskUserPrompt is rendered inside the tab body above */
           ) : (
             renderPromptRow()
           )}

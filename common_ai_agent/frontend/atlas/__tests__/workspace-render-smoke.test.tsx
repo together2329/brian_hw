@@ -1089,7 +1089,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
   it('surfaces ask_user websocket events as a pending Q&A prompt', async () => {
     const { Workspace } = await import('../workspace.tsx');
-    const { getByTestId } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const { container, getByTestId, getByText, queryByTestId } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
     const backend = (window as AnyWindow).backend;
 
     await act(async () => {
@@ -1104,8 +1104,16 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     await waitFor(() => {
       expect(getByTestId('ask-prompt-stub').textContent).toContain('flow-ask-1');
     });
+    expect(getByText('Q&A Session')).toBeTruthy();
+    expect(container.querySelector('textarea')).not.toBeNull();
     expect(getByTestId('ask-prompt-stub').textContent).toContain('ready');
     expect((window as AnyWindow).QA_FLOWS['flow-ask-1'].question).toBe('Pick an implementation path?');
+
+    fireEvent.click(getByText('chat'));
+    await waitFor(() => {
+      expect(queryByTestId('ask-prompt-stub')).toBeNull();
+    });
+    expect(getByText(/Agent is waiting on you/)).toBeTruthy();
   });
 
   it('ignores NUL-only stream tokens so keepalives do not create blank running turns', async () => {
