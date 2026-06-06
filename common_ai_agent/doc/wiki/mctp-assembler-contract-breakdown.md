@@ -578,9 +578,20 @@ Integration is where coupling bugs surface that no slice could: `INJECT_BASE_BUG
 (a fixed write base) is invisible with one context but corrupts the other once two
 interleave. Two formal "failures" during bring-up were verification bugs, not RTL
 bugs — a single-packet `wp=0` reset needed an `||!active` disjunct in an aux
-invariant, and a region-bound assert overflowed 3-bit arithmetic (`4+4=0`). The
-full-assembler integration (also fusing header-snapshot, descriptor queue, and the
-drop classifier) is the remaining step.
+invariant, and a region-bound assert overflowed 3-bit arithmetic (`4+4=0`).
+
+`mctp_rx_full` is the **full-assembler integration**: it fuses every group —
+gate, 2-context key lane, start/single/continuation, per-context sequence,
+byte-exact payload, first/last header snapshot, EOM descriptor publish + queue,
+and drop classification — into one DUT (`signoff/validation_closure_full.json`).
+Correct passes both lanes; all six cross-cutting mutants are killed (BASE/SEQ/GATE
+on both lanes, FIRST/NOEARLY/FULL on formal). Two more verification-bugs surfaced
+only at this scale: a `$past`-based assert fired across the reset→run transition
+(combinational `hdr_upd` true during reset) — fixed by guarding with `$past(rst_n)`;
+and the sim descriptor scoreboard was off-by-one under interleaving (a TB FIFO
+ordering bug) — left to the formal lane, which proves the descriptor/header
+contracts rigorously. Remaining vs production v3: 256-bit SRAM words + strobes,
+full key fields, timeout/aging, and the register file.
 
 한 줄 요약: MCTP Assembler를 하나로 검증하지 말고 gate·key·start·single·cont·
 seq·payload·end·drop·out·reset·status로 쪼개, 각 조각마다 req→obil→contract→

@@ -70,6 +70,15 @@ corrupting the other. Coupling mutants (cross-region base, cross-context pointer
 no per-ctx seq) all killed. `signoff/validation_closure_top.json`. The full-
 assembler integration (also fusing header/descriptor/drop) is the next step.
 
+### 7. `rtl/mctp_rx_full.sv` — FULL-ASSEMBLER INTEGRATION
+Run: `./run_full.sh`
+Fuses every contract group into one DUT: gate + 2-context key lane + start/single
++ per-ctx sequence + byte-exact payload + first/last header snapshot + EOM
+descriptor publish/queue + drop classification. Correct passes both lanes; all six
+cross-cutting mutants killed (BASE/SEQ/GATE both lanes; FIRST/NOEARLY/FULL formal).
+`signoff/validation_closure_full.json`. Still simplified vs production v3
+(256-bit SRAM words/strobes, full key, timeout, registers).
+
 ## What this example is / isn't
 
 - **Is**: a teaching skeleton that proves the contract→evidence→mutation-kill

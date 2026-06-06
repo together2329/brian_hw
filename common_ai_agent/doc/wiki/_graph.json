@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T10:59:36Z",
+  "generated_at": "2026-06-06T12:00:37Z",
   "root": "doc/wiki",
   "node_count": 149,
   "edge_count": 705,
@@ -3059,9 +3059,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added the first INTEGRATION (`examples/mctp_contract_slice/rtl/mctp_rx_top.sv`) and an Integration section in [[mctp-assembler-contract-breakdown]]. It fuses multi-context + byte-exact payload + per-context sequence into one DUT and proves, by interleaved end-to-end sim and symbolic formal (anyconst over both context and byte index), that two contexts'…",
+      "summary": "- Added the FULL-ASSEMBLER integration (`examples/mctp_contract_slice/rtl/mctp_rx_full.sv`): every proven contract group fused into one DUT — gate, 2-context key lane, start/single, per-context sequence, byte-exact payload, first/last header snapshot, EOM descriptor publish + queue, and drop classification. Correct passes verilator + sby/z3 (formal proves…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 113615
+      "size_bytes": 114573
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3114,7 +3114,7 @@
       "updated": "2026-06-06",
       "summary": "This is the central implementation direction for MCTP assembler work, and the concrete worked instance of [[locked-truth-concept]], [[contract-reflection-workflow]], and [[llm-contract-repair-loop]].",
       "path": "doc/wiki/mctp-assembler-contract-breakdown.md",
-      "size_bytes": 26524
+      "size_bytes": 27342
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",

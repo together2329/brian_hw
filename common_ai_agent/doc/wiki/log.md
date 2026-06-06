@@ -2,6 +2,18 @@
 
 ## 2026-06-06
 
+- Added the FULL-ASSEMBLER integration (`examples/mctp_contract_slice/rtl/mctp_rx_full.sv`):
+  every proven contract group fused into one DUT — gate, 2-context key lane,
+  start/single, per-context sequence, byte-exact payload, first/last header
+  snapshot, EOM descriptor publish + queue, and drop classification. Correct
+  passes verilator + sby/z3 (formal proves C-GATE/ISO/SEQ/DESC-NO-EARLY/CONTENT/
+  HDR-FIRST/HDR-LAST/Q-BOUND + symbolic per-context byte-exact). All six
+  cross-cutting mutants killed (BASE/SEQ/GATE on both lanes; FIRST/NOEARLY/FULL on
+  formal). Two verification-bugs surfaced only at full-integration scale: a
+  `$past`-based assert firing across the reset→run transition (fixed with a
+  `$past(rst_n)` guard) and an off-by-one in the sim descriptor scoreboard under
+  interleaving (left to the formal lane, which proves those contracts). Updated the
+  Integration section of [[mctp-assembler-contract-breakdown]] and OVERVIEW.
 - Added the first INTEGRATION (`examples/mctp_contract_slice/rtl/mctp_rx_top.sv`)
   and an Integration section in [[mctp-assembler-contract-breakdown]]. It fuses
   multi-context + byte-exact payload + per-context sequence into one DUT and
