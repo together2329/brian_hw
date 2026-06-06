@@ -1,6 +1,6 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T10:23:41Z",
+  "generated_at": "2026-06-06T10:59:36Z",
   "root": "doc/wiki",
   "node_count": 149,
   "edge_count": 705,
@@ -3059,9 +3059,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Reflected v3 drop classification (§10.1/§10.2/§10.3) in [[mctp-assembler-contract-breakdown]] with a worked module (`examples/mctp_contract_slice/rtl/mctp_drop_classifier.sv`): 14-step drop priority + packet-vs-assembly class proven across verilator + sby/z3, all three mutants (priority, class boundary, any) killed. Updated the v3 reflection map (PAYLOAD…",
+      "summary": "- Added the first INTEGRATION (`examples/mctp_contract_slice/rtl/mctp_rx_top.sv`) and an Integration section in [[mctp-assembler-contract-breakdown]]. It fuses multi-context + byte-exact payload + per-context sequence into one DUT and proves, by interleaved end-to-end sim and symbolic formal (anyconst over both context and byte index), that two contexts'…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 112416
+      "size_bytes": 113615
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3114,7 +3114,7 @@
       "updated": "2026-06-06",
       "summary": "This is the central implementation direction for MCTP assembler work, and the concrete worked instance of [[locked-truth-concept]], [[contract-reflection-workflow]], and [[llm-contract-repair-loop]].",
       "path": "doc/wiki/mctp-assembler-contract-breakdown.md",
-      "size_bytes": 25546
+      "size_bytes": 26524
     },
     {
       "id": "mctp-assembler-scratch-flow-20260531",

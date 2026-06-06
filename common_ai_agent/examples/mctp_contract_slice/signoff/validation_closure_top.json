@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "type": "validation_closure",
+  "ip": "mctp_rx_top",
+  "deep_dive": "INTEGRATION: multi-context x byte-exact payload x per-context sequence",
+  "why": "the real coupling neither slice proved alone — two contexts' packets interleave while each writes byte-exact payload into its own SRAM region without corrupting the other",
+  "integrates": ["mctp_rx_mc (context isolation)", "mctp_rx_payload (byte-exact)", "per-context mod-4 sequence"],
+  "lanes": ["verilator-5.046 --assert interleaved end-to-end scoreboard", "SymbiYosys + Yosys + z3"],
+  "correct_design": { "verilator": "PASS", "formal": "PASS (k-induction)" },
+  "contracts": [
+    { "id": "C-INT-BYTE (symbolic, per-ctx region)", "mutant": "INJECT_BASE_BUG (ignore context base -> ctx1 writes ctx0 region)", "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-INT-ISO + cross-ptr",                  "mutant": "INJECT_XCTX_BUG (ctx1 activity bumps ctx0 pointer)",          "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-INT-SEQ",                              "mutant": "INJECT_SEQ_BUG (ignore per-context sequence)",                "verilator": "FAIL", "formal": "FAIL", "killed": true }
+  ],
+  "key_proof": "symbolic (ctx, index) byte-exact: byte j of context c lands at mem[c*REGION+j] regardless of the other context's interleaved writes (anyconst over both ctx and index)",
+  "status": "closed",
+  "lessons": [
+    "Integration exposed coupling the slices could not: BASE_BUG (a fixed write base) is invisible with one context but corrupts the other once two contexts interleave — exactly the kind of bug unit slices miss.",
+    "Two formal false-failures were verification bugs, not RTL bugs: (1) a single-packet message resets wp=0 so the aux `f_k<f_cwp` needed an `||!active` disjunct; (2) the region upper-bound assert overflowed 3-bit arithmetic (4+4=0) — fixed with `<= base+(REGION-1)`.",
+    "Per-context sequence is caught by sim directly; a one-line formal assert (OOS continuation -> no payload write) makes formal catch it too."
+  ],
+  "caveats": [
+    "Focused integration of three contract groups; header-snapshot, descriptor queue, and the drop-priority classifier are not yet fused into this top (separate slices). The full-assembler integration (all groups in one DUT) is the next step.",
+    "CONTEXT_COUNT=2, REGION=4, one payload byte per packet; context lane = pkt_ctx (key%2 in the real IP)."
+  ]
+}

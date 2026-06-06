@@ -2,6 +2,21 @@
 
 ## 2026-06-06
 
+- Added the first INTEGRATION (`examples/mctp_contract_slice/rtl/mctp_rx_top.sv`)
+  and an Integration section in [[mctp-assembler-contract-breakdown]]. It fuses
+  multi-context + byte-exact payload + per-context sequence into one DUT and
+  proves, by interleaved end-to-end sim and symbolic formal (anyconst over both
+  context and byte index), that two contexts' packets interleave while each writes
+  byte-exact payload into its own SRAM region without corruption. All three
+  coupling mutants killed (cross-region base, cross-context pointer, no per-ctx
+  seq). Integration surfaced a coupling bug class slices miss (a fixed write base
+  is invisible with one context); two formal "failures" were verification bugs
+  (single-packet wp=0 aux, 3-bit overflow in a region-bound assert), not RTL bugs.
+  Also marked descriptor/header-snapshot done in the v3 reflection map; remaining:
+  timeout/aging, register file, and the full-assembler integration.
+- Reflected the descriptor + first/last TLP header-snapshot queue (§9.3/§9.5) as
+  `mctp_rx_descriptor` (no descriptor before EOM, first set only by SOM, last =
+  most recent accepted, queue-full = drop); five mutants killed across sim+formal.
 - Reflected v3 drop classification (§10.1/§10.2/§10.3) in
   [[mctp-assembler-contract-breakdown]] with a worked module
   (`examples/mctp_contract_slice/rtl/mctp_drop_classifier.sv`): 14-step drop

@@ -559,12 +559,28 @@ so reflect the *requirements* (§7–§14), not v3's thin obligation set. The §
 "Formal Verification Candidates" list maps directly onto this formal approach.
 Done so far: KEY/START/SEQ (`mctp_rx_mc`), SRAM byte-exact payload
 (`mctp_rx_payload`, symbolic-byte), drop priority + packet/assembly class
-(`mctp_drop_classifier`). Remaining deep-dives: descriptor publish +
-first/last TLP header-snapshot queue, timeout/aging, and the register file.
+(`mctp_drop_classifier`), descriptor publish + first/last header-snapshot queue
+(`mctp_rx_descriptor`). Remaining: timeout/aging and the register file.
 
 The drop-classifier closure also re-confirmed a lane lesson: the `ANY` mutant
 (ignoring the timeout reason) only fires when exactly the timeout bit is set
 alone — random sim missed it, formal caught it. Run multiple lanes.
+
+## Integration (not just slices)
+
+The pieces above are slice-level unit/contract proofs. `mctp_rx_top` is the first
+**integration**: it fuses multi-context + byte-exact payload + per-context
+sequence into one DUT and proves, end-to-end (sim) and by symbolic formal, that
+two contexts' packets can interleave while each writes byte-exact payload into its
+own SRAM region without corrupting the other (`signoff/validation_closure_top.json`).
+
+Integration is where coupling bugs surface that no slice could: `INJECT_BASE_BUG`
+(a fixed write base) is invisible with one context but corrupts the other once two
+interleave. Two formal "failures" during bring-up were verification bugs, not RTL
+bugs — a single-packet `wp=0` reset needed an `||!active` disjunct in an aux
+invariant, and a region-bound assert overflowed 3-bit arithmetic (`4+4=0`). The
+full-assembler integration (also fusing header-snapshot, descriptor queue, and the
+drop classifier) is the remaining step.
 
 한 줄 요약: MCTP Assembler를 하나로 검증하지 말고 gate·key·start·single·cont·
 seq·payload·end·drop·out·reset·status로 쪼개, 각 조각마다 req→obil→contract→

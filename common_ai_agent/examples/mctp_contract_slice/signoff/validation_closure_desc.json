@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type": "validation_closure",
+  "ip": "mctp_rx_descriptor",
+  "deep_dive": "descriptor publish + first/last TLP header-snapshot queue (reflects v3 §9.3/§9.5, §14)",
+  "lanes": ["verilator-5.046 --assert structured-message scoreboard", "SymbiYosys + Yosys + z3"],
+  "correct_design": { "verilator": "PASS", "formal": "PASS" },
+  "contracts": [
+    { "id": "C-DESC-NO-EARLY", "claim": "no descriptor published before EOM",                         "mutant": "INJECT_NOEARLY_BUG", "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-HDR-FIRST",     "claim": "first_hdr written only by the SOM packet",                   "mutant": "INJECT_FIRST_BUG",   "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-HDR-LAST",      "claim": "last_hdr equals the most recent accepted packet",            "mutant": "INJECT_LAST_BUG",    "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-DESC-CONTENT",  "claim": "published descriptor carries the right first/last/len",      "mutant": "INJECT_CONTENT_BUG", "verilator": "FAIL", "formal": "FAIL", "killed": true },
+    { "id": "C-DESC-FULL",     "claim": "descriptor queue never overflows (full EOM -> drop)",        "mutant": "INJECT_FULL_BUG",    "verilator": "FAIL", "formal": "FAIL", "killed": true }
+  ],
+  "status": "closed",
+  "lesson": "A TB timing bug (reading registered outputs right after @(posedge), before the NBA latch settled) made the correct design appear to fail in sim; a #1 after the edge fixed it. Verification-bug, not RTL-bug.",
+  "caveats": ["Single context, 8-bit header proxy, DEPTH-2 descriptor queue."]
+}

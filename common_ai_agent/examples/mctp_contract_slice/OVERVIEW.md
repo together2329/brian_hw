@@ -61,6 +61,15 @@ assembly drops. Formal proves the priority/class policy for all input
 combinations. Note: the `ANY` mutant slips past random sim but is caught by formal
 (needs the rare timeout-bit-alone input). Result: `signoff/validation_closure_drop.json`.
 
+### 6. `rtl/mctp_rx_top.sv` — INTEGRATION (not a slice)
+Run: `./run_top.sh`
+Fuses multi-context + byte-exact payload + per-context sequence into one DUT.
+Proves (end-to-end interleaved sim + symbolic formal) that two contexts' packets
+interleave while each writes byte-exact payload into its own SRAM region without
+corrupting the other. Coupling mutants (cross-region base, cross-context pointer,
+no per-ctx seq) all killed. `signoff/validation_closure_top.json`. The full-
+assembler integration (also fusing header/descriptor/drop) is the next step.
+
 ## What this example is / isn't
 
 - **Is**: a teaching skeleton that proves the contract→evidence→mutation-kill
