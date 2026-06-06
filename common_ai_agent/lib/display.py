@@ -1368,11 +1368,13 @@ def _extract_tool_args_summary(tool_name: str, args_str) -> str:
             parts.append(f'in {path}')
         return ' '.join(parts) if parts else args_str[:60]
 
-    # Extract command for run_command
+    # Extract command for run_command — return the FULL command. The chat card
+    # renders run_command with showFullArgsByDefault + pre-wrap, so it wraps the
+    # whole command; truncating here to 60 chars hid what was actually run.
     if tool_name == 'run_command':
         cmd = _get_val(r'(?:command\s*=\s*)?', args_str)
         if cmd:
-            return cmd[:60] + ('...' if len(cmd) > 60 else '')
+            return cmd
 
     # Extract agent + prompt for background_task
     if tool_name == 'background_task':

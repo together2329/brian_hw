@@ -361,6 +361,19 @@ class TestDisplayArgSummary(unittest.TestCase):
         self.assertIn("10", result)
         self.assertIn("20", result)
 
+    def test_run_command_returns_full_command_not_truncated(self):
+        # The chat card wraps run_command args; the summary must carry the whole
+        # command so the user can see exactly what ran (was truncated to 60).
+        from lib.display import _extract_tool_args_summary
+        cmd = (
+            'python3 "$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py" '
+            '"$ATLAS_ACTIVE_IP" --root "$ATLAS_PROJECT_ROOT" --review-candidate'
+        )
+        result = _extract_tool_args_summary("run_command", {"command": cmd})
+        self.assertIn("check_locked_truth_bundle.py", result)
+        self.assertIn("--review-candidate", result)
+        self.assertNotIn("...", result)
+
 
 if __name__ == "__main__":
     unittest.main()
