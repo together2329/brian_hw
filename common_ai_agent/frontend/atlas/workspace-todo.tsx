@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useState, type CSSProperties, type ReactNode } from 'react';
 import { TodoEditorRow } from './workspace-todo-edit-row';
+import { TodoGraph } from './workspace-todo-graph';
 import {
   TODO_EDITOR_STATES,
   isTodoRecord,
@@ -171,6 +172,8 @@ export const TodoEditorPane = ({ intent = 'normal' }: { readonly intent?: string
         <TodoReadableList todos={todos} openId={openId} onOpenIdChange={setOpenId} />
       ) : view === 'detail' ? (
         <TodoReadableDetail todos={todos} />
+      ) : view === 'graph' ? (
+        <TodoGraph todos={todos} openId={openId} setOpenId={setOpenId} />
       ) : (
         <div style={{ display: 'grid', gap: 16 }}>
           <div className="digest-card" style={{

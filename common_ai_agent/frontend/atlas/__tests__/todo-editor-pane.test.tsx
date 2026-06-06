@@ -25,6 +25,16 @@ const todos = [
     approvedReason: 'Browser QA confirmed immediate switch.',
     rejectionReason: '',
     notes: [],
+    command: 'python3 workflow/req-gen/scripts/check_locked_truth_bundle.py timer_new_concept',
+    onReject: 1,
+    commandLogs: [{
+      cmd: 'python3 workflow/req-gen/scripts/check_locked_truth_bundle.py timer_new_concept',
+      ok: true,
+      tail: 'locked truth bundle valid',
+      log_file: 'command_logs/task_2_gate_1.log',
+      lines: 12,
+      elapsed: 0.42,
+    }],
   },
 ];
 
@@ -63,6 +73,17 @@ describe('TodoEditorPane readable modes', () => {
 
     expect(screen.getByText(/Confirm frontend switch is visible/i)).toBeVisible();
     expect(screen.getByText(/Browser QA confirmed immediate switch/i)).toBeVisible();
+    expect(screen.getByText('Command Gate')).toBeVisible();
+    expect(screen.getByText(/check_locked_truth_bundle.py timer_new_concept/i)).toBeVisible();
+    expect(screen.getByText(/On Reject: Task #1/i)).toBeVisible();
+    expect(screen.getByText(/locked truth bundle valid/i)).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: /^graph$/i }));
+
+    expect(screen.getByText(/TODO FLOW/i)).toBeVisible();
+    expect(screen.getByText('next')).toBeVisible();
+    expect(screen.getByText('reject')).toBeVisible();
+    expect(screen.getByText('CMD')).toBeVisible();
 
     fireEvent.click(screen.getByRole('button', { name: /^edit$/i }));
 

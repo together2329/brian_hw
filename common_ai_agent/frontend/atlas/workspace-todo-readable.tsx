@@ -1,16 +1,20 @@
 import type { ReactNode } from 'react';
 import { atlasStatusMeta } from './workspace-report-status';
 import {
+  todoCommandLogs,
+  todoCommandText,
   todoCriteriaLines,
   todoDetail,
   todoId,
   todoNotes,
   todoState,
+  todoTargetLabel,
   todoTitle,
+  type TodoCommandLog,
   type TodoRecord,
 } from './workspace-todo-model';
 
-export type TodoViewMode = 'list' | 'detail' | 'edit';
+export type TodoViewMode = 'list' | 'detail' | 'graph' | 'edit';
 
 type TodoViewTabsProps = {
   readonly view: TodoViewMode;
@@ -27,7 +31,7 @@ type TodoReadableDetailProps = {
   readonly todos: readonly TodoRecord[];
 };
 
-const viewModes: readonly TodoViewMode[] = ['list', 'detail', 'edit'];
+const viewModes: readonly TodoViewMode[] = ['list', 'detail', 'graph', 'edit'];
 
 export const TodoViewTabs = ({ view, onChange }: TodoViewTabsProps): ReactNode => (
   <div style={{ display: 'inline-flex', border: '1px solid var(--line)', borderRadius: 3, overflow: 'hidden' }}>
@@ -161,13 +165,74 @@ const TodoStatus = ({ status }: { readonly status: string }): ReactNode => {
 const TodoReadableBody = ({ todo }: { readonly todo: TodoRecord }): ReactNode => {
   const criteria = todoCriteriaLines(todo);
   const notes = todoNotes(todo);
+  const command = todoCommandText(todo);
+  const logs = todoCommandLogs(todo);
   return (
     <div style={{ display: 'grid', gap: 12, color: 'var(--fg-dim)', lineHeight: 1.6 }}>
       <TodoTextBlock label="Detail" value={todoDetail(todo) || '(no detail)'} />
+      {command ? <TodoCommandBlock todo={todo} command={command} logs={logs} /> : null}
       <TodoListBlock label="Criteria" lines={criteria.length ? criteria : ['(no criteria)']} />
       {todo.approvedReason ? <TodoTextBlock label="Approved Reason" value={todo.approvedReason} /> : null}
       {todo.rejectionReason ? <TodoTextBlock label="Rejected Reason" value={todo.rejectionReason} /> : null}
       {notes.length ? <TodoListBlock label="To Do Note" lines={notes} accent /> : null}
+    </div>
+  );
+};
+
+const TodoCommandBlock = ({ todo, command, logs }: {
+  readonly todo: TodoRecord;
+  readonly command: string;
+  readonly logs: readonly TodoCommandLog[];
+}): ReactNode => {
+  const onReject = todoTargetLabel(todo.onReject);
+  const onSuccess = todoTargetLabel(todo.onSuccess);
+  const latestLog = logs.length ? logs[logs.length - 1] : undefined;
+  return (
+    <div>
+      <TodoLabel>Command Gate</TodoLabel>
+      <div style={{
+        border: '1px solid color-mix(in oklch, var(--accent) 45%, var(--line))',
+        borderRadius: 3,
+        background: 'color-mix(in oklch, var(--accent) 8%, transparent)',
+        color: 'var(--fg)',
+        display: 'grid',
+        fontFamily: 'var(--mono)',
+        gap: 6,
+        lineHeight: 1.45,
+        padding: '8px 10px',
+        whiteSpace: 'pre-wrap',
+        overflowWrap: 'anywhere',
+      }}>
+        <div>{command}</div>
+        {onReject || onSuccess ? (
+          <div style={{ color: 'var(--fg-mute)', fontSize: 'var(--ui-control-font-size)' }}>
+            {onReject ? `On Reject: ${onReject}` : ''}
+            {onReject && onSuccess ? ' · ' : ''}
+            {onSuccess ? `On Success: ${onSuccess}` : ''}
+          </div>
+        ) : null}
+        {latestLog ? <TodoCommandLogLine log={latestLog} count={logs.length} /> : null}
+      </div>
+    </div>
+  );
+};
+
+const TodoCommandLogLine = ({ log, count }: {
+  readonly log: TodoCommandLog;
+  readonly count: number;
+}): ReactNode => {
+  const ok = Boolean(log.ok);
+  const logPath = String(log.log_file ?? log.logFile ?? '').trim();
+  const tail = String(log.tail ?? '').trim();
+  const lines = Number(log.lines ?? 0);
+  const elapsed = Number(log.elapsed ?? 0);
+  return (
+    <div style={{ color: ok ? 'var(--ok)' : 'var(--err)', fontSize: 'var(--ui-control-font-size)' }}>
+      {ok ? 'PASS' : 'FAIL'} · run {count}
+      {Number.isFinite(lines) && lines > 0 ? ` · ${lines} lines` : ''}
+      {Number.isFinite(elapsed) && elapsed > 0 ? ` · ${elapsed}s` : ''}
+      {logPath ? ` · ${logPath}` : ''}
+      {tail ? <div style={{ color: 'var(--fg-mute)', marginTop: 3 }}>{tail}</div> : null}
     </div>
   );
 };

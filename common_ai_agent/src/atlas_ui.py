@@ -5433,6 +5433,19 @@ def create_app():
                 tracker.add_todos(tasks)
                 tracker.template_lock_additions = bool(template.get("lock_additions", True))
                 tracker.template_name = tmpl_name
+                # Auto-start: the pending→in_progress transition is normally an
+                # LLM-driven todo_update tool call. If the model never makes that
+                # first call (writes prose, works off-ledger, or forgets) the task
+                # stays pending and the no-action watchdog stops the loop. Seed the
+                # first task to in_progress here so the runtime — not the model —
+                # owns the first transition. Per-template opt-in; global kill switch.
+                _auto_start = (
+                    bool(template.get("auto_start", False))
+                    and os.getenv("ATLAS_DISABLE_TODO_AUTO_START", "").strip().lower()
+                    not in ("1", "true", "yes")
+                )
+                if _auto_start and tracker.todos:
+                    tracker.mark_in_progress(0)
                 tracker.save()
                 bind_errors = _bind_live_tracker_to_session(session_key, todo_path, tracker)
                 if bool(template.get("lock_additions", True)):
@@ -5455,8 +5468,31 @@ def create_app():
                     + (
                         "\nTodo runtime bind warning: " + "; ".join(bind_errors)
                         if bind_errors else ""
-                    ),
+                    )
+                    + ("\nAuto-start: driving task 1 now." if _auto_start else ""),
                 )
+                # Auto-start kick: enqueue a worker turn so the loop drives the
+                # plan without waiting for a user message. Reuses the proven
+                # INJECT_PROMPT path (bridge.submit_prompt_for_session). The
+                # worker reads the session todo.json (task 1 already in_progress)
+                # and advances through the tasks.
+                if _auto_start:
+                    _auto_prompt = str(template.get("auto_start_prompt", "") or "").strip() or (
+                        "Begin executing the loaded TODO plan now. Task 1 is "
+                        "already in_progress — drive it to completion with real "
+                        "tool actions, then review and continue through the "
+                        "remaining tasks. Do not wait for further confirmation."
+                    )
+                    try:
+                        bridge.submit_prompt_for_session(
+                            client_session.session_id, _auto_prompt
+                        )
+                        client_session.emit("agent_state", running=True)
+                    except Exception as _auto_exc:
+                        _emit_slash_output(
+                            client_session,
+                            f"Auto-start kick failed (load succeeded): {_auto_exc}",
+                        )
             except ValueError:
                 _emit_slash_output(
                     client_session,

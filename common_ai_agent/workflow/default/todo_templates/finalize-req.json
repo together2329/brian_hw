@@ -2,6 +2,8 @@
   "name": "finalize-req",
   "description": "Review and validate requirement JSON as a human-review candidate without locking.",
   "lock_additions": true,
+  "auto_start": true,
+  "auto_start_prompt": "Begin executing the loaded TODO plan now. Task 1 is already in_progress — review and repair the req/*.json files with real tool actions, then let the review-candidate gate command run, then produce the handoff summary. This produces a human-review candidate only; do NOT lock or approve. Do not wait for further confirmation.",
   "tasks": [
     {
       "content": "[REQ] Quality review and repair review candidate",

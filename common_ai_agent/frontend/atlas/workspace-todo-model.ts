@@ -14,6 +14,21 @@ export type TodoRecord = {
   readonly notes?: readonly unknown[];
   readonly deps?: readonly unknown[];
   readonly section?: string;
+  readonly command?: unknown;
+  readonly onReject?: unknown;
+  readonly onSuccess?: unknown;
+  readonly onCondition?: readonly unknown[];
+  readonly commandLogs?: readonly TodoCommandLog[];
+};
+
+export type TodoCommandLog = {
+  readonly cmd?: unknown;
+  readonly ok?: unknown;
+  readonly tail?: unknown;
+  readonly log_file?: unknown;
+  readonly logFile?: unknown;
+  readonly lines?: unknown;
+  readonly elapsed?: unknown;
 };
 
 export type TodoSaveFields = {
@@ -64,4 +79,21 @@ export const todoNotes = (todo: TodoRecord): readonly string[] => (
 
 export const todoDeps = (todo: TodoRecord): readonly string[] => (
   Array.isArray(todo.deps) ? todo.deps.map(dep => String(dep ?? '').trim()).filter(Boolean) : []
+);
+
+export const todoCommandText = (todo: TodoRecord): string => {
+  const command = todo.command;
+  if (!command) return '';
+  if (typeof command === 'string') return command.trim();
+  const encoded = JSON.stringify(command);
+  return typeof encoded === 'string' ? encoded : String(command);
+};
+
+export const todoTargetLabel = (value: unknown): string => {
+  const target = Number(value);
+  return Number.isInteger(target) && target > 0 ? `Task #${target}` : '';
+};
+
+export const todoCommandLogs = (todo: TodoRecord): readonly TodoCommandLog[] => (
+  Array.isArray(todo.commandLogs) ? todo.commandLogs : []
 );
