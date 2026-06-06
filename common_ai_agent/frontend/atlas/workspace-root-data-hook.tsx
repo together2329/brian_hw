@@ -758,6 +758,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const [slashCommands, setSlashCommands] = useState<any[]>(() => (
     Array.isArray(w.SLASH_COMMANDS) ? w.SLASH_COMMANDS : []
   ));
+  const slashCommandRefreshRef = useRef({ inFlight: false, lastMs: 0 });
 
   const replaceInputHistory = useCallback((items: any) => {
     const cleaned = cleanInputHistory(items, INPUT_HISTORY_LIMIT);
@@ -1771,6 +1772,25 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     if (atQuery) { setShowAt(true); setAtSel(0); }
     else setShowAt(false);
   }, [input, atQuery && atQuery.parentAbs, atQuery && atQuery.filter]);
+
+  useEffect(() => {
+    if (!/^\/[^\s]*$/.test(input)) return;
+    const atlasData = w.atlasData || {};
+    if (typeof atlasData.refreshSlashCommands !== 'function') return;
+    const now = Date.now();
+    const state = slashCommandRefreshRef.current;
+    if (state.inFlight || now - state.lastMs < 1500) return;
+    state.inFlight = true;
+    state.lastMs = now;
+    Promise.resolve(atlasData.refreshSlashCommands())
+      .catch((e: unknown) => {
+        w.SLASH_COMMANDS_ERROR = e instanceof Error ? e.message : String(e);
+        window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
+      })
+      .finally(() => {
+        state.inFlight = false;
+      });
+  }, [input]);
 
   useEffect(() => {
     const refreshSlashCommands = () => {

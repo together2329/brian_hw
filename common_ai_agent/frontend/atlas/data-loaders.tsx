@@ -510,11 +510,21 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
   }
 
   async function refreshSlashCommands(): Promise<void> {
+    w.SLASH_COMMANDS_LOADING = true;
+    w.SLASH_COMMANDS_ERROR = '';
+    window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
     try {
-      const r = await fetch('/api/commands');
-      if (!r.ok) return;
+      const r = await fetch('/api/commands', { cache: 'no-store', credentials: 'include' });
+      if (!r.ok) {
+        w.SLASH_COMMANDS_ERROR = `HTTP ${r.status}`;
+        return;
+      }
       const d = await r.json();
       const cmds = Array.isArray(d.commands) ? d.commands : [];
+      if (!cmds.length) {
+        w.SLASH_COMMANDS_ERROR = 'empty command registry';
+        return;
+      }
       if (cmds.length) {
         // Map the API shape ({cmd, name, aliases, hint, usage}) to the
         // shape workspace.jsx's slash dropdown expects. The renderer
@@ -559,9 +569,15 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
         }
         live.sort((a: any, b: any) => a.cmd.localeCompare(b.cmd));
         w.SLASH_COMMANDS = live;
+        w.SLASH_COMMANDS_ERROR = '';
         window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
       }
-    } catch (e) { /* keep built-in fallbacks */ }
+    } catch (e) {
+      w.SLASH_COMMANDS_ERROR = e instanceof Error ? e.message : String(e);
+    } finally {
+      w.SLASH_COMMANDS_LOADING = false;
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
+    }
   }
 
   async function refreshSsotList(): Promise<void> {

@@ -51,6 +51,13 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
     window.IP_OPTIONS = fallback;
   };
 
+  const refreshSlashCommandsAfterAuth = () => {
+    const atlasData = (window as any).atlasData;
+    if (atlasData && typeof atlasData.refreshSlashCommands === 'function') {
+      void atlasData.refreshSlashCommands();
+    }
+  };
+
   useEffect(() => {
     const onAuthRequired = () => {
       setBootSteps(s => (s.ws === 'fail' ? s : { ...s, ws: 'fail' }));
@@ -107,6 +114,7 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           setActiveNamespace(recoveredNs);
           setActiveIp(recoveredParts.ipId || WORKFLOW_DEFAULT);
           setAuthState('authed');
+          refreshSlashCommandsAfterAuth();
           setBootSteps(s => (s.ws === 'fail' ? { ...s, ws: 'pending' } : s));
 
           if (window.backend) {
@@ -258,6 +266,7 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           try { localStorage.setItem('atlasUserSessionId', user.username); } catch (_) {}
         }
         setAuthState('authed');
+        refreshSlashCommandsAfterAuth();
       })
       .catch(() => { if (!cancelled) setAuthState('unauth'); });
     return () => { cancelled = true; };

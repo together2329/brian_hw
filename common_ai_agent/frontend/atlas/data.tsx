@@ -88,6 +88,8 @@ const w = window as any;
     { cmd: '/memory', alias: 'mem', hint: "show or edit this user's prompt memory rules" },
     { cmd: '/feedback', alias: 'fb', hint: '(client) send admin-visible feedback: /feedback <message>' },
   ];
+  w.SLASH_COMMANDS_LOADING = false;
+  w.SLASH_COMMANDS_ERROR = '';
 
   // Workflow stage badges. Seed the canonical IP flow immediately so the
   // left workflow rail is visible even before /api/workspaces returns.

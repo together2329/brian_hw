@@ -344,6 +344,34 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     }));
   });
 
+  it('refreshes live slash commands when command completion opens', async () => {
+    const w = window as AnyWindow;
+    w.SLASH_COMMANDS = [
+      { cmd: '/help', alias: 'h', hint: 'show available commands', desc: 'show available commands' },
+    ];
+    w.atlasData.refreshSlashCommands = vi.fn(async () => {
+      w.SLASH_COMMANDS = [
+        {
+          cmd: '/locked-truth-finalize',
+          alias: 'lo',
+          aliases: ['truth-lock', 'lock-truth'],
+          hint: 'finalize locked truth files',
+          desc: 'finalize locked truth files',
+        },
+      ];
+      window.dispatchEvent(new CustomEvent('atlas-data-changed', { detail: 'SLASH_COMMANDS' }));
+    });
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { container, queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const textarea = container.querySelector('textarea') as HTMLTextAreaElement;
+
+    fireEvent.change(textarea, { target: { value: '/lo' } });
+
+    await waitFor(() => expect(w.atlasData.refreshSlashCommands).toHaveBeenCalled());
+    await waitFor(() => expect(queryByText('/locked-truth-finalize')).not.toBeNull());
+  });
+
   it('renders the center chat stream pane (renderChatPane resolved to a real fn)', async () => {
     const { Workspace } = await import('../workspace.tsx');
     const { container } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
