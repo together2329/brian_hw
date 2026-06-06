@@ -9284,6 +9284,63 @@ def create_app():
             headers={"Content-Disposition": f'{disposition}; filename="{filename}"'},
         )
 
+    @app.get("/api/req/export")
+    async def api_req_export(
+        request: Request,
+        ip: str,
+        format: str = "html",
+        variant: str = "full",
+        inline: bool = False,
+        session_id: str = "",
+        session: str = "",
+    ):
+        """Export the per-IP REQ bundle as one human-reviewable HTML document.
+
+        Companion to /api/ssot/export (the DOC tab). Aggregates the locked-truth
+        bundle — requirements, obligations, contract, evidence, approval/lock —
+        read-only and streams the rendered HTML into the REQ tab iframe. The
+        rendered file is written to <ip>/doc/<ip>_req.html (same convention as
+        the SSOT export); no IP source artifacts are modified.
+        """
+        fmt = (format or "html").strip().lower()
+        if fmt != "html":
+            return JSONResponse({"error": f"invalid format {format!r}"}, status_code=400)
+        if variant not in {"full", "core4"}:
+            return JSONResponse({"error": f"invalid variant {variant!r}"}, status_code=400)
+        if not _valid_ip_name(ip):
+            return JSONResponse({"error": f"invalid ip {ip!r}"}, status_code=400)
+        context, context_error = _ssot_context_for_session(session_id or session)
+        if context_error is not None:
+            return context_error
+        denied = _ssot_context_denied(request, context, ip)
+        if denied is not None:
+            return denied
+        ip_root = _ssot_ip_root_for_context(ip, context)
+        if not ip_root.is_dir():
+            return JSONResponse({"error": f"ip root not found for {ip!r}"}, status_code=404)
+        out_dir = ip_root / "doc"
+        try:
+            out_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            return JSONResponse({"error": f"cannot create doc dir: {exc}"}, status_code=500)
+        out_path = out_dir / f"{ip}_req.html"
+        try:
+            from src.atlas_req_export import req_html_for_ip
+
+            html_text = req_html_for_ip(ip_root, ip, variant=variant)
+            out_path.write_text(html_text, encoding="utf-8")
+        except Exception as exc:
+            return JSONResponse({"error": f"render failed: {exc}"}, status_code=500)
+
+        filename = f"{ip}_req.html"
+        disposition = "inline" if inline else "attachment"
+        return FileResponse(
+            str(out_path),
+            media_type="text/html; charset=utf-8",
+            filename=filename,
+            headers={"Content-Disposition": f'{disposition}; filename="{filename}"'},
+        )
+
     @app.post("/api/ssot/validate")
     async def api_ssot_validate(request: Request):
         """Run the disk-truth SSOT validator for one IP.
