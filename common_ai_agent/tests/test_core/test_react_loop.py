@@ -662,6 +662,65 @@ class TestRunReactAgentImpl(unittest.TestCase):
         self.assertTrue(todo_update_results)
         self.assertNotIn("no tools were called", todo_update_results[0])
 
+    def test_final_answer_does_not_close_open_todo(self):
+        """A final-answer string must not bypass unfinished execution TODOs."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from lib.todo_tracker import TodoTracker
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "finish real worker task",
+                "status": "in_progress",
+                "detail": "Use tools before reporting done.",
+                "criteria": "task reaches approved through todo_update",
+            }])
+            todo_tracker.current_index = 0
+            todo_tracker.save()
+
+            calls = {"count": 0}
+            prompts = []
+            emitted = []
+
+            def premature_final(messages, stop=None, **kwargs):
+                calls["count"] += 1
+                prompts.append(messages[-1].get("content", ""))
+                yield "Final Answer: done without approving todo."
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_NO_ACTION_GUARD=True,
+                EXECUTION_NO_ACTION_RETRY_LIMIT=1,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=premature_final,
+                detect_completion_fn=lambda text: "Final Answer:" in text,
+                emit_content_fn=lambda line: emitted.append(line),
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "continue"}]
+            tracker = self._make_tracker(max_iter=3)
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertEqual(todo_tracker.todos[0].status, "in_progress")
+        self.assertGreaterEqual(calls["count"], 2)
+        self.assertTrue(any("Runtime guard: execution response had no Action" in p for p in prompts))
+        rendered = "\n".join(str(line) for line in emitted)
+        self.assertIn("Runtime guard nudged execution", rendered)
+        self.assertIn("execution no-action guard", rendered)
+
     def test_stop_paused_chat_suppression_skips_todo_guard_once(self):
         """After STOP, casual chat should not be forced through the TODO guard."""
         from core.react_loop import run_react_agent_impl

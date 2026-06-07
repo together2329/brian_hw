@@ -1719,111 +1719,55 @@ def run_react_agent_impl(
                 if deps.emit_tool_fn: deps.emit_tool_fn("▶ todo_write  Auto-parsed from markdown plan")
                 print(_fmt_result(observation, "todo_write"))
 
-        # Completion signal check — when the model emitted a "done"
-        # signal AND no actions are queued, end the iteration. We DO
-        # NOT gate on todo state any more (that left the loop hanging
-        # whenever a todo got stuck at 'pending' or 'in_progress').
-        # Instead, on exit we auto-resolve every leftover todo so the
-        # next read of the tracker is consistent:
-        #   completed   → approved   (agent finished it)
-        #   in_progress → approved   (agent declared the turn done)
-        #   pending     → stays pending (CRIT-4: user must explicitly
-        #                                  approve; auto-approving hid
-        #                                  unfinished work from view)
-        #   approved/rejected stay as-is.
+        # Completion signal check — when the model emitted a "done" signal
+        # AND no actions are queued, end only if no executable TODO work
+        # remains. A `Final Answer:` while a task is still pending,
+        # in_progress, completed, or rejected is just a text-only/no-action
+        # response and must fall through to the execution guard below.
         if not actions and deps.detect_completion_fn(collected_content):
-            if todo_tracker and todo_tracker.todos:
-                _resolved = {"completed": 0, "in_progress": 0, "pending": 0}
-                for _t in todo_tracker.todos:
-                    _from = _t.status
-                    if _from == "completed":
-                        _t.status = "approved"
-                        if not _t.approved_reason:
-                            _t.approved_reason = "agent emitted completion signal"
-                        _resolved["completed"] += 1
-                    elif _from == "in_progress":
-                        _t.status = "approved"
-                        if not _t.approved_reason:
-                            _t.approved_reason = (
-                                "agent emitted completion signal while in-progress"
+            if _todo_has_open_items(todo_tracker):
+                # Do not auto-resolve open TODOs from a final-answer string.
+                # The no-action branch below will nudge or stop with a clear
+                # unfinished-task reason, preserving the tracker as truth.
+                pass
+            else:
+                # Build a prominent loop-end block matching the iteration
+                # header's visual rhythm. Old "Ending ReAct loop." was dim
+                # gray and easy to miss between repeated `── Iter N / 1000`
+                # lines; user couldn't tell from the terminal log when the
+                # agent had actually stopped.
+                _todo_count = len(todo_tracker.todos) if todo_tracker else 0
+                _approved   = sum(1 for t in (todo_tracker.todos if todo_tracker else [])
+                                    if t.status == "approved")
+                _rejected   = sum(1 for t in (todo_tracker.todos if todo_tracker else [])
+                                    if t.status == "rejected")
+                _iters      = tracker.current + 1
+                _max_iters  = tracker.max_iterations
+                _todo_str   = (f"{_approved}/{_todo_count} approved"
+                               + (f", {_rejected} rejected" if _rejected else "")) \
+                              if _todo_count else "no todos"
+                _bar = "═" * 63
+                _block = (
+                    f"\n{Color.GREEN}{_bar}\n"
+                    f"✓ LOOP ENDED · {_iters}/{_max_iters} iterations · {_todo_str}\n"
+                    f"{_bar}{Color.RESET}\n"
+                )
+                print(_block, flush=True)
+                # Surface in chat too (Atlas + Textual TUI) — silent stdout
+                # exit was confusing.
+                if deps.emit_content_fn:
+                    try:
+                        if _todo_count:
+                            deps.emit_content_fn(
+                                f"✓ Loop ended — agent finished. "
+                                f"Todos: {_approved} approved, {_rejected} rejected, "
+                                f"{_todo_count - _approved - _rejected} other."
                             )
-                        _resolved["in_progress"] += 1
-                    elif _from == "pending":
-                        # CRIT-4: Do NOT auto-approve pending todos.
-                        # They stay pending so the user can see what was
-                        # left undone and decide what to do next.
-                        pass
-                try:
-                    todo_tracker.save()
-                except Exception:
-                    pass
-                if deps.emit_todo_fn:
-                    try:
-                        deps.emit_todo_fn(todo_tracker.format_simple())
+                        else:
+                            deps.emit_content_fn("✓ Loop ended — agent finished.")
                     except Exception:
                         pass
-                # Surface a one-line summary so the user can see what
-                # was left undone. Skip when nothing actually moved.
-                if any(_resolved.values()) and deps.emit_content_fn:
-                    _summary_parts = []
-                    if _resolved["completed"]:
-                        _summary_parts.append(
-                            f"{_resolved['completed']} completed→approved"
-                        )
-                    if _resolved["in_progress"]:
-                        _summary_parts.append(
-                            f"{_resolved['in_progress']} in-progress→approved"
-                        )
-                    _pending_left = sum(
-                        1 for _t in todo_tracker.todos if _t.status == "pending"
-                    )
-                    if _pending_left:
-                        _summary_parts.append(
-                            f"{_pending_left} pending (left as-is)"
-                        )
-                    try:
-                        deps.emit_content_fn(
-                            "[Todo wrap-up] " + " · ".join(_summary_parts)
-                        )
-                    except Exception:
-                        pass
-            # Build a prominent loop-end block matching the iteration
-            # header's visual rhythm. Old "Ending ReAct loop." was dim
-            # gray and easy to miss between repeated `── Iter N / 1000`
-            # lines; user couldn't tell from the terminal log when the
-            # agent had actually stopped.
-            _todo_count = len(todo_tracker.todos) if todo_tracker else 0
-            _approved   = sum(1 for t in (todo_tracker.todos if todo_tracker else [])
-                                if t.status == "approved")
-            _rejected   = sum(1 for t in (todo_tracker.todos if todo_tracker else [])
-                                if t.status == "rejected")
-            _iters      = tracker.current + 1
-            _max_iters  = tracker.max_iterations
-            _todo_str   = (f"{_approved}/{_todo_count} approved"
-                           + (f", {_rejected} rejected" if _rejected else "")) \
-                          if _todo_count else "no todos"
-            _bar = "═" * 63
-            _block = (
-                f"\n{Color.GREEN}{_bar}\n"
-                f"✓ LOOP ENDED · {_iters}/{_max_iters} iterations · {_todo_str}\n"
-                f"{_bar}{Color.RESET}\n"
-            )
-            print(_block, flush=True)
-            # Surface in chat too (Atlas + Textual TUI) — silent stdout
-            # exit was confusing.
-            if deps.emit_content_fn:
-                try:
-                    if _todo_count:
-                        deps.emit_content_fn(
-                            f"✓ Loop ended — agent finished. "
-                            f"Todos: {_approved} approved, {_rejected} rejected, "
-                            f"{_todo_count - _approved - _rejected} other."
-                        )
-                    else:
-                        deps.emit_content_fn("✓ Loop ended — agent finished.")
-                except Exception:
-                    pass
-            break
+                break
 
         # Hallucinated Observation check (legacy ReAct mode only — native mode never
         # outputs "Observation:" text, so this check is a safe no-op there)
