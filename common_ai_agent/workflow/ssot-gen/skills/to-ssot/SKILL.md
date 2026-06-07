@@ -38,6 +38,10 @@ When `<ip>/req/approval_manifest.json` exists:
   top-level `authority:` key because the canonical SSOT top-level section set is
   fixed.
 - Add projection coverage under `traceability.locked_truth_projection`.
+- `traceability.locked_truth_projection.requirements`,
+  `.obligations`, and `.contract_refs` must include **every** locked ID from the
+  corresponding req JSON file. Do not put only the IDs you happened to use in
+  one section.
 - Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to
   important Design Spec items.
 
@@ -57,9 +61,9 @@ custom:
 
 traceability:
   locked_truth_projection:
-    requirements: ["REQ_..."]
-    obligations: ["OBL_..."]
-    contract_refs: ["C_..."]
+    requirements: ["REQ_..."]     # every ID from req/requirements_index.json
+    obligations: ["OBL_..."]      # every ID from req/obligations.json
+    contract_refs: ["C_..."]      # every ID from req/contract_refs.json
 ```
 
 For section items, use this shape:
@@ -78,7 +82,9 @@ evidence_refs:
 Existing sections remain valuable. Do not replace `io_list`, `registers`,
 `function_model`, `cycle_model`, `test_requirements`, or `quality_gates` with a
 single requirement table. Instead, project the locked truth into those sections
-and preserve the trace.
+and preserve the trace. The full locked text remains in `req/`; the SSOT should
+use IDs and source-backed design fields rather than duplicating every
+requirement sentence verbatim.
 
 If SSOT validation reports missing Preview fields while a locked truth bundle
 exists, treat that as a projection gap, not as an immediate user-interview gap.
@@ -171,7 +177,7 @@ enrichment instead of rewriting the whole SSOT:
    executable item must include `id`, `content`, `detail`, `command`, `script`,
    `instructions`, `criteria`, `source_refs`, `priority`, and `required`.
    Use `command` for the ATLAS slash entrypoint (`/to-ssot <ip>`,
-   `/ssot-rtl <ip>`, `/ssot-tb <ip>`) and `script` for the deterministic
+   `/gen-rtl <ip>`, `/ssot-tb <ip>`) and `script` for the deterministic
    workflow script that validates or expands that handoff. The todo detail and
    instructions must be IP-specific and source-backed; do not leave generic
    template text when import evidence exists. When Locked Truth exists,
@@ -212,8 +218,10 @@ enrichment instead of rewriting the whole SSOT:
   first run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`,
    then run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
    `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
-   `<ip>/req/ssot_validation.json`. If `<ip>/req/approval_manifest.json`
-   exists, also run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/check_design_spec_trace.py" <ip> --root "$ATLAS_PROJECT_ROOT"`.
+   `<ip>/req/ssot_validation.json`. When Locked Truth is active, this verifier
+   also gates that every req/obligation/contract ID appears in
+   `traceability.locked_truth_projection` and that
+   `custom.locked_truth_authority.bundle_sha256` matches the manifest.
    If validation fails, fix the YAML and rerun. Do not run RTL/TB generators
    from ssot-gen.
 9. **Summary.** After writing, list:
@@ -222,7 +230,7 @@ enrichment instead of rewriting the whole SSOT:
   - which sections came from conversation vs. template defaults
   - any `# TODO: confirm` lines that need follow-up
   - whether validation passed
-10. **Suggest next steps.** Use `/ssot-rtl <ip>` after the SSOT validates,
+10. **Suggest next steps.** Use `/gen-rtl <ip>` after the SSOT validates,
   or another `/grill-me` round if blocking behavioral fields are missing.
 
 ## Bounded execution rule

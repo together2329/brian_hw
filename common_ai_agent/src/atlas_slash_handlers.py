@@ -646,12 +646,14 @@ def make_slash_handlers(
             "Workflow TODO contract:\n"
             "  - Preserve and enrich `workflow_todos.<stage>[]` as the executable handoff list.\n"
             "  - Every workflow_todos item you add or keep must include: `id`, `content`, `detail`, `command`, `script`, `instructions`, `criteria`, `source_refs`, `priority`, and `required`.\n"
-            f"  - `command` is the ATLAS slash command (for example `/to-ssot {ip}`, `/ssot-rtl {ip}`, `/ssot-tb {ip}`).\n"
+            f"  - `command` is the ATLAS slash command (for example `/to-ssot {ip}`, `/gen-rtl {ip}`, `/ssot-tb {ip}`).\n"
             "  - `script` is the deterministic workflow script that validates or expands that handoff (for example `$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py`).\n"
             "  - `instructions` must be IP-specific and source-backed; do not leave generic template language when imported evidence is available.\n\n"
             "Rules for the write:\n"
             "  - Derive missing SSOT Preview fields from locked requirements, obligations, contract_refs, and evidence_plan before asking the user.\n"
             "  - Map req/obligation/contract facts into canonical Design Spec sections: purpose -> top_module.description; interface obligations -> io_list.interfaces[].ports[]; register obligations -> registers.register_list[]; reset obligations -> clock_reset_domains; interrupt obligations -> interrupts; evidence_plan -> test_requirements.scenarios[] and quality_gates.\n"
+            "  - When locked truth is active, add `custom.locked_truth_authority` with `approval_manifest: req/approval_manifest.json`, the exact manifest `bundle_sha256`, and projected_files for requirements_index/obligations/contract_refs/evidence_plan.\n"
+            "  - Add `traceability.locked_truth_projection.requirements`, `.obligations`, and `.contract_refs` containing every ID from the corresponding req JSON file. Use IDs as the SSOT trace backbone; do not duplicate all locked-truth prose as a substitute.\n"
             "  - If locked truth does not specify memory blocks, FSMs, child submodules, DFT, power, or security behavior, add an explicit no-memory/no-FSM/external-owner/non-goal policy with source_refs instead of leaving TBD.\n"
             "  - Do NOT stamp a 33-section template; do NOT invent behavior beyond req/. Do NOT use placeholder strings like '(TBD)' as a shortcut. If a fact is truly absent from locked truth and affects RTL behavior, record a focused blocker/assumption in `custom.assumptions` or `[SSOT QUESTION]`.\n"
             f"  - Do not copy DMA/AXI example content from `{WORKFLOW_ROOT / 'ssot-gen' / 'rules' / 'ssot-template.yaml'}`. The template is a schema/order reference only; imported evidence and Q&A are the behavior source.\n"
@@ -1186,7 +1188,7 @@ def make_slash_handlers(
             if surface.rtl_blocked:
                 # surface.message already contains the [SSOT QUESTION] /
                 # rtl_blocked.json explanation in the chat; skip the
-                # separate structured RTL Blocker Q&A panel so /ssot-rtl
+                # separate structured RTL Blocker Q&A panel so /gen-rtl
                 # stops short with a single readable message.
                 return True
             for prompt in surface.queue_prompts:
@@ -1433,7 +1435,7 @@ def make_slash_handlers(
                 parts += [
                     f"blocker: {blocked_doc.get('reason') or 'SSOT decision required'}",
                     f"evidence: {ip}/rtl/rtl_blocked.json",
-                    f"next: {blocked_doc.get('next_action') or 'answer SSOT questions and rerun /ssot-rtl'}",
+                    f"next: {blocked_doc.get('next_action') or 'answer SSOT questions and rerun /gen-rtl'}",
                 ]
                 questions = blocked_doc.get("questions") if isinstance(blocked_doc.get("questions"), list) else []
                 if questions:

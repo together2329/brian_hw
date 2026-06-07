@@ -17,7 +17,7 @@
 #   1. Copy this template: cp rules/ssot-template.yaml <ip>/yaml/<ip>_ssot.yaml
 #   2. Fill in all sections (LLM-assisted)
 #   3. Validate: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering
-#   4. Handoff: /ssot-rtl, /ssot-tb, sim_debug, coverage/EDA workflows
+#   4. Handoff: /gen-rtl, /ssot-tb, sim_debug, coverage/EDA workflows
 # =============================================================================
 
 # =============================================================================
@@ -786,6 +786,7 @@ custom:
     kind: "locked_truth_projection"
     approval_manifest: "req/approval_manifest.json"
     bundle_sha256: "<approval_manifest.bundle_sha256>"
+    rule: "When Locked Truth is active, this metadata must match req/approval_manifest.json exactly; Design Spec is a projection, not the authority."
     projected_files:
       - "req/requirements_index.json"
       - "req/obligations.json"
@@ -938,9 +939,9 @@ quality_gates:
 # =============================================================================
 traceability:
   locked_truth_projection:
-    requirements: ["REQ_<ID>"]
-    obligations: ["OBL_<ID>"]
-    contract_refs: ["C_<ID>"]
+    requirements: ["REQ_<ID>"]     # every locked ID from req/requirements_index.json
+    obligations: ["OBL_<ID>"]      # every locked ID from req/obligations.json
+    contract_refs: ["C_<ID>"]      # every locked ID from req/contract_refs.json
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
     - { yaml: "parameters", output: "<ip>_param.vh (shared parameter include, no package)" }
@@ -999,7 +1000,7 @@ workflow_todos:
     - id: "RTL_TODO_EXAMPLE"
       content: "Implement the SSOT-declared transaction pipeline"
       detail: "Translate function_model transaction acceptance, cycle_model timing, and ownership refs into RTL state/datapath/control logic."
-      command: "/ssot-rtl <ip>"
+      command: "/gen-rtl <ip>"
       script: "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py"
       run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl"
       instructions:
@@ -1031,7 +1032,7 @@ generation_flow:
     - { name: "verify_ssot", command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, function_model, cycle_model, DV plan, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "fl-model-gen writes FunctionalModel, decomposition, and FCOV plan from SSOT" }
     - { name: "handoff_equivalence_goals", command: "/ssot-equiv-goals <ip>", description: "fl-model-gen derives FL-vs-RTL equivalence goals for TB scoreboards and sim_debug" }
-    - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
+    - { name: "handoff_rtl", command: "/gen-rtl <ip>", description: "rtl-gen writes RTL directly from the SSOT and proves compile/lint gates" }
     - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "tb-gen writes pyuvm/cocotb tests, runs simulation, emits results XML, VCD, and functional coverage" }
     - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "sim_debug inspects waveform, failures, coverage evidence, and escalation ownership" }
     - { name: "handoff_coverage", command: "/coverage <ip>", description: "coverage workflow measures SSOT-declared functional/code/toggle/FSM/assertion goals" }

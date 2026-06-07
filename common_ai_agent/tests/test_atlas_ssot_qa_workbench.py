@@ -573,6 +573,163 @@ test_requirements:
     assert any("locked requirement-specific" in item["fix"] for item in report["blockers"])
 
 
+def test_verify_ssot_script_requires_complete_locked_truth_projection(tmp_path):
+    ip = "locked_projection_ip"
+    req_dir = tmp_path / ip / "req"
+    ssot_path = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
+    req_dir.mkdir(parents=True)
+    ssot_path.parent.mkdir(parents=True)
+
+    (req_dir / "approval_manifest.json").write_text(
+        json.dumps(
+            {
+                "type": "locked_truth_approval_manifest",
+                "ip": ip,
+                "status": "requirements_locked",
+                "bundle_sha256": "abc123",
+                "requirements": [
+                    {"requirement_id": "REQ_A", "required": True, "status": "locked"},
+                    {"requirement_id": "REQ_B", "required": True, "status": "locked"},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (req_dir / "requirements_index.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "requirements": [
+                    {"requirement_id": "REQ_A", "required": True, "status": "locked"},
+                    {"requirement_id": "REQ_B", "required": True, "status": "locked"},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (req_dir / "obligations.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "obligations": [
+                    {"obligation_id": "OBL_A", "requirement_refs": ["REQ_A"]},
+                    {"obligation_id": "OBL_B", "requirement_refs": ["REQ_B"]},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (req_dir / "contract_refs.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "contract_refs": [
+                    {"contract_ref_id": "C_A", "obligation_refs": ["OBL_A"]},
+                    {"contract_ref_id": "C_B", "obligation_refs": ["OBL_B"]},
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def write_ssot(requirements: str, obligations: str, contracts: str) -> None:
+        ssot_path.write_text(
+            f"""
+top_module:
+  name: {ip}
+  description: locked projection test
+io_list:
+  interfaces:
+    - name: control
+      type: custom
+      ports:
+        - {{ name: clk, direction: input, width: 1, description: clock }}
+function_model:
+  transactions:
+    - id: FM_READ
+      name: read
+      description: read transaction
+custom:
+  locked_truth_authority:
+    kind: locked_truth_projection
+    approval_manifest: req/approval_manifest.json
+    bundle_sha256: abc123
+    projected_files:
+      - req/requirements_index.json
+      - req/obligations.json
+      - req/contract_refs.json
+      - req/evidence_plan.json
+traceability:
+  locked_truth_projection:
+    requirements: {requirements}
+    obligations: {obligations}
+    contract_refs: {contracts}
+""".strip()
+            + "\n",
+            encoding="utf-8",
+        )
+
+    write_ssot("[REQ_A]", "[OBL_A]", "[C_A]")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(VERIFY_SSOT_SCRIPT),
+            ip,
+            "--root",
+            str(tmp_path),
+            "--mode",
+            "starter",
+            "--preview",
+            "off",
+            "--skip-disk-check",
+        ],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 1
+    assert "locked-truth projection is missing" in result.stdout
+    report = json.loads((req_dir / "ssot_validation.json").read_text(encoding="utf-8"))
+    blockers = report["blockers"]
+    assert any(item["id"] == "ssot.locked_truth_projection_incomplete" for item in blockers)
+    assert report["locked_truth_projection"]["missing"]["requirements"] == ["REQ_B"]
+    assert report["locked_truth_projection"]["missing"]["obligations"] == ["OBL_B"]
+    assert report["locked_truth_projection"]["missing"]["contract_refs"] == ["C_B"]
+
+    write_ssot("[REQ_A, REQ_B]", "[OBL_A, OBL_B]", "[C_A, C_B]")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(VERIFY_SSOT_SCRIPT),
+            ip,
+            "--root",
+            str(tmp_path),
+            "--mode",
+            "starter",
+            "--preview",
+            "off",
+            "--skip-disk-check",
+        ],
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        capture_output=True,
+        timeout=30,
+    )
+
+    assert result.returncode == 0, result.stdout
+    report = json.loads((req_dir / "ssot_validation.json").read_text(encoding="utf-8"))
+    assert report["blockers"] == []
+    assert report["locked_truth_projection"]["expected_counts"] == {
+        "requirements": 2,
+        "obligations": 2,
+        "contract_refs": 2,
+    }
+
+
 def test_repair_ssot_removes_stale_locked_truth_markers_when_real_rules_exist(tmp_path):
     ip = "locked_marker_repaired_ip"
     req_dir = tmp_path / ip / "req"

@@ -199,6 +199,42 @@ def _load_yaml(path: Path) -> tuple[Any, list[dict[str, str]]]:
         ]
 
 
+def _load_json(path: Path) -> tuple[dict[str, Any] | None, list[dict[str, str]]]:
+    if not path.is_file():
+        return None, [
+            _issue(
+                "blocker",
+                "ssot.locked_truth_bundle_missing",
+                str(path),
+                f"Locked Truth projection gate needs {path.name}, but it is missing.",
+                "Run /lock-req or repair the locked req bundle before /to-ssot validation.",
+            )
+        ]
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return None, [
+            _issue(
+                "blocker",
+                "ssot.locked_truth_bundle_invalid_json",
+                str(path),
+                f"Locked Truth projection gate could not parse {path.name}: {exc}",
+                "Repair the JSON file or rerun the deterministic locked-truth writer.",
+            )
+        ]
+    if not isinstance(data, dict):
+        return None, [
+            _issue(
+                "blocker",
+                "ssot.locked_truth_bundle_invalid_shape",
+                str(path),
+                f"Locked Truth projection gate expected {path.name} to be a JSON object.",
+                "Repair the JSON shape or rerun the deterministic locked-truth writer.",
+            )
+        ]
+    return data, []
+
+
 def _first_line(text: str) -> str:
     for line in str(text or "").splitlines():
         if line.strip():
@@ -492,6 +528,241 @@ def _locked_truth_placeholder_issues(doc: Any, approval_manifest_exists: bool) -
     ]
 
 
+def _manifest_is_locked(manifest: dict[str, Any]) -> bool:
+    status_values = [
+        manifest.get("status"),
+        manifest.get("locked_truth_status"),
+        manifest.get("mode"),
+    ]
+    for value in status_values:
+        text = str(value or "").strip().lower()
+        if text in {"requirements_locked", "approved_locked_truth", "implementation_locked", "locked"}:
+            return True
+        if "locked" in text and "unlocked" not in text:
+            return True
+
+    requirements = manifest.get("requirements")
+    if isinstance(requirements, list):
+        required = [item for item in requirements if isinstance(item, dict) and item.get("required", True) is not False]
+        if required and all(str(item.get("status") or "").strip().lower() == "locked" for item in required):
+            return True
+
+    return False
+
+
+def _extract_object_ids(
+    doc: dict[str, Any],
+    collection_key: str,
+    id_keys: tuple[str, ...],
+    *,
+    include_required_only: bool = False,
+) -> set[str]:
+    items = doc.get(collection_key)
+    if not isinstance(items, list):
+        return set()
+    ids: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        if include_required_only and item.get("required", True) is False:
+            continue
+        if str(item.get("status") or "").strip().lower() in {"rejected", "obsolete", "ignored"}:
+            continue
+        for key in id_keys:
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                ids.add(value.strip())
+                break
+    return ids
+
+
+def _normalize_projection_values(value: Any) -> set[str]:
+    refs: set[str] = set()
+    if isinstance(value, str):
+        text = value.strip()
+        if text:
+            refs.add(text)
+    elif isinstance(value, list):
+        for item in value:
+            refs.update(_normalize_projection_values(item))
+    elif isinstance(value, dict):
+        for item in value.values():
+            refs.update(_normalize_projection_values(item))
+    return refs
+
+
+def _collect_traceability_refs(doc: Any, kind: str) -> set[str]:
+    if not isinstance(doc, dict):
+        return set()
+
+    projection_raw = doc.get("traceability")
+    projection: dict[str, Any] = {}
+    if isinstance(projection_raw, dict) and isinstance(projection_raw.get("locked_truth_projection"), dict):
+        projection = projection_raw["locked_truth_projection"]
+
+    key_names = {
+        "requirements": ("requirements", "requirement_refs", "req_refs"),
+        "obligations": ("obligations", "obligation_refs", "obl_refs"),
+        "contract_refs": ("contract_refs", "contracts"),
+    }[kind]
+
+    refs = set()
+    for key in key_names:
+        refs.update(_normalize_projection_values(projection.get(key)))
+    return refs
+
+
+def _authority_path_matches(value: Any) -> bool:
+    if not isinstance(value, str):
+        return False
+    normalized = value.strip().replace("\\", "/")
+    return normalized == "req/approval_manifest.json" or normalized.endswith("/req/approval_manifest.json")
+
+
+def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[dict[str, str]], list[dict[str, str]], dict[str, Any]]:
+    manifest_path = root / ip / "req" / "approval_manifest.json"
+    if not manifest_path.is_file():
+        return [], [], {"active": False, "reason": "approval_manifest_absent"}
+
+    manifest, manifest_issues = _load_json(manifest_path)
+    if manifest_issues:
+        return manifest_issues, [], {"active": False, "reason": "approval_manifest_invalid"}
+    assert manifest is not None
+
+    if not _manifest_is_locked(manifest):
+        return [], [
+            _issue(
+                "warning",
+                "ssot.locked_truth_manifest_not_locked",
+                "req/approval_manifest.json.status",
+                "req/approval_manifest.json exists, but its values do not mark the requirement bundle locked.",
+                "Run /lock-req when the user explicitly approves locking; until then, /to-ssot treats req/ as candidate evidence.",
+            )
+        ], {"active": False, "reason": "manifest_not_locked"}
+
+    req_dir = root / ip / "req"
+    required_files = {
+        "requirements": req_dir / "requirements_index.json",
+        "obligations": req_dir / "obligations.json",
+        "contract_refs": req_dir / "contract_refs.json",
+    }
+    blockers: list[dict[str, str]] = []
+    warnings: list[dict[str, str]] = []
+    loaded: dict[str, dict[str, Any]] = {}
+    for key, path in required_files.items():
+        payload, issues = _load_json(path)
+        blockers.extend(issues)
+        if payload is not None:
+            loaded[key] = payload
+    if blockers:
+        return blockers, warnings, {"active": True, "reason": "bundle_file_issue"}
+
+    expected = {
+        "requirements": _extract_object_ids(
+            loaded["requirements"],
+            "requirements",
+            ("requirement_id", "id"),
+            include_required_only=True,
+        ),
+        "obligations": _extract_object_ids(
+            loaded["obligations"],
+            "obligations",
+            ("obligation_id", "id"),
+        ),
+        "contract_refs": _extract_object_ids(
+            loaded["contract_refs"],
+            "contract_refs",
+            ("contract_ref_id", "contract_ref", "id"),
+        ),
+    }
+    seen = {
+        "requirements": _collect_traceability_refs(doc, "requirements"),
+        "obligations": _collect_traceability_refs(doc, "obligations"),
+        "contract_refs": _collect_traceability_refs(doc, "contract_refs"),
+    }
+
+    if not isinstance(doc, dict):
+        blockers.append(_issue(
+            "blocker",
+            "ssot.locked_truth_projection_missing",
+            "traceability.locked_truth_projection",
+            "Locked Truth is active, but SSOT is not a mapping and cannot carry traceability projection.",
+            "Write canonical SSOT YAML with traceability.locked_truth_projection.",
+        ))
+        return blockers, warnings, {"active": True, "reason": "ssot_not_mapping"}
+
+    custom = doc.get("custom")
+    authority = custom.get("locked_truth_authority") if isinstance(custom, dict) else None
+    if not isinstance(authority, dict):
+        blockers.append(_issue(
+            "blocker",
+            "ssot.locked_truth_authority_missing",
+            "custom.locked_truth_authority",
+            "Locked Truth is active, but SSOT lacks custom.locked_truth_authority.",
+            "Add custom.locked_truth_authority with approval_manifest, bundle_sha256, and projected_files.",
+        ))
+    else:
+        if not _authority_path_matches(authority.get("approval_manifest")):
+            blockers.append(_issue(
+                "blocker",
+                "ssot.locked_truth_authority_manifest",
+                "custom.locked_truth_authority.approval_manifest",
+                "custom.locked_truth_authority.approval_manifest does not reference req/approval_manifest.json.",
+                "Set custom.locked_truth_authority.approval_manifest to req/approval_manifest.json.",
+            ))
+        expected_sha = manifest.get("bundle_sha256")
+        if isinstance(expected_sha, str) and expected_sha.strip():
+            actual_sha = str(authority.get("bundle_sha256") or "").strip()
+            if actual_sha != expected_sha.strip():
+                blockers.append(_issue(
+                    "blocker",
+                    "ssot.locked_truth_authority_hash",
+                    "custom.locked_truth_authority.bundle_sha256",
+                    "custom.locked_truth_authority.bundle_sha256 does not match req/approval_manifest.json bundle_sha256.",
+                    "Copy the exact bundle_sha256 from req/approval_manifest.json into custom.locked_truth_authority.bundle_sha256.",
+                ))
+
+    projection = doc.get("traceability")
+    projection = projection.get("locked_truth_projection") if isinstance(projection, dict) else None
+    if not isinstance(projection, dict):
+        blockers.append(_issue(
+            "blocker",
+            "ssot.locked_truth_projection_missing",
+            "traceability.locked_truth_projection",
+            "Locked Truth is active, but SSOT lacks traceability.locked_truth_projection.",
+            "Add traceability.locked_truth_projection with requirements, obligations, and contract_refs lists.",
+        ))
+
+    for kind, ids in expected.items():
+        if not ids:
+            warnings.append(_issue(
+                "warning",
+                f"ssot.locked_truth_projection.no_{kind}",
+                f"req/{required_files[kind].name}",
+                f"Locked Truth projection gate found no {kind} IDs in the canonical req bundle.",
+                "Confirm the locked req bundle is complete; rerun /lock-req if this is unexpected.",
+            ))
+            continue
+        missing = sorted(ids - seen[kind])
+        if missing:
+            blockers.append(_issue(
+                "blocker",
+                "ssot.locked_truth_projection_incomplete",
+                f"traceability.locked_truth_projection.{kind}",
+                f"SSOT locked-truth projection is missing {len(missing)} {kind} ID(s): {', '.join(missing[:12])}{'...' if len(missing) > 12 else ''}.",
+                f"Add every ID from req/{required_files[kind].name} to traceability.locked_truth_projection.{kind}; do not rely on prose-only coverage.",
+            ))
+
+    summary = {
+        "active": True,
+        "expected_counts": {key: len(value) for key, value in expected.items()},
+        "seen_counts": {key: len(seen.get(key, set())) for key in expected},
+        "missing": {key: sorted(expected[key] - seen[key]) for key in expected},
+        "bundle_sha256": manifest.get("bundle_sha256"),
+    }
+    return blockers, warnings, summary
+
+
 def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
     checker = Path(__file__).with_name("check_ssot_disk.sh")
     bash = shutil.which("bash")
@@ -661,6 +932,7 @@ def main() -> int:
 
     blockers: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
+    locked_truth_projection: dict[str, Any] = {"active": False, "reason": "not_checked"}
     if not ip:
         blockers.append(_issue(
             "blocker",
@@ -679,6 +951,9 @@ def main() -> int:
             warnings.extend(shape_warnings)
             manifest_path = root / ip / "req" / "approval_manifest.json"
             blockers.extend(_locked_truth_placeholder_issues(doc, manifest_path.is_file()))
+            projection_blockers, projection_warnings, locked_truth_projection = _locked_truth_projection_gate(root, ip, doc)
+            blockers.extend(projection_blockers)
+            warnings.extend(projection_warnings)
             if ns.preview != "off":
                 severity = "blocker" if ns.preview == "strict" else "warning"
                 target = blockers if severity == "blocker" else warnings
@@ -718,6 +993,7 @@ def main() -> int:
         "warnings": warnings,
         "check_ssot_disk": check_result,
         "preview_contract": ns.preview,
+        "locked_truth_projection": locked_truth_projection,
     }
     if report_path is not None:
         report_path.parent.mkdir(parents=True, exist_ok=True)

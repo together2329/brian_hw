@@ -103,7 +103,7 @@ These rules override any prior summary text or todo template wording. They preve
 
 If `ssot_downstream_blockers.json` is non-empty, the next ssot-gen action is to repair the SSOT YAML and re-run `repair_ssot_schema.py`. Do not advance to `/to-ssot` signoff, `fl-model-gen`, or downstream stages while blockers remain.
 
-`python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` is the machine-checkable schema and Preview gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix), and it runs `check_ssot_disk.sh` internally. Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: wrapper sections such as `ssot:`/`sections:`, legacy top-level aliases such as `interface`/`register_map`/`errors`/`debug`/`dv_plan`, missing canonical top-level sections, missing ATLAS Preview anchors (`top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, scenarios, registers/no-register policy, FSM/no-FSM policy, and `test_requirements.scenarios[]`), plus any `check_ssot_disk.sh` failure. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, scenarios, or top-level section shape.
+`python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` is the machine-checkable schema and Preview gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix), and it runs `check_ssot_disk.sh` internally. Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: wrapper sections such as `ssot:`/`sections:`, legacy top-level aliases such as `interface`/`register_map`/`errors`/`debug`/`dv_plan`, missing canonical top-level sections, missing ATLAS Preview anchors (`top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, scenarios, registers/no-register policy, FSM/no-FSM policy, and `test_requirements.scenarios[]`), Locked Truth projection gaps when `req/approval_manifest.json` values mark the bundle locked (`custom.locked_truth_authority` must match the manifest and `traceability.locked_truth_projection.requirements/obligations/contract_refs` must include every ID from the canonical req JSON files), plus any `check_ssot_disk.sh` failure. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, scenarios, traceability, custom locked-truth metadata, or top-level section shape.
 
 ## Complete SSOT Template (Production Required Sections)
 
@@ -713,7 +713,7 @@ workflow_todos:
     - id: "RTL_TODO_EXAMPLE"
       content: "Implement the SSOT-declared transaction pipeline"
       detail: "Translate function_model transaction acceptance, cycle_model timing, and ownership refs into RTL state/datapath/control logic."
-      command: "/ssot-rtl <ip>"
+      command: "/gen-rtl <ip>"
       script: "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py"
       run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl"
       instructions:
@@ -741,7 +741,7 @@ generation_flow:
   steps:
     - { name: "verify_ssot", command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode ${ATLAS_RUN_MODE:-signoff}", description: "Validate production SSOT structure, Preview fields, and quality gates" }
     - { name: "handoff_fl_model", command: "/ssot-fl-model <ip>", description: "FunctionalModel, decomposition, coverage plan, and equivalence goals from validated SSOT" }
-    - { name: "handoff_rtl", command: "/ssot-rtl <ip>", description: "Downstream RTL generation from validated SSOT" }
+    - { name: "handoff_rtl", command: "/gen-rtl <ip>", description: "Downstream RTL generation from validated SSOT" }
     - { name: "handoff_tb", command: "/ssot-tb <ip>", description: "Downstream pyuvm/cocotb verification from validated SSOT" }
     - { name: "handoff_sim_debug", command: "/wf sim_debug", description: "Downstream waveform, failure, and coverage inspection after sim exists" }
     - { name: "handoff_coverage", command: "/coverage <ip>", description: "Measure SSOT-declared coverage goals" }
@@ -957,7 +957,7 @@ blocker `id`, and repair the SSOT or record a deferred QA card.
   gap. The RTL must be authored by the common_ai_agent rtl-gen workflow,
   not by a fixed script template.
 
-After each repair pass, rerun the SSOT validator and then `/ssot-rtl`.
+After each repair pass, rerun the SSOT validator and then `/gen-rtl`.
 If multiple blocker IDs exist, keep all of them visible until their
 criteria are satisfied; never drop a dynamic TODO blocker just because a
 semantic SSOT blocker was found later.
