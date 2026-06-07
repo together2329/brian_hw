@@ -1532,9 +1532,20 @@ class TodoTracker:
             return None
 
     def is_stale_vs_disk(self) -> bool:
-        """True if the on-disk todo file changed since this tracker was loaded
-        or saved — i.e. another process (the Atlas server) wrote it. The worker
-        must re-read instead of serving its cached in-memory copy."""
+        """True if this EMPTY cached tracker should adopt an on-disk ledger
+        written by another process.
+
+        Scope is deliberately narrow: only an empty in-memory tracker reloads.
+        That covers the original bug — a worker that cached an empty ledger at
+        boot before the Atlas server wrote the session todo.json — without
+        wiping runtime-only state once the worker is live. A worker that already
+        holds todos is the authority for the turn; reloading the file mid-run
+        (e.g. after the server re-saves the sidebar view with
+        tools_since_in_progress=0) would clobber the gate counters react_loop
+        accumulates and falsely trip the "no tools were called" completion gate.
+        """
+        if self.todos:
+            return False  # live worker owns the ledger — never reload over it
         current = self._disk_fingerprint()
         if current is None:
             return False  # no file on disk → nothing newer to read

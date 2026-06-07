@@ -597,6 +597,34 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         tracker.mark_completed(0)
         self.assertFalse(tracker.is_stale_vs_disk())
 
+    def test_live_worker_keeps_gate_counter_despite_external_save(self):
+        """A live worker (already holding todos) must NOT reload over its own
+        ledger when another process re-saves the file with the gate counter
+        reset to 0. Reloading would wipe tools_since_in_progress and falsely
+        trip the 'no tools were called' completion gate."""
+        from core.tools import _get_todo_tracker
+        from lib.todo_tracker import TodoTracker
+        import main as main_mod
+
+        # Worker holds an in-progress task and react_loop has credited 3 tools.
+        self.todo_file.write_text(json.dumps({"todos": [
+            {"content": "Review task", "status": "in_progress", "tools_since_in_progress": 0},
+        ]}), encoding="utf-8")
+        live = main_mod.todo_tracker = TodoTracker.load(self.todo_file)
+        live.todos[0].tools_since_in_progress = 3
+        live.save()
+
+        # Server (other process) re-saves the sidebar view with counter back to 0.
+        import time as _t; _t.sleep(0.01)
+        self.todo_file.write_text(json.dumps({"todos": [
+            {"content": "Review task", "status": "in_progress", "tools_since_in_progress": 0},
+        ]}), encoding="utf-8")
+
+        # The live worker must keep its counter — no reload over a live ledger.
+        self.assertFalse(live.is_stale_vs_disk())
+        tracker = _get_todo_tracker()
+        self.assertEqual(tracker.todos[0].tools_since_in_progress, 3)
+
     def test_sequential_enforcement_blocks_skip(self):
         """Cannot work on task 2 before task 1 is approved."""
         from core.tools import todo_update
