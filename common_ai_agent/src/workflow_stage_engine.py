@@ -63,6 +63,8 @@ STAGE_ALIASES = {
     "ssot-rtl": "ssot-rtl",
     "lint": "lint",
     "tb": "ssot-tb-cocotb",
+    "gen-tb": "ssot-tb-cocotb",
+    "gt": "ssot-tb-cocotb",
     "stb": "ssot-tb-cocotb",
     "ssot-tb": "ssot-tb-cocotb",
     "stb-cocotb": "ssot-tb-cocotb",
@@ -1489,6 +1491,32 @@ class WorkflowStageEngine:
             runs=runs,
             artifacts=artifacts,
             human_review_needed=blocked_doc.get("questions") if blocked_doc else [],
+            visible_task={
+                "id": "GEN-TB",
+                "content": f"[gen-tb] Generate TB from SSOT contract ledger for {ip}",
+                "activeForm": f"Generating TB and closing TB gates for {ip}",
+                "detail": (
+                    "One visible TB loop over the internal contract/gate ledger. The detailed "
+                    "authoring and validation tasks stay in tb/tb_todo_plan.json; this tracker "
+                    "item closes only when the generated cocotb/pyuvm TB, manifest, structure "
+                    "check, and scoreboard self-check evidence all match the SSOT/RTL contracts."
+                ),
+                "criteria": (
+                    "tb/tb_todo_plan.json exists; generated TB artifacts exist; "
+                    "emit_goal_scoreboard_cocotb, check_pyuvm_structure, and "
+                    "equivalence_scoreboard --self-check pass, or the item records an explicit "
+                    "human/contract blocker with tb_blocked.json evidence."
+                ),
+                "required_evidence": [
+                    f"{ip}/tb/tb_todo_plan.json",
+                    f"{ip}/tb/cocotb/test_{ip}.py",
+                    f"{ip}/tb/cocotb/test_runner.py",
+                    f"{ip}/tb/cocotb/tb_manifest.json",
+                    "check_pyuvm_structure returncode 0",
+                    "equivalence_scoreboard_self_check returncode 0",
+                ],
+                "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/rtl/rtl_contract.json"],
+            },
             tasks=[
                 {
                     "id": "TB-0001",
@@ -1532,6 +1560,27 @@ class WorkflowStageEngine:
                 headline=headline,
                 runs=[],
                 artifacts=[f"{ip}/tb/cocotb/test_runner.py", f"{ip}/sim/results.xml"],
+                visible_task={
+                    "id": "SIM-LOOP",
+                    "content": f"[sim] Run simulation evidence gate for {ip}",
+                    "activeForm": f"Running simulation evidence gate for {ip}",
+                    "detail": (
+                        "One visible SIM loop over the internal simulator/evidence ledger. "
+                        "Simulation is command-owned; if no executable TB runner exists, the "
+                        "loop blocks and routes back to /gen-tb instead of fabricating evidence."
+                    ),
+                    "criteria": (
+                        "A supported TB runner exists, sim/sim_todo_plan.json exists, and sim.sh "
+                        "plus check_tb_sim_evidence produce machine-readable pass/fail evidence."
+                    ),
+                    "required_evidence": [
+                        f"{ip}/tb/cocotb/test_runner.py",
+                        f"{ip}/sim/sim_todo_plan.json",
+                        f"{ip}/sim/results.xml",
+                        f"{ip}/sim/scoreboard_events.jsonl",
+                    ],
+                    "source_refs": [f"{ip}/tb/cocotb", f"{ip}/yaml/{ip}.ssot.yaml"],
+                },
                 tasks=[
                     {
                         "id": "SIM-0001",
@@ -1554,7 +1603,7 @@ class WorkflowStageEngine:
                 f"- {ip}/tb/cocotb/run_tests.py",
                 f"- {ip}/tb/test_runner.py",
                 f"- {ip}/tb/run_tests.py",
-                "Run /tb <ip> first.",
+                "Run /gen-tb <ip> first.",
             ]
             self._append_expected(lines, artifacts)
             return self._result("sim", ip, "blocked", headline, lines, artifacts=artifacts, blocker=f"{ip}/tb")
@@ -1607,6 +1656,30 @@ class WorkflowStageEngine:
             headline=headline,
             runs=runs,
             artifacts=artifacts,
+            visible_task={
+                "id": "SIM-LOOP",
+                "content": f"[sim] Run simulation evidence gate for {ip}",
+                "activeForm": f"Running simulation evidence gate for {ip}",
+                "detail": (
+                    "One visible SIM loop over the internal simulator/evidence ledger. The "
+                    "detailed command gates stay in sim/sim_todo_plan.json; this item passes "
+                    "only when simulation, scoreboard evidence, and coverage-ready rows satisfy "
+                    "the SSOT/TB/RTL contracts."
+                ),
+                "criteria": (
+                    "sim/sim_todo_plan.json exists; sim.sh and check_tb_sim_evidence pass; "
+                    "coverage summary passes or records the explicit rc=3 policy override; "
+                    "results.xml, scoreboard_events.jsonl, and sim_report.txt are present."
+                ),
+                "required_evidence": [
+                    f"{ip}/sim/sim_todo_plan.json",
+                    f"{ip}/sim/results.xml or {ip}/tb/cocotb/results.xml",
+                    f"{ip}/sim/scoreboard_events.jsonl",
+                    f"{ip}/sim/sim_report.txt",
+                    f"{ip}/cov/coverage.json",
+                ],
+                "source_refs": [rel_runner, f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/verify/equivalence_goals.json"],
+            },
             tasks=[
                 {
                     "id": "SIM-0001",
@@ -1910,6 +1983,7 @@ class WorkflowStageEngine:
         tasks: list[dict[str, Any]],
         summary: dict[str, Any] | None = None,
         human_review_needed: list[Any] | None = None,
+        visible_task: dict[str, Any] | None = None,
     ) -> list[str]:
         """Persist a small evidence-backed todo ledger for non-RTL stages."""
 
@@ -1993,30 +2067,53 @@ class WorkflowStageEngine:
             "human_review_needed": review_items,
         }
 
+        def _tracker_entry(task: dict[str, Any], completion: dict[str, Any]) -> dict[str, Any]:
+            return {
+                "content": task.get("content") or task.get("id"),
+                "activeForm": task.get("activeForm") or task.get("content") or task.get("id"),
+                "detail": task.get("detail", ""),
+                "criteria": task.get("criteria", ""),
+                "priority": task.get("priority", "high"),
+                "status": task.get("approval_state", approval_state),
+                "source_id": task.get("id"),
+                "source_plan": plan_rel,
+                "approval_policy": task.get("approval_policy", "evidence_required"),
+                "required_evidence": task.get("required_evidence", []),
+                "todo_completion": completion,
+            }
+
         tracker_tasks = []
-        for task in enriched_tasks:
+        if visible_task:
+            visible = dict(visible_task)
+            visible.setdefault("approval_policy", "evidence_required")
+            visible["approval_state"] = approval_state
+            visible_completion = {
+                "status": completion_status,
+                "reason": headline,
+                "evidence_basis": list(visible.get("required_evidence") or artifacts) + [run["label"] for run in run_dicts],
+                "all_required_todos_pass": open_required == 0,
+                "open_required_tasks": open_required,
+                "internal_task_count": len(enriched_tasks),
+            }
+            tracker_tasks.append(_tracker_entry(visible, visible_completion))
+            ui_grouping: bool | dict[str, Any] = {
+                "strategy": "single_visible_stage_contract_gate",
+                "source_task_count": len(enriched_tasks),
+                "actual_count": 1,
+                "internal_plan": plan_rel,
+            }
+        else:
+            ui_grouping = False
+        for task in ([] if visible_task else enriched_tasks):
             completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
-            tracker_tasks.append(
-                {
-                    "content": task.get("content") or task.get("id"),
-                    "activeForm": task.get("activeForm") or task.get("content") or task.get("id"),
-                    "detail": task.get("detail", ""),
-                    "criteria": task.get("criteria", ""),
-                    "priority": task.get("priority", "high"),
-                    "status": task.get("approval_state"),
-                    "source_id": task.get("id"),
-                    "source_plan": plan_rel,
-                    "approval_policy": task.get("approval_policy"),
-                    "required_evidence": task.get("required_evidence", []),
-                    "todo_completion": completion,
-                }
-            )
+            tracker_tasks.append(_tracker_entry(task, completion))
         tracker = {
             "schema_version": "todo_tracker.dynamic.v1",
             "name": f"{ip}-{workflow}",
             "description": f"Dynamic {workflow} todo list from {plan_rel}",
             "source_plan": plan_rel,
-            "ui_grouping": False,
+            "source_task_count": len(enriched_tasks),
+            "ui_grouping": ui_grouping,
             "tasks": tracker_tasks,
         }
 

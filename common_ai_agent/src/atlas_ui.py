@@ -4692,6 +4692,7 @@ def create_app():
             "repair-rtl":      ("rrtl",       "repair RTL gate failures"),
             "lint":            ("l",          "run lint pass on the active IP"),
             "tb":              ("",           "generate testbench (auto-select format)"),
+            "gen-tb":          ("gt",         "generate TB from SSOT contract ledger"),
             "ssot-tb":         ("stb",        "generate cocotb testbench from SSOT"),
             "ssot-tb-cocotb":  ("stb-cocotb", "generate cocotb testbench"),
             "ssot-tb-uvm":     ("stb-uvm",    "generate UVM testbench"),
@@ -4905,7 +4906,7 @@ def create_app():
         "/ssot-rtl", "/sr", "/gen-rtl",
         "/repair-rtl", "/rrtl",
         "/lint", "/l",
-        "/tb",
+        "/tb", "/gen-tb", "/gt",
         "/ssot-tb", "/stb",
         "/ssot-tb-cocotb", "/stb-cocotb",
         "/ssot-tb-uvm", "/stb-uvm",
@@ -4943,6 +4944,11 @@ def create_app():
             "workflow": "tb-gen",
             "template": "ssot-tb-cocotb",
             "artifact_hint": "tb/cocotb/ and sim/",
+        },
+        "gen-tb": {
+            "workflow": "tb-gen",
+            "template": "ssot-tb-cocotb",
+            "artifact_hint": "tb/tb_todo_plan.json and tb/cocotb/",
         },
         "ssot-tb-cocotb": {
             "workflow": "tb-gen",

@@ -1,7 +1,7 @@
 {
   "name": "sim",
-  "description": "Compile and run simulation (auto-detects iverilog from SSOT config, or VCS if configured)",
+  "description": "Run the SSOT/TB/RTL simulation evidence gate",
   "aliases": ["s"],
-  "handler": "bash:sim.sh",
-  "usage": "/sim <module_name> [--vcs]"
+  "handler": "stage:sim",
+  "usage": "/sim <module_name>"
 }

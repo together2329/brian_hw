@@ -1,6 +1,6 @@
 {
   "name": "ssot-tb",
-  "description": "Run generic SSOT-driven TB workflow using the current default backend: cocotb",
+  "description": "Run generic SSOT-driven TB workflow using the current default backend: cocotb; /gen-tb is the preferred visible alias",
   "aliases": ["stb", "gen-tb"],
   "handler": "stage:ssot-tb-cocotb",
   "usage": "/ssot-tb <module_name>  # default: cocotb"

@@ -191,6 +191,8 @@ def test_stage_aliases_canonicalize_ui_and_headless_names():
     assert canonical_stage("spa") == "ssot-protocol-assertions"
     assert canonical_stage("protocol-assertions") == "ssot-protocol-assertions"
     assert canonical_stage("tb") == "ssot-tb-cocotb"
+    assert canonical_stage("gen-tb") == "ssot-tb-cocotb"
+    assert canonical_stage("gt") == "ssot-tb-cocotb"
     assert canonical_stage("cov") == "coverage"
     assert canonical_stage("/sd") == "sim-debug"
 
@@ -475,8 +477,15 @@ def test_tb_stage_writes_human_review_todo_plan_for_blocked_contract(tmp_path: P
     assert plan["gate"]["approval_state"] == "human_review_needed"
     assert plan["human_review_needed"][0]["id"] == "TBQ-1"
     assert plan["tasks"][0]["todo_completion"]["status"] == "open"
+    assert [task["id"] for task in plan["tasks"]] == ["TB-0001", "TB-0002"]
     tracker = json.loads((ip_dir / "todo" / "tb_todo_tracker.json").read_text(encoding="utf-8"))
+    assert tracker["source_plan"] == "tb/tb_todo_plan.json"
+    assert tracker["source_task_count"] == 2
+    assert tracker["ui_grouping"]["strategy"] == "single_visible_stage_contract_gate"
+    assert len(tracker["tasks"]) == 1
+    assert tracker["tasks"][0]["source_id"] == "GEN-TB"
     assert tracker["tasks"][0]["status"] == "human_review_needed"
+    assert tracker["tasks"][0]["todo_completion"]["internal_task_count"] == 2
 
 
 def test_sim_stage_writes_blocked_todo_plan_without_runner(tmp_path: Path):
@@ -493,6 +502,19 @@ def test_sim_stage_writes_blocked_todo_plan_without_runner(tmp_path: Path):
     assert plan["tasks"][0]["todo_completion"]["status"] == "open"
     tracker = json.loads((ip_dir / "todo" / "sim_todo_tracker.json").read_text(encoding="utf-8"))
     assert tracker["source_plan"] == "sim/sim_todo_plan.json"
+    assert tracker["source_task_count"] == 1
+    assert tracker["ui_grouping"]["strategy"] == "single_visible_stage_contract_gate"
+    assert len(tracker["tasks"]) == 1
+    assert tracker["tasks"][0]["source_id"] == "SIM-LOOP"
+    assert tracker["tasks"][0]["status"] == "blocked"
+
+
+def test_gen_tb_and_sim_commands_use_stage_handlers():
+    gen_tb = json.loads((SOURCE_ROOT / "workflow" / "ssot-gen" / "commands" / "gen-tb.json").read_text(encoding="utf-8"))
+    sim = json.loads((SOURCE_ROOT / "workflow" / "sim" / "commands" / "sim.json").read_text(encoding="utf-8"))
+
+    assert gen_tb["handler"] == "stage:ssot-tb-cocotb"
+    assert sim["handler"] == "stage:sim"
 
 
 def test_coverage_stage_reports_function_and_cycle_model_coverage_separately(tmp_path: Path):

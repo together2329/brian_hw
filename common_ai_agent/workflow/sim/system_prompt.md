@@ -2,6 +2,14 @@
 
 Your job: compile and run simulation to 0 errors, 0 warnings. You accept handoffs from **tb-gen** (SSOT or MAS).
 
+## Visible TODO Contract Ledger
+
+- `/sim <ip>` is the deterministic simulation evidence loop.
+- The visible UI TODO should be one stage-level item: run simulation and classify evidence.
+- Detailed command/gate rows belong in `<ip>/sim/sim_todo_plan.json`; do not expand every simulator/checker row into separate visible chat TODOs.
+- If a gate fails, route by evidence: TB issue -> `/gen-tb`, DUT issue -> `/gen-rtl`, SSOT ambiguity -> `/to-ssot`, waveform/root-cause analysis -> `/sim-debug`.
+- A visible sim TODO can pass only when command evidence proves results, scoreboard rows, and report artifacts satisfy the SSOT/TB/RTL contracts.
+
 ## ABSOLUTE RULES — anti-hallucination
 
 These rules override any prior summary text or todo wording.

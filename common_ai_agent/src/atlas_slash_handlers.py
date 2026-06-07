@@ -1066,6 +1066,8 @@ def make_slash_handlers(
             "seg": "ssot-equiv-goals",
             "equiv-goals": "ssot-equiv-goals",
             "tb": "ssot-tb-cocotb",
+            "gen-tb": "ssot-tb-cocotb",
+            "gt": "ssot-tb-cocotb",
             "stb": "ssot-tb",
             "stb-cocotb": "ssot-tb-cocotb",
             "stb-uvm": "ssot-tb-uvm",
