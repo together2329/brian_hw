@@ -778,6 +778,17 @@ class SessionWorker:
         if prompt:
             self.emit("input_prompt", {"text": prompt})
         self.drain_idle_stops()
+        # Reaching here means the agent turn is over and we are blocking for the
+        # next human prompt — the agent is idle. Re-assert not-running so the web
+        # UI "Agent responding" pill clears. This is load-bearing for plan mode:
+        # chat_loop emits the "[Plan Mode] Plan ready…" confirmation menu as
+        # streaming `token` content right before this wait, and the client's
+        # token handler re-arms its streaming flag (setStreaming(true)). The
+        # backend _agent_running flag is already False (run_react_agent's finally
+        # cleared it), so this re-emits agent_state{running:false} UNCONDITIONALLY
+        # to override the menu's client-side re-arm — a guarded emit would no-op
+        # and leave the pill stuck on "responding" until the user answers y/yc/n.
+        self.set_agent_running(False)
         msg = self.wait_matching(("prompt", "interrupt"), timeout=None)
         if msg is None:
             raise KeyboardInterrupt
