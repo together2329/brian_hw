@@ -1954,6 +1954,35 @@ def run_react_agent_impl(
                     # Native mode: map result to call_id using ORIGINAL index (not completion order)
                     if _use_native and idx in _action_idx_to_call_id:
                         _native_obs_pairs.append((_action_idx_to_call_id[idx], observation))
+
+                    # Credit the completion gate for each non-todo tool, same as
+                    # the sequential path. The parallel branch previously left the
+                    # counter untouched, so a batch of real work followed by
+                    # todo_update(completed) was falsely rejected with "no tools
+                    # were called since starting this task".
+                    if todo_tracker and todo_tracker.todos and tool_name not in (
+                        "todo_update", "todo_write", "todo_add", "todo_remove"
+                    ):
+                        _pcur = todo_tracker.get_current_todo()
+                        _p_is_write = tool_name in {
+                            "write_file", "write_to_file",
+                            "replace_in_file", "replace_lines", "replace_file_content",
+                            "edit_file", "create_file",
+                        }
+                        if _pcur and _pcur.status == "in_progress":
+                            _pcur.tools_since_in_progress = getattr(_pcur, "tools_since_in_progress", 0) + 1
+                            try: todo_tracker.save()
+                            except Exception: pass
+                        elif _pcur and _pcur.status == "completed":
+                            if not _p_is_write:
+                                _pcur.tools_since_completed = getattr(_pcur, "tools_since_completed", 0) + 1
+                                try: todo_tracker.save()
+                                except Exception: pass
+                        else:
+                            todo_tracker._pending_tool_credit = int(
+                                getattr(todo_tracker, "_pending_tool_credit", 0) or 0
+                            ) + 1
+                        _credited_tool_activity_this_iteration = True
             else:
                 for i, action_tuple in enumerate(actions):
                     if _esc_check():
