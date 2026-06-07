@@ -158,6 +158,15 @@ def process_chat_turn(
             do_compress = (inp == "yc")
             state.agent_mode = "normal"
             import os as _os; _os.environ["PLAN_MODE"] = "false"
+            # Also clear the cross-process plan override. In the Atlas web UI the
+            # `y` prompt arrives with the envelope still stamped plan_mode=true
+            # (the UI pill is still on PLAN), so session_worker.input() set
+            # AGENT_MODE_OVERRIDE="plan_q". Without overwriting it to "normal"
+            # here, react_loop's mid-loop override (pops AGENT_MODE_OVERRIDE at
+            # the top of each iteration) immediately demotes this turn back to
+            # plan_q — the "I can't start execution, still in PLAN MODE" bug.
+            _os.environ["AGENT_MODE_OVERRIDE"] = "normal"
+            _os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
 
             # Notify the atlas / textual frontend so its mode pill flips.
             # Without this, backend silently transitions plan_q→normal but

@@ -197,6 +197,40 @@ class TestNormalTurn(unittest.TestCase):
         new_state, _ = _call("start plan", state=state, deps=deps)
         self.assertEqual(new_state.agent_mode, "plan")
 
+    def test_plan_confirm_y_clears_agent_mode_override(self):
+        """Confirming a plan with `y` must also overwrite the cross-process
+        AGENT_MODE_OVERRIDE to 'normal'. In the web UI the `y` envelope still
+        carries plan_mode=true, so session_worker leaves AGENT_MODE_OVERRIDE
+        ='plan_q'; if process_chat_turn doesn't clear it, react_loop's mid-loop
+        override demotes the turn straight back to plan_q (the bug)."""
+        observed = {}
+
+        def mock_react(msgs, tracker, task, **kw):
+            observed["override"] = os.environ.get("AGENT_MODE_OVERRIDE")
+            observed["plan_mode"] = os.environ.get("PLAN_MODE")
+            observed["mode"] = kw.get("agent_mode")
+            return msgs + [{"role": "assistant", "content": "ok"}], "normal"
+
+        deps = _make_deps(run_react_agent_fn=mock_react)
+        state = _make_state(
+            agent_mode="plan",
+            messages=[{"role": "system", "content": "sys"}, {"role": "user", "content": "y"}],
+        )
+        old = os.environ.get("AGENT_MODE_OVERRIDE")
+        try:
+            # Simulate session_worker stamping the stale plan override.
+            os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
+            new_state, _ = _call("y", state=state, deps=deps)
+            self.assertEqual(new_state.agent_mode, "normal")
+            self.assertEqual(os.environ.get("AGENT_MODE_OVERRIDE"), "normal")
+            self.assertEqual(observed["override"], "normal")
+            self.assertEqual(observed["mode"], "normal")
+        finally:
+            if old is None:
+                os.environ.pop("AGENT_MODE_OVERRIDE", None)
+            else:
+                os.environ["AGENT_MODE_OVERRIDE"] = old
+
     def test_stop_paused_chat_suppresses_todo_execution_once(self):
         class _OpenTodos:
             todos = [types.SimpleNamespace(status="in_progress")]
