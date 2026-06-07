@@ -5380,15 +5380,37 @@ def create_app():
                 return f"/{tmpl_name} needs draft req files first. Missing: {', '.join(missing)}. Run /draft-req."
         return ""
 
-    def _req_lifecycle_template_tasks(tmpl_name: str, tasks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def _req_lifecycle_template_tasks(
+        tmpl_name: str,
+        tasks: list[dict[str, Any]],
+        approver: str = "",
+    ) -> list[dict[str, Any]]:
         workflow_root = _req_command_workflow_root()
         copied = json.loads(json.dumps(tasks))
         if tmpl_name not in {"draft-req", "finalize-req", "lock-req"} or workflow_root is None:
             return copied
+        # The lock gate runs `--approved-by "${ATLAS_APPROVED_BY:?...}"` as a
+        # deterministic subprocess. That env var is never exported into the worker
+        # process that runs the gate, so the ${VAR:?} guard aborts the command
+        # before the stamper runs and the lock can never complete. The session
+        # owner (the human who invoked /lock-req) is the approver of record, so
+        # bake it into the command string here — the same load-time substitution
+        # already used for $ATLAS_WORKFLOW_ROOT — instead of relying on env that
+        # does not cross the web→worker process boundary.
+        approver_token = shlex.quote(approver.strip()) if approver and approver.strip() else ""
         for task in copied:
             command = task.get("command")
             if isinstance(command, str):
-                task["command"] = command.replace("$ATLAS_WORKFLOW_ROOT", str(workflow_root))
+                command = command.replace("$ATLAS_WORKFLOW_ROOT", str(workflow_root))
+                if approver_token:
+                    command = re.sub(
+                        r'"?\$\{ATLAS_APPROVED_BY[^}]*\}"?',
+                        approver_token,
+                        command,
+                    )
+                    command = command.replace('"$ATLAS_APPROVED_BY"', approver_token)
+                    command = command.replace("$ATLAS_APPROVED_BY", approver_token)
+                task["command"] = command
         return copied
 
     def _execute_generic_slash_command(text: str, client_session: Any) -> bool:
@@ -5438,7 +5460,11 @@ def create_app():
                     return True
                 registry = get_todo_template_registry()
                 template = registry.get(tmpl_name) or {}
-                tasks = _req_lifecycle_template_tasks(tmpl_name, registry.get_tasks(tmpl_name) or [])
+                tasks = _req_lifecycle_template_tasks(
+                    tmpl_name,
+                    registry.get_tasks(tmpl_name) or [],
+                    approver=str(getattr(context, "user_name", "") or ""),
+                )
                 if not tasks:
                     available = ", ".join(registry.list()) or "(none)"
                     _emit_slash_output(

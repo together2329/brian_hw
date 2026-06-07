@@ -529,6 +529,132 @@ class TestRunReactAgentImpl(unittest.TestCase):
         self.assertIn("[Task 1/1]", captured_prompts[0])
         self.assertIn("todo_update(index=1, status='in_progress')", captured_prompts[0])
 
+    def test_rejected_todo_is_injected_for_rework(self):
+        """A rejected todo is not processed; the next LLM call must get rework instructions."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from lib.todo_tracker import TodoTracker
+
+        captured_prompts = []
+
+        def text_reply(messages, stop=None, **kwargs):
+            captured_prompts.append(messages[-1].get("content", ""))
+            yield "I will inspect the failure."
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "repair generated RTL gate",
+                "status": "rejected",
+                "rejection_reason": "dynamic gate still open",
+                "detail": "Fix the gate and rerun audit.",
+                "criteria": "rtl_todo_plan gate.status is pass",
+            }])
+            todo_tracker.current_index = 0
+            todo_tracker.save()
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_NO_ACTION_GUARD=True,
+                EXECUTION_NO_ACTION_RETRY_LIMIT=0,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_reply,
+                detect_completion_fn=lambda _text: False,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "계속"}]
+            tracker = self._make_tracker()
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertTrue(captured_prompts)
+        self.assertIn("[Task 1/1 REJECTED]", captured_prompts[0])
+        self.assertIn("dynamic gate still open", captured_prompts[0])
+        self.assertIn("todo_update(index=1, status='in_progress')", captured_prompts[0])
+
+    def test_explicit_tracker_gets_tool_credit_even_when_cfg_flag_is_off(self):
+        """Worker-scoped todo trackers must receive tool credit before completed."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from core.tool_dispatcher import dispatch_tool
+        from core import tools
+        from lib.todo_tracker import TodoTracker
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "finish scoped worker task",
+                "status": "in_progress",
+                "detail": "Use a tool before completion.",
+                "criteria": "completion gate accepts real tool credit",
+            }])
+            todo_tracker.current_index = 0
+            todo_tracker.save()
+
+            calls = {"count": 0}
+
+            def text_reply(messages, stop=None, **kwargs):
+                calls["count"] += 1
+                if calls["count"] == 1:
+                    yield (
+                        'Action: run_command(command="echo evidence")\n'
+                        'Action: todo_update(index=1, status="completed")'
+                    )
+                else:
+                    yield "Final Answer: done"
+
+            def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
+                if tool_name == "run_command":
+                    return "evidence"
+                with tools.scoped_todo_runtime(todo_tracker, todo_path):
+                    return dispatch_tool(
+                        tool_name,
+                        args_str,
+                        pre_parsed_kwargs=pre_parsed_kwargs,
+                        available_tools={"todo_update": tools.todo_update},
+                    )
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=False,
+                EXECUTION_NO_ACTION_GUARD=False,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_reply,
+                execute_tool_fn=execute_tool,
+                detect_completion_fn=lambda text: "Final Answer:" in text,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "continue"}]
+            tracker = self._make_tracker(max_iter=2)
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertEqual(todo_tracker.todos[0].status, "completed")
+        self.assertEqual(todo_tracker.todos[0].tools_since_in_progress, 0)
+
     def test_stop_paused_chat_suppression_skips_todo_guard_once(self):
         """After STOP, casual chat should not be forced through the TODO guard."""
         from core.react_loop import run_react_agent_impl

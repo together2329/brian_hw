@@ -69,11 +69,18 @@ Control = str
 def _todo_has_open_items(todo_tracker: Any) -> bool:
     if not todo_tracker or not getattr(todo_tracker, "todos", None):
         return False
+    has_open = getattr(todo_tracker, "has_open_items", None)
+    if callable(has_open):
+        try:
+            return bool(has_open())
+        except Exception:
+            pass
     try:
-        return not bool(todo_tracker.is_all_processed())
+        from lib.todo_tracker import todo_items_have_open_work
+        return todo_items_have_open_work(getattr(todo_tracker, "todos", []))
     except Exception:
         return any(
-            getattr(item, "status", "") not in ("approved", "rejected")
+            getattr(item, "status", "") != "approved"
             for item in getattr(todo_tracker, "todos", [])
         )
 

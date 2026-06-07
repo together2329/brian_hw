@@ -1599,7 +1599,15 @@ def compress_history(
         # ("do TODO #N now") moves to a SEPARATE user-role message at the
         # tail (Option 2) so the LLM treats it as a directive, not buried
         # system context.
-        if not todo_tracker.is_all_processed():
+        try:
+            _has_open_todos = bool(todo_tracker.has_open_items())
+        except Exception:
+            try:
+                from lib.todo_tracker import todo_items_have_open_work
+                _has_open_todos = todo_items_have_open_work(getattr(todo_tracker, "todos", []))
+            except Exception:
+                _has_open_todos = not todo_tracker.is_all_processed()
+        if _has_open_todos:
             prompt = todo_tracker.get_continuation_prompt()
             next_idx = todo_tracker._get_next_pending()
             if prompt:

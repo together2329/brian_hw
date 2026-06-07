@@ -1,5 +1,55 @@
 # Wiki Log
 
+## 2026-06-07
+
+- Extended [[ssot-as-design-truth-graph]] with `## 9.5 운영 플로우` (commands · gates ·
+  1-TODO/stage) + a tamper-evident-provenance footnote under §7. Operational flow:
+  draft-req→finalize-req→lock-req→to-ssot→gen-rtl→gen-tb→sim→(sim-debug/coverage/signoff);
+  truth = req/obligation/contract/evidence_plan (lock-req), to-ssot projects it; UI shows
+  one representative TODO per stage while internal `*_todo_plan.json` ledgers hold many
+  contract/gate tasks (rollup must be conservative-AND + drill-downable); loop = gate
+  PASS→next / FAIL→same-stage repair or owner route. Realism verdict: ~80% already in the
+  repo (commands, lock-req bundle, rtl_todo_plan + script gates, orchestrator owner
+  routing); the two make-or-break new parts are (1) thick contracts (decision-table
+  behavioral + structural namespace) actually driving gen-rtl/gen-tb, and (2) an
+  evidence-backed fail-classifier (RTL/TB/SSOT/tool), else misroute → loop never
+  converges. Plus a defined locked-truth amendment path for spec-ambiguity reroutes.
+  The footnote records that fingerprint/locked-node want tamper-*evident* (git+sha256+
+  signed approval, optional sigstore/RFC3161), not blockchain (no untrusted multi-party
+  consensus here); keep the graph ledger-ready so a transparency log is a later 1-day add.
+- Extended [[ssot-as-design-truth-graph]] with `## 6.5 그래프의 형태` — the truth
+  graph's shape as a Karpathy-LLM-wiki-form KG ([[karpathy-llm-wiki-pattern]],
+  [[llm-wiki-knowledge-graph-discussion-20260602]]) but with strict typed triples:
+  reuse the `doc/wiki` build_graph machinery for the human/nav layer, but truth edges
+  must be load-bearing (resolve = HARD FAIL), not associative `[[link]]`s (the repo's
+  own risk boundary: LLM graph treated as truth → stale edge ships). Split edges into
+  two classes — load-bearing (`derived_from`/`closes`/`references_signal`/`anchors_to`/
+  `proves`, gates run here) vs organizational (`belongs_to_theme`/`part_of`/`related`,
+  nav/grouping). Endorsed hub nodes (Theme = many requirements → one topic;
+  IO/Interface = the structure-namespace hub, the concrete form of §5 structure-by-
+  reference) with the rule "hubs are connectors, not content owners." Complexity is
+  controlled by a small predicate vocabulary (~10) + resolved load-bearing edges +
+  content-free hubs: ontology small, instances many.
+
+- Added [[ssot-as-design-truth-graph]] — direction decision from a multi-turn design
+  discussion: **single source ≠ single file.** Kill the authored `ssot.yaml` monolith
+  (demote to a generated projection) and redefine SSOT as a typed Design Truth Graph
+  of requirement→decision→obligation→(typed)contract→evidence→validation. Records the
+  code-grounded diagnosis (three parallel authorities — `req/*.json` / `ssot.yaml` /
+  `semantic_contracts.json`; six conflated SSOT roles; decorative spine↔SSOT links —
+  obligations carry no `ssot_anchor` 0/106, freeform `source_refs`, fingerprint hashes
+  the wrong file). Key make-or-break: behavioral contracts must be **decision-tables**
+  over declared guard dimensions, else the totality/determinism/oracle-compilability
+  gates are vacuous — and the slice's `C-ASM-DECODE` (every drop & only a drop) is the
+  miniature proof that per-arc contracts are not total and mutation+SEC catches it.
+  Also: structure-by-reference (not re-declared per contract), `truth/` (authority) vs
+  `generated/` (compiled IR = the machine-facing SSOT, plus design_spec.html as a view),
+  nine gates, an SSOT-section→destination remap table, consumer-first migration, and
+  keep "SSOT" as the principle while naming the artifact `truth/`. Linked into the
+  direction set under 4f1 and the index table. Next: a decision-table PoC on
+  `mctp_rx_assembler` proving req→obligation→contract alone compiles RTL+oracle+SVA
+  equivalent to the hand-written C-ASM-* contracts.
+
 ## 2026-06-06
 
 - Built `examples/mctp_contract_slice/contract_check.py` — a re-runnable two-axis

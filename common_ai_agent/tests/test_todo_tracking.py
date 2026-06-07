@@ -153,14 +153,23 @@ class TestTodoTrackerCore(unittest.TestCase):
         self.assertTrue(tracker.is_all_processed())
 
     def test_is_all_processed_with_rejected(self):
-        """is_all_processed is True when all are approved or rejected."""
+        """is_all_processed is False while any task is rejected."""
         tracker = self._make_tracker()
         tracker.add_todos([
             {"content": "Task 1", "status": "approved"},
             {"content": "Task 2", "status": "rejected"},
         ])
-        self.assertTrue(tracker.is_all_processed())
+        self.assertFalse(tracker.is_all_processed())
         self.assertFalse(tracker.is_all_completed())
+        self.assertTrue(tracker.has_open_items())
+
+    def test_shared_completion_predicate_matches_textual_ui_semantics(self):
+        """All TODO surfaces should close only when every item is approved."""
+        from lib.todo_tracker import are_todo_statuses_all_approved
+
+        self.assertTrue(are_todo_statuses_all_approved(["approved", "approved"]))
+        for status in ("pending", "in_progress", "completed", "rejected", "active"):
+            self.assertFalse(are_todo_statuses_all_approved(["approved", status]))
 
     def test_get_progress_pct(self):
         """Progress percentage based on approved count."""

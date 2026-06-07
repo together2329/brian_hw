@@ -359,7 +359,15 @@ def run_agent_session(
             # nothing changed so we don't spam identical reminders.
             try:
                 _sub_tt = _read_sub_tracker()
-                if _sub_tt and _sub_tt.todos and not _sub_tt.is_all_processed():
+                try:
+                    _sub_has_open = bool(_sub_tt.has_open_items()) if _sub_tt else False
+                except Exception:
+                    try:
+                        from lib.todo_tracker import todo_items_have_open_work
+                        _sub_has_open = todo_items_have_open_work(getattr(_sub_tt, "todos", []))
+                    except Exception:
+                        _sub_has_open = bool(_sub_tt and _sub_tt.todos and not _sub_tt.is_all_processed())
+                if _sub_has_open:
                     _key = _sub_task_key(_sub_tt)
                     if _key != _last_injected_task_key:
                         _reminder = _sub_tt.get_continuation_prompt() or ""

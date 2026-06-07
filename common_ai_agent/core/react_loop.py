@@ -58,6 +58,26 @@ def _atlas_main_active_session() -> str:
     return ""
 
 
+def _todo_has_open_items(todo_tracker: Any) -> bool:
+    """Shared TODO-open predicate: every non-approved status still needs attention."""
+    if not todo_tracker or not getattr(todo_tracker, "todos", None):
+        return False
+    has_open = getattr(todo_tracker, "has_open_items", None)
+    if callable(has_open):
+        try:
+            return bool(has_open())
+        except Exception:
+            pass
+    try:
+        from lib.todo_tracker import todo_items_have_open_work
+        return todo_items_have_open_work(getattr(todo_tracker, "todos", []))
+    except Exception:
+        return any(
+            getattr(item, "status", "") != "approved"
+            for item in getattr(todo_tracker, "todos", [])
+        )
+
+
 def _atlas_runtime_workflow(cfg: Any) -> str:
     return (
         os.environ.get("ATLAS_WORKFLOW", "")
@@ -552,7 +572,10 @@ def run_react_agent_impl(
     _suppress_todo_execution = os.environ.pop("ATLAS_SUPPRESS_TODO_EXECUTION_ONCE", "").lower() in (
         "1", "true", "yes", "on"
     )
-    _todo_tracking_enabled = bool(getattr(cfg, "ENABLE_TODO_TRACKING", False)) and not _suppress_todo_execution
+    _explicit_todo_tracker = bool(todo_tracker is not None and getattr(todo_tracker, "todos", None) is not None)
+    _todo_tracking_enabled = (
+        bool(getattr(cfg, "ENABLE_TODO_TRACKING", False)) or _explicit_todo_tracker
+    ) and not _suppress_todo_execution
 
     # --- Todo tracker setup ---
     # IMPORTANT: Use the same tracker instance as tools.py (_get_todo_tracker)
@@ -882,8 +905,7 @@ def run_react_agent_impl(
                     ))
             else:
                 _pre_llm_reminder = ""
-        elif (todo_tracker and todo_tracker.todos
-              and not todo_tracker.is_all_processed()):
+        elif _todo_has_open_items(todo_tracker):
             # Execution mode: only inject when task or status has changed.
             # Same task/status → skip; tool result already has [Step N/M] context.
             _task_key = _get_task_key(todo_tracker)
@@ -2390,8 +2412,7 @@ def run_react_agent_impl(
                 elif _new_key != _last_injected_task_key:
                     _last_injected_task_key = (-1, "")  # task index changed → inject
                 # else: same task, in_progress → no reset, skip injection
-            elif (todo_tracker and todo_tracker.todos
-                    and not todo_tracker.is_all_processed()):
+            elif _todo_has_open_items(todo_tracker):
                 _task_key = _get_task_key(todo_tracker)
                 _current = todo_tracker.get_current_todo()
                 # Re-inject the continuation prompt every iteration while
@@ -2537,9 +2558,7 @@ def run_react_agent_impl(
                 except Exception:
                     pass
 
-            _has_incomplete_todos = bool(
-                todo_tracker and not todo_tracker.is_all_processed() and todo_tracker.todos
-            )
+            _has_incomplete_todos = _todo_has_open_items(todo_tracker)
             if _has_incomplete_todos:
                 _ensure_todo_current(todo_tracker)
             _active_todo = todo_tracker.get_current_todo() if _has_incomplete_todos else None

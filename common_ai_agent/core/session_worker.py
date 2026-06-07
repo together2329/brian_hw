@@ -1427,6 +1427,8 @@ def run_worker(session_id: str, db_path: str) -> int:
                 _tools.set_ask_user_callback(worker.ask_user)
             if hasattr(_tools, "set_record_ssot_qa_callback"):
                 _tools.set_record_ssot_qa_callback(worker.record_ssot_qa)
+            if hasattr(_tools, "set_emit_user_notice_callback"):
+                _tools.set_emit_user_notice_callback(worker.emit_content)
         except Exception as exc:
             worker.emit("error", {"message": f"QA callback registration failed: {exc}"})
 

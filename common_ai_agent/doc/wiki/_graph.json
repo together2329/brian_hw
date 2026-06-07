@@ -1,9 +1,9 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-06T14:37:45Z",
+  "generated_at": "2026-06-07T09:00:47Z",
   "root": "doc/wiki",
-  "node_count": 150,
-  "edge_count": 715,
+  "node_count": 151,
+  "edge_count": 729,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603",
@@ -79,7 +79,8 @@
       "locked-truth-concept",
       "mctp-assembler-contract-breakdown",
       "mctp-contract-slice-trial-and-error-20260606",
-      "req-obligation-contract-evidence-validation"
+      "req-obligation-contract-evidence-validation",
+      "ssot-as-design-truth-graph"
     ],
     "contract-reflection": [
       "verification-contract-model"
@@ -110,6 +111,9 @@
       "atcwdt200-ssot-rtl-tb-flow-시행착오-2026-05-17",
       "pl330-real-orchestrator-ui-lessons-20260517"
     ],
+    "decision-table": [
+      "ssot-as-design-truth-graph"
+    ],
     "deep-test": [
       "sim-debug-requirements-2026-06-01"
     ],
@@ -122,7 +126,8 @@
       "locked-truth-concept",
       "mctp-assembler-contract-breakdown",
       "req-obligation-contract-evidence-validation",
-      "spec-loop-and-equivalence-check"
+      "spec-loop-and-equivalence-check",
+      "ssot-as-design-truth-graph"
     ],
     "dma": [
       "atcdmac100-document-flow-ui-honesty-20260518"
@@ -171,6 +176,9 @@
     "file-size-policy": [
       "atlas-refactoring-exceptions"
     ],
+    "fingerprint": [
+      "ssot-as-design-truth-graph"
+    ],
     "fl": [
       "contract-reflection-workflow"
     ],
@@ -189,6 +197,9 @@
       "project_vite_env_stale_build",
       "sim-debug-waveform-renderer-2026-05-31",
       "workspace-jsx-decomposition-plan"
+    ],
+    "gates": [
+      "ssot-as-design-truth-graph"
     ],
     "general-ip": [
       "general-ip-flow-trial-and-error-20260601"
@@ -258,6 +269,7 @@
       "mctp-assembler-scratch-flow-20260531",
       "mctp-assembler-v3-ingress-fidelity-20260603",
       "mctp-contract-slice-trial-and-error-20260606",
+      "ssot-as-design-truth-graph",
       "verification-contract-model"
     ],
     "multi-user": [
@@ -274,10 +286,17 @@
       "project_classify_survivors_clobber",
       "project_silent_pass_exposure"
     ],
+    "namespace": [
+      "ssot-as-design-truth-graph"
+    ],
     "obligation": [
       "locked-truth-concept",
       "mctp-assembler-contract-breakdown",
-      "req-obligation-contract-evidence-validation"
+      "req-obligation-contract-evidence-validation",
+      "ssot-as-design-truth-graph"
+    ],
+    "oracle": [
+      "ssot-as-design-truth-graph"
     ],
     "orchestrator": [
       "atcdmac100-document-flow-ui-honesty-20260518",
@@ -357,7 +376,8 @@
       "llm-contract-repair-loop"
     ],
     "requirement": [
-      "req-obligation-contract-evidence-validation"
+      "req-obligation-contract-evidence-validation",
+      "ssot-as-design-truth-graph"
     ],
     "requirements": [
       "locked-truth-concept",
@@ -467,6 +487,7 @@
       "general-ip-flow-trial-and-error-20260601",
       "locked-truth-design-spec-workflow",
       "multi-cycle-production-wiring-20260520",
+      "ssot-as-design-truth-graph",
       "ssot-conversion-flow-20260519",
       "ssot-rtl-flow-verify-20260519",
       "truth-coverage-gate",
@@ -525,6 +546,9 @@
     ],
     "truth-coverage": [
       "evidence-contract-obligation-traceability"
+    ],
+    "truth-graph": [
+      "ssot-as-design-truth-graph"
     ],
     "tx-disassembly": [
       "mctp-assembler-contract-breakdown"
@@ -734,6 +758,7 @@
       "sim-debug-waveform-renderer-2026-05-31",
       "single-main-loop-restore-20260519",
       "spec-loop-and-equivalence-check",
+      "ssot-as-design-truth-graph",
       "ssot-conversion-flow-20260519",
       "ssot-datasheet-authoring-20260527",
       "ssot-gen-pass-pipeline",
@@ -1829,6 +1854,7 @@
         "mctp-assembler-contract-breakdown",
         "req-obligation-contract-evidence-validation",
         "spec-loop-and-equivalence-check",
+        "ssot-as-design-truth-graph",
         "verification-contract-model"
       ],
       "broken_refs": [],
@@ -2057,6 +2083,7 @@
         "log",
         "mctp-assembler-contract-breakdown",
         "req-obligation-contract-evidence-validation",
+        "ssot-as-design-truth-graph",
         "truth-coverage-gate"
       ],
       "broken_refs": [],
@@ -2230,7 +2257,8 @@
         "mctp-assembler-contract-breakdown",
         "mctp-contract-slice-trial-and-error-20260606",
         "req-obligation-contract-evidence-validation",
-        "spec-loop-and-equivalence-check"
+        "spec-loop-and-equivalence-check",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -2603,6 +2631,7 @@
         "contract-reflection-workflow",
         "locked-truth-concept",
         "locked-truth-design-spec-workflow",
+        "ssot-as-design-truth-graph",
         "llm-contract-repair-loop",
         "mctp-assembler-contract-breakdown",
         "spec-loop-and-equivalence-check",
@@ -2712,7 +2741,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 38367
+      "size_bytes": 39652
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2782,6 +2811,7 @@
         "llm-wiki-knowledge-graph-discussion-20260602",
         "log",
         "parallel-todo-sub-agent-workers",
+        "ssot-as-design-truth-graph",
         "triple-llm-rv32i-experiment",
         "wiki-curation-policy"
       ],
@@ -2867,7 +2897,8 @@
         "mctp-assembler-contract-breakdown",
         "mctp-contract-slice-trial-and-error-20260606",
         "req-obligation-contract-evidence-validation",
-        "spec-loop-and-equivalence-check"
+        "spec-loop-and-equivalence-check",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -2900,7 +2931,8 @@
       ],
       "incoming": [
         "index",
-        "log"
+        "log",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-02",
@@ -2973,7 +3005,8 @@
         "log",
         "mctp-assembler-contract-breakdown",
         "req-obligation-contract-evidence-validation",
-        "spec-loop-and-equivalence-check"
+        "spec-loop-and-equivalence-check",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -3012,7 +3045,8 @@
         "llm-contract-repair-loop",
         "locked-truth-concept",
         "log",
-        "mctp-assembler-contract-breakdown"
+        "mctp-assembler-contract-breakdown",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -3027,6 +3061,9 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "ssot-as-design-truth-graph",
+        "karpathy-llm-wiki-pattern",
+        "llm-wiki-knowledge-graph-discussion-20260602",
         "formal-verification-evidence",
         "mctp-contract-slice-trial-and-error-20260606",
         "mctp-assembler-contract-breakdown",
@@ -3049,7 +3086,6 @@
         "atlas-single-active-orchestrator-subworkers-20260603",
         "pipeline-progress-debugging",
         "atlas-db-router-runtime-sharding-20260602",
-        "llm-wiki-knowledge-graph-discussion-20260602",
         "sim-debug-requirements-2026-06-01",
         "sim-debug-feature-review-2026-05-31",
         "sim-debug-waveform-renderer-2026-05-31",
@@ -3072,7 +3108,6 @@
         "arm-m0-min-pipeline-run",
         "rtl-version-run-history",
         "deterministic-emit-stages",
-        "karpathy-llm-wiki-pattern",
         "wiki-curation-policy",
         "parallel-todo-sub-agent-workers"
       ],
@@ -3086,9 +3121,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Built `examples/mctp_contract_slice/contract_check.py` — a re-runnable two-axis mutation gate that turns hand-authored `killed: true` claims into machine evidence: targeted (`INJECT_*` per contract) + blanket (`yosys mutate`, DUT region only) + **SEC survivor classification** (miter `equiv` vs gold, `chformal -remove`) labelling each survivor equivalent…",
+      "summary": "- Extended [[ssot-as-design-truth-graph]] with `## 9.5 운영 플로우` (commands · gates · 1-TODO/stage) + a tamper-evident-provenance footnote under §7. Operational flow: draft-req→finalize-req→lock-req→to-ssot→gen-rtl→gen-tb→sim→(sim-debug/coverage/signoff); truth = req/obligation/contract/evidence_plan (lock-req), to-ssot projects it; UI shows one…",
       "path": "doc/wiki/log.md",
-      "size_bytes": 117330
+      "size_bytes": 121271
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3250,7 +3285,8 @@
         "formal-verification-evidence",
         "index",
         "log",
-        "mctp-assembler-contract-breakdown"
+        "mctp-assembler-contract-breakdown",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -4171,7 +4207,8 @@
         "index",
         "log",
         "mctp-contract-slice-trial-and-error-20260606",
-        "spec-loop-and-equivalence-check"
+        "spec-loop-and-equivalence-check",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
@@ -4541,13 +4578,70 @@
         "index",
         "llm-contract-repair-loop",
         "log",
-        "mctp-contract-slice-trial-and-error-20260606"
+        "mctp-contract-slice-trial-and-error-20260606",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
       "summary": "This page records a second methodology in the same family as [[llm-contract-repair-loop]], and confirms (with a worked demo) that its formal core — **equivalence checking** — is doable with open-source tools.",
       "path": "doc/wiki/spec-loop-and-equivalence-check.md",
       "size_bytes": 4976
+    },
+    {
+      "id": "ssot-as-design-truth-graph",
+      "title": "SSOT As Design Truth Graph",
+      "type": "reference",
+      "tags": [
+        "ssot",
+        "truth-graph",
+        "requirement",
+        "obligation",
+        "contract",
+        "decision-table",
+        "oracle",
+        "namespace",
+        "gates",
+        "fingerprint",
+        "mctp",
+        "direction"
+      ],
+      "related": [
+        "req-obligation-contract-evidence-validation",
+        "verification-contract-model",
+        "locked-truth-concept",
+        "locked-truth-design-spec-workflow",
+        "contract-reflection-workflow",
+        "evidence-contract-obligation-traceability",
+        "llm-contract-repair-loop",
+        "formal-verification-evidence",
+        "spec-loop-and-equivalence-check",
+        "mctp-contract-slice-trial-and-error-20260606",
+        "karpathy-llm-wiki-pattern",
+        "llm-wiki-knowledge-graph-discussion-20260602"
+      ],
+      "outgoing": [
+        "req-obligation-contract-evidence-validation",
+        "verification-contract-model",
+        "locked-truth-concept",
+        "locked-truth-design-spec-workflow",
+        "contract-reflection-workflow",
+        "evidence-contract-obligation-traceability",
+        "llm-contract-repair-loop",
+        "formal-verification-evidence",
+        "spec-loop-and-equivalence-check",
+        "mctp-contract-slice-trial-and-error-20260606",
+        "karpathy-llm-wiki-pattern",
+        "llm-wiki-knowledge-graph-discussion-20260602"
+      ],
+      "incoming": [
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-07",
+      "summary": "방향 결정 기록(2026-06-07 토론): **SSOT를 \"개념\"으로 없애지 말고, \"거대한 저작 YAML 파일\"로는 없앤다.** SSOT 원칙은 유지·강화하되, `yaml/<ip>.ssot.yaml`이라는 authored monolith는 죽이고 SSOT를 **req / obligation / contract / structure / oracle 로 이루어진 typed Design Truth Graph**로 재정의한다. 이 페이지는 그 합의와, 합의가 *서느냐 무너지느냐*를 가르는 게이트들을 적는다.",
+      "path": "doc/wiki/ssot-as-design-truth-graph.md",
+      "size_bytes": 22117
     },
     {
       "id": "ssot-conversion-flow-20260519",
@@ -4968,7 +5062,8 @@
         "project_classify_survivors_clobber"
       ],
       "incoming": [
-        "project_classify_survivors_clobber"
+        "project_classify_survivors_clobber",
+        "ssot-as-design-truth-graph"
       ],
       "broken_refs": [],
       "updated": "",

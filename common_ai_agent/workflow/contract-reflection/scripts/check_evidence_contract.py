@@ -173,6 +173,31 @@ def _condition(ip_dir: Path, row: JsonMap, condition: JsonMap) -> tuple[str, boo
     return cid, False, f"unhandled condition kind {kind}"
 
 
+def _row_label(row: JsonMap) -> str:
+    goal_id = _text(row.get("goal_id"))
+    scenario_id = _text(row.get("scenario_id"))
+    if goal_id and scenario_id:
+        return f"{goal_id}/{scenario_id}"
+    if scenario_id:
+        return scenario_id
+    if goal_id:
+        return goal_id
+    return "<unknown row>"
+
+
+def _check_condition_rows(ip_dir: Path, condition: JsonMap, matched_rows: list[JsonMap]) -> tuple[str, bool, list[str]]:
+    if _text(condition.get("kind")) in VCD_CONDITION_KINDS:
+        cid, passed, message = _condition(ip_dir, matched_rows[0], condition)
+        return cid, passed, [] if passed else [message]
+    cid = _text(condition.get("id")) or "missing_condition_id"
+    issues: list[str] = []
+    for row in matched_rows:
+        cid, passed, message = _condition(ip_dir, row, condition)
+        if not passed:
+            issues.append(f"{_row_label(row)}: {message}")
+    return cid, not issues, issues
+
+
 def _check_obligation(ip_dir: Path, obligation: JsonMap, known_reqs: set[str], rows: RowsByArtifact) -> ObligationResult:
     oid = _text(obligation.get("obligation_id")) or "<missing>"
     issues: list[str] = []
@@ -198,10 +223,9 @@ def _check_obligation(ip_dir: Path, obligation: JsonMap, known_reqs: set[str], r
             issues.append(f"missing observable {name}")
     condition_results: JsonMap = {}
     for item in _as_list(obligation.get("pass_conditions")):
-        cid, passed, message = _condition(ip_dir, matched_rows[0], _as_map(item))
+        cid, passed, condition_issues = _check_condition_rows(ip_dir, _as_map(item), matched_rows)
         condition_results[cid] = passed
-        if not passed:
-            issues.append(f"{cid}: {message}")
+        issues.extend(f"{cid}: {issue}" for issue in condition_issues)
     status = "pass" if not issues else "fail"
     return ObligationResult(oid, status, tuple(issues), condition_results, tuple(matched_rows))
 

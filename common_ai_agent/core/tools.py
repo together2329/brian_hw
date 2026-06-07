@@ -4283,6 +4283,22 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                             f"\n→ Jumping to Task {jump_idx + 1}: {jump_todo.content}"
                             f"\n→ todo_update(index={jump_idx + 1}, status='in_progress')"
                         )
+                    # Surface the failure to the human watching the session. The
+                    # tool result below only reaches the LLM; without this notice
+                    # a looping gate (on_reject) looks like a silent hang.
+                    _retries = getattr(item, "rejection_count", 0)
+                    _notice_jump = (
+                        f"\n↩ retrying from Task {todo_tracker.current_index + 1}"
+                        if actually_jumped else ""
+                    )
+                    _emit_user_notice(
+                        f"⚠️ Gate failed — Task {index} [{label}]"
+                        f" (attempt {_retries}/3)\n"
+                        f"{tail or '(no output)'}\n"
+                        f"{('full log: ' + log_file) if log_file else ''}"
+                        f"{_notice_jump}",
+                        cls="gate-error",
+                    )
                     return (
                         f"❌ Task {index} [command: {label}] failed.\n"
                         f"{log_info}"
@@ -5811,6 +5827,32 @@ _read_pipeline_state_callback = None
 # cold worker before `worker_call` opens its socket. Signature:
 # (worker_url, workflow, project_root) -> None.
 _ensure_lazy_worker_callback = None
+# Installed by the worker (session_worker) so static command-gate failures can
+# surface a human-facing notice in the chat content stream. Without this, a
+# failed gate (e.g. a req finalize/lock checker) only returns its reason to the
+# LLM as a tool result and silently loops via on_reject — the user watching the
+# session never sees WHY it is stuck. Signature: (text, cls) -> None.
+_emit_user_notice_callback = None
+
+
+def _emit_user_notice(text: str, cls: str = "") -> None:
+    """Best-effort: push a human-facing notice to the UI content stream.
+
+    No-op when no callback is installed (CLI/headless). Never raises into the
+    caller — surfacing a notice must not break the tool that triggered it.
+    """
+    cb = _emit_user_notice_callback
+    if cb is None:
+        return
+    try:
+        cb(str(text), cls)
+    except TypeError:
+        try:
+            cb(str(text))
+        except Exception:
+            pass
+    except Exception:
+        pass
 
 
 def _ask_user_exec_mode() -> str:
@@ -5975,6 +6017,12 @@ def set_ensure_lazy_worker_callback(cb):
     """Install the lazy-worker hook used by the direct dispatch path."""
     global _ensure_lazy_worker_callback
     _ensure_lazy_worker_callback = cb
+
+
+def set_emit_user_notice_callback(cb):
+    """Install the UI bridge for human-facing tool notices (gate failures)."""
+    global _emit_user_notice_callback
+    _emit_user_notice_callback = cb
 
 
 # Pipeline stages copied into each IP folder + documented in its runbook.

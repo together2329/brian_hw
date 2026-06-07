@@ -27,7 +27,7 @@
  * tsc-clean + vitest-green + window.Workspace registered + public exports
  * intact. Do NOT treat this as the live source of truth.
  */
-import { type ReactNode, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 
 import { ErrorBoundary } from './app-helpers';
 import { Splitter } from './workspace-resize-splitters';
@@ -89,6 +89,18 @@ const w: any = window;
 const cleanRuntimeLabel = (value: any): string => {
   const text = String(value || '').trim();
   return text && text !== '—' && text !== '-' ? text : '';
+};
+
+// Elapsed wall-clock for the "Agent responding" pill. Shows M:SS, and rolls
+// up to H:MM:SS past an hour, so a long single turn (e.g. a slow reasoning
+// turn with no streamed tokens) reads as "still going" rather than "hung".
+const formatElapsedClock = (secs: number): string => {
+  const s = Math.max(0, Math.floor(secs));
+  const hh = Math.floor(s / 3600);
+  const mm = Math.floor((s % 3600) / 60);
+  const ss = s % 60;
+  const p = (n: number): string => String(n).padStart(2, '0');
+  return hh > 0 ? `${hh}:${p(mm)}:${p(ss)}` : `${mm}:${p(ss)}`;
 };
 
 // ── Workspace : root composer ──────────────────────────────────────
@@ -336,6 +348,22 @@ export const Workspace = ({
   const liveRuntimeModel = cleanRuntimeLabel(liveLlmRuntime?.model);
   const liveRuntimeEffort = cleanRuntimeLabel(liveLlmRuntime?.reasoningEffort);
   const footerModePrefix = intent === 'plan' ? '[plan] ' : '';
+  // Live elapsed clock for the responding pill. Anchored to the streaming
+  // rising edge; a 1Hz interval forces a re-render even during a long
+  // reasoning gap when no tokens (and so no other state churn) arrive — the
+  // exact case that otherwise looks frozen. The tick value itself is unused;
+  // only the re-render it triggers matters (Date.now() is read at render).
+  const [, setRespondTick] = useState(0);
+  const respondStartRef = useRef(0);
+  useEffect(() => {
+    if (!streaming) { respondStartRef.current = 0; return undefined; }
+    if (!respondStartRef.current) respondStartRef.current = Date.now();
+    const id = setInterval(() => setRespondTick((t) => (t + 1) % 86400), 1000);
+    return () => clearInterval(id);
+  }, [streaming]);
+  const respondElapsed = streaming && respondStartRef.current
+    ? formatElapsedClock((Date.now() - respondStartRef.current) / 1000)
+    : '';
   const agentRespondingText = [
     'Agent responding',
     liveRuntimeModel,
@@ -847,7 +875,7 @@ export const Workspace = ({
               : liveWorkerActive
                 ? { icon: '▶', text: `Worker running · ${liveWorkerWorkflow}`, color: 'var(--warn)', bg: 'color-mix(in oklch, var(--warn) 14%, transparent)' }
               : streaming
-                ? { icon: '◉', text: agentRespondingText, color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
+                ? { icon: '◉', text: agentRespondingText, suffix: respondElapsed, color: 'var(--accent)', bg: 'color-mix(in oklch, var(--accent) 16%, transparent)', spin: true }
               : interactiveWorkerFailed
                 ? {
                     icon: '!',
@@ -898,6 +926,9 @@ export const Workspace = ({
                   {s.icon}{s.spin ? <span className="ascii-spin" style={{ marginLeft: 2 }} /> : null}
                 </span>
                 <span>{footerModePrefix}{s.text}</span>
+                {s.suffix ? (
+                  <span style={{ color: 'var(--fg-mute)', fontVariantNumeric: 'tabular-nums' }}>· {s.suffix}</span>
+                ) : null}
               </div>
             );
           })()}

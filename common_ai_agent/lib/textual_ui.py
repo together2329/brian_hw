@@ -4196,8 +4196,13 @@ class AgentTUI(App):
             elif s.startswith("•"):
                 items.append(("sub", s[1:].strip()))
 
-        # All tasks done → hide todo section entirely
-        if items and all(k == "approved" for k, _ in items):
+        # All tasks done → hide todo section entirely.
+        try:
+            from lib.todo_tracker import are_todo_statuses_all_approved
+            _all_approved = are_todo_statuses_all_approved(k for k, _ in items)
+        except Exception:
+            _all_approved = bool(items) and all(k == "approved" for k, _ in items)
+        if _all_approved:
             self.query_one("#task-title", Static).update("")
             self.query_one("#todo-header", Static).update("")
             self.query_one("#todo", Static).update("")

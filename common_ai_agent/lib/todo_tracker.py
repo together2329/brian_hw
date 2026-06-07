@@ -64,6 +64,34 @@ STATUS_ALIASES = {
 }
 
 
+def is_todo_status_open(status: Any) -> bool:
+    """Return True for every status that still requires work or review."""
+    return str(status or "") != "approved"
+
+
+def are_todo_statuses_all_approved(statuses: Any) -> bool:
+    """Shared completion predicate: a TODO list is done only when every item is approved."""
+    seen = False
+    for status in statuses or []:
+        seen = True
+        if is_todo_status_open(status):
+            return False
+    return seen
+
+
+def todo_items_have_open_work(items: Any) -> bool:
+    """Return True when any todo-like item is not approved."""
+    def _status(item: Any) -> Any:
+        if isinstance(item, dict):
+            return item.get("status", "")
+        return getattr(item, "status", "")
+
+    return bool(items) and any(
+        is_todo_status_open(_status(item))
+        for item in items
+    )
+
+
 def _load_todo_rule() -> str:
     """
     Load todo rules from project rules/ folder only.
@@ -1197,11 +1225,15 @@ class TodoTracker:
 
     def is_all_completed(self) -> bool:
         """모든 todo가 approved(완전히 완료)되었는지 확인."""
-        return bool(self.todos) and all(t.status == "approved" for t in self.todos)
+        return are_todo_statuses_all_approved(t.status for t in self.todos)
 
     def is_all_processed(self) -> bool:
-        """모든 todo가 처리(approved 또는 rejected)되었는지 확인."""
-        return bool(self.todos) and all(t.status in ("approved", "rejected") for t in self.todos)
+        """모든 todo가 approved(완전히 완료)되었는지 확인."""
+        return self.is_all_completed()
+
+    def has_open_items(self) -> bool:
+        """rejected/pending/in_progress/completed 항목이 남아 있는지 확인."""
+        return todo_items_have_open_work(self.todos)
 
     def get_progress_pct(self) -> float:
         """완료 비율 계산 (0.0 ~ 1.0)."""
