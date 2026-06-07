@@ -948,6 +948,11 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
             if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
                 return f"{Color.CYAN}completed{Color.RESET}"
             if first.startswith("❌"):
+                _first_line = first.split("\n", 1)[0]
+                _actual_rejection = (
+                    "rejected" in _first_line.lower()
+                    or bool(re.search(r'status\s*[:=]\s*["\']?rejected\b', args_str or "", re.IGNORECASE))
+                )
                 # Extract task index and rejection reason, same as approved
                 idx_m = re.search(r'"?index"?\s*[:=]\s*(\d+)', args_str or "")
                 if not idx_m:
@@ -995,8 +1000,14 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                                     break
                 except Exception:
                     pass
-                # Prefer tracker's stored rejection_reason (always set by tools.py)
-                rejected_reason = (todo_item and getattr(todo_item, 'rejection_reason', '')) or ""
+                # Prefer tracker's stored rejection_reason for actual rejections
+                # only. Blocked transition errors often point at the same
+                # in-progress task; borrowing its old rejection_reason would
+                # mislabel an update failure as a new reject.
+                rejected_reason = (
+                    (todo_item and getattr(todo_item, 'rejection_reason', '')) or ""
+                    if _actual_rejection else ""
+                )
                 # Fallback: extract from observation text if tracker has nothing.
                 # Three rejection shapes appear in the wild:
                 #   (a) "...rejected. [<reason>]"            — bracketed user reason
@@ -1004,8 +1015,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 #   (c) "rejected: <reason>"                 — colon-style
                 # Plus the auto-reject path from tools.py which has NO brackets:
                 #   (d) "❌ Cannot mark Task N as completed — no tools were called..."
-                # Without a match for (d), the card renders "[X] rejected" with no
-                # reason — exactly the symptom reported.
+                # Those blocked transition errors are not actual rejected status.
                 if not rejected_reason:
                     bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
                     if not bracket_m:
@@ -1039,6 +1049,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 _R = Color.RESET
                 _L = "\033[2;31m"
                 _B = "\033[1;31m"   # bold red for reason
+                _status_label = "rejected" if _actual_rejection else "update blocked"
+                _status_header = "[X] rejected" if _actual_rejection else "[ERROR] update blocked"
                 if todo_item:
                     import textwrap as _tw
                     _W = 72
@@ -1046,7 +1058,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     _LABEL_W = 10
                     _HC = _RD  # header/reason color = red
                     _TC = _R   # todo/detail/criteria content = white (reset)
-                    lines = [f"{_RD}[X] rejected{_R}"]
+                    lines = [f"{_RD}{_status_header}{_R}"]
                     if rejected_reason:
                         _wrapped = _tw.fill(
                             rejected_reason,
@@ -1086,8 +1098,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     lines.append("")
                     return "\n".join(lines)
                 if rejected_reason:
-                    return f"{Color.RED}rejected{Color.RESET} {Color.DIM}— {rejected_reason}{Color.RESET}"
-                return f"{Color.RED}rejected{Color.RESET}"
+                    return f"{Color.RED}{_status_label}{Color.RESET} {Color.DIM}— {rejected_reason}{Color.RESET}"
+                return f"{Color.RED}{_status_label}{Color.RESET}"
             if first.startswith("▶"):
                 return "in_progress"
             if first.startswith("⏸"):
