@@ -227,6 +227,21 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
 
   useEffect(() => () => clearWorkflowReadyTimers(), [clearWorkflowReadyTimers]);
 
+  // Backend-driven mode pill sync. The worker flips agent_mode to normal when
+  // the user confirms a plan with y/yc (chat_loop), and emits "mode_change".
+  // Without mirroring it into `intent` the pill keeps showing PLAN even though
+  // the agent is already executing in normal mode.
+  useEffect(() => {
+    const wb: any = (window as any).backend;
+    if (!wb || typeof wb.subscribe !== 'function') return;
+    const unsub = wb.subscribe('mode_change', (m: any) => {
+      const mode = m && m.mode;
+      if (mode === 'plan' || mode === 'plan_q') setIntent('plan');
+      else if (mode === 'normal') setIntent('normal');
+    });
+    return () => { try { unsub && unsub(); } catch (_) {} };
+  }, []);
+
   useEffect(() => {
     const nextWorkflow = String(activeWorkflow || '').trim();
     const known = (w.FLOW_STAGES || []).some((s: any) => s && s.id === nextWorkflow);

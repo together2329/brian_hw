@@ -819,6 +819,13 @@ class SessionWorker:
     def emit_todo(self, text: str) -> None:
         self.emit("todo", {"text": text})
 
+    def emit_mode(self, mode: str) -> None:
+        # Plan↔normal flip notification for the web UI mode pill. chat_loop's
+        # y/yc plan-confirm flips agent_mode to normal in the worker process;
+        # without this the client keeps showing PLAN (it only learns mode from
+        # its own toggles/slash). "mode_change" is in the passthrough set.
+        self.emit("mode_change", {"mode": str(mode or "")})
+
     def emit_flush(self) -> None:
         self.emit("flush", {})
 
@@ -1411,6 +1418,7 @@ def run_worker(session_id: str, db_path: str) -> int:
         agent._textual_esc_check_fn = worker.check_stop
         agent._textual_poll_human_input_fn = worker.poll_interrupt
         agent._textual_set_agent_running_fn = worker.set_agent_running
+        agent._textual_emit_mode_fn = worker.emit_mode
 
         try:
             from core import tools as _tools
