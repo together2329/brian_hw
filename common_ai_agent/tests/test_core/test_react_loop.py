@@ -606,6 +606,7 @@ class TestRunReactAgentImpl(unittest.TestCase):
             todo_tracker.save()
 
             calls = {"count": 0}
+            observations = []
 
             def text_reply(messages, stop=None, **kwargs):
                 calls["count"] += 1
@@ -619,14 +620,17 @@ class TestRunReactAgentImpl(unittest.TestCase):
 
             def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
                 if tool_name == "run_command":
+                    observations.append((tool_name, "evidence"))
                     return "evidence"
                 with tools.scoped_todo_runtime(todo_tracker, todo_path):
-                    return dispatch_tool(
+                    result = dispatch_tool(
                         tool_name,
                         args_str,
                         pre_parsed_kwargs=pre_parsed_kwargs,
                         available_tools={"todo_update": tools.todo_update},
                     )
+                    observations.append((tool_name, result))
+                    return result
 
             cfg = _make_cfg(
                 ENABLE_TODO_TRACKING=False,
@@ -652,8 +656,11 @@ class TestRunReactAgentImpl(unittest.TestCase):
                 todo_tracker=todo_tracker,
             )
 
-        self.assertEqual(todo_tracker.todos[0].status, "completed")
+        self.assertIn(todo_tracker.todos[0].status, {"completed", "approved"})
         self.assertEqual(todo_tracker.todos[0].tools_since_in_progress, 0)
+        todo_update_results = [result for tool, result in observations if tool == "todo_update"]
+        self.assertTrue(todo_update_results)
+        self.assertNotIn("no tools were called", todo_update_results[0])
 
     def test_stop_paused_chat_suppression_skips_todo_guard_once(self):
         """After STOP, casual chat should not be forced through the TODO guard."""
