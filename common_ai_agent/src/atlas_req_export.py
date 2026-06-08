@@ -9,12 +9,17 @@ and is the single source of truth (all IPs are normalized to this shape):
                    optional ``req/*_requirements.md`` prose / ``req/locked_truth.md``
   - obligations  : ``req/obligations.json`` (obligations[])
   - contract     : ``req/contract_refs.json`` (contract_refs[])
+  - structural   : ``req/structural_contracts.json`` (contracts[])
+  - behavioral   : ``req/behavioral_contracts.json`` (contracts[])
   - evidence     : ``req/evidence_plan.json`` (evidence_plan[])
+  - closure      : ``req/contract_closure.json`` (derived validation report)
   - approval/lock: ``req/approval_manifest.json`` + ``req/ssot_validation.json``
 
 Everything is cross-linked by id (requirement_id ↔ obligation_id ↔
-contract_ref_id ↔ evidence_id), so the rendered doc surfaces the full
-requirement→obligation→contract→evidence chain for human review.
+contract_ref_id/structural_contract_id/behavioral_contract_id ↔ evidence_id),
+so the rendered doc surfaces the full
+requirement→obligation→contract/structural/behavioral→evidence chain for human
+review.
 
 Read-only with respect to IP artifacts: this module never writes into the
 ``req/`` dir. The caller persists the rendered HTML under
@@ -66,7 +71,10 @@ def load_req_bundle(ip_dir: Path, ip: str) -> dict[str, Any]:
         "requirements": _read_json(req / "requirements_index.json"),
         "obligations": _read_json(req / "obligations.json"),
         "contract": _read_json(req / "contract_refs.json"),
+        "structural": _read_json(req / "structural_contracts.json"),
+        "behavioral": _read_json(req / "behavioral_contracts.json"),
         "evidence": _read_json(req / "evidence_plan.json"),
+        "closure": _read_json(req / "contract_closure.json"),
         "approval": _read_json(req / "approval_manifest.json"),
         "validation": _read_json(req / "ssot_validation.json"),
     }
@@ -247,16 +255,18 @@ def _sec_obligations(b: dict[str, Any], compact: bool = False) -> str:
         f"<td>{_badge(o.get('status'))}</td>"
         f"<td class='sm'>{_clip(o.get('statement'), 200)}</td>"
         f"<td class='sm'>{_refs(o.get('requirement_refs'))}</td>"
-        f"<td class='sm'>{_refs(o.get('contract_refs'))}</td></tr>"
+        f"<td class='sm'>{_refs(o.get('contract_refs'))}</td>"
+        f"<td class='sm'>{_refs(o.get('structural_contract_refs'))}</td>"
+        f"<td class='sm'>{_refs(o.get('behavioral_contract_refs'))}</td></tr>"
         for o in shown if isinstance(o, dict)
     )
     more = (
-        f"<tr><td colspan='5' class='muted'>… {len(obls) - 12} more obligations</td></tr>"
+        f"<tr><td colspan='7' class='muted'>… {len(obls) - 12} more obligations</td></tr>"
         if compact and len(obls) > 12 else ""
     )
     table = (
         "<table><thead><tr><th>obligation_id</th><th>status</th><th>statement</th>"
-        "<th>← requirements</th><th>→ contract</th></tr></thead>"
+        "<th>← requirements</th><th>→ contract</th><th>→ structural</th><th>→ behavioral</th></tr></thead>"
         f"<tbody>{rows}{more}</tbody></table>"
         if obls else "<p class='muted'>(no obligations)</p>"
     )
@@ -301,6 +311,114 @@ def _sec_contract(b: dict[str, Any], compact: bool = False) -> str:
     </section>"""
 
 
+def _signal_summary(signals: Any, limit: int = 8) -> str:
+    items = signals if isinstance(signals, list) else []
+    chunks = []
+    for sig in items[:limit]:
+        if not isinstance(sig, dict):
+            continue
+        name = sig.get("name") or sig.get("signal")
+        direction = sig.get("dir") or sig.get("direction")
+        width = sig.get("width")
+        if name:
+            chunks.append(f"{name}:{direction or '?'}[{width or '?'}]")
+    if len(items) > limit:
+        chunks.append(f"+{len(items) - limit} more")
+    return ", ".join(chunks)
+
+
+def _sec_structural(b: dict[str, Any], compact: bool = False) -> str:
+    contracts = _items(b.get("structural"), "contracts")
+    shown = contracts[:10] if compact else contracts
+    rows = "".join(
+        f"<tr><td class='mono'>{_esc(c.get('id') or c.get('contract_id'))}</td>"
+        f"<td class='mono sm'>{_esc(c.get('type') or c.get('kind'))}</td>"
+        f"<td class='mono sm'>{_esc(c.get('module'))}</td>"
+        f"<td class='sm'>{_refs(c.get('obligations') or c.get('obligation_refs'))}</td>"
+        f"<td class='sm'>{_clip(_signal_summary(c.get('signals')), 220)}</td></tr>"
+        for c in shown if isinstance(c, dict)
+    )
+    more = (
+        f"<tr><td colspan='5' class='muted'>… {len(contracts) - 10} more structural contracts</td></tr>"
+        if compact and len(contracts) > 10 else ""
+    )
+    table = (
+        "<table><thead><tr><th>id</th><th>type</th><th>module</th>"
+        "<th>← obligations</th><th>signals</th></tr></thead>"
+        f"<tbody>{rows}{more}</tbody></table>"
+        if contracts else "<p class='muted'>(no structural contracts)</p>"
+    )
+    return f"""
+    <section id="structural">
+      <h2><span class="kicker">STRUCT</span> Structural Contracts</h2>
+      <div class="metarow">
+        <span class="stat"><b>{len(contracts)}</b> structural contracts</span>
+        <span class="muted">generic IO, clock/reset, interface, and sync/async timing authority</span>
+      </div>
+      {table}
+    </section>"""
+
+
+def _behavior_summary(contract: dict[str, Any]) -> str:
+    if isinstance(contract.get("decision_table"), list) and contract.get("decision_table"):
+        return f"decision_table[{len(contract.get('decision_table') or [])}]"
+    if isinstance(contract.get("transactions"), list) and contract.get("transactions"):
+        return f"transactions[{len(contract.get('transactions') or [])}]"
+    if isinstance(contract.get("state_transitions"), list) and contract.get("state_transitions"):
+        return f"state_transitions[{len(contract.get('state_transitions') or [])}]"
+    if isinstance(contract.get("rules"), list) and contract.get("rules"):
+        return f"rules[{len(contract.get('rules') or [])}]"
+    if isinstance(contract.get("truth_table"), list) and contract.get("truth_table"):
+        return f"truth_table[{len(contract.get('truth_table') or [])}]"
+    return ""
+
+
+def _stage_summary(stages: Any, limit: int = 5) -> str:
+    items = stages if isinstance(stages, list) else []
+    labels = []
+    for entry in items[:limit]:
+        if not isinstance(entry, dict):
+            continue
+        stage = entry.get("stage")
+        check = entry.get("check") or entry.get("validator") or entry.get("observable") or entry.get("assertion")
+        labels.append(f"{stage}:{check}" if stage and check else str(stage or check or "stage"))
+    if len(items) > limit:
+        labels.append(f"+{len(items) - limit} more")
+    return ", ".join(labels)
+
+
+def _sec_behavioral(b: dict[str, Any], compact: bool = False) -> str:
+    contracts = _items(b.get("behavioral"), "contracts")
+    shown = contracts[:10] if compact else contracts
+    rows = "".join(
+        f"<tr><td class='mono'>{_esc(c.get('id') or c.get('behavioral_contract_id'))}</td>"
+        f"<td class='mono sm'>{_esc(c.get('type') or c.get('kind'))}</td>"
+        f"<td class='sm'>{_refs(c.get('obligations') or c.get('obligation_refs'))}</td>"
+        f"<td class='sm'>{_esc(_behavior_summary(c))}</td>"
+        f"<td class='sm'>{_clip(_stage_summary(c.get('stage_contracts')), 220)}</td></tr>"
+        for c in shown if isinstance(c, dict)
+    )
+    more = (
+        f"<tr><td colspan='5' class='muted'>… {len(contracts) - 10} more behavioral contracts</td></tr>"
+        if compact and len(contracts) > 10 else ""
+    )
+    table = (
+        "<table><thead><tr><th>id</th><th>type</th><th>← obligations</th>"
+        "<th>machine behavior</th><th>stage contracts</th></tr></thead>"
+        f"<tbody>{rows}{more}</tbody></table>"
+        if contracts else "<p class='muted'>(no behavioral contracts)</p>"
+    )
+    return f"""
+    <section id="behavioral">
+      <h2><span class="kicker">BEHAVIOR</span> Behavioral Contracts</h2>
+      <div class="metarow">
+        <span class="stat"><b>{len(contracts)}</b> behavioral contracts</span>
+        <span class="muted">decision tables, state/transaction rules, and stage-level checks</span>
+      </div>
+      {table}
+    </section>"""
+
+
 def _sec_evidence(b: dict[str, Any], compact: bool = False) -> str:
     plan = _items(b.get("evidence"), "evidence_plan")
     rows = "".join(
@@ -323,6 +441,44 @@ def _sec_evidence(b: dict[str, Any], compact: bool = False) -> str:
       <div class="metarow">
         <span class="stat"><b>{len(plan)}</b> planned</span>
         <span class="muted">how each contract ref will be proven</span>
+      </div>
+      {table}
+    </section>"""
+
+
+def _sec_closure(b: dict[str, Any], compact: bool = False) -> str:
+    closure = b.get("closure") or {}
+    contracts = _items(closure, "contracts")
+    shown = contracts[:12] if compact else contracts
+    if not closure:
+        return ""
+    rows = "".join(
+        f"<tr><td class='mono'>{_esc(c.get('contract_ref'))}</td>"
+        f"<td class='mono sm'>{_esc(c.get('kind'))}</td>"
+        f"<td>{_badge(c.get('status'))}</td>"
+        f"<td class='sm'>{_refs(c.get('obligation_refs'))}</td>"
+        f"<td class='sm'>{_refs(c.get('evidence_refs'))}</td>"
+        f"<td class='sm'>{_clip(', '.join(c.get('validators') or []), 160)}</td></tr>"
+        for c in shown if isinstance(c, dict)
+    )
+    more = (
+        f"<tr><td colspan='6' class='muted'>… {len(contracts) - 12} more closure rows</td></tr>"
+        if compact and len(contracts) > 12 else ""
+    )
+    table = (
+        "<table><thead><tr><th>contract_ref</th><th>kind</th><th>status</th>"
+        "<th>obligations</th><th>evidence</th><th>validators</th></tr></thead>"
+        f"<tbody>{rows}{more}</tbody></table>"
+        if contracts else "<p class='muted'>(no contract closure rows)</p>"
+    )
+    summary = closure.get("summary") if isinstance(closure, dict) else {}
+    return f"""
+    <section id="closure">
+      <h2><span class="kicker">CLOSURE</span> Contract Closure</h2>
+      <div class="metarow">
+        <span class="stat"><b>{_esc((summary or {}).get('closed', 0))}</b> closed</span>
+        <span class="stat"><b>{_esc((summary or {}).get('contracts', len(contracts)))}</b> contracts</span>
+        {_badge(closure.get('status'))}
       </div>
       {table}
     </section>"""
@@ -400,12 +556,16 @@ def _score_cards(b: dict[str, Any], full: bool) -> str:
     reqs = _items(b.get("requirements"), "requirements")
     obls = _items(b.get("obligations"), "obligations")
     refs = _items(b.get("contract"), "contract_refs")
+    structural = _items(b.get("structural"), "contracts")
+    behavioral = _items(b.get("behavioral"), "contracts")
     plan = _items(b.get("evidence"), "evidence_plan")
     val = b.get("validation") or {}
     cards = [
         ("Requirements", f"{len(reqs)} reqs"),
         ("Obligations", f"{len(obls)} obli"),
         ("Contract", f"{len(refs)} refs"),
+        ("Structural", f"{len(structural)} struct"),
+        ("Behavioral", f"{len(behavioral)} behav"),
         ("Evidence", f"{len(plan)} planned"),
     ]
     if full:
@@ -423,7 +583,7 @@ def render_req_html(bundle: dict[str, Any], ip: str, variant: str = "full") -> s
 
     ``variant``:
       - ``full``  : approval/lock section first, every table expanded (default).
-      - ``core4`` : lean req+obli+contract+evidence; lock shown as header badge.
+      - ``core4`` : lean req+obli+contract+structural+evidence; lock shown as header badge.
     """
     full = variant != "core4"
     a = bundle.get("approval") or {}
@@ -431,16 +591,25 @@ def render_req_html(bundle: dict[str, Any], ip: str, variant: str = "full") -> s
     if full:
         toc_items = [("approval", "Lock"), ("req", "Requirements"),
                      ("obli", "Obligations"), ("contract", "Contract"),
-                     ("evidence", "Evidence")]
+                     ("structural", "Structural"), ("behavioral", "Behavioral"),
+                     ("evidence", "Evidence"), ("closure", "Closure")]
         body = (_sec_approval(bundle) + _sec_requirements(bundle)
                 + _sec_obligations(bundle) + _sec_contract(bundle)
-                + _sec_evidence(bundle))
+                + _sec_structural(bundle)
+                + _sec_behavioral(bundle)
+                + _sec_evidence(bundle)
+                + _sec_closure(bundle))
     else:
         toc_items = [("req", "Requirements"), ("obli", "Obligations"),
-                     ("contract", "Contract"), ("evidence", "Evidence")]
+                     ("contract", "Contract"), ("structural", "Structural"),
+                     ("behavioral", "Behavioral"), ("evidence", "Evidence"),
+                     ("closure", "Closure")]
         body = (_sec_requirements(bundle) + _sec_obligations(bundle, compact=True)
                 + _sec_contract(bundle, compact=True)
-                + _sec_evidence(bundle, compact=True))
+                + _sec_structural(bundle, compact=True)
+                + _sec_behavioral(bundle, compact=True)
+                + _sec_evidence(bundle, compact=True)
+                + _sec_closure(bundle, compact=True))
     toc = "".join(f"<a href='#{i}'>{_esc(label)}</a>" for i, label in toc_items)
     status = a.get("status") or ("locked" if val.get("ok") else "n/a")
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -452,7 +621,7 @@ def render_req_html(bundle: dict[str, Any], ip: str, variant: str = "full") -> s
   <div class="ttl"><span class="wordmark">REQ</span><h1>{_esc(ip)}</h1>
     {_badge(status)}
     <span class="muted" style="font-size:12px">{_esc(a.get('approved_by',''))}</span></div>
-  <div class="sub">Unified requirements · obligations · contract · evidence — one human-reviewable view.</div>
+  <div class="sub">Unified requirements · obligations · contracts · structural · behavioral · evidence — one human-reviewable view.</div>
   <div class="scorecard">{_score_cards(bundle, full)}</div>
   <nav class="toc">{toc}</nav>
 </header>

@@ -42,6 +42,8 @@ def _draft(ip: str) -> dict[str, Any]:
                 "requirement_refs": ["REQ_TIMER_APB_001"],
                 "statement": "The APB interface shall complete every valid access with OK response.",
                 "contract_refs": ["C_TIMER_APB_IF"],
+                "structural_contract_refs": ["C_STRUCT_TIMER_IO"],
+                "behavioral_contract_refs": ["BC_TIMER_ACCESS"],
             }
         ],
         "contract_refs": [
@@ -55,6 +57,71 @@ def _draft(ip: str) -> dict[str, Any]:
                 ],
             }
         ],
+        "behavioral_contracts": [
+            {
+                "id": "BC_TIMER_ACCESS",
+                "type": "decision_table",
+                "obligations": ["OBL_TIMER_APB_001"],
+                "inputs": ["cmd_valid", "cmd_ready", "cmd_addr", "cmd_wdata"],
+                "outputs": ["rsp_rdata"],
+                "decision_table": [
+                    {
+                        "when": "cmd_valid == 1 and cmd_ready == 1",
+                        "then": {"accept_cmd": 1, "rsp_rdata": "selected register value"},
+                    }
+                ],
+                "stage_contracts": [
+                    {"stage": "ssot", "check": "function_model transaction mirrors decision_table"},
+                    {"stage": "sim", "validator": "check_evidence_contract.py"},
+                ],
+            }
+        ],
+        "structural_contracts": [
+            {
+                "id": "C_STRUCT_TIMER_IO",
+                "type": "structural_top",
+                "obligations": ["OBL_TIMER_APB_001"],
+                "module": ip,
+                "clock_domains": [{"id": "main_clk", "clock_signal": "clk", "edge": "rising"}],
+                "reset_domains": [
+                    {
+                        "id": "main_rst",
+                        "reset_signal": "rst_n",
+                        "polarity": "active_low",
+                        "assertion": "async",
+                        "deassertion": "sync",
+                        "clock_domain": "main_clk",
+                    }
+                ],
+                "interfaces": [
+                    {
+                        "id": "ctrl_if",
+                        "kind": "bus",
+                        "protocol": "custom",
+                        "role": "slave",
+                        "clock_domain": "main_clk",
+                        "signals": ["cmd_valid", "cmd_ready", "cmd_addr", "cmd_wdata", "rsp_rdata"],
+                    },
+                    {
+                        "id": "event_in",
+                        "kind": "event",
+                        "protocol": "none",
+                        "role": "sink",
+                        "signals": ["ext_event"],
+                    },
+                ],
+                "signals": [
+                    {"name": "clk", "dir": "input", "width": 1, "role": "clock"},
+                    {"name": "rst_n", "dir": "input", "width": 1, "role": "reset"},
+                    {"name": "cmd_valid", "dir": "input", "width": 1, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "cmd_ready", "dir": "output", "width": 1, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "cmd_addr", "dir": "input", "width": 12, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "cmd_wdata", "dir": "input", "width": 32, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "rsp_rdata", "dir": "output", "width": 32, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "ext_event", "dir": "input", "width": 1, "timing": {"kind": "async", "sync_to": "main_clk"}},
+                ],
+            }
+        ],
         "evidence_plan": [
             {
                 "evidence_id": "E_TIMER_APB_DIRECTED_001",
@@ -62,6 +129,13 @@ def _draft(ip: str) -> dict[str, Any]:
                 "artifact": "sim/scoreboard_events.jsonl",
                 "validator": "check_evidence_contract.py",
                 "pass_condition": "observed_apb_response == OK",
+            },
+            {
+                "evidence_id": "E_TIMER_BEHAVIOR_001",
+                "contract_ref": "BC_TIMER_ACCESS",
+                "artifact": "sim/scoreboard_events.jsonl",
+                "validator": "check_evidence_contract.py",
+                "pass_condition": "accepted command rows match BC_TIMER_ACCESS decision table",
             }
         ],
     }
@@ -80,6 +154,8 @@ def test_lock_requirement_set_materializes_json_bundle_and_markdown(tmp_path: Pa
         "requirements_index.json",
         "obligations.json",
         "contract_refs.json",
+        "structural_contracts.json",
+        "behavioral_contracts.json",
         "evidence_plan.json",
         "approval_manifest.json",
         "locked_truth.md",
@@ -94,6 +170,8 @@ def test_lock_requirement_set_materializes_json_bundle_and_markdown(tmp_path: Pa
     assert "REQ_TIMER_APB_001" in locked_md
     assert "OBL_TIMER_APB_001" in locked_md
     assert "C_TIMER_APB_IF" in locked_md
+    assert "C_STRUCT_TIMER_IO" in locked_md
+    assert "BC_TIMER_ACCESS" in locked_md
     saved_manifest = json.loads((req_dir / "approval_manifest.json").read_text(encoding="utf-8"))
     md_hash = hashlib.sha256((req_dir / "locked_truth.md").read_bytes()).hexdigest()
     assert saved_manifest["files"]["req/locked_truth.md"]["sha256"] == md_hash
@@ -123,6 +201,18 @@ def test_lock_requirement_candidate_stamps_existing_review_candidate_bundle(tmp_
             "type": "contract_refs",
             "ip": ip,
             "contract_refs": draft["contract_refs"],
+        },
+        "structural_contracts.json": {
+            "schema_version": 1,
+            "type": "structural_contracts",
+            "ip": ip,
+            "contracts": draft["structural_contracts"],
+        },
+        "behavioral_contracts.json": {
+            "schema_version": 1,
+            "type": "behavioral_contracts",
+            "ip": ip,
+            "contracts": draft["behavioral_contracts"],
         },
         "evidence_plan.json": {
             "schema_version": 1,

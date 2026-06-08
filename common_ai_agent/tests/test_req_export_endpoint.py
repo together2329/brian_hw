@@ -4,8 +4,9 @@ Mirrors tests/test_ssot_inline_export_endpoint.py — build the app with a
 multi-user client, lay down the canonical per-IP REQ (locked-truth) bundle on
 disk, and assert the aggregated HTML renders inline and is written to
 <ip>/doc/<ip>_req.html. The bundle shape matches the normalized req/ layout
-(requirements_index / obligations / contract_refs / evidence_plan /
-approval_manifest / ssot_validation), cross-linked by id.
+(requirements_index / obligations / contract_refs / structural_contracts /
+behavioral_contracts / evidence_plan / approval_manifest / ssot_validation),
+cross-linked by id.
 """
 import json
 from pathlib import Path
@@ -55,6 +56,8 @@ def _write_req_bundle(root: Path, ip: str) -> None:
         "obligations": [
             {"obligation_id": "OBL_APB_READ", "status": "review_candidate",
              "requirement_refs": ["REQ_APB3"], "contract_refs": ["CR_APB_READ_PROTOCOL"],
+             "structural_contract_refs": ["C_STRUCT_APB_IO"],
+             "behavioral_contract_refs": ["BC_APB_READ_BEHAVIOR"],
              "statement": "APB3 read returns addressed register combinationally."},
             {"obligation_id": "OBL_COUNTER_INCR", "status": "review_candidate",
              "requirement_refs": ["REQ_COUNTER"], "contract_refs": ["CR_COUNTER_BEHAVIOR"],
@@ -70,12 +73,59 @@ def _write_req_bundle(root: Path, ip: str) -> None:
              "statement": "prdata valid in same cycle as psel=1 && penable=1 && pwrite=0."},
         ],
     }), encoding="utf-8")
+    (req / "structural_contracts.json").write_text(json.dumps({
+        "ip": ip, "schema_version": 1, "type": "structural_contracts",
+        "contracts": [
+            {"id": "C_STRUCT_APB_IO", "type": "structural_top", "module": ip,
+             "obligations": ["OBL_APB_READ"],
+             "signals": [
+                 {"name": "pclk", "dir": "input", "width": 1, "timing": {"kind": "clock"}},
+                 {"name": "psel", "dir": "input", "width": 1,
+                  "timing": {"kind": "sync", "clock_domain": "pclk_domain"}},
+                 {"name": "prdata", "dir": "output", "width": 32,
+                  "timing": {"kind": "sync", "clock_domain": "pclk_domain"}},
+            ]},
+        ],
+    }), encoding="utf-8")
+    (req / "behavioral_contracts.json").write_text(json.dumps({
+        "ip": ip, "schema_version": 1, "type": "behavioral_contracts",
+        "contracts": [
+            {"id": "BC_APB_READ_BEHAVIOR", "type": "decision_table",
+             "obligations": ["OBL_APB_READ"],
+             "decision_table": [
+                 {"when": "psel == 1 and penable == 1 and pwrite == 0",
+                  "then": {"prdata": "addressed register value"}},
+             ],
+             "stage_contracts": [
+                 {"stage": "ssot", "check": "function_model read transaction carries this table"},
+                 {"stage": "sim", "validator": "check_evidence_contract.py"},
+             ]},
+        ],
+    }), encoding="utf-8")
     (req / "evidence_plan.json").write_text(json.dumps({
         "ip": ip, "schema_version": 1, "type": "evidence_plan",
         "evidence_plan": [
             {"evidence_id": "EV_APB_READ", "contract_ref": "CR_APB_READ_PROTOCOL",
              "validator": "SVA on prdata", "artifact": "sim/tb_top.sv",
              "pass_condition": "All APB reads return correct values, zero wait states."},
+            {"evidence_id": "EV_APB_READ_BEHAVIOR", "contract_ref": "BC_APB_READ_BEHAVIOR",
+             "validator": "check_evidence_contract.py", "artifact": "sim/scoreboard_events.jsonl",
+             "pass_condition": "Decision-table read rows match expected register data."},
+        ],
+    }), encoding="utf-8")
+    (req / "contract_closure.json").write_text(json.dumps({
+        "ip": ip, "schema_version": 1, "type": "contract_closure", "status": "pass",
+        "summary": {"contracts": 3, "closed": 2, "required_contracts": 2, "required_closed": 2},
+        "contracts": [
+            {"contract_ref": "CR_APB_READ_PROTOCOL", "kind": "contract_ref",
+             "status": "closed", "obligation_refs": ["OBL_APB_READ"],
+             "evidence_refs": ["EV_APB_READ"], "validators": ["SVA on prdata"]},
+            {"contract_ref": "BC_APB_READ_BEHAVIOR", "kind": "behavioral_contract",
+             "status": "closed", "obligation_refs": ["OBL_APB_READ"],
+             "evidence_refs": ["EV_APB_READ_BEHAVIOR"], "validators": ["check_evidence_contract.py"]},
+            {"contract_ref": "C_STRUCT_APB_IO", "kind": "structural_contract",
+             "status": "open", "obligation_refs": ["OBL_APB_READ"],
+             "evidence_refs": [], "validators": []},
         ],
     }), encoding="utf-8")
     (req / "approval_manifest.json").write_text(json.dumps({
@@ -113,17 +163,23 @@ def test_req_export_renders_full_bundle_inline(tmp_path, monkeypatch):
     assert resp.headers.get("content-disposition", "").startswith("inline;")
     body = resp.text
     assert body.lstrip().lower().startswith("<!doctype html>")
-    # all four pillars + lock section present
+    # all req pillars + lock section present
     assert "Requirements</h2>" in body
     assert "Obligations</h2>" in body
     assert "Contract References" in body
+    assert "Structural Contracts" in body
+    assert "Behavioral Contracts" in body
     assert "Evidence Plan" in body
+    assert "Contract Closure" in body
     assert "Approval &amp; Locked Truth" in body  # full variant only
     # the cross-linked chain made it through (req -> obli -> contract -> evidence)
     assert "REQ_APB3" in body
     assert "OBL_APB_READ" in body
     assert "CR_APB_READ_PROTOCOL" in body
+    assert "C_STRUCT_APB_IO" in body
+    assert "BC_APB_READ_BEHAVIOR" in body
     assert "EV_APB_READ" in body
+    assert "EV_APB_READ_BEHAVIOR" in body
     assert "requirements_locked" in body
     # ssot validation blockers surfaced
     assert "top_module.description" in body
@@ -143,6 +199,8 @@ def test_req_export_core4_omits_approval_section(tmp_path, monkeypatch):
     assert ">requirements_locked<" in body  # lock still shown as header badge
     assert "Requirements</h2>" in body
     assert "Obligations</h2>" in body
+    assert "Structural Contracts" in body
+    assert "Behavioral Contracts" in body
 
 
 def test_req_export_rejects_bad_variant_and_format(tmp_path, monkeypatch):

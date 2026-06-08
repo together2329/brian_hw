@@ -38,6 +38,8 @@ def test_to_ssot_uses_locked_truth_bundle_instead_of_missing_legacy_slots(tmp_pa
         "requirements_index.json": {"requirements": []},
         "obligations.json": {"obligations": []},
         "contract_refs.json": {"contract_refs": []},
+        "structural_contracts.json": {"contracts": []},
+        "behavioral_contracts.json": {"contracts": []},
         "evidence_plan.json": {"evidence_plan": []},
     }.items():
         (req_dir / name).write_text(json.dumps(payload), encoding="utf-8")
@@ -119,10 +121,14 @@ def test_to_ssot_uses_locked_truth_bundle_instead_of_missing_legacy_slots(tmp_pa
     assert "[to-ssot] timer_v11 — queueing LLM SSOT write." in result_text
     assert "`timer_v11/req/requirements_index.json`" in result_text
     assert "`timer_v11/req/obligations.json`" in result_text
+    assert "`timer_v11/req/structural_contracts.json`" in result_text
+    assert "`timer_v11/req/behavioral_contracts.json`" in result_text
 
     queued_text = "\n".join(queued)
     assert "Source-of-truth inputs (READ these first):" in queued_text
     assert "`timer_v11/req/approval_manifest.json`" in queued_text
+    assert "`timer_v11/req/structural_contracts.json`" in queued_text
+    assert "`timer_v11/req/behavioral_contracts.json`" in queued_text
     assert "Derive missing SSOT Preview fields from locked requirements" in queued_text
     assert "locked req/ wins on conflicts" in queued_text
 
@@ -143,6 +149,8 @@ def test_to_ssot_uses_session_scoped_locked_truth_bundle(tmp_path: Path):
         "requirements_index.json": {"requirements": [{"requirement_id": "REQ_001", "status": "locked"}]},
         "obligations.json": {"obligations": []},
         "contract_refs.json": {"contract_refs": []},
+        "structural_contracts.json": {"contracts": []},
+        "behavioral_contracts.json": {"contracts": []},
         "evidence_plan.json": {"evidence_plan": []},
     }.items():
         (req_dir / name).write_text(json.dumps(payload), encoding="utf-8")
@@ -240,6 +248,8 @@ def test_to_ssot_uses_session_scoped_locked_truth_bundle(tmp_path: Path):
     assert "[to-ssot] timer_v12" in result_text
     assert "queueing LLM SSOT write" in result_text
     assert "`brian/brian_session/timer_v12/req/requirements_index.json`" in result_text
+    assert "`brian/brian_session/timer_v12/req/structural_contracts.json`" in result_text
+    assert "`brian/brian_session/timer_v12/req/behavioral_contracts.json`" in result_text
     assert "`brian/brian_session/timer_v12/req/approval_manifest.json`" in result_text
 
     queued_text = "\n".join(queued)
@@ -247,6 +257,8 @@ def test_to_ssot_uses_session_scoped_locked_truth_bundle(tmp_path: Path):
     assert f"IP_ROOT:      `{workspace_root / ip}`" in queued_text
     assert f"Write the canonical SSOT YAML for IP `{ip}`" in queued_text
     assert str(workspace_root / ip / "yaml" / f"{ip}.ssot.yaml") in queued_text
+    assert "`timer_v12/req/structural_contracts.json`" in queued_text
+    assert "`timer_v12/req/behavioral_contracts.json`" in queued_text
     assert "Derive missing SSOT Preview fields from locked requirements" in queued_text
 
 

@@ -12,11 +12,21 @@ import uuid
 from pathlib import Path
 from typing import Any, Final
 
+import sys
+
+
+WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKFLOW_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKFLOW_ROOT))
+
+from behavioral_contracts import BehavioralContractError, behavioral_contract_ids, normalize_behavioral_contracts
+from structural_contracts import StructuralContractError, normalize_structural_contracts
+
 
 JsonDoc = dict[str, Any]
 DESCRIPTION: Final[str] = "Lock a reviewed requirement set into deterministic req/ authority files."
-OUTPUT_FILES: Final[tuple[str, ...]] = ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json", "locked_truth.md", "approval_manifest.json")
-CANDIDATE_FILES: Final[tuple[str, ...]] = ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json")
+OUTPUT_FILES: Final[tuple[str, ...]] = ("requirements_index.json", "obligations.json", "contract_refs.json", "structural_contracts.json", "behavioral_contracts.json", "evidence_plan.json", "locked_truth.md", "approval_manifest.json")
+CANDIDATE_FILES: Final[tuple[str, ...]] = ("requirements_index.json", "obligations.json", "contract_refs.json", "structural_contracts.json", "behavioral_contracts.json", "evidence_plan.json")
 LOCK_OUTPUT_FILES: Final[tuple[str, ...]] = ("locked_truth.md", "approval_manifest.json")
 PLACEHOLDER_APPROVERS: Final[set[str]] = {"dryrun", "test", "placeholder", "unknown", "none", "na"}
 
@@ -158,6 +168,8 @@ def _normalize_obligations(entries: list[JsonDoc], requirement_ids: set[str]) ->
     for item in normalized:
         _require_str(item, "statement", str(item["obligation_id"]))
         item["contract_refs"] = _string_list(item, "contract_refs")
+        item["structural_contract_refs"] = _string_list(item, "structural_contract_refs")
+        item["behavioral_contract_refs"] = _string_list(item, "behavioral_contract_refs")
     return normalized
 
 
@@ -204,6 +216,8 @@ def _render_locked_truth(ip: str, approved_by: str, approved_at: str, docs: dict
         ("Requirements", "requirements_index"),
         ("Obligations", "obligations"),
         ("Contract Refs", "contract_refs"),
+        ("Structural Contracts", "structural_contracts"),
+        ("Behavioral Contracts", "behavioral_contracts"),
         ("Evidence Plan", "evidence_plan"),
     ):
         lines.extend([f"## {title}", "```json", _canonical_json(docs[key]).rstrip(), "```", ""])
@@ -219,6 +233,8 @@ def _build_docs(ip: str, draft_doc: JsonDoc) -> dict[str, JsonDoc]:
     requirements_raw = _list_of_dicts(draft_doc.get("requirements"), "requirements")
     obligations_raw = _list_of_dicts(draft_doc.get("obligations"), "obligations")
     contracts_raw = _list_of_dicts(draft_doc.get("contract_refs"), "contract_refs")
+    structural_raw = draft_doc.get("structural_contracts")
+    behavioral_raw = draft_doc.get("behavioral_contracts")
     evidence_raw = _list_of_dicts(draft_doc.get("evidence_plan"), "evidence_plan")
     requirement_ids = _unique_ids(requirements_raw, "requirement_id", "requirement")
     obligation_ids = _unique_ids(obligations_raw, "obligation_id", "obligation")
@@ -227,7 +243,22 @@ def _build_docs(ip: str, draft_doc: JsonDoc) -> dict[str, JsonDoc]:
     obligations = _normalize_obligations(obligations_raw, requirement_ids)
     requirements = _normalize_requirements(requirements_raw, obligation_ids)
     contracts = _normalize_contracts(contracts_raw, obligation_ids)
-    evidence = _normalize_evidence(evidence_raw, contract_ids)
+    try:
+        structural_contracts = normalize_structural_contracts(ip, structural_raw, known_obligation_ids=obligation_ids)
+    except StructuralContractError as exc:
+        raise SystemExit(str(exc)) from exc
+    try:
+        behavioral_contracts = normalize_behavioral_contracts(ip, behavioral_raw, known_obligation_ids=obligation_ids)
+    except BehavioralContractError as exc:
+        raise SystemExit(str(exc)) from exc
+    structural_ids = {
+        str(item.get("id"))
+        for item in structural_contracts.get("contracts", [])
+        if isinstance(item, dict) and isinstance(item.get("id"), str)
+    }
+    behavioral_ids = behavioral_contract_ids(behavioral_contracts)
+    all_contract_ids = contract_ids | structural_ids | behavioral_ids
+    evidence = _normalize_evidence(evidence_raw, all_contract_ids)
     for obligation in obligations:
         _check_refs(
             str(obligation["obligation_id"]),
@@ -235,10 +266,18 @@ def _build_docs(ip: str, draft_doc: JsonDoc) -> dict[str, JsonDoc]:
             contract_ids,
             "contract_ref",
         )
+        structural_refs = _string_list(obligation, "structural_contract_refs")
+        if structural_refs:
+            _check_refs(str(obligation["obligation_id"]), structural_refs, structural_ids, "structural_contract")
+        behavioral_refs = _string_list(obligation, "behavioral_contract_refs")
+        if behavioral_refs:
+            _check_refs(str(obligation["obligation_id"]), behavioral_refs, behavioral_ids, "behavioral_contract")
     return {
         "requirements_index": {"schema_version": 1, "type": "requirements_index", "ip": ip, "requirements": requirements},
         "obligations": {"schema_version": 1, "type": "obligations", "ip": ip, "obligations": obligations},
         "contract_refs": {"schema_version": 1, "type": "contract_refs", "ip": ip, "contract_refs": contracts},
+        "structural_contracts": structural_contracts,
+        "behavioral_contracts": behavioral_contracts,
         "evidence_plan": {"schema_version": 1, "type": "evidence_plan", "ip": ip, "evidence_plan": evidence},
     }
 
@@ -248,6 +287,8 @@ def _build_docs_from_candidate(ip: str, req_dir: Path) -> dict[str, JsonDoc]:
         "requirements": _load_json(req_dir / "requirements_index.json").get("requirements"),
         "obligations": _load_json(req_dir / "obligations.json").get("obligations"),
         "contract_refs": _load_json(req_dir / "contract_refs.json").get("contract_refs"),
+        "structural_contracts": _load_json(req_dir / "structural_contracts.json"),
+        "behavioral_contracts": _load_json(req_dir / "behavioral_contracts.json"),
         "evidence_plan": _load_json(req_dir / "evidence_plan.json").get("evidence_plan"),
     }
     return _build_docs(ip, {"ip": ip, **docs})
@@ -265,7 +306,14 @@ def _write_locked_docs(
 ) -> JsonDoc:
     req_dir = root / ip / "req"
     approved_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    file_texts = {"requirements_index.json": _canonical_json(docs["requirements_index"]), "obligations.json": _canonical_json(docs["obligations"]), "contract_refs.json": _canonical_json(docs["contract_refs"]), "evidence_plan.json": _canonical_json(docs["evidence_plan"])}
+    file_texts = {
+        "requirements_index.json": _canonical_json(docs["requirements_index"]),
+        "obligations.json": _canonical_json(docs["obligations"]),
+        "contract_refs.json": _canonical_json(docs["contract_refs"]),
+        "structural_contracts.json": _canonical_json(docs["structural_contracts"]),
+        "behavioral_contracts.json": _canonical_json(docs["behavioral_contracts"]),
+        "evidence_plan.json": _canonical_json(docs["evidence_plan"]),
+    }
     hashes = _file_hashes(root, ip, file_texts)
     locked_text = _render_locked_truth(ip, approved_by, approved_at, docs, hashes)
     file_texts["locked_truth.md"] = locked_text

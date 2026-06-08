@@ -36,6 +36,8 @@ def _draft(ip: str) -> dict[str, Any]:
                 "requirement_refs": ["REQ_TIMER_APB_001"],
                 "statement": "The APB interface shall complete every valid access with OK response.",
                 "contract_refs": ["C_TIMER_APB_IF"],
+                "structural_contract_refs": ["C_STRUCT_TIMER_IO"],
+                "behavioral_contract_refs": ["BC_TIMER_ACCESS"],
             }
         ],
         "contract_refs": [
@@ -45,6 +47,56 @@ def _draft(ip: str) -> dict[str, Any]:
                 "obligation_refs": ["OBL_TIMER_APB_001"],
             }
         ],
+        "behavioral_contracts": [
+            {
+                "id": "BC_TIMER_ACCESS",
+                "type": "decision_table",
+                "obligations": ["OBL_TIMER_APB_001"],
+                "inputs": ["cmd_valid", "cmd_ready", "cmd_addr", "cmd_wdata"],
+                "outputs": ["rsp_rdata"],
+                "decision_table": [
+                    {
+                        "when": "cmd_valid == 1 and cmd_ready == 1",
+                        "then": {"accept_cmd": 1, "rsp_rdata": "selected register value"},
+                    }
+                ],
+                "stage_contracts": [
+                    {"stage": "ssot", "check": "function_model transaction mirrors decision_table"},
+                    {"stage": "sim", "validator": "check_evidence_contract.py"},
+                ],
+            }
+        ],
+        "structural_contracts": [
+            {
+                "id": "C_STRUCT_TIMER_IO",
+                "type": "structural_top",
+                "obligations": ["OBL_TIMER_APB_001"],
+                "module": ip,
+                "clock_domains": [{"id": "main_clk", "clock_signal": "clk"}],
+                "reset_domains": [{"id": "main_rst", "reset_signal": "rst_n", "clock_domain": "main_clk"}],
+                "interfaces": [
+                    {
+                        "id": "ctrl_if",
+                        "kind": "bus",
+                        "protocol": "custom",
+                        "role": "slave",
+                        "clock_domain": "main_clk",
+                        "signals": ["cmd_valid", "cmd_ready", "cmd_addr", "cmd_wdata", "rsp_rdata"],
+                    },
+                    {"id": "event_in", "kind": "event", "role": "sink", "signals": ["ext_event"]},
+                ],
+                "signals": [
+                    {"name": "clk", "dir": "input", "width": 1, "role": "clock"},
+                    {"name": "rst_n", "dir": "input", "width": 1, "role": "reset"},
+                    {"name": "cmd_valid", "dir": "input", "width": 1, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "cmd_ready", "dir": "output", "width": 1, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "cmd_addr", "dir": "input", "width": 12, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "cmd_wdata", "dir": "input", "width": 32, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "rsp_rdata", "dir": "output", "width": 32, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "ext_event", "dir": "input", "width": 1, "timing": {"kind": "async", "sync_to": "main_clk"}},
+                ],
+            }
+        ],
         "evidence_plan": [
             {
                 "evidence_id": "E_TIMER_APB_DIRECTED_001",
@@ -52,6 +104,13 @@ def _draft(ip: str) -> dict[str, Any]:
                 "artifact": "sim/scoreboard_events.jsonl",
                 "validator": "check_evidence_contract.py",
                 "pass_condition": "observed_apb_response == OK",
+            },
+            {
+                "evidence_id": "E_TIMER_BEHAVIOR_001",
+                "contract_ref": "BC_TIMER_ACCESS",
+                "artifact": "sim/scoreboard_events.jsonl",
+                "validator": "check_evidence_contract.py",
+                "pass_condition": "accepted command rows match BC_TIMER_ACCESS decision table",
             }
         ],
     }
@@ -102,6 +161,18 @@ def _write_candidate_bundle(tmp_path: Path, ip: str) -> None:
             "ip": ip,
             "contract_refs": draft["contract_refs"],
         },
+        "structural_contracts.json": {
+            "schema_version": 1,
+            "type": "structural_contracts",
+            "ip": ip,
+            "contracts": draft["structural_contracts"],
+        },
+        "behavioral_contracts.json": {
+            "schema_version": 1,
+            "type": "behavioral_contracts",
+            "ip": ip,
+            "contracts": draft["behavioral_contracts"],
+        },
         "evidence_plan.json": {
             "schema_version": 1,
             "type": "evidence_plan",
@@ -134,7 +205,12 @@ def test_check_locked_truth_bundle_passes_writer_output(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert "[check_locked_truth_bundle] PASS brian_timer" in result.stdout
     assert "requirements=1" in result.stdout
-    assert "evidence=1" in result.stdout
+    assert "structural_contracts=1" in result.stdout
+    assert "behavioral_contracts=1" in result.stdout
+    assert "evidence=2" in result.stdout
+    closure = json.loads((tmp_path / ip / "req" / "contract_closure.json").read_text(encoding="utf-8"))
+    assert closure["status"] == "pass"
+    assert closure["summary"]["required_closed"] == 2
 
 
 def test_check_locked_truth_bundle_rejects_corrupt_manifest_hash(tmp_path: Path) -> None:
@@ -161,6 +237,20 @@ def test_check_locked_truth_bundle_rejects_broken_contract_ref(tmp_path: Path) -
 
     assert result.returncode == 1
     assert "unknown contract_ref C_MISSING" in result.stdout
+
+
+def test_check_locked_truth_bundle_rejects_broken_structural_clock_domain(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _lock_bundle(tmp_path, ip)
+    structural_path = tmp_path / ip / "req" / "structural_contracts.json"
+    structural = json.loads(structural_path.read_text(encoding="utf-8"))
+    structural["contracts"][0]["signals"][2]["timing"]["clock_domain"] = "missing_clk"
+    structural_path.write_text(json.dumps(structural, indent=2, sort_keys=True), encoding="utf-8")
+
+    result = _check(tmp_path, ip)
+
+    assert result.returncode == 1
+    assert "unknown clock_domain missing_clk" in result.stdout
 
 
 def test_check_locked_truth_bundle_passes_review_candidate_without_manifest(tmp_path: Path) -> None:
@@ -199,7 +289,8 @@ def test_default_req_lifecycle_commands_inject_templates() -> None:
     assert commands["draft-req.json"]["handler"] == "todo:template:draft-req"
     assert commands["finalize-req.json"]["handler"] == "todo:template:finalize-req"
     assert commands["lock-req.json"]["handler"] == "todo:template:lock-req"
-    assert "locked-truth-finalize" in commands["finalize-req.json"]["aliases"]
+    assert "locked-truth-finalize" not in commands["finalize-req.json"]["aliases"]
+    assert "req-finalize" in commands["finalize-req.json"]["aliases"]
     assert "truth-lock" in commands["lock-req.json"]["aliases"]
 
 

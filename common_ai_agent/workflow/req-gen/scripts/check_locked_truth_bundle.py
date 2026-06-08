@@ -4,16 +4,26 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from pathlib import Path
 from typing import Any, Final
+
+WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKFLOW_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKFLOW_ROOT))
+
+from behavioral_contracts import BehavioralContractError, behavioral_contract_ids, normalize_behavioral_contracts
+from structural_contracts import StructuralContractError, normalize_structural_contracts, structural_contract_ids
 
 
 JsonDoc = dict[str, Any]
 REQ_GRAPH_FILES: Final[tuple[str, ...]] = (
+    "req/behavioral_contracts.json",
     "req/contract_refs.json",
     "req/evidence_plan.json",
     "req/obligations.json",
     "req/requirements_index.json",
+    "req/structural_contracts.json",
 )
 MANIFEST_HASHED_FILES: Final[tuple[str, ...]] = (*REQ_GRAPH_FILES, "req/locked_truth.md")
 REQUIRED_FILES: Final[tuple[str, ...]] = (*MANIFEST_HASHED_FILES, "req/approval_manifest.json")
@@ -129,14 +139,17 @@ def _has_machine_contract(entry: JsonDoc) -> bool:
 
 
 def _check_graph(
+    ip: str,
     req_doc: JsonDoc,
     obl_doc: JsonDoc,
     con_doc: JsonDoc,
+    structural_doc: JsonDoc,
+    behavioral_doc: JsonDoc,
     ev_doc: JsonDoc,
     failures: list[str],
     *,
     require_locked_status: bool,
-) -> None:
+) -> JsonDoc:
     requirements = req_doc.get("requirements")
     obligations = obl_doc.get("obligations")
     contracts = con_doc.get("contract_refs")
@@ -144,6 +157,27 @@ def _check_graph(
     req_ids = _collect_ids(requirements, "requirement_id", failures, "requirements")
     obl_ids = _collect_ids(obligations, "obligation_id", failures, "obligations")
     con_ids = _collect_ids(contracts, "contract_ref_id", failures, "contract_refs")
+    try:
+        normalized_structural = normalize_structural_contracts(
+            str(req_doc.get("ip") or structural_doc.get("ip") or ""),
+            structural_doc,
+            known_obligation_ids=obl_ids,
+        )
+        structural_ids = structural_contract_ids(normalized_structural)
+    except StructuralContractError as exc:
+        failures.append(str(exc))
+        structural_ids = set()
+    try:
+        normalized_behavioral = normalize_behavioral_contracts(
+            str(req_doc.get("ip") or behavioral_doc.get("ip") or ""),
+            behavioral_doc,
+            known_obligation_ids=obl_ids,
+        )
+        behavioral_ids = behavioral_contract_ids(normalized_behavioral)
+    except BehavioralContractError as exc:
+        failures.append(str(exc))
+        behavioral_ids = set()
+    all_contract_ids = con_ids | structural_ids | behavioral_ids
     for entry in requirements if isinstance(requirements, list) else []:
         if isinstance(entry, dict):
             req_id = str(entry.get("requirement_id") or "<missing requirement_id>")
@@ -165,6 +199,14 @@ def _check_graph(
                 failures.append(f"{obl_id} requires statement")
             _check_refs(obl_id, _string_list(entry.get("requirement_refs")), req_ids, "requirement", failures)
             _check_refs(obl_id, _string_list(entry.get("contract_refs")), con_ids, "contract_ref", failures)
+            structural_refs = _string_list(entry.get("structural_contract_refs"))
+            for ref in structural_refs:
+                if ref not in structural_ids:
+                    failures.append(f"{obl_id} references unknown structural_contract {ref}")
+            behavioral_refs = _string_list(entry.get("behavioral_contract_refs"))
+            for ref in behavioral_refs:
+                if ref not in behavioral_ids:
+                    failures.append(f"{obl_id} references unknown behavioral_contract {ref}")
     for entry in contracts if isinstance(contracts, list) else []:
         if isinstance(entry, dict):
             con_id = str(entry.get("contract_ref_id") or "<missing contract_ref_id>")
@@ -179,11 +221,125 @@ def _check_graph(
         contract_ref = entry.get("contract_ref")
         if not isinstance(contract_ref, str) or not contract_ref.strip():
             failures.append(f"{evidence_id} requires contract_ref")
-        elif contract_ref not in con_ids:
+        elif contract_ref not in all_contract_ids:
             failures.append(f"{evidence_id} references unknown contract_ref {contract_ref}")
         for key in ("artifact", "validator", "pass_condition"):
             if not isinstance(entry.get(key), str) or not entry.get(key, "").strip():
                 failures.append(f"{evidence_id} requires {key}")
+    closure = _build_contract_closure(
+        ip,
+        con_doc,
+        structural_doc,
+        behavioral_doc,
+        ev_doc,
+        central_ids=con_ids,
+        structural_ids=structural_ids,
+        behavioral_ids=behavioral_ids,
+    )
+    for item in closure.get("contracts", []):
+        if not isinstance(item, dict):
+            continue
+        if item.get("kind") in {"contract_ref", "behavioral_contract"} and item.get("status") != "closed":
+            failures.append(f"{item.get('contract_ref')} lacks evidence closure")
+    return closure
+
+
+def _entry_obligation_refs(entry: JsonDoc) -> list[str]:
+    return _string_list(entry.get("obligation_refs")) or _string_list(entry.get("obligations"))
+
+
+def _build_contract_closure(
+    ip: str,
+    con_doc: JsonDoc,
+    structural_doc: JsonDoc,
+    behavioral_doc: JsonDoc,
+    ev_doc: JsonDoc,
+    *,
+    central_ids: set[str],
+    structural_ids: set[str],
+    behavioral_ids: set[str],
+) -> JsonDoc:
+    evidence = [item for item in (ev_doc.get("evidence_plan") or []) if isinstance(item, dict)]
+    evidence_by_contract: dict[str, list[JsonDoc]] = {}
+    for entry in evidence:
+        ref = entry.get("contract_ref")
+        if isinstance(ref, str) and ref.strip():
+            evidence_by_contract.setdefault(ref.strip(), []).append(entry)
+
+    contracts: list[JsonDoc] = []
+    for entry in con_doc.get("contract_refs") or []:
+        if not isinstance(entry, dict):
+            continue
+        contract_id = str(entry.get("contract_ref_id") or "").strip()
+        if not contract_id or contract_id not in central_ids:
+            continue
+        contracts.append(_closure_entry(contract_id, "contract_ref", _entry_obligation_refs(entry), evidence_by_contract))
+    for entry in structural_doc.get("contracts") or []:
+        if not isinstance(entry, dict):
+            continue
+        contract_id = str(entry.get("id") or entry.get("contract_id") or entry.get("contract_ref_id") or "").strip()
+        if not contract_id or contract_id not in structural_ids:
+            continue
+        contracts.append(_closure_entry(contract_id, "structural_contract", _entry_obligation_refs(entry), evidence_by_contract))
+    for entry in behavioral_doc.get("contracts") or []:
+        if not isinstance(entry, dict):
+            continue
+        contract_id = str(entry.get("id") or entry.get("behavioral_contract_id") or entry.get("contract_ref_id") or "").strip()
+        if not contract_id or contract_id not in behavioral_ids:
+            continue
+        contracts.append(_closure_entry(contract_id, "behavioral_contract", _entry_obligation_refs(entry), evidence_by_contract))
+
+    closed = sum(1 for item in contracts if item.get("status") == "closed")
+    required = [item for item in contracts if item.get("kind") in {"contract_ref", "behavioral_contract"}]
+    required_closed = sum(1 for item in required if item.get("status") == "closed")
+    return {
+        "schema_version": 1,
+        "type": "contract_closure",
+        "ip": ip,
+        "status": "pass" if required_closed == len(required) else "open",
+        "summary": {
+            "contracts": len(contracts),
+            "closed": closed,
+            "required_contracts": len(required),
+            "required_closed": required_closed,
+        },
+        "contracts": sorted(contracts, key=lambda item: str(item["contract_ref"])),
+    }
+
+
+def _closure_entry(
+    contract_id: str,
+    kind: str,
+    obligation_refs: list[str],
+    evidence_by_contract: dict[str, list[JsonDoc]],
+) -> JsonDoc:
+    evidence = evidence_by_contract.get(contract_id, [])
+    return {
+        "contract_ref": contract_id,
+        "kind": kind,
+        "obligation_refs": obligation_refs,
+        "evidence_refs": [
+            str(entry.get("evidence_id"))
+            for entry in evidence
+            if isinstance(entry.get("evidence_id"), str) and str(entry.get("evidence_id")).strip()
+        ],
+        "artifacts": [
+            str(entry.get("artifact"))
+            for entry in evidence
+            if isinstance(entry.get("artifact"), str) and str(entry.get("artifact")).strip()
+        ],
+        "validators": [
+            str(entry.get("validator"))
+            for entry in evidence
+            if isinstance(entry.get("validator"), str) and str(entry.get("validator")).strip()
+        ],
+        "pass_conditions": [
+            str(entry.get("pass_condition"))
+            for entry in evidence
+            if isinstance(entry.get("pass_condition"), str) and str(entry.get("pass_condition")).strip()
+        ],
+        "status": "closed" if evidence else "open",
+    }
 
 
 def check_locked_truth_bundle(ip: str, root: Path, *, review_candidate: bool = False) -> tuple[bool, list[str], JsonDoc]:
@@ -197,6 +353,8 @@ def check_locked_truth_bundle(ip: str, root: Path, *, review_candidate: bool = F
     req_doc = _load_json(req_dir / "requirements_index.json", failures)
     obl_doc = _load_json(req_dir / "obligations.json", failures)
     con_doc = _load_json(req_dir / "contract_refs.json", failures)
+    structural_doc = _load_json(req_dir / "structural_contracts.json", failures)
+    behavioral_doc = _load_json(req_dir / "behavioral_contracts.json", failures)
     ev_doc = _load_json(req_dir / "evidence_plan.json", failures)
     manifest: JsonDoc = {}
     if not review_candidate:
@@ -204,13 +362,34 @@ def check_locked_truth_bundle(ip: str, root: Path, *, review_candidate: bool = F
         if manifest:
             _check_requirement_status(manifest, failures)
             _check_manifest_files(ip, root, manifest, failures)
-    _check_graph(req_doc, obl_doc, con_doc, ev_doc, failures, require_locked_status=not review_candidate)
+    closure = _check_graph(
+        ip,
+        req_doc,
+        obl_doc,
+        con_doc,
+        structural_doc,
+        behavioral_doc,
+        ev_doc,
+        failures,
+        require_locked_status=not review_candidate,
+    )
+    if closure:
+        try:
+            (req_dir / "contract_closure.json").write_text(
+                json.dumps(closure, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+        except OSError as exc:
+            failures.append(f"cannot write contract_closure.json: {exc}")
     summary: JsonDoc = {
         "mode": "review_candidate" if review_candidate else "locked",
         "requirements": len(req_doc.get("requirements") or []),
         "obligations": len(obl_doc.get("obligations") or []),
         "contract_refs": len(con_doc.get("contract_refs") or []),
+        "structural_contracts": len(structural_doc.get("contracts") or []),
+        "behavioral_contracts": len(behavioral_doc.get("contracts") or []),
         "evidence": len(ev_doc.get("evidence_plan") or []),
+        "closed_contracts": (closure.get("summary") or {}).get("closed", 0) if isinstance(closure, dict) else 0,
     }
     return not failures, failures, summary
 
