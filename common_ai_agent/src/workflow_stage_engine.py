@@ -933,8 +933,21 @@ class WorkflowStageEngine:
             return ToolRun(label=label, command=command, returncode=999, stderr=str(exc))
 
     def _run_contract_authority_gate(self, ip: str) -> ToolRun | None:
-        if not (self.ip_dir(ip) / "req" / "approval_manifest.json").is_file():
-            return None
+        manifest_path = self.ip_dir(ip) / "req" / "approval_manifest.json"
+        if not manifest_path.is_file():
+            # Make the bypass observable instead of silently skipping the gate.
+            # A skipped run (rc 0) is appended to the stage run labels so any
+            # flow that reaches RTL/TB generation without a locked req contract
+            # bundle shows the skip rather than hiding it.
+            return ToolRun(
+                label="contract_authority_gate",
+                command=[],
+                returncode=0,
+                stdout=(
+                    "skipped: no locked req contract bundle "
+                    "(req/approval_manifest.json absent); contract authority gate not enforced"
+                ),
+            )
         script = self.workflow_root / "req-gen" / "scripts" / "check_contract_bundle.py"
         if not script.is_file():
             script = self.workflow_root / "req-gen" / "scripts" / "check_locked_truth_bundle.py"
@@ -1815,6 +1828,26 @@ class WorkflowStageEngine:
                 timeout_s=90,
             )
         )
+        coverage_summary_rc = runs[-1].returncode
+
+        # Content-strong TB validation: --audit-evidence runs the scoreboard-content
+        # and coverage checks against the locked/SSOT contract. It only makes sense
+        # once a TB has been generated (tb/tb_todo_plan.json exists) and the sim/
+        # coverage evidence this stage finalizes is present. Wire it into the
+        # automated coverage completion path so the content checks are no longer
+        # only invoked by a hand-run prose template.
+        tb_todo_plan_path = self.ip_dir(ip) / "tb" / "tb_todo_plan.json"
+        audit_evidence_rc = None
+        if tb_todo_plan_path.is_file():
+            tb_todo_script = self.workflow_root / "tb-gen" / "scripts" / "derive_tb_todos.py"
+            runs.append(
+                self._run_tool(
+                    "audit_tb_evidence",
+                    [sys.executable, str(tb_todo_script), ip, "--root", str(self.project_root), "--audit-evidence"],
+                    timeout_s=90,
+                )
+            )
+            audit_evidence_rc = runs[-1].returncode
 
         coverage_path = self.ip_dir(ip) / "cov" / "coverage.json"
         coverage_doc = _read_json(coverage_path) if coverage_path.is_file() else {}
@@ -1827,9 +1860,16 @@ class WorkflowStageEngine:
         if runs[0].returncode != 0:
             status = "blocked"
             headline = "[coverage] BLOCKED - fresh passing simulation evidence required"
-        elif runs[-1].returncode == 0 and coverage_status in {"pass", "passed", "ok"}:
-            status = "pass"
-            headline = "[coverage] PASS - SSOT functional coverage summary approved"
+        elif coverage_summary_rc == 0 and coverage_status in {"pass", "passed", "ok"}:
+            if audit_evidence_rc not in (None, 0):
+                # A generated TB exists but its content-strong --audit-evidence
+                # check is not passing: do not approve coverage on stale/missing
+                # contract-validation evidence.
+                status = "fail"
+                headline = "[coverage] FAIL - TB contract-validation evidence (--audit-evidence) not closed"
+            else:
+                status = "pass"
+                headline = "[coverage] PASS - SSOT functional coverage summary approved"
         elif coverage_status == "fail":
             status = "fail"
             headline = "[coverage] FAIL - coverage evidence has failing checks"
@@ -1917,6 +1957,8 @@ class WorkflowStageEngine:
             lines += ["", "next: run /sim-debug and /goal-audit before any synthesis-stage work."]
         elif runs[0].returncode != 0:
             lines += ["", "next: rerun /sim after TB repair; coverage is not meaningful on stale or failing simulation evidence."]
+        elif audit_evidence_rc not in (None, 0):
+            lines += ["", "next: close TB contract-validation evidence (derive_tb_todos.py --audit-evidence) before signoff."]
         else:
             lines += ["", "next: close SSOT functional coverage gaps or record explicit tool limitations before signoff."]
         return self._result(
@@ -1927,7 +1969,7 @@ class WorkflowStageEngine:
             lines,
             runs=runs,
             artifacts=artifacts,
-            metadata={"coverage": coverage_doc, "limitations": limitations},
+            metadata={"coverage": coverage_doc, "limitations": limitations, "audit_tb_evidence_rc": audit_evidence_rc},
         )
 
     def _run_sim_debug(self, ip: str) -> StageEngineResult:

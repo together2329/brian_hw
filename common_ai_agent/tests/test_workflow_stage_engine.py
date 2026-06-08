@@ -13,6 +13,7 @@ import yaml
 
 from src.headless_workflow import _stable_json_sha256, _structured_ssot_yaml
 from src.workflow_stage_engine import ToolRun, WorkflowStageEngine, _rtl_manifest_progress, canonical_stage
+from tests.test_atlas_to_ssot_locked_truth import _write_locked_contract_bundle
 
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
@@ -5252,12 +5253,17 @@ def test_rtl_stage_uses_dynamic_todo_gate_before_generation(tmp_path: Path):
     result = WorkflowStageEngine(tmp_path).run_stage("ssot-rtl", ip)
 
     assert result.status == "human_gate", result.message
-    assert result.runs[0].label == "derive_rtl_todos"
-    assert result.runs[0].returncode == 2
-    assert result.runs[1].label == "rtl_preflight"
+    # No locked req bundle: the contract-authority gate is skipped, but the skip
+    # is now observable as a leading run (rc 0) rather than silently dropped.
+    assert result.runs[0].label == "contract_authority_gate"
+    assert result.runs[0].returncode == 0
+    assert "skipped" in result.runs[0].stdout.lower()
+    assert result.runs[1].label == "derive_rtl_todos"
     assert result.runs[1].returncode == 2
-    assert result.runs[2].label == "audit_rtl_todos"
+    assert result.runs[2].label == "rtl_preflight"
     assert result.runs[2].returncode == 2
+    assert result.runs[3].label == "audit_rtl_todos"
+    assert result.runs[3].returncode == 2
     assert "rtl_dynamic_todos:" in result.message
     assert "gate: blocked" in result.message
     assert (tmp_path / ip / "rtl" / "rtl_todo_plan.json").is_file()
@@ -5306,6 +5312,141 @@ def test_tb_stage_blocks_invalid_locked_contract_bundle_before_generation(tmp_pa
     assert result.runs[0].label == "contract_authority_gate"
     assert all(run.label != "derive_tb_todos" for run in result.runs)
     assert "contract authority gate failed" in result.message
+
+
+def _clear_obligation_authority_refs(req_dir: Path) -> None:
+    """Mutate a locked bundle into an anchor-only bundle and refresh the manifest hash.
+
+    Clears structural_contract_refs / behavioral_contract_refs on every obligation
+    so the contract-authority gate fails *specifically* on the anchor-ref check
+    (not on missing files or a stale manifest hash).
+    """
+    import hashlib
+
+    obl_path = req_dir / "obligations.json"
+    obl = json.loads(obl_path.read_text(encoding="utf-8"))
+    for entry in obl.get("obligations", []):
+        if isinstance(entry, dict):
+            entry["structural_contract_refs"] = []
+            entry["behavioral_contract_refs"] = []
+    obl_path.write_text(json.dumps(obl, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    manifest_path = req_dir / "approval_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    data = obl_path.read_bytes()
+    files = manifest.get("files", {})
+    info = files.get("req/obligations.json", {})
+    info["bytes"] = len(data)
+    info["sha256"] = hashlib.sha256(data).hexdigest()
+    manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def test_rtl_stage_emits_visible_contract_authority_skip_without_manifest(tmp_path: Path):
+    # A6: when RTL generation runs with NO locked req contract bundle, the
+    # contract-authority gate must NOT be silently skipped. A visible
+    # contract_authority_gate run with a "skipped" message must appear so the
+    # bypass shows up in the stage run labels.
+    ip = "rtl_stage_no_manifest_skip"
+    _write_dynamic_todo_ssot(tmp_path, ip, include_function=False, include_cycle=False)
+
+    result = WorkflowStageEngine(tmp_path).run_stage("ssot-rtl", ip)
+
+    assert result.status == "human_gate", result.message
+    skip_runs = [run for run in result.runs if run.label == "contract_authority_gate"]
+    assert skip_runs, "contract_authority_gate skip is silent (no run label emitted)"
+    assert "skipped" in skip_runs[0].stdout.lower()
+    assert "approval_manifest.json" in skip_runs[0].stdout
+    assert any(run.label == "derive_rtl_todos" for run in result.runs)
+
+
+def test_tb_stage_emits_visible_contract_authority_skip_without_manifest(tmp_path: Path):
+    # A6 (TB twin): same observable-skip requirement on the TB generation path.
+    ip = "tb_stage_no_manifest_skip"
+    _write_dynamic_todo_ssot(tmp_path, ip, include_function=False, include_cycle=False)
+
+    result = WorkflowStageEngine(tmp_path).run_stage("ssot-tb-cocotb", ip)
+
+    skip_runs = [run for run in result.runs if run.label == "contract_authority_gate"]
+    assert skip_runs, "contract_authority_gate skip is silent (no run label emitted)"
+    assert "skipped" in skip_runs[0].stdout.lower()
+    assert "approval_manifest.json" in skip_runs[0].stdout
+    assert any(run.label == "derive_tb_todos" for run in result.runs)
+
+
+def test_rtl_stage_blocks_anchor_only_locked_contract_bundle(tmp_path: Path):
+    # A6b: content-mutation negative test. A FULL valid locked bundle that is
+    # then mutated to be anchor-only (no structural/behavioral contract refs on
+    # the obligation) must be BLOCKED on the anchor-ref authority check -- this
+    # exercises the NEW contract-authority semantics, not missing req files.
+    ip = "rtl_anchor_only_gate"
+    _write_locked_contract_bundle(tmp_path, ip)
+    (tmp_path / ip / "yaml").mkdir(parents=True, exist_ok=True)
+    (tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").write_text(
+        f"top_module:\n  name: {ip}\n", encoding="utf-8"
+    )
+    _clear_obligation_authority_refs(tmp_path / ip / "req")
+
+    result = WorkflowStageEngine(tmp_path).run_stage("ssot-rtl", ip)
+
+    assert result.status == "blocked", result.message
+    assert result.runs[0].label == "contract_authority_gate"
+    assert all(run.label != "derive_rtl_todos" for run in result.runs)
+    assert "structural_contract_ref or behavioral_contract_ref" in result.message
+
+
+def test_rtl_stage_runs_contract_authority_gate_for_valid_locked_bundle(tmp_path: Path):
+    # A6b positive test: a complete valid locked bundle yields a passing
+    # contract_authority_gate run (rc 0) and generation proceeds (derive_rtl_todos runs).
+    ip = "rtl_valid_bundle_gate"
+    _write_locked_contract_bundle(tmp_path, ip)
+    _write_dynamic_todo_ssot(tmp_path, ip, include_function=False, include_cycle=False)
+
+    result = WorkflowStageEngine(tmp_path).run_stage("ssot-rtl", ip)
+
+    gate_runs = [run for run in result.runs if run.label == "contract_authority_gate"]
+    assert gate_runs, "contract_authority_gate did not run for a valid locked bundle"
+    assert gate_runs[0].returncode == 0, gate_runs[0].stdout + gate_runs[0].stderr
+    assert "skipped" not in gate_runs[0].stdout.lower()
+    assert any(run.label == "derive_rtl_todos" for run in result.runs)
+
+
+def test_coverage_stage_runs_tb_audit_evidence_automatically(tmp_path: Path):
+    # A4: the content-strong tb check (derive_tb_todos.py --audit-evidence)
+    # must run on the automated coverage-stage completion path, not just in a
+    # prose template an agent runs by hand. Assert the audit-evidence run is
+    # present in the coverage stage runs once sim/coverage evidence exists.
+    ip = "coverage_tb_audit_evidence"
+    _write_coverage_ready_fixture(tmp_path, ip)
+    # Simulate that TB-gen already ran (a tb_todo_plan exists), so the coverage
+    # completion path has a generated TB to content-audit.
+    (tmp_path / ip / "tb" / "tb_todo_plan.json").write_text(
+        json.dumps({"schema_version": 1, "type": "tb_todo_plan", "gate": {"status": "planned"}}),
+        encoding="utf-8",
+    )
+
+    result = WorkflowStageEngine(tmp_path).run_stage("coverage", ip)
+
+    audit_runs = [run for run in result.runs if run.label == "audit_tb_evidence"]
+    assert audit_runs, "coverage stage did not run derive_tb_todos.py --audit-evidence automatically"
+    assert any("--audit-evidence" in part for part in audit_runs[0].command)
+
+
+def test_coverage_stage_does_not_pass_when_tb_audit_evidence_blocks(tmp_path: Path):
+    # A4: with a generated TB present but the content-strong --audit-evidence
+    # check not passing (all_required_todos_pass is False), the coverage stage
+    # must NOT report PASS -- closing the false-pass where the tb content checks
+    # were skipped by the automated path.
+    ip = "coverage_tb_audit_blocks"
+    _write_coverage_ready_fixture(tmp_path, ip)
+    (tmp_path / ip / "tb" / "tb_todo_plan.json").write_text(
+        json.dumps({"schema_version": 1, "type": "tb_todo_plan", "gate": {"status": "planned"}}),
+        encoding="utf-8",
+    )
+
+    result = WorkflowStageEngine(tmp_path).run_stage("coverage", ip)
+
+    audit_runs = [run for run in result.runs if run.label == "audit_tb_evidence"]
+    assert audit_runs and audit_runs[0].returncode != 0
+    assert result.status != "pass", result.message
 
 
 def test_rtl_stage_refreshes_existing_provenance_after_deriving_plan(tmp_path: Path, monkeypatch):
@@ -5385,9 +5526,11 @@ def test_rtl_stage_refreshes_existing_provenance_after_deriving_plan(tmp_path: P
 
     result = engine.run_stage("ssot-rtl", ip)
 
-    assert result.runs[0].label == "derive_rtl_todos"
-    assert result.runs[1].label == "refresh_rtl_provenance"
-    assert result.runs[2].label == "rtl_preflight"
+    # Leading run is the observable contract-authority skip (no locked bundle).
+    assert result.runs[0].label == "contract_authority_gate"
+    assert result.runs[1].label == "derive_rtl_todos"
+    assert result.runs[2].label == "refresh_rtl_provenance"
+    assert result.runs[3].label == "rtl_preflight"
     assert labels.index("refresh_rtl_provenance") < labels.index("rtl_preflight")
 
 
