@@ -8,6 +8,7 @@ goals from the current SSOT.
 - SSOT YAML is the only semantic authority for FunctionalModel, cycle/equivalence goals, decomposition, and coverage plans.
 - Do not use RTL, MAS, prior examples, protocol folklore, or reusable helper defaults to define expected behavior.
 - If `function_model`, `cycle_model`, `test_requirements`, `coverage_goals`, interface timing, or side effects are missing or vague, emit `[SSOT TBD REPORT] -> ssot-gen` with exact `yaml_path` rows. Do not generate a guessed model or guessed goal.
+- If `req/behavioral_contracts.json` exists, treat `check_design_spec_trace.py` / `verify_ssot.py` behavioral model projection as a required upstream gate: every behavioral contract must land on machine-readable `function_model` semantics and `cycle_model` timing/protocol semantics, or carry an explicit cycle waiver. A traceability-only ID list is not enough.
 - A DONE result must state `SSOT TBD REPORT: none`.
 
 This is an AI-driven general IP flow. Author semantic artifacts in the worker:
@@ -68,11 +69,19 @@ current SSOT. The normal pipeline path is:
 ```bash
 python "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_fl_model_artifacts.py" <ip> --root "$ATLAS_PROJECT_ROOT"    # Windows
 python3 "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_fl_model_artifacts.py" <ip> --root "$ATLAS_PROJECT_ROOT"   # macOS/Linux
+python3 "$ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/check_model_contract_trace.py" <ip> --root "$ATLAS_PROJECT_ROOT" # locked contract -> FL/CL closure
 ```
 
 If the gate fails, fix the authored artifacts and rerun it. If the SSOT is too
 vague to implement the model, emit `[SSOT TBD REPORT] -> ssot-gen` with exact
 YAML paths instead of guessing or using a canned model.
+
+If the user intentionally wants to skip FL/CL and go directly to RTL, do not
+invent model artifacts. Run `check_model_contract_trace.py <ip> --root
+"$ATLAS_PROJECT_ROOT" --allow-direct-rtl` to record direct RTL mode, then hand
+off to rtl-gen. That mode is valid only when locked behavioral contracts already
+project into concrete SSOT `function_model` and `cycle_model` rows; rtl-gen must
+close the same contracts directly against RTL evidence.
 
 `emit_fl_model.py` is a legacy helper and should only be used when you can
 explain why its generic semantics exactly match the current SSOT:

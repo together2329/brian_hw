@@ -18,6 +18,7 @@ Two bugs were caught by the uart_lite end-to-end trial:
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,114 @@ def _two_fsm_modules() -> list[dict[str, Any]]:
             "refs": ["cycle_model", "cycle_model.pipeline.rx_stages", "fsm", "fsm.rx_fsm"],
         },
     ]
+
+
+def _write_contract_demo_ssot(tmp_path: Path, ip: str) -> Path:
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "req").mkdir(parents=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        f"""
+top_module:
+  name: {ip}_top
+io_list:
+  clock_domains:
+    - name: clk
+      direction: input
+      width: 1
+  resets:
+    - name: rst_n
+      direction: input
+      width: 1
+  interfaces:
+    - name: ctrl
+      ports:
+        - name: cmd_valid
+          direction: input
+          width: 1
+        - name: cmd_ready
+          direction: output
+          width: 1
+        - name: rsp_rdata
+          direction: output
+          width: 32
+sub_modules:
+  - name: {ip}_core
+    file: rtl/{ip}_core.sv
+    refs:
+      - function_model.transactions.READ
+      - cycle_model.handshake_rules.ctrl
+function_model:
+  transactions:
+    - id: READ
+      name: read_cmd
+      behavioral_contract_refs: [BC_READ]
+      inputs: [cmd_valid]
+      outputs:
+        - name: rsp_rdata
+      output_rules:
+        - name: rsp_rdata
+          port: rsp_rdata
+          expr: count_q
+      state_updates:
+        - name: count_q
+          expr: count_q + 1
+cycle_model:
+  handshake_rules:
+    - name: ctrl
+      signal: cmd_valid
+      condition: cmd_valid && cmd_ready
+traceability:
+  locked_truth_projection:
+    behavioral_contracts: [BC_READ]
+""",
+        encoding="utf-8",
+    )
+    (ip_dir / "req" / "obligations.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "obligations": [
+                    {
+                        "obligation_id": "OBL_READ",
+                        "requirement_refs": ["REQ_READ"],
+                        "statement": "Implement the read command behavior.",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    return ip_dir
+
+
+def _write_behavioral_contract(ip_dir: Path, *, rtl_stage: bool = True) -> None:
+    stage_contracts = [
+        {"stage": "rtl-gen", "observable": "cmd_valid cmd_ready rsp_rdata count_q", "pass_condition": "accepted read drives rsp_rdata from count_q"}
+    ] if rtl_stage else [{"stage": "sim", "validator": "scoreboard"}]
+    (ip_dir / "req" / "behavioral_contracts.json").write_text(
+        json.dumps(
+            {
+                "ip": ip_dir.name,
+                "contracts": [
+                    {
+                        "id": "BC_READ",
+                        "obligations": ["OBL_READ"],
+                        "inputs": ["cmd_valid", "cmd_ready"],
+                        "outputs": ["rsp_rdata"],
+                        "decision_table": [
+                            {
+                                "when": "cmd_valid == 1 and cmd_ready == 1",
+                                "then": {"rsp_rdata": "count_q"},
+                            }
+                        ],
+                        "stage_contracts": stage_contracts,
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_owner_for_picks_specific_ref_over_generic_one():
@@ -423,3 +532,168 @@ def test_placeholder_audit_still_rejects_todo_in_comment(tmp_path: Path):
     report = derive._audit_rtl_placeholder_free(ip_dir)
     assert report["status"] == "fail"
     assert any("TODO" in str(issue.get("token", "")) for issue in report["issues"])
+
+
+def test_locked_behavioral_contract_without_rtl_stage_blocks_rtl_gate(tmp_path: Path):
+    derive = _load_derive()
+    ip = "contract_demo"
+    ip_dir = _write_contract_demo_ssot(tmp_path, ip)
+    _write_behavioral_contract(ip_dir, rtl_stage=False)
+
+    plan = derive.derive_plan(tmp_path, ip, audit_rtl=False)
+
+    blocker_ids = {item["id"] for item in plan["blockers"]}
+    assert "LOCKED_TRUTH_CONTRACT_NO_RTL_STAGE_BC_READ" in blocker_ids
+    contract_tasks = [task for task in plan["tasks"] if task.get("category") == "contract.behavioral.rtl"]
+    assert len(contract_tasks) == 1
+    assert contract_tasks[0]["contract_ref"] == "BC_READ"
+    assert contract_tasks[0]["contract_stage_contracts"] == []
+
+
+def test_locked_behavioral_contract_closes_with_live_rtl_evidence(tmp_path: Path):
+    derive = _load_derive()
+    ip = "contract_demo"
+    ip_dir = _write_contract_demo_ssot(tmp_path, ip)
+    _write_behavioral_contract(ip_dir, rtl_stage=True)
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "list").mkdir()
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}_core.sv\n", encoding="utf-8")
+    (ip_dir / "rtl" / f"{ip}_core.sv").write_text(
+        f"""module {ip}_core(
+  input logic clk,
+  input logic rst_n,
+  input logic cmd_valid,
+  output logic cmd_ready,
+  output logic [31:0] rsp_rdata
+);
+  logic [31:0] count_q;
+  assign cmd_ready = 1'b1;
+  assign rsp_rdata = cmd_valid ? count_q : 32'd0;
+endmodule
+""",
+        encoding="utf-8",
+    )
+
+    plan = derive.derive_plan(tmp_path, ip, audit_rtl=True)
+
+    contract_tasks = [task for task in plan["tasks"] if task.get("category") == "contract.behavioral.rtl"]
+    assert len(contract_tasks) == 1
+    task = contract_tasks[0]
+    assert task["contract_ref"] == "BC_READ"
+    assert task["contract_projection_refs"]
+    assert {"cmd_valid", "cmd_ready", "rsp_rdata"} <= set(task["evidence_terms"])
+    assert task["static_evidence"]["status"] == "pass"
+    contract_evidence = plan["contract_implementation_evidence"]
+    assert contract_evidence["status"] == "pass", contract_evidence["issues"]
+    contract_gate = next(
+        task
+        for task in plan["tasks"]
+        if (task.get("gate_todo") or {}).get("kind") == "locked_truth_contract_implementation"
+    )
+    assert contract_gate["todo_completion"]["status"] == "pass"
+
+
+def test_production_direct_rtl_policy_bypasses_fl_cl_artifact_gates_with_contract_evidence(tmp_path: Path):
+    derive = _load_derive()
+    ip = "contract_demo"
+    ip_dir = _write_contract_demo_ssot(tmp_path, ip)
+    ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
+    ssot_path.write_text(
+        ssot_path.read_text(encoding="utf-8")
+        + "\nquality_gates:\n"
+        + "  rtl_gen:\n"
+        + "    profile: production\n"
+        + "    direct_rtl_allowed:\n"
+        + "      approved: true\n"
+        + "      reason: locked contracts gate RTL directly for this run\n",
+        encoding="utf-8",
+    )
+    _write_behavioral_contract(ip_dir, rtl_stage=True)
+    (ip_dir / "req" / "design_spec_trace.json").write_text(
+        json.dumps({"schema_version": 1, "type": "design_spec_trace_check", "ip": ip, "status": "pass"})
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "list").mkdir()
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}_core.sv\n", encoding="utf-8")
+    (ip_dir / "rtl" / f"{ip}_core.sv").write_text(
+        f"""module {ip}_core(
+  input logic clk,
+  input logic rst_n,
+  input logic cmd_valid,
+  output logic cmd_ready,
+  output logic [31:0] rsp_rdata
+);
+  logic [31:0] count_q;
+  assign cmd_ready = 1'b1;
+  assign rsp_rdata = cmd_valid ? count_q : 32'd0;
+endmodule
+""",
+        encoding="utf-8",
+    )
+
+    plan = derive.derive_plan(tmp_path, ip, audit_rtl=True)
+
+    assert plan["summary"]["direct_rtl_allowed"] is True
+    gate_by_kind = {
+        (task.get("gate_todo") or {}).get("kind"): task
+        for task in plan["tasks"]
+        if task.get("category") == "rtl_gate.rtl_gen"
+    }
+    for kind in ("golden_authority_artifacts", "cycle_model_artifacts", "fl_rtl_goal_audit"):
+        completion = gate_by_kind[kind]["todo_completion"]
+        assert completion["status"] == "pass", completion
+        assert "Direct RTL contract authority is approved" in completion["reason"]
+
+
+def test_structural_contracts_are_direct_top_io_gate_inputs(tmp_path: Path):
+    derive = _load_derive()
+    ip = "contract_demo"
+    ip_dir = _write_contract_demo_ssot(tmp_path, ip)
+    (ip_dir / "req" / "structural_contracts.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "contracts": [
+                    {
+                        "id": "C_STRUCT_IO",
+                        "obligations": ["OBL_READ"],
+                        "signals": [
+                            {"name": "clk", "dir": "input", "width": 1},
+                            {"name": "rst_n", "dir": "input", "width": 1},
+                            {"name": "cmd_valid", "dir": "input", "width": 1},
+                            {"name": "rsp_rdata", "dir": "output", "width": 32},
+                        ],
+                        "clock_domains": [{"id": "main", "clock_signal": "clk"}],
+                        "reset_domains": [{"id": "rst", "reset_signal": "rst_n", "clock_domain": "main"}],
+                        "interfaces": [{"id": "ctrl", "signals": ["cmd_valid", "rsp_rdata"], "clock_domain": "main"}],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "list").mkdir()
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}_top.sv\n", encoding="utf-8")
+    (ip_dir / "rtl" / f"{ip}_top.sv").write_text(
+        f"""module {ip}_top(
+  input logic clk,
+  input logic rst_n,
+  input logic cmd_valid
+);
+endmodule
+""",
+        encoding="utf-8",
+    )
+
+    plan = derive.derive_plan(tmp_path, ip, audit_rtl=True)
+
+    assert plan["locked_truth_top_io_contracts"]
+    issues = plan["top_io_contract_evidence"]["issues"]
+    assert any(
+        issue.get("source_ref") == "req.structural_contracts.C_STRUCT_IO.signals.rsp_rdata"
+        and issue.get("issue") == "SSOT top IO port is missing from RTL top declaration"
+        for issue in issues
+    )

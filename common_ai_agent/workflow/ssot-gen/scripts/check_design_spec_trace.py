@@ -3,10 +3,29 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any, Final
 
 import yaml
+
+WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKFLOW_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKFLOW_ROOT))
+
+from behavioral_contracts import (
+    BehavioralContractError,
+    behavioral_contract_ids,
+    compare_behavioral_to_function_cycle,
+    compare_behavioral_to_ssot,
+    normalize_behavioral_contracts,
+)
+from structural_contracts import (
+    StructuralContractError,
+    compare_structural_to_ssot,
+    normalize_structural_contracts,
+    structural_contract_ids,
+)
 
 
 DESCRIPTION: Final[str] = "Check that Design Spec YAML traces back to locked truth authority."
@@ -78,7 +97,15 @@ def _collect_refs(value: Any) -> set[str]:
     if isinstance(value, dict):
         result: set[str] = set()
         for key, item in value.items():
-            if str(key) in {"source_refs", "contract_refs", "contract_ref", "locked_truth_projection"}:
+            if str(key) in {
+                "source_refs",
+                "contract_refs",
+                "contract_ref",
+                "behavioral_contract_refs",
+                "behavioral_contracts",
+                "evidence_refs",
+                "locked_truth_projection",
+            }:
                 result.update(_strings(item))
             result.update(_collect_refs(item))
         return result
@@ -124,6 +151,17 @@ def _authority(doc: dict[str, Any]) -> dict[str, Any]:
     return authority if isinstance(authority, dict) else {}
 
 
+def _projection_files(value: Any) -> set[str]:
+    if isinstance(value, str) and value.strip():
+        return {value.strip()}
+    if isinstance(value, list):
+        result: set[str] = set()
+        for item in value:
+            result.update(_projection_files(item))
+        return result
+    return set()
+
+
 def check_design_spec_trace(ip: str, root: Path) -> tuple[bool, list[str], dict[str, Any]]:
     ip_dir = root / ip
     ssot = _find_ssot(root, ip)
@@ -132,6 +170,9 @@ def check_design_spec_trace(ip: str, root: Path) -> tuple[bool, list[str], dict[
     manifest = _load_json(req_dir / "approval_manifest.json")
     requirements = _load_json(req_dir / "requirements_index.json")
     contracts = _load_json(req_dir / "contract_refs.json")
+    obligations = _load_json(req_dir / "obligations.json")
+    structural_raw = _load_json(req_dir / "structural_contracts.json")
+    behavioral_raw = _load_json(req_dir / "behavioral_contracts.json")
 
     issues: list[str] = []
     if manifest.get("status") != "requirements_locked":
@@ -144,6 +185,17 @@ def check_design_spec_trace(ip: str, root: Path) -> tuple[bool, list[str], dict[
         issues.append("custom.locked_truth_authority.approval_manifest must be req/approval_manifest.json")
     if authority.get("bundle_sha256") != manifest.get("bundle_sha256"):
         issues.append("bundle_sha256 mismatch")
+    expected_projection_files = {
+        "req/requirements_index.json",
+        "req/obligations.json",
+        "req/contract_refs.json",
+        "req/structural_contracts.json",
+        "req/behavioral_contracts.json",
+        "req/evidence_plan.json",
+    }
+    missing_projection_files = sorted(expected_projection_files - _projection_files(authority.get("projected_files")))
+    if missing_projection_files:
+        issues.append(f"custom.locked_truth_authority.projected_files missing: {', '.join(missing_projection_files)}")
 
     reflected = _collect_refs(doc)
     required_reqs = _required_requirement_ids(requirements)
@@ -156,6 +208,42 @@ def check_design_spec_trace(ip: str, root: Path) -> tuple[bool, list[str], dict[
     if missing_contracts:
         issues.append(f"missing contract refs: {', '.join(missing_contracts)}")
 
+    obligation_ids = {
+        str(item["obligation_id"])
+        for item in obligations.get("obligations", [])
+        if isinstance(item, dict) and isinstance(item.get("obligation_id"), str) and item.get("obligation_id").strip()
+    }
+    structural_summary: dict[str, Any] = {"active": False}
+    try:
+        structural = normalize_structural_contracts(ip, structural_raw, known_obligation_ids=obligation_ids)
+        structural_ref_ids = structural_contract_ids(structural)
+        structural_summary = {"active": True, "contract_refs": sorted(structural_ref_ids)}
+        missing_structural_refs = sorted(structural_ref_ids - reflected)
+        if missing_structural_refs:
+            issues.append(f"missing structural contract refs: {', '.join(missing_structural_refs)}")
+        structural_issues, structural_compare = compare_structural_to_ssot(structural, doc)
+        structural_summary.update(structural_compare)
+        issues.extend(structural_issues)
+    except StructuralContractError as exc:
+        issues.append(str(exc))
+
+    behavioral_summary: dict[str, Any] = {"active": False}
+    try:
+        behavioral = normalize_behavioral_contracts(ip, behavioral_raw, known_obligation_ids=obligation_ids)
+        behavioral_ref_ids = behavioral_contract_ids(behavioral)
+        behavioral_summary = {"active": True, "contract_refs": sorted(behavioral_ref_ids)}
+        missing_behavioral_refs = sorted(behavioral_ref_ids - reflected)
+        if missing_behavioral_refs:
+            issues.append(f"missing behavioral contract refs: {', '.join(missing_behavioral_refs)}")
+        behavioral_issues, behavioral_compare = compare_behavioral_to_ssot(behavioral, doc)
+        behavioral_summary.update(behavioral_compare)
+        issues.extend(behavioral_issues)
+        function_cycle_issues, function_cycle_compare = compare_behavioral_to_function_cycle(behavioral, doc)
+        behavioral_summary["function_cycle_projection"] = function_cycle_compare
+        issues.extend(function_cycle_issues)
+    except BehavioralContractError as exc:
+        issues.append(str(exc))
+
     report: dict[str, Any] = {
         "schema_version": 1,
         "type": "design_spec_trace_check",
@@ -164,6 +252,8 @@ def check_design_spec_trace(ip: str, root: Path) -> tuple[bool, list[str], dict[
         "status": "fail" if issues else "pass",
         "requirements": sorted(required_reqs),
         "contract_refs": sorted(required_contracts),
+        "structural_contracts": structural_summary,
+        "behavioral_contracts": behavioral_summary,
         "reflected_refs": sorted(reflected),
         "issues": issues,
     }
@@ -183,7 +273,9 @@ def main() -> int:
     if passed:
         print(
             f"[check_design_spec_trace] PASS {args.ip} "
-            f"requirements={len(report['requirements'])} contracts={len(report['contract_refs'])}"
+            f"requirements={len(report['requirements'])} contracts={len(report['contract_refs'])} "
+            f"structural_contracts={len(report['structural_contracts'].get('contract_refs', []))} "
+            f"behavioral_contracts={len(report['behavioral_contracts'].get('contract_refs', []))}"
         )
         return 0
     print(f"[check_design_spec_trace] FAIL {args.ip}")

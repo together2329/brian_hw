@@ -631,8 +631,67 @@ def test_verify_ssot_script_requires_complete_locked_truth_projection(tmp_path):
         ),
         encoding="utf-8",
     )
+    (req_dir / "structural_contracts.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "contracts": [
+                    {
+                        "id": "C_STRUCT_A",
+                        "obligations": ["OBL_A"],
+                        "signals": [{"name": "clk", "dir": "input", "width": 1}],
+                        "clock_domains": [{"id": "main_clk", "clock_signal": "clk"}],
+                    },
+                    {
+                        "id": "C_STRUCT_B",
+                        "obligations": ["OBL_B"],
+                        "signals": [{"name": "rst_n", "dir": "input", "width": 1}],
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (req_dir / "behavioral_contracts.json").write_text(
+        json.dumps(
+            {
+                "ip": ip,
+                "contracts": [
+                    {
+                        "id": "BC_A",
+                        "obligations": ["OBL_A"],
+                        "decision_table": [
+                            {"when": "valid == 1 and ready == 1", "then": {"accept": 1}}
+                        ],
+                        "stage_contracts": [
+                            {"stage": "ssot", "check": "function_model transaction mirrors BC_A"},
+                            {"stage": "cycle_model", "check": "cycle_model handshake mirrors BC_A"},
+                        ],
+                    },
+                    {
+                        "id": "BC_B",
+                        "obligations": ["OBL_B"],
+                        "decision_table": [
+                            {"when": "valid == 1 and ready == 1", "then": {"accept": 1}}
+                        ],
+                        "stage_contracts": [
+                            {"stage": "ssot", "check": "function_model transaction mirrors BC_B"},
+                            {"stage": "cycle_model", "check": "cycle_model handshake mirrors BC_B"},
+                        ],
+                    },
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
 
-    def write_ssot(requirements: str, obligations: str, contracts: str) -> None:
+    def write_ssot(
+        requirements: str,
+        obligations: str,
+        contracts: str,
+        structural_contracts: str,
+        behavioral_contracts: str,
+    ) -> None:
         ssot_path.write_text(
             f"""
 top_module:
@@ -649,6 +708,26 @@ function_model:
     - id: FM_READ
       name: read
       description: read transaction
+      preconditions: ["valid == 1 and ready == 1"]
+      output_rules:
+        - {{ name: read_data, port: read_data, expr: selected_value, width: 32 }}
+      state_updates:
+        - {{ name: last_read, expr: address, width: 12 }}
+      contract_refs:
+        behavioral: {behavioral_contracts}
+cycle_model:
+  handshake_rules:
+    - id: CM_ACCEPT
+      signal: valid/ready
+      rule: valid == 1 and ready == 1
+      contract_refs:
+        behavioral: {behavioral_contracts}
+  latency:
+    FM_READ:
+      min_cycles: 1
+      max_cycles: 1
+      contract_refs:
+        behavioral: {behavioral_contracts}
 custom:
   locked_truth_authority:
     kind: locked_truth_projection
@@ -658,18 +737,22 @@ custom:
       - req/requirements_index.json
       - req/obligations.json
       - req/contract_refs.json
+      - req/structural_contracts.json
+      - req/behavioral_contracts.json
       - req/evidence_plan.json
 traceability:
   locked_truth_projection:
     requirements: {requirements}
     obligations: {obligations}
     contract_refs: {contracts}
+    structural_contracts: {structural_contracts}
+    behavioral_contracts: {behavioral_contracts}
 """.strip()
             + "\n",
             encoding="utf-8",
         )
 
-    write_ssot("[REQ_A]", "[OBL_A]", "[C_A]")
+    write_ssot("[REQ_A]", "[OBL_A]", "[C_A]", "[C_STRUCT_A]", "[BC_A]")
     result = subprocess.run(
         [
             sys.executable,
@@ -698,8 +781,10 @@ traceability:
     assert report["locked_truth_projection"]["missing"]["requirements"] == ["REQ_B"]
     assert report["locked_truth_projection"]["missing"]["obligations"] == ["OBL_B"]
     assert report["locked_truth_projection"]["missing"]["contract_refs"] == ["C_B"]
+    assert report["locked_truth_projection"]["missing"]["structural_contracts"] == ["C_STRUCT_B"]
+    assert report["locked_truth_projection"]["missing"]["behavioral_contracts"] == ["BC_B"]
 
-    write_ssot("[REQ_A, REQ_B]", "[OBL_A, OBL_B]", "[C_A, C_B]")
+    write_ssot("[REQ_A, REQ_B]", "[OBL_A, OBL_B]", "[C_A, C_B]", "[C_STRUCT_A, C_STRUCT_B]", "[BC_A, BC_B]")
     result = subprocess.run(
         [
             sys.executable,
@@ -727,7 +812,12 @@ traceability:
         "requirements": 2,
         "obligations": 2,
         "contract_refs": 2,
+        "structural_contracts": 2,
+        "behavioral_contracts": 2,
     }
+    model_projection = report["locked_truth_projection"]["behavioral_model_projection"]
+    assert model_projection["matched_function_model"] == ["BC_A", "BC_B"]
+    assert model_projection["matched_cycle_model"] == ["BC_A", "BC_B"]
 
 
 def test_repair_ssot_removes_stale_locked_truth_markers_when_real_rules_exist(tmp_path):

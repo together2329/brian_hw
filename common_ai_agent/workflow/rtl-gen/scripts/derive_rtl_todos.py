@@ -16,12 +16,28 @@ import hashlib
 import json
 import os
 import re
+import shlex
+import sys
 import time
 from collections import Counter
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+
+# Absolute directory of this script, baked into generated gate commands. The
+# dynamic-tracker load path (_todo_load_template -> load_dynamic_todo_template)
+# does NOT substitute $ATLAS_WORKFLOW_ROOT, so the gate must reference sibling
+# scripts by absolute path; ip/root still come from the worker env
+# ($ATLAS_ACTIVE_IP / $ATLAS_PROJECT_ROOT).
+_SCRIPT_DIR = Path(__file__).resolve().parent
+WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKFLOW_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKFLOW_ROOT))
+
+from behavioral_contracts import BehavioralContractError, normalize_behavioral_contracts
+from structural_contracts import StructuralContractError, normalize_structural_contracts
 
 
 IMPLEMENTATION_SECTIONS = (
@@ -80,6 +96,8 @@ def _resolve_project_root(root_arg: str, ip_root_arg: str, ip: str) -> Path:
     return project_root
 
 STATIC_EVIDENCE_CATEGORIES = (
+    "contract.behavioral.",
+    "contract.structural.",
     "function_model.",
     "cycle_model.",
     "registers.",
@@ -99,23 +117,24 @@ UI_TODO_TARGET_MIN = 20
 UI_TODO_TARGET_MAX = 30
 AUTHORING_PACKET_SECTION_ORDER = {
     "rtl_flow": 0,
-    "io_list": 1,
-    "parameters": 2,
-    "integration": 3,
-    "function_model": 4,
-    "cycle_model": 5,
-    "fsm": 6,
-    "registers": 7,
-    "memory": 8,
-    "features": 9,
-    "error_handling": 10,
-    "interrupts": 11,
-    "security": 12,
-    "synthesis": 13,
-    "test_requirements": 14,
-    "coverage": 15,
-    "equivalence": 16,
-    "workflow_todo": 17,
+    "contract": 1,
+    "io_list": 2,
+    "parameters": 3,
+    "integration": 4,
+    "function_model": 5,
+    "cycle_model": 6,
+    "fsm": 7,
+    "registers": 8,
+    "memory": 9,
+    "features": 10,
+    "error_handling": 11,
+    "interrupts": 12,
+    "security": 13,
+    "synthesis": 14,
+    "test_requirements": 15,
+    "coverage": 16,
+    "equivalence": 17,
+    "workflow_todo": 18,
 }
 
 EVIDENCE_STOPWORDS = {
@@ -517,6 +536,36 @@ def _rtl_target_scale_waiver(doc: dict[str, Any]) -> dict[str, Any]:
         "owner": str(owner).strip() if _present(owner) else "",
     }
     return {key: value for key, value in waiver.items() if value not in {"", False}}
+
+
+def _rtl_direct_rtl_policy(doc: dict[str, Any]) -> dict[str, Any]:
+    rtl_gen = _rtl_gen_gate_config(doc)
+    raw = _ci_get(
+        rtl_gen,
+        "direct_rtl_allowed",
+        "allow_direct_rtl",
+        "direct_rtl",
+        "skip_fl_cl",
+        "fl_cl_optional",
+    )
+    if isinstance(raw, dict):
+        approved = bool(_ci_get(raw, "approved", "allowed", "enabled", "value"))
+        reason = _ci_get(raw, "reason", "rationale", "basis", "why")
+        owner = _ci_get(raw, "owner", "approver", "approved_by")
+    else:
+        approved = bool(raw)
+        reason = _ci_get(rtl_gen, "direct_rtl_reason", "allow_direct_rtl_reason", "skip_fl_cl_reason")
+        owner = _ci_get(rtl_gen, "direct_rtl_owner", "allow_direct_rtl_owner", "skip_fl_cl_owner")
+    policy: dict[str, Any] = {
+        "approved": approved,
+        "reason": _short_text(reason, limit=240) if _present(reason) else "",
+        "owner": _short_text(owner, limit=120) if _present(owner) else "",
+        "policy": (
+            "When approved, rtl-gen may proceed without executable FL/CL artifacts, "
+            "but locked req contracts and SSOT Function/Cycle projection remain mandatory authority."
+        ),
+    }
+    return {key: value for key, value in policy.items() if value not in {"", False}}
 
 
 def _criteria_items(value: Any) -> list[str]:
@@ -925,6 +974,7 @@ def _sha256_file(path: Path) -> str:
 
 RTL_TODO_HASH_VOLATILE_KEYS = {
     "connection_contract_suggestions",
+    "contract_implementation_evidence",
     "generated_at",
     "gate",
     "manifest_hierarchy_evidence",
@@ -973,6 +1023,134 @@ def _load_ssot(root: Path, ip: str) -> tuple[Path, dict[str, Any]]:
     if not isinstance(data, dict):
         raise SystemExit("[derive_rtl_todos] SSOT top-level must be a mapping")
     return path, data
+
+
+def _locked_truth_obligation_ids(ip_dir: Path) -> set[str]:
+    doc = _safe_read_json(ip_dir / "req" / "obligations.json")
+    rows = doc.get("obligations") if isinstance(doc.get("obligations"), list) else []
+    ids: set[str] = set()
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        value = str(row.get("obligation_id") or "").strip()
+        if value:
+            ids.add(value)
+    return ids
+
+
+def _load_locked_truth_contract_docs(ip_dir: Path, ip: str) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    req_dir = ip_dir / "req"
+    obligation_ids = _locked_truth_obligation_ids(ip_dir)
+    issues: list[dict[str, Any]] = []
+    docs: dict[str, Any] = {
+        "behavioral_contracts": {"schema_version": 1, "type": "behavioral_contracts", "ip": ip, "contracts": []},
+        "structural_contracts": {"schema_version": 1, "type": "structural_contracts", "ip": ip, "contracts": []},
+        "present": {
+            "behavioral_contracts": (req_dir / "behavioral_contracts.json").is_file(),
+            "structural_contracts": (req_dir / "structural_contracts.json").is_file(),
+        },
+    }
+
+    behavioral_path = req_dir / "behavioral_contracts.json"
+    if behavioral_path.is_file():
+        raw = _safe_read_json(behavioral_path)
+        try:
+            docs["behavioral_contracts"] = normalize_behavioral_contracts(
+                ip,
+                raw,
+                known_obligation_ids=obligation_ids or None,
+            )
+        except BehavioralContractError as exc:
+            issues.append({
+                "id": "LOCKED_TRUTH_BEHAVIORAL_CONTRACTS_INVALID",
+                "source_ref": "req/behavioral_contracts.json",
+                "reason": str(exc),
+                "owner": "req-gen",
+            })
+
+    structural_path = req_dir / "structural_contracts.json"
+    if structural_path.is_file():
+        raw = _safe_read_json(structural_path)
+        try:
+            docs["structural_contracts"] = normalize_structural_contracts(
+                ip,
+                raw,
+                known_obligation_ids=obligation_ids or None,
+            )
+        except StructuralContractError as exc:
+            issues.append({
+                "id": "LOCKED_TRUTH_STRUCTURAL_CONTRACTS_INVALID",
+                "source_ref": "req/structural_contracts.json",
+                "reason": str(exc),
+                "owner": "req-gen",
+            })
+    return docs, issues
+
+
+CONTRACT_REF_KEYS = {
+    "behavioral_contract_ref",
+    "behavioral_contract_refs",
+    "behavioral_contracts",
+    "contract_ref",
+    "contract_refs",
+    "contracts",
+    "locked_truth_projection",
+    "source_refs",
+    "structural_contract_ref",
+    "structural_contract_refs",
+}
+
+
+CONTRACT_PROJECTION_SECTIONS = (
+    "function_model",
+    "cycle_model",
+    "fsm",
+    "registers",
+    "interrupts",
+    "features",
+    "dataflow",
+    "test_requirements",
+    "quality_gates",
+    "rtl_contract",
+    "io_list",
+    "integration",
+    "sub_modules",
+)
+
+
+def _value_mentions_contract_ref(value: Any, contract_id: str) -> bool:
+    if isinstance(value, str):
+        return value.strip() == contract_id
+    if isinstance(value, list):
+        return any(_value_mentions_contract_ref(item, contract_id) for item in value)
+    if isinstance(value, dict):
+        return any(_value_mentions_contract_ref(item, contract_id) for item in value.values())
+    return False
+
+
+def _collect_contract_projection_refs(doc: dict[str, Any], contract_id: str) -> list[str]:
+    refs: set[str] = set()
+
+    def visit(value: Any, path: str) -> None:
+        if isinstance(value, dict):
+            if any(
+                str(key) in CONTRACT_REF_KEYS and _value_mentions_contract_ref(item, contract_id)
+                for key, item in value.items()
+            ):
+                refs.add(path)
+            for key, item in value.items():
+                next_path = f"{path}.{key}" if path else str(key)
+                visit(item, next_path)
+            return
+        if isinstance(value, list):
+            for idx, item in enumerate(value):
+                visit(item, f"{path}[{idx}]")
+
+    for section in CONTRACT_PROJECTION_SECTIONS:
+        value = doc.get(section)
+        if value is not None:
+            visit(value, section)
+    return sorted(ref for ref in refs if ref)
 
 
 def _top_name(doc: dict[str, Any], fallback: str) -> str:
@@ -1324,6 +1502,10 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
                 _, module, matched_ref = scored[0]
                 return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
         module, matched_ref = top_tier[0]
+        if ref.startswith("cycle_model.handshake_rules.") and str(matched_ref) in {"cycle_model", "cycle_model.handshake_rules"}:
+            top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
+            if top_module is not None:
+                return {"module": str(top_module["name"]), "file": str(top_module["file"]), "matched_ref": "top_level_handshake_rule"}
         return {"module": str(module["name"]), "file": str(module["file"]), "matched_ref": matched_ref}
     direct_owner = _direct_name_owner_match(ref, modules)
     if direct_owner is not None:
@@ -1349,6 +1531,10 @@ def _owner_for(ref: str, modules: list[dict[str, Any]], top: str, value: Any = N
     control_owner = _control_owner_fallback(ref, modules, top)
     if control_owner is not None:
         return control_owner
+    if ref.startswith("cycle_model.handshake_rules."):
+        top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
+        if top_module is not None:
+            return {"module": str(top_module["name"]), "file": str(top_module["file"]), "matched_ref": "top_level_handshake_rule"}
     top_module = next((m for m in modules if str(m.get("name")) == top or Path(str(m.get("file"))).stem == top), None)
     if top_module is not None and section in TOP_FALLBACK_SECTIONS:
         return {"module": str(top_module["name"]), "file": str(top_module["file"]), "matched_ref": "top_fallback"}
@@ -1611,6 +1797,8 @@ DIRECT_STRING_EVIDENCE_CATEGORIES = {
 }
 
 NAME_EVIDENCE_CATEGORIES = {
+    "contract.behavioral.rtl",
+    "contract.structural.rtl",
     "function_model.output",
     "function_model.output_rule",
     "function_model.state_update",
@@ -1750,6 +1938,26 @@ def _evidence_terms(category: str, source_ref: str, value: Any) -> list[str]:
                 # below carry the actual behavior checks, so workflow_todo static
                 # evidence should anchor to real owner artifacts/signals only.
                 identity_keys = ("owner_module", "owner_file", "signal", "port", "state", "output", "event", "register")
+            if category.startswith("contract."):
+                # Contract IDs are trace labels, not RTL identifiers. Evidence
+                # must come from explicit implementation observables extracted
+                # from the contract body.
+                identity_keys = (
+                    "signal",
+                    "port",
+                    "input",
+                    "output",
+                    "state",
+                    "event",
+                    "register",
+                    "observable",
+                    "assertion",
+                    "from",
+                    "to",
+                    "expr",
+                    "expression",
+                    "condition",
+                )
             for key in identity_keys:
                 if _present(value.get(key)):
                     if key in {"id", "name", "field", "signal", "port", "state", "output", "event", "register", "from", "to"}:
@@ -2180,6 +2388,25 @@ def _add_rtl_gate_todo_tasks(tasks: list[dict[str, Any]], owner: dict[str, str],
             "artifact": "rtl/rtl_todo_plan.json",
         },
         {
+            "kind": "locked_truth_contract_implementation",
+            "source_ref": "quality_gates.rtl_gen.locked_truth_contract_implementation",
+            "content": "Gate: locked behavioral/structural contracts are implemented in RTL",
+            "detail": (
+                "RTL generation must not rely only on SSOT projection traceability. "
+                "When req/behavioral_contracts.json or req/structural_contracts.json is present, "
+                "rtl-gen loads the locked contract source, derives contract-owned ledger rows, "
+                "and requires live RTL evidence for every RTL-owned contract."
+            ),
+            "criteria": [
+                "Locked behavioral contracts with RTL ownership have contract.behavioral.rtl ledger rows",
+                "Each RTL-owned behavioral contract has an explicit rtl/rtl-gen stage_contract",
+                "Each behavioral contract row maps to at least one SSOT behavior projection ref",
+                "Structural contract signals are checked directly against the RTL top declaration",
+                "Contract evidence is live RTL source evidence, not comments, TB code, or trace-only metadata",
+            ],
+            "artifact": "req/behavioral_contracts.json + req/structural_contracts.json + rtl/rtl_todo_plan.json",
+        },
+        {
             "kind": "owner_logic_structure_evidence",
             "source_ref": "quality_gates.rtl_gen.owner_logic_structure_evidence",
             "content": "Gate: behavior-owner RTL modules contain real implementation structure",
@@ -2575,6 +2802,223 @@ def _add_io_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], modules: lis
             value=port,
             priority="normal",
         )
+
+
+def _contract_id(entry: dict[str, Any]) -> str:
+    for key in ("id", "contract_id", "contract_ref_id", "behavioral_contract_id"):
+        value = str(entry.get(key) or "").strip()
+        if value:
+            return value
+    return ""
+
+
+def _rtl_stage_contracts(contract: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in _as_list(contract.get("stage_contracts")):
+        if not isinstance(item, dict):
+            continue
+        stage = _ci_get(item, "stage", "workflow", "target")
+        if _is_rtl_workflow(stage) or "rtl" in _norm_workflow(stage):
+            rows.append(item)
+    return rows
+
+
+def _identifierish_values(value: Any) -> list[str]:
+    tokens: list[str] = []
+
+    def visit(item: Any) -> None:
+        if item is None:
+            return
+        if isinstance(item, dict):
+            for key, val in item.items():
+                if str(key).lower() in {"id", "contract_id", "contract_ref", "contract_ref_id", "obligations"}:
+                    continue
+                visit(val)
+            return
+        if isinstance(item, list):
+            for val in item:
+                visit(val)
+            return
+        text = str(item)
+        raw_tokens = re.findall(r"[A-Za-z_][A-Za-z0-9_]*", text)
+        if len(raw_tokens) == 1:
+            tokens.append(raw_tokens[0])
+            return
+        for token in raw_tokens:
+            if _looks_like_design_token(token):
+                tokens.append(token)
+
+    visit(value)
+    out: list[str] = []
+    seen: set[str] = set()
+    for token in tokens:
+        lower = token.lower()
+        if lower in EVIDENCE_STOPWORDS or lower in REFERENCE_STOPWORDS:
+            continue
+        if _is_fm_observed_marker_term(token):
+            continue
+        if token not in seen:
+            seen.add(token)
+            out.append(token)
+    return out
+
+
+def _behavioral_contract_evidence_value(contract: dict[str, Any], rtl_stage_contracts: list[dict[str, Any]]) -> dict[str, Any]:
+    signals: list[Any] = []
+    for key in ("inputs", "outputs", "signals", "ports", "observables", "state_variables", "registers", "events"):
+        signals.extend(_as_list(contract.get(key)))
+    for row in _as_list(contract.get("decision_table")):
+        if isinstance(row, dict):
+            for key in ("when", "then", "outputs", "state_updates", "expect", "result"):
+                signals.extend(_identifierish_values(row.get(key)))
+    for tx in _as_list(contract.get("transactions")):
+        if isinstance(tx, dict):
+            for key in ("inputs", "outputs", "required_fields", "output_rules", "state_updates", "side_effects", "postconditions"):
+                signals.extend(_identifierish_values(tx.get(key)))
+    for transition in _as_list(contract.get("state_transitions")):
+        if isinstance(transition, dict):
+            for key in ("from", "from_state", "to", "to_state", "when", "action", "outputs", "state_updates"):
+                signals.extend(_identifierish_values(transition.get(key)))
+    for rule in _as_list(contract.get("rules")):
+        signals.extend(_identifierish_values(rule))
+    for invariant in _as_list(contract.get("invariants")):
+        signals.extend(_identifierish_values(invariant))
+    for stage_contract in rtl_stage_contracts:
+        for key in ("observable", "assertion", "pass_condition", "coverage", "artifact", "check"):
+            signals.extend(_identifierish_values(stage_contract.get(key)))
+    return {
+        "contract_ref": _contract_id(contract),
+        "signal": sorted(dict.fromkeys(str(item) for item in signals if str(item).strip())),
+        "observable": [
+            _short_text(_ci_get(item, "observable", "assertion", "pass_condition", "check"), limit=160)
+            for item in rtl_stage_contracts
+            if isinstance(item, dict) and _present(_ci_get(item, "observable", "assertion", "pass_condition", "check"))
+        ],
+        "stage_contracts": rtl_stage_contracts,
+    }
+
+
+def _structural_contract_evidence_value(contract: dict[str, Any]) -> dict[str, Any]:
+    signals = []
+    for signal in _as_list(contract.get("signals")):
+        if not isinstance(signal, dict):
+            continue
+        signals.append(signal.get("name"))
+    return {
+        "contract_ref": _contract_id(contract),
+        "signal": sorted(dict.fromkeys(str(item) for item in signals if str(item).strip())),
+        "stage_contracts": [{"stage": "rtl-gen", "check": "RTL top declaration matches structural signal dir/width/timing intent"}],
+    }
+
+
+def _owner_for_behavioral_contract(
+    contract_id: str,
+    projection_refs: list[str],
+    modules: list[dict[str, Any]],
+    top: str,
+    value: Any,
+) -> dict[str, str]:
+    for ref in projection_refs:
+        owner = _owner_for(ref, modules, top, value=value)
+        if owner.get("module") or owner.get("file"):
+            return owner
+    return {"module": "", "file": "", "matched_ref": ""}
+
+
+def _add_locked_truth_contract_tasks(
+    tasks: list[dict[str, Any]],
+    blockers: list[dict[str, Any]],
+    doc: dict[str, Any],
+    locked_truth_contracts: dict[str, Any],
+    modules: list[dict[str, Any]],
+    top: str,
+) -> None:
+    behavioral_doc = locked_truth_contracts.get("behavioral_contracts")
+    if isinstance(behavioral_doc, dict):
+        for contract in _as_list(behavioral_doc.get("contracts")):
+            if not isinstance(contract, dict):
+                continue
+            contract_id = _contract_id(contract)
+            if not contract_id:
+                continue
+            projection_refs = _collect_contract_projection_refs(doc, contract_id)
+            rtl_stage_contracts = _rtl_stage_contracts(contract)
+            evidence_value = _behavioral_contract_evidence_value(contract, rtl_stage_contracts)
+            owner = _owner_for_behavioral_contract(contract_id, projection_refs, modules, top, evidence_value)
+            if not projection_refs:
+                blockers.append({
+                    "id": f"LOCKED_TRUTH_CONTRACT_NOT_PROJECTED_{_slug(contract_id)}",
+                    "source_ref": f"req/behavioral_contracts.json:{contract_id}",
+                    "reason": "Behavioral contract has no SSOT behavior projection ref for rtl-gen owner/evidence routing.",
+                    "owner": "ssot-gen",
+                })
+            if not rtl_stage_contracts:
+                blockers.append({
+                    "id": f"LOCKED_TRUTH_CONTRACT_NO_RTL_STAGE_{_slug(contract_id)}",
+                    "source_ref": f"req/behavioral_contracts.json:{contract_id}.stage_contracts",
+                    "reason": "Behavioral contract must declare an rtl/rtl-gen stage_contract before RTL evidence can close it.",
+                    "owner": "req-gen",
+                })
+            _task(
+                tasks,
+                category="contract.behavioral.rtl",
+                source_ref=f"req.behavioral_contracts.{_slug(contract_id)}",
+                title=f"Implement locked behavioral contract {contract_id}",
+                detail=(
+                    "This row is derived directly from req/behavioral_contracts.json. "
+                    "The RTL must implement the contract's machine behavior and close the listed RTL stage_contracts."
+                ),
+                criteria=[
+                    f"Contract {contract_id} remains traceable to req/behavioral_contracts.json",
+                    "At least one SSOT behavior section projects this contract and owns RTL implementation work",
+                    "An explicit rtl/rtl-gen stage_contract states the RTL observable/check/pass condition",
+                    "Live owner RTL contains evidence terms from the contract inputs/outputs/state/observables",
+                ],
+                owner=owner,
+                value=evidence_value,
+                priority="critical",
+            )
+            task = tasks[-1]
+            task["contract_ref"] = contract_id
+            task["contract_kind"] = "behavioral"
+            task["contract_projection_refs"] = projection_refs
+            task["contract_stage_contracts"] = rtl_stage_contracts
+            task["ssot_refs"] = sorted({task["source_ref"], *projection_refs})
+
+    structural_doc = locked_truth_contracts.get("structural_contracts")
+    if isinstance(structural_doc, dict):
+        top_owner = _owner_for("top_module", modules, top)
+        for contract in _as_list(structural_doc.get("contracts")):
+            if not isinstance(contract, dict):
+                continue
+            contract_id = _contract_id(contract)
+            if not contract_id:
+                continue
+            evidence_value = _structural_contract_evidence_value(contract)
+            _task(
+                tasks,
+                category="contract.structural.rtl",
+                source_ref=f"req.structural_contracts.{_slug(contract_id)}",
+                title=f"Implement locked structural contract {contract_id}",
+                detail=(
+                    "This row is derived directly from req/structural_contracts.json. "
+                    "RTL top ports must satisfy the contract's signal names, direction, width, and timing ownership."
+                ),
+                criteria=[
+                    f"Contract {contract_id} remains traceable to req/structural_contracts.json",
+                    "Every structural signal is declared on the RTL top or explicitly waived by locked truth",
+                    "Direction and width are checked against the RTL top declaration",
+                    "Active structural inputs/outputs participate in live RTL logic or explicit SSOT waiver",
+                ],
+                owner=top_owner,
+                value=evidence_value,
+                priority="critical",
+            )
+            task = tasks[-1]
+            task["contract_ref"] = contract_id
+            task["contract_kind"] = "structural"
+            task["contract_stage_contracts"] = evidence_value["stage_contracts"]
+            task["ssot_refs"] = sorted({task["source_ref"], "io_list", "top_module"})
 
 
 def _add_function_model_tasks(tasks: list[dict[str, Any]], doc: dict[str, Any], modules: list[dict[str, Any]], top: str) -> None:
@@ -3146,6 +3590,7 @@ def _rtl_gate_ui_group(task: dict[str, Any]) -> tuple[int, str, str]:
     if kind in {
         "owner_traceability",
         "static_rtl_evidence",
+        "locked_truth_contract_implementation",
         "owner_logic_structure_evidence",
         "rtl_placeholder_free_evidence",
         "dynamic_todo_closure",
@@ -3181,16 +3626,18 @@ def _ui_group_for_task(task: dict[str, Any]) -> tuple[int, str, str]:
 
     if category == "rtl_flow.seed":
         return (0, "flow.prepare", "Prepare SSOT-derived RTL generation authority")
+    if section == "contract":
+        return (1, "contract.locked_truth", "Implement locked req contracts in RTL")
     if category == "rtl_flow.top" or section == "io_list":
-        return (1, "interface.top_io", "Implement top module, ports, reset, and filelist")
+        return (2, "interface.top_io", "Implement top module, ports, reset, and filelist")
     if section == "parameters":
-        return (2, "interface.parameters", "Implement Verilog include parameters and constants")
+        return (3, "interface.parameters", "Implement Verilog include parameters and constants")
     if section == "registers":
-        return (3, "interface.registers", "Implement register decode, storage, and field behavior")
+        return (4, "interface.registers", "Implement register decode, storage, and field behavior")
     if section == "memory":
-        return (4, "datapath.memory", "Implement SSOT memory instances and access behavior")
+        return (5, "datapath.memory", "Implement SSOT memory instances and access behavior")
     if section == "interrupts":
-        return (5, "control.interrupts", "Implement interrupt sources, enables, and clears")
+        return (6, "control.interrupts", "Implement interrupt sources, enables, and clears")
     if category == "workflow_todo.rtl_gen":
         return (10, "workflow.rtl_gen", "Execute SSOT-authored rtl-gen workflow TODOs")
     if section == "function_model":
@@ -3332,7 +3779,7 @@ def _gen_rtl_tracker_task(plan: dict[str, Any], ledger_tasks: list[dict[str, Any
     criteria_lines = [
         "Read yaml/<ip>.ssot.yaml, rtl/rtl_todo_plan.json, rtl/rtl_authoring_plan.json, and relevant rtl/authoring_packets before editing.",
         "Implement/repair only RTL-owned artifacts from SSOT authority; do not change SSOT, FL, coverage, or requirement truth from rtl-gen.",
-        "Update rtl/<module>.sv and list/<ip>.f so the SSOT top module, ports, registers, interrupts, function_model, cycle_model, dataflow, feature, and workflow_todos.rtl-gen contracts have live RTL evidence.",
+        "Update rtl/<module>.sv and list/<ip>.f so locked req contracts plus the SSOT top module, ports, registers, interrupts, function_model, cycle_model, dataflow, feature, and workflow_todos.rtl-gen contracts have live RTL evidence.",
         "Run workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <project-root> --audit-rtl after the final RTL edit.",
         "Run workflow/rtl-gen/scripts/rtl_compile_report.py and workflow/lint/scripts/dut_lint_report.py after the final RTL edit.",
         "rtl/rtl_todo_plan.json gate.status is pass.",
@@ -3436,28 +3883,141 @@ def _tracker_todo_from_ledger_task(task: dict[str, Any]) -> dict[str, Any]:
     return todo
 
 
+def _gen_rtl_group_task(
+    plan: dict[str, Any],
+    group: dict[str, Any],
+    *,
+    index: int,
+    total: int,
+    gate_task_no: int,
+) -> dict[str, Any]:
+    """One visible implementation TODO for a single SSOT ledger group (phase)."""
+    ip = str(plan.get("ip") or "unknown")
+    key = str(group.get("key") or "")
+    title = str(group.get("title") or key or "RTL contracts")
+    gtasks = [t for t in (group.get("tasks") or []) if isinstance(t, dict)]
+    n = len(gtasks)
+    ids = [str(t.get("id") or t.get("source_ref") or "").strip() for t in gtasks]
+    ids = [i for i in ids if i]
+    id_preview = ", ".join(ids[:8]) + (f", +{len(ids) - 8} more" if len(ids) > 8 else "")
+
+    detail_lines = [
+        f"Phase {index}/{total} (ledger group '{key}') — {n} SSOT-derived item(s) for {ip}.",
+        "Internal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.",
+        "Read yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.",
+    ]
+    if id_preview:
+        detail_lines.append(f"Ledger rows: {id_preview}")
+    detail_lines.append(f"Deterministic verification of all phases happens in Task {gate_task_no} (the gen-rtl gate).")
+
+    criteria_lines = [
+        f"Every '{key}' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv",
+        "Only RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked",
+        "No placeholder/stub left for this group's contracts",
+    ]
+    active = (title[:1].lower() + title[1:]) if title else "rtl contracts"
+    return {
+        "content": f"[gen-rtl {index}/{total}] {title}",
+        "activeForm": f"Implementing {active} for {ip}",
+        "status": "pending",
+        "detail": "\n".join(detail_lines),
+        "criteria": "\n".join(criteria_lines),
+        "priority": _priority_label(gtasks),
+    }
+
+
+def _gen_rtl_gate_task(plan: dict[str, Any], *, total_phases: int) -> dict[str, Any]:
+    """Final deterministic gate TODO: verify every ledger row, loop back on fail."""
+    ip = str(plan.get("ip") or "unknown")
+    derive_script = shlex.quote(str(_SCRIPT_DIR / "derive_rtl_todos.py"))
+    # ip/root resolve from the worker env (both exported); the script path is
+    # absolute because the dynamic-tracker load path does not substitute
+    # $ATLAS_WORKFLOW_ROOT.
+    gate_cmd = (
+        f'python3 {derive_script} "$ATLAS_ACTIVE_IP" '
+        f'--root "$ATLAS_PROJECT_ROOT" --audit-rtl'
+    )
+    detail_lines = [
+        f"Deterministic gate after {total_phases} implementation phase(s) for {ip}.",
+        "Runs derive_rtl_todos.py --audit-rtl: every required ledger row must close and static checks must pass.",
+        "On failure this loops back to Phase 1 — read the audit output to see which group/rows are still open, repair RTL, then this gate reruns.",
+        "Also run rtl_compile_report.py and dut_lint_report.py and fix unwaived errors before declaring done.",
+    ]
+    criteria_lines = [
+        "derive_rtl_todos.py --audit-rtl exits 0 (rtl/rtl_todo_plan.json gate.status=pass)",
+        "summary shows open_required_todos=0, static_missing=0, blockers=0, orphans=0, all_required_todos_pass=true",
+        "Every required ledger row has todo_completion.status=pass",
+        "rtl_compile_report.py reports no compile errors; dut_lint_report.py reports no unwaived DUT-only lint errors",
+    ]
+    return {
+        "content": f"[gen-rtl gate] Verify every RTL item is well-formed for {ip}",
+        "activeForm": f"Running deterministic RTL build gate for {ip}",
+        "status": "pending",
+        "detail": "\n".join(detail_lines),
+        "criteria": "\n".join(criteria_lines),
+        "command": gate_cmd,
+        "on_reject": 1,
+        "priority": "high",
+    }
+
+
 def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
     ledger_tasks = [task for task in plan.get("tasks", []) if isinstance(task, dict)]
     groups = _ui_groups_for_ledger_tasks(ledger_tasks)
-    tasks = [_gen_rtl_tracker_task(plan, ledger_tasks)]
+    ip = str(plan.get("ip", "unknown") or "unknown")
+
+    if not ledger_tasks or not groups:
+        # No SSOT-derived rows yet → keep the single seed item.
+        tasks = [_gen_rtl_tracker_task(plan, ledger_tasks)]
+        strategy = "single_gen_rtl_contract_gate"
+    else:
+        # One visible TODO per ledger group (phase), then a final deterministic
+        # gate that verifies every row and loops back to Phase 1 on failure.
+        total = len(groups)
+        gate_task_no = total + 1
+        tasks = [
+            _gen_rtl_group_task(plan, group, index=i + 1, total=total, gate_task_no=gate_task_no)
+            for i, group in enumerate(groups)
+        ]
+        tasks.append(_gen_rtl_gate_task(plan, total_phases=total))
+        strategy = "phase_grouped_contract_gate"
+
     ledger_status_counts = dict(sorted(Counter(_tracker_status_for_ledger_task(task) for task in ledger_tasks).items()))
     status_counts = dict(sorted(Counter(str(task.get("status") or "unknown") for task in tasks).items()))
 
-    return {
-        "name": f"{plan.get('ip', 'unknown')}-rtl",
-        "description": (
-            f"Auto-generated single gen-rtl TodoTracker item from SSOT RTL plan for {plan.get('ip', '')}. "
+    if strategy == "phase_grouped_contract_gate":
+        description = (
+            f"Auto-generated phase-grouped gen-rtl TodoTracker for {ip}: one visible TODO per SSOT "
+            "ledger group plus a final deterministic gate. The full contract/evidence ledger remains "
+            "in rtl_todo_plan.json; the gate loops back to Phase 1 until that ledger closes."
+        )
+        detail_policy = (
+            "One visible TODO per SSOT ledger group drives implementation; a final deterministic "
+            "gen-rtl gate (derive_rtl_todos.py --audit-rtl) verifies every ledger row and loops back "
+            "to Phase 1 on failure, while preserving every per-contract row in rtl_todo_plan.json."
+        )
+    else:
+        description = (
+            f"Auto-generated single gen-rtl TodoTracker item from SSOT RTL plan for {ip}. "
             "The full contract/evidence ledger remains in rtl_todo_plan.json; the UI executes one "
             "implementation-and-gate repair loop until that ledger closes."
-        ),
+        )
+        detail_policy = (
+            "One visible gen-rtl TodoTracker item drives implementation, command gates, and repair "
+            "loops while preserving every per-contract ledger row in rtl_todo_plan.json."
+        )
+
+    return {
+        "name": f"{ip}-rtl",
+        "description": description,
         "source_plan": "rtl/rtl_todo_plan.json",
         "source_task_count": len(ledger_tasks),
         "ledger_status_counts": ledger_status_counts,
         "status_counts": status_counts,
         "ui_grouping": {
-            "strategy": "single_gen_rtl_contract_gate",
-            "target_min": 1,
-            "target_max": 1,
+            "strategy": strategy,
+            "target_min": 1 if strategy == "single_gen_rtl_contract_gate" else 2,
+            "target_max": 1 if strategy == "single_gen_rtl_contract_gate" else len(groups) + 1,
             "actual_count": len(tasks),
             "status_counts": status_counts,
             "ledger_status_counts": ledger_status_counts,
@@ -3470,7 +4030,7 @@ def _convert_to_template_format(plan: dict[str, Any]) -> dict[str, Any]:
                 }
                 for group in groups
             ],
-            "detail_policy": "One visible gen-rtl TodoTracker item drives implementation, command gates, and repair loops while preserving every per-contract ledger row in rtl_todo_plan.json.",
+            "detail_policy": detail_policy,
         },
         "lock_additions": False,
         "tasks": tasks,
@@ -3494,6 +4054,10 @@ def _packet_task_item(task: dict[str, Any]) -> dict[str, Any]:
         "source_ref",
         "ssot_refs",
         "content",
+        "contract_kind",
+        "contract_projection_refs",
+        "contract_ref",
+        "contract_stage_contracts",
         "detail",
         "criteria",
         "ssot_context",
@@ -3586,12 +4150,14 @@ _DRAFT_BLOCKING_GATE_KINDS = {
     "ssot_required_sections",
     "ssot_workflow_todo_format",
     "owner_traceability",
+    "locked_truth_contract_implementation",
 }
 
 _LOCKED_TRUTH_GATE_KINDS = {
     "ssot_required_sections",
     "ssot_workflow_todo_format",
     "owner_traceability",
+    "locked_truth_contract_implementation",
     "manifest_connection_contract_evidence",
     "golden_authority_artifacts",
     "target_scale_policy",
@@ -5149,6 +5715,9 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
                 "category": task["category"],
                 "owner_module": task["owner_module"],
                 "owner_file": task["owner_file"],
+                "contract_ref": task.get("contract_ref"),
+                "contract_kind": task.get("contract_kind"),
+                "contract_projection_refs": task.get("contract_projection_refs"),
                 "evidence_terms": task["evidence_terms"],
                 "static_evidence": task.get("static_evidence"),
             }
@@ -5991,6 +6560,55 @@ def _top_io_contract(
     }
 
 
+def _structural_contract_top_io_contracts(structural_doc: dict[str, Any]) -> list[dict[str, Any]]:
+    contracts: list[dict[str, Any]] = []
+    seen: set[tuple[str, str, str, str]] = set()
+    for contract in _as_list(structural_doc.get("contracts")):
+        if not isinstance(contract, dict):
+            continue
+        contract_id = str(contract.get("id") or "").strip()
+        for idx, signal in enumerate(_as_list(contract.get("signals"))):
+            if not isinstance(signal, dict):
+                continue
+            name = str(signal.get("name") or "").strip()
+            if not name:
+                continue
+            direction = str(signal.get("dir") or signal.get("direction") or "").strip().lower()
+            width = signal.get("width", 1)
+            source_ref = f"req.structural_contracts.{_slug(contract_id or 'contract')}.signals.{_slug(name)}"
+            key = (contract_id, name, direction, str(width))
+            if key in seen:
+                continue
+            seen.add(key)
+            item = _top_io_contract(
+                source_ref=source_ref,
+                name=name,
+                direction=direction,
+                width=width,
+                aliases=_as_list(signal.get("aliases")),
+                allow_constant=bool(signal.get("allow_constant") or signal.get("constant_ok")),
+                constant_value=signal.get("constant_value", signal.get("tieoff")),
+                allow_unused=bool(signal.get("allow_unused") or signal.get("unused_ok") or signal.get("reserved")),
+            )
+            item["contract_ref"] = contract_id
+            item["contract_type"] = "structural"
+            item["signal_index"] = idx
+            timing = signal.get("timing") if isinstance(signal.get("timing"), dict) else {}
+            if timing:
+                item["timing"] = timing
+            contracts.append(item)
+    return contracts
+
+
+def _plan_top_io_contracts(plan: dict[str, Any]) -> list[dict[str, Any]]:
+    contracts: list[dict[str, Any]] = []
+    for key in ("ssot_top_io_contracts", "locked_truth_top_io_contracts"):
+        value = plan.get(key)
+        if isinstance(value, list):
+            contracts.extend(item for item in value if isinstance(item, dict))
+    return contracts
+
+
 def _constant_allowed_from_io_item(item: dict[str, Any]) -> tuple[bool, Any]:
     constant_value = _ci_get(item, "constant", "tieoff", "fixed_value", "constant_value")
     allow_constant = _ci_get(item, "allow_constant", "constant_ok", "tieoff_ok")
@@ -6759,7 +7377,7 @@ def _audit_top_io_contracts(ip_dir: Path, plan: dict[str, Any]) -> dict[str, Any
 
     top = str(plan.get("top") or ip_dir.name)
     roots = sorted(_top_aliases(top) & set(declarations))
-    contracts = plan.get("ssot_top_io_contracts") if isinstance(plan.get("ssot_top_io_contracts"), list) else []
+    contracts = _plan_top_io_contracts(plan)
     summary = plan.get("summary") if isinstance(plan.get("summary"), dict) else {}
     policy = plan.get("policy") if isinstance(plan.get("policy"), dict) else {}
     profile = str(policy.get("rtl_quality_profile") or summary.get("rtl_quality_profile") or "standard")
@@ -6954,7 +7572,7 @@ def _audit_top_output_drives(ip_dir: Path, plan: dict[str, Any]) -> dict[str, An
 
     top = str(plan.get("top") or ip_dir.name)
     roots = sorted(_top_aliases(top) & set(module_bodies))
-    contracts = plan.get("ssot_top_io_contracts") if isinstance(plan.get("ssot_top_io_contracts"), list) else []
+    contracts = _plan_top_io_contracts(plan)
     output_contracts = [
         contract
         for contract in contracts
@@ -7060,7 +7678,7 @@ def _audit_top_input_consumption(ip_dir: Path, plan: dict[str, Any]) -> dict[str
 
     top = str(plan.get("top") or ip_dir.name)
     roots = sorted(_top_aliases(top) & set(module_bodies))
-    contracts = plan.get("ssot_top_io_contracts") if isinstance(plan.get("ssot_top_io_contracts"), list) else []
+    contracts = _plan_top_io_contracts(plan)
     input_contracts = [
         contract
         for contract in contracts
@@ -7638,6 +8256,8 @@ def _required_static_match_count(category: str, terms: list[str]) -> int:
     )
     if category == "workflow_todo.rtl_gen":
         return min(3, len(terms))
+    if category.startswith("contract."):
+        return min(2, len(terms))
     if any(category.startswith(prefix) for prefix in rich_categories):
         return min(2, len(terms))
     return 1
@@ -7722,6 +8342,130 @@ def _audit_static_evidence(ip_dir: Path, plan: dict[str, Any]) -> None:
         "missing": len(missing),
         "missing_tasks": missing[:128],
     }
+
+
+def _audit_contract_implementation(plan: dict[str, Any]) -> dict[str, Any]:
+    tasks = [
+        task
+        for task in (plan.get("tasks") if isinstance(plan.get("tasks"), list) else [])
+        if isinstance(task, dict) and str(task.get("category") or "").startswith("contract.")
+    ]
+    issues: list[dict[str, Any]] = []
+    behavioral = 0
+    structural = 0
+    passed = 0
+    for task in tasks:
+        kind = str(task.get("contract_kind") or "")
+        if kind == "behavioral":
+            behavioral += 1
+            if not task.get("contract_stage_contracts"):
+                issues.append({
+                    "task_id": task.get("id"),
+                    "contract_ref": task.get("contract_ref"),
+                    "source_ref": task.get("source_ref"),
+                    "issue": "Behavioral contract has no rtl/rtl-gen stage_contract.",
+                })
+            if not task.get("contract_projection_refs"):
+                issues.append({
+                    "task_id": task.get("id"),
+                    "contract_ref": task.get("contract_ref"),
+                    "source_ref": task.get("source_ref"),
+                    "issue": "Behavioral contract has no SSOT behavior projection refs.",
+                })
+        elif kind == "structural":
+            structural += 1
+
+        if not task.get("owner_module") or not task.get("owner_file"):
+            issues.append({
+                "task_id": task.get("id"),
+                "contract_ref": task.get("contract_ref"),
+                "source_ref": task.get("source_ref"),
+                "issue": "Contract task has no RTL owner module/file.",
+            })
+        terms = [term for term in task.get("evidence_terms") or [] if str(term).strip()]
+        if not terms:
+            issues.append({
+                "task_id": task.get("id"),
+                "contract_ref": task.get("contract_ref"),
+                "source_ref": task.get("source_ref"),
+                "issue": "Contract task produced no machine-checkable RTL evidence terms.",
+            })
+        static = task.get("static_evidence") if isinstance(task.get("static_evidence"), dict) else {}
+        if static.get("status") == "missing":
+            issues.append({
+                "task_id": task.get("id"),
+                "contract_ref": task.get("contract_ref"),
+                "source_ref": task.get("source_ref"),
+                "owner_file": task.get("owner_file"),
+                "issue": "Contract evidence terms are missing from live RTL source.",
+                "required_terms": static.get("required_terms", [])[:8],
+                "matched_terms": static.get("matched_terms", [])[:8],
+            })
+        elif static.get("status") in {"pass", "not_required"} and terms:
+            passed += 1
+
+    blockers = plan.get("blockers") if isinstance(plan.get("blockers"), list) else []
+    for blocker in blockers:
+        if not isinstance(blocker, dict):
+            continue
+        blocker_id = str(blocker.get("id") or "")
+        if blocker_id.startswith("LOCKED_TRUTH_"):
+            issues.append({
+                "source_ref": blocker.get("source_ref"),
+                "issue": blocker.get("reason") or blocker_id,
+                "blocker": blocker_id,
+            })
+
+    return {
+        "status": "pass" if not issues else "fail",
+        "checked": len(tasks),
+        "passed": passed,
+        "behavioral_contract_tasks": behavioral,
+        "structural_contract_tasks": structural,
+        "issues": issues[:128],
+        "rule": (
+            "Locked-truth contract closure at RTL requires a contract-derived ledger row, "
+            "explicit RTL ownership/stage contract, and live RTL static evidence."
+        ),
+    }
+
+
+def _direct_rtl_policy(plan: dict[str, Any]) -> dict[str, Any]:
+    policy = plan.get("policy") if isinstance(plan.get("policy"), dict) else {}
+    direct = policy.get("direct_rtl") if isinstance(policy.get("direct_rtl"), dict) else {}
+    return direct
+
+
+def _direct_rtl_authority_issue(plan: dict[str, Any], ip_dir: Path) -> str:
+    direct = _direct_rtl_policy(plan)
+    if not direct.get("approved"):
+        return "SSOT quality_gates.rtl_gen.direct_rtl_allowed is not approved."
+    locked = plan.get("locked_truth_contracts") if isinstance(plan.get("locked_truth_contracts"), dict) else {}
+    behavioral = _as_list(locked.get("behavioral_contract_ids"))
+    structural = _as_list(locked.get("structural_contract_ids"))
+    if not behavioral and not structural:
+        return "Direct RTL mode requires locked req behavioral or structural contracts."
+    trace_path = ip_dir / "req" / "design_spec_trace.json"
+    trace = _safe_read_json(trace_path)
+    if not trace:
+        return "Direct RTL mode requires req/design_spec_trace.json from check_design_spec_trace.py."
+    if trace.get("status") != "pass":
+        return "Direct RTL mode requires req/design_spec_trace.json status=pass."
+    return ""
+
+
+def _direct_rtl_evidence_issue(plan: dict[str, Any], ip_dir: Path) -> str:
+    authority_issue = _direct_rtl_authority_issue(plan, ip_dir)
+    if authority_issue:
+        return authority_issue
+    evidence = (
+        plan.get("contract_implementation_evidence")
+        if isinstance(plan.get("contract_implementation_evidence"), dict)
+        else {}
+    )
+    if evidence.get("status") != "pass":
+        return "Direct RTL mode requires locked-truth contract implementation evidence status=pass."
+    return ""
 
 
 def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, Any], *, audit_rtl: bool) -> tuple[str, str, list[str]]:
@@ -7814,6 +8558,24 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
         if missing:
             return "open", f"{missing} static-evidence-required task(s) still lack DUT RTL evidence.", basis
         return "pass", "Static DUT RTL evidence audit has no missing required task.", basis
+    if kind == "locked_truth_contract_implementation":
+        contract_evidence = (
+            plan.get("contract_implementation_evidence")
+            if isinstance(plan.get("contract_implementation_evidence"), dict)
+            else {}
+        )
+        issues = contract_evidence.get("issues") if isinstance(contract_evidence.get("issues"), list) else []
+        if issues:
+            sample = "; ".join(
+                f"{item.get('contract_ref') or item.get('source_ref') or item.get('blocker')}: {item.get('issue')}"
+                for item in issues[:3]
+                if isinstance(item, dict)
+            )
+            return "open", f"{len(issues)} locked-truth contract implementation issue(s) remain. {sample}".strip(), basis
+        checked = int(contract_evidence.get("checked") or 0)
+        if checked:
+            return "pass", f"{checked} locked-truth contract task(s) have RTL implementation evidence.", basis
+        return "pass", "No locked-truth behavioral/structural contract file is present for RTL-stage direct gating.", basis
     if kind == "owner_logic_structure_evidence":
         logic = plan.get("owner_logic_evidence") if isinstance(plan.get("owner_logic_evidence"), dict) else {}
         issues = logic.get("issues") if isinstance(logic.get("issues"), list) else []
@@ -7962,6 +8724,13 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
             return "open", source_issue, basis
         return "pass", "DUT-only lint artifact passed with zero errors, warnings, and suppression violations.", basis
     if kind == "golden_authority_artifacts":
+        direct_issue = _direct_rtl_authority_issue(plan, ip_dir)
+        if not direct_issue:
+            return (
+                "pass",
+                "Direct RTL contract authority is approved; locked req contracts and SSOT projection replace executable FL/CL authority artifacts for this path.",
+                basis + ["quality_gates.rtl_gen.direct_rtl_allowed", "req/design_spec_trace.json"],
+            )
         required_paths = [
             ip_dir / "governance" / "authority.json",
             ip_dir / "model" / "functional_model.py",
@@ -8032,6 +8801,13 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
             basis,
         )
     if kind == "cycle_model_artifacts":
+        direct_issue = _direct_rtl_authority_issue(plan, ip_dir)
+        if not direct_issue:
+            return (
+                "pass",
+                "Direct RTL contract authority is approved; executable cycle_model.py is skipped while SSOT cycle_model remains the timing/protocol contract.",
+                basis + ["quality_gates.rtl_gen.direct_rtl_allowed", "req/design_spec_trace.json"],
+            )
         model_path = ip_dir / "model" / "cycle_model.py"
         check = _safe_read_json(ip_dir / "model" / "cl_model_check.json")
         if not model_path.is_file():
@@ -8060,6 +8836,17 @@ def _gate_todo_completion(plan: dict[str, Any], ip_dir: Path, task: dict[str, An
             return "open", freshness_issue, basis
         return "pass", "Protocol assertions were generated and simulation reported zero assertion failures.", basis
     if kind == "fl_rtl_goal_audit":
+        direct_issue = _direct_rtl_evidence_issue(plan, ip_dir)
+        if not direct_issue:
+            return (
+                "pass",
+                "Direct RTL contract authority is approved; locked contract implementation evidence replaces FL-vs-RTL goal audit for this path.",
+                basis + [
+                    "quality_gates.rtl_gen.direct_rtl_allowed",
+                    "req/design_spec_trace.json",
+                    "contract_implementation_evidence",
+                ],
+            )
         report_path = ip_dir / "sim" / "fl_rtl_goal_audit.json"
         compare_path = ip_dir / "sim" / "fl_rtl_compare.json"
         goals_path = ip_dir / "verify" / "equivalence_goals.json"
@@ -8240,16 +9027,23 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
     quality_profile = _rtl_quality_profile(doc, ip)
     target_scale = _rtl_target_scale(doc)
     target_scale_waiver = _rtl_target_scale_waiver(doc)
+    direct_rtl = _rtl_direct_rtl_policy(doc)
     top_io_contracts = _collect_top_io_contracts(doc)
     connection_contracts = _collect_connection_contracts(doc, modules, top)
+    locked_truth_contracts, locked_truth_contract_issues = _load_locked_truth_contract_docs(ip_dir, ip)
+    locked_truth_top_io_contracts = _structural_contract_top_io_contracts(
+        locked_truth_contracts.get("structural_contracts", {})
+    )
     tasks: list[dict[str, Any]] = []
     blockers: list[dict[str, Any]] = []
+    blockers.extend(locked_truth_contract_issues)
 
     _add_base_tasks(tasks, ip, top, top_owner)
     _add_rtl_gate_todo_tasks(tasks, top_owner, profile=quality_profile)
     _add_workflow_todo_tasks(tasks, blockers, doc, modules, top)
     _add_parameter_tasks(tasks, doc, modules, top)
     _add_io_tasks(tasks, doc, modules, top)
+    _add_locked_truth_contract_tasks(tasks, blockers, doc, locked_truth_contracts, modules, top)
     _add_function_model_tasks(tasks, doc, modules, top)
     _add_cycle_model_tasks(tasks, doc, modules, top)
     _add_register_tasks(tasks, doc, modules, top)
@@ -8289,12 +9083,19 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
         }
         for task in tasks
         if task["required"]
-        and task["category"].startswith(("function_model.", "cycle_model.", "registers.", "dataflow.", "fsm."))
+        and task["category"].startswith(("contract.behavioral.", "function_model.", "cycle_model.", "registers.", "dataflow.", "fsm."))
         and not task.get("owner_module")
     ]
 
     counts = Counter(task["category"] for task in tasks)
     by_section = Counter(task["category"].split(".", 1)[0] for task in tasks)
+    behavioral_contract_rows = _as_list((locked_truth_contracts.get("behavioral_contracts") or {}).get("contracts"))
+    structural_contract_rows = _as_list((locked_truth_contracts.get("structural_contracts") or {}).get("contracts"))
+    rtl_stage_behavioral_contracts = [
+        _contract_id(item)
+        for item in behavioral_contract_rows
+        if isinstance(item, dict) and _rtl_stage_contracts(item)
+    ]
     plan: dict[str, Any] = {
         "schema_version": 1,
         "type": "ssot_derived_rtl_todo_plan",
@@ -8309,6 +9110,10 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             "by_section": dict(sorted(by_section.items())),
             "ssot_workflow_todos": counts.get("workflow_todo.rtl_gen", 0),
             "rtl_gate_todos": counts.get("rtl_gate.rtl_gen", 0),
+            "locked_truth_behavioral_contracts": len(behavioral_contract_rows),
+            "locked_truth_structural_contracts": len(structural_contract_rows),
+            "locked_truth_rtl_contract_tasks": counts.get("contract.behavioral.rtl", 0) + counts.get("contract.structural.rtl", 0),
+            "locked_truth_rtl_stage_behavioral_contracts": len(rtl_stage_behavioral_contracts),
             "owner_modules": [
                 {
                     "name": item["name"],
@@ -8324,12 +9129,14 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             "reference_profile_present": bool(reference_profile),
             "target_scale_present": bool(target_scale),
             "target_scale_waived": bool(target_scale_waiver.get("approved")),
+            "direct_rtl_allowed": bool(direct_rtl.get("approved")),
         },
         "policy": {
             "fixed_template_role": "seed_only",
             "rtl_quality_profile": quality_profile,
             "rtl_target_scale": target_scale,
             "rtl_target_scale_waiver": target_scale_waiver,
+            "direct_rtl": direct_rtl,
             "dynamic_task_rule": (
                 "Use every required task in this file as the authoritative RTL implementation/evidence ledger. "
                 "Expose Atlas/UI TodoTracker as one visible gen-rtl implementation/gate loop while keeping "
@@ -8337,6 +9144,8 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
             ),
             "ssot_workflow_todo_rule": "workflow_todos.rtl-gen[] entries are first-class downstream tasks; content/detail/criteria must be preserved and satisfied by RTL evidence.",
             "rtl_gate_todo_rule": "RTL-gen quality gates are first-class rtl_gate.rtl_gen TODOs; compile/lint/static/ownership/owner-logic/placeholder-free/implementation-depth/top-io/top-output-drive/top-input-consumption/hierarchy/port-connection/signal-flow/connection-contract gates must close as TODOs before PASS.",
+            "locked_truth_contract_rule": "If req/behavioral_contracts.json or req/structural_contracts.json exists, rtl-gen loads it directly, creates contract.* RTL ledger rows, and gates those rows on owner/stage/projection/static RTL evidence instead of relying only on SSOT projection.",
+            "direct_rtl_rule": "If quality_gates.rtl_gen.direct_rtl_allowed is approved, rtl-gen may skip executable FL/CL artifacts, but only when req/design_spec_trace.json passes and locked-truth contract implementation evidence closes directly in RTL.",
             "reference_profile_rule": "Optional rtl_reference_profile artifacts are calibration-only scale reports; they must not be copied, transformed, or used as fixed RTL templates.",
             "target_scale_rule": "Optional quality_gates.rtl_gen.target_scale is SSOT-locked human policy. It can be calibrated from a reference profile, but it is enforced as generic structural depth evidence, not as copied reference RTL.",
             "no_orphan_function_level": True,
@@ -8345,16 +9154,33 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
         "target_scale": target_scale,
         "target_scale_waiver": target_scale_waiver,
         "reference_profile": reference_profile,
+        "locked_truth_contracts": {
+            "present": locked_truth_contracts.get("present", {}),
+            "behavioral_contract_ids": [
+                _contract_id(item)
+                for item in behavioral_contract_rows
+                if isinstance(item, dict) and _contract_id(item)
+            ],
+            "structural_contract_ids": [
+                _contract_id(item)
+                for item in structural_contract_rows
+                if isinstance(item, dict) and _contract_id(item)
+            ],
+            "rtl_stage_behavioral_contract_ids": sorted(rtl_stage_behavioral_contracts),
+            "load_issues": locked_truth_contract_issues[:32],
+        },
         "ssot_connection_contracts": connection_contracts,
         "blockers": blockers,
         "orphans": orphans[:128],
         "ssot_top_io_contracts": top_io_contracts,
+        "locked_truth_top_io_contracts": locked_truth_top_io_contracts,
         "tasks": tasks,
         "static_rtl_evidence": {"sources": [], "checked": 0, "passed": 0, "missing": 0, "missing_tasks": []},
+        "contract_implementation_evidence": {"status": "not_run", "checked": 0, "passed": 0, "issues": []},
         "owner_logic_evidence": {"status": "not_run", "checked": 0, "issues": []},
         "rtl_placeholder_free_evidence": {"status": "not_run", "checked": 0, "issues": []},
         "rtl_implementation_depth_evidence": {"status": "not_run", "thresholds": {}, "aggregate": {}, "issues": []},
-        "top_io_contract_evidence": {"status": "not_run", "contracts": len(top_io_contracts), "issues": []},
+        "top_io_contract_evidence": {"status": "not_run", "contracts": len(top_io_contracts) + len(locked_truth_top_io_contracts), "issues": []},
         "top_output_drive_evidence": {"status": "not_run", "checked": 0, "driven": 0, "issues": []},
         "top_input_consumption_evidence": {"status": "not_run", "checked": 0, "consumed": 0, "issues": []},
         "manifest_hierarchy_evidence": {"status": "not_run", "sources": [], "issues": []},
@@ -8363,6 +9189,7 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
     }
     if audit_rtl:
         _audit_static_evidence(ip_dir, plan)
+        plan["contract_implementation_evidence"] = _audit_contract_implementation(plan)
         plan["owner_logic_evidence"] = _audit_owner_logic_structure(ip_dir, plan)
         plan["rtl_placeholder_free_evidence"] = _audit_rtl_placeholder_free(ip_dir)
         plan["rtl_implementation_depth_evidence"] = _audit_rtl_implementation_depth(ip_dir, plan)

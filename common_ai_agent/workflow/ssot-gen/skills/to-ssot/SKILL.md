@@ -32,18 +32,33 @@ authority; it is a generator-ready Design Spec projection of that authority.
 When `<ip>/req/approval_manifest.json` exists:
 
 - Read `approval_manifest.json`, `requirements_index.json`, `obligations.json`,
-  `contract_refs.json`, and `evidence_plan.json` before writing YAML.
+  `contract_refs.json`, `structural_contracts.json`,
+  `behavioral_contracts.json`, and `evidence_plan.json` before writing YAML.
 - Do not write or modify canonical `req/*.json` files from this skill.
 - Add authority metadata under `custom.locked_truth_authority`; do not add a new
   top-level `authority:` key because the canonical SSOT top-level section set is
   fixed.
 - Add projection coverage under `traceability.locked_truth_projection`.
-- `traceability.locked_truth_projection.requirements`,
-  `.obligations`, and `.contract_refs` must include **every** locked ID from the
-  corresponding req JSON file. Do not put only the IDs you happened to use in
-  one section.
+- `traceability.locked_truth_projection.requirements`, `.obligations`,
+  `.contract_refs`, `.structural_contracts`, and `.behavioral_contracts` must
+  include **every** locked ID from the corresponding req JSON file. Do not put
+  only the IDs you happened to use in one section.
+- Project `structural_contracts.json` into `io_list` and clock/reset domains
+  exactly: signal name, direction, width, clock/reset association, and
+  sync/async timing metadata.
+- Project `behavioral_contracts.json` into `function_model`, `cycle_model`,
+  `fsm`/register behavior, `test_requirements`, and `quality_gates` using the
+  decision tables, state/transaction rules, and stage checks from req/.
+- Do not satisfy behavioral projection with anchor-only rows. Each behavioral
+  contract needs a concrete machine-readable `function_model` row and a concrete
+  machine-readable `cycle_model` timing/protocol row, or an explicit
+  `cycle_model_waiver` when cycle timing is genuinely not applicable.
 - Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to
   important Design Spec items.
+- If the user explicitly wants direct RTL before FL/CL, record
+  `quality_gates.rtl_gen.direct_rtl_allowed.approved: true` with a rationale.
+  This does not waive locked contract projection or RTL evidence; it only tells
+  downstream rtl-gen not to require executable FL/CL artifacts for that path.
 
 Use this shape:
 
@@ -57,6 +72,8 @@ custom:
       - "req/requirements_index.json"
       - "req/obligations.json"
       - "req/contract_refs.json"
+      - "req/structural_contracts.json"
+      - "req/behavioral_contracts.json"
       - "req/evidence_plan.json"
 
 traceability:
@@ -64,6 +81,8 @@ traceability:
     requirements: ["REQ_..."]     # every ID from req/requirements_index.json
     obligations: ["OBL_..."]      # every ID from req/obligations.json
     contract_refs: ["C_..."]      # every ID from req/contract_refs.json
+    structural_contracts: ["C_STRUCT_..."]  # every ID from req/structural_contracts.json
+    behavioral_contracts: ["BC_..."]  # every ID from req/behavioral_contracts.json
 ```
 
 For section items, use this shape:
@@ -74,6 +93,7 @@ source_refs:
   obligations: ["OBL_..."]
 contract_refs:
   central: ["C_..."]
+  behavioral: ["BC_..."]
   stage: ["DESIGN_...", "RTL_...", "TB_..."]
 evidence_refs:
   planned: ["E_..."]
@@ -97,7 +117,7 @@ Resolve it from req/ first:
 - `clock_reset_domains` from clock/reset requirements and obligations.
 - `interrupts` from interrupt requirements.
 - `test_requirements.scenarios[]` and quality gates from evidence_plan entries,
-  obligations, and pass_conditions.
+  obligations, behavioral_contracts, and pass_conditions.
 - FSM, memory, child submodule, DFT, power, security, and transport features as
   explicit no-feature/external-owner/non-goal policies when req/ is silent.
 
@@ -181,8 +201,9 @@ enrichment instead of rewriting the whole SSOT:
    workflow script that validates or expands that handoff. The todo detail and
    instructions must be IP-specific and source-backed; do not leave generic
    template text when import evidence exists. When Locked Truth exists,
-   source these todos from `req/contract_refs.json` and `req/evidence_plan.json`
-   where possible.
+   source these todos from `req/contract_refs.json`,
+   `req/behavioral_contracts.json`, and `req/evidence_plan.json` where
+   possible.
 6. **Fill the YAML generically from the approved context.**
   - Do not use IP-specific fixed templates.
   - Required behavior fields must come from the conversation, local requirements, or explicit assumptions.
@@ -219,7 +240,7 @@ enrichment instead of rewriting the whole SSOT:
    then run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
    `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
    `<ip>/req/ssot_validation.json`. When Locked Truth is active, this verifier
-   also gates that every req/obligation/contract ID appears in
+   also gates that every req/obligation/contract/structural-contract ID appears in
    `traceability.locked_truth_projection` and that
    `custom.locked_truth_authority.bundle_sha256` matches the manifest.
    If validation fails, fix the YAML and rerun. Do not run RTL/TB generators

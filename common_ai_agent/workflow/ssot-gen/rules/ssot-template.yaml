@@ -791,6 +791,8 @@ custom:
       - "req/requirements_index.json"
       - "req/obligations.json"
       - "req/contract_refs.json"
+      - "req/structural_contracts.json"
+      - "req/behavioral_contracts.json"
       - "req/evidence_plan.json"
 
 # =============================================================================
@@ -942,6 +944,8 @@ traceability:
     requirements: ["REQ_<ID>"]     # every locked ID from req/requirements_index.json
     obligations: ["OBL_<ID>"]      # every locked ID from req/obligations.json
     contract_refs: ["C_<ID>"]      # every locked ID from req/contract_refs.json
+    structural_contracts: ["C_STRUCT_<ID>"]  # every ID from req/structural_contracts.json
+    behavioral_contracts: ["BC_<ID>"]  # every ID from req/behavioral_contracts.json
   yaml_to_output:
     - { yaml: "top_module.name", output: "ALL files (module name)" }
     - { yaml: "parameters", output: "<ip>_param.vh (shared parameter include, no package)" }

@@ -21,11 +21,12 @@ Reference: `workflow/ssot-gen/rules/ssot-template.yaml` for the canonical produc
 
 1. Parse `sub_modules` and `filelist.rtl` to determine output files. Do not assume fixed names such as regs/decoder/fifo/core unless the SSOT uses them.
 2. Build a ledger that maps each output file to the SSOT sections it implements: ports, parameters, registers, memories, FSMs, features, dataflow, interrupts, function_model/cycle_model, timing, power, security, error behavior, debug observability, integration, DFT, synthesis, quality gates, and test requirements.
-3. For every ledger row, classify the source as `SSOT-backed`, `TBD (missing in SSOT)`, or `not applicable by SSOT`. Plan RTL implementation only for `SSOT-backed` rows. A `TBD` row is a blocker and must become an SSOT enrichment request, not guessed RTL.
-4. `ssot_gen` is only a complexity hint. It does not mean "use a fixed template"; it means the block might be mechanically derived if the SSOT is explicit enough.
-5. Tasks must be derived from the actual YAML content. Example task shapes: "implement AXI4-Lite slave handshake from io_list + dataflow", "implement encrypted memory transform from features + memory", "implement CSR W1C fields from registers", "implement wrapper-only child_ssot instantiation".
-6. Use `/gen-rtl <module>` to load the SSOT-specific RTL contract ledger and single visible TodoTracker item, then refine task detail/criteria from the current SSOT.
-7. Keep planning bounded. One implementation ledger and one task split are enough; do not loop on architecture alternatives. If the split is ambiguous, choose the simplest compiling partition that preserves the SSOT top-level ports and behavior, then rely on compile/test repair.
+3. If `req/behavioral_contracts.json` or `req/structural_contracts.json` exists, include those locked contract rows in the plan: behavioral contracts need explicit RTL stage contracts plus live RTL evidence, and structural signals must match the RTL top declaration directly. If the user wants to go directly to RTL without FL/CL, require explicit SSOT policy such as `quality_gates.rtl_gen.direct_rtl_allowed.approved: true`; this skips executable model artifacts only, not locked contract/SSOT/RTL evidence gates.
+4. For every ledger row, classify the source as `SSOT-backed`, `locked-req-backed`, `TBD (missing in SSOT)`, or `not applicable by SSOT`. Plan RTL implementation only for backed rows. A `TBD` row is a blocker and must become an SSOT enrichment request, not guessed RTL.
+5. `ssot_gen` is only a complexity hint. It does not mean "use a fixed template"; it means the block might be mechanically derived if the SSOT is explicit enough.
+6. Tasks must be derived from the actual YAML/locked-contract content. Example task shapes: "implement AXI4-Lite slave handshake from io_list + dataflow", "implement behavioral contract BC_APB_ACCESS decision row in RTL", "implement CSR W1C fields from registers", "implement wrapper-only child_ssot instantiation".
+7. Use `/gen-rtl <module>` to load the SSOT-specific RTL contract ledger and visible TodoTracker phases, then refine task detail/criteria from the current SSOT and locked req contracts.
+8. Keep planning bounded. One implementation ledger and one task split are enough; do not loop on architecture alternatives. If the split is ambiguous, choose the simplest compiling partition that preserves the SSOT top-level ports and behavior, then rely on compile/test repair.
 
 ### SSOT Gap Output Requirement
 

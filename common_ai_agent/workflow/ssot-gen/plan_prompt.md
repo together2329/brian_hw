@@ -14,7 +14,7 @@ tb-gen, and sim workflow responsibilities.
    - `assumed`: conservative assumptions with rationale
    - `blocking_questions`: only items that prevent a correct SSOT
    - `deferred`: non-blocking future enhancements
-4. Ask user only for blocking gaps. If locked truth exists, first derive missing SSOT validation fields from `requirements_index.json`, `obligations.json`, `contract_refs.json`, and `evidence_plan.json`; a missing YAML field is a projection gap, not automatically a missing truth gap. If a reasonable safe assumption is enough, record it in `custom.assumptions` instead of stopping.
+4. Ask user only for blocking gaps. If locked truth exists, first derive missing SSOT validation fields from `requirements_index.json`, `obligations.json`, `contract_refs.json`, `structural_contracts.json`, `behavioral_contracts.json`, and `evidence_plan.json`; a missing YAML field is a projection gap, not automatically a missing truth gap. If a reasonable safe assumption is enough, record it in `custom.assumptions` instead of stopping.
 5. Confirm the leaf IP boundary: what this SSOT owns, what is external, and which submodules are manifest-owned versus child SSOTs.
 6. Do not write or modify canonical `req/*.json` authority files from ssot-gen. If locked truth is missing, stop with a lock/approval gap or proceed only as an unlocked draft when the user explicitly requested that.
 
@@ -42,8 +42,9 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 7. Put enough detail in `features`, `dataflow`, `function_model`, `cycle_model`, `fsm`, `memory`, `registers`, `timing`, `power`, `security`, `error_handling`, `debug_observability`, `integration`, `dft`, `synthesis`, `pnr`, `test_requirements`, and `quality_gates` for downstream workflows to implement and verify without hidden tribal knowledge.
 8. Avoid IP-specific fixed templates. The SSOT must describe behavior, interfaces, constraints, and acceptance criteria; downstream workflows generate implementation from those facts.
 9. If locked truth exists, put authority metadata under `custom.locked_truth_authority` and put projection coverage under `traceability.locked_truth_projection`. Do not add a new top-level `authority:` key because the canonical top-level section set is fixed.
-10. Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to important Design Spec items such as interfaces, register fields, function_model transactions, cycle_model rules, test scenarios, coverage bins, and quality gates.
-11. When locked truth is silent about memory, FSM, child submodules, DFT, power, security, or another optional capability, write an explicit no-feature/external-owner/non-goal policy with source_refs instead of leaving TBD placeholders.
+10. Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to important Design Spec items such as interfaces, register fields, function_model transactions, cycle_model rules, test scenarios, coverage bins, and quality gates. When `req/structural_contracts.json` exists, project its generic signals into `io_list` exactly: signal names, direction, width, clock/reset domain, and sync/async timing policy must match the structural contract. When `req/behavioral_contracts.json` exists, project its decision tables, transactions/state rules, and stage checks into `function_model`, `cycle_model`, `fsm`/register behavior, `test_requirements`, and `quality_gates`.
+11. If the user explicitly wants to skip FL/CL and go directly to RTL, record that as SSOT policy under `quality_gates.rtl_gen.direct_rtl_allowed` with `approved: true` and a rationale. This policy skips executable model artifacts only; locked req contracts, SSOT Function/Cycle projection, and RTL evidence gates still apply.
+12. When locked truth is silent about memory, FSM, child submodules, DFT, power, security, or another optional capability, write an explicit no-feature/external-owner/non-goal policy with source_refs instead of leaving TBD placeholders.
 
 ## Phase 3: Validation Gate
 - Parse `<ip>/yaml/<ip>.ssot.yaml` as YAML
@@ -52,6 +53,7 @@ When the input contains `[SSOT TBD REPORT] -> ssot-gen`, switch from new-IP plan
 - Check every feature has trigger, datapath/control behavior, observable output, and reset/error expectations where applicable
 - Check `function_model` defines cycle-independent state variables, transactions, preconditions, outputs, side effects, error cases, invariants, and scoreboard/reference-model guidance
 - Check `cycle_model` defines clock/reset timing, latency bounds, handshake rules, pipeline stages, ordering/backpressure, and observability
+- If locked behavioral contracts exist, check every `req/behavioral_contracts.json` ID is attached to a concrete `function_model` row with machine-readable semantics and a concrete `cycle_model` row with timing/protocol semantics, or has an explicit `cycle_model_waiver`; traceability lists alone are not enough
 - Check timing, power, security, error_handling, debug_observability, integration, dft, and synthesis sections are explicit even when the answer is "not required" or "external owner"
 - Check PnR/floorplan/route constraints and STA IO delay/exception/corner policies are explicit; downstream EDA workflows must not invent defaults
 - Check every `test_requirements.scenarios[]` item has stimulus, expected result, and coverage/scoreboard intent

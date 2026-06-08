@@ -36,6 +36,7 @@ except Exception:  # pragma: no cover - freshness module optional for legacy tre
 
 RTL_TODO_HASH_VOLATILE_KEYS = {
     "connection_contract_suggestions",
+    "contract_implementation_evidence",
     "generated_at",
     "gate",
     "manifest_hierarchy_evidence",

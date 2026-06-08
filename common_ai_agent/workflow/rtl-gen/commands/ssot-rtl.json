@@ -1,6 +1,6 @@
 {
   "name": "ssot-rtl",
-  "description": "Run SSOT-driven RTL workflow: derive the internal RTL contract ledger, load one visible gen-rtl TodoTracker item, preflight LLM-authored RTL, compile/lint, audit gates, and hand off",
+  "description": "Run SSOT-driven RTL workflow: derive the internal RTL contract ledger, directly gate locked req behavioral/structural contracts when present, load gen-rtl TodoTracker phases, preflight LLM-authored RTL, compile/lint, audit gates, and hand off",
   "aliases": ["sr", "gen-rtl"],
   "handler": "stage:ssot-rtl",
   "usage": "/gen-rtl <module_name>"

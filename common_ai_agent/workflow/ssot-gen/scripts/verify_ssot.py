@@ -20,6 +20,13 @@ from typing import Any
 import yaml
 
 
+WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKFLOW_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKFLOW_ROOT))
+
+from behavioral_contracts import compare_behavioral_to_function_cycle
+
+
 RUN_MODES = {"starter", "engineering", "signoff"}
 
 CANONICAL_ORDER = [
@@ -604,6 +611,8 @@ def _collect_traceability_refs(doc: Any, kind: str) -> set[str]:
         "requirements": ("requirements", "requirement_refs", "req_refs"),
         "obligations": ("obligations", "obligation_refs", "obl_refs"),
         "contract_refs": ("contract_refs", "contracts"),
+        "structural_contracts": ("structural_contracts", "structural_contract_refs"),
+        "behavioral_contracts": ("behavioral_contracts", "behavioral_contract_refs"),
     }[kind]
 
     refs = set()
@@ -617,6 +626,16 @@ def _authority_path_matches(value: Any) -> bool:
         return False
     normalized = value.strip().replace("\\", "/")
     return normalized == "req/approval_manifest.json" or normalized.endswith("/req/approval_manifest.json")
+
+
+def _projection_files(value: Any) -> set[str]:
+    refs: set[str] = set()
+    if isinstance(value, str) and value.strip():
+        refs.add(value.strip().replace("\\", "/"))
+    elif isinstance(value, list):
+        for item in value:
+            refs.update(_projection_files(item))
+    return refs
 
 
 def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[dict[str, str]], list[dict[str, str]], dict[str, Any]]:
@@ -645,6 +664,8 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
         "requirements": req_dir / "requirements_index.json",
         "obligations": req_dir / "obligations.json",
         "contract_refs": req_dir / "contract_refs.json",
+        "structural_contracts": req_dir / "structural_contracts.json",
+        "behavioral_contracts": req_dir / "behavioral_contracts.json",
     }
     blockers: list[dict[str, str]] = []
     warnings: list[dict[str, str]] = []
@@ -657,6 +678,7 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
     if blockers:
         return blockers, warnings, {"active": True, "reason": "bundle_file_issue"}
 
+    behavioral_model_projection: dict[str, Any] = {"active": False}
     expected = {
         "requirements": _extract_object_ids(
             loaded["requirements"],
@@ -674,11 +696,23 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
             "contract_refs",
             ("contract_ref_id", "contract_ref", "id"),
         ),
+        "structural_contracts": _extract_object_ids(
+            loaded["structural_contracts"],
+            "contracts",
+            ("id", "contract_id", "contract_ref_id"),
+        ),
+        "behavioral_contracts": _extract_object_ids(
+            loaded["behavioral_contracts"],
+            "contracts",
+            ("id", "behavioral_contract_id", "contract_id", "contract_ref_id"),
+        ),
     }
     seen = {
         "requirements": _collect_traceability_refs(doc, "requirements"),
         "obligations": _collect_traceability_refs(doc, "obligations"),
         "contract_refs": _collect_traceability_refs(doc, "contract_refs"),
+        "structural_contracts": _collect_traceability_refs(doc, "structural_contracts"),
+        "behavioral_contracts": _collect_traceability_refs(doc, "behavioral_contracts"),
     }
 
     if not isinstance(doc, dict):
@@ -721,6 +755,27 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
                     "custom.locked_truth_authority.bundle_sha256 does not match req/approval_manifest.json bundle_sha256.",
                     "Copy the exact bundle_sha256 from req/approval_manifest.json into custom.locked_truth_authority.bundle_sha256.",
                 ))
+        expected_projection_files = {
+            "req/requirements_index.json",
+            "req/obligations.json",
+            "req/contract_refs.json",
+            "req/structural_contracts.json",
+            "req/behavioral_contracts.json",
+            "req/evidence_plan.json",
+        }
+        projected_files = _projection_files(authority.get("projected_files"))
+        missing_projection_files = sorted(expected_projection_files - projected_files)
+        if missing_projection_files:
+            blockers.append(_issue(
+                "blocker",
+                "ssot.locked_truth_authority_projected_files",
+                "custom.locked_truth_authority.projected_files",
+                (
+                    "custom.locked_truth_authority.projected_files is missing locked req authority file(s): "
+                    + ", ".join(missing_projection_files)
+                ),
+                "List every canonical req authority JSON file projected into this SSOT.",
+            ))
 
     projection = doc.get("traceability")
     projection = projection.get("locked_truth_projection") if isinstance(projection, dict) else None
@@ -730,7 +785,7 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
             "ssot.locked_truth_projection_missing",
             "traceability.locked_truth_projection",
             "Locked Truth is active, but SSOT lacks traceability.locked_truth_projection.",
-            "Add traceability.locked_truth_projection with requirements, obligations, and contract_refs lists.",
+            "Add traceability.locked_truth_projection with requirements, obligations, contract_refs, structural_contracts, and behavioral_contracts lists.",
         ))
 
     for kind, ids in expected.items():
@@ -753,11 +808,30 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
                 f"Add every ID from req/{required_files[kind].name} to traceability.locked_truth_projection.{kind}; do not rely on prose-only coverage.",
             ))
 
+    if expected["behavioral_contracts"]:
+        behavioral_issues, behavioral_model_projection = compare_behavioral_to_function_cycle(
+            loaded["behavioral_contracts"], doc
+        )
+        behavioral_model_projection["active"] = True
+        for issue in behavioral_issues:
+            blockers.append(_issue(
+                "blocker",
+                "ssot.locked_truth_behavioral_model_projection",
+                "function_model/cycle_model",
+                issue,
+                (
+                    "Project each req/behavioral_contracts.json ID onto concrete function_model and "
+                    "cycle_model rows with behavioral contract_refs and machine-readable behavior; "
+                    "use cycle_model_waiver only when the contract is truly cycle-independent."
+                ),
+            ))
+
     summary = {
         "active": True,
         "expected_counts": {key: len(value) for key, value in expected.items()},
         "seen_counts": {key: len(seen.get(key, set())) for key in expected},
         "missing": {key: sorted(expected[key] - seen[key]) for key in expected},
+        "behavioral_model_projection": behavioral_model_projection,
         "bundle_sha256": manifest.get("bundle_sha256"),
     }
     return blockers, warnings, summary
