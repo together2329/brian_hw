@@ -10,6 +10,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 LOCK_SCRIPT = ROOT / "workflow" / "req-gen" / "scripts" / "lock_requirement_set.py"
 CHECK_SCRIPT = ROOT / "workflow" / "req-gen" / "scripts" / "check_locked_truth_bundle.py"
+CONTRACT_CHECK_SCRIPT = ROOT / "workflow" / "req-gen" / "scripts" / "check_contract_bundle.py"
 DRAFT_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "draft-req.json"
 FINALIZE_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "finalize-req.json"
 LOCK_TEMPLATE = ROOT / "workflow" / "default" / "todo_templates" / "lock-req.json"
@@ -45,6 +46,10 @@ def _draft(ip: str) -> dict[str, Any]:
                 "contract_ref_id": "C_TIMER_APB_IF",
                 "title": "APB interface contract",
                 "obligation_refs": ["OBL_TIMER_APB_001"],
+                "stage_contracts": [
+                    {"stage": "ssot", "check": "project structural and behavioral contracts into Design Spec"},
+                    {"stage": "rtl", "artifact": "rtl/brian_timer.sv", "check": "implement locked APB contract"},
+                ],
             }
         ],
         "behavioral_contracts": [
@@ -58,10 +63,18 @@ def _draft(ip: str) -> dict[str, Any]:
                     {
                         "when": "cmd_valid == 1 and cmd_ready == 1",
                         "then": {"accept_cmd": 1, "rsp_rdata": "selected register value"},
+                        "latency": {"min_cycles": 0, "max_cycles": 1},
                     }
                 ],
+                "cycle": {
+                    "clock": "clk",
+                    "reset": "rst_n",
+                    "sample": "rising_edge",
+                    "latency": {"accept_to_response_cycles": "0..1"},
+                },
                 "stage_contracts": [
                     {"stage": "ssot", "check": "function_model transaction mirrors decision_table"},
+                    {"stage": "cycle_model", "check": "cycle_model latency mirrors contract cycle latency"},
                     {"stage": "sim", "validator": "check_evidence_contract.py"},
                 ],
             }
@@ -111,6 +124,13 @@ def _draft(ip: str) -> dict[str, Any]:
                 "artifact": "sim/scoreboard_events.jsonl",
                 "validator": "check_evidence_contract.py",
                 "pass_condition": "accepted command rows match BC_TIMER_ACCESS decision table",
+            },
+            {
+                "evidence_id": "E_TIMER_STRUCTURAL_001",
+                "contract_ref": "C_STRUCT_TIMER_IO",
+                "artifact": "rtl/rtl_todo_plan.json",
+                "validator": "derive_rtl_todos.py --audit-rtl",
+                "pass_condition": "top IO direction/width/timing matches C_STRUCT_TIMER_IO",
             }
         ],
     }
@@ -207,10 +227,11 @@ def test_check_locked_truth_bundle_passes_writer_output(tmp_path: Path) -> None:
     assert "requirements=1" in result.stdout
     assert "structural_contracts=1" in result.stdout
     assert "behavioral_contracts=1" in result.stdout
-    assert "evidence=2" in result.stdout
+    assert "evidence=3" in result.stdout
     closure = json.loads((tmp_path / ip / "req" / "contract_closure.json").read_text(encoding="utf-8"))
     assert closure["status"] == "pass"
-    assert closure["summary"]["required_closed"] == 2
+    assert closure["summary"]["required_closed"] == 3
+    assert (tmp_path / ip / "req" / "contract_authority_report.json").is_file()
 
 
 def test_check_locked_truth_bundle_rejects_corrupt_manifest_hash(tmp_path: Path) -> None:
@@ -264,6 +285,73 @@ def test_check_locked_truth_bundle_passes_review_candidate_without_manifest(tmp_
     assert "mode=review_candidate" in result.stdout
 
 
+def test_check_contract_bundle_wrapper_passes_review_candidate(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _write_candidate_bundle(tmp_path, ip)
+
+    result = subprocess.run(
+        [sys.executable, str(CONTRACT_CHECK_SCRIPT), ip, "--root", str(tmp_path), "--review-candidate"],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "[check_contract_bundle] PASS brian_timer" in result.stdout
+    assert (tmp_path / ip / "req" / "contract_authority_report.json").is_file()
+
+
+def test_check_locked_truth_bundle_rejects_anchor_only_obligation(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _write_candidate_bundle(tmp_path, ip)
+    obligations_path = tmp_path / ip / "req" / "obligations.json"
+    obligations = json.loads(obligations_path.read_text(encoding="utf-8"))
+    obligations["obligations"][0]["structural_contract_refs"] = []
+    obligations["obligations"][0]["behavioral_contract_refs"] = []
+    obligations_path.write_text(json.dumps(obligations, indent=2, sort_keys=True), encoding="utf-8")
+
+    result = _check(tmp_path, ip, review_candidate=True)
+
+    assert result.returncode == 1
+    assert "contract_refs alone are anchor refs" in result.stdout
+
+
+def test_check_locked_truth_bundle_rejects_behavior_without_cycle_semantics(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _write_candidate_bundle(tmp_path, ip)
+    behavioral_path = tmp_path / ip / "req" / "behavioral_contracts.json"
+    behavioral = json.loads(behavioral_path.read_text(encoding="utf-8"))
+    contract = behavioral["contracts"][0]
+    contract.pop("cycle", None)
+    for row in contract["decision_table"]:
+        row.pop("latency", None)
+    contract["stage_contracts"] = [
+        item for item in contract["stage_contracts"] if str(item.get("stage") or "") != "cycle_model"
+    ]
+    behavioral_path.write_text(json.dumps(behavioral, indent=2, sort_keys=True), encoding="utf-8")
+
+    result = _check(tmp_path, ip, review_candidate=True)
+
+    assert result.returncode == 1
+    assert "BC_TIMER_ACCESS requires cycle/timing semantics" in result.stdout
+
+
+def test_check_locked_truth_bundle_rejects_structural_contract_without_evidence(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    _write_candidate_bundle(tmp_path, ip)
+    evidence_path = tmp_path / ip / "req" / "evidence_plan.json"
+    evidence = json.loads(evidence_path.read_text(encoding="utf-8"))
+    evidence["evidence_plan"] = [
+        item for item in evidence["evidence_plan"] if item["contract_ref"] != "C_STRUCT_TIMER_IO"
+    ]
+    evidence_path.write_text(json.dumps(evidence, indent=2, sort_keys=True), encoding="utf-8")
+
+    result = _check(tmp_path, ip, review_candidate=True)
+
+    assert result.returncode == 1
+    assert "C_STRUCT_TIMER_IO lacks evidence_plan closure" in result.stdout
+
+
 def test_req_lifecycle_templates_have_expected_command_gates() -> None:
     draft_template = json.loads(DRAFT_TEMPLATE.read_text(encoding="utf-8"))
     finalize_template = json.loads(FINALIZE_TEMPLATE.read_text(encoding="utf-8"))
@@ -275,7 +363,7 @@ def test_req_lifecycle_templates_have_expected_command_gates() -> None:
     assert any("--review-candidate" in str(task.get("command", "")) for task in finalize_template["tasks"])
     assert any("lock_requirement_set.py" in str(task.get("command", "")) for task in lock_template["tasks"])
     assert any("--from-candidate" in str(task.get("command", "")) for task in lock_template["tasks"])
-    assert any("check_locked_truth_bundle.py" in str(task.get("command", "")) for task in lock_template["tasks"])
+    assert any("check_contract_bundle.py" in str(task.get("command", "")) for task in lock_template["tasks"])
     assert any(int(task.get("on_reject") or 0) == 1 for task in finalize_template["tasks"])
     assert any(int(task.get("on_reject") or 0) == 1 for task in lock_template["tasks"])
 
@@ -315,7 +403,7 @@ def test_finalize_req_review_candidate_command_runs_without_approval_env(tmp_pat
     )
 
     assert checker.returncode == 0, checker.stdout + checker.stderr
-    assert "[check_locked_truth_bundle] PASS brian_timer" in checker.stdout
+    assert "[check_contract_bundle] PASS brian_timer" in checker.stdout
     assert "mode=review_candidate" in checker.stdout
 
 
@@ -350,5 +438,5 @@ def test_lock_req_template_commands_run_with_env(tmp_path: Path) -> None:
 
     assert writer.returncode == 0, writer.stderr
     assert checker.returncode == 0, checker.stdout + checker.stderr
-    assert "[check_locked_truth_bundle] PASS brian_timer" in checker.stdout
+    assert "[check_contract_bundle] PASS brian_timer" in checker.stdout
     assert "mode=locked" in checker.stdout

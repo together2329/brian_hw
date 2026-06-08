@@ -541,6 +541,41 @@ def make_slash_handlers(
                         f"manifest: `{_relative_project_path(locked_manifest_path)}`\n"
                         f"missing locked-truth files:\n{listed}"
                     )
+                checker_script = WORKFLOW_ROOT / "req-gen" / "scripts" / "check_contract_bundle.py"
+                if not checker_script.is_file():
+                    checker_script = WORKFLOW_ROOT / "req-gen" / "scripts" / "check_locked_truth_bundle.py"
+                if not checker_script.is_file():
+                    checker_script = SOURCE_ROOT / "workflow" / "req-gen" / "scripts" / "check_contract_bundle.py"
+                if not checker_script.is_file():
+                    checker_script = SOURCE_ROOT / "workflow" / "req-gen" / "scripts" / "check_locked_truth_bundle.py"
+                stage_root = _session_script_root(ip, client_session)
+                contract_gate = subprocess.run(
+                    [_python_cmd(), str(checker_script), ip, "--root", str(stage_root)],
+                    cwd=str(stage_root),
+                    text=True,
+                    encoding="utf-8",
+                    errors="replace",
+                    capture_output=True,
+                    timeout=90,
+                    check=False,
+                )
+                if contract_gate.returncode != 0:
+                    def _display_path(path: Path) -> str:
+                        try:
+                            return _relative_project_path(path)
+                        except Exception:
+                            return str(path)
+
+                    output = "\n".join(
+                        line
+                        for line in ((contract_gate.stdout or "") + "\n" + (contract_gate.stderr or "")).splitlines()
+                        if line.strip()
+                    )
+                    return _emit_to_ssot_blocked(
+                        f"[SSOT GATE] blocked: contract authority gate failed for {ip}\n"
+                        f"command: `{_python_cmd()} {_display_path(checker_script)} {ip} --root {_display_path(stage_root)}`\n"
+                        f"{output[:4000]}"
+                    )
                 locked_truth_active = True
                 locked_truth_sources = [
                     _relative_project_path(locked_manifest_path),

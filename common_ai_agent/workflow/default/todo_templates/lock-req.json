@@ -25,8 +25,8 @@
       "content": "[REQ] Gate: validate locked requirement bundle",
       "activeForm": "Running locked requirement bundle checker",
       "detail": "Run the deterministic locked bundle checker. Failure means the lock is invalid and must be repaired before SSOT or implementation.",
-      "criteria": "check_locked_truth_bundle.py exits 0\nManifest status is requirements_locked\nManifest hashes match disk files\nRequired requirements are locked/approved\nrequirement -> obligation -> contract_ref/behavioral_contract -> evidence_plan references close\nstructural_contracts.json validates generic IO/clock/reset/interface structure and references known obligations\nbehavioral_contracts.json validates decision-table/state/transaction behavior and references known obligations\nreq/contract_closure.json is written as the derived closure report\nlocked_truth.md hash matches manifest",
-      "command": "python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py\" \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "criteria": "check_contract_bundle.py exits 0\nManifest status is requirements_locked\nManifest hashes match disk files\nRequired requirements are locked/approved\nrequirement -> obligation -> structural/behavioral contract -> evidence_plan references close\nstructural_contracts.json validates generic IO/clock/reset/interface structure and references known obligations\nbehavioral_contracts.json validates function semantics plus cycle/timing semantics or explicit cycle waiver\nreq/contract_authority_report.json and req/contract_closure.json are written as derived closure reports\nlocked_truth.md hash matches manifest",
+      "command": "python3 \"$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_contract_bundle.py\" \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
       "on_reject": 1,
       "priority": "high"
     },

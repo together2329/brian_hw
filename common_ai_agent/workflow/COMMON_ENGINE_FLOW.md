@@ -29,13 +29,17 @@ The cross-linked wiki entry point for LLM/agent navigation is
 
 ## Canonical Flow
 
-1. Requirement capture
-   - Input: `req/<ip>_requirements.md`.
+1. Requirement and contract capture
+   - Input: `req/*.json` review candidate or imported requirement evidence.
+   - Mandatory locked authority, once approved: `req/requirements_index.json`, `req/obligations.json`, `req/structural_contracts.json`, `req/behavioral_contracts.json`, `req/evidence_plan.json`, and `req/approval_manifest.json`.
+   - `contract_refs.json` is an index/anchor layer only; each required obligation must be backed by structural and/or behavioral contracts.
+   - Behavioral contracts must carry function semantics plus cycle/timing semantics, or an explicit cycle waiver. Executable Function/Cycle Model files are optional projections, not the authority.
+   - Gate: `python3 workflow/req-gen/scripts/check_contract_bundle.py <ip> --root <ip-parent>` writes `req/contract_authority_report.json` and `req/contract_closure.json`.
    - Human owns product intent, undefined behavior, protocol choices, waivers, and acceptance criteria.
 
 2. SSOT generation and approval
    - Output: `<ip>/yaml/<ip>.ssot.yaml`.
-   - SSOT is the single source of truth for sections, submodules, function model intent, cycle model intent, DV plan, coverage, downstream workflow TODOs, and signoff criteria.
+   - SSOT is the Design Spec projection used by downstream generators. When locked req contracts exist, req/ is the authority and SSOT must project it without inventing replacement intent.
    - `ssot-gen` LLM must author `workflow_todos.<stage>[]` when downstream work needs explicit decomposition. For `rtl-gen`, each item must include `content`, `detail`, `criteria`, and `source_refs`.
    - For full-flow smoke tests, `/mode auto-select` lets `ask_user` choose the explicit `Suggest:` answer, recommended/default option, or first safe option and record the QA card as approved with source `llm-ssot-qna.auto_select`.
    - For existing IP material, run `/import --ip <ip> <doc_or_rtl_paths...>` before `/grill-me` or `/to-ssot`. Import writes evidence under `<ip>/req/imports/`, `<ip>/req/import_manifest.json`, `<ip>/req/extracted_decisions.json`, and `<ip>/wiki/import-evidence.md`; `/to-ssot` still writes the canonical YAML.
@@ -57,7 +61,7 @@ The cross-linked wiki entry point for LLM/agent navigation is
    - Command: `/ssot-rtl <ip>`.
    - Engine stage: `ssot-rtl`.
    - Output: RTL, filelist, `rtl/rtl_todo_plan.json`, `rtl/rtl_traceability.json`, `rtl/rtl_contract.json`, `rtl/rtl_compile.json`, and `lint/dut_lint.json`.
-   - Internal order: command handler `stage:ssot-rtl` runs `python3 "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py" <ip> --root "$ATLAS_PROJECT_ROOT"`, writes `rtl/rtl_todo_plan.json`, `rtl/rtl_todo_tracker.json`, and `todo/rtl_todo_tracker.json`, then loads that dynamic tracker into the existing TodoTracker.
+   - Internal order: when `req/approval_manifest.json` exists, command handler `stage:ssot-rtl` first runs `check_contract_bundle.py`. It then runs `python3 "$ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py" <ip> --root "$ATLAS_PROJECT_ROOT"`, writes `rtl/rtl_todo_plan.json`, `rtl/rtl_todo_tracker.json`, and `todo/rtl_todo_tracker.json`, then loads that dynamic tracker into the existing TodoTracker.
    - RTL-gen must treat the current SSOT as a binding contract for top ports, submodule files, filelist, registers, function/cycle behavior, timing, synthesis, and quality gates. Existing RTL is reuse evidence only; stale/generic RTL is repaired by rtl-gen, not accepted downstream.
    - `rtl-gen` must derive its active TODOs from SSOT, including all `workflow_todos.rtl-gen[]` items, and continue generation/repair until every required TODO has `todo_completion.status=pass`.
    - DUT-only compile/lint evidence is mandatory. Sim/TB logs are not lint approval.
@@ -66,6 +70,7 @@ The cross-linked wiki entry point for LLM/agent navigation is
    - Default command: `/ssot-tb <ip>` or `/ssot-tb-cocotb <ip>`.
    - Engine stage: `ssot-tb-cocotb`.
    - Output: pyuvm/cocotb-style environment, goal-driven scoreboard, TB manifest, and generation report.
+   - When locked req contracts exist, `check_contract_bundle.py` must pass before TB generation starts.
    - The scoreboard must compare RTL observations against FunctionalModel results.
 
 7. Simulation

@@ -62,7 +62,7 @@ def test_locked_truth_draft_overlay_wraps_unapproved_ip(tmp_path):
     assert "ready_for_human_review, not locked" in wrapped
     assert "/lock-req" in wrapped
     assert "lock_requirement_set.py" in wrapped
-    assert "check_locked_truth_bundle.py" in wrapped
+    assert "check_contract_bundle.py" in wrapped
     assert "Do not say approved or locked unless" in wrapped
     assert "req/locked_truth.md" in wrapped
     assert "req/approval_manifest.json" in wrapped

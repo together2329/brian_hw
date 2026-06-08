@@ -932,6 +932,45 @@ class WorkflowStageEngine:
         except Exception as exc:
             return ToolRun(label=label, command=command, returncode=999, stderr=str(exc))
 
+    def _run_contract_authority_gate(self, ip: str) -> ToolRun | None:
+        if not (self.ip_dir(ip) / "req" / "approval_manifest.json").is_file():
+            return None
+        script = self.workflow_root / "req-gen" / "scripts" / "check_contract_bundle.py"
+        if not script.is_file():
+            script = self.workflow_root / "req-gen" / "scripts" / "check_locked_truth_bundle.py"
+        return self._run_tool(
+            "contract_authority_gate",
+            [sys.executable, str(script), ip, "--root", str(self.project_root)],
+            timeout_s=90,
+        )
+
+    def _contract_authority_blocked_result(self, stage: str, ip: str, run: ToolRun) -> StageEngineResult:
+        headline = f"[{stage}] BLOCKED - contract authority gate failed"
+        lines = [
+            headline,
+            f"module: {ip}",
+            "authority: req/requirements_index.json, obligations.json, structural_contracts.json, behavioral_contracts.json, evidence_plan.json",
+            "gate: check_contract_bundle.py",
+            "next: repair/finalize/lock req contracts before SSOT/RTL/TB generation",
+        ]
+        self._append_runs(lines, [run])
+        artifacts = [
+            f"{ip}/req/contract_closure.json",
+            f"{ip}/req/contract_authority_report.json",
+        ]
+        self._append_expected(lines, artifacts)
+        return self._result(
+            stage,
+            ip,
+            "blocked",
+            headline,
+            lines,
+            runs=[run],
+            artifacts=artifacts,
+            blocker=f"{ip}/req/contract_authority_report.json",
+            metadata={"contract_authority_gate": {"returncode": run.returncode}},
+        )
+
     def _run_fl_model(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_fl_model.py"
         run = self._run_tool("emit_fl_model", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=90)
@@ -1106,13 +1145,19 @@ class WorkflowStageEngine:
             ssot_doc = {}
         if not isinstance(ssot_doc, dict):
             ssot_doc = {}
-        runs = [
+        runs: list[ToolRun] = []
+        contract_gate = self._run_contract_authority_gate(ip)
+        if contract_gate is not None:
+            runs.append(contract_gate)
+            if contract_gate.returncode != 0:
+                return self._contract_authority_blocked_result("ssot-rtl", ip, contract_gate)
+        runs.append(
             self._run_tool(
                 "derive_rtl_todos",
                 [sys.executable, str(todo_script), ip, "--root", str(self.project_root)],
                 timeout_s=90,
             )
-        ]
+        )
         derive_run = runs[-1]
         provenance_path = self.ip_dir(ip) / "rtl" / "rtl_authoring_provenance.json"
         if provenance_path.is_file():
@@ -1433,13 +1478,19 @@ class WorkflowStageEngine:
         todo_script = self.workflow_root / "tb-gen" / "scripts" / "derive_tb_todos.py"
         validator = self.workflow_root / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
         scoreboard = self.workflow_root / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
-        runs = [
+        runs: list[ToolRun] = []
+        contract_gate = self._run_contract_authority_gate(ip)
+        if contract_gate is not None:
+            runs.append(contract_gate)
+            if contract_gate.returncode != 0:
+                return self._contract_authority_blocked_result("ssot-tb-cocotb", ip, contract_gate)
+        runs.append(
             self._run_tool(
                 "derive_tb_todos",
                 [sys.executable, str(todo_script), ip, "--root", str(self.project_root)],
                 timeout_s=90,
             )
-        ]
+        )
         gen_rc = None
         structure_rc = self_check_rc = None
         audit_tb_rc = None

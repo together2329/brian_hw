@@ -5264,6 +5264,50 @@ def test_rtl_stage_uses_dynamic_todo_gate_before_generation(tmp_path: Path):
     assert (tmp_path / ip / "rtl" / "rtl_blocked.json").is_file()
 
 
+def test_rtl_stage_blocks_invalid_locked_contract_bundle_before_generation(tmp_path: Path):
+    ip = "rtl_stage_contract_gate"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "req").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        f"top_module:\n  name: {ip}\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "req" / "approval_manifest.json").write_text(
+        json.dumps({"schema_version": 1, "type": "locked_truth_approval_manifest", "status": "requirements_locked"}),
+        encoding="utf-8",
+    )
+
+    result = WorkflowStageEngine(tmp_path).run_stage("ssot-rtl", ip)
+
+    assert result.status == "blocked"
+    assert result.runs[0].label == "contract_authority_gate"
+    assert all(run.label != "derive_rtl_todos" for run in result.runs)
+    assert "contract authority gate failed" in result.message
+
+
+def test_tb_stage_blocks_invalid_locked_contract_bundle_before_generation(tmp_path: Path):
+    ip = "tb_stage_contract_gate"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "req").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        f"top_module:\n  name: {ip}\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "req" / "approval_manifest.json").write_text(
+        json.dumps({"schema_version": 1, "type": "locked_truth_approval_manifest", "status": "requirements_locked"}),
+        encoding="utf-8",
+    )
+
+    result = WorkflowStageEngine(tmp_path).run_stage("ssot-tb-cocotb", ip)
+
+    assert result.status == "blocked"
+    assert result.runs[0].label == "contract_authority_gate"
+    assert all(run.label != "derive_tb_todos" for run in result.runs)
+    assert "contract authority gate failed" in result.message
+
+
 def test_rtl_stage_refreshes_existing_provenance_after_deriving_plan(tmp_path: Path, monkeypatch):
     ip = "rtl_stage_refresh_order"
     ip_dir = tmp_path / ip

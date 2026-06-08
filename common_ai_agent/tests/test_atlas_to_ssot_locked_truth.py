@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -14,6 +15,9 @@ if str(ROOT / "src") not in sys.path:
 from src.atlas_slash_handlers import make_slash_handlers
 
 
+LOCK_SCRIPT = ROOT / "workflow" / "req-gen" / "scripts" / "lock_requirement_set.py"
+
+
 class _FakeClientSession:
     def __init__(self, session_id: str = "") -> None:
         self.session_id = session_id
@@ -23,27 +27,122 @@ class _FakeClientSession:
         self.events.append((event, payload))
 
 
+def _write_locked_contract_bundle(root: Path, ip: str) -> None:
+    root.mkdir(parents=True, exist_ok=True)
+    draft = {
+        "ip": ip,
+        "requirements": [
+            {
+                "requirement_id": "REQ_001",
+                "title": "Timer control interface",
+                "statement": "The timer shall expose a clocked control interface.",
+                "required": True,
+                "obligation_refs": ["OBL_001"],
+            }
+        ],
+        "obligations": [
+            {
+                "obligation_id": "OBL_001",
+                "requirement_refs": ["REQ_001"],
+                "statement": "The control interface shall accept a valid command and produce ready.",
+                "contract_refs": ["CR_CTRL"],
+                "structural_contract_refs": ["SC_CTRL_IO"],
+                "behavioral_contract_refs": ["BC_CTRL_READY"],
+            }
+        ],
+        "contract_refs": [
+            {
+                "contract_ref_id": "CR_CTRL",
+                "title": "Control interface contract",
+                "obligation_refs": ["OBL_001"],
+                "stage_contracts": [{"stage": "ssot", "check": "project control contract into Design Spec"}],
+            }
+        ],
+        "structural_contracts": [
+            {
+                "id": "SC_CTRL_IO",
+                "obligations": ["OBL_001"],
+                "clock_domains": [{"id": "main_clk", "clock_signal": "clk"}],
+                "reset_domains": [{"id": "main_rst", "reset_signal": "rst_n", "clock_domain": "main_clk"}],
+                "interfaces": [{"id": "ctrl", "signals": ["valid", "ready"], "clock_domain": "main_clk"}],
+                "signals": [
+                    {"name": "clk", "dir": "input", "width": 1, "timing": {"kind": "clock"}},
+                    {"name": "rst_n", "dir": "input", "width": 1, "timing": {"kind": "reset"}},
+                    {"name": "valid", "dir": "input", "width": 1, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                    {"name": "ready", "dir": "output", "width": 1, "timing": {"kind": "sync", "clock_domain": "main_clk"}},
+                ],
+            }
+        ],
+        "behavioral_contracts": [
+            {
+                "id": "BC_CTRL_READY",
+                "obligations": ["OBL_001"],
+                "decision_table": [
+                    {
+                        "when": "valid == 1",
+                        "then": {"ready": 1},
+                        "latency": {"min_cycles": 0, "max_cycles": 1},
+                    }
+                ],
+                "cycle": {"clock": "clk", "reset": "rst_n", "latency": {"valid_to_ready_cycles": "0..1"}},
+                "stage_contracts": [
+                    {"stage": "ssot", "check": "function_model transaction mirrors decision_table"},
+                    {"stage": "cycle_model", "check": "cycle_model latency mirrors contract cycle latency"},
+                    {"stage": "sim", "validator": "check_evidence_contract.py"},
+                ],
+            }
+        ],
+        "evidence_plan": [
+            {
+                "evidence_id": "EV_CR_CTRL",
+                "contract_ref": "CR_CTRL",
+                "artifact": "yaml/<ip>.ssot.yaml",
+                "validator": "check_design_spec_trace.py",
+                "pass_condition": "Design Spec projects CR_CTRL",
+            },
+            {
+                "evidence_id": "EV_SC_CTRL",
+                "contract_ref": "SC_CTRL_IO",
+                "artifact": "rtl/rtl_todo_plan.json",
+                "validator": "derive_rtl_todos.py --audit-rtl",
+                "pass_condition": "top IO direction/width/timing matches SC_CTRL_IO",
+            },
+            {
+                "evidence_id": "EV_BC_READY",
+                "contract_ref": "BC_CTRL_READY",
+                "artifact": "sim/scoreboard_events.jsonl",
+                "validator": "check_evidence_contract.py",
+                "pass_condition": "ready rows match BC_CTRL_READY decision table",
+            },
+        ],
+    }
+    draft_path = root / f"{ip}_draft.json"
+    draft_path.write_text(json.dumps(draft), encoding="utf-8")
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(LOCK_SCRIPT),
+            ip,
+            "--root",
+            str(root),
+            "--draft",
+            str(draft_path),
+            "--approved-by",
+            "brian",
+        ],
+        check=False,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+
 def test_to_ssot_uses_locked_truth_bundle_instead_of_missing_legacy_slots(tmp_path: Path):
     ip = "timer_v11"
     project_root = tmp_path
     workflow_root = tmp_path / "workflow"
     source_root = ROOT
-    req_dir = project_root / ip / "req"
-    req_dir.mkdir(parents=True)
-    (req_dir / "approval_manifest.json").write_text(
-        json.dumps({"status": "requirements_locked", "bundle_sha256": "abc123"}),
-        encoding="utf-8",
-    )
-    for name, payload in {
-        "requirements_index.json": {"requirements": []},
-        "obligations.json": {"obligations": []},
-        "contract_refs.json": {"contract_refs": []},
-        "structural_contracts.json": {"contracts": []},
-        "behavioral_contracts.json": {"contracts": []},
-        "evidence_plan.json": {"evidence_plan": []},
-    }.items():
-        (req_dir / name).write_text(json.dumps(payload), encoding="utf-8")
-    (req_dir / "locked_truth.md").write_text("# locked truth\n", encoding="utf-8")
+    _write_locked_contract_bundle(project_root, ip)
 
     messages: list[tuple[str, str, str]] = []
     workflow_results: list[tuple[str, str]] = []
@@ -139,22 +238,7 @@ def test_to_ssot_uses_session_scoped_locked_truth_bundle(tmp_path: Path):
     workspace_root = atlas_root / "brian" / "brian_session"
     workflow_root = tmp_path / "workflow"
     source_root = ROOT
-    req_dir = workspace_root / ip / "req"
-    req_dir.mkdir(parents=True)
-    (req_dir / "approval_manifest.json").write_text(
-        json.dumps({"status": "requirements_locked", "bundle_sha256": "abc123"}),
-        encoding="utf-8",
-    )
-    for name, payload in {
-        "requirements_index.json": {"requirements": [{"requirement_id": "REQ_001", "status": "locked"}]},
-        "obligations.json": {"obligations": []},
-        "contract_refs.json": {"contract_refs": []},
-        "structural_contracts.json": {"contracts": []},
-        "behavioral_contracts.json": {"contracts": []},
-        "evidence_plan.json": {"evidence_plan": []},
-    }.items():
-        (req_dir / name).write_text(json.dumps(payload), encoding="utf-8")
-    (req_dir / "locked_truth.md").write_text("# locked truth\n", encoding="utf-8")
+    _write_locked_contract_bundle(workspace_root, ip)
 
     messages: list[tuple[str, str, str]] = []
     workflow_results: list[tuple[str, str]] = []

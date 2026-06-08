@@ -12,6 +12,10 @@
       "description": "Final local evidence gate against IP_SIGNOFF.md.",
       "command": "python3 workflow/signoff/scripts/check_ip_signoff.py <ip> --root <ip-parent>"
     },
+    "contract_authority": {
+      "description": "Validate mandatory req/ obligation -> structural/behavioral contract -> evidence closure before SSOT/RTL/TB generation.",
+      "command": "python3 workflow/req-gen/scripts/check_contract_bundle.py <ip> --root <ip-parent>"
+    },
     "mutation_guard": {
       "description": "Advisory mutant kill-rate check for harness depth.",
       "command": "python3 workflow/mutation/scripts/mutation_guard.py <ip> --root <ip-parent>"

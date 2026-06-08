@@ -2479,7 +2479,7 @@ def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_pa
     assert len(todos) == 3
     assert todos[0]["content"] == "[REQ] Quality review and repair review candidate"
     expected_root = (PROJECT_ROOT / "workflow").resolve()
-    assert todos[1]["command"].startswith(f"python3 \"{expected_root}/req-gen/scripts/check_locked_truth_bundle.py\"")
+    assert todos[1]["command"].startswith(f"python3 \"{expected_root}/req-gen/scripts/check_contract_bundle.py\"")
     assert "--review-candidate" in todos[1]["command"]
     assert not (tmp_path / ".session" / "alice" / "timer_ip" / "default" / "todo.json").exists()
 
@@ -2651,7 +2651,7 @@ def test_req_lifecycle_slash_uses_verified_absolute_workflow_root(tmp_path, monk
         (req_dir / name).write_text("{}", encoding="utf-8")
 
     expected_root = (PROJECT_ROOT / "workflow").resolve()
-    assert (expected_root / "req-gen" / "scripts" / "check_locked_truth_bundle.py").is_file()
+    assert (expected_root / "req-gen" / "scripts" / "check_contract_bundle.py").is_file()
     assert (expected_root / "req-gen" / "scripts" / "lock_requirement_set.py").is_file()
 
     for command, expected_tasks in (("/draft-req", 2), ("/finalize-req", 3), ("/lock-req", 4)):

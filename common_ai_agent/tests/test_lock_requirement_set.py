@@ -68,10 +68,18 @@ def _draft(ip: str) -> dict[str, Any]:
                     {
                         "when": "cmd_valid == 1 and cmd_ready == 1",
                         "then": {"accept_cmd": 1, "rsp_rdata": "selected register value"},
+                        "latency": {"min_cycles": 0, "max_cycles": 1},
                     }
                 ],
+                "cycle": {
+                    "clock": "clk",
+                    "reset": "rst_n",
+                    "sample": "rising_edge",
+                    "latency": {"accept_to_response_cycles": "0..1"},
+                },
                 "stage_contracts": [
                     {"stage": "ssot", "check": "function_model transaction mirrors decision_table"},
+                    {"stage": "cycle_model", "check": "cycle_model latency mirrors contract cycle latency"},
                     {"stage": "sim", "validator": "check_evidence_contract.py"},
                 ],
             }
@@ -136,6 +144,13 @@ def _draft(ip: str) -> dict[str, Any]:
                 "artifact": "sim/scoreboard_events.jsonl",
                 "validator": "check_evidence_contract.py",
                 "pass_condition": "accepted command rows match BC_TIMER_ACCESS decision table",
+            },
+            {
+                "evidence_id": "E_TIMER_STRUCTURAL_001",
+                "contract_ref": "C_STRUCT_TIMER_IO",
+                "artifact": "rtl/rtl_todo_plan.json",
+                "validator": "derive_rtl_todos.py --audit-rtl",
+                "pass_condition": "top IO direction/width/timing matches C_STRUCT_TIMER_IO",
             }
         ],
     }

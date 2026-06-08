@@ -366,11 +366,11 @@ class TestDisplayArgSummary(unittest.TestCase):
         # command so the user can see exactly what ran (was truncated to 60).
         from lib.display import _extract_tool_args_summary
         cmd = (
-            'python3 "$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_locked_truth_bundle.py" '
+            'python3 "$ATLAS_WORKFLOW_ROOT/req-gen/scripts/check_contract_bundle.py" '
             '"$ATLAS_ACTIVE_IP" --root "$ATLAS_PROJECT_ROOT" --review-candidate'
         )
         result = _extract_tool_args_summary("run_command", {"command": cmd})
-        self.assertIn("check_locked_truth_bundle.py", result)
+        self.assertIn("check_contract_bundle.py", result)
         self.assertIn("--review-candidate", result)
         self.assertNotIn("...", result)
 

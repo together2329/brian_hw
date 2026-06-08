@@ -27,6 +27,40 @@ REQ_GRAPH_FILES: Final[tuple[str, ...]] = (
 )
 MANIFEST_HASHED_FILES: Final[tuple[str, ...]] = (*REQ_GRAPH_FILES, "req/locked_truth.md")
 REQUIRED_FILES: Final[tuple[str, ...]] = (*MANIFEST_HASHED_FILES, "req/approval_manifest.json")
+FUNCTION_CONTRACT_KEYS: Final[set[str]] = {
+    "decision_table",
+    "truth_table",
+    "transactions",
+    "state_transitions",
+    "rules",
+    "invariants",
+    "outputs",
+    "state_updates",
+    "postconditions",
+    "side_effects",
+}
+CYCLE_CONTRACT_KEYS: Final[set[str]] = {
+    "cycle",
+    "cycles",
+    "cycle_model",
+    "cycle_rules",
+    "timing",
+    "latency",
+    "latencies",
+    "clock",
+    "reset",
+    "handshake",
+    "protocol",
+    "ordering",
+    "backpressure",
+    "sample_condition",
+}
+CYCLE_WAIVER_KEYS: Final[set[str]] = {
+    "cycle_model_waiver",
+    "cycle_waiver",
+    "cycle_model_not_applicable",
+    "no_cycle_model",
+}
 
 
 def _load_json(path: Path, failures: list[str]) -> JsonDoc:
@@ -128,14 +162,78 @@ def _has_text(entry: JsonDoc, keys: tuple[str, ...]) -> bool:
     return any(isinstance(entry.get(key), str) and entry.get(key, "").strip() for key in keys)
 
 
+def _present(value: Any) -> bool:
+    if value is None or value is False:
+        return False
+    if isinstance(value, str):
+        text = value.strip()
+        return bool(text) and text.lower() not in {"none", "n/a", "na", "tbd", "todo", "unknown"}
+    if isinstance(value, (list, tuple, set, dict)):
+        return bool(value)
+    return True
+
+
+def _has_structured_value(value: Any) -> bool:
+    if isinstance(value, dict):
+        return any(_has_structured_value(child) for child in value.values())
+    if isinstance(value, list):
+        return any(_has_structured_value(child) for child in value)
+    return _present(value)
+
+
 def _has_machine_contract(entry: JsonDoc) -> bool:
-    if _has_text(entry, ("statement", "title", "contract_path", "observable", "signal", "register", "stage")):
+    if _has_text(entry, ("contract_path", "observable", "signal", "register", "stage", "validator", "pass_condition")):
         return True
-    for key in ("stage_contracts", "observables", "fields"):
+    for key in ("stage_contracts", "observables", "fields", "checks", "acceptance_criteria", "pass_conditions"):
         value = entry.get(key)
         if isinstance(value, list) and value:
             return True
     return False
+
+
+def _has_function_semantics(entry: JsonDoc) -> bool:
+    return any(_has_structured_value(entry.get(key)) for key in FUNCTION_CONTRACT_KEYS if key in entry)
+
+
+def _has_cycle_waiver(entry: JsonDoc) -> bool:
+    return any(_present(entry.get(key)) for key in CYCLE_WAIVER_KEYS)
+
+
+def _stage_mentions_cycle_semantics(entry: JsonDoc) -> bool:
+    for stage_contract in entry.get("stage_contracts") or []:
+        if not isinstance(stage_contract, dict):
+            continue
+        stage = str(stage_contract.get("stage") or "").lower()
+        blob = json.dumps(stage_contract, sort_keys=True).lower()
+        if stage in {"cycle", "cycle_model", "cl", "timing", "protocol", "sva", "rtl", "tb", "sim"} and any(
+            token in blob
+            for token in (
+                "cycle",
+                "timing",
+                "latency",
+                "clock",
+                "reset",
+                "handshake",
+                "ordering",
+                "backpressure",
+                "protocol",
+            )
+        ):
+            return True
+    return False
+
+
+def _has_cycle_semantics(entry: JsonDoc) -> bool:
+    if _has_cycle_waiver(entry):
+        return True
+    if any(_has_structured_value(entry.get(key)) for key in CYCLE_CONTRACT_KEYS if key in entry):
+        return True
+    for key in ("decision_table", "truth_table", "transactions", "state_transitions", "rules"):
+        if isinstance(entry.get(key), list):
+            for row in entry[key]:
+                if isinstance(row, dict) and any(_has_structured_value(row.get(cycle_key)) for cycle_key in CYCLE_CONTRACT_KEYS):
+                    return True
+    return _stage_mentions_cycle_semantics(entry)
 
 
 def _check_graph(
@@ -178,6 +276,12 @@ def _check_graph(
         failures.append(str(exc))
         behavioral_ids = set()
     all_contract_ids = con_ids | structural_ids | behavioral_ids
+    evidence_entries = evidence if isinstance(evidence, list) else []
+    evidence_contract_ids = {
+        str(entry.get("contract_ref")).strip()
+        for entry in evidence_entries
+        if isinstance(entry, dict) and isinstance(entry.get("contract_ref"), str) and str(entry.get("contract_ref")).strip()
+    }
     for entry in requirements if isinstance(requirements, list) else []:
         if isinstance(entry, dict):
             req_id = str(entry.get("requirement_id") or "<missing requirement_id>")
@@ -200,10 +304,15 @@ def _check_graph(
             _check_refs(obl_id, _string_list(entry.get("requirement_refs")), req_ids, "requirement", failures)
             _check_refs(obl_id, _string_list(entry.get("contract_refs")), con_ids, "contract_ref", failures)
             structural_refs = _string_list(entry.get("structural_contract_refs"))
+            behavioral_refs = _string_list(entry.get("behavioral_contract_refs"))
+            if not structural_refs and not behavioral_refs:
+                failures.append(
+                    f"{obl_id} requires at least one structural_contract_ref or behavioral_contract_ref; "
+                    "contract_refs alone are anchor refs, not implementation authority"
+                )
             for ref in structural_refs:
                 if ref not in structural_ids:
                     failures.append(f"{obl_id} references unknown structural_contract {ref}")
-            behavioral_refs = _string_list(entry.get("behavioral_contract_refs"))
             for ref in behavioral_refs:
                 if ref not in behavioral_ids:
                     failures.append(f"{obl_id} references unknown behavioral_contract {ref}")
@@ -211,8 +320,20 @@ def _check_graph(
         if isinstance(entry, dict):
             con_id = str(entry.get("contract_ref_id") or "<missing contract_ref_id>")
             if not _has_machine_contract(entry):
-                failures.append(f"{con_id} requires machine-checkable contract detail")
+                failures.append(
+                    f"{con_id} requires machine-checkable contract detail "
+                    "(stage_contracts/checks/observables/validator/pass_condition, not title-only anchor text)"
+                )
             _check_refs(con_id, _string_list(entry.get("obligation_refs")), obl_ids, "obligation", failures)
+    for entry in behavioral_doc.get("contracts") or []:
+        if not isinstance(entry, dict):
+            continue
+        contract_id = str(entry.get("id") or entry.get("behavioral_contract_id") or entry.get("contract_ref_id") or "").strip()
+        label = contract_id or "<missing behavioral contract id>"
+        if not _has_function_semantics(entry):
+            failures.append(f"{label} requires function semantics in decision_table/truth_table/transactions/rules/state effects")
+        if not _has_cycle_semantics(entry):
+            failures.append(f"{label} requires cycle/timing semantics or an explicit cycle waiver")
     for entry in evidence if isinstance(evidence, list) else []:
         if not isinstance(entry, dict):
             failures.append("evidence_plan entries must be objects")
@@ -226,6 +347,8 @@ def _check_graph(
         for key in ("artifact", "validator", "pass_condition"):
             if not isinstance(entry.get(key), str) or not entry.get(key, "").strip():
                 failures.append(f"{evidence_id} requires {key}")
+    for contract_id in sorted(all_contract_ids - evidence_contract_ids):
+        failures.append(f"{contract_id} lacks evidence_plan closure")
     closure = _build_contract_closure(
         ip,
         con_doc,
@@ -239,7 +362,7 @@ def _check_graph(
     for item in closure.get("contracts", []):
         if not isinstance(item, dict):
             continue
-        if item.get("kind") in {"contract_ref", "behavioral_contract"} and item.get("status") != "closed":
+        if item.get("status") != "closed":
             failures.append(f"{item.get('contract_ref')} lacks evidence closure")
     return closure
 
@@ -290,12 +413,14 @@ def _build_contract_closure(
         contracts.append(_closure_entry(contract_id, "behavioral_contract", _entry_obligation_refs(entry), evidence_by_contract))
 
     closed = sum(1 for item in contracts if item.get("status") == "closed")
-    required = [item for item in contracts if item.get("kind") in {"contract_ref", "behavioral_contract"}]
+    required = [item for item in contracts if item.get("kind") in {"contract_ref", "structural_contract", "behavioral_contract"}]
     required_closed = sum(1 for item in required if item.get("status") == "closed")
     return {
         "schema_version": 1,
-        "type": "contract_closure",
+        "type": "contract_authority_closure",
         "ip": ip,
+        "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+        "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
         "status": "pass" if required_closed == len(required) else "open",
         "summary": {
             "contracts": len(contracts),
@@ -375,10 +500,9 @@ def check_locked_truth_bundle(ip: str, root: Path, *, review_candidate: bool = F
     )
     if closure:
         try:
-            (req_dir / "contract_closure.json").write_text(
-                json.dumps(closure, indent=2, sort_keys=True) + "\n",
-                encoding="utf-8",
-            )
+            text = json.dumps(closure, indent=2, sort_keys=True) + "\n"
+            (req_dir / "contract_closure.json").write_text(text, encoding="utf-8")
+            (req_dir / "contract_authority_report.json").write_text(text, encoding="utf-8")
         except OSError as exc:
             failures.append(f"cannot write contract_closure.json: {exc}")
     summary: JsonDoc = {

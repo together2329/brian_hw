@@ -271,12 +271,12 @@ evidence exists.
 
 ## Validators
 
-### Locked Truth Bundle Validator
+### Contract Authority Bundle Validator
 
 The first deterministic gate is:
 
 ```text
-workflow/req-gen/scripts/check_locked_truth_bundle.py
+workflow/req-gen/scripts/check_contract_bundle.py
 ```
 
 It checks:
@@ -287,12 +287,15 @@ approval manifest status is valid
 file hashes match the manifest
 requirements are locked or approved
 obligations reference valid requirements
-contracts reference valid obligations
-evidence references valid contracts
+each obligation has structural and/or behavioral contract authority
+contract_refs are not accepted as the only authority
+structural contracts define generic IO/clock/reset/interface timing
+behavioral contracts define function semantics plus cycle/timing semantics or a waiver
+evidence_plan closes central, structural, and behavioral contracts
 ```
 
 This prevents the agent from saying "locked" when the canonical files were not
-written or are stale.
+written, stale, or only anchor-level references.
 
 ### Design Spec Trace Validator
 
@@ -367,7 +370,7 @@ The template shape is:
 ```text
 1. prepare locked_truth_draft.json
 2. run lock_requirement_set.py
-3. run check_locked_truth_bundle.py
+3. run check_contract_bundle.py
 4. handoff: locked truth is ready for Design Spec generation
 ```
 
@@ -419,7 +422,7 @@ The minimum useful workflow is:
 4. Agent writes a draft object, not canonical locked files.
 5. User explicitly approves final requirement set.
 6. locked-truth-finalize command writes req/*.json and locked_truth.md.
-7. check_locked_truth_bundle.py passes.
+7. check_contract_bundle.py passes.
 8. Agent or ssot-gen drafts Design Spec from locked truth.
 9. check_design_spec_trace.py passes.
 10. Implementation stages may run.

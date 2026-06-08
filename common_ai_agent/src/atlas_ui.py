@@ -912,8 +912,8 @@ Conversation rule:
 - After ask_user answers, do not dump the full draft. Reply only with captured decisions, remaining blockers, and the next question.
 - Produce the full requirement/obligation/contract_ref/structural_contract/behavioral_contract/evidence draft only when the user explicitly asks to show/review/export it, or when asking for final approval.
 - Use /draft-req to write draft req JSON files: requirements_index.json, obligations.json, contract_refs.json, structural_contracts.json, behavioral_contracts.json, and evidence_plan.json.
-- Use /finalize-req to quality-review/repair those draft files and run check_locked_truth_bundle.py --review-candidate. Finalize means ready_for_human_review, not locked.
-- Use /lock-req only after explicit human approval. It runs lock_requirement_set.py --from-candidate and then check_locked_truth_bundle.py.
+- Use /finalize-req to quality-review/repair those draft files and run check_contract_bundle.py --review-candidate. Finalize means ready_for_human_review, not locked.
+- Use /lock-req only after explicit human approval. It runs lock_requirement_set.py --from-candidate and then check_contract_bundle.py.
 - Do not say approved or locked unless /lock-req created or you can cite req/locked_truth.md and req/approval_manifest.json with status requirements_locked.
 - If no writer/tool is available, say the approval was captured in chat only and ask the user to run /draft-req, /finalize-req, then /lock-req before /to-ssot.
 - Keep normal replies under 12 lines unless the user asks for detail.
@@ -5143,7 +5143,7 @@ def create_app():
             seen.add(root)
             if (
                 (root / "req-gen" / "scripts" / "lock_requirement_set.py").is_file()
-                and (root / "req-gen" / "scripts" / "check_locked_truth_bundle.py").is_file()
+                and (root / "req-gen" / "scripts" / "check_contract_bundle.py").is_file()
             ):
                 return root
         return None
