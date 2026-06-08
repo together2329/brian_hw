@@ -38,6 +38,24 @@ def test_web_compact_updates_local_conversation_file(tmp_path):
     assert saved[-1]["content"] == "current answer"
 
 
+def test_web_compact_preserves_full_history_before_rewriting_conversation(tmp_path):
+    history = tmp_path / ".session" / "brian" / "new_axi" / "default" / "conversation.json"
+    messages = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "user", "content": "first requirement"},
+        {"role": "assistant", "content": "first answer"},
+        {"role": "user", "content": "current question"},
+        {"role": "assistant", "content": "current answer"},
+    ]
+    history.parent.mkdir(parents=True)
+    history.write_text(json.dumps(messages), encoding="utf-8")
+
+    _message, compacted = _compact_history_file(history, "COMPACT_HISTORY:keep=2")
+
+    assert json.loads(history.read_text(encoding="utf-8")) == compacted
+    assert json.loads(history.with_name("full_conversation.json").read_text(encoding="utf-8")) == messages
+
+
 def test_web_compact_dry_run_does_not_write(tmp_path):
     history = tmp_path / "conversation.json"
     messages = [
@@ -95,16 +113,14 @@ def test_websocket_compact_slash_compacts_active_session_file(tmp_path, monkeypa
 
     session_id = "alice/ip_alpha/default"
     history = tmp_path / ".session" / "alice" / "ip_alpha" / "default" / "conversation.json"
+    original_messages = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "user", "content": "old"},
+        {"role": "assistant", "content": "old response"},
+        {"role": "user", "content": "new"},
+    ]
     history.parent.mkdir(parents=True)
-    history.write_text(
-        json.dumps([
-            {"role": "system", "content": "system prompt"},
-            {"role": "user", "content": "old"},
-            {"role": "assistant", "content": "old response"},
-            {"role": "user", "content": "new"},
-        ]),
-        encoding="utf-8",
-    )
+    history.write_text(json.dumps(original_messages), encoding="utf-8")
 
     app = atlas_ui.create_app()
     client = TestClient(app)
@@ -124,10 +140,12 @@ def test_websocket_compact_slash_compacts_active_session_file(tmp_path, monkeypa
     assert outputs and "Compacted local session history" in outputs[-1]
     context_events = [event for event in seen if event.get("type") == "context"]
     assert context_events
-    saved = json.loads(history.read_text(encoding="utf-8"))
+    canonical_history = tmp_path / "alice" / "default" / ".session" / "ip_alpha" / "default" / "conversation.json"
+    saved = json.loads(canonical_history.read_text(encoding="utf-8"))
     expected_used, expected_max = atlas_ui._history_context_usage(saved)
     assert context_events[-1]["used"] == expected_used
     assert context_events[-1]["max"] == expected_max
+    assert json.loads(canonical_history.with_name("full_conversation.json").read_text(encoding="utf-8")) == original_messages
 
 
 def test_web_compact_llm_uses_compressor(tmp_path):
@@ -164,6 +182,31 @@ def test_web_compact_llm_uses_compressor(tmp_path):
     assert captured["force"] is True and captured["keep_recent"] == 2 and captured["dry_run"] is False
     assert "[AI summary of 3 older messages]" in saved[1]["content"]
     assert saved[-1]["content"] == "recent answer"
+
+
+def test_web_compact_llm_preserves_full_history_before_rewriting_conversation(tmp_path):
+    history = tmp_path / "conversation.json"
+    messages = [
+        {"role": "system", "content": "system prompt"},
+        {"role": "user", "content": "old requirement"},
+        {"role": "assistant", "content": "old answer"},
+        {"role": "user", "content": "recent"},
+    ]
+    history.write_text(json.dumps(messages), encoding="utf-8")
+
+    def fake_compress(_msgs, **_kwargs):
+        return [
+            {"role": "system", "content": "system prompt"},
+            {"role": "system", "content": "[AI summary]"},
+            {"role": "user", "content": "recent"},
+        ]
+
+    _message, compacted = _compact_history_llm(
+        history, "COMPACT_HISTORY:keep=1", compress_fn=fake_compress
+    )
+
+    assert json.loads(history.read_text(encoding="utf-8")) == compacted
+    assert json.loads(history.with_name("full_conversation.json").read_text(encoding="utf-8")) == messages
 
 
 def test_web_compact_llm_returns_emitted_textual_output(tmp_path):

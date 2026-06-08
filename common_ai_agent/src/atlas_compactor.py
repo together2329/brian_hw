@@ -42,6 +42,31 @@ def _load_history_json(path: Path) -> list[dict[str, Any]]:
         return []
     return [m for m in raw if isinstance(m, dict)]
 
+def _preserve_full_history(path: Path, messages: list[dict[str, Any]]) -> None:
+    """Mirror Textual's append-only full_conversation.json before compaction.
+
+    Web /compact rewrites conversation.json directly, outside main.py's
+    save_conversation_history() wrapper. Keep the pre-compaction messages in
+    full_conversation.json so the web surface has the same recoverable history
+    model as Textual.
+    """
+    if not messages:
+        return
+    full_path = path.with_name("full_conversation.json")
+    try:
+        if full_path.exists():
+            raw = json.loads(full_path.read_text(encoding="utf-8"))
+            existing = raw if isinstance(raw, list) else []
+        else:
+            existing = []
+        if len(existing) >= len(messages):
+            return
+        existing.extend(messages[len(existing):])
+        _write_history_json(full_path, existing)
+    except Exception:
+        # Never let full-history preservation break the visible compact command.
+        pass
+
 def _compact_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, Any]]]:
     """Apply Web UI /compact to a local .session conversation file.
 
@@ -87,6 +112,7 @@ def _compact_history_file(path: Path, signal: str) -> tuple[str, list[dict[str, 
     )
     if dry_run:
         return "Dry run: " + msg, messages
+    _preserve_full_history(path, messages)
     _write_history_json(path, compacted)
     return msg, compacted
 
@@ -194,5 +220,6 @@ def _compact_history_llm(
     else:
         msg = f"Compacted history with AI summary: {len(messages)} -> {len(compacted)} message(s)."
     if not dry_run:
+        _preserve_full_history(path, messages)
         _write_history_json(path, compacted)
     return msg, compacted
