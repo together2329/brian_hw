@@ -1,5 +1,17 @@
 # Wiki Log
 
+## 2026-06-09
+
+- Silent-PASS gate hardening on branch `fix/silent-pass-gate-hardening`: fixed the
+  content-blind tb contract-ledger gate, the unanchored execution-resume matcher,
+  and the req-gate visible-skip + auto `--audit-evidence` wiring (the A series),
+  then added the gate self-test **meta-gate** (`tests/test_gate_self_test.py`) — a
+  kill-proof `GATE_REGISTRY` + ratchet that fails if any `STAGE_MANIFEST` gate is
+  unregistered, so a new hollow gate cannot ship unacknowledged. 4 gates covered
+  (tb_contract_ledger, req_contract_authority, scoreboard_events, ip_signoff); an
+  explicit 7-gate frozen backlog remains. Full record + remaining TODO:
+  [[silent-pass-gate-hardening-20260609]].
+
 ## 2026-06-08
 
 - Extended [[todo-loop-verification-hardening-20260608]] with the follow-up
