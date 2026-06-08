@@ -1,0 +1,107 @@
+{
+  "ip": "timer",
+  "model": "gpt-5.5",
+  "run_mode": "starter",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_real",
+  "stages": {
+    "ssot-gen": {
+      "status": "pass",
+      "seconds": 252.3
+    },
+    "fl-model-gen": {
+      "status": "pass",
+      "seconds": 0.2
+    },
+    "equiv-goals": {
+      "status": "pass",
+      "seconds": 0.4
+    },
+    "rtl-gen": {
+      "status": "pass",
+      "seconds": 611.8
+    },
+    "lint": {
+      "status": "pass",
+      "seconds": 0.3
+    },
+    "tb-gen": {
+      "status": "pass",
+      "seconds": 82.5
+    },
+    "sim": {
+      "status": "fail",
+      "seconds": 1.5
+    }
+  },
+  "trackers": {
+    "ssot": {},
+    "rtl": {
+      "tracker": "todo/rtl_todo_tracker.json",
+      "strategy": "phase_grouped_contract_gate",
+      "task_count": 23,
+      "contents": [
+        "[gen-rtl 1/22] Prepare SSOT-derived RTL generation authority",
+        "[gen-rtl 2/22] Implement top module, ports, reset, and filelist",
+        "[gen-rtl 3/22] Implement Verilog include parameters and constants",
+        "[gen-rtl 4/22] Implement register decode, storage, and field behavior",
+        "[gen-rtl 5/22] Implement interrupt sources, enables, and clears",
+        "[gen-rtl 6/22] Execute SSOT-authored rtl-gen workflow TODOs",
+        "[gen-rtl 7/22] Implement function_model inputs, outputs, and transactions",
+        "[gen-rtl 8/22] Implement function_model preconditions and invariants",
+        "[gen-rtl 9/22] Implement function_model state and side effects",
+        "[gen-rtl 10/22] Implement function_model error cases",
+        "[gen-rtl 11/22] Implement cycle_model handshake, backpressure, and arbitration",
+        "[gen-rtl 12/22] Implement cycle_model timing, ordering, pipeline, and reset",
+        "[gen-rtl 13/22] Implement FSM states and transitions",
+        "[gen-rtl 14/22] Implement feature-level RTL contracts",
+        "[gen-rtl 15/22] Implement error handling and recovery behavior",
+        "[gen-rtl 16/22] Close security, integration, and synthesis constraints",
+        "[gen-rtl 17/22] Preserve RTL evidence for SSOT test scenarios",
+        "[gen-rtl 18/22] Preserve FL-vs-RTL module equivalence mapping",
+        "[gen-rtl 19/22] Close RTL authority and provenance gates",
+        "[gen-rtl 20/22] Close RTL traceability and implementation-depth gates",
+        "[gen-rtl 21/22] Close top IO, hierarchy, and connection gates",
+        "[gen-rtl 22/22] Run DUT-only compile and lint closure gates",
+        "[gen-rtl gate] Verify every RTL item is well-formed for timer"
+      ],
+      "has_gate": true
+    },
+    "lint": {
+      "tracker": "todo/lint_todo_tracker.json",
+      "strategy": "vcm_obligation_contract_gate",
+      "task_count": 2,
+      "contents": [
+        "[gen-lint 1/1] No inferred latches; single driver per register.",
+        "[gen-lint gate] Verify every lint obligation is closed"
+      ],
+      "has_gate": true
+    },
+    "tb": {
+      "tracker": "todo/tb_todo_tracker.json",
+      "strategy": "vcm_obligation_contract_gate",
+      "task_count": 3,
+      "contents": [
+        "[gen-tb 1/2] Counter decrements each enabled cycle and reloads at zero.",
+        "[gen-tb 2/2] irq pulses one cycle when the counter reaches zero.",
+        "[gen-tb gate] Verify every tb obligation is closed"
+      ],
+      "has_gate": true
+    },
+    "sim": {
+      "tracker": "todo/sim_todo_tracker.json",
+      "strategy": "vcm_obligation_contract_gate",
+      "task_count": 2,
+      "contents": [
+        "[gen-sim 1/1] Counter decrements each enabled cycle and reloads at zero.",
+        "[gen-sim gate] Verify every sim obligation is closed"
+      ],
+      "has_gate": true
+    }
+  },
+  "req_lock": {
+    "exit": 1,
+    "tail": [
+      "timer/req already locked; pass --force to replace: approval_manifest.json"
+    ]
+  }
+}

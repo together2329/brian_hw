@@ -1,0 +1,63 @@
+{
+  "description": "Dynamic sim todo list from sim/sim_todo_plan.json",
+  "name": "timer-sim",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "sim/sim_todo_plan.json",
+  "source_task_count": 2,
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_TIMER_COUNT_001 for the sim stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-sim 1/1] Counter decrements each enabled cycle and reloads at zero.",
+      "criteria": "observed counter seq == FL expected\ncheck_evidence_contract.py confirms OBL_TIMER_COUNT_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_TIMER_COUNT_001 (sim stage; granularity=temporal).\nRequirement(s): REQ_TIMER_001\nContract(s): C_TIMER_COUNT\nStructural contract(s): SC_TIMER_REGS\nSSOT anchor: function_model.transactions.tick\nCounter decrements each enabled cycle and reloads at zero.",
+      "priority": "high",
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "source_id": "OBL_TIMER_COUNT_001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "rejected",
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    },
+    {
+      "activeForm": "Running deterministic sim gate",
+      "approval_policy": "evidence_required",
+      "command": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.sh sim \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-sim gate] Verify every sim obligation is closed",
+      "criteria": "stage_gate.sh sim exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 1 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "on_reject": 1,
+      "priority": "high",
+      "required_evidence": [
+        "stage_gate.sh sim returncode 0"
+      ],
+      "source_id": "GATE-SIM",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "rejected",
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.sh sim returncode 0",
+          "sim",
+          "sim_evidence"
+        ],
+        "reason": "[sim] FAIL",
+        "status": "open"
+      }
+    }
+  ],
+  "ui_grouping": {
+    "actual_count": 2,
+    "internal_plan": "sim/sim_todo_plan.json",
+    "source_task_count": 2,
+    "strategy": "vcm_obligation_contract_gate"
+  }
+}

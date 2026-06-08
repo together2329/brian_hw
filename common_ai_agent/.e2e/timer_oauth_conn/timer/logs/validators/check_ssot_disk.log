@@ -1,0 +1,5 @@
+cmd: bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/check_ssot_disk.sh timer --mode starter
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_oauth_conn
+returncode: 0
+stdout:
+[check_ssot_disk] PASS: timer/yaml/timer.ssot.yaml = 60223B, 3 sections, 0 TBDs, mode=starter

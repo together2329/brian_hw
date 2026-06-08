@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=timer/sim/results.xml
+scoreboard=timer/sim/scoreboard_events.jsonl
+coverage_functional=timer/cov/coverage_functional.json
+waveforms=timer/sim/timer.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=19 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_real/timer/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_TICK_DECREMENT: count_q: expected=4294967295 observed=0; EQ_TRANSACTION_FM_TICK_RELOAD_IRQ: irq: expected=1 observed=0; count_q: expected=13 observed=0; irq_q: expected=1 observed=0; EQ_TRANSACTION_FM_DISABLED_HOLD: count_q: expected=13 observed=0; EQ_SCENARIO_SC01: prdata: expected=13 observed=0; pready: expected=1 observed=0; EQ_SCENARIO_SC08: prdata: expected=13 observed=0; EQ_SCENARIO_SC09: count_q: expected=12 observed=0; EQ_SCENARIO_SC10: irq: expected=1 observed=0; count_q: expected=25 observed=0; irq_q: expected=1 observed=0; EQ_SCENARIO_SC11: count_q: expected=25 observed=0; ... +11 more

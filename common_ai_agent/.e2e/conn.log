@@ -1,0 +1,4 @@
+{"event": "begin", "model": "glm-5.1", "run_mode": "starter", "t": "00:34:48"}
+{"event": "stage_start", "stage": "ssot-gen", "t": "00:34:48"}
+{"event": "stage_done", "stage": "ssot-gen", "status": "error:headless worker in ATLAS_RUNTIME_DB_MODE=session has no resolvable session (ATLAS_ACTIVE_SESSION / ATLAS_SESSION_ID both empty); refusing to write an unroutable session_id='' llm_calls row.", "seconds": 8.5, "t": "00:34:57"}
+{"event": "end", "note": "connectivity-only", "t": "00:34:57"}

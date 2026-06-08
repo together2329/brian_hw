@@ -32,6 +32,9 @@ tsc/vitest/build = 재료·레시피·플레이팅 점검. **E2E = 손님이 실
    - 입력/응답/렌더류 → **E2E** (실브라우저).
 3. **mount-only 스모크를 "동작 검증"으로 착각하지 말 것** — 반드시 동작을 exercise(dispatch 실행, 입력 전송)하는 테스트로.
 4. 백엔드 IPC/입력경로 변경(특히 병행-에이전트 merge)은 **라이브 "hi" 응답 스모크** 후에만 신뢰 ([[project_merge_broke_prompt_delivery]]).
+5. **TODO/worker loop 변경은 state만 보지 말고 prompt delivery까지 본다.** `get_continuation_prompt()`가 문자열을 만드는 테스트와,
+   그 문자열이 실제 다음 LLM input에 들어가는 `react_loop` 테스트는 별개다. Atlas/web chat mode와 Textual TUI가 같은
+   상태 전이를 같은 방식으로 이어가는지도 확인한다. 상세 매트릭스: [[todo-loop-verification-hardening-20260608]].
 
 ## 자동화 (한 줄)
 ```bash

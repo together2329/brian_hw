@@ -1,0 +1,15 @@
+{
+  "error": "Error calling LLM: HTTP Error 403: Forbidden",
+  "finish_reason": "",
+  "finished_at": "2026-06-07T15:34:57Z",
+  "input_hash": "9571e56c4878a1ad0900f777765131094f9d2b03d954af854e0dba961751c1d3",
+  "model": "glm-5.1",
+  "output_hash": "d0b7f46a65802eaf17228101d094b69bacab88283adbe44ce53f68fd13359835",
+  "parsed_artifacts": [],
+  "prompt_hash": "d17557e4301eba7e63157c98bed34a6ecef7cc9b9d8e986ef1778a4eecfe5158",
+  "raw_response": "Error calling LLM: HTTP Error 403: Forbidden",
+  "stage": "ssot-gen",
+  "started_at": "2026-06-07T15:34:48Z",
+  "status": "blocked",
+  "usage": {}
+}

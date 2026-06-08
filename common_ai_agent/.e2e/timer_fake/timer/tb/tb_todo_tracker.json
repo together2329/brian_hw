@@ -1,0 +1,89 @@
+{
+  "description": "Dynamic tb-gen todo list from tb/tb_todo_plan.json",
+  "name": "timer-tb-gen",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "tb/tb_todo_plan.json",
+  "source_task_count": 3,
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_TIMER_COUNT_001 for the tb stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-tb 1/2] Counter decrements every enabled cycle and reloads at zero.",
+      "criteria": "observed counter sequence == FL expected\ncheck_evidence_contract.py confirms OBL_TIMER_COUNT_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_TIMER_COUNT_001 (tb stage; granularity=temporal).\nRequirement(s): REQ_TIMER_COUNT_001\nContract(s): C_TIMER_COUNT\nSSOT anchor: function_model.transactions.tick\nCounter decrements every enabled cycle and reloads at zero.",
+      "priority": "high",
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "source_id": "OBL_TIMER_COUNT_001",
+      "source_plan": "tb/tb_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_TIMER_IRQ_001 for the tb stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-tb 2/2] irq pulses for one cycle when the counter reaches zero.",
+      "criteria": "irq pulse observed at zero\ncheck_evidence_contract.py confirms OBL_TIMER_IRQ_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_TIMER_IRQ_001 (tb stage; granularity=structural).\nRequirement(s): REQ_TIMER_COUNT_001\nContract(s): C_TIMER_IRQ\nSSOT anchor: interrupts.irq\nirq pulses for one cycle when the counter reaches zero.",
+      "priority": "high",
+      "required_evidence": [
+        "tb/cocotb/test_timer.py"
+      ],
+      "source_id": "OBL_TIMER_IRQ_001",
+      "source_plan": "tb/tb_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "tb/cocotb/test_timer.py",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic tb gate",
+      "approval_policy": "evidence_required",
+      "command": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.sh tb \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-tb gate] Verify every tb obligation is closed",
+      "criteria": "stage_gate.sh tb exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 2 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "on_reject": 1,
+      "priority": "high",
+      "required_evidence": [
+        "stage_gate.sh tb returncode 0"
+      ],
+      "source_id": "GATE-TB",
+      "source_plan": "tb/tb_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.sh tb returncode 0",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    }
+  ],
+  "ui_grouping": {
+    "actual_count": 3,
+    "internal_plan": "tb/tb_todo_plan.json",
+    "source_task_count": 3,
+    "strategy": "vcm_obligation_contract_gate"
+  }
+}

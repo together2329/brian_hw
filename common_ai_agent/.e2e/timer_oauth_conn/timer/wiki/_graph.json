@@ -1,0 +1,68 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-06-08T00:22:35Z",
+  "root": "timer/wiki",
+  "node_count": 2,
+  "edge_count": 0,
+  "tags": {
+    "artifact": [
+      "last_run",
+      "ssot"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "ssot": [
+      "ssot"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "ssot"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "last_run",
+      "title": "timer last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:22:35Z",
+      "summary": "stages=2 last=ssot-gen:pass",
+      "status": "pass",
+      "digest": "stages=2 last=ssot-gen:pass",
+      "path": "timer/logs/headless_run.json",
+      "size_bytes": 697
+    },
+    {
+      "id": "ssot",
+      "title": "timer SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:22:35Z",
+      "summary": "sections=36 size=60223B",
+      "status": "present",
+      "digest": "sections=36 size=60223B",
+      "path": "timer/yaml/timer.ssot.yaml",
+      "size_bytes": 60223
+    }
+  ],
+  "ip": "timer"
+}

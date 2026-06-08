@@ -1,0 +1,10 @@
+cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/ssot-gen/scripts/repair_ssot_schema.py timer --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_oauth_conn --mode starter
+cwd: /Users/brian/Desktop/Project/brian_hw/common_ai_agent
+returncode: 0
+reason: canonicalize_llm_ssot
+stdout:
+[repair_ssot_schema] wrote timer/yaml/timer.ssot.yaml
+[repair_ssot_schema] provenance: timer/yaml/timer.ssot.provenance.json
+[repair_ssot_schema] sections: 36/36
+[repair_ssot_schema] downstream_readiness: clean
+[repair_ssot_schema] next: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" timer --root "$ATLAS_PROJECT_ROOT" --mode starter

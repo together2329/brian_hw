@@ -1,0 +1,432 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 19,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 4,
+      "key": "features",
+      "module_task_count": 49,
+      "rule": "Owner module timer_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer_core.sv",
+      "name": "timer_core",
+      "refs": [
+        "cycle_model",
+        "cycle_model.handshake_rules",
+        "cycle_model.ordering",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.count_path",
+        "dataflow.irq_path",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.count_q",
+        "function_model.state_variables.enable_q",
+        "function_model.state_variables.load_q",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "interrupts",
+        "interrupts.sources.TIMER_ZERO",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer_regs.sv",
+        "name": "timer_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer_core.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "load_q",
+        "signal": "load_q",
+        "signal_terms": [
+          "load_q"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "enable_q",
+        "signal": "enable_q",
+        "signal_terms": [
+          "enable_q"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "count_q",
+        "signal": "count_q",
+        "signal_terms": [
+          "count_q"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "irq",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[18]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer_core.sv",
+  "owner_module": "timer_core",
+  "packet_id": "module__timer_core__features",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "features.item": 4
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 4,
+      "key": "features",
+      "module_task_count": 49,
+      "rule": "Owner module timer_core is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 4,
+    "source_refs": [
+      "features.Programmable_load_register",
+      "features.Enable_controlled_down_counter",
+      "features.Periodic_irq_pulse_and_reload",
+      "features.Disable_hold"
+    ],
+    "status_counts": {
+      "pass": 4
+    },
+    "task_count": 4
+  },
+  "tasks": [
+    {
+      "category": "features.item",
+      "content": "Implement feature Programmable load register",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Programmable_load_register",
+        "Primary implementation evidence is in rtl/timer_core.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Programmable_load_register.\nOwner: timer_core in rtl/timer_core.sv via features.\nSSOT item context: name=Programmable load register; output=Future reload value for count_q..",
+      "evidence_terms": [
+        "Future",
+        "count",
+        "count_q"
+      ],
+      "id": "RTL-0176",
+      "owner_file": "rtl/timer_core.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Programmable_load_register",
+      "ssot_context": {
+        "name": "Programmable load register",
+        "output": "Future reload value for count_q."
+      },
+      "ssot_refs": [
+        "features.Programmable_load_register"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "count",
+          "count_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "Future",
+          "count",
+          "count_q"
+        ],
+        "source_scope": "rtl/timer_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Enable-controlled down counter",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Enable_controlled_down_counter",
+        "Primary implementation evidence is in rtl/timer_core.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Enable_controlled_down_counter.\nOwner: timer_core in rtl/timer_core.sv via features.\nSSOT item context: name=Enable-controlled down counter; output=STATUS reflects current count_q..",
+      "evidence_terms": [
+        "STATUS",
+        "count",
+        "count_q"
+      ],
+      "id": "RTL-0177",
+      "owner_file": "rtl/timer_core.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Enable_controlled_down_counter",
+      "ssot_context": {
+        "name": "Enable-controlled down counter",
+        "output": "STATUS reflects current count_q."
+      },
+      "ssot_refs": [
+        "features.Enable_controlled_down_counter"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "count",
+          "count_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STATUS",
+          "count",
+          "count_q"
+        ],
+        "source_scope": "rtl/timer_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Periodic irq pulse and reload",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Periodic_irq_pulse_and_reload",
+        "Primary implementation evidence is in rtl/timer_core.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Periodic_irq_pulse_and_reload.\nOwner: timer_core in rtl/timer_core.sv via features.\nSSOT item context: name=Periodic irq pulse and reload; output=Single-cycle irq pulse and continued counting from LOAD..",
+      "evidence_terms": [
+        "LOAD",
+        "Single"
+      ],
+      "id": "RTL-0178",
+      "owner_file": "rtl/timer_core.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Periodic_irq_pulse_and_reload",
+      "ssot_context": {
+        "name": "Periodic irq pulse and reload",
+        "output": "Single-cycle irq pulse and continued counting from LOAD."
+      },
+      "ssot_refs": [
+        "features.Periodic_irq_pulse_and_reload"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "LOAD"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "LOAD",
+          "Single"
+        ],
+        "source_scope": "rtl/timer_core.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature Disable hold",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.Disable_hold",
+        "Primary implementation evidence is in rtl/timer_core.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.Disable_hold.\nOwner: timer_core in rtl/timer_core.sv via features.\nSSOT item context: name=Disable hold; output=No decrement and irq remains deasserted..",
+      "evidence_terms": [],
+      "id": "RTL-0179",
+      "owner_file": "rtl/timer_core.sv",
+      "owner_module": "timer_core",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.Disable_hold",
+      "ssot_context": {
+        "name": "Disable hold",
+        "output": "No decrement and irq remains deasserted."
+      },
+      "ssot_refs": [
+        "features.Disable_hold"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "53834821b27363b8d16e5991dc812b9380099860db84ca19bd61cb5db03fa76e",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

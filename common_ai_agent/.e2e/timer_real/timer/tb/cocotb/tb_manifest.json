@@ -1,0 +1,248 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "timer",
+  "top": "timer",
+  "generated_at": "2026-06-08T00:38:52Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "timer/yaml/timer.ssot.yaml",
+  "equivalence_goals": "timer/verify/equivalence_goals.json",
+  "rtl_contract": "timer/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "pclk",
+  "reset": "presetn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "DATA_WIDTH": 32,
+    "ADDR_WIDTH": 4,
+    "CLOCK_FREQ_MHZ": 100,
+    "RESET_POLARITY": 0
+  },
+  "registers": {
+    "config": {
+      "register_width": 32,
+      "addr_width": 4,
+      "byte_addressable": true,
+      "bus": "APB-style"
+    },
+    "register_list": [
+      {
+        "name": "LOAD",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      },
+      {
+        "name": "CTRL",
+        "offset": 4,
+        "access": "rw",
+        "index": 1
+      },
+      {
+        "name": "STATUS",
+        "offset": 8,
+        "access": "ro",
+        "index": 2
+      }
+    ]
+  },
+  "state_observables": [
+    "load_q",
+    "enable_q",
+    "count_q",
+    "irq_q"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "apb_access",
+    "apb_valid_read",
+    "apb_valid_write",
+    "count_is_zero",
+    "count_q",
+    "ctrl_read_data",
+    "ctrl_reserved_mask",
+    "enable_q",
+    "enabled_nonzero_tick",
+    "enabled_zero_tick",
+    "irq_apb_clear",
+    "irq_decrement",
+    "irq_disabled",
+    "irq_q",
+    "irq_reload",
+    "legal_addr",
+    "load_q",
+    "load_value_next",
+    "next_count",
+    "next_irq",
+    "next_state",
+    "pclk",
+    "prdata_access_rule",
+    "prdata_timer_tick_context",
+    "pready_access_rule",
+    "pready_timer_tick_context",
+    "pready_unmapped",
+    "pslverr_access_rule",
+    "pslverr_timer_tick_context",
+    "pslverr_unmapped",
+    "rd_ctrl",
+    "rd_load",
+    "rd_status",
+    "read_mux",
+    "state_q",
+    "wr_ctrl",
+    "wr_load",
+    "wr_status"
+  ],
+  "ports": [
+    {
+      "name": "pclk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "presetn",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "paddr",
+      "direction": "input",
+      "width": 4
+    },
+    {
+      "name": "psel",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "penable",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pwrite",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pwdata",
+      "direction": "input",
+      "width": 32
+    },
+    {
+      "name": "prdata",
+      "direction": "output",
+      "width": 32
+    },
+    {
+      "name": "pready",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "pslverr",
+      "direction": "output",
+      "width": 1
+    },
+    {
+      "name": "irq",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "pclk": 1,
+    "presetn": 1,
+    "paddr": 4,
+    "psel": 1,
+    "penable": 1,
+    "pwrite": 1,
+    "pwdata": 32,
+    "prdata": 32,
+    "pready": 1,
+    "pslverr": 1,
+    "irq": 1
+  },
+  "input_ports": [
+    "paddr",
+    "pclk",
+    "penable",
+    "presetn",
+    "psel",
+    "pwdata",
+    "pwrite"
+  ],
+  "output_ports": [
+    "irq",
+    "prdata",
+    "pready",
+    "pslverr"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "paddr": "paddr",
+    "penable": "penable",
+    "psel": "psel",
+    "pwdata": "pwdata",
+    "pwrite": "pwrite"
+  },
+  "sample_condition": "1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pready_write_load",
+      "port": "pready",
+      "width": 1
+    },
+    {
+      "name": "pslverr_write_load",
+      "port": "pslverr",
+      "width": 1
+    },
+    {
+      "name": "irq",
+      "port": "irq",
+      "width": 1
+    },
+    {
+      "name": "prdata",
+      "port": "prdata",
+      "width": 32
+    },
+    {
+      "name": "pready",
+      "port": "pready",
+      "width": 1
+    },
+    {
+      "name": "pslverr",
+      "port": "pslverr",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_APB_WRITE_LOAD",
+  "per_goal_reset": false,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_real/timer/rtl/timer_regs.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_real/timer/rtl/timer_core.sv",
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_real/timer/rtl/timer.sv"
+  ],
+  "goal_count": 49,
+  "module_goal_count": 2,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_TIMER_REGS",
+      "rtl_module": "timer_regs",
+      "rtl_file": "rtl/timer_regs.sv"
+    },
+    {
+      "goal_id": "EQ_MODULE_TIMER_CORE",
+      "rtl_module": "timer_core",
+      "rtl_file": "rtl/timer_core.sv"
+    }
+  ]
+}

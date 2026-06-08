@@ -1,0 +1,3881 @@
+{
+  "ip": "timer",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "timer/yaml/timer.ssot.yaml",
+    "functional_model": "timer/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "timer/model/decomposition.json",
+    "coverage_plan": "timer/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "timer/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "timer/yaml/timer.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "timer/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "timer/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "timer/yaml/timer.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "timer/yaml/timer.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "timer/rtl/",
+        "timer/tb/",
+        "timer/sim/",
+        "timer/reports/",
+        "timer/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 49,
+    "required": 49,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 2,
+    "module_required": 2,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_APB_WRITE_LOAD",
+      "title": "Transaction write_load_register matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC06_executed",
+        "fcov_write_load",
+        "function_write_load_register"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_APB_WRITE_CTRL",
+      "title": "Transaction write_ctrl_enable matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC07_executed",
+        "fcov_write_ctrl",
+        "function_write_ctrl_enable"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_ctrl_enable",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 4"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_ctrl', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_ctrl', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'enable_q', 'expr': 'pwdata & 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_ctrl",
+          "pslverr_write_ctrl"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "enable_q becomes pwdata[0].",
+          "If ENABLE is written 0, count_q holds its current value on subsequent timer ticks.",
+          "irq_q is deasserted for this APB write transaction.",
+          "enable_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_APB_READ_STATUS",
+      "title": "Transaction read_status_current_count matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[2]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC08_executed",
+        "fcov_status_read",
+        "function_read_status_current_count"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "read_status_current_count",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 0 and paddr == 8"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "prdata == count_q",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'prdata_status', 'port': 'prdata', 'expr': 'count_q & 0xffffffff', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pready_read_status', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_read_status', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "prdata_status",
+          "pready_read_status",
+          "pslverr_read_status"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "STATUS read has no count_q side effect.",
+          "irq_q is deasserted for this APB read transaction.",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_TICK_DECREMENT",
+      "title": "Transaction enabled_decrement_nonzero matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[3]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC09_executed",
+        "fcov_decrement",
+        "function_enabled_decrement_nonzero"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "enabled_decrement_nonzero",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 0 and enable_q == 1 and count_q > 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "irq == 0",
+          "{'name': 'irq_decrement', 'port': 'irq', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'count_q', 'expr': '(count_q - 1) & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_decrement"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "count_q decrements by one modulo 32-bit range.",
+          "irq_q remains 0.",
+          "count_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_TICK_RELOAD_IRQ",
+      "title": "Transaction enabled_zero_reload_and_irq_pulse matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[4]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_reload_irq",
+        "function_enabled_zero_reload_and_irq_pulse"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "enabled_zero_reload_and_irq_pulse",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 0 and enable_q == 1 and count_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "irq == 1",
+          "{'name': 'irq_reload', 'port': 'irq', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'count_q', 'expr': 'load_q & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_reload"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "irq_q asserts for this cycle.",
+          "count_q reloads from load_q.",
+          "Timer continues enabled unless CTRL.ENABLE is later cleared.",
+          "count_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_DISABLED_HOLD",
+      "title": "Transaction disabled_hold_count matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[5]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed",
+        "fcov_disabled_hold",
+        "function_disabled_hold_count"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "disabled_hold_count",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 0 and enable_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "irq == 0",
+          "{'name': 'irq_disabled', 'port': 'irq', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'count_q', 'expr': 'count_q & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_disabled"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "count_q holds its current value while disabled.",
+          "irq_q remains 0.",
+          "count_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_APB_UNMAPPED_ACCESS",
+      "title": "Transaction unmapped_apb_access_error matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[6]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed",
+        "function_unmapped_apb_access_error"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "unmapped_apb_access_error",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and (paddr != 0 and paddr != 4 and paddr != 8)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 1",
+          "{'name': 'pready_unmapped', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_unmapped', 'port': 'pslverr', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_unmapped",
+          "pslverr_unmapped"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "No architectural register or counter state changes on unmapped access.",
+          "irq_q"
+        ],
+        "error_policy": "{'condition': 'paddr != 0 and paddr != 4 and paddr != 8', 'result': 'pslverr is asserted for the accepted transfer.'}"
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC01",
+      "title": "Scenario SC01: reset contract",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC01_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC01",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert and release the declared reset while all external interfaces remain idle."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Architectural state, status, outputs, and debug observability match function_model reset outputs.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC02",
+      "title": "Scenario SC02: primary approved behavior",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC02_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.",
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Externally observable result/status/side effects match the function_model primary transaction.",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC03",
+      "title": "Scenario SC03: cycle handshake and backpressure",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.",
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC04",
+      "title": "Scenario SC04: error and recovery policy",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "SC04",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Inject each declared error_handling.error_sources condition where the interface can represent it."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.",
+          "Scenario expected result from SSOT"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC05",
+      "title": "Scenario SC05: debug and trace observability",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC05_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Run nominal and error flows while sampling every debug_observability waveform/status/trace point.",
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC06",
+      "title": "Scenario SC06: function_model transaction FM_APB_WRITE_LOAD",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[5]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC06_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_APB_WRITE_LOAD`.",
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_APB_WRITE_LOAD` exactly.",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC07",
+      "title": "Scenario SC07: function_model transaction FM_APB_WRITE_CTRL",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[6]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC07_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_ctrl_enable",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_APB_WRITE_CTRL`.",
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 4"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_APB_WRITE_CTRL` exactly.",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_ctrl', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_ctrl', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'enable_q', 'expr': 'pwdata & 1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_ctrl",
+          "pslverr_write_ctrl"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "enable_q becomes pwdata[0].",
+          "If ENABLE is written 0, count_q holds its current value on subsequent timer ticks.",
+          "irq_q is deasserted for this APB write transaction.",
+          "enable_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC08",
+      "title": "Scenario SC08: function_model transaction FM_APB_READ_STATUS",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[7]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC08_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "read_status_current_count",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_APB_READ_STATUS`.",
+          "psel == 1 and penable == 1 and pwrite == 0 and paddr == 8"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_APB_READ_STATUS` exactly.",
+          "prdata == count_q",
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'prdata_status', 'port': 'prdata', 'expr': 'count_q & 0xffffffff', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pready_read_status', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_read_status', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "prdata_status",
+          "pready_read_status",
+          "pslverr_read_status"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "STATUS read has no count_q side effect.",
+          "irq_q is deasserted for this APB read transaction.",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC09",
+      "title": "Scenario SC09: function_model transaction FM_TICK_DECREMENT",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[8]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC09_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "enabled_decrement_nonzero",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_TICK_DECREMENT`.",
+          "psel == 0 and enable_q == 1 and count_q > 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_TICK_DECREMENT` exactly.",
+          "irq == 0",
+          "{'name': 'irq_decrement', 'port': 'irq', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'count_q', 'expr': '(count_q - 1) & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_decrement"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "count_q decrements by one modulo 32-bit range.",
+          "irq_q remains 0.",
+          "count_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC10",
+      "title": "Scenario SC10: function_model transaction FM_TICK_RELOAD_IRQ",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[9]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "enabled_zero_reload_and_irq_pulse",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_TICK_RELOAD_IRQ`.",
+          "psel == 0 and enable_q == 1 and count_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_TICK_RELOAD_IRQ` exactly.",
+          "irq == 1",
+          "{'name': 'irq_reload', 'port': 'irq', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'count_q', 'expr': 'load_q & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '1', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_reload"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "irq_q asserts for this cycle.",
+          "count_q reloads from load_q.",
+          "Timer continues enabled unless CTRL.ENABLE is later cleared.",
+          "count_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC11",
+      "title": "Scenario SC11: function_model transaction FM_DISABLED_HOLD",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[10]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "disabled_hold_count",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_DISABLED_HOLD`.",
+          "psel == 0 and enable_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_DISABLED_HOLD` exactly.",
+          "irq == 0",
+          "{'name': 'irq_disabled', 'port': 'irq', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'count_q', 'expr': 'count_q & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "irq_disabled"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "count_q holds its current value while disabled.",
+          "irq_q remains 0.",
+          "count_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC12",
+      "title": "Scenario SC12: function_model transaction FM_APB_UNMAPPED_ACCESS",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[11]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "SC12_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "unmapped_apb_access_error",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Drive preconditions for function_model transaction `FM_APB_UNMAPPED_ACCESS`.",
+          "psel == 1 and penable == 1 and (paddr != 0 and paddr != 4 and paddr != 8)"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "Outputs and side effects match `FM_APB_UNMAPPED_ACCESS` exactly.",
+          "pready == 1",
+          "pslverr == 1",
+          "{'name': 'pready_unmapped', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_unmapped', 'port': 'pslverr', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_unmapped",
+          "pslverr_unmapped"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "No architectural register or counter state changes on unmapped access.",
+          "irq_q"
+        ],
+        "error_policy": "{'condition': 'paddr != 0 and paddr != 4 and paddr != 8', 'result': 'pslverr is asserted for the accepted transfer.'}"
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'pready', 'rule': 'pready is asserted for an APB access when psel == 1 and penable == 1.', 'expr': 'psel == 1 and penable == 1'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'pslverr', 'rule': 'pslverr is asserted only for accepted APB accesses with paddr not equal to LOAD, CTRL, or STATUS offsets.', 'expr': 'psel == 1 and penable == 1 and (paddr != 0 and paddr != 4 and paddr != 8)'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'prdata', 'rule': 'STATUS read returns current count_q during accepted read access.', 'expr': 'psel == 1 and penable == 1 and pwrite == 0 and paddr == 8'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_3",
+      "title": "Cycle/handshake rule handshake_3",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[3]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC03_executed",
+        "cycle_handshake_0",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_handshake_3"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_3",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'irq', 'rule': 'irq is high for exactly the reload cycle when enable_q == 1 and count_q == 0.', 'expr': 'enable_q == 1 and count_q == 0'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_datapath_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_ordering_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "APB writes update LOAD or CTRL on the accepted access edge."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_datapath_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_ordering_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "A CTRL write with ENABLE=0 prevents subsequent decrement/reload ticks and holds count_q."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_2",
+      "title": "Ordering rule ordering_2",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[2]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_datapath_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_ordering_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_2",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "STATUS read observes the current count_q value for the access cycle and has no read side effects."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_3",
+      "title": "Ordering rule ordering_3",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[3]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_datapath_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_ordering_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_3",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "irq assertion and count_q reload occur on the same timer tick when enable_q == 1 and count_q == 0."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_4",
+      "title": "Ordering rule ordering_4",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[4]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_datapath_model",
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_2",
+        "cycle_ordering_3",
+        "cycle_ordering_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_4",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "irq deasserts on the cycle following a reload event unless another reload condition is again true."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'register_read': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}, 'register_write': {'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}, 'timer_tick': {'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}, 'irq_pulse': {'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_LOAD",
+      "title": "Register access LOAD",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[0]"
+      ],
+      "decomposition_refs": [
+        "timer_register_model"
+      ],
+      "coverage_refs": [
+        "SC06_executed",
+        "SC10_executed",
+        "fcov_write_load",
+        "fcov_reload_irq",
+        "ccov_tick_reload_irq",
+        "function_write_load_register",
+        "function_enabled_zero_reload_and_irq_pulse",
+        "cycle_handshake_1",
+        "cycle_handshake_3",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_latency_timer_tick",
+        "cycle_latency_irq_pulse",
+        "cycle_pipeline_apb_access",
+        "cycle_pipeline_tick_reload_irq",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "cycle_ordering_3",
+        "cycle_ordering_4",
+        "fsm_timer_control_enabled_count_to_reload_irq_1",
+        "fsm_timer_control_reload_irq_to_enabled_count_2",
+        "fsm_timer_control_reload_irq_to_disabled_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'LOAD', 'offset': 0, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'control', 'description': 'Software-programmed reload value.', 'fields': [{'name': 'value', 'bits': [31, 0], 'access': 'rw', 'reset': 0, 'description': 'Value reloaded into STATUS/current count when timer expires.', 'write_effect': {'write': 'Updates load_q only; does not directly modify current count_q unless a simultaneous reload tick occurs per cycle_model ordering.', 'read': 'Returns load_q.'}}], 'side_effects': {'write': 'Updates load_q only; does not directly modify current count_q unless a simultaneous reload tick occurs per cycle_model ordering.', 'read': 'Returns load_q.'}}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_CTRL",
+      "title": "Register access CTRL",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[1]"
+      ],
+      "decomposition_refs": [
+        "timer_register_model"
+      ],
+      "coverage_refs": [
+        "SC07_executed",
+        "fcov_write_load",
+        "fcov_write_ctrl",
+        "function_write_load_register",
+        "function_write_ctrl_enable",
+        "cycle_handshake_1",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_apb_access",
+        "cycle_ordering_0",
+        "cycle_ordering_1",
+        "error_error_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'CTRL', 'offset': 4, 'width': 32, 'access': 'rw', 'reset': 0, 'category': 'control', 'description': 'Timer enable control register.', 'fields': [{'name': 'ENABLE', 'bits': [0, 0], 'access': 'rw', 'reset': 0, 'description': '1 enables decrement/reload operation; 0 stops and holds the counter.', 'write_effect': {'write': 'Bit 0 updates enable_q; clearing ENABLE stops and holds count_q.', 'read': 'Returns ENABLE in bit 0 and zeros in reserved bits.'}}, {'name': 'RESERVED', 'bits': [31, 1], 'access': 'ro', 'reset': 0, 'description': 'Reserved bits read as zero and ignore writes.'}], 'side_effects': {'write': 'Bit 0 updates enable_q; clearing ENABLE stops and holds count_q.', 'read': 'Returns ENABLE in bit 0 and zeros in reserved bits.'}}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_REGISTER_STATUS",
+      "title": "Register access STATUS",
+      "kind": "register",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "registers.register_list[2]"
+      ],
+      "decomposition_refs": [
+        "timer_register_model"
+      ],
+      "coverage_refs": [
+        "SC08_executed",
+        "fcov_write_load",
+        "fcov_status_read",
+        "function_write_load_register",
+        "function_read_status_current_count",
+        "cycle_handshake_1",
+        "cycle_handshake_2",
+        "cycle_latency_register_read",
+        "cycle_latency_register_write",
+        "cycle_pipeline_apb_access",
+        "cycle_ordering_2",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "csr_access",
+        "required_fields": [
+          "op",
+          "addr_or_name"
+        ],
+        "constraints": [
+          "{'name': 'STATUS', 'offset': 8, 'width': 32, 'access': 'ro', 'reset': 0, 'category': 'status', 'description': 'Read-only current counter value.', 'fields': [{'name': 'count', 'bits': [31, 0], 'access': 'ro', 'reset': 0, 'description': 'Current down-counter value count_q.'}], 'side_effects': {'write': 'Ignored for mapped STATUS address; no state change.', 'read': 'Returns current count_q with no side effects.'}}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "read data",
+          "write response",
+          "side effects"
+        ],
+        "latency": "register access latency from cycle_model/integration",
+        "state_updates": [
+          "register mirror update when writable"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL read/write response matches FunctionalModel register behavior",
+        "Writable fields update as SSOT describes",
+        "Read-only/reserved/error policies match SSOT"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC04_executed",
+        "ccov_apb_access",
+        "function_unmapped_apb_access_error",
+        "error_error_0",
+        "error_error_1",
+        "error_error_2"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'UNMAPPED_APB_ACCESS', 'condition': 'psel == 1 and penable == 1 and (paddr != 0 and paddr != 4 and paddr != 8)', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": "{'pslverr': 'Asserted for unmapped APB accesses only.', 'irq': 'Not used for APB error propagation; irq is timer expiration only.'}"
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_TIMER_CONTROL_DISABLED_TO_ENABLED_COUNT_0",
+      "title": "FSM transition timer_control: DISABLED -> ENABLED_COUNT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.timer_control.transitions[0]"
+      ],
+      "decomposition_refs": [
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed",
+        "fcov_disabled_hold",
+        "function_disabled_hold_count",
+        "cycle_pipeline_disabled_hold",
+        "fsm_timer_control_disabled_to_enabled_count_0",
+        "fsm_timer_control_enabled_count_to_reload_irq_1",
+        "fsm_timer_control_reload_irq_to_enabled_count_2",
+        "fsm_timer_control_enabled_count_to_disabled_3",
+        "fsm_timer_control_reload_irq_to_disabled_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "timer_control_DISABLED_to_ENABLED_COUNT_0",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable_q == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "timer_control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_TIMER_CONTROL_ENABLED_COUNT_TO_RELOAD_IRQ_1",
+      "title": "FSM transition timer_control: ENABLED_COUNT -> RELOAD_IRQ",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.timer_control.transitions[1]"
+      ],
+      "decomposition_refs": [
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_reload_irq",
+        "ccov_tick_reload_irq",
+        "function_enabled_zero_reload_and_irq_pulse",
+        "cycle_pipeline_tick_reload_irq",
+        "fsm_timer_control_disabled_to_enabled_count_0",
+        "fsm_timer_control_enabled_count_to_reload_irq_1",
+        "fsm_timer_control_reload_irq_to_enabled_count_2",
+        "fsm_timer_control_enabled_count_to_disabled_3",
+        "fsm_timer_control_reload_irq_to_disabled_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "timer_control_ENABLED_COUNT_to_RELOAD_IRQ_1",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable_q == 1 and count_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "timer_control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_TIMER_CONTROL_RELOAD_IRQ_TO_ENABLED_COUNT_2",
+      "title": "FSM transition timer_control: RELOAD_IRQ -> ENABLED_COUNT",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.timer_control.transitions[2]"
+      ],
+      "decomposition_refs": [
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "fcov_reload_irq",
+        "ccov_tick_reload_irq",
+        "function_enabled_zero_reload_and_irq_pulse",
+        "cycle_pipeline_tick_reload_irq",
+        "fsm_timer_control_disabled_to_enabled_count_0",
+        "fsm_timer_control_enabled_count_to_reload_irq_1",
+        "fsm_timer_control_reload_irq_to_enabled_count_2",
+        "fsm_timer_control_enabled_count_to_disabled_3",
+        "fsm_timer_control_reload_irq_to_disabled_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "timer_control_RELOAD_IRQ_to_ENABLED_COUNT_2",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable_q == 1"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "timer_control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_TIMER_CONTROL_ENABLED_COUNT_TO_DISABLED_3",
+      "title": "FSM transition timer_control: ENABLED_COUNT -> DISABLED",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.timer_control.transitions[3]"
+      ],
+      "decomposition_refs": [
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC11_executed",
+        "fcov_disabled_hold",
+        "function_disabled_hold_count",
+        "cycle_pipeline_disabled_hold",
+        "fsm_timer_control_disabled_to_enabled_count_0",
+        "fsm_timer_control_enabled_count_to_reload_irq_1",
+        "fsm_timer_control_reload_irq_to_enabled_count_2",
+        "fsm_timer_control_enabled_count_to_disabled_3",
+        "fsm_timer_control_reload_irq_to_disabled_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "timer_control_ENABLED_COUNT_to_DISABLED_3",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "timer_control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_STATE_TIMER_CONTROL_RELOAD_IRQ_TO_DISABLED_4",
+      "title": "FSM transition timer_control: RELOAD_IRQ -> DISABLED",
+      "kind": "state",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "fsm.timer_control.transitions[4]"
+      ],
+      "decomposition_refs": [
+        "timer_fsm_model"
+      ],
+      "coverage_refs": [
+        "SC10_executed",
+        "SC11_executed",
+        "fcov_reload_irq",
+        "fcov_disabled_hold",
+        "ccov_tick_reload_irq",
+        "function_enabled_zero_reload_and_irq_pulse",
+        "function_disabled_hold_count",
+        "cycle_pipeline_tick_reload_irq",
+        "cycle_pipeline_disabled_hold",
+        "fsm_timer_control_disabled_to_enabled_count_0",
+        "fsm_timer_control_enabled_count_to_reload_irq_1",
+        "fsm_timer_control_reload_irq_to_enabled_count_2",
+        "fsm_timer_control_enabled_count_to_disabled_3",
+        "fsm_timer_control_reload_irq_to_disabled_4"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "timer_control_RELOAD_IRQ_to_DISABLED_4",
+        "required_fields": [
+          "pre_state",
+          "stimulus"
+        ],
+        "constraints": [
+          "enable_q == 0"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "next state",
+          "state-dependent outputs"
+        ],
+        "latency": "next-state timing from cycle_model pipeline/latency",
+        "state_updates": [
+          "timer_control state"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL state transition matches SSOT condition",
+        "FSM transition coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "title": "Required debug/waveform observability exists",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "debug_observability.waveform_must_probe"
+      ],
+      "decomposition_refs": [
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model"
+      ],
+      "coverage_refs": [
+        "SC05_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "debug_probe_capture",
+        "required_fields": [
+          "waveform_path"
+        ],
+        "constraints": [
+          "pclk",
+          "presetn",
+          "psel",
+          "penable",
+          "pwrite",
+          "paddr",
+          "pwdata",
+          "prdata",
+          "pready",
+          "pslverr",
+          "irq",
+          "load_q",
+          "enable_q",
+          "count_q"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "waveform contains required probes"
+        ],
+        "latency": "throughout simulation window",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Waveform includes SSOT-required debug probes",
+        "sim_debug can inspect those probes around checked scenarios"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "tb",
+          "coverage",
+          "rtl",
+          "ssot",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_TIMER_REGS",
+      "title": "Module timer_regs functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "timer_regs",
+        "rtl_file": "rtl/timer_regs.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "error_handling",
+        "function_model",
+        "function_model.invariants",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables",
+        "function_model.state_variables.irq_q",
+        "function_model.transactions.FM_APB_READ_STATUS",
+        "function_model.transactions.FM_APB_UNMAPPED_ACCESS",
+        "function_model.transactions.FM_APB_WRITE_CTRL",
+        "function_model.transactions.FM_APB_WRITE_LOAD",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "function_model.transactions.fm_apb_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.prdata_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.irq_q",
+        "function_model.transactions.fm_apb_read_status.outputs.output_0",
+        "function_model.transactions.fm_apb_read_status.outputs.output_1",
+        "function_model.transactions.fm_apb_read_status.outputs.output_2",
+        "function_model.transactions.fm_apb_read_status.outputs.prdata_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_read_status.state_updates.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access",
+        "function_model.transactions.fm_apb_unmapped_access.error_cases.error_case_0",
+        "function_model.transactions.fm_apb_unmapped_access.inputs.input_0",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_0",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_1",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_unmapped_access.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_unmapped_access.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.inputs.input_0",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_0",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_1",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_2",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load",
+        "function_model.transactions.fm_apb_write_load.inputs.input_0",
+        "function_model.transactions.fm_apb_write_load.output_rules.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.output_rules.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_load.outputs.load_q",
+        "function_model.transactions.fm_apb_write_load.outputs.output_0",
+        "function_model.transactions.fm_apb_write_load.outputs.output_1",
+        "function_model.transactions.fm_apb_write_load.outputs.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_load.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load.state_updates.load_q",
+        "function_model.transactions.fm_disabled_hold",
+        "function_model.transactions.fm_disabled_hold.output_rules.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.count_q",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_q",
+        "function_model.transactions.fm_disabled_hold.outputs.output_0",
+        "function_model.transactions.fm_disabled_hold.preconditions.precondition_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_1",
+        "function_model.transactions.fm_disabled_hold.state_updates.count_q",
+        "function_model.transactions.fm_disabled_hold.state_updates.irq_q",
+        "function_model.transactions.fm_tick_decrement",
+        "function_model.transactions.fm_tick_decrement.output_rules.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.count_q",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_q",
+        "function_model.transactions.fm_tick_decrement.outputs.output_0",
+        "function_model.transactions.fm_tick_decrement.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_decrement.state_updates.count_q",
+        "function_model.transactions.fm_tick_decrement.state_updates.irq_q",
+        "function_model.transactions.fm_tick_reload_irq",
+        "function_model.transactions.fm_tick_reload_irq.output_rules.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.count_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.output_0",
+        "function_model.transactions.fm_tick_reload_irq.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.count_q",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.irq_q",
+        "parameters.addr_width",
+        "parameters.data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.bus",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.CTRL",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.ctrl",
+        "registers.register_list.load",
+        "registers.register_list.status"
+      ],
+      "decomposition_refs": [
+        "timer_regs"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_TIMER_CORE",
+      "title": "Module timer_core functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "timer_core",
+        "rtl_file": "rtl/timer_core.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.apb_access",
+        "cycle_model.pipeline.disabled_hold",
+        "cycle_model.pipeline.reset_released_idle",
+        "cycle_model.pipeline.tick_decrement",
+        "cycle_model.pipeline.tick_reload_irq",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.count_path",
+        "dataflow.irq_path",
+        "decomposition",
+        "features",
+        "features.disable_hold",
+        "features.enable_controlled_down_counter",
+        "features.periodic_irq_pulse_and_reload",
+        "features.programmable_load_register",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.count_q",
+        "function_model.state_variables.enable_q",
+        "function_model.state_variables.load_q",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "interrupts",
+        "interrupts.sources.TIMER_ZERO",
+        "test_requirements"
+      ],
+      "decomposition_refs": [
+        "timer_core"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_TICK_DECREMENT",
+      "title": "Functional coverage bin ccov_tick_decrement: Decrement cycle observed.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.TICK_DECREMENT"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_tick_decrement"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "Decrement cycle observed."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CCOV_IRQ_ONE_CYCLE",
+      "title": "Functional coverage bin ccov_irq_one_cycle: irq pulse width is exactly one cycle.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.irq_pulse"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "ccov_irq_one_cycle"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "irq pulse width is exactly one cycle."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_RESET_RELEASED_IDLE",
+      "title": "Functional coverage bin cycle_pipeline_reset_released_idle: After reset deassertion, hold count_q=0, enable_q=0, irq=0 until APB write or enable tick.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_reset_released_idle"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "After reset deassertion, hold count_q=0, enable_q=0, irq=0 until APB write or enable tick."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_TICK_DECREMENT",
+      "title": "Functional coverage bin cycle_pipeline_tick_decrement: If enabled and count_q is nonzero, decrement count_q by one and keep irq low.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[2]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_tick_decrement"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "If enabled and count_q is nonzero, decrement count_q by one and keep irq low."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: No APB wait states are introduced by the timer; pready follows accepted access phase.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "No APB wait states are introduced by the timer; pready follows accepted access phase."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "title": "Functional coverage bin cycle_perf_outstanding: {'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.outstanding"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_outstanding"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "{'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "title": "Functional coverage bin cycle_perf_depth: {'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.depth"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_depth"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 100",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "100"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "timer_regs",
+        "timer_core",
+        "timer",
+        "timer_protocol_model",
+        "timer_register_model",
+        "timer_datapath_model",
+        "timer_fsm_model",
+        "timer_error_model",
+        "timer_security_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "write_load_register",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0",
+          "{'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "pready == 1",
+          "pslverr == 0",
+          "{'name': 'pready_write_load', 'port': 'pready', 'expr': '1', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'name': 'pslverr_write_load', 'port': 'pslverr', 'expr': '0', 'description': 'Mirrored from executable output_rules for SSOT validator completeness.'}",
+          "{'state': 'load_q', 'expr': 'pwdata & 0xffffffff', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "{'state': 'irq_q', 'expr': '0', 'description': 'Mirrored from executable state_updates for SSOT validator completeness.'}",
+          "pready_write_load",
+          "pslverr_write_load"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "load_q becomes pwdata[31:0].",
+          "irq_q is deasserted for this APB write transaction.",
+          "load_q",
+          "irq_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}

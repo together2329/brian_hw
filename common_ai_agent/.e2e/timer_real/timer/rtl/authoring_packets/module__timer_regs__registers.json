@@ -1,0 +1,728 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 19,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "registers",
+      "module_task_count": 110,
+      "rule": "Owner module timer_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer_regs.sv",
+      "name": "timer_regs",
+      "refs": [
+        "error_handling",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_APB_READ_STATUS",
+        "function_model.transactions.FM_APB_UNMAPPED_ACCESS",
+        "function_model.transactions.FM_APB_WRITE_CTRL",
+        "function_model.transactions.FM_APB_WRITE_LOAD",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.CTRL",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer_regs.sv",
+        "name": "timer_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer_core.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "paddr",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "psel",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "penable",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pwrite",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pwdata",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "prdata",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pslverr",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "load_q",
+        "signal": "load_q",
+        "signal_terms": [
+          "load_q"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "enable_q",
+        "signal": "enable_q",
+        "signal_terms": [
+          "enable_q"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "count_q",
+        "signal": "count_q",
+        "signal_terms": [
+          "count_q"
+        ],
+        "source_ref": "integration.connections[12]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer_regs.sv",
+  "owner_module": "timer_regs",
+  "packet_id": "module__timer_regs__registers",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "registers.field": 4,
+      "registers.register": 3
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 4,
+      "key": "registers",
+      "module_task_count": 110,
+      "rule": "Owner module timer_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "registers",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 7,
+    "source_refs": [
+      "registers.register_list.LOAD",
+      "registers.register_list.LOAD.fields.value",
+      "registers.register_list.CTRL",
+      "registers.register_list.CTRL.fields.ENABLE",
+      "registers.register_list.CTRL.fields.RESERVED",
+      "registers.register_list.STATUS",
+      "registers.register_list.STATUS.fields.count"
+    ],
+    "status_counts": {
+      "pass": 7
+    },
+    "task_count": 7
+  },
+  "tasks": [
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register LOAD",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.LOAD",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "LOAD width matches SSOT value 32",
+        "LOAD reset behavior matches SSOT value 0",
+        "LOAD access policy rw is implemented without read/write shortcuts",
+        "LOAD decode uses SSOT address/offset 0"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.LOAD.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.LOAD.\nSSOT item context: name=LOAD; width=32; reset=0; access=rw; offset=0.",
+      "evidence_terms": [
+        "LOAD"
+      ],
+      "id": "RTL-0160",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.LOAD",
+      "ssot_context": {
+        "access": "rw",
+        "name": "LOAD",
+        "offset": "0",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.LOAD"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "LOAD"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "LOAD"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field LOAD.value",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.LOAD.fields.value",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "value reset behavior matches SSOT value 0",
+        "value access policy rw is implemented without read/write shortcuts",
+        "value readback returns implemented RTL state when readable",
+        "value write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.LOAD.fields.value.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.LOAD.\nSSOT item context: name=value; reset=0; access=rw.",
+      "evidence_terms": [
+        "value"
+      ],
+      "id": "RTL-0161",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.LOAD.fields.value",
+      "ssot_context": {
+        "access": "rw",
+        "name": "value",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.LOAD.fields.value"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "value"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "value"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register CTRL",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.CTRL",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "CTRL width matches SSOT value 32",
+        "CTRL reset behavior matches SSOT value 0",
+        "CTRL access policy rw is implemented without read/write shortcuts",
+        "CTRL decode uses SSOT address/offset 4"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.CTRL.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=CTRL; width=32; reset=0; access=rw; offset=4.",
+      "evidence_terms": [
+        "CTRL"
+      ],
+      "id": "RTL-0162",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL",
+      "ssot_context": {
+        "access": "rw",
+        "name": "CTRL",
+        "offset": "4",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "CTRL"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "CTRL"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.ENABLE",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.ENABLE",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "ENABLE reset behavior matches SSOT value 0",
+        "ENABLE access policy rw is implemented without read/write shortcuts",
+        "ENABLE readback returns implemented RTL state when readable",
+        "ENABLE write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.ENABLE.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=ENABLE; reset=0; access=rw.",
+      "evidence_terms": [
+        "ENABLE"
+      ],
+      "id": "RTL-0163",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.ENABLE",
+      "ssot_context": {
+        "access": "rw",
+        "name": "ENABLE",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.ENABLE"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "ENABLE"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ENABLE"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field CTRL.RESERVED",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.CTRL.fields.RESERVED",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "RESERVED reset behavior matches SSOT value 0",
+        "RESERVED access policy ro is implemented without read/write shortcuts",
+        "RESERVED readback returns implemented RTL state when readable",
+        "RESERVED write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.CTRL.fields.RESERVED.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.CTRL.\nSSOT item context: name=RESERVED; reset=0; access=ro.",
+      "evidence_terms": [
+        "GPIO_MASK",
+        "RESERVED",
+        "mask"
+      ],
+      "id": "RTL-0164",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.CTRL.fields.RESERVED",
+      "ssot_context": {
+        "access": "ro",
+        "name": "RESERVED",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.CTRL.fields.RESERVED"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "RESERVED",
+          "mask"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "GPIO_MASK",
+          "RESERVED",
+          "mask"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.register",
+      "content": "Implement CSR/register STATUS",
+      "criteria": [
+        "Address/decode behavior matches SSOT",
+        "Readable fields return RTL state, not a constant placeholder",
+        "Write semantics and illegal access response match SSOT",
+        "Traceability keeps source_ref registers.register_list.STATUS",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "STATUS width matches SSOT value 32",
+        "STATUS reset behavior matches SSOT value 0",
+        "STATUS access policy ro is implemented without read/write shortcuts",
+        "STATUS decode uses SSOT address/offset 8"
+      ],
+      "detail": "Decode, readback, write behavior, reset value, access policy, and side effects must come from SSOT.\nSSOT ref: registers.register_list.STATUS.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=STATUS; width=32; reset=0; access=ro; offset=8.",
+      "evidence_terms": [
+        "STATUS"
+      ],
+      "id": "RTL-0165",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS",
+      "ssot_context": {
+        "access": "ro",
+        "name": "STATUS",
+        "offset": "8",
+        "reset": "0",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "STATUS"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STATUS"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "registers.field",
+      "content": "Implement field STATUS.count",
+      "criteria": [
+        "Field bit range, mask, and write strobe decode match SSOT",
+        "Field reset/access policy matches SSOT",
+        "Read/write/W1C/W0C/RO behavior is implemented or precisely blocked",
+        "Reserved fields read as the SSOT value and ignore writes",
+        "Field side effects are connected to owning control/status logic",
+        "Traceability keeps source_ref registers.register_list.STATUS.fields.count",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "count reset behavior matches SSOT value 0",
+        "count access policy ro is implemented without read/write shortcuts",
+        "count readback returns implemented RTL state when readable",
+        "count write/clear side effects are connected to owning control/status logic"
+      ],
+      "detail": "Each register field needs access semantics, reset behavior, masks/strobes, clear behavior, and side effects as applicable.\nSSOT ref: registers.register_list.STATUS.fields.count.\nOwner: timer_regs in rtl/timer_regs.sv via registers.register_list.STATUS.\nSSOT item context: name=count; reset=0; access=ro.",
+      "evidence_terms": [
+        "count"
+      ],
+      "id": "RTL-0166",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "registers.register_list.STATUS.fields.count",
+      "ssot_context": {
+        "access": "ro",
+        "name": "count",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "registers.register_list.STATUS.fields.count"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "count"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 11,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "53834821b27363b8d16e5991dc812b9380099860db84ca19bd61cb5db03fa76e",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

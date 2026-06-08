@@ -1,0 +1,28 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-06-08T00:37:30Z",
+  "input_hash": "41e9baa54513277ba513f2b5eb0aa91c500b6224092a1dd1c1545a71ef06c153",
+  "model": "gpt-5.5",
+  "output_hash": "c2af30d9682e08123fa41729e5ef2bbd047d22ffa112a45fa05b508fa402c255",
+  "parsed_artifacts": [
+    {
+      "kind": "rtl",
+      "path": "timer/rtl/timer_regs.sv"
+    },
+    {
+      "kind": "rtl",
+      "path": "timer/rtl/timer_core.sv"
+    },
+    {
+      "kind": "rtl",
+      "path": "timer/rtl/timer.sv"
+    }
+  ],
+  "prompt_hash": "25d8958160e13ad1b1a05d73bb68e9efdb77e8ff73110bf4f865f72628cd6011",
+  "raw_response": "{\"generator\": \"packet_llm\", \"packet_logs\": [\"timer/logs/llm/rtl-gen-packet-00-module__timer_regs__function_model_01.json\", \"timer/logs/llm/rtl-gen-packet-01-module__timer_regs__function_model_02.json\", \"timer/logs/llm/rtl-gen-packet-02-module__timer__equivalence.json\", \"timer/logs/llm/rtl-gen-packet-03-module__timer__integration.json\"], \"reason\": \"packet-mode rtl-gen completed with per-packet LLM artifacts\", \"rtl_files\": [\"rtl/timer_regs.sv\", \"rtl/timer_core.sv\", \"rtl/timer.sv\"], \"status\": \"pass\"}",
+  "stage": "rtl-gen",
+  "started_at": "2026-06-08T00:37:30Z",
+  "status": "pass",
+  "usage": {}
+}

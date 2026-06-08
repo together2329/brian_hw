@@ -1,0 +1,15 @@
+{
+  "ip": "timer",
+  "model": "glm-5.1",
+  "run_mode": "starter",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_conn",
+  "stages": {
+    "ssot-gen": {
+      "status": "error:headless worker in ATLAS_RUNTIME_DB_MODE=session has no resolvable session (ATLAS_ACTIVE_SESSION / ATLAS_SESSION_ID both empty); refusing to write an unroutable session_id='' llm_calls row.",
+      "seconds": 8.5
+    }
+  },
+  "trackers": {
+    "ssot": {}
+  }
+}

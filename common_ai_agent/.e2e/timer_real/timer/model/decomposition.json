@@ -1,0 +1,1505 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "timer",
+  "source": "timer/yaml/timer.ssot.yaml",
+  "units": [
+    {
+      "name": "timer_regs",
+      "kind": "rtl_module",
+      "source_sections": [
+        "error_handling",
+        "function_model",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "timer_regs"
+      ],
+      "rtl_file": "rtl/timer_regs.sv",
+      "ssot_refs": [
+        "error_handling",
+        "function_model",
+        "function_model.invariants",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables",
+        "function_model.state_variables.irq_q",
+        "function_model.transactions.FM_APB_READ_STATUS",
+        "function_model.transactions.FM_APB_UNMAPPED_ACCESS",
+        "function_model.transactions.FM_APB_WRITE_CTRL",
+        "function_model.transactions.FM_APB_WRITE_LOAD",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "function_model.transactions.fm_apb_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.prdata_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.irq_q",
+        "function_model.transactions.fm_apb_read_status.outputs.output_0",
+        "function_model.transactions.fm_apb_read_status.outputs.output_1",
+        "function_model.transactions.fm_apb_read_status.outputs.output_2",
+        "function_model.transactions.fm_apb_read_status.outputs.prdata_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_read_status.state_updates.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access",
+        "function_model.transactions.fm_apb_unmapped_access.error_cases.error_case_0",
+        "function_model.transactions.fm_apb_unmapped_access.inputs.input_0",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_0",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_1",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_unmapped_access.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_unmapped_access.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.inputs.input_0",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_0",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_1",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_2",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load",
+        "function_model.transactions.fm_apb_write_load.inputs.input_0",
+        "function_model.transactions.fm_apb_write_load.output_rules.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.output_rules.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_load.outputs.load_q",
+        "function_model.transactions.fm_apb_write_load.outputs.output_0",
+        "function_model.transactions.fm_apb_write_load.outputs.output_1",
+        "function_model.transactions.fm_apb_write_load.outputs.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_load.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load.state_updates.load_q",
+        "function_model.transactions.fm_disabled_hold",
+        "function_model.transactions.fm_disabled_hold.output_rules.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.count_q",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_q",
+        "function_model.transactions.fm_disabled_hold.outputs.output_0",
+        "function_model.transactions.fm_disabled_hold.preconditions.precondition_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_1",
+        "function_model.transactions.fm_disabled_hold.state_updates.count_q",
+        "function_model.transactions.fm_disabled_hold.state_updates.irq_q",
+        "function_model.transactions.fm_tick_decrement",
+        "function_model.transactions.fm_tick_decrement.output_rules.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.count_q",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_q",
+        "function_model.transactions.fm_tick_decrement.outputs.output_0",
+        "function_model.transactions.fm_tick_decrement.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_decrement.state_updates.count_q",
+        "function_model.transactions.fm_tick_decrement.state_updates.irq_q",
+        "function_model.transactions.fm_tick_reload_irq",
+        "function_model.transactions.fm_tick_reload_irq.output_rules.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.count_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.output_0",
+        "function_model.transactions.fm_tick_reload_irq.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.count_q",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.irq_q",
+        "parameters.addr_width",
+        "parameters.data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.bus",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.CTRL",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.ctrl",
+        "registers.register_list.load",
+        "registers.register_list.status"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.irq_q",
+        "function_model.transactions.fm_apb_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.prdata_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.irq_q",
+        "function_model.transactions.fm_apb_read_status.outputs.output_0",
+        "function_model.transactions.fm_apb_read_status.outputs.output_1",
+        "function_model.transactions.fm_apb_read_status.outputs.output_2",
+        "function_model.transactions.fm_apb_read_status.outputs.prdata_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_read_status.state_updates.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access",
+        "function_model.transactions.fm_apb_unmapped_access.error_cases.error_case_0",
+        "function_model.transactions.fm_apb_unmapped_access.inputs.input_0",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_0",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_1",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_unmapped_access.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_unmapped_access.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.inputs.input_0",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_0",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_1",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_2",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load",
+        "function_model.transactions.fm_apb_write_load.inputs.input_0",
+        "function_model.transactions.fm_apb_write_load.output_rules.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.output_rules.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_load.outputs.load_q",
+        "function_model.transactions.fm_apb_write_load.outputs.output_0",
+        "function_model.transactions.fm_apb_write_load.outputs.output_1",
+        "function_model.transactions.fm_apb_write_load.outputs.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_load.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load.state_updates.load_q",
+        "function_model.transactions.fm_disabled_hold",
+        "function_model.transactions.fm_disabled_hold.output_rules.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.count_q",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_q",
+        "function_model.transactions.fm_disabled_hold.outputs.output_0",
+        "function_model.transactions.fm_disabled_hold.preconditions.precondition_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_1",
+        "function_model.transactions.fm_disabled_hold.state_updates.count_q",
+        "function_model.transactions.fm_disabled_hold.state_updates.irq_q",
+        "function_model.transactions.fm_tick_decrement",
+        "function_model.transactions.fm_tick_decrement.output_rules.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.count_q",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_q",
+        "function_model.transactions.fm_tick_decrement.outputs.output_0",
+        "function_model.transactions.fm_tick_decrement.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_decrement.state_updates.count_q",
+        "function_model.transactions.fm_tick_decrement.state_updates.irq_q",
+        "function_model.transactions.fm_tick_reload_irq",
+        "function_model.transactions.fm_tick_reload_irq.output_rules.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.count_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.output_0",
+        "function_model.transactions.fm_tick_reload_irq.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.count_q",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.irq_q"
+      ],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.addr_width",
+        "parameters.data_width",
+        "registers.config.addr_width",
+        "registers.config.bus",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.ctrl",
+        "registers.register_list.load",
+        "registers.register_list.status"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "timer_core",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "test_requirements"
+      ],
+      "rtl_candidates": [
+        "timer_core"
+      ],
+      "rtl_file": "rtl/timer_core.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.apb_access",
+        "cycle_model.pipeline.disabled_hold",
+        "cycle_model.pipeline.reset_released_idle",
+        "cycle_model.pipeline.tick_decrement",
+        "cycle_model.pipeline.tick_reload_irq",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.count_path",
+        "dataflow.irq_path",
+        "decomposition",
+        "features",
+        "features.disable_hold",
+        "features.enable_controlled_down_counter",
+        "features.periodic_irq_pulse_and_reload",
+        "features.programmable_load_register",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.count_q",
+        "function_model.state_variables.enable_q",
+        "function_model.state_variables.load_q",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "interrupts",
+        "interrupts.sources.TIMER_ZERO",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.state_variables.count_q",
+        "function_model.state_variables.enable_q",
+        "function_model.state_variables.load_q"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline.apb_access",
+        "cycle_model.pipeline.disabled_hold",
+        "cycle_model.pipeline.reset_released_idle",
+        "cycle_model.pipeline.tick_decrement",
+        "cycle_model.pipeline.tick_reload_irq",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.disable_hold",
+        "features.enable_controlled_down_counter",
+        "features.periodic_irq_pulse_and_reload",
+        "features.programmable_load_register"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "timer",
+      "kind": "rtl_module",
+      "source_sections": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "rtl_candidates": [
+        "timer"
+      ],
+      "rtl_file": "rtl/timer.sv",
+      "ssot_refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "timer_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "timer_axi_slv",
+        "timer_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "timer_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "timer_regs",
+        "timer_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "timer_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "timer_core",
+        "timer_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "timer_fsm_model",
+      "kind": "fsm",
+      "source_sections": [
+        "fsm",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "timer_core"
+      ],
+      "verification_impact": [
+        "state transition coverage",
+        "waveform debug"
+      ]
+    },
+    {
+      "name": "timer_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "timer_core",
+        "timer_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "timer_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "timer_security",
+        "timer_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "timer_regs",
+      "kind": "rtl_module",
+      "rtl_module": "timer_regs",
+      "rtl_file": "rtl/timer_regs.sv",
+      "source_sections": [
+        "error_handling",
+        "function_model",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "error_handling",
+        "function_model",
+        "function_model.invariants",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables",
+        "function_model.state_variables.irq_q",
+        "function_model.transactions.FM_APB_READ_STATUS",
+        "function_model.transactions.FM_APB_UNMAPPED_ACCESS",
+        "function_model.transactions.FM_APB_WRITE_CTRL",
+        "function_model.transactions.FM_APB_WRITE_LOAD",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "function_model.transactions.fm_apb_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.prdata_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.irq_q",
+        "function_model.transactions.fm_apb_read_status.outputs.output_0",
+        "function_model.transactions.fm_apb_read_status.outputs.output_1",
+        "function_model.transactions.fm_apb_read_status.outputs.output_2",
+        "function_model.transactions.fm_apb_read_status.outputs.prdata_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_read_status.state_updates.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access",
+        "function_model.transactions.fm_apb_unmapped_access.error_cases.error_case_0",
+        "function_model.transactions.fm_apb_unmapped_access.inputs.input_0",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_0",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_1",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_unmapped_access.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_unmapped_access.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.inputs.input_0",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_0",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_1",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_2",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load",
+        "function_model.transactions.fm_apb_write_load.inputs.input_0",
+        "function_model.transactions.fm_apb_write_load.output_rules.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.output_rules.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_load.outputs.load_q",
+        "function_model.transactions.fm_apb_write_load.outputs.output_0",
+        "function_model.transactions.fm_apb_write_load.outputs.output_1",
+        "function_model.transactions.fm_apb_write_load.outputs.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_load.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load.state_updates.load_q",
+        "function_model.transactions.fm_disabled_hold",
+        "function_model.transactions.fm_disabled_hold.output_rules.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.count_q",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_q",
+        "function_model.transactions.fm_disabled_hold.outputs.output_0",
+        "function_model.transactions.fm_disabled_hold.preconditions.precondition_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_1",
+        "function_model.transactions.fm_disabled_hold.state_updates.count_q",
+        "function_model.transactions.fm_disabled_hold.state_updates.irq_q",
+        "function_model.transactions.fm_tick_decrement",
+        "function_model.transactions.fm_tick_decrement.output_rules.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.count_q",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_q",
+        "function_model.transactions.fm_tick_decrement.outputs.output_0",
+        "function_model.transactions.fm_tick_decrement.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_decrement.state_updates.count_q",
+        "function_model.transactions.fm_tick_decrement.state_updates.irq_q",
+        "function_model.transactions.fm_tick_reload_irq",
+        "function_model.transactions.fm_tick_reload_irq.output_rules.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.count_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.output_0",
+        "function_model.transactions.fm_tick_reload_irq.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.count_q",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.irq_q",
+        "parameters.addr_width",
+        "parameters.data_width",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.bus",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list",
+        "registers.register_list.CTRL",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS",
+        "registers.register_list.ctrl",
+        "registers.register_list.load",
+        "registers.register_list.status"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.invariants.invariant_3",
+        "function_model.invariants.invariant_4",
+        "function_model.state_variables.irq_q",
+        "function_model.transactions.fm_apb_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.prdata_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.output_rules.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.irq_q",
+        "function_model.transactions.fm_apb_read_status.outputs.output_0",
+        "function_model.transactions.fm_apb_read_status.outputs.output_1",
+        "function_model.transactions.fm_apb_read_status.outputs.output_2",
+        "function_model.transactions.fm_apb_read_status.outputs.prdata_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pready_read_status",
+        "function_model.transactions.fm_apb_read_status.outputs.pslverr_read_status",
+        "function_model.transactions.fm_apb_read_status.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_read_status.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_read_status.state_updates.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access",
+        "function_model.transactions.fm_apb_unmapped_access.error_cases.error_case_0",
+        "function_model.transactions.fm_apb_unmapped_access.inputs.input_0",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.output_rules.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.irq_q",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_0",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.output_1",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pready_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.outputs.pslverr_unmapped",
+        "function_model.transactions.fm_apb_unmapped_access.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_unmapped_access.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_unmapped_access.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.inputs.input_0",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.output_rules.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_0",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.output_1",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pready_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.outputs.pslverr_write_ctrl",
+        "function_model.transactions.fm_apb_write_ctrl.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_2",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.enable_q",
+        "function_model.transactions.fm_apb_write_ctrl.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load",
+        "function_model.transactions.fm_apb_write_load.inputs.input_0",
+        "function_model.transactions.fm_apb_write_load.output_rules.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.output_rules.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.irq_q",
+        "function_model.transactions.fm_apb_write_load.outputs.load_q",
+        "function_model.transactions.fm_apb_write_load.outputs.output_0",
+        "function_model.transactions.fm_apb_write_load.outputs.output_1",
+        "function_model.transactions.fm_apb_write_load.outputs.pready_write_load",
+        "function_model.transactions.fm_apb_write_load.outputs.pslverr_write_load",
+        "function_model.transactions.fm_apb_write_load.preconditions.precondition_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_0",
+        "function_model.transactions.fm_apb_write_load.side_effects.side_effect_1",
+        "function_model.transactions.fm_apb_write_load.state_updates.irq_q",
+        "function_model.transactions.fm_apb_write_load.state_updates.load_q",
+        "function_model.transactions.fm_disabled_hold",
+        "function_model.transactions.fm_disabled_hold.output_rules.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.count_q",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_disabled",
+        "function_model.transactions.fm_disabled_hold.outputs.irq_q",
+        "function_model.transactions.fm_disabled_hold.outputs.output_0",
+        "function_model.transactions.fm_disabled_hold.preconditions.precondition_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_0",
+        "function_model.transactions.fm_disabled_hold.side_effects.side_effect_1",
+        "function_model.transactions.fm_disabled_hold.state_updates.count_q",
+        "function_model.transactions.fm_disabled_hold.state_updates.irq_q",
+        "function_model.transactions.fm_tick_decrement",
+        "function_model.transactions.fm_tick_decrement.output_rules.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.count_q",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_decrement",
+        "function_model.transactions.fm_tick_decrement.outputs.irq_q",
+        "function_model.transactions.fm_tick_decrement.outputs.output_0",
+        "function_model.transactions.fm_tick_decrement.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_decrement.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_decrement.state_updates.count_q",
+        "function_model.transactions.fm_tick_decrement.state_updates.irq_q",
+        "function_model.transactions.fm_tick_reload_irq",
+        "function_model.transactions.fm_tick_reload_irq.output_rules.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.count_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_q",
+        "function_model.transactions.fm_tick_reload_irq.outputs.irq_reload",
+        "function_model.transactions.fm_tick_reload_irq.outputs.output_0",
+        "function_model.transactions.fm_tick_reload_irq.preconditions.precondition_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_0",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_1",
+        "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_2",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.count_q",
+        "function_model.transactions.fm_tick_reload_irq.state_updates.irq_q"
+      ],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "parameters.addr_width",
+        "parameters.data_width",
+        "registers.config.addr_width",
+        "registers.config.bus",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list.ctrl",
+        "registers.register_list.load",
+        "registers.register_list.status"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.irq_q",
+          "matched_ref": "function_model.state_variables"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.outputs.pready_write_load",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.outputs.pslverr_write_load",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.outputs.load_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.output_rules.pready_write_load",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.output_rules.pslverr_write_load",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.state_updates.load_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_load.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_LOAD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.outputs.pready_write_ctrl",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.outputs.pslverr_write_ctrl",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.outputs.enable_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.output_rules.pready_write_ctrl",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.output_rules.pslverr_write_ctrl",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.state_updates.enable_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_write_ctrl.side_effects.side_effect_2",
+          "matched_ref": "function_model.transactions.FM_APB_WRITE_CTRL"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.output_2",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.prdata_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.pready_read_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.pslverr_read_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.output_rules.prdata_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.output_rules.pready_read_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.output_rules.pslverr_read_status",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_read_status.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.FM_APB_READ_STATUS"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.outputs.irq_decrement",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.outputs.count_q",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.output_rules.irq_decrement",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.state_updates.count_q",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_decrement.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.FM_TICK_DECREMENT"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.outputs.irq_reload",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.outputs.count_q",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.output_rules.irq_reload",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.state_updates.count_q",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_tick_reload_irq.side_effects.side_effect_2",
+          "matched_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.outputs.irq_disabled",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.outputs.count_q",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.output_rules.irq_disabled",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.state_updates.count_q",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_disabled_hold.side_effects.side_effect_1",
+          "matched_ref": "function_model.transactions.FM_DISABLED_HOLD"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.preconditions.precondition_0",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.inputs.input_0",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.outputs.output_0",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.outputs.output_1",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.outputs.pready_unmapped",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.outputs.pslverr_unmapped",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.outputs.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.output_rules.pready_unmapped",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.output_rules.pslverr_unmapped",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.state_updates.irq_q",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.side_effects.side_effect_0",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.transactions.fm_apb_unmapped_access.error_cases.error_case_0",
+          "matched_ref": "function_model.transactions.FM_APB_UNMAPPED_ACCESS"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_3",
+          "matched_ref": "function_model.invariants"
+        },
+        {
+          "ref": "function_model.invariants.invariant_4",
+          "matched_ref": "function_model.invariants"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.data_width",
+          "matched_ref": "semantic_terms:load,regs,status,timer_regs"
+        },
+        {
+          "ref": "parameters.addr_width",
+          "matched_ref": "semantic_terms:apb,regs,timer_regs"
+        },
+        {
+          "ref": "registers.register_list.load",
+          "matched_ref": "registers.register_list.LOAD"
+        },
+        {
+          "ref": "registers.register_list.ctrl",
+          "matched_ref": "registers.register_list.CTRL"
+        },
+        {
+          "ref": "registers.register_list.status",
+          "matched_ref": "registers.register_list.STATUS"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "registers"
+        },
+        {
+          "ref": "registers.config.bus",
+          "matched_ref": "registers"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "timer_core",
+      "kind": "rtl_module",
+      "rtl_module": "timer_core",
+      "rtl_file": "rtl/timer_core.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "fsm",
+        "function_model",
+        "interrupts",
+        "test_requirements"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules",
+        "cycle_model.handshake_rules.irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.apb_access",
+        "cycle_model.pipeline.disabled_hold",
+        "cycle_model.pipeline.reset_released_idle",
+        "cycle_model.pipeline.tick_decrement",
+        "cycle_model.pipeline.tick_reload_irq",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.count_path",
+        "dataflow.irq_path",
+        "decomposition",
+        "features",
+        "features.disable_hold",
+        "features.enable_controlled_down_counter",
+        "features.periodic_irq_pulse_and_reload",
+        "features.programmable_load_register",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.count_q",
+        "function_model.state_variables.enable_q",
+        "function_model.state_variables.load_q",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "interrupts",
+        "interrupts.sources.TIMER_ZERO",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.state_variables.count_q",
+        "function_model.state_variables.enable_q",
+        "function_model.state_variables.load_q"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.irq",
+        "cycle_model.handshake_rules.prdata",
+        "cycle_model.handshake_rules.pready",
+        "cycle_model.handshake_rules.pslverr",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.ordering.ordering_3",
+        "cycle_model.ordering.ordering_4",
+        "cycle_model.pipeline.apb_access",
+        "cycle_model.pipeline.disabled_hold",
+        "cycle_model.pipeline.reset_released_idle",
+        "cycle_model.pipeline.tick_decrement",
+        "cycle_model.pipeline.tick_reload_irq",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.disable_hold",
+        "features.enable_controlled_down_counter",
+        "features.periodic_irq_pulse_and_reload",
+        "features.programmable_load_register"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.load_q",
+          "matched_ref": "function_model.state_variables.load_q"
+        },
+        {
+          "ref": "function_model.state_variables.enable_q",
+          "matched_ref": "function_model.state_variables.enable_q"
+        },
+        {
+          "ref": "function_model.state_variables.count_q",
+          "matched_ref": "function_model.state_variables.count_q"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pready",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.pslverr",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.prdata",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.irq",
+          "matched_ref": "cycle_model.handshake_rules"
+        },
+        {
+          "ref": "cycle_model.pipeline.reset_released_idle",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.apb_access",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.tick_decrement",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.tick_reload_irq",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.pipeline.disabled_hold",
+          "matched_ref": "cycle_model.pipeline"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_3",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_4",
+          "matched_ref": "cycle_model.ordering"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "cycle_model"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "cycle_model"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "features.programmable_load_register",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.enable_controlled_down_counter",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.periodic_irq_pulse_and_reload",
+          "matched_ref": "features"
+        },
+        {
+          "ref": "features.disable_hold",
+          "matched_ref": "features"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "timer",
+      "kind": "rtl_module",
+      "rtl_module": "timer",
+      "rtl_file": "rtl/timer.sv",
+      "source_sections": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "ssot_refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "function_model_refs": [],
+      "cycle_model_refs": [],
+      "structural_refs": [
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "owner_matches": [],
+      "structural_owner_matches": [],
+      "verification_scope": "module",
+      "requires_module_equivalence": false,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 121,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "timer/req/",
+      "timer/yaml/timer.ssot.yaml",
+      "timer/model/functional_model.py",
+      "timer/cov/fcov_plan.json",
+      "timer/yaml/timer.ssot.yaml#io_list",
+      "timer/yaml/timer.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "timer/rtl/",
+      "timer/tb/",
+      "timer/sim/",
+      "timer/vectors/",
+      "timer/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

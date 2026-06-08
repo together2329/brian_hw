@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-06-07T15:38:41Z",
+  "functional": {
+    "hit": 22,
+    "total": 22,
+    "pct": 100.0,
+    "bins": {
+      "SC06_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC06",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC06"
+      },
+      "function_primary_behavior": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_PRIMARY"
+      },
+      "SC01_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC01",
+        "scenario_id": "SC_002_EQ_SCENARIO_SC01"
+      },
+      "SC02_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC02",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC02"
+      },
+      "SC03_executed": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+        "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE"
+      },
+      "SC04_executed": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_011_EQ_ERROR_NONE"
+      },
+      "SC05_executed": {
+        "hit": true,
+        "goal_id": "EQ_DEBUG_OBSERVABILITY",
+        "scenario_id": "SC_014_EQ_DEBUG_OBSERVABILITY"
+      },
+      "cycle_valid_sample": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+        "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE"
+      },
+      "error_error_0": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_011_EQ_ERROR_NONE"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_pipeline_s0_sample": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+      },
+      "cycle_pipeline_s1_result": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+      },
+      "fsm_control_s0_sample_to_s1_result_0": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+      },
+      "fsm_control_s1_result_to_s0_sample_1": {
+        "hit": true,
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+      },
+      "fcov_rule_double": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_FCOV_RULE_DOUBLE",
+        "scenario_id": "SC_016_EQ_COVERAGE_FCOV_RULE_DOUBLE"
+      },
+      "ccov_sample_result_pipeline": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE",
+        "scenario_id": "SC_017_EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+      },
+      "cycle_perf_depth": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+      }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Prepare tb-gen for timer using timer/verify/equivalence_goals.json, timer/model/functional_model.py, and timer/rtl/rtl_contract.json. Do not duplicate expected behavior by hand; scoreboard must call FunctionalModel.

@@ -1,0 +1,24 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-06-07T15:37:45Z",
+  "input_hash": "7c2b6c03da9e41d6453212953f1aeaf9388cd77e54ffe7db71136690016ecf3b",
+  "model": "glm-5.1",
+  "output_hash": "288c6b3093f5e75b4ed6a2168d004120fb26c12541abe3a66fe7364e30f908a2",
+  "parsed_artifacts": [
+    {
+      "kind": "rtl",
+      "path": "timer/rtl/timer.sv"
+    },
+    {
+      "kind": "rtl",
+      "path": "timer/rtl/timer_core.sv"
+    }
+  ],
+  "prompt_hash": "25d8958160e13ad1b1a05d73bb68e9efdb77e8ff73110bf4f865f72628cd6011",
+  "raw_response": "{\"generator\": \"packet_llm\", \"packet_logs\": [\"timer/logs/llm/rtl-gen-packet-00-rtl_gate_evidence_closure.json\"], \"reason\": \"packet-mode rtl-gen completed with per-packet LLM artifacts\", \"rtl_files\": [\"rtl/timer.sv\", \"rtl/timer_core.sv\"], \"status\": \"pass\"}",
+  "stage": "rtl-gen",
+  "started_at": "2026-06-07T15:37:45Z",
+  "status": "pass",
+  "usage": {}
+}

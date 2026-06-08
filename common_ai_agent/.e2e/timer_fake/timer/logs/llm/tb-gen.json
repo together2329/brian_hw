@@ -1,0 +1,15 @@
+{
+  "error": "",
+  "finish_reason": "",
+  "finished_at": "2026-06-07T15:37:45Z",
+  "input_hash": "acfe65f8eff34ab24a898766c00e27d0cbefaa679d81dcf0cba3e1adba80ee41",
+  "model": "glm-5.1",
+  "output_hash": "495dedb3b7378b5040c169c8081b6563221716e1cb2808f61e1c9df5a053e545",
+  "parsed_artifacts": [],
+  "prompt_hash": "a27bb8fb558540580fa9162e22962f4b51c8aeb87e2c49513cbe5496e40e397a",
+  "raw_response": "{\n  \"ack\": \"tb-gen\",\n  \"status\": \"ready\"\n}",
+  "stage": "tb-gen",
+  "started_at": "2026-06-07T15:37:45Z",
+  "status": "pass",
+  "usage": {}
+}

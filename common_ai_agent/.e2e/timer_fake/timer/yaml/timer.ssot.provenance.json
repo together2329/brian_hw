@@ -1,0 +1,6834 @@
+{
+  "schema_version": "ssot_provenance.v1",
+  "ip": "timer",
+  "run_mode": "starter",
+  "ssot": "timer/yaml/timer.ssot.yaml",
+  "fields": [
+    {
+      "path": "cdc_requirements",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cdc_requirements.crossings",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cdc_requirements.rationale",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains.domains",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains.domains[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains.domains[0].clock",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains.domains[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains.domains[0].reset",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "clock_reset_domains.domains[0].reset_active",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "coding_rules",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "coding_rules.conventions",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "coding_rules.conventions[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "coding_rules.conventions[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "coding_rules.lint_waivers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "coding_rules.verilog_style",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "custom",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "custom.assumptions",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "custom.assumptions[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.backend_policy",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.backpressure",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.backpressure[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.clock",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.executable",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.handshake_rules",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.handshake_rules[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.handshake_rules[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.handshake_rules[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.latency",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.ordering",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.ordering[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.ordering[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.depth",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.depth.description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.depth.pipeline_stages",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.depth.queue_depth",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.frequency_mhz",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.outstanding",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.outstanding.description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.outstanding.max",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.throughput",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.throughput.condition",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.performance.throughput.sustained_beats_per_cycle",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[0].action",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[0].cycle",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[0].stage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[1].action",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[1].cycle",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.pipeline[1].stage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "cycle_model.reset",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow.ordering",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow.ordering[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow.sequence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow.sequence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow.sequence[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dataflow.sequence[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.status_outputs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.status_outputs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events[0].trigger",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events[1].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.trace_events[1].trigger",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[4]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[5]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[6]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "debug_observability.waveform_must_probe[7]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "decomposition",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.integration_policy",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].file",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].module",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].responsibility",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].source_sections",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].source_sections[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].source_sections[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].source_sections[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[0].source_sections[3]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].file",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].module",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].responsibility",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections[3]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections[4]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.owners[1].source_sections[5]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.source_refs",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.source_refs[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.source_refs[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.source_refs[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.source_refs[3]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "decomposition.strategy",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "dft",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.controllability",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.controllability.clock",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.controllability.inputs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.controllability.inputs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.controllability.inputs[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.controllability.reset",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.mbist_required",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.observability",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.observability.outputs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.observability.outputs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.observability.outputs[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.observability.outputs[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dft.scan_required",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure.cov_dir",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure.lint_dir",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure.rtl_dir",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure.sim_dir",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure.tb_dir",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "dir_structure.yaml_dir",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.error_sources",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.error_sources[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.error_sources[0].architectural_effect",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.error_sources[0].condition",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.error_sources[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.propagation",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.propagation[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.recovery",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.recovery[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.recovery[0].action",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.recovery[0].clears",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.recovery[0].clears[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "error_handling.recovery[0].clears[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "features",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "features[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "features[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "features[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "features[0].requirement_trace",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.headers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.headers[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.rtl",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.rtl[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.rtl[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.sim",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.sim[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.sim[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.tb",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "filelist.tb[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.reset_state",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.states",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.states[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.states[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[0].action",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[0].condition",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[0].from",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[0].to",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[1].action",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[1].condition",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[1].from",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "fsm.control.transitions[1].to",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.invariants",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.invariants[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.invariants[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.invariants[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.reference_model_hint",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.state_variables",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.state_variables[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.state_variables[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.state_variables[0].reset",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.state_variables[0].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].output_rules",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].output_rules[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].output_rules[0].expr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].output_rules[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].output_rules[0].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].output_rules[0].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].outputs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].outputs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].outputs[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "function_model.transactions[0].outputs[1].description",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "function_model.transactions[0].outputs[1].expr",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "function_model.transactions[0].outputs[1].state",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "function_model.transactions[0].preconditions",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].preconditions[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].preconditions[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].required_fields",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].required_fields[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].side_effects",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].side_effects[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].state_updates",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].state_updates[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].state_updates[0].expr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].state_updates[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "function_model.transactions[0].state_updates[0].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[0].command",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[1].command",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[1].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[1].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[2].command",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[2].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[2].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[3].command",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[3].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[3].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "generation_flow.steps[4]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[4].command",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[4].description",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[4].name",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[5]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[5].command",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[5].description",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "generation_flow.steps[5].name",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "integration",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.bus_attachment",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.bus_attachment.interfaces",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.bus_attachment.interfaces[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.bus_attachment.type",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connection_contract_status",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[0].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[0].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[0].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[1].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[1].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[1].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[2].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[2].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[2].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[3].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[3].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[3].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[4]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[4].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[4].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[4].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[5]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[5].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[5].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[5].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[6]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[6].module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[6].port",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.connections[6].signal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.dependencies",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.dependencies.external_clocks",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.dependencies.external_clocks[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.dependencies.external_modules",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.dependencies.external_resets",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.dependencies.external_resets[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.integration_notes",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "integration.integration_notes[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "interrupts",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "interrupts.outputs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "interrupts.rationale",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "interrupts.sources",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0].ports",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0].ports[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0].ports[0].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0].ports[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.clock_domains[0].ports[0].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].clock_domain",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[0].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[0].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[1].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[1].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[1].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[1].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[2].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[2].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[2].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[2].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].allow_constant",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].constant_value",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].tieoff",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[3].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[4]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[4].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[4].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[4].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].ports[4].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].protocol",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].protocol.acceptance",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].protocol.response",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].protocol.stability",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].reset_domain",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].role",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.interfaces[0].type",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].active",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].ports",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].ports[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].ports[0].direction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].ports[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "io_list.resets[0].ports[0].width",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "memory",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "memory.instances",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "memory.rationale",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[0].default",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[0].type",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[1].default",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[1].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[1].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "parameters[1].type",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.aspect_ratio",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.core_space_um",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.cts_buf_list",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.cts_buf_list[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.cts_buf_list[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.global_density",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.io_layers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.io_layers.horizontal",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.io_layers.vertical",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.routing",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.routing.drc_waivers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.routing.signal_layers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.routing.signal_layers.max",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.routing.signal_layers.min",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "pnr.utilization_pct",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.clock_gating",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.clock_gating.rationale",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.clock_gating.required",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.domains",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.domains[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.domains[0].clock_domains",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.domains[0].clock_domains[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.domains[0].isolation",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.domains[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.power_states",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.power_states[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.power_states[0].entry",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.power_states[0].exit",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.power_states[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "power.upf_required",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.coverage.evidence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.coverage.evidence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.coverage.pass",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.dv",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.dv.evidence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.dv.evidence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.dv.evidence[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.dv.pass",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.eda",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.eda.evidence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.eda.evidence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.eda.pass",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.rtl",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.rtl.evidence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.rtl.evidence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.rtl.evidence[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.rtl.pass",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.rtl_gen",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.evidence",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.evidence[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.evidence[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.evidence[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.evidence[3]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.evidence[4]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.pass",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.rtl_gen.profile",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter"
+      ],
+      "review_needed_for": "signoff",
+      "signoff_critical": true,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "quality_gates.signoff",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.signoff.evidence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.signoff.evidence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.signoff.pass",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.ssot",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.ssot.evidence",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.ssot.evidence[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "quality_gates.ssot.pass",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rdc_requirements",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rdc_requirements.crossings",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rdc_requirements.rationale",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.architectural_state",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.architectural_state[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.architectural_state[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.architectural_state[0].reset",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.architectural_state[0].source",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.no_registers",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.policy",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "registers.register_list",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "reuse_modules",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.clock",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.contract_invariants",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.contract_invariants[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.contract_invariants[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.input_map",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.input_map.data_in",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.input_map.value",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.output_map",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.output_map.ready",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.output_map.result",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.output_map.result_valid",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.output_map.valid",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.output_rules",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_rules[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_rules[0].description",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_rules[0].expr",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_rules[0].name",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_rules[0].port",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_rules[0].width",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.output_valid",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.owner",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "rtl_contract.ready_output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.reset",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.reset_active",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.sample_condition",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.transaction",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "rtl_contract.type",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "security",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.assets",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.assets[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.assets[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.assets[0].protection",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.classification",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.privilege_model",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.threat_model",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.threat_model[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.threat_model[0].mitigation",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "security.threat_model[0].threat",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].dataflow_refs",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].dataflow_refs[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].decomposition_refs",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].decomposition_refs[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].file",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].implements",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].implements[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].implements[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].implements[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].ownership",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].source_sections",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].source_sections[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].source_sections[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[0].source_sections[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].source_sections[3]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].ssot_gen",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[0].wiring_only",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].cycle_model_refs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].cycle_model_refs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].cycle_model_refs[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].dataflow_refs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].dataflow_refs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].dataflow_refs[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].dataflow_refs[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].decomposition_refs",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].decomposition_refs[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].feature_refs",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].feature_refs[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].file",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].fsm_refs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].fsm_refs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].fsm_refs[1]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].function_model_refs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].function_model_refs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].function_model_refs[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].function_model_refs[2]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].implements",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].implements[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].implements[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].implements[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].ownership",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].register_refs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].register_refs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[4]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[5]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "sub_modules[1].source_sections[6]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].source_sections[7]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].source_sections[8]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].test_refs",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "sub_modules[1].test_refs[0]",
+      "authority": "generated_default",
+      "mode_allowed": [
+        "starter",
+        "engineering"
+      ],
+      "review_needed_for": "",
+      "signoff_critical": false,
+      "source": "repair_ssot_schema"
+    },
+    {
+      "path": "synthesis",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.constraints",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.constraints[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.constraints[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.corner",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.corner.name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.corner.process",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.corner.temperature_c",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.corner.voltage_v",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.dialect",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.liberty_env_var",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.library_policy",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.ppa_targets",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.ppa_targets.area_um2_max",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.ppa_targets.frequency_mhz_min",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.ppa_targets.power_mw_max",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.required_outputs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.required_outputs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.required_outputs[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.required_outputs[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.target_library",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.target_technology",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.tool_flow",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "synthesis.top_module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.bins",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.bins[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.bins[0].class",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.bins[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.bins[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.bins[0].source_ref",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.model",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.cycle.target_pct",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.bins",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.bins[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.bins[0].class",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.bins[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.bins[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.bins[0].source_ref",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.model",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.function.target_pct",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.functional",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins[0].class",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins[0].coverage_domain",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins[0].description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.planned_bins[0].source_ref",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.coverage_goals.scenario",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].checker",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].coverage[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].expected",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[0].stimulus",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].checker",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].coverage[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].coverage[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].expected",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[1].stimulus",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].checker",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].coverage[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].coverage[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].expected",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[2].stimulus",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].checker",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].coverage[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].expected",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[3].stimulus",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].checker",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].coverage[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].expected",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[4].stimulus",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].checker",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].coverage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].coverage[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].expected",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scenarios[5].stimulus",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "test_requirements.scoreboard_checks",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.latency_budget",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.latency_budget.accepted_to_result_valid",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.latency_budget.accepted_to_result_valid.max",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.latency_budget.accepted_to_result_valid.min",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.latency_budget.accepted_to_result_valid.unit",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.sta_expectations",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.sta_expectations.hold_wns_ns_min",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.sta_expectations.required_reports",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.sta_expectations.required_reports[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.sta_expectations.required_reports[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.sta_expectations.setup_wns_ns_min",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.target_clocks",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.target_clocks[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.target_clocks[0].frequency_mhz",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.target_clocks[0].name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "timing.target_clocks[0].period_ns",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.description",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.file",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.name",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.reference_spec",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.target",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.target.area_um2",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.target.clock_freq_mhz",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.target.power_mw",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.target.technology",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.type",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "top_module.version",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.llm_stage",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.requirements",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.requirements[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[0].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[0].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[1].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[1].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[2].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[2].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[3]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[3].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[3].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[4]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[4].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[4].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[5]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[5].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[5].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[6]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[6].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[6].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[7]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[7].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[7].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[8]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[8].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[8].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[9]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[9].output",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "traceability.yaml_to_output[9].yaml",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].content",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].criteria",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].criteria[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].criteria[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].criteria[2]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].detail",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].id",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].owner_file",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].owner_module",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].priority",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].required",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].source_refs",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].source_refs[0]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.rtl-gen[0].source_refs[1]",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.sim_debug",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    },
+    {
+      "path": "workflow_todos.tb-gen",
+      "authority": "user",
+      "mode_allowed": [
+        "starter",
+        "engineering",
+        "signoff"
+      ]
+    }
+  ]
+}

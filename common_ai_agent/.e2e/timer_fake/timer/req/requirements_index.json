@@ -1,0 +1,1 @@
+{"schema_version": 1, "type": "requirements_index", "ip": "timer", "requirements": [{"requirement_id": "REQ_TIMER_COUNT_001", "title": "Down-counter with reload", "statement": "The timer counts down from the loaded value and reloads on expiry.", "obligation_refs": ["OBL_TIMER_COUNT_001", "OBL_TIMER_IRQ_001", "OBL_TIMER_LINT_001"]}]}

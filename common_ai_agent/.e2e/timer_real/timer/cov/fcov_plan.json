@@ -1,0 +1,547 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "timer",
+  "source": "timer/yaml/timer.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "timer/req/",
+      "timer/yaml/timer.ssot.yaml",
+      "timer/model/functional_model.py",
+      "timer/cov/fcov_plan.json",
+      "timer/yaml/timer.ssot.yaml#io_list",
+      "timer/yaml/timer.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "timer/rtl/",
+      "timer/tb/",
+      "timer/sim/",
+      "timer/vectors/",
+      "timer/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM_APB_WRITE_LOAD"
+    },
+    {
+      "id": "SC07_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[6]",
+      "scenario": "SC07",
+      "description": "function_model transaction FM_APB_WRITE_CTRL"
+    },
+    {
+      "id": "SC08_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[7]",
+      "scenario": "SC08",
+      "description": "function_model transaction FM_APB_READ_STATUS"
+    },
+    {
+      "id": "SC09_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[8]",
+      "scenario": "SC09",
+      "description": "function_model transaction FM_TICK_DECREMENT"
+    },
+    {
+      "id": "SC10_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[9]",
+      "scenario": "SC10",
+      "description": "function_model transaction FM_TICK_RELOAD_IRQ"
+    },
+    {
+      "id": "SC11_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[10]",
+      "scenario": "SC11",
+      "description": "function_model transaction FM_DISABLED_HOLD"
+    },
+    {
+      "id": "SC12_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[11]",
+      "scenario": "SC12",
+      "description": "function_model transaction FM_APB_UNMAPPED_ACCESS"
+    },
+    {
+      "id": "fcov_write_load",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_WRITE_LOAD",
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD",
+      "description": "LOAD register write accepted."
+    },
+    {
+      "id": "fcov_write_ctrl",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_WRITE_CTRL",
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL",
+      "description": "CTRL.ENABLE write accepted for both 0 and 1 values."
+    },
+    {
+      "id": "fcov_status_read",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_APB_READ_STATUS",
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS",
+      "description": "STATUS read compared against count_q."
+    },
+    {
+      "id": "fcov_decrement",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TICK_DECREMENT",
+      "source_ref": "function_model.transactions.FM_TICK_DECREMENT",
+      "description": "Enabled nonzero decrement observed."
+    },
+    {
+      "id": "fcov_reload_irq",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TICK_RELOAD_IRQ",
+      "source_ref": "function_model.transactions.FM_TICK_RELOAD_IRQ",
+      "description": "Zero reload and irq pulse observed."
+    },
+    {
+      "id": "fcov_disabled_hold",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_DISABLED_HOLD",
+      "source_ref": "function_model.transactions.FM_DISABLED_HOLD",
+      "description": "Disabled hold observed."
+    },
+    {
+      "id": "ccov_apb_access",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.APB_ACCESS",
+      "source_ref": "cycle_model.pipeline.APB_ACCESS",
+      "description": "APB access phase ready/error/read behavior observed."
+    },
+    {
+      "id": "ccov_tick_decrement",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.TICK_DECREMENT",
+      "source_ref": "cycle_model.pipeline.TICK_DECREMENT",
+      "description": "Decrement cycle observed."
+    },
+    {
+      "id": "ccov_tick_reload_irq",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline.TICK_RELOAD_IRQ",
+      "source_ref": "cycle_model.pipeline.TICK_RELOAD_IRQ",
+      "description": "Reload irq pulse cycle observed."
+    },
+    {
+      "id": "ccov_irq_one_cycle",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.irq_pulse",
+      "source_ref": "cycle_model.latency.irq_pulse",
+      "description": "irq pulse width is exactly one cycle."
+    },
+    {
+      "id": "function_write_load_register",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_apb_write_load",
+      "description": "FM_APB_WRITE_LOAD write_load_register"
+    },
+    {
+      "id": "function_write_ctrl_enable",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_apb_write_ctrl",
+      "description": "FM_APB_WRITE_CTRL write_ctrl_enable"
+    },
+    {
+      "id": "function_read_status_current_count",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_apb_read_status",
+      "description": "FM_APB_READ_STATUS read_status_current_count"
+    },
+    {
+      "id": "function_enabled_decrement_nonzero",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[3]",
+      "source_ref": "function_model.transactions.fm_tick_decrement",
+      "description": "FM_TICK_DECREMENT enabled_decrement_nonzero"
+    },
+    {
+      "id": "function_enabled_zero_reload_and_irq_pulse",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[4]",
+      "source_ref": "function_model.transactions.fm_tick_reload_irq",
+      "description": "FM_TICK_RELOAD_IRQ enabled_zero_reload_and_irq_pulse"
+    },
+    {
+      "id": "function_disabled_hold_count",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[5]",
+      "source_ref": "function_model.transactions.fm_disabled_hold",
+      "description": "FM_DISABLED_HOLD disabled_hold_count"
+    },
+    {
+      "id": "function_unmapped_apb_access_error",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[6]",
+      "source_ref": "function_model.transactions.fm_apb_unmapped_access",
+      "description": "FM_APB_UNMAPPED_ACCESS unmapped_apb_access_error"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'pready', 'rule': 'pready is asserted for an APB access when psel == 1 and penable == 1.', 'expr': 'psel == 1 and penable == 1'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'pslverr', 'rule': 'pslverr is asserted only for accepted APB accesses with paddr not equal to LOAD, CTRL, or STATUS offsets.', 'expr': 'psel == 1 and penable == 1 and (paddr != 0 and paddr != 4 and paddr != 8)'}"
+    },
+    {
+      "id": "cycle_handshake_2",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'signal': 'prdata', 'rule': 'STATUS read returns current count_q during accepted read access.', 'expr': 'psel == 1 and penable == 1 and pwrite == 0 and paddr == 8'}"
+    },
+    {
+      "id": "cycle_handshake_3",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[3]",
+      "source_ref": "cycle_model.handshake_rules[3]",
+      "description": "{'signal': 'irq', 'rule': 'irq is high for exactly the reload cycle when enable_q == 1 and count_q == 0.', 'expr': 'enable_q == 1 and count_q == 0'}"
+    },
+    {
+      "id": "cycle_latency_register_read",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_read",
+      "source_ref": "cycle_model.latency.register_read",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'Read data and pready are produced during the APB access phase.'}"
+    },
+    {
+      "id": "cycle_latency_register_write",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.register_write",
+      "source_ref": "cycle_model.latency.register_write",
+      "description": "{'min_cycles': 0, 'max_cycles': 1, 'description': 'Writes update architectural register state on the accepted APB access edge.'}"
+    },
+    {
+      "id": "cycle_latency_timer_tick",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.timer_tick",
+      "source_ref": "cycle_model.latency.timer_tick",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'While enabled, one decrement or reload decision occurs per pclk cycle not occupied by reset.'}"
+    },
+    {
+      "id": "cycle_latency_irq_pulse",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.irq_pulse",
+      "source_ref": "cycle_model.latency.irq_pulse",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'irq remains asserted for exactly one pclk cycle at zero reload event.'}"
+    },
+    {
+      "id": "cycle_pipeline_reset_released_idle",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "After reset deassertion, hold count_q=0, enable_q=0, irq=0 until APB write or enable tick."
+    },
+    {
+      "id": "cycle_pipeline_apb_access",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Decode LOAD, CTRL, STATUS, or unmapped address during APB access phase."
+    },
+    {
+      "id": "cycle_pipeline_tick_decrement",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "If enabled and count_q is nonzero, decrement count_q by one and keep irq low."
+    },
+    {
+      "id": "cycle_pipeline_tick_reload_irq",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[3]",
+      "source_ref": "cycle_model.pipeline[3]",
+      "description": "If enabled and count_q is zero, assert irq for this cycle and reload count_q from LOAD."
+    },
+    {
+      "id": "cycle_pipeline_disabled_hold",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[4]",
+      "source_ref": "cycle_model.pipeline[4]",
+      "description": "If disabled, hold count_q and deassert irq."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "APB writes update LOAD or CTRL on the accepted access edge."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "A CTRL write with ENABLE=0 prevents subsequent decrement/reload ticks and holds count_q."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "STATUS read observes the current count_q value for the access cycle and has no read side effects."
+    },
+    {
+      "id": "cycle_ordering_3",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[3]",
+      "source_ref": "cycle_model.ordering[3]",
+      "description": "irq assertion and count_q reload occur on the same timer tick when enable_q == 1 and count_q == 0."
+    },
+    {
+      "id": "cycle_ordering_4",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[4]",
+      "source_ref": "cycle_model.ordering[4]",
+      "description": "irq deasserts on the cycle following a reload event unless another reload condition is again true."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No APB wait states are introduced by the timer; pready follows accepted access phase."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'Default one accepted operation until the SSOT declares deeper buffering'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 3, 'queue_depth': 1, 'description': 'Default accept/evaluate/observe cycle model depth'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'No backpressure on the active interface'}"
+    },
+    {
+      "id": "fsm_timer_control_disabled_to_enabled_count_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.timer_control.transitions[0]",
+      "source_ref": "fsm.timer_control.transitions[0]",
+      "description": "enable_q == 1"
+    },
+    {
+      "id": "fsm_timer_control_enabled_count_to_reload_irq_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.timer_control.transitions[1]",
+      "source_ref": "fsm.timer_control.transitions[1]",
+      "description": "enable_q == 1 and count_q == 0"
+    },
+    {
+      "id": "fsm_timer_control_reload_irq_to_enabled_count_2",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.timer_control.transitions[2]",
+      "source_ref": "fsm.timer_control.transitions[2]",
+      "description": "enable_q == 1"
+    },
+    {
+      "id": "fsm_timer_control_enabled_count_to_disabled_3",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.timer_control.transitions[3]",
+      "source_ref": "fsm.timer_control.transitions[3]",
+      "description": "enable_q == 0"
+    },
+    {
+      "id": "fsm_timer_control_reload_irq_to_disabled_4",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.timer_control.transitions[4]",
+      "source_ref": "fsm.timer_control.transitions[4]",
+      "description": "enable_q == 0"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'UNMAPPED_APB_ACCESS', 'condition': 'psel == 1 and penable == 1 and (paddr != 0 and paddr != 4 and paddr != 8)', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_1",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[1]",
+      "source_ref": "error_handling.error_sources[1]",
+      "description": "{'id': 'STATUS_WRITE_IGNORED', 'condition': 'psel == 1 and penable == 1 and pwrite == 1 and paddr == 8', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    },
+    {
+      "id": "error_error_2",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[2]",
+      "source_ref": "error_handling.error_sources[2]",
+      "description": "{'id': 'RESERVED_CTRL_BITS_WRITE', 'condition': 'psel == 1 and penable == 1 and pwrite == 1 and paddr == 4 and (pwdata & 0xfffffffe) != 0', 'architectural_effect': 'Status/error reporting follows the SSOT error policy'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 60,
+    "scenario_bins": 12,
+    "transaction_bins": 7,
+    "protocol_bins": 4,
+    "state_transition_bins": 5,
+    "error_bins": 3
+  }
+}

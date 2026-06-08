@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "timer",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 8,
+    "failed": 0,
+    "transactions": 7,
+    "transaction_results": [
+      {
+        "id": "FM_APB_WRITE_LOAD",
+        "name": "write_load_register",
+        "kind": "FM_APB_WRITE_LOAD",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_WRITE_LOAD",
+          "transaction_name": "write_load_register",
+          "sample_accepted": 1,
+          "pready_write_load": 1,
+          "pready": 1,
+          "pslverr_write_load": 0,
+          "pslverr": 0,
+          "state_updates": {
+            "load_q": 6,
+            "irq_q": 0
+          }
+        }
+      },
+      {
+        "id": "FM_APB_WRITE_CTRL",
+        "name": "write_ctrl_enable",
+        "kind": "FM_APB_WRITE_CTRL",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_WRITE_CTRL",
+          "transaction_name": "write_ctrl_enable",
+          "sample_accepted": 1,
+          "pready_write_ctrl": 1,
+          "pready": 1,
+          "pslverr_write_ctrl": 0,
+          "pslverr": 0,
+          "state_updates": {
+            "enable_q": 1,
+            "irq_q": 0
+          }
+        }
+      },
+      {
+        "id": "FM_APB_READ_STATUS",
+        "name": "read_status_current_count",
+        "kind": "FM_APB_READ_STATUS",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_READ_STATUS",
+          "transaction_name": "read_status_current_count",
+          "sample_accepted": 1,
+          "prdata_status": 0,
+          "prdata": 0,
+          "pready_read_status": 1,
+          "pready": 1,
+          "pslverr_read_status": 0,
+          "pslverr": 0,
+          "state_updates": {
+            "irq_q": 0
+          }
+        }
+      },
+      {
+        "id": "FM_TICK_DECREMENT",
+        "name": "enabled_decrement_nonzero",
+        "kind": "FM_TICK_DECREMENT",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TICK_DECREMENT",
+          "transaction_name": "enabled_decrement_nonzero",
+          "sample_accepted": 1,
+          "irq_decrement": 0,
+          "irq": 0,
+          "state_updates": {
+            "count_q": 4294967295,
+            "irq_q": 0
+          }
+        }
+      },
+      {
+        "id": "FM_TICK_RELOAD_IRQ",
+        "name": "enabled_zero_reload_and_irq_pulse",
+        "kind": "FM_TICK_RELOAD_IRQ",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_TICK_RELOAD_IRQ",
+          "transaction_name": "enabled_zero_reload_and_irq_pulse",
+          "sample_accepted": 1,
+          "irq_reload": 1,
+          "irq": 1,
+          "state_updates": {
+            "count_q": 6,
+            "irq_q": 1
+          }
+        }
+      },
+      {
+        "id": "FM_DISABLED_HOLD",
+        "name": "disabled_hold_count",
+        "kind": "FM_DISABLED_HOLD",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_DISABLED_HOLD",
+          "transaction_name": "disabled_hold_count",
+          "sample_accepted": 1,
+          "irq_disabled": 0,
+          "irq": 0,
+          "state_updates": {
+            "count_q": 6,
+            "irq_q": 0
+          }
+        }
+      },
+      {
+        "id": "FM_APB_UNMAPPED_ACCESS",
+        "name": "unmapped_apb_access_error",
+        "kind": "FM_APB_UNMAPPED_ACCESS",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_APB_UNMAPPED_ACCESS",
+          "transaction_name": "unmapped_apb_access_error",
+          "sample_accepted": 1,
+          "pready_unmapped": 1,
+          "pready": 1,
+          "pslverr_unmapped": 1,
+          "pslverr": 1,
+          "state_updates": {
+            "irq_q": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 8,
+    "coverage_bins": 60,
+    "invariants_total": 5,
+    "invariants_evaluated": 4,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "enable_q == 0 and psel == 0 implies irq_",
+        "expr": "enable_q == 0 and psel == 0 implies irq_q == 0",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 1,
+    "error_cases_planned": 1
+  },
+  "decomposition_units": 9,
+  "fcov_bins": 60,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "timer/req/",
+      "timer/yaml/timer.ssot.yaml",
+      "timer/model/functional_model.py",
+      "timer/cov/fcov_plan.json",
+      "timer/yaml/timer.ssot.yaml#io_list",
+      "timer/yaml/timer.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "timer/rtl/",
+      "timer/tb/",
+      "timer/sim/",
+      "timer/vectors/",
+      "timer/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

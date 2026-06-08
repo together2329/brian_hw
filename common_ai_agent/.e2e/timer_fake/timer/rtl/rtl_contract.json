@@ -1,0 +1,52 @@
+{
+  "contract": {
+    "clock": "clk",
+    "input_map": {
+      "value": "data_in"
+    },
+    "outputs": [
+      {
+        "expr": "value * 2",
+        "name": "result",
+        "port": "result",
+        "source": {
+          "expr": "value * 2",
+          "name": "result",
+          "port": "result",
+          "width": 9
+        },
+        "width": 9
+      }
+    ],
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "valid && ready",
+    "source": "headless fake LLM artifact for contract TDD",
+    "special_outputs": {
+      "output_valid": "result_valid",
+      "ready_output": "ready"
+    },
+    "state_updates": [
+      {
+        "expr": "accepted_count + 1",
+        "name": "accepted_count",
+        "source": {
+          "expr": "accepted_count + 1",
+          "name": "accepted_count",
+          "width": 8
+        }
+      }
+    ],
+    "state_vars": {
+      "accepted_count": {
+        "reset": 0,
+        "width": 8
+      }
+    },
+    "top": "timer",
+    "transaction": "FM_PRIMARY"
+  },
+  "schema_version": 1,
+  "top": "timer",
+  "type": "generic_ssot_rule_rtl_contract"
+}

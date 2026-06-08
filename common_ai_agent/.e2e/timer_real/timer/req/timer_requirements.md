@@ -1,0 +1,3 @@
+# Timer IP requirement
+
+The timer is a small APB-style peripheral. After reset deassertion the counter holds at zero and is disabled. Software writes a 32-bit LOAD register and sets the ENABLE bit in a CTRL register. While enabled, the counter decrements by one every clock cycle. When the counter reaches zero it asserts a single-cycle irq pulse and reloads the LOAD value, continuing to count. Writing ENABLE=0 stops and holds the counter. A STATUS register exposes the current count (read-only). The generated FunctionalModel is the expected-behavior source for the cocotb/pyuvm scoreboard. DUT-only compile, DUT-only lint, structured scoreboard events, and FL-vs-RTL comparison are required.

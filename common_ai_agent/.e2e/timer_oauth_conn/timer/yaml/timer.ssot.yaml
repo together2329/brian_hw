@@ -1,0 +1,1738 @@
+top_module:
+  name: timer
+  file: rtl/timer.sv
+  version: '1.0'
+  type: peripheral
+  description: Small APB-style programmable down-counter timer with auto-reload and single-cycle interrupt pulse.
+  reference_spec: timer/req/timer_requirements.md
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+- name: timer_regs
+  file: rtl/timer_regs.sv
+  ownership: manifest
+  ssot_gen: true
+  implements:
+  - registers.register_list
+  - function_model.transactions.FM_APB_WRITE_LOAD
+  - function_model.transactions.FM_APB_WRITE_CTRL
+  - function_model.transactions.FM_APB_READ_STATUS
+  - error_handling
+  source_sections:
+  - registers
+  - function_model
+  - error_handling
+  register_refs:
+  - registers.register_list.LOAD
+  - registers.register_list.CTRL
+  - registers.register_list.STATUS
+  - registers.register_list
+  function_model_refs:
+  - function_model.transactions.FM_APB_WRITE_LOAD
+  - function_model.transactions.FM_APB_WRITE_CTRL
+  - function_model.transactions.FM_APB_READ_STATUS
+  - function_model.transactions.FM_APB_INVALID
+  - function_model.transactions.FM_TICK_DISABLED
+  - function_model.transactions.FM_TICK_EXPIRE_RELOAD
+  - function_model.transactions.FM_IDLE
+  - function_model.state_variables
+  - function_model.invariants
+  connections:
+  - module: timer_regs
+    port: clk
+    signal: pclk
+  - module: timer_regs
+    port: resetn
+    signal: presetn
+  - module: timer_regs
+    port: paddr
+    signal: paddr
+  - module: timer_regs
+    port: psel
+    signal: psel
+  - module: timer_regs
+    port: penable
+    signal: penable
+  - module: timer_regs
+    port: pwrite
+    signal: pwrite
+  - module: timer_regs
+    port: pwdata
+    signal: pwdata
+  - module: timer_regs
+    port: prdata
+    signal: prdata
+  - module: timer_regs
+    port: pready
+    signal: pready
+  - module: timer_regs
+    port: pslverr
+    signal: pslverr
+  - module: timer_regs
+    port: load_q
+    signal: load_q
+  - module: timer_regs
+    port: enable_q
+    signal: enable_q
+  - module: timer_regs
+    port: count_q
+    signal: count_q
+  description: APB register decode and readback block for LOAD, CTRL, and STATUS.
+- name: timer_core
+  file: rtl/timer_core.sv
+  ownership: manifest
+  ssot_gen: false
+  implements:
+  - function_model.state_variables.timer_count_q
+  - function_model.transactions.FM_TICK_DISABLED
+  - function_model.transactions.FM_TICK_DECREMENT
+  - function_model.transactions.FM_TICK_EXPIRE_RELOAD
+  - cycle_model.pipeline
+  - cycle_model.handshake_rules
+  - interrupts.sources.IRQ_PULSE
+  source_sections:
+  - function_model
+  - cycle_model
+  - interrupts
+  - features
+  - dataflow
+  - fsm
+  - decomposition
+  - test_requirements
+  function_model_refs:
+  - function_model.state_variables
+  - function_model.transactions.FM_TICK_DISABLED
+  - function_model.transactions.FM_TICK_DECREMENT
+  - function_model.transactions.FM_TICK_EXPIRE_RELOAD
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model.handshake_rules
+  - cycle_model
+  fsm_refs:
+  - fsm.timer_control
+  - fsm
+  connections:
+  - module: timer_core
+    port: clk
+    signal: pclk
+  - module: timer_core
+    port: resetn
+    signal: presetn
+  - module: timer_core
+    port: load_i
+    signal: load_q
+  - module: timer_core
+    port: enable_i
+    signal: enable_q
+  - module: timer_core
+    port: count_o
+    signal: count_q
+  - module: timer_core
+    port: irq_o
+    signal: irq
+  description: Timer decrement, zero-detect, auto-reload, and IRQ pulse behavior.
+  feature_refs:
+  - features
+  dataflow_refs:
+  - dataflow
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+- name: timer
+  file: rtl/timer.sv
+  ownership: manifest
+  ssot_gen: true
+  wiring_only: true
+  description: Top-level integration module matching SSOT top_module
+  implements:
+  - top_module
+  - integration
+  source_sections: &id001
+  - top_module
+  - io_list
+  - decomposition
+  - integration
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+decomposition:
+  units:
+  - id: apb_registers
+    kind: control/status
+    source_refs:
+    - registers.register_list
+    - function_model.transactions.FM_APB_WRITE_LOAD
+    - function_model.transactions.FM_APB_WRITE_CTRL
+    - function_model.transactions.FM_APB_READ_STATUS
+    rtl_candidates:
+    - timer_regs
+    verification_impact:
+    - test_requirements.scenarios.SC_APB_PROGRAM_LOAD_ENABLE
+    - test_requirements.scenarios.SC_APB_READ_STATUS
+  - id: countdown_engine
+    kind: sequential_datapath
+    source_refs:
+    - function_model.transactions.FM_TICK_DISABLED
+    - function_model.transactions.FM_TICK_DECREMENT
+    - function_model.transactions.FM_TICK_EXPIRE_RELOAD
+    - cycle_model.pipeline
+    rtl_candidates:
+    - timer_core
+    verification_impact:
+    - test_requirements.scenarios.SC_COUNTDOWN_IRQ_RELOAD
+    - test_requirements.scenarios.SC_DISABLE_HOLDS
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: timer_regs
+    file: rtl/timer_regs.sv
+    responsibility: APB register decode and readback block for LOAD, CTRL, and STATUS.
+    source_sections:
+    - registers
+    - function_model
+    - error_handling
+  - module: timer_core
+    file: rtl/timer_core.sv
+    responsibility: Timer decrement, zero-detect, auto-reload, and IRQ pulse behavior.
+    source_sections:
+    - function_model
+    - cycle_model
+    - interrupts
+  - module: timer
+    file: rtl/timer.sv
+    responsibility: Top-level integration module matching SSOT top_module
+    source_sections: *id001
+  integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+rtl_contract:
+  reset_behavior:
+  - presetn low clears LOAD, CTRL.ENABLE, STATUS.count, and irq to zero.
+  - After reset deassertion counter is disabled and holds zero until software writes CTRL.ENABLE=1.
+  apb_contract:
+  - LOAD offset 0x00 is readable/writable.
+  - CTRL offset 0x04 bit 0 is readable/writable; bits 31:1 read zero and ignore writes.
+  - STATUS offset 0x08 is read-only and exposes current count.
+  - Invalid APB addresses and writes to STATUS assert pslverr for the accepted access.
+  timer_contract:
+  - While enabled and count is non-zero, count decrements by one each pclk cycle.
+  - While enabled and count is zero, irq pulses for one cycle and count reloads LOAD.
+  - While disabled, count holds its value and irq is deasserted.
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  transaction: FM_APB_WRITE_LOAD
+  clock: pclk
+  reset: presetn
+  reset_active: low
+  sample_condition: '1'
+  input_map:
+    paddr: paddr
+    psel: psel
+    penable: penable
+    pwrite: pwrite
+    pwdata: pwdata
+  output_map:
+    prdata: prdata
+    pready: pready
+    pslverr: pslverr
+    irq: irq
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transaction.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: pready_next
+    port: pready
+    expr: '1'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: pslverr_next
+    port: pslverr
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: irq_next
+    port: irq
+    expr: '0'
+    width: 1
+    description: FunctionalModel output observable mapped to DUT output port.
+  - name: prdata_next
+    port: prdata
+    expr: timer_count_q & 0xFFFFFFFF
+    width: 32
+    description: FunctionalModel output observable mapped to DUT output port.
+parameters:
+- name: DATA_WIDTH
+  default: 32
+  type: int
+  description: Width of LOAD, STATUS count, and APB data path.
+  drives:
+  - timer_regs.sv
+  - timer_core.sv
+- name: ADDR_WIDTH
+  default: 8
+  type: int
+  description: APB byte address width for the small timer register map.
+  drives:
+  - timer_regs.sv
+- name: RESET_POLARITY
+  default: active_low
+  type: enum
+  values:
+  - active_low
+  - active_high
+  description: Main reset polarity; timer uses active-low presetn.
+  drives:
+  - timer.sv
+  - timer_regs.sv
+  - timer_core.sv
+io_list:
+  clock_domains:
+  - name: pclk_domain
+    frequency_mhz: 100
+    description: APB and timer counter clock domain.
+    ports:
+    - name: pclk
+      width: 1
+      direction: input
+      description: APB/timer clock.
+  resets:
+  - name: presetn
+    polarity: active_low
+    sync_async: async_assert_sync_deassert
+    description: Active-low reset; after deassertion timer count is zero and disabled.
+    ports:
+    - name: presetn
+      width: 1
+      direction: input
+      description: Active-low reset.
+  interfaces:
+  - name: apb_slave
+    type: APB-style
+    role: slave
+    description: Simple APB-style register access interface.
+    ports:
+    - name: paddr
+      width: 8
+      direction: input
+      description: Byte address for timer registers.
+    - name: psel
+      width: 1
+      direction: input
+      description: APB select.
+    - name: penable
+      width: 1
+      direction: input
+      description: APB enable phase.
+    - name: pwrite
+      width: 1
+      direction: input
+      description: APB write control.
+    - name: pwdata
+      width: 32
+      direction: input
+      description: APB write data.
+    - name: prdata
+      width: 32
+      direction: output
+      description: APB read data.
+    - name: pready
+      width: 1
+      direction: output
+      description: APB transfer ready; single-cycle response.
+    - name: pslverr
+      width: 1
+      direction: output
+      description: APB error response for invalid addresses.
+    clock_domain: pclk
+    reset_domain: presetn
+    protocol:
+      acceptance: Transfer acceptance follows the declared valid/ready or protocol phase rule.
+      stability: Payload/control fields remain stable until accepted.
+      response: Observable response timing follows cycle_model latency and ordering.
+  - name: interrupt
+    type: custom
+    role: output
+    description: Single-cycle interrupt pulse generated when enabled counter reaches zero.
+    ports:
+    - name: irq
+      width: 1
+      direction: output
+      description: Active-high one-clock pulse on timer expiry.
+    clock_domain: pclk
+    reset_domain: presetn
+    protocol:
+      acceptance: Transfer acceptance follows the declared valid/ready or protocol phase rule.
+      stability: Payload/control fields remain stable until accepted.
+      response: Observable response timing follows cycle_model latency and ordering.
+features:
+- name: APB programmable load
+  trigger: Software writes 32-bit LOAD register.
+  datapath: pwdata is captured into load_q when APB write to LOAD is accepted.
+  control: APB write acceptance in timer_regs.
+  output: New load_q value used for subsequent reloads.
+- name: Enable-controlled countdown
+  trigger: Software writes CTRL.ENABLE to one.
+  datapath: timer_count_q decrements by one each pclk cycle while enable_q is one and count is non-zero.
+  control: timer_core enabled counting state.
+  output: STATUS read exposes current timer_count_q.
+- name: Auto-reload and irq pulse
+  trigger: Enabled timer observes timer_count_q equal to zero at the tick boundary.
+  datapath: timer_count_q is reloaded from load_q and irq is asserted for exactly one cycle.
+  control: timer_core expiry path.
+  output: irq single-cycle active-high pulse and continued counting from LOAD value.
+- name: Disable holds counter
+  trigger: Software writes CTRL.ENABLE to zero.
+  datapath: timer_count_q holds its current value while disabled.
+  control: timer_core disabled hold path.
+  output: STATUS remains stable except for APB read muxing.
+dataflow:
+  register_write_path:
+    source: apb_slave.pwdata
+    destination: LOAD.load_value or CTRL.enable
+    sequence: APB setup then enable phase accepted with psel==1 and penable==1 and pwrite==1.
+  register_read_path:
+    source: STATUS.count field or other readable registers
+    destination: apb_slave.prdata
+    sequence: APB read accepted with psel==1 and penable==1 and pwrite==0.
+  countdown_path:
+    source: timer_count_q and load_q
+    destination: timer_count_q and irq
+    sequence: If enabled and count is non-zero, decrement; if enabled and count is zero, pulse irq and reload LOAD.
+function_model:
+  purpose: Executable behavior source for cocotb/pyuvm scoreboard and FL-vs-RTL comparison of the timer peripheral.
+  state_variables:
+  - name: load_q
+    source: registers.LOAD.load_value
+    width: 32
+    reset: 0
+    description: Programmed reload value.
+  - name: enable_q
+    source: registers.CTRL.enable
+    width: 1
+    reset: 0
+    description: Counter enable control bit.
+  - name: timer_count_q
+    source: registers.STATUS.count
+    width: 32
+    reset: 0
+    description: Current down-counter value exposed by STATUS.
+  - name: irq_q
+    width: 1
+    reset: 0
+    description: One-cycle interrupt pulse state.
+  transactions:
+  - id: FM_APB_WRITE_LOAD
+    name: apb_write_load
+    preconditions:
+    - psel == 1 and penable == 1 and pwrite == 1 and paddr == 0
+    inputs:
+    - pwdata
+    outputs:
+    - pready == 1
+    - pslverr == 0
+    - irq_q == 0
+    - name: pready_next
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_next
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: load_q
+      expr: pwdata & 0xFFFFFFFF
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: pready_next
+      port: pready
+      expr: '1'
+      width: 1
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      width: 1
+    - name: irq_next
+      port: irq
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: load_q
+      expr: pwdata & 0xFFFFFFFF
+      width: 32
+    - name: irq_q
+      expr: '0'
+      width: 1
+    side_effects:
+    - load_q is updated with pwdata[31:0].
+    - irq_q is cleared during register write handling.
+    error_cases: []
+    sample_stage: APB_ACCESS
+  - id: FM_APB_WRITE_CTRL
+    name: apb_write_ctrl
+    preconditions:
+    - psel == 1 and penable == 1 and pwrite == 1 and paddr == 4
+    inputs:
+    - pwdata
+    outputs:
+    - pready == 1
+    - pslverr == 0
+    - irq_q == 0
+    - name: pready_next
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_next
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: enable_q
+      expr: pwdata & 1
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: pready_next
+      port: pready
+      expr: '1'
+      width: 1
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      width: 1
+    - name: irq_next
+      port: irq
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: enable_q
+      expr: pwdata & 1
+      width: 1
+    - name: irq_q
+      expr: '0'
+      width: 1
+    side_effects:
+    - enable_q is updated from pwdata bit 0; writing zero disables and holds the counter.
+    - irq_q is cleared during register write handling.
+    error_cases: []
+    sample_stage: APB_ACCESS
+  - id: FM_APB_READ_STATUS
+    name: apb_read_status
+    preconditions:
+    - psel == 1 and penable == 1 and pwrite == 0 and paddr == 8
+    inputs: []
+    outputs:
+    - pready == 1
+    - pslverr == 0
+    - prdata == timer_count_q
+    - irq_q == 0
+    - name: pready_next
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: prdata_next
+      port: prdata
+      expr: timer_count_q & 0xFFFFFFFF
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_next
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: irq_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: pready_next
+      port: pready
+      expr: '1'
+      width: 1
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      width: 1
+    - name: prdata_next
+      port: prdata
+      expr: timer_count_q & 0xFFFFFFFF
+      width: 32
+    - name: irq_next
+      port: irq
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: irq_q
+      expr: '0'
+      width: 1
+    side_effects:
+    - STATUS read returns current timer_count_q without changing the count.
+    - irq_q is cleared unless a timer expiry transaction occurs in the timer tick path.
+    error_cases: []
+    sample_stage: APB_ACCESS
+  - id: FM_APB_INVALID
+    name: apb_invalid_access
+    preconditions:
+    - psel == 1 and penable == 1 and ((paddr != 0 and paddr != 4 and paddr != 8) or (pwrite == 1 and paddr == 8))
+    inputs:
+    - paddr
+    - pwrite
+    outputs:
+    - pready == 1
+    - pslverr == 1
+    - irq_q == 0
+    - name: pready_next
+      port: pready
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: pslverr_next
+      port: pslverr
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: irq_next
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: irq_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: pready_next
+      port: pready
+      expr: '1'
+      width: 1
+    - name: pslverr_next
+      port: pslverr
+      expr: '1'
+      width: 1
+    - name: irq_next
+      port: irq
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: irq_q
+      expr: '0'
+      width: 1
+    side_effects:
+    - Invalid register addresses and writes to read-only STATUS report pslverr and do not update architectural timer state.
+    error_cases:
+    - condition: (paddr != 0 and paddr != 4 and paddr != 8) or (pwrite == 1 and paddr == 8)
+      result: pslverr is asserted for the accepted APB transfer.
+    sample_stage: APB_ACCESS
+  - id: FM_TICK_DISABLED
+    name: tick_disabled_hold
+    preconditions:
+    - psel == 0 and enable_q == 0
+    inputs: []
+    outputs:
+    - irq_q == 0
+    - name: irq_next
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: timer_count_q
+      expr: timer_count_q & 0xFFFFFFFF
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: irq_next
+      port: irq
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: timer_count_q
+      expr: timer_count_q & 0xFFFFFFFF
+      width: 32
+    - name: irq_q
+      expr: '0'
+      width: 1
+    side_effects:
+    - timer_count_q holds its current value while disabled.
+    - irq_q remains deasserted.
+    error_cases: []
+    sample_stage: TICK_COMMIT
+  - id: FM_TICK_DECREMENT
+    name: tick_enabled_decrement
+    preconditions:
+    - psel == 0 and enable_q == 1 and timer_count_q > 0
+    inputs: []
+    outputs:
+    - irq_q == 0
+    - name: irq_next
+      port: irq
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: timer_count_q
+      expr: (timer_count_q - 1) & 0xFFFFFFFF
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_q
+      expr: '0'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: irq_next
+      port: irq
+      expr: '0'
+      width: 1
+    state_updates:
+    - name: timer_count_q
+      expr: (timer_count_q - 1) & 0xFFFFFFFF
+      width: 32
+    - name: irq_q
+      expr: '0'
+      width: 1
+    side_effects:
+    - timer_count_q decrements by one on the clock edge.
+    - irq_q remains deasserted.
+    error_cases: []
+    sample_stage: TICK_COMMIT
+  - id: FM_TICK_EXPIRE_RELOAD
+    name: tick_expire_reload_irq
+    preconditions:
+    - psel == 0 and enable_q == 1 and timer_count_q == 0
+    inputs: []
+    outputs:
+    - irq_q == 1
+    - name: irq_next
+      port: irq
+      expr: '1'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - state: timer_count_q
+      expr: load_q & 0xFFFFFFFF
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    - state: irq_q
+      expr: '1'
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: irq_next
+      port: irq
+      expr: '1'
+      width: 1
+    state_updates:
+    - name: timer_count_q
+      expr: load_q & 0xFFFFFFFF
+      width: 32
+    - name: irq_q
+      expr: '1'
+      width: 1
+    side_effects:
+    - irq_q asserts for exactly the expiry clock cycle.
+    - timer_count_q reloads from load_q and counting continues while enable_q remains one.
+    error_cases: []
+    sample_stage: TICK_COMMIT
+  - id: FM_IDLE
+    name: idle_no_transfer
+    preconditions:
+    - transaction is accepted under cycle_model rules
+    inputs: []
+    outputs:
+    - pready == 0
+    - pslverr == 0
+    - name: pready_next
+      port: pready
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      description: Mirrored from executable output_rules for SSOT validator completeness.
+    output_rules:
+    - name: pready_next
+      port: pready
+      expr: '0'
+      width: 1
+    - name: pslverr_next
+      port: pslverr
+      expr: '0'
+      width: 1
+    side_effects:
+    - No architectural state changes.
+    error_cases: []
+    sample_stage: IDLE
+  invariants:
+  - reset implies load_q == 0 and enable_q == 0 and timer_count_q == 0 and irq_q == 0
+  - irq_q == 1 implies enable_q == 1 and timer_count_q == load_q
+  - enable_q == 0 implies irq_q == 0
+  - STATUS.count mirrors timer_count_q[31:0]
+  reference_model_hint: Generate the Python FunctionalModel from function_model transactions and compare timer_count_q, prdata, pready, pslverr, and irq against RTL observations.
+  derived_signals:
+  - name: apb_access
+    expr: psel and penable
+    width: 1
+    description: APB access phase helper derived from psel and penable.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_write
+    expr: psel and penable and pwrite
+    width: 1
+    description: APB write access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: apb_valid_read
+    expr: psel and penable and not pwrite
+    width: 1
+    description: APB read access helper derived from psel, penable, and pwrite.
+    source: repair_ssot_schema.apb_helper
+  - name: addr
+    expr: paddr
+    width: 8
+    description: Register address helper derived from the APB paddr input.
+    source: repair_ssot_schema.apb_helper
+  - name: legal_addr
+    expr: (addr == 0) or (addr == 4) or (addr == 8)
+    width: 1
+    description: APB legal address decode derived from registers.register_list offsets.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_load
+    expr: apb_valid_write and (addr == 0)
+    width: 1
+    description: APB write decode helper for register LOAD.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_load
+    expr: apb_valid_read and (addr == 0)
+    width: 1
+    description: APB read decode helper for register LOAD.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_ctrl
+    expr: apb_valid_write and (addr == 4)
+    width: 1
+    description: APB write decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_ctrl
+    expr: apb_valid_read and (addr == 4)
+    width: 1
+    description: APB read decode helper for register CTRL.
+    source: repair_ssot_schema.apb_helper
+  - name: wr_status
+    expr: apb_valid_write and (addr == 8)
+    width: 1
+    description: APB write decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: rd_status
+    expr: apb_valid_read and (addr == 8)
+    width: 1
+    description: APB read decode helper for register STATUS.
+    source: repair_ssot_schema.apb_helper
+  - name: read_mux
+    expr: (0 if addr == 0 else (0 if addr == 4 else (0 if addr == 8 else 0)))
+    width: 32
+    description: APB read data mux derived from registers.register_list offsets and function_model state variables.
+    source: repair_ssot_schema.apb_helper
+cycle_model:
+  purpose: Cycle-level APB, countdown, reload, and irq timing contract for RTL and scoreboard generation.
+  executable: python
+  cosim: true
+  state_accumulating: true
+  use_per_cycle_expected: true
+  clock: pclk
+  reset:
+    assertion: presetn low asynchronously clears load_q, enable_q, timer_count_q, and irq_q to zero.
+    deassertion: On the first rising edge after synchronized reset deassertion, counter remains zero and disabled until programmed.
+  latency:
+    register_read:
+      min_cycles: 0
+      max_cycles: 1
+      description: APB read data is valid in the access phase when pready is asserted.
+    register_write:
+      min_cycles: 0
+      max_cycles: 1
+      description: APB write is accepted in the access phase when pready is asserted.
+    tick_update:
+      min_cycles: 1
+      max_cycles: 1
+      description: Enabled timer updates once per pclk cycle when no APB access overrides the sampled transaction.
+    irq_pulse:
+      min_cycles: 1
+      max_cycles: 1
+      description: irq is asserted for exactly one clock cycle on expiry.
+  handshake_rules:
+  - id: APB_SINGLE_CYCLE_READY
+    signal: pready
+    rule: pready is 1 during psel==1 and penable==1 access phase, otherwise 0.
+    expr: (psel == 1 and penable == 1)
+  - id: APB_INVALID_ERROR
+    signal: pslverr
+    rule: pslverr is 1 only for invalid addresses or writes to read-only STATUS during accepted APB access.
+    expr: psel == 1 and penable == 1 and ((paddr != 0 and paddr != 4 and paddr != 8) or (pwrite == 1 and paddr == 8))
+  - id: IRQ_SINGLE_CYCLE
+    signal: irq
+    rule: irq is asserted for one pclk cycle when enable_q==1 and timer_count_q==0, then deasserts unless the next sampled cycle is another expiry.
+    expr: enable_q == 1 and timer_count_q == 0
+  pipeline:
+  - stage: IDLE
+    cycle: 0
+    action: No APB access; timer tick path may update counter if enabled.
+    output_rules:
+    - name: pready_idle
+      port: pready
+      expr: '0'
+      width: 1
+    - name: pslverr_idle
+      port: pslverr
+      expr: '0'
+      width: 1
+  - stage: APB_SETUP
+    cycle: 0
+    action: psel may assert with penable low; no register transfer is committed.
+    output_rules:
+    - name: pready_setup
+      port: pready
+      expr: '0'
+      width: 1
+    - name: pslverr_setup
+      port: pslverr
+      expr: '0'
+      width: 1
+  - stage: APB_ACCESS
+    cycle: 1
+    action: APB transfer commits when psel and penable are asserted; pready indicates completion.
+    output_rules:
+    - name: pready_access
+      port: pready
+      expr: '1'
+      width: 1
+    - name: pslverr_access
+      port: pslverr
+      expr: 1 if ((paddr != 0 and paddr != 4 and paddr != 8) or (pwrite == 1 and paddr == 8)) else 0
+      width: 1
+  - stage: TICK_COMMIT
+    cycle: 1
+    action: On each pclk edge with no APB transfer selected, enabled timer decrements or reloads/pulses irq.
+    output_rules:
+    - name: irq_tick
+      port: irq
+      expr: 1 if (enable_q == 1 and timer_count_q == 0 and psel == 0) else 0
+      width: 1
+  ordering:
+  - APB writes to LOAD or CTRL commit before subsequent timer tick observations in following cycles.
+  - Writing ENABLE=0 stops the counter and causes following timer ticks to hold timer_count_q.
+  - Expiry observes timer_count_q==0 while enabled, asserts irq for one cycle, and reloads timer_count_q from load_q on the same clock edge.
+  - STATUS reads do not modify timer_count_q, load_q, enable_q, or irq generation behavior.
+  backpressure:
+  - APB-style interface has no extended backpressure; pready completes every access phase in one cycle.
+  observability:
+  - Scoreboard samples APB access results at APB_ACCESS and timer tick results at TICK_COMMIT.
+  backend_policy: Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: No backpressure on the active interface
+    outstanding:
+      max: 1
+      description: Default one accepted operation until the SSOT declares deeper buffering
+    depth:
+      pipeline_stages: 3
+      queue_depth: 1
+      description: Default accept/evaluate/observe cycle model depth
+clock_reset_domains:
+  domains:
+  - name: pclk_domain
+    frequency_mhz: 100
+    description: Single APB/timer clock domain.
+  reset_scheme:
+    signal: presetn
+    polarity: active_low
+    type: async_assert_sync_deassert
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Single pclk domain; no clock-domain crossings.
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: Single reset domain; no reset-domain crossings.
+registers:
+  config:
+    register_width: 32
+    addr_width: 8
+    byte_addressable: true
+    no_registers: false
+  register_list:
+  - name: LOAD
+    offset: 0
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Reload value captured by software; used when the enabled timer expires.
+    fields:
+    - name: load_value
+      bits:
+      - 31
+      - 0
+      access: rw
+      reset: 0
+      description: 32-bit reload value.
+      side_effects: &id002
+        write: Updates load_q; does not directly change current STATUS count.
+        read: Returns current load_q.
+      write_effect: *id002
+  - name: CTRL
+    offset: 4
+    width: 32
+    access: rw
+    reset: 0
+    category: control
+    description: Timer control register.
+    fields:
+    - name: enable
+      bits:
+      - 0
+      - 0
+      access: rw
+      reset: 0
+      description: 1 enables countdown; 0 disables and holds current counter value.
+      side_effects: &id003
+        write: Updates enable_q from bit 0.
+        read: Returns current enable_q.
+      write_effect: *id003
+    - name: reserved
+      bits:
+      - 31
+      - 1
+      access: ro
+      reset: 0
+      description: Reserved, reads as zero, writes ignored.
+  - name: STATUS
+    offset: 8
+    width: 32
+    access: ro
+    reset: 0
+    category: status
+    description: Current timer count value.
+    fields:
+    - name: count
+      bits:
+      - 31
+      - 0
+      access: ro
+      reset: 0
+      description: Current down-counter value.
+      side_effects:
+        read: Returns timer_count_q without modifying timer state.
+        write: Illegal; APB write to STATUS reports pslverr.
+memory:
+  instances: []
+  note: Timer uses only scalar flops for load, enable, count, and irq pulse; no SRAM or FIFO.
+interrupts:
+  sources:
+  - name: IRQ_PULSE
+    bit: 0
+    type: pulse
+    enable_reg: CTRL.enable
+    status_reg: none
+    clear: self_clear_one_cycle
+    description: Active-high single-cycle pulse when enabled timer reaches zero and reloads LOAD.
+  output:
+    signal: irq
+    polarity: active_high
+    type: pulse
+fsm:
+  timer_control:
+    states:
+    - RESET_HOLD
+    - DISABLED_HOLD
+    - COUNTING
+    - EXPIRE_RELOAD_PULSE
+    transitions:
+    - from: RESET_HOLD
+      to: DISABLED_HOLD
+      condition: presetn == 1 and enable_q == 0
+    - from: DISABLED_HOLD
+      to: COUNTING
+      condition: enable_q == 1
+    - from: COUNTING
+      to: DISABLED_HOLD
+      condition: enable_q == 0
+    - from: COUNTING
+      to: EXPIRE_RELOAD_PULSE
+      condition: enable_q == 1 and timer_count_q == 0
+    - from: EXPIRE_RELOAD_PULSE
+      to: COUNTING
+      condition: enable_q == 1
+    - from: EXPIRE_RELOAD_PULSE
+      to: DISABLED_HOLD
+      condition: enable_q == 0
+    reset_state: RESET_HOLD
+timing:
+  target_clocks:
+  - name: pclk
+    frequency_mhz: 100
+    period_ns: 10.0
+    uncertainty_ns: 0.2
+    description: Timer/APB clock target for starter implementation.
+  latency_budget:
+    apb_read_cycles: 1
+    apb_write_cycles: 1
+    tick_update_cycles: 1
+    irq_pulse_cycles: 1
+  throughput:
+    timer_tick: One counter update per pclk cycle while enabled.
+    apb_access: One accepted access per APB access phase.
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_TIMER
+    supplies:
+    - VDD
+    - VSS
+    clock: pclk
+    description: Single always-on timer power domain.
+  power_states:
+  - name: true
+    domain: PD_TIMER
+    behavior: Registers retain and timer operates normally.
+  - name: RESET
+    domain: PD_TIMER
+    behavior: presetn asserted low clears architectural state.
+  clock_gating:
+    allowed: true
+    condition: enable_q == 0 and psel == 0
+    requirement: Clock gating, if implemented, must preserve APB register accessibility and disabled counter hold behavior.
+  upf_required: false
+security:
+  classification: non_security_critical_control_peripheral
+  assets:
+  - name: timer_configuration
+    description: LOAD and CTRL settings programmed by software.
+  - name: interrupt_integrity
+    description: irq pulse timing used by firmware scheduling or timeout handling.
+  threat_model:
+  - threat: Unauthorized or erroneous APB writes can change timer period or enable state.
+    mitigation: Integration must place timer in the intended APB address map and rely on upstream bus access control.
+  - threat: Invalid register access could hide software bugs.
+    mitigation: Invalid addresses and writes to STATUS assert pslverr.
+  safety_goals:
+  - irq must not stick high; it is a one-cycle pulse per expiry event.
+  - Reset must leave timer disabled with count zero.
+  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+error_handling:
+  error_sources:
+  - id: INVALID_APB_ADDRESS
+    condition: psel == 1 and penable == 1 and paddr not in {0x00,0x04,0x08}
+    architectural_effect: pslverr asserted for access; no architectural timer state update.
+  - id: WRITE_READ_ONLY_STATUS
+    condition: psel == 1 and penable == 1 and pwrite == 1 and paddr == 0x08
+    architectural_effect: pslverr asserted for access; STATUS/count not modified by the write.
+  propagation:
+  - APB access errors propagate only through pslverr and do not assert irq.
+  - Timer expiry propagates through irq pulse and STATUS reload behavior, not through pslverr.
+  recovery:
+  - Software may retry legal APB accesses after an error with no reset required.
+  - Reset clears all state to disabled zero-count state.
+debug_observability:
+  waveform_must_probe:
+  - pclk
+  - presetn
+  - psel
+  - penable
+  - pwrite
+  - paddr
+  - pwdata
+  - prdata
+  - pready
+  - pslverr
+  - load_q
+  - enable_q
+  - timer_count_q
+  - irq
+  trace_events:
+  - id: TRACE_APB_WRITE_LOAD
+    trigger: psel == 1 and penable == 1 and pwrite == 1 and paddr == 0
+    payload:
+    - pwdata
+  - id: TRACE_APB_WRITE_CTRL
+    trigger: psel == 1 and penable == 1 and pwrite == 1 and paddr == 4
+    payload:
+    - pwdata
+    - enable_q
+  - id: TRACE_TIMER_EXPIRE
+    trigger: enable_q == 1 and timer_count_q == 0
+    payload:
+    - load_q
+    - irq
+  - id: TRACE_APB_ERROR
+    trigger: pslverr == 1
+    payload:
+    - paddr
+    - pwrite
+  status_outputs:
+  - status/debug signals declared in io_list or registers
+integration:
+  bus_attachment:
+    bus: APB-style
+    role: slave
+    base_address: integration-assigned
+    address_span_bytes: 16
+    clock: pclk
+    reset: presetn
+  dependencies:
+  - Upstream APB master supplies stable paddr, pwrite, and pwdata through access phase.
+  - irq output is connected to the SoC interrupt aggregation or firmware-visible interrupt input.
+  - No external memories or child reusable IPs are required.
+  connections:
+  - from_module: timer
+    from_port: pclk
+    to_module: timer_regs
+    to_port: clk
+    signal: pclk
+  - from_module: timer
+    from_port: presetn
+    to_module: timer_regs
+    to_port: resetn
+    signal: presetn
+  - from_module: timer
+    from_port: pclk
+    to_module: timer_core
+    to_port: clk
+    signal: pclk
+  - from_module: timer
+    from_port: presetn
+    to_module: timer_core
+    to_port: resetn
+    signal: presetn
+  - from_module: timer_regs
+    from_port: load_q
+    to_module: timer_core
+    to_port: load_i
+    signal: load_q
+  - from_module: timer_regs
+    from_port: enable_q
+    to_module: timer_core
+    to_port: enable_i
+    signal: enable_q
+  - from_module: timer_core
+    from_port: count_o
+    to_module: timer_regs
+    to_port: count_q
+    signal: timer_count_q
+  - from_module: timer_core
+    from_port: irq_o
+    to_module: timer
+    to_port: irq
+    signal: irq
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+dft:
+  scan_required: false
+  controllability:
+  - pclk and presetn are directly controllable at top level.
+  - APB inputs can program LOAD and CTRL and exercise STATUS readback.
+  observability:
+  - irq and APB prdata/pslverr expose functional outcomes.
+  - Internal load_q, enable_q, and timer_count_q are required waveform probes for simulation debug.
+  mbist_required: false
+synthesis:
+  dialect: systemverilog_2012
+  constraints:
+    clock: pclk
+    reset: presetn active_low
+    target_frequency_mhz: 100
+    max_area: null
+    max_power_mw: null
+  required_outputs:
+  - synthesized_netlist
+  - timing_report
+  - area_report
+  - power_report
+  - lint_report
+  top_module: timer
+  tool_flow: yosys
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy: Use the SKY130_LIB environment variable to locate the SS corner Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA must stop if the file is unreadable or does not match the declared corner.
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts:
+    buf_list: []
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  parameter_header: rtl/timer_param.vh
+  conventions:
+  - Use ANSI-style SystemVerilog ports with logic types.
+  - Use nonblocking assignments in sequential always blocks.
+  - Use blocking assignments in combinational always blocks.
+  - No inferred latches; assign all combinational outputs in every path.
+  - Active-low reset named presetn.
+  - Keep APB decode and timer core ownership separated according to sub_modules.
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - APB register response is single-cycle with no wait-state insertion.
+  - APB byte strobes are not present in the user requirement; full 32-bit writes are assumed for starter SSOT.
+  - Loading LOAD does not immediately load STATUS.count; STATUS.count changes only by reset, timer tick, or reload at expiry.
+  starter_mode: true
+dir_structure:
+  template_dirs:
+    rtl: templates/rtl/
+    sim: templates/sim/
+  output_dirs:
+    rtl: rtl/
+    sim: sim/
+    tb: tb/
+    tc: tc/
+    firmware: firmware/
+    docs: doc/
+  yaml_dir: yaml/
+  generators_dir: generators/
+filelist:
+  headers:
+  - rtl/timer_param.vh
+  rtl:
+  - rtl/timer.sv
+  - rtl/timer_regs.sv
+  - rtl/timer_core.sv
+  sim:
+  - sim/tb_top.sv
+  firmware:
+  - firmware/timer_regs.h
+  docs:
+  - doc/timer_register_map.md
+  - doc/timer_mas.md
+  tb:
+  - tb/cocotb/test_timer.py
+  - tb/cocotb/test_runner.py
+  - tb/cocotb/scoreboard.py
+  coverage:
+  - cov/coverage.json
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_APB_WRITE_LOAD
+    stimulus: Drive preconditions for function_model transaction `FM_APB_WRITE_LOAD`.
+    expected: Outputs and side effects match `FM_APB_WRITE_LOAD` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_APB_WRITE_LOAD
+  - id: SC07
+    name: function_model transaction FM_APB_WRITE_CTRL
+    stimulus: Drive preconditions for function_model transaction `FM_APB_WRITE_CTRL`.
+    expected: Outputs and side effects match `FM_APB_WRITE_CTRL` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_APB_WRITE_CTRL
+  - id: SC08
+    name: function_model transaction FM_APB_READ_STATUS
+    stimulus: Drive preconditions for function_model transaction `FM_APB_READ_STATUS`.
+    expected: Outputs and side effects match `FM_APB_READ_STATUS` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_APB_READ_STATUS
+  - id: SC09
+    name: function_model transaction FM_APB_INVALID
+    stimulus: Drive preconditions for function_model transaction `FM_APB_INVALID`.
+    expected: Outputs and side effects match `FM_APB_INVALID` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_APB_INVALID
+  - id: SC10
+    name: function_model transaction FM_TICK_DISABLED
+    stimulus: Drive preconditions for function_model transaction `FM_TICK_DISABLED`.
+    expected: Outputs and side effects match `FM_TICK_DISABLED` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_TICK_DISABLED
+  - id: SC11
+    name: function_model transaction FM_TICK_DECREMENT
+    stimulus: Drive preconditions for function_model transaction `FM_TICK_DECREMENT`.
+    expected: Outputs and side effects match `FM_TICK_DECREMENT` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_TICK_DECREMENT
+  - id: SC12
+    name: function_model transaction FM_TICK_EXPIRE_RELOAD
+    stimulus: Drive preconditions for function_model transaction `FM_TICK_EXPIRE_RELOAD`.
+    expected: Outputs and side effects match `FM_TICK_EXPIRE_RELOAD` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_TICK_EXPIRE_RELOAD
+  scoreboard_checks: 12
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Functional coverage for APB programming, countdown, reload, disable hold, status read, and invalid access.
+      bins:
+      - id: FCOV_APB_WRITE_LOAD
+        source_ref: function_model.transactions.FM_APB_WRITE_LOAD
+        class: transaction
+        description: LOAD write accepted.
+      - id: FCOV_APB_WRITE_CTRL
+        source_ref: function_model.transactions.FM_APB_WRITE_CTRL
+        class: transaction
+        description: CTRL enable write accepted.
+      - id: FCOV_APB_READ_STATUS
+        source_ref: function_model.transactions.FM_APB_READ_STATUS
+        class: transaction
+        description: STATUS read returns count.
+      - id: FCOV_APB_INVALID
+        source_ref: function_model.transactions.FM_APB_INVALID
+        class: error_transaction
+        description: Invalid access produces pslverr.
+      - id: FCOV_TICK_DISABLED
+        source_ref: function_model.transactions.FM_TICK_DISABLED
+        class: state_hold
+        description: Disabled timer holds count.
+      - id: FCOV_TICK_DECREMENT
+        source_ref: function_model.transactions.FM_TICK_DECREMENT
+        class: state_update
+        description: Enabled non-zero timer decrements.
+      - id: FCOV_TICK_EXPIRE_RELOAD
+        source_ref: function_model.transactions.FM_TICK_EXPIRE_RELOAD
+        class: state_update
+        description: Expiry reloads and pulses irq.
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cycle and handshake coverage for APB response and timer tick behavior.
+      bins:
+      - id: CCOV_APB_ACCESS
+        source_ref: cycle_model.pipeline.APB_ACCESS
+        class: pipeline_stage
+        description: APB access phase observed.
+      - id: CCOV_IRQ_SINGLE_CYCLE
+        source_ref: cycle_model.handshake_rules.IRQ_SINGLE_CYCLE
+        class: pulse
+        description: irq one-cycle pulse observed.
+      - id: CCOV_APB_ERROR
+        source_ref: cycle_model.handshake_rules.APB_INVALID_ERROR
+        class: error_handshake
+        description: pslverr behavior observed.
+      - id: CCOV_DISABLE_HOLD
+        source_ref: cycle_model.ordering
+        class: ordering
+        description: Disable hold ordering observed.
+    functional: Function and cycle coverage must close for starter downstream generation.
+    code: DUT-only compile and DUT-only lint required; line/branch metrics may be defaulted by repair flow in starter mode.
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: Starter SSOT parses, includes top_module/io_list/function_model, and passes check_ssot_disk starter mode after deterministic repair fills boilerplate defaults.
+    evidence:
+    - timer/yaml/timer.ssot.yaml
+    - req/timer_requirements.md
+  rtl:
+    pass: DUT-only compile and DUT-only lint pass for timer.sv, timer_regs.sv, and timer_core.sv.
+    evidence:
+    - lint/dut_lint_report.txt
+    - sim/dut_compile.log
+  rtl_gen:
+    profile: standard
+    pass: RTL implements timer_regs and timer_core behavior from function_model/cycle_model without fixed-template substitution.
+    evidence:
+    - rtl/rtl_authoring_provenance.json
+    - rtl/rtl_todo_plan.json
+    - sim/fl_rtl_goal_audit.json
+  dv:
+    pass: Structured scoreboard events and FL-vs-RTL comparison pass for reset, programming, countdown, reload irq, disable hold, status read, and invalid access scenarios.
+    evidence:
+    - sim/scoreboard_events.jsonl
+    - sim/fl_rtl_results.json
+    - sim/pytest_results.xml
+  coverage:
+    pass: Declared function and cycle coverage bins are hit or waived with SSOT-approved rationale.
+    evidence:
+    - cov/coverage.json
+    - sim/coverage_report.md
+  eda:
+    pass: Starter EDA requirements are limited to preserving synthesizable RTL and producing required synthesis reports when downstream EDA is run.
+    evidence:
+    - syn/timing_report.rpt
+    - syn/area_report.rpt
+    - syn/power_report.rpt
+  signoff:
+    pass: No signoff claim in starter mode; downstream signoff requires engineering/signoff SSOT enrichment and fresh evidence.
+    evidence:
+    - req/signoff_waivers_or_upgrade_plan.md
+traceability:
+  yaml_to_output:
+  - yaml: top_module.name
+    output: RTL top module name timer
+  - yaml: io_list.interfaces.apb_slave
+    output: timer.sv APB port list and timer_regs decode
+  - yaml: registers.register_list.LOAD
+    output: timer_regs.sv LOAD storage and firmware register definition
+  - yaml: registers.register_list.CTRL
+    output: timer_regs.sv enable storage and firmware register definition
+  - yaml: registers.register_list.STATUS
+    output: timer_regs.sv STATUS read mux and scoreboard status checks
+  - yaml: function_model.transactions.FM_TICK_DECREMENT
+    output: timer_core.sv decrement logic and FL-vs-RTL goal
+  - yaml: function_model.transactions.FM_TICK_EXPIRE_RELOAD
+    output: timer_core.sv zero-detect reload/irq logic and FL-vs-RTL goal
+  - yaml: cycle_model.pipeline
+    output: cycle scoreboard sample stages and RTL timing implementation
+  - yaml: test_requirements.scenarios
+    output: cocotb/pyuvm tests and structured scoreboard events
+  - yaml: quality_gates
+    output: downstream pass/fail criteria for RTL
+    DV: null
+    coverage: null
+    and EDA: null
+  - yaml: function_model
+    output: RTL behavior and TB reference model
+  - yaml: cycle_model
+    output: RTL handshake/pipeline timing and waveform checks
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+workflow_todos:
+  ssot-gen:
+  - id: SSOT_STARTER_VALIDATE_TIMER
+    content: Validate starter SSOT for timer and allow deterministic repair defaults where starter mode permits.
+    detail: Run repair_ssot_schema.py and check_ssot_disk.sh in starter mode against timer/yaml/timer.ssot.yaml.
+    command: /to-ssot timer
+    script: $ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/check_ssot_disk.sh
+    instructions:
+    - Use timer/req/timer_requirements.md as the semantic source.
+    - Do not add behavior that contradicts the reset, enable, decrement, reload, irq pulse, or STATUS read requirements.
+    criteria:
+    - function_model has non-empty state_variables, transactions, and invariants.
+    - check_ssot_disk.sh timer --mode starter reports pass after repair.
+    source_refs:
+    - timer/req/timer_requirements.md
+    priority: high
+    required: true
+  fl-model-gen:
+  - id: FL_TIMER_EXECUTABLE_MODEL
+    content: Generate executable FunctionalModel for timer countdown and APB register semantics.
+    detail: Implement state updates for load_q, enable_q, timer_count_q, and irq_q exactly from function_model transactions.
+    command: /ssot-fl-model timer
+    script: $ATLAS_WORKFLOW_ROOT/fl-model-gen/scripts/generate_fl_model.py
+    instructions:
+    - Preserve transaction ordering with specific APB/tick transactions before FM_IDLE.
+    - Expose expected outputs prdata, pready, pslverr, and irq for scoreboard use.
+    criteria:
+    - FunctionalModel can execute reset, LOAD write, CTRL write, tick decrement, expiry reload, disable hold, STATUS read, and invalid access.
+    source_refs:
+    - function_model
+    priority: high
+    required: true
+  rtl-gen:
+  - id: RTL_TIMER_TOP_INTEGRATION
+    content: Author timer.sv top-level integration from SSOT ports and submodule connections.
+    detail: Instantiate timer_regs and timer_core, wire APB ports to timer_regs, wire load_q/enable_q/count_q between regs and core, and expose irq from timer_core.
+    command: /gen-rtl timer
+    script: $ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py
+    instructions:
+    - Use io_list as the top port authority.
+    - Use integration.connections and sub_modules[].connections for module wiring.
+    - Do not create extra wrapper-only top files; top file is rtl/timer.sv.
+    criteria:
+    - timer.sv contains top module timer with all declared io_list ports.
+    - Internal wiring matches module/port/signal records.
+    source_refs:
+    - top_module
+    - io_list
+    - integration.connections
+    - sub_modules
+    owner_module: timer
+    owner_file: rtl/timer.sv
+    priority: high
+    required: true
+  - id: RTL_TIMER_APB_REGISTERS
+    content: Implement APB-style register decode for LOAD, CTRL, and STATUS.
+    detail: LOAD offset 0x00 captures pwdata[31:0], CTRL offset 0x04 captures enable bit, STATUS offset 0x08 returns current count, pready is asserted in access phase, and invalid accesses assert pslverr without corrupting state.
+    command: /gen-rtl timer
+    script: $ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py
+    instructions:
+    - Implement register resets to zero on presetn low.
+    - Reserved CTRL bits read as zero and ignore writes.
+    - Writes to STATUS must assert pslverr and not change timer_count_q.
+    criteria:
+    - APB read/write behavior matches function_model transactions FM_APB_WRITE_LOAD, FM_APB_WRITE_CTRL, FM_APB_READ_STATUS, and FM_APB_INVALID.
+    - DUT-only compile and lint include timer_regs.sv.
+    source_refs:
+    - registers.register_list
+    - function_model.transactions.FM_APB_WRITE_LOAD
+    - function_model.transactions.FM_APB_WRITE_CTRL
+    - function_model.transactions.FM_APB_READ_STATUS
+    - function_model.transactions.FM_APB_INVALID
+    - cycle_model.handshake_rules.APB_SINGLE_CYCLE_READY
+    owner_module: timer_regs
+    owner_file: rtl/timer_regs.sv
+    priority: high
+    required: true
+  - id: RTL_TIMER_COUNTDOWN_CORE
+    content: Implement enable-controlled countdown, hold, expiry reload, and single-cycle irq pulse.
+    detail: While enable_q is zero hold count and keep irq low; while enable_q is one and count is non-zero decrement by one each pclk; when enable_q is one and count is zero pulse irq for one cycle and reload count from load_q.
+    command: /gen-rtl timer
+    script: $ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py
+    instructions:
+    - Reset count and irq to zero on presetn low.
+    - Ensure irq is a pulse, not a sticky level.
+    - Ensure reload uses the current load_q value.
+    criteria:
+    - RTL observed timer_count_q and irq match FM_TICK_DISABLED, FM_TICK_DECREMENT, and FM_TICK_EXPIRE_RELOAD under FL-vs-RTL comparison.
+    - Countdown behavior is covered by SC_COUNTDOWN_IRQ_RELOAD and SC_DISABLE_HOLDS.
+    source_refs:
+    - function_model.transactions.FM_TICK_DISABLED
+    - function_model.transactions.FM_TICK_DECREMENT
+    - function_model.transactions.FM_TICK_EXPIRE_RELOAD
+    - cycle_model.pipeline.TICK_COMMIT
+    - interrupts.sources.IRQ_PULSE
+    owner_module: timer_core
+    owner_file: rtl/timer_core.sv
+    priority: high
+    required: true
+  - id: RTL_TIMER_RESET_AND_IRQ_ASSERTIONS
+    content: Add implementation-visible reset and irq pulse behavior suitable for downstream checks.
+    detail: RTL must make reset state and one-cycle irq pulse observable through ports and internal probes named in debug_observability.
+    command: /gen-rtl timer
+    script: $ATLAS_WORKFLOW_ROOT/rtl-gen/scripts/derive_rtl_todos.py
+    instructions:
+    - Preserve signal names or trace aliases for load_q, enable_q, timer_count_q, and irq.
+    - Avoid optimizations that obscure required simulation debug probes in starter flow.
+    criteria:
+    - SC_RESET_DEFAULTS and SC_COUNTDOWN_IRQ_RELOAD can produce structured scoreboard events with matching FL and RTL values.
+    source_refs:
+    - debug_observability.waveform_must_probe
+    - function_model.invariants
+    - cycle_model.handshake_rules.IRQ_SINGLE_CYCLE
+    owner_module: timer_core
+    owner_file: rtl/timer_core.sv
+    priority: medium
+    required: true
+  tb-gen:
+  - id: TB_TIMER_SCOREBOARD_SCENARIOS
+    content: Generate cocotb/pyuvm tests and structured scoreboard events for timer scenarios.
+    detail: Drive APB-style register writes/reads and per-cycle waits according to test_requirements.scenarios[].stimulus_machine_spec.
+    command: /ssot-tb timer
+    script: $ATLAS_WORKFLOW_ROOT/tb-gen/scripts/generate_tb.py
+    instructions:
+    - Compare prdata, pready, pslverr, irq, and exposed count/debug state against FunctionalModel.
+    - Emit structured scoreboard events for each scenario.
+    criteria:
+    - All declared scenarios run and produce FL-vs-RTL comparison evidence.
+    source_refs:
+    - test_requirements.scenarios
+    - function_model
+    - cycle_model
+    priority: high
+    required: true
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+  sta: []
+  sta-post: []
+generation_flow:
+  steps:
+  - name: verify_ssot
+    command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" timer --root "$ATLAS_PROJECT_ROOT" --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model timer
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals timer
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl timer
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb timer
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection

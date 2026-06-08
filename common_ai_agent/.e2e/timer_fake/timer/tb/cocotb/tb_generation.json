@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "timer",
+  "generated_at": "2026-06-07T15:38:39Z",
+  "manifest": "timer/tb/cocotb/tb_manifest.json",
+  "test": "timer/tb/cocotb/test_timer.py",
+  "runner": "timer/tb/cocotb/test_runner.py",
+  "goals": 22,
+  "rtl_sources": 2
+}

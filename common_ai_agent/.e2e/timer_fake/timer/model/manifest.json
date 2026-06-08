@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "ip": "timer",
+  "generated_at": "2026-06-07T15:37:43Z",
+  "emitter": "fl-model-gen",
+  "produced": [
+    "model/functional_model.py",
+    "model/decomposition.json",
+    "model/fl_model_check.json",
+    "cov/fcov_plan.json"
+  ]
+}

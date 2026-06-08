@@ -1,0 +1,1 @@
+{"elapsed_sec": 8.542, "error": "Error calling LLM: HTTP Error 403: Forbidden", "log_stage": "ssot-gen", "model": "glm-5.1", "stage": "ssot-gen", "status": "blocked", "ts": "2026-06-07T15:34:57Z", "usage": {}}

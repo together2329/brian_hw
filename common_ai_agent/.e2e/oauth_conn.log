@@ -1,0 +1,4 @@
+{"event": "begin", "model": "gpt-5.5", "run_mode": "starter", "t": "09:18:41"}
+{"event": "stage_start", "stage": "ssot-gen", "t": "09:18:41"}
+{"event": "stage_done", "stage": "ssot-gen", "status": "pass", "seconds": 234.6, "t": "09:22:35"}
+{"event": "end", "note": "connectivity-only", "t": "09:22:35"}

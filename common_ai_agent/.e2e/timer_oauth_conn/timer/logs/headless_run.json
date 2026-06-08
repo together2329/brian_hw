@@ -1,0 +1,30 @@
+{
+  "ip": "timer",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_oauth_conn",
+  "run_log": "timer/logs/headless_run.json",
+  "stages": [
+    {
+      "artifacts": [
+        "timer/req/timer_requirements.md",
+        "timer/req/requirements.md"
+      ],
+      "blocker": "",
+      "message": "requirements copied",
+      "returncode": 0,
+      "stage": "req",
+      "status": "pass"
+    },
+    {
+      "artifacts": [
+        "timer/yaml/timer.ssot.yaml",
+        "timer/logs/llm/ssot-gen.json"
+      ],
+      "blocker": "",
+      "message": "SSOT contract valid",
+      "returncode": 0,
+      "stage": "ssot-gen",
+      "status": "pass"
+    }
+  ],
+  "status": "pass"
+}

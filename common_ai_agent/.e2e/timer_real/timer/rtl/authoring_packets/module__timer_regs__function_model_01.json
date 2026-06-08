@@ -1,0 +1,3219 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 19,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model_01",
+      "module_task_count": 110,
+      "rule": "Owner module timer_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer_regs.sv",
+      "name": "timer_regs",
+      "refs": [
+        "error_handling",
+        "function_model",
+        "function_model.invariants",
+        "function_model.state_variables",
+        "function_model.transactions.FM_APB_READ_STATUS",
+        "function_model.transactions.FM_APB_UNMAPPED_ACCESS",
+        "function_model.transactions.FM_APB_WRITE_CTRL",
+        "function_model.transactions.FM_APB_WRITE_LOAD",
+        "function_model.transactions.FM_DISABLED_HOLD",
+        "function_model.transactions.FM_TICK_DECREMENT",
+        "function_model.transactions.FM_TICK_RELOAD_IRQ",
+        "registers",
+        "registers.register_list",
+        "registers.register_list.CTRL",
+        "registers.register_list.LOAD",
+        "registers.register_list.STATUS"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer_regs.sv",
+        "name": "timer_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer_core.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "paddr",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "psel",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "penable",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pwrite",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pwdata",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "prdata",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pslverr",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "load_q",
+        "signal": "load_q",
+        "signal_terms": [
+          "load_q"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "enable_q",
+        "signal": "enable_q",
+        "signal_terms": [
+          "enable_q"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "count_q",
+        "signal": "count_q",
+        "signal_terms": [
+          "count_q"
+        ],
+        "source_ref": "integration.connections[12]"
+      }
+    ],
+    "ssot_top_io_contracts": [],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer_regs.sv",
+  "owner_module": "timer_regs",
+  "packet_id": "module__timer_regs__function_model_01",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.input": 2,
+      "function_model.output": 19,
+      "function_model.output_rule": 7,
+      "function_model.precondition": 3,
+      "function_model.side_effect": 7,
+      "function_model.state_update": 5,
+      "function_model.state_variable": 1,
+      "function_model.transaction": 4
+    },
+    "module_slice": {
+      "count": 7,
+      "enabled": true,
+      "index": 1,
+      "key": "function_model_01",
+      "module_task_count": 110,
+      "rule": "Owner module timer_regs is split into 7 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 3,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 48,
+    "source_refs": [
+      "function_model.state_variables.irq_q",
+      "function_model.transactions.FM_APB_WRITE_LOAD",
+      "function_model.transactions.FM_APB_WRITE_LOAD.preconditions.precondition_0",
+      "function_model.transactions.FM_APB_WRITE_LOAD.inputs.input_0",
+      "function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_0",
+      "function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_1",
+      "function_model.transactions.FM_APB_WRITE_LOAD.outputs.pready_write_load",
+      "function_model.transactions.FM_APB_WRITE_LOAD.outputs.pslverr_write_load",
+      "function_model.transactions.FM_APB_WRITE_LOAD.outputs.load_q",
+      "function_model.transactions.FM_APB_WRITE_LOAD.outputs.irq_q",
+      "function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pready_write_load",
+      "function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pslverr_write_load",
+      "function_model.transactions.FM_APB_WRITE_LOAD.state_updates.load_q",
+      "function_model.transactions.FM_APB_WRITE_LOAD.state_updates.irq_q",
+      "function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_0",
+      "function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_1",
+      "function_model.transactions.FM_APB_WRITE_CTRL",
+      "function_model.transactions.FM_APB_WRITE_CTRL.preconditions.precondition_0",
+      "function_model.transactions.FM_APB_WRITE_CTRL.inputs.input_0",
+      "function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_0",
+      "function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_1",
+      "function_model.transactions.FM_APB_WRITE_CTRL.outputs.pready_write_ctrl",
+      "function_model.transactions.FM_APB_WRITE_CTRL.outputs.pslverr_write_ctrl",
+      "function_model.transactions.FM_APB_WRITE_CTRL.outputs.enable_q"
+    ],
+    "status_counts": {
+      "pass": 48
+    },
+    "task_count": 48
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state irq_q",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "irq_q width matches SSOT value 1",
+        "irq_q reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.state_variables.\nSSOT item context: name=irq_q; width=1; reset=0.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.irq_q",
+      "ssot_context": {
+        "name": "irq_q",
+        "reset": "0",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_WRITE_LOAD",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: id=FM_APB_WRITE_LOAD; name=write_load_register.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_LOAD",
+        "name": "write_load_register"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_WRITE_LOAD: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.preconditions.precondition_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and paddr == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "psel == 1 and penable == 1 and pwrite == 1 and paddr == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_WRITE_LOAD: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.inputs.input_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_load_register"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.inputs.input_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: id=FM_APB_WRITE_LOAD; name=write_load_register; port=[\"pready\", \"pslverr\"]; signal=[\"pwdata\"]; state=[\"load_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "irq",
+        "irq_q",
+        "load",
+        "load_q",
+        "pready",
+        "pslverr",
+        "pwdata"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_LOAD",
+        "name": "write_load_register",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"load_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "irq",
+          "irq_q",
+          "load",
+          "load_q",
+          "pready",
+          "pslverr",
+          "pwdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q",
+          "load",
+          "load_q",
+          "pready",
+          "pslverr",
+          "pwdata"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_LOAD: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: value=pready == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0046",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_0",
+      "ssot_context": {
+        "value": "pready == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_LOAD: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_1",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_1.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: value=pslverr == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_1",
+      "ssot_context": {
+        "value": "pslverr == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_LOAD: pready_write_load",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.outputs.pready_write_load",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pready_write_load RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for pready_write_load"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.outputs.pready_write_load.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: name=pready_write_load; port=pready; expr=1.",
+      "evidence_terms": [
+        "load",
+        "pready",
+        "pready_write_load",
+        "write"
+      ],
+      "id": "RTL-0048",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.outputs.pready_write_load",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pready_write_load",
+        "port": "pready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.pready_write_load"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "load",
+          "pready",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "load",
+          "pready",
+          "pready_write_load",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_LOAD: pslverr_write_load",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.outputs.pslverr_write_load",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pslverr_write_load RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_write_load"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.outputs.pslverr_write_load.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: name=pslverr_write_load; port=pslverr; expr=0.",
+      "evidence_terms": [
+        "load",
+        "pslverr",
+        "pslverr_write_load",
+        "write"
+      ],
+      "id": "RTL-0049",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.outputs.pslverr_write_load",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_write_load",
+        "port": "pslverr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.pslverr_write_load"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "load",
+          "pslverr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "load",
+          "pslverr",
+          "pslverr_write_load",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_LOAD: load_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.outputs.load_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.load_q RTL expression implements SSOT expression pwdata & 0xffffffff"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.outputs.load_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: state=load_q; expr=pwdata & 0xffffffff.",
+      "evidence_terms": [
+        "load",
+        "load_q"
+      ],
+      "id": "RTL-0050",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.outputs.load_q",
+      "ssot_context": {
+        "expr": "pwdata & 0xffffffff",
+        "state": "load_q"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.load_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "load",
+          "load_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "load",
+          "load_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_LOAD: irq_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.outputs.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.irq_q RTL expression implements SSOT expression 0"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.outputs.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: state=irq_q; expr=0.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0051",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.outputs.irq_q",
+      "ssot_context": {
+        "expr": "0",
+        "state": "irq_q"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.outputs.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_WRITE_LOAD: pready_write_load",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pready_write_load",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pready_write_load width matches SSOT value 1",
+        "pready_write_load RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for pready_write_load",
+        "pready_write_load is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pready_write_load.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: name=pready_write_load; port=pready; expr=1; width=1.",
+      "evidence_terms": [
+        "load",
+        "pready",
+        "pready_write_load",
+        "write"
+      ],
+      "id": "RTL-0052",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pready_write_load",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pready_write_load",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pready_write_load"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "load",
+          "pready",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "load",
+          "pready",
+          "pready_write_load",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_WRITE_LOAD: pslverr_write_load",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pslverr_write_load",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pslverr_write_load width matches SSOT value 1",
+        "pslverr_write_load RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_write_load",
+        "pslverr_write_load is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pslverr_write_load.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: name=pslverr_write_load; port=pslverr; expr=0; width=1.",
+      "evidence_terms": [
+        "load",
+        "pslverr",
+        "pslverr_write_load",
+        "write"
+      ],
+      "id": "RTL-0053",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pslverr_write_load",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_write_load",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.output_rules.pslverr_write_load"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "load",
+          "pslverr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "load",
+          "pslverr",
+          "pslverr_write_load",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE_LOAD: load_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.state_updates.load_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "load_q width matches SSOT value 32",
+        "load_q RTL expression implements SSOT expression pwdata & 0xffffffff",
+        "load_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.state_updates.load_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: name=load_q; expr=pwdata & 0xffffffff; width=32.",
+      "evidence_terms": [
+        "load",
+        "load_q"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.state_updates.load_q",
+      "ssot_context": {
+        "expr": "pwdata & 0xffffffff",
+        "name": "load_q",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.state_updates.load_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "load",
+          "load_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "load",
+          "load_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE_LOAD: irq_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.state_updates.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "irq_q width matches SSOT value 1",
+        "irq_q RTL expression implements SSOT expression 0",
+        "irq_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.state_updates.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: name=irq_q; expr=0; width=1.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.state_updates.irq_q",
+      "ssot_context": {
+        "expr": "0",
+        "name": "irq_q",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.state_updates.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_WRITE_LOAD: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_load_register"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: id=FM_APB_WRITE_LOAD; name=write_load_register; port=[\"pready\", \"pslverr\"]; signal=[\"load_q becomes pwdata[31:0].\"]; state=[\"load_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "irq",
+        "irq_q",
+        "load",
+        "load_q",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_LOAD",
+        "name": "write_load_register",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"load_q becomes pwdata[31:0].\"]",
+        "state": "[\"load_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "irq",
+          "irq_q",
+          "load",
+          "load_q",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q",
+          "load",
+          "load_q",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_WRITE_LOAD: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_load_register"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_1.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_LOAD.\nSSOT item context: id=FM_APB_WRITE_LOAD; name=write_load_register; port=[\"pready\", \"pslverr\"]; signal=[\"irq_q is deasserted for this APB write transaction.\"]; state=[\"load_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "APB",
+        "irq",
+        "irq_q",
+        "load",
+        "load_q",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_LOAD",
+        "name": "write_load_register",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"irq_q is deasserted for this APB write transaction.\"]",
+        "state": "[\"load_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_LOAD.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "APB",
+          "irq",
+          "irq_q",
+          "load",
+          "load_q",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB",
+          "irq",
+          "irq_q",
+          "load",
+          "load_q",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_WRITE_CTRL",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: id=FM_APB_WRITE_CTRL; name=write_ctrl_enable.",
+      "evidence_terms": [],
+      "id": "RTL-0058",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_CTRL",
+        "name": "write_ctrl_enable"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_WRITE_CTRL: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.preconditions.precondition_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: value=psel == 1 and penable == 1 and pwrite == 1 and paddr == 4.",
+      "evidence_terms": [],
+      "id": "RTL-0059",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "psel == 1 and penable == 1 and pwrite == 1 and paddr == 4"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_APB_WRITE_CTRL: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.inputs.input_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_ctrl_enable"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.inputs.input_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: id=FM_APB_WRITE_CTRL; name=write_ctrl_enable; port=[\"pready\", \"pslverr\"]; signal=[\"pwdata\"]; state=[\"enable_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "enable",
+        "enable_q",
+        "irq",
+        "irq_q",
+        "pready",
+        "pslverr",
+        "pwdata"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_CTRL",
+        "name": "write_ctrl_enable",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"pwdata\"]",
+        "state": "[\"enable_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr",
+          "pwdata"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr",
+          "pwdata"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_CTRL: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: value=pready == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0061",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_0",
+      "ssot_context": {
+        "value": "pready == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_CTRL: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_1",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_1.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: value=pslverr == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_1",
+      "ssot_context": {
+        "value": "pslverr == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_CTRL: pready_write_ctrl",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.outputs.pready_write_ctrl",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pready_write_ctrl RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for pready_write_ctrl"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.outputs.pready_write_ctrl.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: name=pready_write_ctrl; port=pready; expr=1.",
+      "evidence_terms": [
+        "ctrl",
+        "pready",
+        "pready_write_ctrl",
+        "write"
+      ],
+      "id": "RTL-0063",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.outputs.pready_write_ctrl",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pready_write_ctrl",
+        "port": "pready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.pready_write_ctrl"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "pready",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctrl",
+          "pready",
+          "pready_write_ctrl",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_CTRL: pslverr_write_ctrl",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.outputs.pslverr_write_ctrl",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pslverr_write_ctrl RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_write_ctrl"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.outputs.pslverr_write_ctrl.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: name=pslverr_write_ctrl; port=pslverr; expr=0.",
+      "evidence_terms": [
+        "ctrl",
+        "pslverr",
+        "pslverr_write_ctrl",
+        "write"
+      ],
+      "id": "RTL-0064",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.outputs.pslverr_write_ctrl",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_write_ctrl",
+        "port": "pslverr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.pslverr_write_ctrl"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "pslverr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ctrl",
+          "pslverr",
+          "pslverr_write_ctrl",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_CTRL: enable_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.outputs.enable_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.enable_q RTL expression implements SSOT expression pwdata & 1"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.outputs.enable_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: state=enable_q; expr=pwdata & 1.",
+      "evidence_terms": [
+        "enable",
+        "enable_q"
+      ],
+      "id": "RTL-0065",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.outputs.enable_q",
+      "ssot_context": {
+        "expr": "pwdata & 1",
+        "state": "enable_q"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.enable_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "enable",
+          "enable_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "enable",
+          "enable_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_WRITE_CTRL: irq_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.outputs.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.irq_q RTL expression implements SSOT expression 0"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.outputs.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: state=irq_q; expr=0.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0066",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.outputs.irq_q",
+      "ssot_context": {
+        "expr": "0",
+        "state": "irq_q"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.outputs.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_WRITE_CTRL: pready_write_ctrl",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pready_write_ctrl",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pready_write_ctrl width matches SSOT value 1",
+        "pready_write_ctrl RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for pready_write_ctrl",
+        "pready_write_ctrl is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pready_write_ctrl.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: name=pready_write_ctrl; port=pready; expr=1; width=1.",
+      "evidence_terms": [
+        "ctrl",
+        "pready",
+        "pready_write_ctrl",
+        "write"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pready_write_ctrl",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pready_write_ctrl",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pready_write_ctrl"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "pready",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "pready",
+          "pready_write_ctrl",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_WRITE_CTRL: pslverr_write_ctrl",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pslverr_write_ctrl",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pslverr_write_ctrl width matches SSOT value 1",
+        "pslverr_write_ctrl RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_write_ctrl",
+        "pslverr_write_ctrl is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pslverr_write_ctrl.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: name=pslverr_write_ctrl; port=pslverr; expr=0; width=1.",
+      "evidence_terms": [
+        "ctrl",
+        "pslverr",
+        "pslverr_write_ctrl",
+        "write"
+      ],
+      "id": "RTL-0068",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pslverr_write_ctrl",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_write_ctrl",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.output_rules.pslverr_write_ctrl"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "ctrl",
+          "pslverr",
+          "write"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ctrl",
+          "pslverr",
+          "pslverr_write_ctrl",
+          "write"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE_CTRL: enable_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.state_updates.enable_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "enable_q width matches SSOT value 1",
+        "enable_q RTL expression implements SSOT expression pwdata & 1",
+        "enable_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.state_updates.enable_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: name=enable_q; expr=pwdata & 1; width=1.",
+      "evidence_terms": [
+        "enable",
+        "enable_q"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.state_updates.enable_q",
+      "ssot_context": {
+        "expr": "pwdata & 1",
+        "name": "enable_q",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.state_updates.enable_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "enable",
+          "enable_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "enable",
+          "enable_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_WRITE_CTRL: irq_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.state_updates.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "irq_q width matches SSOT value 1",
+        "irq_q RTL expression implements SSOT expression 0",
+        "irq_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.state_updates.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: name=irq_q; expr=0; width=1.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.state_updates.irq_q",
+      "ssot_context": {
+        "expr": "0",
+        "name": "irq_q",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.state_updates.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_WRITE_CTRL: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_ctrl_enable"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: id=FM_APB_WRITE_CTRL; name=write_ctrl_enable; port=[\"pready\", \"pslverr\"]; signal=[\"enable_q becomes pwdata[0].\"]; state=[\"enable_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "enable",
+        "enable_q",
+        "irq",
+        "irq_q",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_CTRL",
+        "name": "write_ctrl_enable",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"enable_q becomes pwdata[0].\"]",
+        "state": "[\"enable_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_WRITE_CTRL: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_ctrl_enable"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_1.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: id=FM_APB_WRITE_CTRL; name=write_ctrl_enable; port=[\"pready\", \"pslverr\"]; signal=[\"If ENABLE is written 0, count_q holds its current value on subsequent timer ticks.\"]; state=[\"enable_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "ENABLE",
+        "If",
+        "count",
+        "count_q",
+        "enable",
+        "enable_q",
+        "irq",
+        "irq_q",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_CTRL",
+        "name": "write_ctrl_enable",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"If ENABLE is written 0, count_q holds its current value on subsequent timer ticks.\"]",
+        "state": "[\"enable_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "ENABLE",
+          "If",
+          "count",
+          "count_q",
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "ENABLE",
+          "If",
+          "count",
+          "count_q",
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_WRITE_CTRL: side_effect_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_2",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"pready\", \"pslverr\"] is the implementation/observation point for write_ctrl_enable"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_2.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_WRITE_CTRL.\nSSOT item context: id=FM_APB_WRITE_CTRL; name=write_ctrl_enable; port=[\"pready\", \"pslverr\"]; signal=[\"irq_q is deasserted for this APB write transaction.\"]; state=[\"enable_q\", \"irq_q\"].",
+      "evidence_terms": [
+        "APB",
+        "enable",
+        "enable_q",
+        "irq",
+        "irq_q",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_2",
+      "ssot_context": {
+        "id": "FM_APB_WRITE_CTRL",
+        "name": "write_ctrl_enable",
+        "port": "[\"pready\", \"pslverr\"]",
+        "signal": "[\"irq_q is deasserted for this APB write transaction.\"]",
+        "state": "[\"enable_q\", \"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_WRITE_CTRL.side_effects.side_effect_2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "APB",
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB",
+          "enable",
+          "enable_q",
+          "irq",
+          "irq_q",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_APB_READ_STATUS",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: id=FM_APB_READ_STATUS; name=read_status_current_count.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS",
+      "ssot_context": {
+        "id": "FM_APB_READ_STATUS",
+        "name": "read_status_current_count"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_APB_READ_STATUS: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.preconditions.precondition_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: value=psel == 1 and penable == 1 and pwrite == 0 and paddr == 8.",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "psel == 1 and penable == 1 and pwrite == 0 and paddr == 8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.output_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.output_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: value=prdata == count_q.",
+      "evidence_terms": [
+        "count",
+        "count_q"
+      ],
+      "id": "RTL-0076",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.output_0",
+      "ssot_context": {
+        "value": "prdata == count_q"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "count",
+          "count_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "count_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: output_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.output_1",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.output_1.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: value=pready == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0077",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.output_1",
+      "ssot_context": {
+        "value": "pready == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.output_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: output_2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.output_2",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.output_2.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: value=pslverr == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0078",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.output_2",
+      "ssot_context": {
+        "value": "pslverr == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.output_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: prdata_status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.prdata_status",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "prdata_status RTL expression implements SSOT expression count_q & 0xffffffff",
+        "DUT port prdata is the implementation/observation point for prdata_status"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.prdata_status.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=prdata_status; port=prdata; expr=count_q & 0xffffffff.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "prdata",
+        "prdata_status",
+        "status"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.prdata_status",
+      "ssot_context": {
+        "expr": "count_q & 0xffffffff",
+        "name": "prdata_status",
+        "port": "prdata"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.prdata_status"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "prdata",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "count",
+          "count_q",
+          "prdata",
+          "prdata_status",
+          "status"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: pready_read_status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.pready_read_status",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pready_read_status RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for pready_read_status"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.pready_read_status.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=pready_read_status; port=pready; expr=1.",
+      "evidence_terms": [
+        "pready",
+        "pready_read_status",
+        "read",
+        "status"
+      ],
+      "id": "RTL-0080",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.pready_read_status",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pready_read_status",
+        "port": "pready"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.pready_read_status"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "pready",
+          "read",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "pready",
+          "pready_read_status",
+          "read",
+          "status"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: pslverr_read_status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.pslverr_read_status",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pslverr_read_status RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_read_status"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.pslverr_read_status.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=pslverr_read_status; port=pslverr; expr=0.",
+      "evidence_terms": [
+        "pslverr",
+        "pslverr_read_status",
+        "read",
+        "status"
+      ],
+      "id": "RTL-0081",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.pslverr_read_status",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_read_status",
+        "port": "pslverr"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.pslverr_read_status"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "pslverr",
+          "read",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "pslverr",
+          "pslverr_read_status",
+          "read",
+          "status"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_APB_READ_STATUS: irq_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.outputs.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.irq_q RTL expression implements SSOT expression 0"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.outputs.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: state=irq_q; expr=0.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0082",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.outputs.irq_q",
+      "ssot_context": {
+        "expr": "0",
+        "state": "irq_q"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.outputs.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_READ_STATUS: prdata_status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.output_rules.prdata_status",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "prdata_status width matches SSOT value 32",
+        "prdata_status RTL expression implements SSOT expression count_q & 0xffffffff",
+        "DUT port prdata is the implementation/observation point for prdata_status",
+        "prdata_status is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.output_rules.prdata_status.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=prdata_status; port=prdata; expr=count_q & 0xffffffff; width=32.",
+      "evidence_terms": [
+        "count",
+        "count_q",
+        "prdata",
+        "prdata_status",
+        "status"
+      ],
+      "id": "RTL-0083",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.output_rules.prdata_status",
+      "ssot_context": {
+        "expr": "count_q & 0xffffffff",
+        "name": "prdata_status",
+        "port": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.output_rules.prdata_status"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "count",
+          "count_q",
+          "prdata",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "count",
+          "count_q",
+          "prdata",
+          "prdata_status",
+          "status"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_READ_STATUS: pready_read_status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.output_rules.pready_read_status",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pready_read_status width matches SSOT value 1",
+        "pready_read_status RTL expression implements SSOT expression 1",
+        "DUT port pready is the implementation/observation point for pready_read_status",
+        "pready_read_status is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.output_rules.pready_read_status.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=pready_read_status; port=pready; expr=1; width=1.",
+      "evidence_terms": [
+        "pready",
+        "pready_read_status",
+        "read",
+        "status"
+      ],
+      "id": "RTL-0084",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.output_rules.pready_read_status",
+      "ssot_context": {
+        "expr": "1",
+        "name": "pready_read_status",
+        "port": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.output_rules.pready_read_status"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "pready",
+          "read",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "pready",
+          "pready_read_status",
+          "read",
+          "status"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_APB_READ_STATUS: pslverr_read_status",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.output_rules.pslverr_read_status",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "pslverr_read_status width matches SSOT value 1",
+        "pslverr_read_status RTL expression implements SSOT expression 0",
+        "DUT port pslverr is the implementation/observation point for pslverr_read_status",
+        "pslverr_read_status is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.output_rules.pslverr_read_status.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=pslverr_read_status; port=pslverr; expr=0; width=1.",
+      "evidence_terms": [
+        "pslverr",
+        "pslverr_read_status",
+        "read",
+        "status"
+      ],
+      "id": "RTL-0085",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.output_rules.pslverr_read_status",
+      "ssot_context": {
+        "expr": "0",
+        "name": "pslverr_read_status",
+        "port": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.output_rules.pslverr_read_status"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "pslverr",
+          "read",
+          "status"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "pslverr",
+          "pslverr_read_status",
+          "read",
+          "status"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_APB_READ_STATUS: irq_q",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.state_updates.irq_q",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "irq_q width matches SSOT value 1",
+        "irq_q RTL expression implements SSOT expression 0",
+        "irq_q updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.state_updates.irq_q.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: name=irq_q; expr=0; width=1.",
+      "evidence_terms": [
+        "irq",
+        "irq_q"
+      ],
+      "id": "RTL-0086",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.state_updates.irq_q",
+      "ssot_context": {
+        "expr": "0",
+        "name": "irq_q",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.state_updates.irq_q"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "irq",
+          "irq_q"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_READ_STATUS: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"prdata\", \"pready\", \"pslverr\"] is the implementation/observation point for read_status_current_count"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_0.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: id=FM_APB_READ_STATUS; name=read_status_current_count; port=[\"prdata\", \"pready\", \"pslverr\"]; signal=[\"STATUS read has no count_q side effect.\"]; state=[\"irq_q\"].",
+      "evidence_terms": [
+        "STATUS",
+        "count",
+        "count_q",
+        "irq",
+        "irq_q",
+        "prdata",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0087",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_APB_READ_STATUS",
+        "name": "read_status_current_count",
+        "port": "[\"prdata\", \"pready\", \"pslverr\"]",
+        "signal": "[\"STATUS read has no count_q side effect.\"]",
+        "state": "[\"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 8,
+        "matched_terms": [
+          "STATUS",
+          "count",
+          "count_q",
+          "irq",
+          "irq_q",
+          "prdata",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "STATUS",
+          "count",
+          "count_q",
+          "irq",
+          "irq_q",
+          "prdata",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_APB_READ_STATUS: side_effect_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_1",
+        "Primary implementation evidence is in rtl/timer_regs.sv",
+        "DUT port [\"prdata\", \"pready\", \"pslverr\"] is the implementation/observation point for read_status_current_count"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_1.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_APB_READ_STATUS.\nSSOT item context: id=FM_APB_READ_STATUS; name=read_status_current_count; port=[\"prdata\", \"pready\", \"pslverr\"]; signal=[\"irq_q is deasserted for this APB read transaction.\"]; state=[\"irq_q\"].",
+      "evidence_terms": [
+        "APB",
+        "irq",
+        "irq_q",
+        "prdata",
+        "pready",
+        "pslverr"
+      ],
+      "id": "RTL-0088",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_1",
+      "ssot_context": {
+        "id": "FM_APB_READ_STATUS",
+        "name": "read_status_current_count",
+        "port": "[\"prdata\", \"pready\", \"pslverr\"]",
+        "signal": "[\"irq_q is deasserted for this APB read transaction.\"]",
+        "state": "[\"irq_q\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_APB_READ_STATUS.side_effects.side_effect_1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "APB",
+          "irq",
+          "irq_q",
+          "prdata",
+          "pready",
+          "pslverr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "APB",
+          "irq",
+          "irq_q",
+          "prdata",
+          "pready",
+          "pslverr"
+        ],
+        "source_scope": "rtl/timer_regs.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_TICK_DECREMENT",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK_DECREMENT",
+        "Primary implementation evidence is in rtl/timer_regs.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_TICK_DECREMENT.\nOwner: timer_regs in rtl/timer_regs.sv via function_model.transactions.FM_TICK_DECREMENT.\nSSOT item context: id=FM_TICK_DECREMENT; name=enabled_decrement_nonzero.",
+      "evidence_terms": [],
+      "id": "RTL-0089",
+      "owner_file": "rtl/timer_regs.sv",
+      "owner_module": "timer_regs",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK_DECREMENT",
+      "ssot_context": {
+        "id": "FM_TICK_DECREMENT",
+        "name": "enabled_decrement_nonzero"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK_DECREMENT"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "53834821b27363b8d16e5991dc812b9380099860db84ca19bd61cb5db03fa76e",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

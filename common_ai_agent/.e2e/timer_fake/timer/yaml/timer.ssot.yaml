@@ -1,0 +1,665 @@
+top_module:
+  name: timer
+  file: rtl/timer.sv
+  description: timer top-level wrapper for the sampled transaction rule.
+  type: peripheral
+  version: '1.0'
+  reference_spec: user-defined
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+sub_modules:
+- name: timer
+  file: rtl/timer.sv
+  ownership: manifest
+  wiring_only: true
+  implements:
+  - io_list
+  - integration
+  - top_module
+  source_sections: &id001
+  - io_list
+  - integration
+  - top_module
+  - decomposition
+  description: Top wrapper that connects external ports to the SSOT-owned core.
+  ssot_gen: true
+  decomposition_refs:
+  - decomposition
+  dataflow_refs:
+  - dataflow
+- name: timer_core
+  file: rtl/timer_core.sv
+  ownership: manifest
+  implements:
+  - function_model.transactions
+  - cycle_model
+  - rtl_contract
+  source_sections:
+  - function_model
+  - cycle_model
+  - rtl_contract
+  - fsm
+  - dataflow
+  - registers
+  - features
+  - decomposition
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions.FM_PRIMARY
+  - function_model.state_variables
+  - function_model.invariants
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model
+  dataflow_refs:
+  - dataflow.sequence
+  - dataflow.ordering
+  - dataflow
+  register_refs:
+  - registers.architectural_state.accepted_count
+  fsm_refs:
+  - fsm.control
+  - fsm
+  description: Core RTL block implementing the sampled transaction rule.
+  feature_refs:
+  - features
+  decomposition_refs:
+  - decomposition
+  test_refs:
+  - test_requirements
+decomposition:
+  strategy: manifest_owned_leaf_decomposition
+  owners:
+  - module: timer
+    file: rtl/timer.sv
+    responsibility: Top wrapper that connects external ports to the SSOT-owned core.
+    source_sections: *id001
+  - module: timer_core
+    file: rtl/timer_core.sv
+    responsibility: Core RTL block implementing the sampled transaction rule.
+    source_sections:
+    - function_model
+    - cycle_model
+    - rtl_contract
+    - fsm
+    - dataflow
+    - registers
+  integration_policy: Top-level wiring must be backed by integration.connections or sub_modules[].connections before signoff.
+  source_refs:
+  - sub_modules
+  - function_model
+  - cycle_model
+  - integration
+rtl_contract:
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  transaction: FM_PRIMARY
+  sample_condition: valid && ready
+  input_map:
+    value: data_in
+    data_in: data_in
+  output_map:
+    result: result
+    valid: result_valid
+    ready: ready
+    result_valid: result_valid
+  ready_output: ready
+  output_valid: result_valid
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  contract_invariants:
+  - RTL-visible behavior implements the referenced function_model transaction.
+  - Input sampling and output observation follow cycle_model handshake and latency rules.
+  output_rules:
+  - name: result
+    port: result
+    expr: value * 2
+    width: 9
+    description: FunctionalModel output observable mapped to DUT output port.
+parameters:
+- name: DATA_WIDTH
+  default: 8
+  type: int
+  description: Input data width.
+- name: RESULT_WIDTH
+  default: 9
+  type: int
+  description: Output result width.
+io_list:
+  clock_domains:
+  - name: main
+    ports:
+    - name: clk
+      direction: input
+      width: 1
+  resets:
+  - name: rst_n
+    active: low
+    ports:
+    - name: rst_n
+      direction: input
+      width: 1
+  interfaces:
+  - name: rule_io
+    type: custom
+    role: target
+    clock_domain: main
+    reset_domain: rst_n
+    protocol:
+      acceptance: A request is accepted when valid && ready is true on clk.
+      response: result and result_valid are driven one cycle after the accepted request.
+      stability: data_in is sampled only at acceptance; result remains traceable to that sampled value.
+    ports:
+    - name: valid
+      direction: input
+      width: 1
+      description: Recovered from io_list.interfaces.rule_io.signals
+    - name: data_in
+      direction: input
+      width: 8
+      description: Recovered from io_list.interfaces.rule_io.signals
+    - name: result
+      direction: output
+      width: 9
+      description: Recovered from io_list.interfaces.rule_io.signals
+    - name: ready
+      direction: output
+      width: 1
+      description: Recovered from io_list.interfaces.rule_io.signals
+      allow_constant: true
+      tieoff: 1'b1
+      constant_value: 1'b1
+    - name: result_valid
+      direction: output
+      width: 1
+      description: Recovered from io_list.interfaces.rule_io.signals
+features:
+- name: double_value
+  description: Sample data_in when valid is high and produce result=data_in*2 one cycle later.
+  requirement_trace: '# Headless Requirement timer is a small ready/valid stream transform IP used to validate the headless workflow. After reset deassertion, it samples data_in only when valid is asserted. The ready output remains high after reset. One cycle af'
+dataflow:
+  sequence:
+  - Sample data_in when valid is asserted after reset release.
+  - Compute result as sampled value multiplied by two.
+  - Present result and result_valid on the next observable cycle.
+  ordering:
+  - accepted request precedes result observation
+function_model:
+  state_variables:
+  - name: accepted_count
+    width: 8
+    reset: 0
+  transactions:
+  - id: FM_PRIMARY
+    name: primary_behavior
+    required_fields:
+    - value
+    preconditions:
+    - rst_n is deasserted
+    - valid is high
+    outputs:
+    - result
+    - state: accepted_count
+      expr: accepted_count + 1
+      description: Mirrored from executable state_updates for SSOT validator completeness.
+    output_rules:
+    - name: result
+      port: result
+      expr: value * 2
+      width: 9
+    side_effects:
+    - accepted_count increments on each sampled transaction
+    state_updates:
+    - name: accepted_count
+      expr: accepted_count + 1
+      width: 8
+  invariants:
+  - No result is produced before reset is released.
+  - Each accepted valid transaction produces exactly one result_valid observation.
+  - The result value is derived only from the sampled input transaction.
+  reference_model_hint: FunctionalModel.apply(value) returns result=value*2 and increments accepted_count.
+cycle_model:
+  executable: python
+  backend_policy: Use the repo-owned pure-Python deterministic stepper; FunctionalModel remains the behavioral oracle.
+  clock: clk
+  reset: rst_n
+  latency: 1
+  handshake_rules:
+  - name: valid_sample
+    description: data_in is sampled only when valid is high; ready remains high after reset.
+  pipeline:
+  - stage: S0_SAMPLE
+    cycle: 0
+    action: Sample data_in when valid is high.
+  - stage: S1_RESULT
+    cycle: 1
+    action: Drive result and result_valid for the sampled value.
+  ordering:
+  - Transactions are observed in the same order they are sampled.
+  - Reset clears pending valid output before any new transaction is accepted.
+  backpressure:
+  - ready remains asserted in this one-deep sample rule IP.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+      condition: ready remains asserted
+    outstanding:
+      max: 1
+      description: One sampled transaction at a time
+    depth:
+      pipeline_stages: 2
+      queue_depth: 1
+      description: Sample/result default cycle depth
+clock_reset_domains:
+  domains:
+  - name: main
+    clock: clk
+    reset: rst_n
+    reset_active: low
+cdc_requirements:
+  crossings: []
+  rationale: Single clock domain.
+rdc_requirements:
+  crossings: []
+  rationale: Single reset domain.
+registers:
+  no_registers: true
+  policy: No firmware-visible CSR/register map is required for this native valid/ready rule IP.
+  register_list: []
+  architectural_state:
+  - name: accepted_count
+    reset: 0
+    source: function_model.state_variables
+memory:
+  instances: []
+  rationale: No memory required for the one-cycle datapath rule.
+interrupts:
+  sources: []
+  outputs: []
+  rationale: No interrupt behavior required for this rule IP.
+fsm:
+  control:
+    states:
+    - S0_SAMPLE
+    - S1_RESULT
+    reset_state: S0_SAMPLE
+    transitions:
+    - from: S0_SAMPLE
+      to: S1_RESULT
+      condition: valid
+      action: Latch input value.
+    - from: S1_RESULT
+      to: S0_SAMPLE
+      condition: next cycle
+      action: Emit result_valid.
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    period_ns: 10.0
+  latency_budget:
+    accepted_to_result_valid:
+      min: 1
+      max: 1
+      unit: cycles
+  sta_expectations:
+    setup_wns_ns_min: 0.0
+    hold_wns_ns_min: 0.0
+    required_reports:
+    - sta/out/timing.rpt
+    - sta/out/wns.json
+power:
+  domains:
+  - name: PD_MAIN
+    clock_domains:
+    - main
+    isolation: not_required
+  power_states:
+  - name: 'ON'
+    entry: reset deasserted
+    exit: reset asserted
+  clock_gating:
+    required: false
+    rationale: No explicit integrated clock-gating requirement in approved SSOT
+  upf_required: false
+security:
+  classification: non_secure_leaf_ip
+  assets:
+  - name: result_integrity
+    protection: result must match function_model output rule
+  threat_model:
+  - threat: silent datapath corruption
+    mitigation: FL-vs-RTL scoreboard checks every result
+  privilege_model: System-level access control is owned by the integrating bus/firewall unless explicitly declared here.
+error_handling:
+  error_sources:
+  - id: ERR_NONE
+    condition: No protocol error input exists
+    architectural_effect: No error output is asserted
+  propagation:
+  - No error response interface exists for this simple rule IP.
+  recovery:
+  - action: reset
+    clears:
+    - accepted_count
+    - result_valid
+debug_observability:
+  waveform_must_probe:
+  - clk
+  - rst_n
+  - valid
+  - data_in
+  - ready
+  - result
+  - result_valid
+  - accepted_count
+  trace_events:
+  - name: sample
+    trigger: valid && ready
+  - name: result
+    trigger: result_valid
+  status_outputs:
+  - status/debug signals declared in io_list or registers
+integration:
+  bus_attachment:
+    type: native_valid_ready_rule_io
+    interfaces:
+    - rule_io
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rst_n
+  connections:
+  - module: timer_core
+    port: clk
+    signal: clk
+  - module: timer_core
+    port: rst_n
+    signal: rst_n
+  - module: timer_core
+    port: valid
+    signal: valid
+  - module: timer_core
+    port: data_in
+    signal: data_in
+  - module: timer_core
+    port: ready
+    signal: ready
+  - module: timer_core
+    port: result
+    signal: result
+  - module: timer_core
+    port: result_valid
+    signal: result_valid
+  connection_contract_status: missing machine-readable module wiring; child RTL drafts may proceed from owner packets, but top integration/signoff must stay blocked until SSOT authors integration.connections or sub_modules[].connections with module/port/signal records
+  integration_notes:
+  - Integrator must connect every declared io_list port and honor timing/reset assumptions.
+dft:
+  scan_required: false
+  controllability:
+    reset: rst_n
+    clock: clk
+    inputs:
+    - valid
+    - data_in
+  observability:
+    outputs:
+    - ready
+    - result
+    - result_valid
+  mbist_required: false
+synthesis:
+  dialect: systemverilog_2012
+  constraints:
+  - No inferred latches
+  - No unresolved black boxes
+  required_outputs:
+  - rtl compile log
+  - dut lint report
+  - syn/out/synth.v
+  top_module: timer
+  tool_flow: yosys
+  target_technology: sky130_fd_sc_hd
+  target_library: sky130_fd_sc_hd
+  liberty_env_var: SKY130_LIB
+  corner:
+    name: sky130_fd_sc_hd__ss_100C_1v40
+    process: ss
+    temperature_c: 100
+    voltage_v: 1.4
+  library_policy: Use the SKY130_LIB environment variable to locate the SS corner Liberty file for the declared sky130_fd_sc_hd target library; synthesis and STA must stop if the file is unreadable or does not match the declared corner.
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 100
+pnr:
+  utilization_pct: 60
+  aspect_ratio: 1.0
+  core_space_um: 2.0
+  global_density: 0.65
+  io_layers:
+    horizontal: met3
+    vertical: met2
+  cts_buf_list:
+  - sky130_fd_sc_hd__clkbuf_4
+  - sky130_fd_sc_hd__clkbuf_8
+  routing:
+    signal_layers:
+      min: met1
+      max: met5
+    drc_waivers: []
+coding_rules:
+  verilog_style: systemverilog_2012
+  conventions:
+  - Use sequential flops for registered outputs
+  - Use combinational defaults on all paths
+  lint_waivers: []
+reuse_modules: []
+custom:
+  assumptions:
+  - This fixture intentionally models a tiny generic transaction rule IP.
+dir_structure:
+  yaml_dir: yaml/
+  rtl_dir: rtl/
+  tb_dir: tb/
+  sim_dir: sim/
+  cov_dir: cov/
+  lint_dir: lint/
+filelist:
+  rtl:
+  - rtl/timer.sv
+  - rtl/timer_core.sv
+  tb:
+  - tb/cocotb/test_timer.py
+  coverage:
+  - cov/coverage.json
+  headers:
+  - rtl/timer_param.vh
+  sim:
+  - sim/results.xml
+  - sim/waves.fst
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release the declared reset while all external interfaces remain idle.
+    expected: Architectural state, status, outputs, and debug observability match function_model reset outputs.
+    checker: Reset checker compares all declared reset-visible state against function_model and cycle_model reset rules.
+    coverage:
+    - function_model.reset
+    - cycle_model.reset
+  - id: SC02
+    name: primary approved behavior
+    stimulus: Drive a legal request, transaction, command, packet, or CSR operation from function_model primary preconditions.
+    expected: Externally observable result/status/side effects match the function_model primary transaction.
+    checker: FL-vs-RTL scoreboard compares observable outputs and state updates from the locked function_model.
+    coverage:
+    - function_model.primary
+    - features
+    - dataflow
+  - id: SC03
+    name: cycle handshake and backpressure
+    stimulus: Apply legal stalls or delayed handshakes on every declared cycle_model interface phase.
+    expected: Payloads remain stable, ordering is preserved, and completion timing respects cycle_model latency/backpressure rules.
+    checker: Protocol monitor and scoreboard check cycle_model.handshake_rules, ordering, and latency budget.
+    coverage:
+    - cycle_model.handshake_rules
+    - cycle_model.ordering
+    - backpressure
+  - id: SC04
+    name: error and recovery policy
+    stimulus: Inject each declared error_handling.error_sources condition where the interface can represent it.
+    expected: Error/status/response/recovery behavior follows error_handling without corrupting unrelated architectural state.
+    checker: Negative checker compares error result and recovery state against function_model error_cases.
+    coverage:
+    - error_handling.error_sources
+    - function_model.error_cases
+  - id: SC05
+    name: debug and trace observability
+    stimulus: Run nominal and error flows while sampling every debug_observability waveform/status/trace point.
+    expected: Debug/status/trace events reflect committed SSOT-visible state without exposing unsupported behavior.
+    checker: Waveform/trace checker validates debug_observability entries and traceability.yaml_to_output rows.
+    coverage:
+    - debug_observability
+    - traceability
+  - id: SC06
+    name: function_model transaction FM_PRIMARY
+    stimulus: Drive preconditions for function_model transaction `FM_PRIMARY`.
+    expected: Outputs and side effects match `FM_PRIMARY` exactly.
+    checker: Transaction scoreboard compares RTL observations against the locked function_model transaction.
+    coverage:
+    - function_model.transactions.FM_PRIMARY
+  scoreboard_checks: 6
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      description: Behavioral coverage for function_model transaction results and state updates.
+      bins:
+      - id: FCOV_RULE_DOUBLE
+        source_ref: function_model.transactions.RULE_DOUBLE
+        class: transaction
+        description: sampled data_in doubling rule observed
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      description: Cycle coverage for sample/result pipeline stages and valid/ready timing.
+      bins:
+      - id: CCOV_SAMPLE_RESULT_PIPELINE
+        source_ref: cycle_model.pipeline
+        class: pipeline_stage
+        description: sample-to-result cycle path observed
+    planned_bins:
+    - id: FCOV_RULE_DOUBLE
+      class: datapath
+      coverage_domain: function
+      source_ref: function_model.transactions.RULE_DOUBLE
+      description: sampled data_in doubling rule observed
+    functional: 'Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.'
+    scenario: All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence
+quality_gates:
+  ssot:
+    pass: check_ssot_disk.sh exits 0
+    evidence:
+    - check_ssot_disk.sh PASS
+  rtl:
+    pass: RTL compiles and maps every declared port
+    evidence:
+    - rtl_compile.json
+    - dut_lint.json
+  rtl_gen:
+    profile: standard
+    pass: rtl-gen execution_policy.pass_allowed is true, every required SSOT-derived RTL TODO is closed, and provenance proves common_ai_agent rtl-gen authored the RTL without fixed-template fallback behavior
+    evidence:
+    - rtl/rtl_authoring_plan.json
+    - logs/rtl-gen/rtl_todo_plan.json
+    - rtl/provenance.json
+    - rtl_compile.json
+    - lint/dut_lint.json
+  dv:
+    pass: All scenarios pass with scoreboard evidence
+    evidence:
+    - results.xml
+    - scoreboard_events.jsonl
+  coverage:
+    pass: All planned functional bins are hit
+    evidence:
+    - coverage.json
+  eda:
+    pass: EDA checks are clean or explicitly waived
+    evidence:
+    - lint report
+  signoff:
+    pass: SSOT, RTL, lint, sim, and coverage gates pass
+    evidence:
+    - goal audit
+traceability:
+  requirements:
+  - timer/req/timer_requirements.md
+  llm_stage: ssot-gen
+  yaml_to_output:
+  - yaml: io_list
+    output: RTL ports and cocotb driver
+  - yaml: function_model
+    output: FunctionalModel and scoreboard expected values
+  - yaml: cycle_model
+    output: RTL latency and waveform checks
+  - yaml: test_requirements
+    output: cocotb scenarios and coverage bins
+  - yaml: function_model/cycle_model/test_requirements
+    output: verify/equivalence_goals.json and FL-vs-RTL scoreboard contracts
+  - yaml: timing
+    output: STA constraints and latency pass/fail criteria
+  - yaml: security
+    output: Threat mitigations and negative tests
+  - yaml: error_handling
+    output: Fault RTL paths and DV error scenarios
+  - yaml: debug_observability
+    output: VCD probes and sim_debug inspection
+  - yaml: quality_gates
+    output: ATLAS progress/signoff criteria
+workflow_todos:
+  rtl-gen:
+  - id: RTL_RULE_DOUBLE
+    content: Implement rule_double from the SSOT function and cycle model
+    detail: Capture accepted data_in, produce result=data_in*2 at the declared cycle latency, and expose enough DUT evidence for FL-vs-RTL comparison.
+    criteria:
+    - RTL updates only on the declared valid/ready acceptance event
+    - RTL observed result equals FunctionalModel.apply for RULE_DOUBLE
+    - DUT-only compile/lint and rtl_todo_plan audit pass after the final edit
+    source_refs:
+    - function_model.transactions.RULE_DOUBLE
+    - cycle_model.pipeline
+    owner_module: timer_core
+    owner_file: rtl/timer_core.sv
+    priority: high
+    required: true
+  tb-gen: []
+  sim_debug: []
+generation_flow:
+  steps:
+  - name: verify_ssot
+    command: python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" timer --root "$ATLAS_PROJECT_ROOT" --mode ${ATLAS_RUN_MODE:-signoff}
+    description: Validate SSOT structure, Preview fields, and quality gates at the selected Run Mode
+  - name: handoff_fl_model
+    command: /ssot-fl-model timer
+    description: Generate FunctionalModel, decomposition, and FCOV plan from SSOT
+  - name: handoff_equivalence_goals
+    command: /ssot-equiv-goals timer
+    description: Derive FL-vs-RTL equivalence goals before TB generation
+  - name: handoff_rtl
+    command: /ssot-rtl timer
+    description: Generate RTL from validated SSOT
+  - name: handoff_tb
+    command: /ssot-tb-cocotb timer
+    description: Generate cocotb/pyuvm verification from validated SSOT
+  - name: handoff_sim_debug
+    command: /wf sim_debug
+    description: Run simulation, waveform, and coverage inspection

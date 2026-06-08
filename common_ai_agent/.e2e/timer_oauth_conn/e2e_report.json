@@ -1,0 +1,15 @@
+{
+  "ip": "timer",
+  "model": "gpt-5.5",
+  "run_mode": "starter",
+  "root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_oauth_conn",
+  "stages": {
+    "ssot-gen": {
+      "status": "pass",
+      "seconds": 234.6
+    }
+  },
+  "trackers": {
+    "ssot": {}
+  }
+}

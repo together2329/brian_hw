@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "timer",
+  "source": "timer/yaml/timer.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "timer/req/",
+      "timer/yaml/timer.ssot.yaml",
+      "timer/model/functional_model.py",
+      "timer/cov/fcov_plan.json",
+      "timer/yaml/timer.ssot.yaml#io_list",
+      "timer/yaml/timer.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "timer/rtl/",
+      "timer/tb/",
+      "timer/sim/",
+      "timer/vectors/",
+      "timer/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "primary approved behavior"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "cycle handshake and backpressure"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "error and recovery policy"
+    },
+    {
+      "id": "SC05_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[4]",
+      "scenario": "SC05",
+      "description": "debug and trace observability"
+    },
+    {
+      "id": "SC06_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[5]",
+      "scenario": "SC06",
+      "description": "function_model transaction FM_PRIMARY"
+    },
+    {
+      "id": "fcov_rule_double",
+      "class": "datapath",
+      "coverage_domain": "function",
+      "source": "test_requirements.coverage_goals.planned_bins[0]",
+      "source_ref": "function_model.transactions.RULE_DOUBLE",
+      "description": "sampled data_in doubling rule observed"
+    },
+    {
+      "id": "ccov_sample_result_pipeline",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline",
+      "source_ref": "cycle_model.pipeline",
+      "description": "sample-to-result cycle path observed"
+    },
+    {
+      "id": "function_primary_behavior",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_primary",
+      "description": "FM_PRIMARY primary_behavior"
+    },
+    {
+      "id": "cycle_valid_sample",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "data_in is sampled only when valid is high; ready remains high after reset."
+    },
+    {
+      "id": "cycle_pipeline_s0_sample",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Sample data_in when valid is high."
+    },
+    {
+      "id": "cycle_pipeline_s1_result",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Drive result and result_valid for the sampled value."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Transactions are observed in the same order they are sampled."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "Reset clears pending valid output before any new transaction is accepted."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "ready remains asserted in this one-deep sample rule IP."
+    },
+    {
+      "id": "cycle_perf_outstanding",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.outstanding",
+      "source_ref": "cycle_model.performance.outstanding",
+      "description": "{'max': 1, 'description': 'One sampled transaction at a time'}"
+    },
+    {
+      "id": "cycle_perf_depth",
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.depth",
+      "source_ref": "cycle_model.performance.depth",
+      "description": "{'pipeline_stages': 2, 'queue_depth': 1, 'description': 'Sample/result default cycle depth'}"
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'ready remains asserted'}"
+    },
+    {
+      "id": "fsm_control_s0_sample_to_s1_result_0",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[0]",
+      "source_ref": "fsm.control.transitions[0]",
+      "description": "valid"
+    },
+    {
+      "id": "fsm_control_s1_result_to_s0_sample_1",
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "source": "fsm.control.transitions[1]",
+      "source_ref": "fsm.control.transitions[1]",
+      "description": "next cycle"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No protocol error input exists', 'architectural_effect': 'No error output is asserted'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 22,
+    "scenario_bins": 6,
+    "transaction_bins": 1,
+    "protocol_bins": 1,
+    "state_transition_bins": 2,
+    "error_bins": 1
+  }
+}

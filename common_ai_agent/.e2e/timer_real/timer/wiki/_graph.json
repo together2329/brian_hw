@@ -1,0 +1,318 @@
+{
+  "schema_version": "ip_wiki_graph.v1",
+  "generated_at": "2026-06-08T00:38:54Z",
+  "root": "timer/wiki",
+  "node_count": 10,
+  "edge_count": 13,
+  "tags": {
+    "artifact": [
+      "audit",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "last_run",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ],
+    "coverage": [
+      "coverage"
+    ],
+    "equiv-goals": [
+      "audit"
+    ],
+    "fl-model-gen": [
+      "fl_model"
+    ],
+    "lint": [
+      "lint"
+    ],
+    "rtl-gen": [
+      "filelist",
+      "rtl"
+    ],
+    "run-log": [
+      "last_run"
+    ],
+    "sim": [
+      "sim"
+    ],
+    "ssot": [
+      "ssot"
+    ],
+    "tb-gen": [
+      "tb"
+    ]
+  },
+  "types": {
+    "log": [
+      "last_run"
+    ],
+    "reference": [
+      "audit",
+      "coverage",
+      "filelist",
+      "fl_model",
+      "lint",
+      "rtl",
+      "sim",
+      "ssot",
+      "tb"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "audit",
+      "title": "timer Equivalence Goals",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "equiv-goals"
+      ],
+      "related": [
+        "fl_model",
+        "rtl"
+      ],
+      "outgoing": [
+        "fl_model",
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:27:18Z",
+      "summary": "goals=49 blocked=0",
+      "status": "pass",
+      "digest": "goals=49 blocked=0",
+      "path": "timer/verify/equivalence_goals.json",
+      "size_bytes": 140177
+    },
+    {
+      "id": "coverage",
+      "title": "timer Coverage",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "coverage"
+      ],
+      "related": [
+        "sim"
+      ],
+      "outgoing": [
+        "sim"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:38:54Z",
+      "summary": "reports=1",
+      "status": "present",
+      "digest": "reports=1",
+      "path": "timer/cov/coverage_functional.json",
+      "size_bytes": 7659
+    },
+    {
+      "id": "filelist",
+      "title": "timer filelist",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:37:29Z",
+      "summary": "timer.f size=49B",
+      "status": "present",
+      "digest": "timer.f size=49B",
+      "path": "timer/list/timer.f",
+      "size_bytes": 49
+    },
+    {
+      "id": "fl_model",
+      "title": "timer FunctionalModel",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "fl-model-gen"
+      ],
+      "related": [
+        "ssot"
+      ],
+      "outgoing": [
+        "ssot"
+      ],
+      "incoming": [
+        "rtl",
+        "tb",
+        "sim",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:27:18Z",
+      "summary": "check=pass",
+      "status": "pass",
+      "digest": "check=pass",
+      "path": "timer/model/functional_model.py",
+      "size_bytes": 74710
+    },
+    {
+      "id": "last_run",
+      "title": "timer last run",
+      "type": "log",
+      "tags": [
+        "artifact",
+        "run-log"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:38:54Z",
+      "summary": "stages=1 last=sim:fail",
+      "status": "fail",
+      "digest": "stages=1 last=sim:fail",
+      "path": "timer/logs/headless_run.json",
+      "size_bytes": 8701
+    },
+    {
+      "id": "lint",
+      "title": "timer Lint",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "lint"
+      ],
+      "related": [
+        "rtl"
+      ],
+      "outgoing": [
+        "rtl"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:37:30Z",
+      "summary": "errors=0 warnings=0",
+      "status": "pass",
+      "digest": "errors=0 warnings=0",
+      "path": "timer/lint/dut_lint.json",
+      "size_bytes": 1596
+    },
+    {
+      "id": "rtl",
+      "title": "timer RTL",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "rtl-gen"
+      ],
+      "related": [
+        "ssot",
+        "fl_model"
+      ],
+      "outgoing": [
+        "ssot",
+        "fl_model"
+      ],
+      "incoming": [
+        "filelist",
+        "lint",
+        "tb",
+        "sim",
+        "audit"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:37:29Z",
+      "summary": "files=3 compile_errors=0 surface=headless_common_engine",
+      "status": "pass",
+      "digest": "files=3 compile_errors=0 surface=headless_common_engine",
+      "path": "timer/rtl",
+      "size_bytes": 576
+    },
+    {
+      "id": "sim",
+      "title": "timer Simulation",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "sim"
+      ],
+      "related": [
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "tb",
+        "fl_model"
+      ],
+      "incoming": [
+        "coverage"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:38:54Z",
+      "summary": "results.xml=present scoreboard_events=present",
+      "status": "present",
+      "digest": "results.xml=present scoreboard_events=present",
+      "path": "timer/sim",
+      "size_bytes": 320
+    },
+    {
+      "id": "ssot",
+      "title": "timer SSOT",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "fl_model",
+        "rtl"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:27:17Z",
+      "summary": "sections=37 size=56641B",
+      "status": "present",
+      "digest": "sections=37 size=56641B",
+      "path": "timer/yaml/timer.ssot.yaml",
+      "size_bytes": 56641
+    },
+    {
+      "id": "tb",
+      "title": "timer Testbench",
+      "type": "reference",
+      "tags": [
+        "artifact",
+        "tb-gen"
+      ],
+      "related": [
+        "rtl",
+        "fl_model"
+      ],
+      "outgoing": [
+        "rtl",
+        "fl_model"
+      ],
+      "incoming": [
+        "sim"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-08T00:38:52Z",
+      "summary": "manifest=yes",
+      "status": "present",
+      "digest": "manifest=yes",
+      "path": "timer/tb",
+      "size_bytes": 160
+    }
+  ],
+  "ip": "timer"
+}

@@ -65,6 +65,7 @@ This section is additive; it does not replace the reading order below.
 | Orchestrator/worker handoff concept | [[orchestrator-worker-handoff]] + [[orchestrator-worker-handoff-review]] |
 | Orchestrator-only product plan + Phase 3 LLM loop implementation | [[orchestrator-chat-only-product-plan]] + [[orchestrator-llm-loop-phase3]] |
 | Proposed reuse of `core/react_loop.py` for the orchestrator (review needed) | [[orchestrator-loop-on-react-loop-plan]] |
+| TODO loop/prompt-injection verification hardening after Atlas/Textual parity bug | [[todo-loop-verification-hardening-20260608]] |
 | Cross-reference of orchestrator wiki against source code (accuracy audit) | [[orchestrator-verification-report]] |
 | End-to-end orchestrator-loop validation plan on a real scratch IP | [[e2e-orchestrator-validation-plan]] |
 | PL330 visible UI Orchestrator/worker lessons | [[pl330-real-orchestrator-ui-lessons-20260517]] |
@@ -125,6 +126,7 @@ regression.
 10. [[pipeline-progress-debugging]] — how to debug real UI/worker progress versus headless reproduction logs; `/api/pipeline/state.progress_debug`, `/api/pipeline/progress-debug`, and the rule that product claims must use the same UI/API/worker path as users.
 11. [[rtl-version-run-history]] — SSOT/RTL/TB artifact version anchors for workflow evidence.
 12. [[golden-todo-evidence]] — TodoTracker, evidence approval, and human review states.
+12a. [[todo-loop-verification-hardening-20260608]] — required regression matrix for TODO state-machine recovery, prompt delivery into actual LLM input, Atlas/Textual loop parity, and blocking tracker-bookkeeping reasons from becoming task rejections.
 13. [[provider-and-llm-call-accounting]] — provider normalization and how to count one LLM call.
 14. [[human-review-and-escalation]] — when to stop automation and ask for product/spec authority.
 15. [[deterministic-emit-stages]] — why fl-model-gen and cl-model-gen run without an LLM, and what contract that places on the upstream SSOT.

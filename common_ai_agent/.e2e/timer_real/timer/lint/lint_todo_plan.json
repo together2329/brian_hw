@@ -1,0 +1,100 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "timer/lint/dut_lint.json"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": true,
+    "approval_state": "approved",
+    "open_required_todos": 0,
+    "status": "pass"
+  },
+  "generated_at": "2026-06-08T00:37:30Z",
+  "headline": "[lint] PASS",
+  "human_review_needed": [],
+  "ip": "timer",
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py timer --top timer",
+      "label": "dut_lint",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/.e2e/timer_real/timer/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "lint",
+  "status": "pass",
+  "summary": {},
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_TIMER_LINT_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 1/1] No inferred latches; single driver per register.",
+      "criteria": "no latch/single-driver findings\ncheck_evidence_contract.py confirms OBL_TIMER_LINT_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_TIMER_LINT_001 (lint stage; granularity=structural).\nRequirement(s): REQ_TIMER_001\nContract(s): C_TIMER_LINT\nStructural contract(s): SC_TIMER_REGS\nSSOT anchor: coding_rules\nNo inferred latches; single driver per register.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_TIMER_LINT_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "lint/dut_lint.json"
+      ],
+      "source_refs": [
+        "REQ_TIMER_001",
+        "OBL_TIMER_LINT_001",
+        "C_TIMER_LINT",
+        "SC_TIMER_REGS",
+        "coding_rules"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "lint/dut_lint.json",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic lint gate",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "command": "bash /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.sh lint \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-lint gate] Verify every lint obligation is closed",
+      "criteria": "stage_gate.sh lint exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 1 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "GATE-LINT",
+      "on_reject": 1,
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "stage_gate.sh lint returncode 0"
+      ],
+      "source_refs": [],
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.sh lint returncode 0",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": true,
+    "open_required_tasks": 0,
+    "status_counts": {
+      "open": 0,
+      "pass": 2
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "lint"
+}

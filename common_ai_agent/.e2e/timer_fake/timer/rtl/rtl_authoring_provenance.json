@@ -1,0 +1,23 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "rtl_gate_evidence_closure"
+  ],
+  "contract_files": [
+    "rtl/rtl_contract.json"
+  ],
+  "generation_note": "Fake LLM provider artifact used only for headless TDD.",
+  "ip": "timer",
+  "model": "glm-5.1",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "rtl_files": [
+    "rtl/timer.sv",
+    "rtl/timer_core.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "38320f1cc94e3b700c9fed82c121eadb81b94bb552b665f8059bf80fe1066eca",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-06-07T15:37:44Z",
+  "workflow": "rtl-gen"
+}

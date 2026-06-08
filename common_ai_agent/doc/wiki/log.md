@@ -1,5 +1,16 @@
 # Wiki Log
 
+## 2026-06-08
+
+- Added [[todo-loop-verification-hardening-20260608]] after the Atlas TODO loop
+  incident where `todo_update(completed)` recovery depended on the LLM's tool-call
+  order and Atlas/web stopped before rejected continuation prompt injection while
+  Textual continued. The page defines the prevention policy: every tool error
+  recovery instruction must have an executed recovery test; prompt generation and
+  prompt delivery are separate gates; Atlas/Textual loop parity is a product gate;
+  and TodoTracker bookkeeping blockers must not be recorded as task rejections.
+  Linked it from [[testing-methodology]] and [[index]].
+
 ## 2026-06-07
 
 - Extended [[ssot-as-design-truth-graph]] with `## 9.5 운영 플로우` (commands · gates ·

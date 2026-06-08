@@ -1,0 +1,3 @@
+{"elapsed_sec": 0.018, "error": "", "log_stage": "ssot-gen", "model": "glm-5.1", "stage": "ssot-gen", "status": "pass", "ts": "2026-06-07T15:37:43Z", "usage": {}}
+{"elapsed_sec": 0.001, "error": "", "log_stage": "rtl-gen-packet-00-rtl_gate_evidence_closure", "model": "glm-5.1", "stage": "rtl-gen", "status": "pass", "ts": "2026-06-07T15:37:44Z", "usage": {}}
+{"elapsed_sec": 0.0, "error": "", "log_stage": "tb-gen", "model": "glm-5.1", "stage": "tb-gen", "status": "pass", "ts": "2026-06-07T15:37:45Z", "usage": {}}

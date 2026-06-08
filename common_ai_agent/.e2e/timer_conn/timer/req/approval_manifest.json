@@ -1,0 +1,12 @@
+{
+  "approved_at_utc": "2026-06-07T15:34:48Z",
+  "approved_by": "headless_runner",
+  "decision_note": "headless requirement_path provided as approved test input",
+  "ip": "timer",
+  "schema_version": 1,
+  "source": "timer/req/requirements.md",
+  "source_sha256": "f7d7b21cecdd46896b1f4a4ecb0a3a5029e56ec788165dfd2f84927d6278e039",
+  "target": "timer/req/timer_requirements.md",
+  "target_sha256": "f7d7b21cecdd46896b1f4a4ecb0a3a5029e56ec788165dfd2f84927d6278e039",
+  "type": "requirement_approval_manifest"
+}

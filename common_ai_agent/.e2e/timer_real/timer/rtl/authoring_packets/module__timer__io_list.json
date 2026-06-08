@@ -1,0 +1,973 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 19,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 50,
+      "rule": "Owner module timer is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/timer.sv",
+      "name": "timer",
+      "refs": [
+        "dataflow",
+        "decomposition",
+        "integration",
+        "io_list",
+        "top_module"
+      ],
+      "wiring_only": true
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/timer_regs.sv",
+        "name": "timer_regs",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer_core.sv",
+        "name": "timer_core",
+        "wiring_only": false
+      },
+      {
+        "file": "rtl/timer.sv",
+        "name": "timer",
+        "wiring_only": true
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[1]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "paddr",
+        "signal": "paddr",
+        "signal_terms": [
+          "paddr"
+        ],
+        "source_ref": "integration.connections[2]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "psel",
+        "signal": "psel",
+        "signal_terms": [
+          "psel"
+        ],
+        "source_ref": "integration.connections[3]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "penable",
+        "signal": "penable",
+        "signal_terms": [
+          "penable"
+        ],
+        "source_ref": "integration.connections[4]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pwrite",
+        "signal": "pwrite",
+        "signal_terms": [
+          "pwrite"
+        ],
+        "source_ref": "integration.connections[5]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pwdata",
+        "signal": "pwdata",
+        "signal_terms": [
+          "pwdata"
+        ],
+        "source_ref": "integration.connections[6]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "prdata",
+        "signal": "prdata",
+        "signal_terms": [
+          "prdata"
+        ],
+        "source_ref": "integration.connections[7]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pready",
+        "signal": "pready",
+        "signal_terms": [
+          "pready"
+        ],
+        "source_ref": "integration.connections[8]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "pslverr",
+        "signal": "pslverr",
+        "signal_terms": [
+          "pslverr"
+        ],
+        "source_ref": "integration.connections[9]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "load_q",
+        "signal": "load_q",
+        "signal_terms": [
+          "load_q"
+        ],
+        "source_ref": "integration.connections[10]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "enable_q",
+        "signal": "enable_q",
+        "signal_terms": [
+          "enable_q"
+        ],
+        "source_ref": "integration.connections[11]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_regs",
+        "port": "count_q",
+        "signal": "count_q",
+        "signal_terms": [
+          "count_q"
+        ],
+        "source_ref": "integration.connections[12]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "pclk",
+        "signal": "pclk",
+        "signal_terms": [
+          "pclk"
+        ],
+        "source_ref": "integration.connections[13]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "presetn",
+        "signal": "presetn",
+        "signal_terms": [
+          "presetn"
+        ],
+        "source_ref": "integration.connections[14]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "load_q",
+        "signal": "load_q",
+        "signal_terms": [
+          "load_q"
+        ],
+        "source_ref": "integration.connections[15]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "enable_q",
+        "signal": "enable_q",
+        "signal_terms": [
+          "enable_q"
+        ],
+        "source_ref": "integration.connections[16]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "count_q",
+        "signal": "count_q",
+        "signal_terms": [
+          "count_q"
+        ],
+        "source_ref": "integration.connections[17]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "timer_core",
+        "port": "irq",
+        "signal": "irq",
+        "signal_terms": [
+          "irq"
+        ],
+        "source_ref": "integration.connections[18]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "pclk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pclk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "presetn"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "presetn",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_paddr",
+          "paddr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "paddr",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "4"
+      },
+      {
+        "aliases": [
+          "apb_slave_psel",
+          "psel"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "psel",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_penable",
+          "penable"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "penable",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwrite",
+          "pwrite"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwrite",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pwdata",
+          "pwdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "pwdata",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_prdata",
+          "prdata"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "prdata",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "32"
+      },
+      {
+        "aliases": [
+          "apb_slave_pready",
+          "pready"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pready",
+        "source_ref": "io_list.interfaces[0].ports[6]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "apb_slave_pslverr",
+          "pslverr"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pslverr",
+        "source_ref": "io_list.interfaces[0].ports[7]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "interrupt_irq",
+          "irq"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "irq",
+        "source_ref": "io_list.interfaces[1].ports[0]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "timer",
+  "kind": "module",
+  "owner_file": "rtl/timer.sv",
+  "owner_module": "timer",
+  "packet_id": "module__timer__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 11
+    },
+    "module_slice": {
+      "count": 8,
+      "enabled": true,
+      "index": 2,
+      "key": "io_list",
+      "module_task_count": 50,
+      "rule": "Owner module timer is split into 8 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 11,
+    "source_refs": [
+      "io_list.clock_domains.pclk.ports.pclk",
+      "io_list.resets.presetn.ports.presetn",
+      "io_list.interfaces.apb_slave.ports.paddr",
+      "io_list.interfaces.apb_slave.ports.psel",
+      "io_list.interfaces.apb_slave.ports.penable",
+      "io_list.interfaces.apb_slave.ports.pwrite",
+      "io_list.interfaces.apb_slave.ports.pwdata",
+      "io_list.interfaces.apb_slave.ports.prdata",
+      "io_list.interfaces.apb_slave.ports.pready",
+      "io_list.interfaces.apb_slave.ports.pslverr",
+      "io_list.interfaces.interrupt.ports.irq"
+    ],
+    "status_counts": {
+      "pass": 11
+    },
+    "task_count": 11
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pclk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.pclk.ports.pclk",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "pclk width matches SSOT value 1",
+        "pclk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.pclk.ports.pclk.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=pclk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0028",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.pclk.ports.pclk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pclk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.pclk.ports.pclk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port presetn",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.presetn.ports.presetn",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "presetn width matches SSOT value 1",
+        "presetn port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.presetn.ports.presetn.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=presetn; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0029",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.presetn.ports.presetn",
+      "ssot_context": {
+        "direction": "input",
+        "name": "presetn",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.presetn.ports.presetn"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port paddr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.paddr",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "paddr width matches SSOT value 4",
+        "paddr port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.paddr.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=paddr; width=4; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0030",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.paddr",
+      "ssot_context": {
+        "direction": "input",
+        "name": "paddr",
+        "width": "4"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.paddr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port psel",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.psel",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "psel width matches SSOT value 1",
+        "psel port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.psel.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=psel; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.psel",
+      "ssot_context": {
+        "direction": "input",
+        "name": "psel",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.psel"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port penable",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.penable",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "penable width matches SSOT value 1",
+        "penable port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.penable.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=penable; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0032",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.penable",
+      "ssot_context": {
+        "direction": "input",
+        "name": "penable",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.penable"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwrite",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwrite",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "pwrite width matches SSOT value 1",
+        "pwrite port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwrite.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=pwrite; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwrite",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwrite",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwrite"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pwdata",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "pwdata width matches SSOT value 32",
+        "pwdata port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pwdata.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=pwdata; width=32; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pwdata",
+      "ssot_context": {
+        "direction": "input",
+        "name": "pwdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pwdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port prdata",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.prdata",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "prdata width matches SSOT value 32",
+        "prdata port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.prdata.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=prdata; width=32; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.prdata",
+      "ssot_context": {
+        "direction": "output",
+        "name": "prdata",
+        "width": "32"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.prdata"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pready",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pready",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "pready width matches SSOT value 1",
+        "pready port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pready.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=pready; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0036",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pready",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pready",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pready"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pslverr",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.apb_slave.ports.pslverr",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "pslverr width matches SSOT value 1",
+        "pslverr port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.apb_slave.ports.pslverr.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=pslverr; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0037",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.apb_slave.ports.pslverr",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pslverr",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.apb_slave.ports.pslverr"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port irq",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.interrupt.ports.irq",
+        "Primary implementation evidence is in rtl/timer.sv",
+        "irq width matches SSOT value 1",
+        "irq port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.interrupt.ports.irq.\nOwner: timer in rtl/timer.sv via io_list.\nSSOT item context: name=irq; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0038",
+      "owner_file": "rtl/timer.sv",
+      "owner_module": "timer",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.interrupt.ports.irq",
+      "ssot_context": {
+        "direction": "output",
+        "name": "irq",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.interrupt.ports.irq"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "53834821b27363b8d16e5991dc812b9380099860db84ca19bd61cb5db03fa76e",
+  "top": "timer",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,1448 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "pass",
+  "ssot": "timer/yaml/timer.ssot.yaml",
+  "module": "timer",
+  "dv_plan": {
+    "scenarios": 6,
+    "scoreboard_checks": 6,
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model",
+        "description": "Behavioral coverage for function_model transaction results and state updates.",
+        "bins": [
+          {
+            "id": "FCOV_RULE_DOUBLE",
+            "source_ref": "function_model.transactions.RULE_DOUBLE",
+            "class": "transaction",
+            "description": "sampled data_in doubling rule observed"
+          }
+        ]
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model",
+        "description": "Cycle coverage for sample/result pipeline stages and valid/ready timing.",
+        "bins": [
+          {
+            "id": "CCOV_SAMPLE_RESULT_PIPELINE",
+            "source_ref": "cycle_model.pipeline",
+            "class": "pipeline_stage",
+            "description": "sample-to-result cycle path observed"
+          }
+        ]
+      },
+      "planned_bins": [
+        {
+          "id": "FCOV_RULE_DOUBLE",
+          "class": "datapath",
+          "coverage_domain": "function",
+          "source_ref": "function_model.transactions.RULE_DOUBLE",
+          "description": "sampled data_in doubling rule observed"
+        }
+      ],
+      "functional": "Legacy alias: coverage_goals.function and coverage_goals.cycle must both close.",
+      "scenario": "All SSOT scenarios pass with executable cocotb/pyuvm checkers and FL-vs-RTL scoreboard evidence"
+    }
+  },
+  "functional": {
+    "hit": 26,
+    "total": 26,
+    "pct": 100.0
+  },
+  "function_coverage": {
+    "hit": 13,
+    "total": 13,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "SC01_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC01",
+        "scenario_id": "SC_002_EQ_SCENARIO_SC01",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC01_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC01",
+          "description": "reset contract"
+        },
+        "class": "scenario",
+        "description": "reset contract",
+        "coverage_domain": "function"
+      },
+      "SC02_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC02",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC02",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC02_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC02",
+          "description": "primary approved behavior"
+        },
+        "class": "scenario",
+        "description": "primary approved behavior",
+        "coverage_domain": "function"
+      },
+      "SC03_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+        "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC03_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC03",
+          "description": "cycle handshake and backpressure"
+        },
+        "class": "scenario",
+        "description": "cycle handshake and backpressure",
+        "coverage_domain": "function"
+      },
+      "SC04_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_011_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC04_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC04",
+          "description": "error and recovery policy"
+        },
+        "class": "scenario",
+        "description": "error and recovery policy",
+        "coverage_domain": "function"
+      },
+      "SC05_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_DEBUG_OBSERVABILITY",
+        "scenario_id": "SC_014_EQ_DEBUG_OBSERVABILITY",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC05_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[4]",
+          "scenario": "SC05",
+          "description": "debug and trace observability"
+        },
+        "class": "scenario",
+        "description": "debug and trace observability",
+        "coverage_domain": "function"
+      },
+      "SC06_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC06",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC06",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC06_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[5]",
+          "scenario": "SC06",
+          "description": "function_model transaction FM_PRIMARY"
+        },
+        "class": "scenario",
+        "description": "function_model transaction FM_PRIMARY",
+        "coverage_domain": "function"
+      },
+      "fcov_rule_double": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_FCOV_RULE_DOUBLE",
+        "scenario_id": "SC_016_EQ_COVERAGE_FCOV_RULE_DOUBLE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fcov_rule_double",
+          "source_ref": "function_model.transactions.RULE_DOUBLE",
+          "class": "datapath",
+          "description": "sampled data_in doubling rule observed",
+          "coverage_domain": "function",
+          "source": "test_requirements.coverage_goals.planned_bins[0]"
+        },
+        "class": "datapath",
+        "coverage_domain": "function",
+        "description": "sampled data_in doubling rule observed",
+        "source_ref": "function_model.transactions.RULE_DOUBLE"
+      },
+      "function_primary_behavior": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_PRIMARY",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_primary_behavior",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[0]",
+          "source_ref": "function_model.transactions.fm_primary",
+          "description": "FM_PRIMARY primary_behavior"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_PRIMARY primary_behavior",
+        "source_ref": "function_model.transactions.fm_primary"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_011_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No protocol error input exists', 'architectural_effect': 'No error output is asserted'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No protocol error input exists', 'architectural_effect': 'No error output is asserted'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "fcov_fm_primary": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "fcov_primary": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "ccov_backpressure": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "ccov_pipeline_order": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_MODULE_TIMER_CORE",
+        "scenario_id": "SC_015_EQ_MODULE_TIMER_CORE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 13,
+    "total": 13,
+    "pct": 100.0,
+    "target_pct": 100.0,
+    "meets_target": true,
+    "bins": {
+      "ccov_sample_result_pipeline": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE",
+        "scenario_id": "SC_017_EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "ccov_sample_result_pipeline",
+          "source_ref": "cycle_model.pipeline",
+          "class": "pipeline_stage",
+          "description": "sample-to-result cycle path observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "sample-to-result cycle path observed",
+        "source_ref": "cycle_model.pipeline"
+      },
+      "cycle_valid_sample": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+        "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_valid_sample",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "data_in is sampled only when valid is high; ready remains high after reset."
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "data_in is sampled only when valid is high; ready remains high after reset.",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_pipeline_s0_sample": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s0_sample",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "Sample data_in when valid is high."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Sample data_in when valid is high.",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_result": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s1_result",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "Drive result and result_valid for the sampled value."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Drive result and result_valid for the sampled value.",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_1",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "Transactions are observed in the same order they are sampled."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Transactions are observed in the same order they are sampled.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_010_EQ_TIMING_ORDERING_1",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "Reset clears pending valid output before any new transaction is accepted."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Reset clears pending valid output before any new transaction is accepted.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "ready remains asserted in this one-deep sample rule IP."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "ready remains asserted in this one-deep sample rule IP.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_outstanding": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_outstanding",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.outstanding",
+          "source_ref": "cycle_model.performance.outstanding",
+          "description": "{'max': 1, 'description': 'One sampled transaction at a time'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'max': 1, 'description': 'One sampled transaction at a time'}",
+        "source_ref": "cycle_model.performance.outstanding"
+      },
+      "cycle_perf_depth": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_depth",
+          "class": "performance",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.depth",
+          "source_ref": "cycle_model.performance.depth",
+          "description": "{'pipeline_stages': 2, 'queue_depth': 1, 'description': 'Sample/result default cycle depth'}"
+        },
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "description": "{'pipeline_stages': 2, 'queue_depth': 1, 'description': 'Sample/result default cycle depth'}",
+        "source_ref": "cycle_model.performance.depth"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "100"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "100",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'sustained_beats_per_cycle': 1, 'condition': 'ready remains asserted'}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'sustained_beats_per_cycle': 1, 'condition': 'ready remains asserted'}",
+        "source_ref": "cycle_model.performance.throughput"
+      },
+      "fsm_control_s0_sample_to_s1_result_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_s0_sample_to_s1_result_0",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[0]",
+          "source_ref": "fsm.control.transitions[0]",
+          "description": "valid"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "valid",
+        "source_ref": "fsm.control.transitions[0]"
+      },
+      "fsm_control_s1_result_to_s0_sample_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+        "rtl_observed_keys": [
+          "ready",
+          "result",
+          "result_valid"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "fsm_control_s1_result_to_s0_sample_1",
+          "class": "state_transition",
+          "coverage_domain": "cycle",
+          "source": "fsm.control.transitions[1]",
+          "source_ref": "fsm.control.transitions[1]",
+          "description": "next cycle"
+        },
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "description": "next cycle",
+        "source_ref": "fsm.control.transitions[1]"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 13,
+      "total": 13,
+      "pct": 100.0,
+      "meets_target": true
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 13,
+      "total": 13,
+      "pct": 100.0,
+      "meets_target": true
+    }
+  },
+  "planned_bins": [
+    "SC01_executed",
+    "SC02_executed",
+    "SC03_executed",
+    "SC04_executed",
+    "SC05_executed",
+    "SC06_executed",
+    "fcov_rule_double",
+    "ccov_sample_result_pipeline",
+    "function_primary_behavior",
+    "cycle_valid_sample",
+    "cycle_pipeline_s0_sample",
+    "cycle_pipeline_s1_result",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_backpressure_0",
+    "cycle_perf_outstanding",
+    "cycle_perf_depth",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "fsm_control_s0_sample_to_s1_result_0",
+    "fsm_control_s1_result_to_s0_sample_1",
+    "error_error_0"
+  ],
+  "functional_bins": {
+    "SC01_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC01",
+      "scenario_id": "SC_002_EQ_SCENARIO_SC01",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC01_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC01",
+        "description": "reset contract"
+      },
+      "class": "scenario",
+      "description": "reset contract",
+      "coverage_domain": "function"
+    },
+    "SC02_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC02",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC02",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC02_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC02",
+        "description": "primary approved behavior"
+      },
+      "class": "scenario",
+      "description": "primary approved behavior",
+      "coverage_domain": "function"
+    },
+    "SC03_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+      "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC03_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC03",
+        "description": "cycle handshake and backpressure"
+      },
+      "class": "scenario",
+      "description": "cycle handshake and backpressure",
+      "coverage_domain": "function"
+    },
+    "SC04_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC04_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC04",
+        "description": "error and recovery policy"
+      },
+      "class": "scenario",
+      "description": "error and recovery policy",
+      "coverage_domain": "function"
+    },
+    "SC05_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "scenario_id": "SC_014_EQ_DEBUG_OBSERVABILITY",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC05_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[4]",
+        "scenario": "SC05",
+        "description": "debug and trace observability"
+      },
+      "class": "scenario",
+      "description": "debug and trace observability",
+      "coverage_domain": "function"
+    },
+    "SC06_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC06",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC06",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC06_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[5]",
+        "scenario": "SC06",
+        "description": "function_model transaction FM_PRIMARY"
+      },
+      "class": "scenario",
+      "description": "function_model transaction FM_PRIMARY",
+      "coverage_domain": "function"
+    },
+    "fcov_rule_double": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_FCOV_RULE_DOUBLE",
+      "scenario_id": "SC_016_EQ_COVERAGE_FCOV_RULE_DOUBLE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fcov_rule_double",
+        "source_ref": "function_model.transactions.RULE_DOUBLE",
+        "class": "datapath",
+        "description": "sampled data_in doubling rule observed",
+        "coverage_domain": "function",
+        "source": "test_requirements.coverage_goals.planned_bins[0]"
+      },
+      "class": "datapath",
+      "coverage_domain": "function",
+      "description": "sampled data_in doubling rule observed",
+      "source_ref": "function_model.transactions.RULE_DOUBLE"
+    },
+    "ccov_sample_result_pipeline": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE",
+      "scenario_id": "SC_017_EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "ccov_sample_result_pipeline",
+        "source_ref": "cycle_model.pipeline",
+        "class": "pipeline_stage",
+        "description": "sample-to-result cycle path observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "sample-to-result cycle path observed",
+      "source_ref": "cycle_model.pipeline"
+    },
+    "function_primary_behavior": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_PRIMARY",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_primary_behavior",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[0]",
+        "source_ref": "function_model.transactions.fm_primary",
+        "description": "FM_PRIMARY primary_behavior"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_PRIMARY primary_behavior",
+      "source_ref": "function_model.transactions.fm_primary"
+    },
+    "cycle_valid_sample": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+      "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_valid_sample",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "data_in is sampled only when valid is high; ready remains high after reset."
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "data_in is sampled only when valid is high; ready remains high after reset.",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_pipeline_s0_sample": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s0_sample",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "Sample data_in when valid is high."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Sample data_in when valid is high.",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_result": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s1_result",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "Drive result and result_valid for the sampled value."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Drive result and result_valid for the sampled value.",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_1",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "Transactions are observed in the same order they are sampled."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Transactions are observed in the same order they are sampled.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_1",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "Reset clears pending valid output before any new transaction is accepted."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Reset clears pending valid output before any new transaction is accepted.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "ready remains asserted in this one-deep sample rule IP."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "ready remains asserted in this one-deep sample rule IP.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_outstanding",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.outstanding",
+        "source_ref": "cycle_model.performance.outstanding",
+        "description": "{'max': 1, 'description': 'One sampled transaction at a time'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'max': 1, 'description': 'One sampled transaction at a time'}",
+      "source_ref": "cycle_model.performance.outstanding"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_depth",
+        "class": "performance",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.depth",
+        "source_ref": "cycle_model.performance.depth",
+        "description": "{'pipeline_stages': 2, 'queue_depth': 1, 'description': 'Sample/result default cycle depth'}"
+      },
+      "class": "performance",
+      "coverage_domain": "cycle",
+      "description": "{'pipeline_stages': 2, 'queue_depth': 1, 'description': 'Sample/result default cycle depth'}",
+      "source_ref": "cycle_model.performance.depth"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "100"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "100",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'sustained_beats_per_cycle': 1, 'condition': 'ready remains asserted'}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'sustained_beats_per_cycle': 1, 'condition': 'ready remains asserted'}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "fsm_control_s0_sample_to_s1_result_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_s0_sample_to_s1_result_0",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[0]",
+        "source_ref": "fsm.control.transitions[0]",
+        "description": "valid"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "valid",
+      "source_ref": "fsm.control.transitions[0]"
+    },
+    "fsm_control_s1_result_to_s0_sample_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "fsm_control_s1_result_to_s0_sample_1",
+        "class": "state_transition",
+        "coverage_domain": "cycle",
+        "source": "fsm.control.transitions[1]",
+        "source_ref": "fsm.control.transitions[1]",
+        "description": "next cycle"
+      },
+      "class": "state_transition",
+      "coverage_domain": "cycle",
+      "description": "next cycle",
+      "source_ref": "fsm.control.transitions[1]"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No protocol error input exists', 'architectural_effect': 'No error output is asserted'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No protocol error input exists', 'architectural_effect': 'No error output is asserted'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "fcov_fm_primary": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "fcov_primary": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "ccov_backpressure": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "ccov_pipeline_order": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_MODULE_TIMER_CORE",
+      "scenario_id": "SC_015_EQ_MODULE_TIMER_CORE",
+      "rtl_observed_keys": [
+        "ready",
+        "result",
+        "result_valid"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 22,
+    "total": 22,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "SC06_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC06",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC06"
+    },
+    "function_primary_behavior": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_PRIMARY"
+    },
+    "SC01_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC01",
+      "scenario_id": "SC_002_EQ_SCENARIO_SC01"
+    },
+    "SC02_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC02",
+      "scenario_id": "SC_003_EQ_SCENARIO_SC02"
+    },
+    "SC03_executed": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+      "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE"
+    },
+    "SC04_executed": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE"
+    },
+    "SC05_executed": {
+      "hit": true,
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "scenario_id": "SC_014_EQ_DEBUG_OBSERVABILITY"
+    },
+    "cycle_valid_sample": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+      "scenario_id": "SC_008_EQ_PROTOCOL_VALID_SAMPLE"
+    },
+    "error_error_0": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_011_EQ_ERROR_NONE"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_1"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_010_EQ_TIMING_ORDERING_1"
+    },
+    "cycle_pipeline_s0_sample": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+    },
+    "cycle_pipeline_s1_result": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+    },
+    "fsm_control_s0_sample_to_s1_result_0": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+    },
+    "fsm_control_s1_result_to_s0_sample_1": {
+      "hit": true,
+      "goal_id": "EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1",
+      "scenario_id": "SC_013_EQ_STATE_CONTROL_S1_RESULT_TO_S0_SAMPLE_1"
+    },
+    "fcov_rule_double": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_FCOV_RULE_DOUBLE",
+      "scenario_id": "SC_016_EQ_COVERAGE_FCOV_RULE_DOUBLE"
+    },
+    "ccov_sample_result_pipeline": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE",
+      "scenario_id": "SC_017_EQ_COVERAGE_CCOV_SAMPLE_RESULT_PIPELINE"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+    },
+    "cycle_perf_outstanding": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_OUTSTANDING",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_PERF_OUTSTANDING"
+    },
+    "cycle_perf_depth": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_DEPTH",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_DEPTH"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_022_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+    }
+  },
+  "rtl_observed": {
+    "status": "pass",
+    "scoreboard_events": 22,
+    "scoreboard_passed_events_with_refs": 22,
+    "goal_refs": [
+      "SC01_executed",
+      "SC02_executed",
+      "SC03_executed",
+      "SC04_executed",
+      "SC05_executed",
+      "SC06_executed",
+      "ccov_sample_result_pipeline",
+      "cycle_backpressure_0",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_perf_depth",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_outstanding",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_sample",
+      "cycle_pipeline_s1_result",
+      "cycle_valid_sample",
+      "error_error_0",
+      "fcov_rule_double",
+      "fsm_control_s0_sample_to_s1_result_0",
+      "fsm_control_s1_result_to_s0_sample_1",
+      "function_primary_behavior"
+    ],
+    "missing_bins": [],
+    "invalid_rows": []
+  },
+  "owner_routes": {
+    "status": "not_needed",
+    "source": "",
+    "routes_by_bin": {},
+    "routed_missing_bins": [],
+    "unrouted_missing_bins": [],
+    "invalid_routes": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 2,
+    "total": 2,
+    "pct": 100.0,
+    "meets_target": true,
+    "source": "SSOT functional coverage bins"
+  },
+  "files": {},
+  "limitations": {},
+  "owner_routed_limitations": {},
+  "waived_limitations": {},
+  "static_universe_not_instrumented": {},
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}
