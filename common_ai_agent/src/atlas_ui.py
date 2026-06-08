@@ -55,7 +55,7 @@ for _p in (str(_THIS_DIR), str(_REPO_ROOT)):
 
 from core.atlas_context import AtlasContext
 from core.import_evidence_assets import extract_markdown_import_assets
-from core.prompt_input import normalize_prompt_images
+from core.prompt_image_store import spool_prompt_images_for_session
 from core.visual_evidence import (
     VisualSurface,
     render_office_visual_surfaces,
@@ -11209,11 +11209,11 @@ def create_app():
                 parts[3 if len(parts) >= 4 else 2] = workflow
             return _authorize_ws_session("/".join(parts[:4] if len(parts) >= 4 else parts[:3]))
 
-        def _prompt_images_for_bridge(msg: dict) -> list[dict[str, str]]:
-            return [
-                {"image_url": image.image_url, "detail": image.detail}
-                for image in normalize_prompt_images(msg.get("images"))
-            ]
+        def _prompt_images_for_bridge(msg: dict, target_session_id: str) -> list[dict[str, str]]:
+            return spool_prompt_images_for_session(
+                msg.get("images"),
+                session_id=target_session_id,
+            )
 
         # Identity-driven default: empty / legacy "default" session_id
         # collapses to the user's default namespace. Full
@@ -11311,14 +11311,12 @@ def create_app():
                     })
                     continue
                 if t in ("prompt", "send"):
-                    _images = _prompt_images_for_bridge(msg)
-                    if not (msg.get("text") or _images):
-                        continue
-                    _txt = str(msg.get("text") or "").strip()
+                    _raw_text = str(msg.get("text") or "")
+                    _txt = _raw_text.strip()
                     _msg_id = str(msg.get("msg_id") or "").strip()
                     _txt_preview = (
-                        str(msg.get("text") or "")[:80].replace("\n", " ")
-                        or ("[image]" if _images else "")
+                        _raw_text[:80].replace("\n", " ")
+                        or ("[image]" if msg.get("images") else "")
                     )
                     _session_raw = str(msg.get("session") or "").strip()
                     _session = session.session_id
@@ -11340,6 +11338,9 @@ def create_app():
                             if session is None:
                                 continue
                             set_atlas_bridge_session_id(session.session_id)
+                    _images = _prompt_images_for_bridge(msg, session.session_id)
+                    if not (_raw_text or _images):
+                        continue
                     # Idempotent submit + ack:
                     # The frontend retransmits a prompt with the same
                     # msg_id if it doesn't see an `agent_received`

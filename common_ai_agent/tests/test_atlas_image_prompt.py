@@ -1,3 +1,5 @@
+import base64
+from io import BytesIO
 import sys
 from pathlib import Path
 
@@ -7,6 +9,22 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 if str(PROJECT_ROOT / "src") not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT / "src"))
+
+
+def _write_png(path: Path, size: tuple[int, int] = (8, 6)) -> bytes:
+    from PIL import Image
+
+    image = Image.new("RGB", size, (24, 80, 160))
+    output = BytesIO()
+    image.save(output, format="PNG")
+    data = output.getvalue()
+    path.write_bytes(data)
+    return data
+
+
+def _decode_data_url(data_url: str) -> tuple[str, bytes]:
+    header, encoded = data_url.split(",", 1)
+    return header, base64.b64decode(encoded)
 
 
 def test_session_worker_preserves_prompt_images_for_llm_content(tmp_path):
@@ -74,6 +92,75 @@ def test_image_only_prompt_is_not_treated_as_empty(tmp_path):
             "detail": "auto",
         },
     ]
+
+
+def test_path_backed_prompt_image_is_loaded_only_for_llm_content(tmp_path):
+    from core.prompt_input import prompt_content_for_llm, prompt_input_from_payload
+
+    image_path = tmp_path / "clipboard.png"
+    expected = _write_png(image_path)
+    prompt = prompt_input_from_payload(
+        "inspect this",
+        {
+            "images": [
+                {
+                    "path": str(image_path),
+                    "detail": "high",
+                    "mime_type": "image/png",
+                    "name": "clipboard.png",
+                }
+            ]
+        },
+    )
+
+    assert prompt == "inspect this"
+    assert prompt.images[0].path == str(image_path)
+    assert prompt.images[0].image_url is None
+
+    content = prompt_content_for_llm(prompt)
+    assert content[0] == {"type": "text", "text": "inspect this"}
+    assert content[1]["type"] == "input_image"
+    assert content[1]["detail"] == "high"
+    header, payload = _decode_data_url(content[1]["image_url"])
+    assert header == "data:image/png;base64"
+    assert payload == expected
+
+
+def test_path_backed_large_prompt_image_is_resized_for_llm_content(tmp_path):
+    from PIL import Image
+
+    from core.prompt_input import PromptImage, PromptInput, prompt_content_for_llm
+
+    image_path = tmp_path / "large.png"
+    Image.new("RGB", (4096, 1024), (40, 90, 140)).save(image_path, format="PNG")
+    prompt = PromptInput("", (PromptImage(path=str(image_path), detail="high"),))
+
+    content = prompt_content_for_llm(prompt)
+    header, payload = _decode_data_url(content[0]["image_url"])
+
+    assert header == "data:image/png;base64"
+    with Image.open(BytesIO(payload)) as image:
+        assert image.size == (2048, 512)
+
+
+def test_spools_browser_data_urls_to_path_payload(tmp_path):
+    from core.prompt_image_store import spool_prompt_images_for_session
+
+    image_path = tmp_path / "clipboard.png"
+    data = _write_png(image_path)
+    data_url = f"data:image/png;base64,{base64.b64encode(data).decode('ascii')}"
+
+    [spooled] = spool_prompt_images_for_session(
+        [{"image_url": data_url, "detail": "high", "name": "clipboard.png"}],
+        session_id="alice/demo/rtl-gen",
+        store_root=tmp_path / "store",
+    )
+
+    assert "image_url" not in spooled
+    assert spooled["detail"] == "high"
+    assert spooled["mime_type"] == "image/png"
+    assert spooled["name"] == "clipboard.png"
+    assert Path(spooled["path"]).read_bytes() == data
 
 
 # --- Mid-run human-in-the-loop / interrupt path -------------------------------
