@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import time
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional, Tuple
 
@@ -90,6 +91,17 @@ def _is_execution_resume_request(user_input: str) -> bool:
     text = str(user_input or "").strip().lower()
     if not text:
         return False
+    # Anti-resume guards override positive cues: a STOP/negation or a progress-
+    # status query must never read as a resume, even when it shares a prefix with
+    # a resume word (e.g. "진행 상황" overlaps the "진행 " prefix below).
+    negations = (
+        "don't", "do not", "dont", "stop", "instead", "not this", "cancel",
+        "그만", "말고", "하지마", "하지 마", "아니", "취소",
+    )
+    if any(neg in text for neg in negations):
+        return False
+    if "진행 상황" in text or "진행상황" in text:
+        return False
     exact = {
         "continue",
         "keep going",
@@ -124,20 +136,15 @@ def _is_execution_resume_request(user_input: str) -> bool:
     )
     if text.startswith(prefixes):
         return True
-    # Natural-language resume requests often arrive as "can you keep going?"
-    # from the web chat. Treat these as explicit resumes so the STOP pause
-    # flag does not keep suppressing TODO guard injection.
-    resume_phrases = (
-        "keep going",
-        "continue",
-        "go ahead",
-        "proceed",
-        "resume",
-        "계속",
-        "진행",
-        "다시",
-    )
-    return any(phrase in text for phrase in resume_phrases)
+    # Short natural-language resume nudge ("can you keep going?"). Anchor English
+    # cues to word boundaries so "discontinue" never matches "continue"; long
+    # messages are treated as new intent rather than a bare resume.
+    if len(re.findall(r"[0-9a-z가-힣]+", text)) > 6:
+        return False
+    english_cues = ("keep going", "go ahead", "continue", "proceed", "resume")
+    if any(re.search(r"\b" + re.escape(cue) + r"\b", text) for cue in english_cues):
+        return True
+    return "계속" in text or "진행" in text
 
 
 # ---------------------------------------------------------------------------
