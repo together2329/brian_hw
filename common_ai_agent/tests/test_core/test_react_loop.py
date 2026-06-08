@@ -978,6 +978,64 @@ class TestRunReactAgentImpl(unittest.TestCase):
         self.assertIn("Runtime guard nudged execution", rendered)
         self.assertIn("execution no-action guard", rendered)
 
+    def test_no_action_guard_reinjects_exact_todo_transition(self):
+        """Text-only execution turns must keep the active TODO prompt actionable."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from lib.todo_tracker import TodoTracker
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "finish active task after prose",
+                "status": "in_progress",
+                "detail": "The model must recover with a concrete TODO transition.",
+                "criteria": "next prompt includes the exact completed transition",
+            }])
+            todo_tracker.current_index = 0
+            todo_tracker.save()
+
+            prompts = []
+            calls = {"count": 0}
+
+            def text_then_stop(messages, stop=None, **kwargs):
+                calls["count"] += 1
+                prompts.append("\n".join(
+                    str(m.get("content", "")) for m in messages if m.get("role") == "user"
+                ))
+                yield "I will keep going, but I forgot to call a tool."
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_NO_ACTION_GUARD=True,
+                EXECUTION_NO_ACTION_RETRY_LIMIT=1,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_then_stop,
+                detect_completion_fn=lambda _text: False,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "continue"}]
+            tracker = self._make_tracker(max_iter=3)
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertGreaterEqual(calls["count"], 2)
+        self.assertIn("[Runtime guard: execution response had no Action]", prompts[1])
+        self.assertIn("[Task 1/1  IN PROGRESS] finish active task after prose", prompts[1])
+        self.assertIn("todo_update(index=1, status='completed')", prompts[1])
+
     def test_stop_paused_chat_suppression_skips_todo_guard_once(self):
         """After STOP, casual chat should not be forced through the TODO guard."""
         from core.react_loop import run_react_agent_impl

@@ -2523,14 +2523,22 @@ def run_react_agent_impl(
                 _visible_now = (collected_content or "").strip()
             if not _visible_now and _empty_chat_thinking_retries < int(getattr(cfg, "EMPTY_THINKING_RETRY_LIMIT", 1)):
                 _empty_chat_thinking_retries += 1
+                _empty_nudge = (
+                    "Your last response was internal reasoning only — no answer text "
+                    "and no tool Action reached the user. Respond now with EITHER one "
+                    "concrete tool Action to do the work, OR a direct final answer to "
+                    "the user. Do not reply with thinking alone."
+                )
+                if agent_mode not in ("plan", "plan_q") and _todo_has_open_items(todo_tracker):
+                    _ensure_todo_current(todo_tracker)
+                    _continuation_fn = getattr(todo_tracker, "get_continuation_prompt", None)
+                    _todo_prompt = _continuation_fn() if callable(_continuation_fn) else ""
+                    if _todo_prompt:
+                        _empty_nudge += "\n\n" + _todo_prompt
+                        _last_injected_task_key = (-1, "")
                 messages.append({
                     "role": "user",
-                    "content": (
-                        "Your last response was internal reasoning only — no answer text "
-                        "and no tool Action reached the user. Respond now with EITHER one "
-                        "concrete tool Action to do the work, OR a direct final answer to "
-                        "the user. Do not reply with thinking alone."
-                    ),
+                    "content": _empty_nudge,
                 })
                 continue
 
@@ -2623,6 +2631,11 @@ def run_react_agent_impl(
                         "Do not add fixed IP templates or hardcoded generator logic; derive the work from the SSOT, current todo detail, "
                         "and existing workflow rules."
                     )
+                    _continuation_fn = getattr(todo_tracker, "get_continuation_prompt", None)
+                    _todo_prompt = _continuation_fn() if callable(_continuation_fn) else ""
+                    if _todo_prompt:
+                        _nudge += "\n\n" + _todo_prompt
+                        _last_injected_task_key = (-1, "")
                     if deps.emit_content_fn:
                         try:
                             deps.emit_content_fn(
