@@ -235,6 +235,7 @@ def test_session_activate_accepts_v2_user_session_context(tmp_path, monkeypatch)
             "workspace_session": "s1",
             "ip": "NEWIP_MCTP",
             "workflow": "ssot-gen",
+            "create": True,
         },
     )
 
@@ -406,6 +407,7 @@ def test_ip_list_scopes_v2_workspace_session_per_user(tmp_path, monkeypatch):
                 "workspace_session": workspace_session,
                 "ip": ip_name,
                 "workflow": "default",
+                "create": True,
             },
         )
         assert response.status_code == 200, response.text
@@ -2978,3 +2980,135 @@ def test_native_textual_slash_output_uses_stdout_capture_only():
     assert "_textual_native_tui = False" in main_py
     assert "_agent._textual_native_tui" in textual_main_py
     assert "_textual_emit_content_fn is not None and not _textual_native_tui" in main_py
+
+
+def test_ip_list_hides_phantom_ip_without_ssot_or_catalog(tmp_path, monkeypatch):
+    """A 4-seg session row whose IP has neither a catalog entry nor a real
+    on-disk SSOT is a phantom — a stale cross-owner ``ip=`` minted under this
+    owner (the dma_v1_good "shows for multiple users" leak). It must NOT
+    surface in the owner's /api/ip/list dropdown, but the moment a real SSOT
+    lands on disk the IP becomes legitimately visible again.
+    """
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    # Activation is intentionally permissive (it cannot distinguish a legit new
+    # IP from a phantom), so this succeeds and leaves a session row behind.
+    resp = client.post(
+        "/api/session/activate",
+        json={"user_name": "alice", "workspace_session": "s1",
+              "ip": "phantom_ip", "workflow": "ssot-gen", "create": True},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["active_session"] == "alice/s1/phantom_ip/ssot-gen"
+
+    # No catalog row + no SSOT on disk → the roster MUST hide it.
+    listed = client.get("/api/ip/list?session_id=alice/s1/phantom_ip/ssot-gen")
+    assert listed.status_code == 200, listed.text
+    assert "phantom_ip" not in {item["name"] for item in listed.json()["items"]}
+
+    # A real SSOT makes the same IP legitimately visible again.
+    ip_yaml = tmp_path / "alice" / "s1" / "phantom_ip" / "yaml"
+    ip_yaml.mkdir(parents=True, exist_ok=True)
+    (ip_yaml / "phantom_ip.ssot.yaml").write_text("ip: phantom_ip\n", encoding="utf-8")
+    listed2 = client.get("/api/ip/list?session_id=alice/s1/phantom_ip/ssot-gen")
+    assert listed2.status_code == 200, listed2.text
+    assert "phantom_ip" in {item["name"] for item in listed2.json()["items"]}
+
+
+def test_ip_list_phantom_not_unmasked_by_shared_root_ssot(tmp_path, monkeypatch):
+    """Cross-owner name-collision guard. A phantom IP must stay hidden even when
+    a same-named SSOT exists at the SHARED top level PROJECT_ROOT/<ip>/yaml
+    (another owner's / legacy location). Regression for the _ssot_exists
+    PROJECT_ROOT fallback that would otherwise re-open the dma_v1_good leak: the
+    roster must vouch for an IP only via the requesting owner's OWN workspace.
+    """
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    # alice gets a phantom session for "shared_ip" with NO ssot in her workspace.
+    resp = client.post("/api/session/activate", json={
+        "user_name": "alice", "workspace_session": "s1",
+        "ip": "shared_ip", "workflow": "ssot-gen", "create": True})
+    assert resp.status_code == 200, resp.text
+
+    # A same-named SSOT exists at the SHARED top level (PROJECT_ROOT/shared_ip),
+    # NOT under alice's own workspace. It must NOT vouch for alice's phantom.
+    top_yaml = tmp_path / "shared_ip" / "yaml"
+    top_yaml.mkdir(parents=True, exist_ok=True)
+    (top_yaml / "shared_ip.ssot.yaml").write_text("ip: shared_ip\n", encoding="utf-8")
+
+    listed = client.get("/api/ip/list?session_id=alice/s1/shared_ip/ssot-gen")
+    assert listed.status_code == 200, listed.text
+    assert "shared_ip" not in {item["name"] for item in listed.json()["items"]}, \
+        "a shared-root SSOT must not unmask a cross-owner phantom"
+
+    # But alice's OWN-workspace SSOT does make it legitimately visible.
+    own_yaml = tmp_path / "alice" / "s1" / "shared_ip" / "yaml"
+    own_yaml.mkdir(parents=True, exist_ok=True)
+    (own_yaml / "shared_ip.ssot.yaml").write_text("ip: shared_ip\n", encoding="utf-8")
+    listed2 = client.get("/api/ip/list?session_id=alice/s1/shared_ip/ssot-gen")
+    assert listed2.status_code == 200, listed2.text
+    assert "shared_ip" in {item["name"] for item in listed2.json()["items"]}
+
+
+def test_session_activate_blocks_phantom_ip_without_create(tmp_path, monkeypatch):
+    """Side-door guard (root fix). In multi-user mode, activating a non-default
+    IP the user never created — no catalog row, no own SSOT, no {"create": true}
+    — must NOT mint the namespace: it collapses to default so no ghost session
+    row / skeleton dir is created at the source. The explicit {"create": true}
+    opt-in (used by /api/ip/create and programmatic callers) still mints.
+    """
+    import src.atlas_ui as atlas_ui
+    from core.atlas_db import AtlasDB
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    # Phantom: a stale cross-owner ip with no create → collapses to default,
+    # and NO ghost session row is minted for the unowned IP.
+    resp = client.post("/api/session/activate", json={
+        "user_name": "alice", "workspace_session": "s1",
+        "ip": "stolen_ip", "workflow": "ssot-gen"})
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["active_session"] == "alice/s1/default/default"
+    with AtlasDB() as db:
+        assert db.get_session("alice/s1/stolen_ip/ssot-gen") is None
+
+    # Explicit create opt-in DOES mint it (the legit creation path).
+    resp2 = client.post("/api/session/activate", json={
+        "user_name": "alice", "workspace_session": "s1",
+        "ip": "stolen_ip", "workflow": "ssot-gen", "create": True})
+    assert resp2.status_code == 200, resp2.text
+    assert resp2.json()["active_session"] == "alice/s1/stolen_ip/ssot-gen"
