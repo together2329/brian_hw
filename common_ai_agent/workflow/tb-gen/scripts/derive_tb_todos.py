@@ -10,6 +10,7 @@ TodoTracker item stays compact; the per-contract responsibilities live in
 from __future__ import annotations
 
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -704,6 +705,51 @@ def _required_goal_ids(goals: dict[str, Any]) -> set[str]:
     return out
 
 
+def _name_used_in_code(text: str, target: str) -> bool:
+    """True only if `target` is a real import/name/attribute in parsed code.
+
+    A comment or string-literal mention does not count: comments never enter the
+    AST, and a bare string literal is an ``ast.Constant`` (not a Name/import), so
+    a hollow ``# wire EquivalenceScoreboard`` placeholder is correctly rejected.
+    """
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if any(alias.name == target for alias in node.names):
+                return True
+        elif isinstance(node, ast.Import):
+            if any(alias.name == target or alias.name.endswith("." + target) for alias in node.names):
+                return True
+        elif isinstance(node, ast.Name) and node.id == target:
+            return True
+        elif isinstance(node, ast.Attribute) and node.attr == target:
+            return True
+    return False
+
+
+def _has_executable_body(text: str) -> bool:
+    """True if the module has at least one statement beyond a docstring/``pass``.
+
+    A structural floor that distinguishes a generated stub with real content from
+    an empty/placeholder file. It is intentionally not a content check — the
+    per-obligation content grep is a separate, deeper guard.
+    """
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+    for node in tree.body:
+        if isinstance(node, ast.Pass):
+            continue
+        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            continue  # module docstring
+        return True
+    return False
+
+
 def _tb_artifact_issue(ip_dir: Path, ip: str, top: str) -> str:
     tb_dir = ip_dir / "tb" / "cocotb"
     required = [
@@ -728,8 +774,15 @@ def _tb_artifact_issue(ip_dir: Path, ip: str, top: str) -> str:
     if generation.get("status") != "pass":
         return "tb_generation.json status is not pass."
     scoreboard_text = (tb_dir / "scoreboard.py").read_text(encoding="utf-8", errors="replace")
-    if "EquivalenceScoreboard" not in scoreboard_text:
-        return "Generated scoreboard.py does not use EquivalenceScoreboard."
+    if not _name_used_in_code(scoreboard_text, "EquivalenceScoreboard"):
+        return "Generated scoreboard.py does not import/use EquivalenceScoreboard (comment/string mention does not count)."
+    empty = [
+        name
+        for name in (f"test_{ip}.py", "transactions.py", "sequences.py", "scoreboard.py")
+        if not _has_executable_body((tb_dir / name).read_text(encoding="utf-8", errors="replace"))
+    ]
+    if empty:
+        return "Generated TB source(s) are empty stubs (no executable body): " + ", ".join(empty)
     return ""
 
 
@@ -746,10 +799,15 @@ def _scoreboard_evidence_issue(ip_dir: Path, goals: dict[str, Any]) -> str:
         missing = sorted(required - seen)
         if missing:
             return "Missing passing scoreboard row(s) for required goal(s): " + ", ".join(missing[:8])
-    for row in passed[:32]:
+    for row in passed:
         for key in ("goal_id", "scenario_id", "stimulus", "fl_expected", "rtl_observed", "coverage_refs"):
             if key not in row:
                 return f"scoreboard row for {row.get('goal_id')} missing {key}."
+        if not str(row.get("scenario_id") or "").strip():
+            return f"scoreboard row for {row.get('goal_id')} has empty scenario_id."
+        for key in ("stimulus", "fl_expected", "rtl_observed"):
+            if not row.get(key):
+                return f"scoreboard row for {row.get('goal_id')} has empty {key} (vacuous evidence)."
     return ""
 
 
@@ -758,8 +816,8 @@ def _coverage_issue(ip_dir: Path) -> str:
     if not coverage:
         return "Missing cov/coverage.json."
     status = str(coverage.get("status") or "").strip().lower()
-    if status and status not in {"pass", "passed", "ok"}:
-        return f"coverage.json status is not pass: {coverage.get('status')!r}."
+    if status not in {"pass", "passed", "ok"}:
+        return f"coverage.json status is missing or not pass: {coverage.get('status')!r}."
     rtl_observed = coverage.get("rtl_observed") if isinstance(coverage.get("rtl_observed"), dict) else {}
     if rtl_observed:
         if str(rtl_observed.get("status") or "").strip().lower() not in {"pass", "passed", "ok"}:
