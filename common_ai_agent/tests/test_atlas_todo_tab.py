@@ -6,16 +6,17 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 def test_workspace_renders_editable_todo_tab() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-root.tsx").read_text()
+    rail_tabs = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-rootui-rail-tabs.tsx").read_text()
     todo_pane = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
     todo_row = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo-edit-row.tsx").read_text()
     todo_model = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo-model.ts").read_text()
 
     # Tab chip next to the Git tab + click wiring to the todo main tab
-    assert "setMainTab('todo')" in workspace
-    assert "mainTab === 'todo'" in workspace
+    assert "setMainTab('todo')" in rail_tabs
+    assert "mainTab === 'todo'" in rail_tabs
 
     # Editable pane is rendered in the center column
-    assert "<TodoEditorPane />" in workspace
+    assert "<TodoEditorPane intent={intent} />" in workspace
     assert "export const TodoEditorPane" in todo_pane
     assert "export const TodoEditorRow" in todo_row
 
@@ -45,7 +46,7 @@ def test_workspace_renders_editable_todo_tab() -> None:
 
 def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
-    data = (PROJECT_ROOT / "frontend" / "atlas" / "data-loaders.tsx").read_text()
+    data = (PROJECT_ROOT / "frontend" / "atlas" / "data.tsx").read_text()
 
     # data.jsx exposes the CRUD helpers used by the editor pane
     assert "addTodo:" in data
@@ -73,7 +74,7 @@ def test_workspace_uses_one_todo_view_for_tab_and_sidebar() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-root.tsx").read_text()
     todo_pane = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
 
-    assert "<TodoEditorPane />" in workspace
+    assert "<TodoEditorPane intent={intent} />" in workspace
     assert "<TodoPanel />" in workspace
     assert "Array.isArray(rawTodos) ? rawTodos.filter(isTodoRecord) : []" in todo_pane
     assert "todoPanelOverride" not in workspace
