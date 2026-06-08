@@ -375,7 +375,7 @@ const App = () => {
     WORKFLOW_DEFAULT, authState, execMode, authRequiredProbeRef,
     normalizeSession, splitSessionNamespace,
     setBootSteps, setAuthState, setActiveSessionId, setActiveNamespace,
-    setActiveIp, setIpOptions, setRunMode, setExecMode,
+    setActiveIp, setSessionIdOptions, setIpOptions, setRunMode, setExecMode,
   });
 
   const workflowForExecMode = useCallback((workflow: unknown) => {

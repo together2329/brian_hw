@@ -114,6 +114,7 @@ function AuthGateHarness() {
   const [authState, setAuthState] = useState('checking');
   const [activeNamespace, setActiveNamespace] = useState('bob/s1/ip_alpha/rtl-gen');
   const [activeIp, setActiveIp] = useState('ip_alpha');
+  const [sessionIdOptions, setSessionIdOptions] = useState<string[]>([WORKFLOW_DEFAULT, 's1']);
   const [ipOptions, setIpOptions] = useState<string[]>([WORKFLOW_DEFAULT, 'ip_alpha']);
 
   useAtlasAuthGate({
@@ -128,6 +129,7 @@ function AuthGateHarness() {
     setActiveSessionId: () => {},
     setActiveNamespace,
     setActiveIp,
+    setSessionIdOptions,
     setIpOptions,
     setRunMode: () => {},
     setExecMode: () => {},
@@ -138,6 +140,7 @@ function AuthGateHarness() {
       <output data-testid="auth-state">{authState}</output>
       <output data-testid="active-namespace">{activeNamespace}</output>
       <output data-testid="active-ip">{activeIp}</output>
+      <output data-testid="session-options">{JSON.stringify(sessionIdOptions)}</output>
       <output data-testid="ip-options">{JSON.stringify(ipOptions)}</output>
     </>
   );
@@ -232,8 +235,42 @@ describe('App IP roster isolation guards', () => {
 
     await waitFor(() => expect(screen.getByTestId('auth-state')).toHaveTextContent('authed'));
     expect(JSON.parse(screen.getByTestId('ip-options').textContent || '[]')).toEqual([WORKFLOW_DEFAULT]);
+    expect(JSON.parse(screen.getByTestId('session-options').textContent || '[]')).toEqual([WORKFLOW_DEFAULT]);
     expect((window as AnyWindow).IP_OPTIONS).toEqual([WORKFLOW_DEFAULT]);
-    expect(screen.getByTestId('active-namespace')).toHaveTextContent('alice/s1/default/default');
+    expect(screen.getByTestId('active-namespace')).toHaveTextContent('alice/default/default/default');
     expect(screen.getByTestId('active-ip')).toHaveTextContent(WORKFLOW_DEFAULT);
+  });
+
+  it('does not seed workspace SESSION options from another owner browser state', async () => {
+    installWindowState('bob', 's1', 'ip_alpha');
+    localStorage.setItem('atlasActiveSession', 'bob/s1/ip_alpha/rtl-gen');
+    const sessionListCalls: string[] = [];
+    const ipListScopes: string[] = [];
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input), 'http://localhost');
+      if (url.pathname === '/api/session/list') {
+        sessionListCalls.push(url.pathname);
+        return jsonResponse({
+          sessions: [
+            { session: 'alice/default/default/default' },
+          ],
+        });
+      }
+      if (url.pathname === '/api/ip/list') {
+        ipListScopes.push(normalizeSession(url.searchParams.get('session_id') || ''));
+        return jsonResponse({ items: [], count: 0 });
+      }
+      return jsonResponse({});
+    }) as unknown as typeof fetch;
+
+    render(<SessionSyncHarness />);
+
+    await waitFor(() => {
+      expect(sessionListCalls.length).toBeGreaterThan(0);
+      expect(ipListScopes).toContain('alice/default');
+      expect(JSON.parse(screen.getByTestId('session-options').textContent || '[]')).toEqual([WORKFLOW_DEFAULT]);
+      expect(JSON.parse(screen.getByTestId('ip-options').textContent || '[]')).toEqual([WORKFLOW_DEFAULT]);
+      expect((window as AnyWindow).ACTIVE_SESSION).toBe('alice/default/default/rtl-gen');
+    });
   });
 });

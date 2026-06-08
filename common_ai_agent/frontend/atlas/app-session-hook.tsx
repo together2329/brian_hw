@@ -94,6 +94,7 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     const currentUserSession = loggedInOwner()
       || normalizeSession(window.ATLAS_USER_SESSION_ID || activeSessionId);
     const ownerScopedRoster = authState === 'authed' && !!currentUserSession;
+    const browserLocalRosterAllowed = !ownerScopedRoster && authState !== 'checking';
     const nextSessionIds = new Set(['default']);
     const holdActivation = atlasShouldHoldDashboardActivation();
     const nextIps = new Set([WORKFLOW_DEFAULT]);
@@ -104,22 +105,36 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       (() => { try { return localStorage.getItem('atlasActiveSession') || ''; } catch (_) { return ''; } })()
     );
     const rememberedParts = splitSessionNamespace(rememberedNamespace);
+    const rememberedBelongsToCurrentUser = !!(
+      rememberedParts.sessionId &&
+      (!currentUserSession || rememberedParts.sessionId === currentUserSession)
+    );
     const workspaceSessionForRoster = normalizeSession(
-      (rememberedParts.sessionId === currentUserSession ? rememberedParts.workspaceSession : '')
-      || (window as any).ATLAS_WORKSPACE_SESSION_ID
+      (rememberedBelongsToCurrentUser ? rememberedParts.workspaceSession : '')
+      || (browserLocalRosterAllowed ? (window as any).ATLAS_WORKSPACE_SESSION_ID : '')
       || 'default'
     ) || 'default';
     const refreshRosterScope = currentUserSession ? `${currentUserSession}/${workspaceSessionForRoster}` : '';
     const isCurrentRosterScope = () => {
       if (!refreshRosterScope) return true;
-      const liveScope = rosterScopeFor(window.ACTIVE_SESSION || activeNamespace || '');
+      const liveNamespaceForScope = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+      const liveScope = rosterScopeFor(liveNamespaceForScope);
+      if (ownerScopedRoster && currentUserSession) {
+        const authOwnerNow = loggedInOwner() || normalizeSession(window.ATLAS_USER_SESSION_ID || '');
+        if (authOwnerNow && authOwnerNow !== currentUserSession) return false;
+        const liveParts = splitSessionNamespace(liveNamespaceForScope);
+        const liveOwner = normalizeSession(liveParts.sessionId || '');
+        if (liveOwner && liveOwner !== currentUserSession) return true;
+      }
       return !liveScope || liveScope === refreshRosterScope;
     };
     const isCurrentScopedRefresh = () => isCurrentRefresh() && isCurrentRosterScope();
-    if (rememberedParts.workspaceSession) nextSessionIds.add(rememberedParts.workspaceSession);
+    if ((browserLocalRosterAllowed || rememberedBelongsToCurrentUser) && rememberedParts.workspaceSession) {
+      nextSessionIds.add(rememberedParts.workspaceSession);
+    }
     const rememberedIp = rememberedParts.ipId === 'soc' ? WORKFLOW_DEFAULT : rememberedParts.ipId;
-    if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
-    if (!ownerScopedRoster && acceptIp(activeIp)) nextIps.add(activeIp);
+    if (browserLocalRosterAllowed && acceptIp(rememberedIp)) nextIps.add(rememberedIp);
+    if (browserLocalRosterAllowed && acceptIp(activeIp)) nextIps.add(activeIp);
     try {
       const r = await fetch('/api/session/list', { cache: 'no-store' });
       if (!isCurrentScopedRefresh()) return;
@@ -190,8 +205,8 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       const liveParts = splitSessionNamespace(liveNamespace);
       if (liveParts.sessionId && liveParts.sessionId !== currentUserSession) {
         liveNamespace = namespaceFor(
-          liveParts.workspaceSession ? `${currentUserSession}/${liveParts.workspaceSession}` : currentUserSession,
-          liveParts.ipId || activeIp || WORKFLOW_DEFAULT,
+          currentUserSession,
+          WORKFLOW_DEFAULT,
           liveParts.workflow || currentWorkflow() || WORKFLOW_DEFAULT
         );
         window.ACTIVE_SESSION = liveNamespace;
@@ -486,11 +501,19 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
         ? splitSessionNamespace(currentNamespace)
         : { sessionId: '', ipId: '', workflow: '' };
       const owner = loggedInOwner() || normalizeSession(parsed.sessionId || sessionId);
-      const nextIp = parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT);
+      const parsedBelongsToOwner = !!(
+        !parsed.sessionId || !owner || parsed.sessionId === owner
+      );
+      const nextIp = parsedBelongsToOwner
+        ? (parsed.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsed.ipId || activeIp || WORKFLOW_DEFAULT))
+        : WORKFLOW_DEFAULT;
       const nextWorkflow = workflowForExecMode(parsed.workflow || currentWorkflow() || WORKFLOW_DEFAULT);
-      const nextNamespace = currentNamespace && parsed.workflow === nextWorkflow
+      const nextOwnerScope = parsedBelongsToOwner && parsed.workspaceSession
+        ? `${owner}/${parsed.workspaceSession}`
+        : owner;
+      const nextNamespace = currentNamespace && parsedBelongsToOwner && parsed.workflow === nextWorkflow
         ? currentNamespace
-        : namespaceFor(owner, nextIp, nextWorkflow);
+        : namespaceFor(nextOwnerScope, nextIp, nextWorkflow);
       const previousScope = rosterScopeFor(window.ACTIVE_SESSION || activeNamespace || '');
       const nextScope = rosterScopeFor(nextNamespace);
       if (previousScope && nextScope && previousScope !== nextScope) {

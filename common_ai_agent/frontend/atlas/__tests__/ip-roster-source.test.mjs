@@ -13,8 +13,17 @@ const gitTabSource = readFileSync(resolve(here, '../git-tab.tsx'), 'utf8');
 describe('Atlas IP roster source', () => {
   it('does not seed authenticated IP_ID options from browser-local stale state', () => {
     expect(appSource).toContain("const ownerScopedRoster = authState === 'authed' && !!currentUserSession;");
-    expect(appSource).toContain('if (!ownerScopedRoster && acceptIp(rememberedIp)) nextIps.add(rememberedIp);');
-    expect(appSource).toContain('if (!ownerScopedRoster && acceptIp(activeIp)) nextIps.add(activeIp);');
+    expect(appSource).toContain("const browserLocalRosterAllowed = !ownerScopedRoster && authState !== 'checking';");
+    expect(appSource).toContain('if (browserLocalRosterAllowed && acceptIp(rememberedIp)) nextIps.add(rememberedIp);');
+    expect(appSource).toContain('if (browserLocalRosterAllowed && acceptIp(activeIp)) nextIps.add(activeIp);');
+  });
+
+  it('does not seed authenticated SESSION options from another owner browser-local state', () => {
+    expect(appSource).toContain('const rememberedBelongsToCurrentUser = !!(');
+    expect(appSource).toContain('(browserLocalRosterAllowed || rememberedBelongsToCurrentUser) && rememberedParts.workspaceSession');
+    expect(appSource).toContain("|| (browserLocalRosterAllowed ? (window as any).ATLAS_WORKSPACE_SESSION_ID : '')");
+    expect(appSource).toContain('liveParts.sessionId && liveParts.sessionId !== currentUserSession');
+    expect(appSource).toContain('namespaceFor(\n          currentUserSession,\n          WORKFLOW_DEFAULT,');
   });
 
   it('does not preserve a previous user IP list when the owner-scoped roster probe fails', () => {

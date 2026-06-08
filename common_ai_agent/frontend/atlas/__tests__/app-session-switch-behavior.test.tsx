@@ -470,9 +470,15 @@ describe('App workspace session switching', () => {
     });
 
     const ipSelect = await screen.findByLabelText('IP ID');
+    const sessionSelect = await screen.findByLabelText('Workspace session');
     await waitFor(() => {
       expect((window as AnyWindow).ATLAS_USER_SESSION_ID).toBe('bob');
+      expect((window as AnyWindow).ATLAS_WORKSPACE_SESSION_ID).toBe('default');
+      expect((window as AnyWindow).ACTIVE_SESSION).toBe('bob/default/default/default');
+      expect(sessionSelect).toHaveValue('default');
       expect((window as AnyWindow).IP_OPTIONS).toEqual(['default']);
+      const sessionValues = within(sessionSelect).getAllByRole('option').map((option) => option.getAttribute('value'));
+      expect(sessionValues).toEqual(['default']);
       const optionValues = within(ipSelect).getAllByRole('option').map((option) => option.getAttribute('value'));
       expect(optionValues).toEqual(['default']);
     });

@@ -32,6 +32,7 @@ export interface AtlasAuthGateDeps {
   setActiveSessionId: (v: string) => void;
   setActiveNamespace: (v: string) => void;
   setActiveIp: (v: string) => void;
+  setSessionIdOptions: Dispatch<SetStateAction<string[]>>;
   setIpOptions: Dispatch<SetStateAction<string[]>>;
   setRunMode: (v: string) => void;
   setExecMode: (v: string) => void;
@@ -42,11 +43,12 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
     WORKFLOW_DEFAULT, authState, execMode, authRequiredProbeRef,
     normalizeSession, splitSessionNamespace,
     setBootSteps, setAuthState, setActiveSessionId, setActiveNamespace,
-    setActiveIp, setIpOptions, setRunMode, setExecMode,
+    setActiveIp, setSessionIdOptions, setIpOptions, setRunMode, setExecMode,
   } = deps;
 
-  const resetIpRoster = () => {
+  const resetScopedRosters = () => {
     const fallback = [WORKFLOW_DEFAULT];
+    setSessionIdOptions(fallback);
     setIpOptions(fallback);
     window.IP_OPTIONS = fallback;
   };
@@ -99,7 +101,7 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           const sourceNs = currentBelongsToUser
             ? currentNs
             : `${username}/${WORKFLOW_DEFAULT}/${WORKFLOW_DEFAULT}/${defaultWorkflow}`;
-          if (!currentBelongsToUser) resetIpRoster();
+          if (!currentBelongsToUser) resetScopedRosters();
           const sourceParts = splitSessionNamespace(sourceNs);
           const workspaceSession = normalizeSession(sourceParts.workspaceSession || '') || WORKFLOW_DEFAULT;
           const recoveredNs = `${username}/${workspaceSession}/${sourceParts.ipId || WORKFLOW_DEFAULT}/${sourceParts.workflow || defaultWorkflow}`;
@@ -171,23 +173,41 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
           const urlParts = urlSession
             ? splitSessionNamespace(urlSession)
             : { sessionId: '', ipId: '', workflow: '' };
-          const workspaceParam = normalizeSession(
-            urlParts.workspaceSession
-            || url.searchParams.get('workspace_session')
-            || url.searchParams.get('workspace')
-            || (window as any).ATLAS_WORKSPACE_SESSION_ID
-            || localStorage.getItem('atlasWorkspaceSessionId')
-            || ''
-          );
-          const ipParam = normalizeSession(url.searchParams.get('ip') || url.searchParams.get('ip_id') || '');
-          const wfParam = normalizeSession(url.searchParams.get('workflow') || url.searchParams.get('wf') || '');
-          const requestedIp = ipParam || normalizeSession(urlParts.ipId || '');
-          const requestedWf = wfParam || normalizeSession(urlParts.workflow || '');
-          const hasUrlContext = !!(urlSession || requestedIp || requestedWf);
-          const holdDashboardActivation = atlasShouldHoldDashboardActivation();
           const currentNs = normalizeSession(window.ACTIVE_SESSION || localStorage.getItem('atlasActiveSession') || '');
           const currentOwner = (currentNs.split('/').filter(Boolean)[0] || '');
           const ownerMismatch = !!(currentOwner && currentOwner !== username);
+          const urlSessionOwner = normalizeSession(urlParts.sessionId || '');
+          const urlSessionBelongsToUser = !!(
+            urlSession &&
+            (!urlSessionOwner || urlSessionOwner === username)
+          );
+          const urlCanCarryState = !ownerMismatch || urlSessionBelongsToUser;
+          const workspaceParam = normalizeSession(
+            (urlCanCarryState
+              ? (
+                  urlParts.workspaceSession
+                  || url.searchParams.get('workspace_session')
+                  || url.searchParams.get('workspace')
+                )
+              : '')
+            || (!ownerMismatch
+              ? (
+                  (window as any).ATLAS_WORKSPACE_SESSION_ID
+                  || localStorage.getItem('atlasWorkspaceSessionId')
+                )
+              : '')
+            || ''
+          );
+          const ipParam = normalizeSession(
+            urlCanCarryState ? (url.searchParams.get('ip') || url.searchParams.get('ip_id') || '') : ''
+          );
+          const wfParam = normalizeSession(
+            urlCanCarryState ? (url.searchParams.get('workflow') || url.searchParams.get('wf') || '') : ''
+          );
+          const requestedIp = urlCanCarryState ? (ipParam || normalizeSession(urlParts.ipId || '')) : '';
+          const requestedWf = urlCanCarryState ? (wfParam || normalizeSession(urlParts.workflow || '')) : '';
+          const hasUrlContext = urlCanCarryState && !!(urlSession || requestedIp || requestedWf);
+          const holdDashboardActivation = atlasShouldHoldDashboardActivation();
           localStorage.setItem('atlasUserSessionId', username);
           if (hasUrlContext || (!holdDashboardActivation && (!currentNs || currentNs === 'default' || ownerMismatch))) {
             const currentParts = currentNs
@@ -205,7 +225,7 @@ export function useAtlasAuthGate(deps: AtlasAuthGateDeps): void {
             const currentScope = currentParts.sessionId ? `${currentParts.sessionId}/${currentWorkspace}` : '';
             const nextScope = `${username}/${nextWorkspace}`;
             if (!currentNs || currentNs === 'default' || ownerMismatch || (currentScope && currentScope !== nextScope)) {
-              resetIpRoster();
+              resetScopedRosters();
             }
             window.ACTIVE_SESSION = nextNs;
             (window as any).ATLAS_WORKSPACE_SESSION_ID = nextWorkspace;
