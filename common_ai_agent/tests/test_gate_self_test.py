@@ -181,6 +181,96 @@ REQ_CONTRACT_AUTHORITY_SELF_TEST = GateSelfTest(
 
 
 # ---------------------------------------------------------------------------
+# scoreboard schema/observable gate self-test (check_scoreboard_events.py)
+# ---------------------------------------------------------------------------
+
+_SB_IP = "gate_sb"
+_SB_GATE = REPO / "workflow" / "tb-gen" / "scripts" / "check_scoreboard_events.py"
+
+_SB_GOOD_ROW = {
+    "goal_id": "EQ_DATA",
+    "scenario_id": "SC_DATA",
+    "cycle": 1,
+    "stimulus": {"kind": "READ"},
+    "fl_expected": {"model_api": "FunctionalModel.apply", "model_result": {"data_o": 3}},
+    "rtl_observed": {"data_o": 3},
+    "passed": True,
+    "mismatch": "",
+    "coverage_refs": ["SC_DATA_executed"],
+}
+
+
+def _sb_write_events(ip_dir: Path, rows: list) -> None:
+    path = ip_dir / "sim" / "scoreboard_events.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(json.dumps(r, sort_keys=True) + "\n" for r in rows), encoding="utf-8")
+
+
+def _sb_build_good(work: Path) -> dict:
+    ip_dir = work / _SB_IP
+    (ip_dir / "verify").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps({"goals": [{"goal_id": "EQ_DATA"}]}), encoding="utf-8"
+    )
+    _sb_write_events(ip_dir, [dict(_SB_GOOD_ROW)])
+    sb = ip_dir / "tb" / "cocotb" / "scoreboard.py"
+    sb.parent.mkdir(parents=True, exist_ok=True)
+    sb.write_text(
+        "from equivalence_scoreboard import EquivalenceScoreboard\nsb = EquivalenceScoreboard()\n",
+        encoding="utf-8",
+    )
+    return {"ip": _SB_IP}
+
+
+def _sb_run_gate(work: Path, ctx: dict) -> None:
+    proc = subprocess.run(
+        [sys.executable, str(_SB_GATE), ctx["ip"], "--root", str(work), "--source-check", "--require-events"],
+        capture_output=True, text=True, check=False,
+    )
+    ctx["rc"] = proc.returncode
+    ctx["out"] = proc.stdout + proc.stderr
+
+
+def _sb_read_status(work: Path, ctx: dict) -> str:
+    return "pass" if ctx.get("rc") == 0 else "fail"
+
+
+def _sb_mut_empty_events(work: Path, ctx: dict) -> None:
+    _sb_write_events(work / ctx["ip"], [])  # --require-events must reject 0 rows
+
+
+def _sb_mut_vacuous_observed(work: Path, ctx: dict) -> None:
+    row = dict(_SB_GOOD_ROW)
+    row["rtl_observed"] = {}  # empty observed = no real DUT evidence
+    _sb_write_events(work / ctx["ip"], [row])
+
+
+def _sb_mut_observed_copies_fl(work: Path, ctx: dict) -> None:
+    row = dict(_SB_GOOD_ROW)
+    row["rtl_observed"] = dict(row["fl_expected"])  # FL-copy cheat (observed == expected)
+    _sb_write_events(work / ctx["ip"], [row])
+
+
+def _sb_mut_fl_not_from_model(work: Path, ctx: dict) -> None:
+    row = dict(_SB_GOOD_ROW)
+    row["fl_expected"] = {"model_result": {"data_o": 3}}  # missing model_api authenticity
+    _sb_write_events(work / ctx["ip"], [row])
+
+
+SCOREBOARD_EVENTS_SELF_TEST = GateSelfTest(
+    build_good=_sb_build_good,
+    run_gate=_sb_run_gate,
+    read_status=_sb_read_status,
+    mutations=[
+        ("empty_events", _sb_mut_empty_events),
+        ("vacuous_rtl_observed", _sb_mut_vacuous_observed),
+        ("rtl_observed_copies_fl", _sb_mut_observed_copies_fl),
+        ("fl_expected_not_from_model", _sb_mut_fl_not_from_model),
+    ],
+)
+
+
+# ---------------------------------------------------------------------------
 # Gate registry — single source of truth.
 # ---------------------------------------------------------------------------
 
@@ -196,6 +286,11 @@ COVERED_GATES = {
         "scripts": ("check_contract_bundle.py", "check_locked_truth_bundle.py"),
         "self_test": REQ_CONTRACT_AUTHORITY_SELF_TEST,
     },
+    # scoreboard schema/observable gate (manifest "scoreboard_schema" stage).
+    "scoreboard_events": {
+        "scripts": ("check_scoreboard_events.py",),
+        "self_test": SCOREBOARD_EVENTS_SELF_TEST,
+    },
 }
 
 # Explicit, FROZEN backlog: acknowledged gates that still lack a direct
@@ -204,7 +299,6 @@ UNCOVERED_GATES = {
     "check_ip_signoff.py": "final signoff aggregate gate",
     "check_truth_coverage.py": "locked-truth obligation coverage gate",
     "run_contract_check.py": "contract-reflection closure gate (incl. --require-contract-closure strict)",
-    "check_scoreboard_events.py": "scoreboard schema / FL-source / observable gate",
     "check_tb_python_compile.py": "pre-sim TB python compile gate",
     "ssot_coverage_summary.py": "functional coverage summary (pass/fail status)",
     "dut_lint_report.py": "DUT lint/suppression gate",
@@ -318,7 +412,6 @@ def test_uncovered_backlog_is_explicit_and_frozen(capsys):
         "check_ip_signoff.py",
         "check_truth_coverage.py",
         "run_contract_check.py",
-        "check_scoreboard_events.py",
         "check_tb_python_compile.py",
         "ssot_coverage_summary.py",
         "dut_lint_report.py",
