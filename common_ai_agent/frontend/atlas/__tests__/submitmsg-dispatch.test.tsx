@@ -621,4 +621,36 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     );
     expect(stalePrompt).toBe(false);
   });
+
+  it('(h) normal-mode prompt uses selected IP inside a new workspace session', async () => {
+    const w = window as AnyWindow;
+    w.ATLAS_EXEC_MODE = '';
+    w.ATLAS_USER = { username: 'alice' };
+    w.ATLAS_WORKSPACE_SESSION_ID = 'v2_session';
+    w.ACTIVE_SESSION = 'alice/v2_session/default/default';
+    w.ACTIVE_IP = 'dma_v1_good';
+    w.atlasData.sessionFor = (ip: string, wf: string) => {
+      const workflow = String(wf || 'default').trim() || 'default';
+      const ipName = String(ip || 'default').trim() || 'default';
+      return `alice/v2_session/${ipName}/${workflow}`;
+    };
+    bk.setAckMode('accept');
+
+    const { container } = await mountWorkspace({
+      activeNamespace: 'alice/v2_session/default/default',
+      activeWorkflow: 'default',
+    });
+
+    await act(async () => {
+      typeAndSubmit(container, 'continue todo work');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const promptMsg = bk.sent.find((m) => m && m.type === 'prompt' && m.text === 'continue todo work');
+    expect(promptMsg).toBeTruthy();
+    expect(promptMsg.session).toBe('alice/v2_session/dma_v1_good/default');
+    expect(promptMsg.ip).toBe('dma_v1_good');
+    expect(promptMsg.workflow).toBe('default');
+  });
 });

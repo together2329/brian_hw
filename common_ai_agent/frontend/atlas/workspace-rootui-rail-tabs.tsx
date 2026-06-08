@@ -638,7 +638,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
       )}
       {(() => {
         const _allTodos = Array.isArray(w.TODOS) ? w.TODOS : [];
-        const _approvedTodos = _allTodos.filter((t: any) => ['done', 'approved', 'completed'].includes(t.state)).length;
+        const _approvedTodos = _allTodos.filter((t: any) => t.state === 'approved').length;
         return (
           <span
             className="tab-chip"

@@ -122,7 +122,22 @@ def _is_execution_resume_request(user_input: str) -> bool:
         "다시 ",
         "시작 ",
     )
-    return text.startswith(prefixes)
+    if text.startswith(prefixes):
+        return True
+    # Natural-language resume requests often arrive as "can you keep going?"
+    # from the web chat. Treat these as explicit resumes so the STOP pause
+    # flag does not keep suppressing TODO guard injection.
+    resume_phrases = (
+        "keep going",
+        "continue",
+        "go ahead",
+        "proceed",
+        "resume",
+        "계속",
+        "진행",
+        "다시",
+    )
+    return any(phrase in text for phrase in resume_phrases)
 
 
 # ---------------------------------------------------------------------------

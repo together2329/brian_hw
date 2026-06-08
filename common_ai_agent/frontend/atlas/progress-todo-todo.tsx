@@ -24,11 +24,10 @@ const TodoPanel = (): ReactNode => {
   // inside the render so they're not duplicated.
   const [collapsedTodoGroups, setCollapsedTodoGroups] = useState<Record<string, boolean>>({});
   const todos: TodoItem[] = Array.isArray(w.TODOS) ? w.TODOS as TodoItem[] : [];
-  // "Done" counter spans every terminal state (done/approved/completed)
-  // — without this, the counter showed 0/7 for tasks the agent had
-  // explicitly approved because raw 'approved' status now flows
-  // through unchanged from data.jsx.
-  const done = todos.filter(t => ['done', 'approved', 'completed'].includes(t.state as string)).length;
+  // Keep the progress denominator aligned with the shared TODO state machine:
+  // only explicit `approved` closes a task. `completed` and legacy `done`
+  // still need review, so they must not fill the "approved / total" bar.
+  const approved = todos.filter(t => t.state === 'approved').length;
 
   // Map every status to a glyph + color so the right panel reads at a
   // glance. data.jsx normalizes TodoTracker statuses
@@ -39,7 +38,7 @@ const TodoPanel = (): ReactNode => {
     const meta = atlasStatusMeta(s);
     switch (s) {
       // Auto-finished by the agent (no explicit human nod)
-      case 'done':        return { glyph: meta.glyph, color: meta.color, label: meta.label };
+      case 'done':        return { glyph: meta.glyph, color: meta.color, label: 'completed' };
       case 'completed':   return { glyph: meta.glyph, color: meta.color, label: meta.label };
       // Explicitly approved by a human — distinct glyph + accent
       // colour so the pending/approved distinction reads at a glance
@@ -183,7 +182,7 @@ const TodoPanel = (): ReactNode => {
   };
 
   const TodoReason = ({ todo }: { todo: TodoItem }) => {
-    const approved = todo.state === 'approved' || todo.state === 'done';
+    const approved = todo.state === 'approved';
     const rejected = todo.state === 'rejected';
     const reason = approved ? todo.approvedReason : rejected ? todo.rejectionReason : '';
     if (!reason) return null;
@@ -252,7 +251,7 @@ const TodoPanel = (): ReactNode => {
         padding: '8px 12px', borderBottom: '1px solid var(--line)',
         display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--ui-control-font-size)', flexWrap: 'wrap',
       }}>
-        <span className="mute" style={{ fontFamily: 'var(--mono)' }}>{done}/{todos.length}</span>
+        <span className="mute" style={{ fontFamily: 'var(--mono)' }}>{approved}/{todos.length}</span>
         {/* color-coded count chips per state */}
         {['in-progress','pending','done','approved','completed','rejected'].filter(k => counts[k]).map(k => {
           const c = stateCfg(k === 'done' ? 'done' : k.replace('-', '_'));
@@ -282,14 +281,14 @@ const TodoPanel = (): ReactNode => {
                          fontSize: 10, fontFamily: 'var(--mono)',
                          color: 'var(--fg-mute)', marginBottom: 3 }}>
             <span>progress</span>
-            <span><b style={{ color: 'var(--ok)' }}>{done}</b> / {todos.length} approved</span>
+            <span><b style={{ color: 'var(--ok)' }}>{approved}</b> / {todos.length} approved</span>
           </div>
           <div style={{ height: 4, background: 'var(--bg-3)',
                          border: '1px solid var(--line)', borderRadius: 2,
                          overflow: 'hidden' }}>
             <div style={{
               height: '100%',
-              width: `${todos.length ? Math.round(100 * done / todos.length) : 0}%`,
+              width: `${todos.length ? Math.round(100 * approved / todos.length) : 0}%`,
               background: '#3fb950',
               transition: 'width 240ms ease-out',
             }} />
@@ -307,7 +306,8 @@ const TodoPanel = (): ReactNode => {
             const s = t.state;
             if (s === 'active' || s === 'in_progress') return 'in_progress';
             if (s === 'completed') return 'completed';
-            if (s === 'approved' || s === 'done') return 'approved';
+            if (s === 'approved') return 'approved';
+            if (s === 'done') return 'completed';
             if (s === 'rejected') return 'rejected';
             return 'pending';
           };

@@ -85,6 +85,20 @@ def test_workspace_uses_one_todo_view_for_tab_and_sidebar() -> None:
     assert "usingOverride" not in workspace
 
 
+def test_web_todo_progress_counts_only_approved_tasks() -> None:
+    """The web TODO progress UI must match Textual: completed still needs review."""
+    rail_tabs = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-rootui-rail-tabs.tsx").read_text()
+    todo_panel = (PROJECT_ROOT / "frontend" / "atlas" / "progress-todo-todo.tsx").read_text()
+
+    assert "_allTodos.filter((t: any) => t.state === 'approved').length" in rail_tabs
+    assert "['done', 'approved', 'completed'].includes(t.state)" not in rail_tabs
+
+    assert "const approved = todos.filter(t => t.state === 'approved').length;" in todo_panel
+    assert "Math.round(100 * approved / todos.length)" in todo_panel
+    assert "if (s === 'done') return 'completed';" in todo_panel
+    assert "['done', 'approved', 'completed'].includes(t.state as string)" not in todo_panel
+
+
 def test_atlas_ui_exposes_todo_crud_endpoints() -> None:
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
 
