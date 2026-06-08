@@ -4041,8 +4041,31 @@ def create_app():
                         elif requested_workspace_session != "default":
                             continue
                     name = parts[-2]
-                    if catalog_ip_names is not None and name not in catalog_ip_names:
-                        continue
+                    if catalog_ip_names is not None:
+                        if name not in catalog_ip_names:
+                            continue
+                    elif workspace_root_for_list is not None:
+                        # Phantom guard. A session row alone is not proof of
+                        # ownership: a stale cross-owner ip= carried into a
+                        # different login can leave a ghost session row plus a
+                        # doc-only skeleton dir. /api/session/activate is
+                        # intentionally permissive (it can't tell a phantom from
+                        # a legit brand-new IP), so the roster is the gate — when
+                        # this user has no catalog entries at all, only surface
+                        # an IP that has a real SSOT in THIS user's OWN workspace.
+                        #
+                        # Deliberately NOT _ssot_exists(): that helper also
+                        # accepts PROJECT_ROOT/<ip>/yaml, a SHARED root, which
+                        # would re-open the cross-owner leak — a same-named IP at
+                        # the top level would vouch for everyone's phantom. Scope
+                        # strictly to the requested workspace root.
+                        own_yaml = workspace_root_for_list / name / "yaml"
+                        try:
+                            own_ssot = own_yaml.is_dir() and any(own_yaml.glob("*.ssot.yaml"))
+                        except OSError:
+                            own_ssot = False
+                        if not own_ssot:
+                            continue
                     workflow = parts[-1]
                     mtime = float(row.get("updated_at") or row.get("created_at") or 0.0)
                     ip_dir = None
