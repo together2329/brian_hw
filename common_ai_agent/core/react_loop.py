@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from lib.display import Color
+from core.prompt_input import prompt_content_for_llm, prompt_has_content
 
 
 _ATLAS_DEFAULT_SESSION_PLACEHOLDERS = {
@@ -2476,11 +2477,16 @@ def run_react_agent_impl(
             # Human-in-the-loop: inject queued user message before next LLM call
             if deps.poll_human_input_fn and getattr(cfg, "ENABLE_HUMAN_IN_THE_LOOP", False):
                 _human_msg = deps.poll_human_input_fn()
-                if _human_msg:
+                # _human_msg may be a PromptInput carrying image attachments; an
+                # image-only message has empty text (falsy as a bare str) but is
+                # still content, so gate on prompt_has_content (None-guarded
+                # because poll returns None when no message is queued).
+                if _human_msg is not None and prompt_has_content(_human_msg):
+                    _human_display = str(_human_msg) or "[image attachment]"
                     print(f"\n{Color.DIM}{'─' * 40}{Color.RESET}")
-                    print(f"  {Color.BOLD}👤 You:{Color.RESET} {_human_msg}")
+                    print(f"  {Color.BOLD}👤 You:{Color.RESET} {_human_display}")
                     print(f"{Color.DIM}{'─' * 40}{Color.RESET}\n")
-                    messages.append({"role": "user", "content": _human_msg})
+                    messages.append({"role": "user", "content": prompt_content_for_llm(_human_msg)})
 
             # Step-by-step mode
             if getattr(cfg, "STEP_BY_STEP_MODE", False) and (combined_results or _is_todo_write):

@@ -66,7 +66,7 @@ from core.action_parser import (
     parse_value,
 )
 from core.observation_processor import process_observation as _process_observation_impl
-from core.prompt_input import prompt_content_for_llm, prompt_has_content
+from core.prompt_input import message_content_text, prompt_content_for_llm, prompt_has_content
 from core.history_manager import (
     save_conversation_history as _save_history_impl,
     load_conversation_history as _load_history_impl,
@@ -1259,11 +1259,14 @@ def _maybe_inject_exploration_strategy(messages, task_description):
     if not messages:
         return False
 
-    user_query = messages[-1].get("content", "").lower()
+    user_query = message_content_text(messages[-1].get("content", "")).lower()
 
     # 이미 주입되었는지 확인 (중복 방지)
     for msg in messages:
-        if msg.get("role") == "system" and ("DELEGATION STRATEGY" in msg.get("content", "") or "EXPLORATION STRATEGY" in msg.get("content", "")):
+        if msg.get("role") == "system" and (
+            "DELEGATION STRATEGY" in message_content_text(msg.get("content", ""))
+            or "EXPLORATION STRATEGY" in message_content_text(msg.get("content", ""))
+        ):
             return False
 
     # === Priority 1: 명시적 agent delegation ===

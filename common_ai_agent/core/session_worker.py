@@ -270,6 +270,20 @@ def _message_text(msg: dict[str, Any]) -> str:
     return str(payload)
 
 
+def _message_prompt(msg: dict[str, Any]) -> str:
+    """Like ``_message_text`` but preserves attached images.
+
+    Mid-run human input (interrupts / human-in-the-loop answers) flows through
+    this instead of ``_message_text`` so an image-only or text+image message
+    keeps its attachments as a ``PromptInput`` on the way to the model, rather
+    than degrading to the text field alone (which is empty for an image-only
+    message and would be dropped entirely).
+    """
+    text = _message_text(msg)
+    payload = _decode_payload(msg.get("payload"))
+    return prompt_input_from_payload(text, payload)
+
+
 def _message_epoch(msg: dict[str, Any]) -> str | None:
     """Return the worker_epoch tag from an inbound row payload, if present."""
     payload = _decode_payload(msg.get("payload"))
@@ -1031,7 +1045,7 @@ class SessionWorker:
         msg = self.poll_matching(("interrupt",))
         if msg is None:
             return None
-        return _message_text(msg)
+        return _message_prompt(msg)
 
     def set_agent_running(self, value: bool) -> None:
         self._agent_running = bool(value)

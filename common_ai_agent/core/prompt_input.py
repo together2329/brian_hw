@@ -85,3 +85,23 @@ def prompt_content_for_llm(prompt: str) -> str | list[dict[str, str]]:
             "detail": image.detail,
         })
     return blocks
+
+
+def message_content_text(content: Any) -> str:
+    """Return the textual part of a chat message content value."""
+
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, Mapping):
+                text = block.get("text")
+                if text is not None:
+                    parts.append(str(text))
+            elif block is not None:
+                parts.append(str(block))
+        return "\n".join(part for part in parts if part)
+    if content is None:
+        return ""
+    return str(content)
