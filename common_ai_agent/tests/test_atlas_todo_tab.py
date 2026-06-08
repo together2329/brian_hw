@@ -47,6 +47,7 @@ def test_workspace_renders_editable_todo_tab() -> None:
 def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
     workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
     data = (PROJECT_ROOT / "frontend" / "atlas" / "data.tsx").read_text()
+    data_loaders = (PROJECT_ROOT / "frontend" / "atlas" / "data-loaders.tsx").read_text()
 
     # data.jsx exposes the CRUD helpers used by the editor pane
     assert "addTodo:" in data
@@ -59,8 +60,9 @@ def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
     assert "/api/todos/update" in data
     assert "/api/todos/remove" in data
     assert "/api/todos/clear" in data
-    assert "async function todoJsonRequest" in data
-    assert "throw new Error(message)" in data
+    assert "todoJsonRequest," in data
+    assert "async function todoJsonRequest" in data_loaders
+    assert "throw new Error(message)" in data_loaders
     assert "refreshTodosAfterMutation(session, payload)" in data
 
     # Editor pane calls into those helpers
