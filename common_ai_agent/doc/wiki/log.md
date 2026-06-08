@@ -2,6 +2,15 @@
 
 ## 2026-06-08
 
+- Extended [[todo-loop-verification-hardening-20260608]] with the follow-up
+  no-action incident: TODOs remained open, but Atlas worker retries received only
+  the generic "next response must start with Action" runtime guard and not the
+  exact active `get_continuation_prompt()` transition. Because react_loop dedups
+  same task/status prompt overlays, the next LLM call could miss
+  `todo_update(index=N, status='completed'|'in_progress')`, repeat prose, and
+  stop under retry/watchdog limits. Commit `5739ccbc` fixes the thinking-only and
+  text-only/no-action branches by appending the active TODO continuation prompt
+  to the guard nudge. Regression: `test_no_action_guard_reinjects_exact_todo_transition`.
 - Added [[todo-loop-verification-hardening-20260608]] after the Atlas TODO loop
   incident where `todo_update(completed)` recovery depended on the LLM's tool-call
   order and Atlas/web stopped before rejected continuation prompt injection while

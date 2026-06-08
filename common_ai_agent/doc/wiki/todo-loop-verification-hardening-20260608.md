@@ -26,6 +26,49 @@ todo_update(index=1, status='rejected',
 
 This was not an RTL/req/task failure. It was a workflow-state failure.
 
+## Follow-up: TODO Left Open But Worker Stopped
+
+Later on 2026-06-08, the same class of bug appeared in a different branch of
+the loop:
+
+```text
+active TODO remains pending/in_progress
+LLM replies with prose only, no Action
+runtime guard says "next response must start with Action"
+next LLM turn does not receive the exact TODO continuation prompt
+retry/watchdog eventually stops the loop
+```
+
+The TODO did not disappear and the task was not complete. The loop stopped
+because execution is LLM-action driven: with an unfinished TODO, the model must
+emit a tool Action such as `todo_update(...)`, `read_file(...)`,
+`run_command(...)`, or `write_file(...)`. The no-action guard correctly noticed
+the missing Action, but it only injected a generic warning. It did not reattach
+`TodoTracker.get_continuation_prompt()`, so the next model call saw "use an
+Action" without the precise current-state transition, for example:
+
+```text
+[Task 1/8  IN PROGRESS] ...
+-> todo_update(index=1, status='completed') when all criteria met
+```
+
+`core/react_loop.py` also deduplicates prompt-only TODO injection by
+`(current_index, status)` to avoid spamming the same reminder every iteration.
+That dedup is normally useful, but after a text-only/no-action turn it meant the
+normal pre-LLM TODO prompt could be skipped because the task/status had not
+changed.
+
+The fix in commit `5739ccbc` makes both no-output branches append the active
+TODO continuation prompt:
+
+- thinking-only response -> nudge plus active TODO continuation.
+- text-only/no-action response -> runtime guard plus active TODO continuation.
+
+This is not an infinite-loop change. The existing retry, text-only watchdog, and
+stagnation guards still stop the worker if the model repeatedly refuses to use
+tools. The change only ensures each retry contains the exact TODO transition
+needed to make progress.
+
 ## Root Causes
 
 1. **The recovery instruction did not match the state machine.**
@@ -50,6 +93,14 @@ This was not an RTL/req/task failure. It was a workflow-state failure.
    A reason like "TodoTracker says no tools were called" describes bookkeeping,
    not an unmet task criterion. Recording that as `rejected` polluted the todo
    ledger and sent the workflow down the wrong repair path.
+
+4. **No-action recovery lost the actionable TODO transition.**
+
+   Runtime no-action nudges told the LLM to call a tool, but did not include the
+   current `get_continuation_prompt()` output. Combined with same-task/status
+   prompt deduplication, the next prompt could lack the exact
+   `todo_update(index=N, status='...')` instruction even though the TODO was
+   still open.
 
 ## Prevention Policy
 
@@ -92,6 +143,8 @@ Required states:
 - `completed`: review prompt with approve/reject instructions.
 - `rejected`: repair prompt with rejection reason and restart instruction.
 - blocked `todo_update`: recovery prompt with active task context.
+- no-action retry while TODO is open: runtime guard plus the active
+  continuation prompt in the same LLM input.
 
 ### 3. UI/Worker Parity Is A Product Gate
 
@@ -167,6 +220,7 @@ injected marker reached the model input path.
 - `tests/test_core/test_react_loop.py`
   - `test_chat_mode_does_not_stop_before_blocked_todo_recovery_prompt`
   - `test_chat_mode_injects_rejected_todo_prompt_before_stopping`
+  - `test_no_action_guard_reinjects_exact_todo_transition`
 - `tests/test_atlas_multiuser_session_scope.py`
   - `test_todos_update_uses_shared_status_transition_gates`
 
