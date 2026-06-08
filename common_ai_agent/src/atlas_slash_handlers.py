@@ -1615,6 +1615,7 @@ def make_slash_handlers(
             canonical_alias = "ssot-tb-cocotb"
             session = f"{ip}/tb-gen"
             script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
+            todo_script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "derive_tb_todos.py"
             validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
             scoreboard = WORKFLOW_ROOT / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
             _append_session_message(session, "user", text)
@@ -1652,14 +1653,23 @@ def make_slash_handlers(
                     })
                     return 999
 
-            gen_rc = _run_tb_tool("emit_goal_scoreboard_cocotb", [_python_cmd(), str(script), ip, "--root", str(stage_root)])
+            derive_rc = _run_tb_tool("derive_tb_todos", [_python_cmd(), str(todo_script), ip, "--root", str(stage_root)], timeout_s=90)
+            gen_rc: int | None = None
             structure_rc: int | None = None
             self_check_rc: int | None = None
+            audit_tb_rc: int | None = None
+            if derive_rc != 2:
+                gen_rc = _run_tb_tool("emit_goal_scoreboard_cocotb", [_python_cmd(), str(script), ip, "--root", str(stage_root)])
             if gen_rc == 0:
                 structure_rc = _run_tb_tool("check_pyuvm_structure", ["bash", str(validator), ip])
                 self_check_rc = _run_tb_tool(
                     "equivalence_scoreboard_self_check",
                     [_python_cmd(), str(scoreboard), ip, "--root", str(stage_root), "--self-check"],
+                )
+                audit_tb_rc = _run_tb_tool(
+                    "audit_tb_todos",
+                    [_python_cmd(), str(todo_script), ip, "--root", str(stage_root), "--audit-tb"],
+                    timeout_s=90,
                 )
 
             blocked_path = ip_dir / "tb" / "cocotb" / "tb_blocked.json"
@@ -1671,9 +1681,19 @@ def make_slash_handlers(
                 except Exception as exc:
                     blocked_doc = {"reason": f"tb_blocked.json parse failed: {exc}", "questions": []}
 
-            if blocked_doc or gen_rc == 2:
+            todo_plan_path = ip_dir / "tb" / "tb_todo_plan.json"
+            todo_plan: dict[str, Any] = {}
+            if todo_plan_path.is_file():
+                try:
+                    loaded = json.loads(todo_plan_path.read_text(encoding="utf-8"))
+                    todo_plan = loaded if isinstance(loaded, dict) else {}
+                except Exception:
+                    todo_plan = {}
+            todo_gate = todo_plan.get("gate") if isinstance(todo_plan.get("gate"), dict) else {}
+
+            if blocked_doc or derive_rc == 2 or gen_rc == 2 or todo_gate.get("status") == "blocked":
                 headline = "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair"
-            elif gen_rc == 0 and structure_rc == 0 and self_check_rc == 0:
+            elif gen_rc == 0 and structure_rc == 0 and self_check_rc == 0 and audit_tb_rc == 0 and todo_gate.get("status") == "pass":
                 headline = "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard"
             elif gen_rc == 0:
                 headline = "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair"
@@ -1684,6 +1704,7 @@ def make_slash_handlers(
                 headline,
                 f"module: {ip}",
                 f"source: {ip}/yaml/{ip}.ssot.yaml",
+                f"dynamic_todos: {ip}/tb/tb_todo_plan.json",
                 f"generator: {script}",
                 f"validator: {validator}",
             ]
@@ -1720,13 +1741,16 @@ def make_slash_handlers(
                 f"- {ip}/tb/cocotb/test_runner.py",
                 f"- {ip}/tb/cocotb/tb_manifest.json",
                 f"- {ip}/tb/cocotb/tb_generation.json",
+                f"- {ip}/tb/tb_todo_plan.json",
+                f"- {ip}/tb/tb_todo_tracker.json",
+                f"- {ip}/tb/tb_traceability.json",
                 f"- {ip}/sim/scoreboard_events.jsonl after /sim",
                 f"- {ip}/cov/coverage.json after /sim",
             ]
-            if gen_rc == 0 and structure_rc == 0 and self_check_rc == 0:
+            if gen_rc == 0 and structure_rc == 0 and self_check_rc == 0 and audit_tb_rc == 0 and todo_gate.get("status") == "pass":
                 parts += [
                     "",
-                    "next: run /sim, /sim-debug, and /goal-audit to collect FL-vs-RTL evidence.",
+                    "next: run /sim, /coverage, and derive_tb_todos.py --audit-evidence to close contract validation evidence.",
                 ]
             elif gen_rc == 0:
                 parts += [

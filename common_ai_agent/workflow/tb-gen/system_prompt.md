@@ -23,6 +23,7 @@ Use the backend selected by the loaded todo template. Prefer `/gen-tb <ip>` as t
 
 - The visible UI TODO for `/gen-tb` should be one stage-level item: generate TB and close TB gates.
 - Detailed contract/gate rows belong in `<ip>/tb/tb_todo_plan.json`; do not expand every row into separate visible chat TODOs.
+- Refresh the ledger with `python3 workflow/tb-gen/scripts/derive_tb_todos.py <ip> --root .` before authoring, rerun it with `--audit-tb` after TB generation, and rerun it with `--audit-evidence` after sim/coverage artifacts exist.
 - The visible tracker item must cite `source_plan: tb/tb_todo_plan.json` and pass only when TB authoring and deterministic gates pass.
 - If a gate fails, repair the TB from the failed contract row and rerun the gate; if SSOT/RTL is ambiguous, write `tb/cocotb/tb_blocked.json` and block instead of approving.
 

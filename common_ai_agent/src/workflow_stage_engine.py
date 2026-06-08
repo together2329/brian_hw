@@ -1430,25 +1430,50 @@ class WorkflowStageEngine:
 
     def _run_tb_cocotb(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
+        todo_script = self.workflow_root / "tb-gen" / "scripts" / "derive_tb_todos.py"
         validator = self.workflow_root / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
         scoreboard = self.workflow_root / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
-        runs = [self._run_tool("emit_goal_scoreboard_cocotb", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=180)]
+        runs = [
+            self._run_tool(
+                "derive_tb_todos",
+                [sys.executable, str(todo_script), ip, "--root", str(self.project_root)],
+                timeout_s=90,
+            )
+        ]
+        gen_rc = None
         structure_rc = self_check_rc = None
-        if runs[-1].returncode == 0:
+        audit_tb_rc = None
+        if runs[-1].returncode != 2:
+            runs.append(self._run_tool("emit_goal_scoreboard_cocotb", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=180))
+            gen_rc = runs[-1].returncode
+        if gen_rc == 0:
             runs.append(self._run_tool("check_pyuvm_structure", ["bash", str(validator), ip], timeout_s=180))
             structure_rc = runs[-1].returncode
             runs.append(self._run_tool("equivalence_scoreboard_self_check", [sys.executable, str(scoreboard), ip, "--root", str(self.project_root), "--self-check"], timeout_s=90))
             self_check_rc = runs[-1].returncode
+            runs.append(
+                self._run_tool(
+                    "audit_tb_todos",
+                    [sys.executable, str(todo_script), ip, "--root", str(self.project_root), "--audit-tb"],
+                    timeout_s=90,
+                )
+            )
+            audit_tb_rc = runs[-1].returncode
 
         blocked_path = self.ip_dir(ip) / "tb" / "cocotb" / "tb_blocked.json"
         blocked_doc = _read_json(blocked_path) if blocked_path.is_file() else {}
-        if blocked_doc or runs[0].returncode == 2:
+        todo_plan_path = self.ip_dir(ip) / "tb" / "tb_todo_plan.json"
+        todo_plan = _read_json(todo_plan_path) if todo_plan_path.is_file() else {}
+        todo_gate = todo_plan.get("gate") if isinstance(todo_plan.get("gate"), dict) else {}
+        todo_completion = todo_plan.get("todo_completion") if isinstance(todo_plan.get("todo_completion"), dict) else {}
+        todo_blocked = todo_gate.get("status") == "blocked"
+        if blocked_doc or runs[0].returncode == 2 or gen_rc == 2 or todo_blocked:
             status = "human_gate"
             headline = "[ssot-tb-cocotb] BLOCKED - SSOT/RTL contract needs repair"
-        elif runs[0].returncode == 0 and structure_rc == 0 and self_check_rc == 0:
+        elif gen_rc == 0 and structure_rc == 0 and self_check_rc == 0 and audit_tb_rc == 0 and todo_gate.get("status") == "pass":
             status = "pass"
             headline = "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard"
-        elif runs[0].returncode == 0:
+        elif gen_rc == 0:
             status = "fail"
             headline = "[ssot-tb-cocotb] FAIL - generated TB needs tb-gen repair"
         else:
@@ -1459,10 +1484,11 @@ class WorkflowStageEngine:
             headline,
             f"module: {ip}",
             f"source: {ip}/yaml/{ip}.ssot.yaml",
+            f"dynamic_todos: {ip}/tb/tb_todo_plan.json",
             f"generator: {script}",
             f"validator: {validator}",
         ]
-        metadata: dict[str, Any] = {}
+        metadata: dict[str, Any] = {"tb_todo_plan": todo_plan}
         blocker = ""
         if blocked_doc:
             blocker = f"{ip}/tb/cocotb/tb_blocked.json"
@@ -1487,6 +1513,9 @@ class WorkflowStageEngine:
             f"{ip}/tb/cocotb/test_runner.py",
             f"{ip}/tb/cocotb/tb_manifest.json",
             f"{ip}/tb/cocotb/tb_generation.json",
+            f"{ip}/tb/tb_todo_plan.json",
+            f"{ip}/tb/tb_todo_tracker.json",
+            f"{ip}/tb/tb_traceability.json",
             f"{ip}/sim/scoreboard_events.jsonl after /sim",
             f"{ip}/cov/coverage.json after /sim",
         ]
@@ -1507,21 +1536,25 @@ class WorkflowStageEngine:
                     "One visible TB loop over the internal contract/gate ledger. The detailed "
                     "authoring and validation tasks stay in tb/tb_todo_plan.json; this tracker "
                     "item closes only when the generated cocotb/pyuvm TB, manifest, structure "
-                    "check, and scoreboard self-check evidence all match the SSOT/RTL contracts."
+                    "check, scoreboard self-check, and tb_todo_plan audit all match the "
+                    "SSOT/locked contract/RTL contracts."
                 ),
                 "criteria": (
                     "tb/tb_todo_plan.json exists; generated TB artifacts exist; "
                     "emit_goal_scoreboard_cocotb, check_pyuvm_structure, and "
-                    "equivalence_scoreboard --self-check pass, or the item records an explicit "
-                    "human/contract blocker with tb_blocked.json evidence."
+                    "equivalence_scoreboard --self-check pass; derive_tb_todos.py --audit-tb "
+                    "reports gate.status=pass; or the item records an explicit human/contract "
+                    "blocker with tb_blocked.json evidence."
                 ),
                 "required_evidence": [
                     f"{ip}/tb/tb_todo_plan.json",
+                    f"{ip}/tb/tb_todo_tracker.json",
                     f"{ip}/tb/cocotb/test_{ip}.py",
                     f"{ip}/tb/cocotb/test_runner.py",
                     f"{ip}/tb/cocotb/tb_manifest.json",
                     "check_pyuvm_structure returncode 0",
                     "equivalence_scoreboard_self_check returncode 0",
+                    "derive_tb_todos --audit-tb returncode 0",
                 ],
                 "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/rtl/rtl_contract.json"],
             },
@@ -1551,8 +1584,11 @@ class WorkflowStageEngine:
         )
         self._append_expected(lines, artifacts)
         if status == "pass":
-            lines += ["", "next: run /sim, /sim-debug, and /goal-audit to collect FL-vs-RTL evidence."]
-        elif runs[0].returncode == 0 and status == "fail":
+            lines += [
+                "",
+                "next: run /sim, /coverage, and derive_tb_todos.py --audit-evidence to close contract validation evidence.",
+            ]
+        elif gen_rc == 0 and status == "fail":
             metadata["needs_repair"] = True
             lines += ["", "next: queued tb-gen repair with structure/self-check diagnostics as evidence."]
         return self._result("ssot-tb-cocotb", ip, status, headline, lines, runs=runs, artifacts=artifacts, blocker=blocker, metadata=metadata)

@@ -41,8 +41,8 @@
     },
     {
       "content": "[ORCH] Dispatch tb-gen and verify TB compile + scoreboard manifest",
-      "detail": "Call /dispatch tb-gen <ip>. Before simulation, run the canonical TB Python compile gate so generated string/syntax errors fail cheaply and do not masquerade as simulator issues.",
-      "criteria": "tb/cocotb/test_runner.py exists\ntb_manifest.json.top == SSOT.top_module.name\npython3 workflow/tb-gen/scripts/check_tb_python_compile.py <ip> --root . passes and writes tb/cocotb/tb_py_compile.json",
+      "detail": "Call /dispatch tb-gen <ip>. Before simulation, run the canonical TB Python compile gate and TB contract-ledger authoring audit so generated string/syntax errors or contract mapping gaps fail cheaply and do not masquerade as simulator issues.",
+      "criteria": "tb/tb_todo_plan.json exists\ntb/cocotb/test_runner.py exists\ntb_manifest.json.top == SSOT.top_module.name\npython3 workflow/tb-gen/scripts/derive_tb_todos.py <ip> --root . --audit-tb passes and reports gate.status=pass\npython3 workflow/tb-gen/scripts/check_tb_python_compile.py <ip> --root . passes and writes tb/cocotb/tb_py_compile.json",
       "priority": "high"
     },
     {
@@ -54,7 +54,7 @@
     {
       "content": "[ORCH] Validate scoreboard schema and observables",
       "detail": "Run the canonical scoreboard gate after simulation. This now checks structured rows, FL source contract, and that signal-like expected_contract.observables appear in rtl_observed.",
-      "criteria": "python3 workflow/tb-gen/scripts/check_scoreboard_events.py <ip> --root . --source-check --require-events passes",
+      "criteria": "python3 workflow/tb-gen/scripts/check_scoreboard_events.py <ip> --root . --source-check --require-events passes\npython3 workflow/tb-gen/scripts/derive_tb_todos.py <ip> --root . --audit-evidence passes after coverage evidence exists, or reports exact open TB contract rows",
       "priority": "high"
     },
     {

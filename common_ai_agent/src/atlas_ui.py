@@ -7868,9 +7868,10 @@ def create_app():
                     ],
                     "source_refs": refs,
                     "command": f"/ssot-tb {ip}",
-                    "script": "$ATLAS_WORKFLOW_ROOT/tb-gen/scripts/emit_goal_scoreboard_cocotb.py",
-                    "run_command": f"python3 \"$ATLAS_WORKFLOW_ROOT/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\"",
+                    "script": "$ATLAS_WORKFLOW_ROOT/tb-gen/scripts/derive_tb_todos.py",
+                    "run_command": f"python3 \"$ATLAS_WORKFLOW_ROOT/tb-gen/scripts/derive_tb_todos.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --audit-tb",
                     "instructions": [
+                        "Refresh tb/tb_todo_plan.json before generation and rerun derive_tb_todos.py --audit-tb after TB edits.",
                         "Generate tests and scoreboards from SSOT function_model, cycle_model, scenarios, and import-backed workflow_todos.",
                         "Preserve source_refs in generated TB manifest/evidence so failures can be traced back to the SSOT.",
                         "Run the generated cocotb simulation and keep results.xml plus scoreboard_events.jsonl as proof.",

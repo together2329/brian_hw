@@ -222,9 +222,10 @@ def run_common_stage_surface(
             f"/todo template {template} {ip}",
             (
                 f"Repair generated pyuvm/cocotb TB for {ip} using SSOT, FunctionalModel, "
-                "equivalence_goals.json, rtl_contract.json, and the common stage-engine evidence "
-                "below. Do not use fixed IP templates. Preserve EquivalenceScoreboard and rerun "
-                "the common TB stage before reporting DONE.\n\n"
+                "equivalence_goals.json, rtl_contract.json, and tb/tb_todo_plan.json as the "
+                "contract/evidence ledger. Do not use fixed IP templates. Preserve "
+                "EquivalenceScoreboard, rerun derive_tb_todos.py --audit-tb, and rerun the "
+                "common TB stage before reporting DONE.\n\n"
                 "Stage-engine evidence:\n```text\n"
                 f"{result.message}\n"
                 "```"
@@ -348,15 +349,20 @@ def _kpi_tb(ip_dir: Path) -> List[_KPI_DOT]:
     tb_dir = ip_dir / "tb" / "cocotb"
     if not tb_dir.is_dir():
         tb_dir = ip_dir / "tb"
-    if not tb_dir.is_dir():
+    todo_doc = _read_json(ip_dir / "tb" / "tb_todo_plan.json")
+    if not tb_dir.is_dir() and todo_doc is None:
         return ["idle"] * 4
-    py_files = list(tb_dir.rglob("*.py"))
+    py_files = list(tb_dir.rglob("*.py")) if tb_dir.is_dir() else []
     top_present: _KPI_DOT = "pass" if py_files else "fail"
     has_scoreboard = any("scoreboard" in f.name.lower() for f in py_files)
     scoreboard: _KPI_DOT = "pass" if has_scoreboard else "warn"
-    tc_count: _KPI_DOT = "pass" if len(py_files) >= 2 else "warn"
+    if todo_doc is None:
+        tc_count: _KPI_DOT = "pass" if len(py_files) >= 2 else "warn"
+    else:
+        gate = todo_doc.get("gate") if isinstance(todo_doc.get("gate"), dict) else {}
+        tc_count = "pass" if gate.get("status") == "pass" else "warn"
     manifest_files = list(tb_dir.rglob("Makefile")) + list(tb_dir.rglob("*.yaml")) + list(tb_dir.rglob("*.json"))
-    manifest: _KPI_DOT = "pass" if manifest_files else "warn"
+    manifest: _KPI_DOT = "pass" if manifest_files or todo_doc is not None else "warn"
     return [top_present, scoreboard, tc_count, manifest]
 
 
@@ -572,7 +578,7 @@ _KPI_LABELS: dict[str, list[str]] = {
     "equivalence": ["parses", "goals_resolved", "sub_module_refs"],
     "rtl": ["compile_rc", "lint_clean", "todo_audit", "provenance"],
     "lint": ["pyslang", "verilator", "errors=0", "warnings<=waivers", "policy"],
-    "tb": ["top_present", "scoreboard", "tc_count", "manifest"],
+    "tb": ["top_present", "scoreboard", "todo_audit", "manifest"],
     "sim": ["results.xml", "mismatches=0", "vcd_present", "seed_coverage"],
     "coverage": ["bins_hit", "cycle_cov", "func_cov", "uncov_count"],
     "sim-debug": ["classification", "owner_routed", "feedback_packet"],
@@ -596,7 +602,7 @@ _KPI_EVIDENCE: dict[str, list[str]] = {
         "rtl/rtl_todo_plan.json", "rtl/rtl_authoring_provenance.json",
     ],
     "lint": ["lint/dut_lint.json"] * 5,
-    "tb": ["tb/cocotb/"] * 4,
+    "tb": ["tb/cocotb/", "tb/cocotb/", "tb/tb_todo_plan.json", "tb/tb_todo_plan.json"],
     "sim": [
         "sim/results.xml", "sim/fl_rtl_compare.json",
         "sim/", "sim/fl_rtl_compare.json",

@@ -436,12 +436,32 @@ def register_ssot_gates_routes(
         # tb-gen
         tb_dir = ip_dir / "tb"
         tb_artifacts = sorted(p.name for p in tb_dir.glob("**/*.py")) if tb_dir.is_dir() else []
+        tb_todo = _read_json(ip_dir / "tb" / "tb_todo_plan.json")
+        tb_gate = tb_todo.get("gate") if isinstance(tb_todo, dict) and isinstance(tb_todo.get("gate"), dict) else {}
+        if tb_gate:
+            tb_status = "pass" if tb_gate.get("status") == "pass" else ("fail" if tb_gate.get("status") == "fail" else "skip")
+            tb_summary = (
+                f"tb_todo gate={tb_gate.get('status')} "
+                f"authoring_open={tb_gate.get('authoring_open_todos')} "
+                f"validation_open={tb_gate.get('validation_open_todos')}"
+            )
+            tb_evidence = [_rel(ip_dir / "tb" / "tb_todo_plan.json")]
+            if tb_artifacts:
+                tb_evidence.append(_rel(tb_dir))
+        else:
+            tb_status = "skip" if not tb_artifacts else "pass"
+            tb_summary = f"{len(tb_artifacts)} TB python files" if tb_artifacts else "not yet run"
+            tb_evidence = [_rel(tb_dir)] if tb_artifacts else []
         _add_s(
             "tb-gen",
-            "skip" if not tb_artifacts else "pass",
-            f"{len(tb_artifacts)} TB python files" if tb_artifacts else "not yet run",
-            [_rel(tb_dir)] if tb_artifacts else [],
-            ["workflow/tb-gen/scripts/emit_tb.py", "workflow/tb-gen/runtime/equivalence_scoreboard.py"],
+            tb_status,
+            tb_summary,
+            tb_evidence,
+            [
+                "workflow/tb-gen/scripts/derive_tb_todos.py",
+                "workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py",
+                "workflow/tb-gen/runtime/equivalence_scoreboard.py",
+            ],
         )
 
         # sim
@@ -531,4 +551,3 @@ def register_ssot_gates_routes(
                 "total": len(stages),
             },
         })
-
