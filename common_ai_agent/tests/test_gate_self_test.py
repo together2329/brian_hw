@@ -21,6 +21,7 @@ into COVERED_GATES, and update the frozen set. Goal state: UNCOVERED_GATES == {}
 from __future__ import annotations
 
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -38,6 +39,7 @@ from tests.test_derive_tb_todos import (
     _write_ip,
     _write_tb_artifacts,
 )
+from tests.test_ip_signoff_gate import _make_ip as _signoff_make_ip
 from tests.test_workflow_stage_engine import _clear_obligation_authority_refs
 
 REPO = Path(__file__).resolve().parents[1]
@@ -271,6 +273,65 @@ SCOREBOARD_EVENTS_SELF_TEST = GateSelfTest(
 
 
 # ---------------------------------------------------------------------------
+# final signoff gate self-test (check_ip_signoff.py)
+# ---------------------------------------------------------------------------
+
+_SIGNOFF_IP = "gate_signoff"
+_SIGNOFF_GATE = REPO / "workflow" / "signoff" / "scripts" / "check_ip_signoff.py"
+
+
+def _signoff_build_good(work: Path) -> dict:
+    # Complete local-evidence fixture that passes every signoff gate.
+    _signoff_make_ip(work, _SIGNOFF_IP)
+    return {"ip": _SIGNOFF_IP}
+
+
+def _signoff_run_gate(work: Path, ctx: dict) -> None:
+    proc = subprocess.run(
+        [sys.executable, str(_SIGNOFF_GATE), ctx["ip"], "--root", str(work)],
+        capture_output=True, text=True, check=False,
+    )
+    ctx["rc"] = proc.returncode
+    ctx["out"] = proc.stdout + proc.stderr
+
+
+def _signoff_read_status(work: Path, ctx: dict) -> str:
+    return "pass" if ctx.get("rc") == 0 else "fail"
+
+
+def _signoff_mut_missing_ip_contract(work: Path, ctx: dict) -> None:
+    (work / ctx["ip"] / "verify" / "ip_contract.json").unlink()
+
+
+def _signoff_mut_missing_truth_coverage(work: Path, ctx: dict) -> None:
+    (work / ctx["ip"] / "signoff" / "truth_coverage.json").unlink()
+
+
+def _signoff_mut_stale_rtl_provenance(work: Path, ctx: dict) -> None:
+    # _make_ip is not idempotent (mkdir w/o exist_ok), so clear then rebuild bad.
+    shutil.rmtree(work / ctx["ip"])
+    _signoff_make_ip(work, ctx["ip"], bad_provenance=True)  # stale todo_plan_sha256
+
+
+def _signoff_mut_missing_observable(work: Path, ctx: dict) -> None:
+    shutil.rmtree(work / ctx["ip"])
+    _signoff_make_ip(work, ctx["ip"], missing_observable=True)  # scoreboard omits an expected observable
+
+
+IP_SIGNOFF_SELF_TEST = GateSelfTest(
+    build_good=_signoff_build_good,
+    run_gate=_signoff_run_gate,
+    read_status=_signoff_read_status,
+    mutations=[
+        ("missing_ip_contract", _signoff_mut_missing_ip_contract),
+        ("missing_truth_coverage", _signoff_mut_missing_truth_coverage),
+        ("stale_rtl_provenance", _signoff_mut_stale_rtl_provenance),
+        ("missing_observable", _signoff_mut_missing_observable),
+    ],
+)
+
+
+# ---------------------------------------------------------------------------
 # Gate registry — single source of truth.
 # ---------------------------------------------------------------------------
 
@@ -291,12 +352,16 @@ COVERED_GATES = {
         "scripts": ("check_scoreboard_events.py",),
         "self_test": SCOREBOARD_EVENTS_SELF_TEST,
     },
+    # final local-evidence signoff gate (manifest "signoff" stage/entrypoint).
+    "ip_signoff": {
+        "scripts": ("check_ip_signoff.py",),
+        "self_test": IP_SIGNOFF_SELF_TEST,
+    },
 }
 
 # Explicit, FROZEN backlog: acknowledged gates that still lack a direct
 # mutation self-test. Shrinks only by a reviewed change (see module docstring).
 UNCOVERED_GATES = {
-    "check_ip_signoff.py": "final signoff aggregate gate",
     "check_truth_coverage.py": "locked-truth obligation coverage gate",
     "run_contract_check.py": "contract-reflection closure gate (incl. --require-contract-closure strict)",
     "check_tb_python_compile.py": "pre-sim TB python compile gate",
@@ -409,7 +474,6 @@ def test_uncovered_backlog_is_explicit_and_frozen(capsys):
             f"uncovered={len(UNCOVERED_GATES)} -> {sorted(UNCOVERED_GATES)}"
         )
     frozen = {
-        "check_ip_signoff.py",
         "check_truth_coverage.py",
         "run_contract_check.py",
         "check_tb_python_compile.py",
