@@ -231,6 +231,46 @@ class TestNormalTurn(unittest.TestCase):
             else:
                 os.environ["AGENT_MODE_OVERRIDE"] = old
 
+    def test_plan_confirm_y_works_when_worker_env_is_plan_but_state_is_stale_normal(self):
+        """Atlas can stamp the prompt envelope as plan while ChatLoopState is
+        still normal. In that case `y` is still a plan confirmation, not chat."""
+        observed = {}
+
+        def mock_react(msgs, tracker, task, **kw):
+            observed["override"] = os.environ.get("AGENT_MODE_OVERRIDE")
+            observed["plan_mode"] = os.environ.get("PLAN_MODE")
+            observed["mode"] = kw.get("agent_mode")
+            observed["task"] = task
+            return msgs + [{"role": "assistant", "content": "executing"}], "normal"
+
+        deps = _make_deps(run_react_agent_fn=mock_react)
+        state = _make_state(
+            agent_mode="normal",
+            messages=[{"role": "system", "content": "sys"}, {"role": "user", "content": "y"}],
+        )
+        old_plan = os.environ.get("PLAN_MODE")
+        old_override = os.environ.get("AGENT_MODE_OVERRIDE")
+        try:
+            os.environ["PLAN_MODE"] = "true"
+            os.environ["AGENT_MODE_OVERRIDE"] = "plan_q"
+            new_state, _ = _call("y", state=state, deps=deps)
+            self.assertEqual(new_state.agent_mode, "normal")
+            self.assertEqual(os.environ.get("PLAN_MODE"), "false")
+            self.assertEqual(os.environ.get("AGENT_MODE_OVERRIDE"), "normal")
+            self.assertEqual(observed["plan_mode"], "false")
+            self.assertEqual(observed["override"], "normal")
+            self.assertEqual(observed["mode"], "normal")
+            self.assertIn("Confirmed. Execute all tasks in order.", observed["task"])
+        finally:
+            if old_plan is None:
+                os.environ.pop("PLAN_MODE", None)
+            else:
+                os.environ["PLAN_MODE"] = old_plan
+            if old_override is None:
+                os.environ.pop("AGENT_MODE_OVERRIDE", None)
+            else:
+                os.environ["AGENT_MODE_OVERRIDE"] = old_override
+
     def test_stop_paused_chat_suppresses_todo_execution_once(self):
         class _OpenTodos:
             todos = [types.SimpleNamespace(status="in_progress")]

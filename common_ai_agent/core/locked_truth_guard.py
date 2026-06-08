@@ -14,6 +14,8 @@ LOCKED_TRUTH_GLOBS: Final[Tuple[str, ...]] = (
     "req/requirements_index.json",
     "req/obligations.json",
     "req/contract_refs.json",
+    "req/structural_contracts.json",
+    "req/behavioral_contracts.json",
     "req/evidence_plan.json",
     "req/locked_truth.md",
     "req/source_references.md",

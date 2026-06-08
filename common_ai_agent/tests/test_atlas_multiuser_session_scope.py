@@ -1593,6 +1593,86 @@ def test_todos_crud_add_update_remove_clear_round_trip(tmp_path, monkeypatch):
     assert _disk_todos() == []
 
 
+def test_todos_update_uses_shared_status_transition_gates(tmp_path, monkeypatch):
+    """Atlas web status edits must obey the same gates as core.tools.todo_update."""
+    import json as _json
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.delenv("PLAN_MODE", raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    session = "alice/ip22/default"
+    session_dir = tmp_path / ".session" / "alice" / "ip22" / "default"
+    session_dir.mkdir(parents=True)
+    todo_file = session_dir / "todo.json"
+    todo_file.write_text(json.dumps({"todos": [
+        {"content": "first todo", "status": "pending"},
+    ]}), encoding="utf-8")
+
+    def _disk_todos():
+        return _json.loads(todo_file.read_text(encoding="utf-8"))["todos"]
+
+    completed = client.post("/api/todos/update", json={
+        "session": session,
+        "index": 0,
+        "state": "completed",
+    })
+    assert completed.status_code == 409, completed.text
+    assert completed.json()["code"] == "completion_requires_tool"
+    assert _disk_todos()[0]["status"] == "pending"
+
+    approved = client.post("/api/todos/update", json={
+        "session": session,
+        "index": 0,
+        "state": "approved",
+        "approved_reason": "human says this is done",
+    })
+    assert approved.status_code == 409, approved.text
+    assert approved.json()["code"] == "approval_requires_completed"
+    assert _disk_todos()[0]["status"] == "pending"
+
+    rejected = client.post("/api/todos/update", json={
+        "session": session,
+        "index": 0,
+        "state": "rejected",
+        "rejection_reason": (
+            "TodoTracker says no tools were called since starting this task"
+        ),
+    })
+    assert rejected.status_code == 409, rejected.text
+    assert rejected.json()["code"] == "tracker_bookkeeping_reject_blocked"
+    assert _disk_todos()[0]["status"] == "pending"
+    assert _disk_todos()[0].get("rejection_count", 0) == 0
+
+    started = client.post("/api/todos/update", json={
+        "session": session,
+        "index": 0,
+        "state": "in_progress",
+    })
+    assert started.status_code == 200, started.text
+    assert _disk_todos()[0]["status"] == "in_progress"
+
+    data = _json.loads(todo_file.read_text(encoding="utf-8"))
+    data["todos"][0]["tools_since_in_progress"] = 1
+    todo_file.write_text(_json.dumps(data), encoding="utf-8")
+
+    completed_after_evidence = client.post("/api/todos/update", json={
+        "session": session,
+        "index": 0,
+        "state": "completed",
+    })
+    assert completed_after_evidence.status_code == 200, completed_after_evidence.text
+    assert _disk_todos()[0]["status"] == "completed"
+
+
 def test_process_session_activate_does_not_mutate_main_env(tmp_path, monkeypatch):
     import os
 
@@ -2369,7 +2449,7 @@ def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_pa
     app.state.bridge._ensure_session(session_id)
     req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
     req_dir.mkdir(parents=True)
-    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "structural_contracts.json", "behavioral_contracts.json", "evidence_plan.json"):
         (req_dir / name).write_text("{}", encoding="utf-8")
 
     kicks = []
@@ -2381,7 +2461,7 @@ def test_websocket_todo_template_slash_writes_user_workspace_session_todo(tmp_pa
 
     with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
         assert ws.receive_json()["type"] == "hello"
-        ws.send_json({"type": "prompt", "text": "/locked-truth-finalize", "msg_id": "truth-1"})
+        ws.send_json({"type": "prompt", "text": "/req-finalize", "msg_id": "truth-1"})
         seen = _receive_until_types(ws, "agent_received", "agent_accepted", "slash_output")
 
     outputs = [msg.get("text", "") for msg in seen if msg.get("type") == "slash_output"]
@@ -2435,7 +2515,7 @@ def test_req_lifecycle_templates_auto_start_and_kick(tmp_path, monkeypatch):
         app.state.bridge._ensure_session(session_id)
         req_dir = tmp_path / "alice" / "default" / ip / "req"
         req_dir.mkdir(parents=True)
-        for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+        for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "structural_contracts.json", "behavioral_contracts.json", "evidence_plan.json"):
             (req_dir / name).write_text("{}", encoding="utf-8")
 
         with client.websocket_connect(f"/ws/agent?session_id={session_id}") as ws:
@@ -2522,7 +2602,7 @@ def test_req_lifecycle_slash_allows_manifest_with_pending_required_req(tmp_path,
     session_id = "alice/default/timer_ip/default"
     req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
     req_dir.mkdir(parents=True)
-    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "structural_contracts.json", "behavioral_contracts.json", "evidence_plan.json"):
         (req_dir / name).write_text("{}", encoding="utf-8")
     (req_dir / "approval_manifest.json").write_text(
         json.dumps({
@@ -2567,7 +2647,7 @@ def test_req_lifecycle_slash_uses_verified_absolute_workflow_root(tmp_path, monk
     session_id = "alice/default/timer_ip/default"
     req_dir = tmp_path / "alice" / "default" / "timer_ip" / "req"
     req_dir.mkdir(parents=True)
-    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "evidence_plan.json"):
+    for name in ("requirements_index.json", "obligations.json", "contract_refs.json", "structural_contracts.json", "behavioral_contracts.json", "evidence_plan.json"):
         (req_dir / name).write_text("{}", encoding="utf-8")
 
     expected_root = (PROJECT_ROOT / "workflow").resolve()

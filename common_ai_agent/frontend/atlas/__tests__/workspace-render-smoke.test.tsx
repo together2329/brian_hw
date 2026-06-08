@@ -160,6 +160,24 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(textarea?.getAttribute('placeholder') || '').toMatch(/Type a message|Answer pending|Preparing/);
   });
 
+  it('switches the visible UI back to Normal on backend mode_change after plan confirm', async () => {
+    const { Workspace } = await import('../workspace.tsx');
+    const { getByText, queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+
+    fireEvent.click(getByText(/Plan/i));
+    await waitFor(() => {
+      expect(queryByText(/Read-only/i)).not.toBeNull();
+    });
+
+    act(() => {
+      (window as AnyWindow).backend._emit('mode_change', { mode: 'normal' });
+    });
+
+    await waitFor(() => {
+      expect(queryByText(/Read-only/i)).toBeNull();
+    });
+  });
+
   it('keeps prompt typing local and defers parent input sync', async () => {
     vi.useFakeTimers();
     const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');

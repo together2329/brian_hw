@@ -558,8 +558,9 @@ export const _parseTodoStepUpdate = (text: unknown, tool: unknown, actionText: u
     title = String(match[1] || '').trim();
   }
 
-  if (/^\s*(?:Error:|Status Conflict:|\[Plan Mode\]|❌\s+Cannot\b)/im.test(rawObs)) {
-    toStatus = /\[Plan Mode\]|blocked/i.test(rawObs) ? 'blocked' : 'error';
+  const blockedTodoTransition = /^\s*(?:Status Conflict:|\[Plan Mode\]|❌\s+Cannot\b|(?:Completion|Approval|Rejection)\s+blocked:)/im.test(rawObs);
+  if (/^\s*(?:Error:|Status Conflict:|\[Plan Mode\]|❌\s+Cannot\b|(?:Completion|Approval|Rejection)\s+blocked:)/im.test(rawObs)) {
+    toStatus = blockedTodoTransition || /\[Plan Mode\]|blocked/i.test(rawObs) ? 'blocked' : 'error';
     reason = rawObs;
   }
 

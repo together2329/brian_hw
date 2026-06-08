@@ -12,8 +12,8 @@ def _plain(text: str) -> str:
 
 def test_blocked_todo_update_is_not_rendered_as_rejected():
     observation = (
-        "❌ Cannot mark Task 1 as completed — no tools were called since starting this task.\n"
-        "You MUST produce a deliverable."
+        "Completion blocked: Task 1 cannot be marked completed because no tools were called since starting this task.\n"
+        "Produce a deliverable first."
     )
 
     rendered = _plain(
@@ -24,9 +24,12 @@ def test_blocked_todo_update_is_not_rendered_as_rejected():
         )
     )
 
+    normalized = " ".join(rendered.split())
     assert "update blocked" in rendered
+    assert "[BLOCKED] update blocked" in rendered
+    assert "[ERROR] update blocked" not in rendered
     assert "[X] rejected" not in rendered
-    assert "no tools were called" in rendered
+    assert "no tools were called" in normalized
 
 
 def test_actual_todo_rejection_is_still_rendered_as_rejected():

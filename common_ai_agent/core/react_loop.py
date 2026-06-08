@@ -78,6 +78,20 @@ def _todo_has_open_items(todo_tracker: Any) -> bool:
         )
 
 
+def _is_todo_update_blocked_observation(tool_name: Any, observation: Any) -> bool:
+    """Return True when todo_update was refused without changing TODO state."""
+    if str(tool_name or "") != "todo_update":
+        return False
+    text = str(observation or "")
+    return bool(re.search(
+        r"(?im)^\s*(?:"
+        r"Error:|Status Conflict:|\[Plan Mode\]|❌\s+Cannot\b|"
+        r"(?:Completion|Approval|Rejection)\s+blocked:"
+        r")",
+        text,
+    ))
+
+
 def _atlas_runtime_workflow(cfg: Any) -> str:
     return (
         os.environ.get("ATLAS_WORKFLOW", "")
@@ -1803,6 +1817,7 @@ def run_react_agent_impl(
             _SERIAL_ONLY = {"todo_update", "todo_write", "todo_add", "todo_remove"}
             _has_serial_only = any(a[0] in _SERIAL_ONLY for a in actions)
             _credited_tool_activity_this_iteration = False
+            _todo_update_blocked_this_iteration = False
 
             if len(actions) > 1 and getattr(cfg, "ENABLE_REACT_PARALLEL", False) and not _has_serial_only:
                 print(f"  ⚡ {len(actions)} actions (parallel)")
@@ -1850,6 +1865,8 @@ def run_react_agent_impl(
                     # Ensure observation is always a string before any .lower() or string ops
                     if not isinstance(observation, str):
                         observation = str(observation) if observation is not None else ""
+                    if _is_todo_update_blocked_observation(tool_name, observation):
+                        _todo_update_blocked_this_iteration = True
                     summary = _extract_tool_args_summary(tool_name, args_str)
                     # Skip header for diff tools: their output already starts with Update(file)
                     if tool_name not in _DIFF_TOOLS:
@@ -2067,6 +2084,8 @@ def run_react_agent_impl(
                     # Ensure observation is always a string
                     if not isinstance(observation, str):
                         observation = str(observation) if observation is not None else ""
+                    if _is_todo_update_blocked_observation(tool_name, observation):
+                        _todo_update_blocked_this_iteration = True
 
                     # Lint error warning for todo_update(completed)
                     if tool_name == "todo_update" and "completed" in _args_display:
@@ -2344,7 +2363,30 @@ def run_react_agent_impl(
 
             # Todo continuation reminder — inject only when task/status key changes.
             _last_tool_was_todo = tool_name in ("todo_update", "todo_write", "todo_add", "todo_remove")
-            if _last_tool_was_todo:
+            if (
+                _todo_update_blocked_this_iteration
+                and agent_mode not in ("plan", "plan_q")
+                and _todo_has_open_items(todo_tracker)
+            ):
+                _ensure_todo_current(todo_tracker)
+                _continuation_fn = getattr(todo_tracker, "get_continuation_prompt", None)
+                reminder = _continuation_fn() if callable(_continuation_fn) else ""
+                if reminder:
+                    messages.append({
+                        "role": "user",
+                        "content": (
+                            "[TodoTracker update blocked]\n"
+                            "The previous todo_update did not change the TODO state. "
+                            "Continue fixing the active TODO with tools, then retry the "
+                            "valid todo_update transition. Do not provide Final Answer "
+                            "until the TODO is approved.\n\n"
+                            + reminder
+                        ),
+                    })
+                    _last_injected_task_key = _get_task_key(todo_tracker)
+                else:
+                    _last_injected_task_key = (-1, "")
+            elif _last_tool_was_todo:
                 # After a todo tool, reset key only when the new status needs a
                 # reminder (transition points). in_progress→in_progress (e.g. loop
                 # iteration) doesn't need a fresh injection every time.
@@ -2449,7 +2491,14 @@ def run_react_agent_impl(
                 _chat_max = getattr(cfg, "CHAT_MAX_ITERATIONS", 1)
                 if _chat_max > 0:
                     _chat_iter_count += 1
-                    if _chat_iter_count >= _chat_max:
+                    # Chat mode normally returns control after N tool
+                    # iterations. Execution TODOs are different: a todo_update
+                    # transition (completed→review, rejected→fix, pending→start)
+                    # needs one more LLM call so get_continuation_prompt() can
+                    # be injected. Otherwise Atlas/web stops at "End of loop"
+                    # while textual_ui continues, and rejected TODOs never get
+                    # their repair prompt.
+                    if _chat_iter_count >= _chat_max and not _todo_has_open_items(todo_tracker):
                         break
 
             # Plan mode: no special iteration limit.
@@ -2487,7 +2536,12 @@ def run_react_agent_impl(
 
             if getattr(cfg, "EXECUTION_MODE", "agent") == "chat":
                 if getattr(cfg, "CHAT_MAX_ITERATIONS", 1) > 0:
-                    break
+                    # Do not let chat's one-shot mode bypass unfinished TODO
+                    # workflow prompts. Fall through to the execution guard so
+                    # pending/completed/rejected continuation prompts are
+                    # injected instead of ending the loop.
+                    if not _todo_has_open_items(todo_tracker):
+                        break
 
             # Plan mode: if no tools were called, break immediately to ask user
             if agent_mode in ("plan", "plan_q"):

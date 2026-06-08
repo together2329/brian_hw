@@ -113,11 +113,12 @@ def test_todos_update_endpoint_gates_status_changes_in_plan_mode() -> None:
     update_start = atlas_ui.index('@app.post("/api/todos/update")')
     update_endpoint = atlas_ui[update_start:atlas_ui.index('@app.post("/api/todos/remove")')]
 
-    # Gate keys on the same PLAN_MODE signal core/tools.py uses, only blocks a
-    # *changed* status (no-op writes pass), and returns a 409 conflict.
-    assert 'os.environ.get("PLAN_MODE") == "true"' in update_endpoint
-    assert "Changing status is blocked in plan mode" in update_endpoint
-    assert "status_code=409" in update_endpoint
+    # Status changes go through the same transition engine as core/tools.py so
+    # plan mode, completion evidence, approval order, and rejection gates stay
+    # aligned across Textual/agent and Atlas web surfaces.
+    assert "apply_todo_status_transition" in update_endpoint
+    assert 'plan_mode=os.environ.get("PLAN_MODE") == "true"' in update_endpoint
+    assert "status_code=transition.http_status or 409" in update_endpoint
 
 
 def test_web_slash_todo_uses_active_session_todo_file() -> None:

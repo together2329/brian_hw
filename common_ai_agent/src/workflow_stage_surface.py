@@ -160,8 +160,9 @@ def run_common_stage_surface(
             (
                 f"Implement RTL for {ip} from yaml/{ip}.ssot.yaml and the dynamic "
                 "RTL ledger stored at rtl/rtl_todo_plan.json. "
-                "rtl/rtl_todo_tracker.json contains one visible gen-rtl TodoTracker item "
-                "for the implementation/gate repair loop. This ATLAS worker runs shell commands from "
+                "rtl/rtl_todo_tracker.json contains one visible TODO per SSOT ledger group (phase) "
+                "followed by a final deterministic gen-rtl gate; the gate loops back to Phase 1 until "
+                "the ledger closes. This ATLAS worker runs shell commands from "
                 f"the active IP root, so do not prefix tool paths with {ip}/.\n"
                 "Use rtl/rtl_authoring_plan.json and open packets under "
                 "rtl/authoring_packets/ as the work queue; review "

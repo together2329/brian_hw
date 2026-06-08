@@ -233,6 +233,7 @@ def _sha(text: str | bytes) -> str:
 
 RTL_TODO_HASH_VOLATILE_KEYS = {
     "connection_contract_suggestions",
+    "contract_implementation_evidence",
     "generated_at",
     "gate",
     "manifest_hierarchy_evidence",

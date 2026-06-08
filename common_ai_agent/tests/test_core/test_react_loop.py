@@ -662,6 +662,263 @@ class TestRunReactAgentImpl(unittest.TestCase):
         self.assertTrue(todo_update_results)
         self.assertNotIn("no tools were called", todo_update_results[0])
 
+    def test_blocked_todo_update_reinjects_active_todo_for_recovery(self):
+        """A refused todo_update must return to the chat loop with TODO context."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from core.tool_dispatcher import dispatch_tool
+        from core import tools
+        from lib.todo_tracker import TodoTracker
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "finish guarded task",
+                "status": "in_progress",
+                "detail": "Recover after a blocked completion attempt.",
+                "criteria": "todo_update failure is followed by more tool work",
+            }])
+            todo_tracker.current_index = 0
+            todo_tracker.save()
+
+            prompts = []
+            observations = []
+            calls = {"count": 0}
+
+            def text_reply(messages, stop=None, **kwargs):
+                calls["count"] += 1
+                prompts.append("\n".join(
+                    str(m.get("content", "")) for m in messages if m.get("role") == "user"
+                ))
+                if calls["count"] == 1:
+                    yield 'Action: todo_update(index=1, status="completed")'
+                elif calls["count"] == 2:
+                    yield (
+                        'Action: run_command(command="echo deliverable")\n'
+                        'Action: todo_update(index=1, status="completed")'
+                    )
+                elif calls["count"] == 3:
+                    yield (
+                        'Action: run_command(command="echo verified")\n'
+                        'Action: todo_update(index=1, status="approved", reason="ran verification command and checked output")'
+                    )
+                else:
+                    yield "Final Answer: done"
+
+            def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
+                if tool_name == "run_command":
+                    result = "command output ok"
+                else:
+                    with tools.scoped_todo_runtime(todo_tracker, todo_path):
+                        result = dispatch_tool(
+                            tool_name,
+                            args_str,
+                            pre_parsed_kwargs=pre_parsed_kwargs,
+                            available_tools={"todo_update": tools.todo_update},
+                        )
+                observations.append((tool_name, result))
+                return result
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_NO_ACTION_GUARD=True,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_reply,
+                execute_tool_fn=execute_tool,
+                detect_completion_fn=lambda text: "Final Answer:" in text,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "continue"}]
+            tracker = self._make_tracker(max_iter=6)
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertGreaterEqual(calls["count"], 2)
+        self.assertIn("Completion blocked: Task", observations[0][1])
+        self.assertIn("[TodoTracker update blocked]", prompts[1])
+        self.assertIn("finish guarded task", prompts[1])
+        self.assertIn("todo_update(index=1, status='completed')", prompts[1])
+        self.assertEqual(todo_tracker.todos[0].status, "approved")
+
+    def test_chat_mode_does_not_stop_before_blocked_todo_recovery_prompt(self):
+        """Atlas chat mode must keep looping so blocked TODO recovery is injected."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from core.tool_dispatcher import dispatch_tool
+        from core import tools
+        from lib.todo_tracker import TodoTracker
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "finish pending task flexibly",
+                "status": "pending",
+                "detail": "Recover after a blocked completion attempt.",
+                "criteria": "a real tool action is credited before completion",
+            }])
+            todo_tracker.save()
+
+            prompts = []
+            observations = []
+            calls = {"count": 0}
+
+            def text_reply(messages, stop=None, **kwargs):
+                calls["count"] += 1
+                prompts.append(messages[-1].get("content", ""))
+                if calls["count"] == 1:
+                    yield 'Action: todo_update(index=1, status="completed")'
+                elif calls["count"] == 2:
+                    yield (
+                        'Action: run_command(command="echo deliverable")\n'
+                        'Action: todo_update(index=1, status="completed")'
+                    )
+                else:
+                    yield "Final Answer: done"
+
+            def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
+                if tool_name == "run_command":
+                    result = "deliverable"
+                else:
+                    with tools.scoped_todo_runtime(todo_tracker, todo_path):
+                        result = dispatch_tool(
+                            tool_name,
+                            args_str,
+                            pre_parsed_kwargs=pre_parsed_kwargs,
+                            available_tools={"todo_update": tools.todo_update},
+                        )
+                observations.append((tool_name, result))
+                return result
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_MODE="chat",
+                CHAT_MAX_ITERATIONS=1,
+                EXECUTION_NO_ACTION_GUARD=True,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_reply,
+                execute_tool_fn=execute_tool,
+                detect_completion_fn=lambda text: "Final Answer:" in text,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "continue"}]
+            tracker = self._make_tracker(max_iter=2)
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertGreaterEqual(calls["count"], 2)
+        self.assertIn("[TodoTracker update blocked]", prompts[1])
+        self.assertIn("finish pending task flexibly", prompts[1])
+        self.assertEqual(todo_tracker.todos[0].status, "completed")
+        todo_update_results = [result for tool, result in observations if tool == "todo_update"]
+        self.assertGreaterEqual(len(todo_update_results), 2)
+        self.assertIn("Completion blocked", todo_update_results[0])
+        self.assertNotIn("no tools were called", todo_update_results[-1])
+
+    def test_chat_mode_injects_rejected_todo_prompt_before_stopping(self):
+        """Rejected TODOs must receive the repair prompt in Atlas chat mode."""
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from core.react_loop import run_react_agent_impl
+        from core.tool_dispatcher import dispatch_tool
+        from core import tools
+        from lib.todo_tracker import TodoTracker
+
+        with TemporaryDirectory() as tmp:
+            todo_path = Path(tmp) / "todo.json"
+            todo_tracker = TodoTracker(persist_path=todo_path)
+            todo_tracker.add_todos([{
+                "content": "review generated artifact",
+                "status": "completed",
+                "detail": "Reject only with concrete evidence.",
+                "criteria": "repair prompt is injected after rejection",
+            }])
+            todo_tracker.current_index = 0
+            todo_tracker.todos[0].tools_since_completed = 1
+            todo_tracker.save()
+
+            prompts = []
+            calls = {"count": 0}
+
+            def text_reply(messages, stop=None, **kwargs):
+                calls["count"] += 1
+                prompts.append("\n".join(
+                    str(m.get("content", "")) for m in messages if m.get("role") == "user"
+                ))
+                if calls["count"] == 1:
+                    yield (
+                        'Action: todo_update(index=1, status="rejected", '
+                        'reason="read artifact and found the required field missing")'
+                    )
+                elif calls["count"] == 2:
+                    yield 'Action: todo_update(index=1, status="in_progress")'
+                else:
+                    yield "Final Answer: done"
+
+            def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
+                with tools.scoped_todo_runtime(todo_tracker, todo_path):
+                    return dispatch_tool(
+                        tool_name,
+                        args_str,
+                        pre_parsed_kwargs=pre_parsed_kwargs,
+                        available_tools={"todo_update": tools.todo_update},
+                    )
+
+            cfg = _make_cfg(
+                ENABLE_TODO_TRACKING=True,
+                EXECUTION_MODE="chat",
+                CHAT_MAX_ITERATIONS=1,
+                EXECUTION_NO_ACTION_GUARD=True,
+                TODO_FILE=str(todo_path),
+            )
+            deps = self._make_deps(
+                cfg=cfg,
+                llm_call_fn=text_reply,
+                execute_tool_fn=execute_tool,
+                detect_completion_fn=lambda text: "Final Answer:" in text,
+                emit_content_fn=lambda _line: None,
+                emit_flush_fn=lambda: None,
+            )
+            messages = [{"role": "system", "content": "system"}, {"role": "user", "content": "continue"}]
+            tracker = self._make_tracker(max_iter=2)
+
+            run_react_agent_impl(
+                messages=messages,
+                tracker=tracker,
+                task_description="continue todos",
+                deps=deps,
+                todo_tracker=todo_tracker,
+            )
+
+        self.assertGreaterEqual(calls["count"], 2)
+        self.assertIn("[Task 1/1 REJECTED] review generated artifact", prompts[1])
+        self.assertIn("Failed   : read artifact and found the required field missing", prompts[1])
+        self.assertIn("todo_update(index=1, status='in_progress')", prompts[1])
+        self.assertEqual(todo_tracker.todos[0].status, "in_progress")
+
     def test_final_answer_does_not_close_open_todo(self):
         """A final-answer string must not bypass unfinished execution TODOs."""
         from tempfile import TemporaryDirectory

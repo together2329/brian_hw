@@ -72,6 +72,23 @@ describe('useStickyChatScroll', () => {
     await waitFor(() => expect(scrollTop).toBe(1000));
   });
 
+  it('keeps following when the user is moderately close to the bottom', async () => {
+    let scrollTop = 360;
+    const { getByTestId, rerender } = render(<StickyPane rows={['a']} />);
+    const pane = getByTestId('pane');
+    setScrollGeometry(pane, {
+      scrollTop: () => scrollTop,
+      setScrollTop: (value) => { scrollTop = value; },
+      scrollHeight: () => 1000,
+      clientHeight: () => 400,
+    });
+
+    fireEvent.scroll(pane);
+    rerender(<StickyPane rows={['a', 'b']} />);
+
+    await waitFor(() => expect(scrollTop).toBe(1000));
+  });
+
   it('allows an explicit jump back to the bottom', async () => {
     let scrollTop = 100;
     const { getByRole, getByTestId } = render(<StickyPane rows={['a']} />);

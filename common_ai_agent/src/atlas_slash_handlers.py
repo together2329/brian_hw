@@ -515,6 +515,8 @@ def make_slash_handlers(
             ip_dir / "req" / "requirements_index.json",
             ip_dir / "req" / "obligations.json",
             ip_dir / "req" / "contract_refs.json",
+            ip_dir / "req" / "structural_contracts.json",
+            ip_dir / "req" / "behavioral_contracts.json",
             ip_dir / "req" / "evidence_plan.json",
             ip_dir / "req" / "locked_truth.md",
         ]
@@ -625,10 +627,12 @@ def make_slash_handlers(
                 f"  2. `{ip}/req/requirements_index.json` — canonical locked requirements.\n"
                 f"  3. `{ip}/req/obligations.json`        — atomic testable obligations split from requirements.\n"
                 f"  4. `{ip}/req/contract_refs.json`      — machine-checkable central/stage contract references.\n"
-                f"  5. `{ip}/req/evidence_plan.json`      — planned artifacts, validators, and pass conditions.\n"
-                f"  6. `{ip}/req/locked_truth.md`         — deterministic human-readable projection of the locked bundle.\n"
-                f"  7. Existing `{ip}/yaml/{ip}.ssot.yaml` is only a prior Design Spec projection; if it is a TBD skeleton, replace/repair it from req/.\n"
-                f"  8. Import/wiki evidence may be read if present, but locked req/ wins on conflicts.\n\n"
+                f"  5. `{ip}/req/structural_contracts.json` — generic IO/clock/reset/interface contracts with sync/async timing domains.\n"
+                f"  6. `{ip}/req/behavioral_contracts.json` — decision tables, transactions/state rules, and stage behavioral contracts.\n"
+                f"  7. `{ip}/req/evidence_plan.json`      — planned artifacts, validators, and pass conditions.\n"
+                f"  8. `{ip}/req/locked_truth.md`         — deterministic human-readable projection of the locked bundle.\n"
+                f"  9. Existing `{ip}/yaml/{ip}.ssot.yaml` is only a prior Design Spec projection; if it is a TBD skeleton, replace/repair it from req/.\n"
+                f"  10. Import/wiki evidence may be read if present, but locked req/ wins on conflicts.\n\n"
                 if locked_truth_active else
                 f"  1. `{ip}/req/import_manifest.json`     — authoritative import inventory, candidate facts, source excerpts, conflicts, next action.\n"
                 f"  2. `{ip}/req/extracted_decisions.json` — per-decision evidence extracted by /import.\n"
@@ -650,10 +654,10 @@ def make_slash_handlers(
             "  - `script` is the deterministic workflow script that validates or expands that handoff (for example `$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py`).\n"
             "  - `instructions` must be IP-specific and source-backed; do not leave generic template language when imported evidence is available.\n\n"
             "Rules for the write:\n"
-            "  - Derive missing SSOT Preview fields from locked requirements, obligations, contract_refs, and evidence_plan before asking the user.\n"
-            "  - Map req/obligation/contract facts into canonical Design Spec sections: purpose -> top_module.description; interface obligations -> io_list.interfaces[].ports[]; register obligations -> registers.register_list[]; reset obligations -> clock_reset_domains; interrupt obligations -> interrupts; evidence_plan -> test_requirements.scenarios[] and quality_gates.\n"
-            "  - When locked truth is active, add `custom.locked_truth_authority` with `approval_manifest: req/approval_manifest.json`, the exact manifest `bundle_sha256`, and projected_files for requirements_index/obligations/contract_refs/evidence_plan.\n"
-            "  - Add `traceability.locked_truth_projection.requirements`, `.obligations`, and `.contract_refs` containing every ID from the corresponding req JSON file. Use IDs as the SSOT trace backbone; do not duplicate all locked-truth prose as a substitute.\n"
+            "  - Derive missing SSOT Preview fields from locked requirements, obligations, contract_refs, structural_contracts, behavioral_contracts, and evidence_plan before asking the user.\n"
+            "  - Map req/obligation/contract facts into canonical Design Spec sections: purpose -> top_module.description; structural_contracts -> io_list ports/interfaces/clock_reset_domains; behavioral_contracts -> function_model/cycle_model/fsm/register/test behavior; register obligations -> registers.register_list[]; interrupt obligations -> interrupts; evidence_plan -> test_requirements.scenarios[] and quality_gates.\n"
+            "  - When locked truth is active, add `custom.locked_truth_authority` with `approval_manifest: req/approval_manifest.json`, the exact manifest `bundle_sha256`, and projected_files for requirements_index/obligations/contract_refs/structural_contracts/behavioral_contracts/evidence_plan.\n"
+            "  - Add `traceability.locked_truth_projection.requirements`, `.obligations`, `.contract_refs`, `.structural_contracts`, and `.behavioral_contracts` containing every ID from the corresponding req JSON file. Use IDs as the SSOT trace backbone; do not duplicate all locked-truth prose as a substitute.\n"
             "  - If locked truth does not specify memory blocks, FSMs, child submodules, DFT, power, or security behavior, add an explicit no-memory/no-FSM/external-owner/non-goal policy with source_refs instead of leaving TBD.\n"
             "  - Do NOT stamp a 33-section template; do NOT invent behavior beyond req/. Do NOT use placeholder strings like '(TBD)' as a shortcut. If a fact is truly absent from locked truth and affects RTL behavior, record a focused blocker/assumption in `custom.assumptions` or `[SSOT QUESTION]`.\n"
             f"  - Do not copy DMA/AXI example content from `{WORKFLOW_ROOT / 'ssot-gen' / 'rules' / 'ssot-template.yaml'}`. The template is a schema/order reference only; imported evidence and Q&A are the behavior source.\n"

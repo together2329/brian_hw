@@ -144,7 +144,8 @@ def test_api_commands_includes_default_req_lifecycle_commands(tmp_path, monkeypa
 
     assert by_name["draft-req"]["cmd"] == "/draft-req"
     assert by_name["finalize-req"]["cmd"] == "/finalize-req"
-    assert "locked-truth-finalize" in by_name["finalize-req"]["aliases"]
+    assert "locked-truth-finalize" not in by_name["finalize-req"]["aliases"]
+    assert "req-finalize" in by_name["finalize-req"]["aliases"]
     assert by_name["lock-req"]["cmd"] == "/lock-req"
     assert "truth-lock" in by_name["lock-req"]["aliases"]
     assert "lock-truth" in by_name["lock-req"]["aliases"]

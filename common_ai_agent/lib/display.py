@@ -945,13 +945,18 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 if approved_reason:
                     return f"{Color.GREEN}approved{Color.RESET} {Color.DIM}— {approved_reason}{Color.RESET}"
                 return f"{Color.GREEN}approved{Color.RESET}"
-            if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
-                return f"{Color.CYAN}completed{Color.RESET}"
-            if first.startswith("❌"):
+            _blocked_transition = bool(re.search(
+                r"(?im)^\s*(?:Completion|Approval|Rejection)\s+blocked:",
+                first,
+            ))
+            if first.startswith("❌") or _blocked_transition:
                 _first_line = first.split("\n", 1)[0]
                 _actual_rejection = (
-                    "rejected" in _first_line.lower()
-                    or bool(re.search(r'status\s*[:=]\s*["\']?rejected\b', args_str or "", re.IGNORECASE))
+                    not _blocked_transition
+                    and (
+                        "rejected" in _first_line.lower()
+                        or bool(re.search(r'status\s*[:=]\s*["\']?rejected\b', args_str or "", re.IGNORECASE))
+                    )
                 )
                 # Extract task index and rejection reason, same as approved
                 idx_m = re.search(r'"?index"?\s*[:=]\s*(\d+)', args_str or "")
@@ -1013,8 +1018,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 #   (a) "...rejected. [<reason>]"            — bracketed user reason
                 #   (b) "❌ ... [<reason>]"                  — bracketed body
                 #   (c) "rejected: <reason>"                 — colon-style
-                # Plus the auto-reject path from tools.py which has NO brackets:
-                #   (d) "❌ Cannot mark Task N as completed — no tools were called..."
+                # Plus blocked transition paths from tools.py which have NO brackets:
+                #   (d) "Completion blocked: Task N cannot be marked completed..."
                 # Those blocked transition errors are not actual rejected status.
                 if not rejected_reason:
                     bracket_m = re.search(r'rejected\.\s*\[(.+?)\]', observation, re.IGNORECASE | re.DOTALL)
@@ -1025,12 +1030,16 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                     if bracket_m:
                         rejected_reason = bracket_m.group(1).strip()
                     else:
-                        # (d) Bracket-less form. Grab the first line after ❌ as a
+                        # (d) Bracket-less form. Grab the first blocked line as a
                         # short summary, then append the next non-trailer line if it
-                        # adds context (e.g. "You MUST produce a deliverable...").
+                        # adds context (e.g. "Produce a deliverable first...").
                         # Stop before bullet/arrow trailers like "→ Call a tool NOW"
                         # or boilerplate reminders ("[System] ...").
-                        first_m = re.search(r'❌\s*(.+?)(?:\n|$)', observation)
+                        first_m = re.search(
+                            r'(?:❌\s*)?((?:Completion|Approval|Rejection)\s+blocked:.+?|Cannot\s+.+?)(?:\n|$)',
+                            observation,
+                            re.IGNORECASE,
+                        )
                         if first_m:
                             _parts = [first_m.group(1).strip()]
                             # Pull the next informative line if present
@@ -1050,7 +1059,7 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 _L = "\033[2;31m"
                 _B = "\033[1;31m"   # bold red for reason
                 _status_label = "rejected" if _actual_rejection else "update blocked"
-                _status_header = "[X] rejected" if _actual_rejection else "[ERROR] update blocked"
+                _status_header = "[X] rejected" if _actual_rejection else "[BLOCKED] update blocked"
                 if todo_item:
                     import textwrap as _tw
                     _W = 72
@@ -1100,6 +1109,8 @@ def format_tool_brief(tool_name: str, args_str: str, observation: str) -> str:
                 if rejected_reason:
                     return f"{Color.RED}{_status_label}{Color.RESET} {Color.DIM}— {rejected_reason}{Color.RESET}"
                 return f"{Color.RED}{_status_label}{Color.RESET}"
+            if "marked completed" in first.lower() or first.startswith("Task") and "completed" in first.split("\n")[0]:
+                return f"{Color.CYAN}completed{Color.RESET}"
             if first.startswith("▶"):
                 return "in_progress"
             if first.startswith("⏸"):

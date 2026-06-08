@@ -16,6 +16,7 @@ from typing import Any, Callable, cast
 from core.session_process_manager import SessionProcessManager  # pyright: ignore[reportMissingImports]
 from core.session_worker_policy import SessionWorkerPolicy  # pyright: ignore[reportMissingImports]
 from core.session_names import normalize_session_name
+from core.plan_mode import PLAN_CONFIRM_EXECUTE_PROMPT, is_plan_confirm_input
 from core.prompt_input import prompt_input_from_payload
 
 try:  # The defined non-silent absent-cursor signal (plan §2.4 / R5).
@@ -1609,6 +1610,7 @@ class _MultiUserBridge:
         # byte-identical (no envelope bloat). NOTE: os.environ is process-global
         # in the web server, correct for the single-active session policy; true
         # per-session isolation would read the per-connection plan contextvar.
+        _converted_plan_confirm = False
         if msg_type == "prompt":
             _amode = os.environ.get("AGENT_MODE_OVERRIDE", "normal").strip()
             _plan_on = (
@@ -1617,11 +1619,26 @@ class _MultiUserBridge:
             )
             if _plan_on:
                 payload = dict(payload or {})
-                payload.setdefault("plan_mode", "true")
-                payload.setdefault(
-                    "agent_mode", _amode if _amode in ("plan", "plan_q") else "plan_q"
-                )
+                if is_plan_confirm_input(payload.get("text", "")):
+                    # Convert plan confirmation before enqueueing. This protects
+                    # the execution path even when an already-running child
+                    # worker has not yet imported the newer SessionWorker-side
+                    # confirmation guard.
+                    payload["text"] = PLAN_CONFIRM_EXECUTE_PROMPT
+                    payload["plan_mode"] = "false"
+                    payload["agent_mode"] = "normal"
+                    os.environ["PLAN_MODE"] = "false"
+                    os.environ["AGENT_MODE_OVERRIDE"] = "normal"
+                    os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+                    _converted_plan_confirm = True
+                else:
+                    payload.setdefault("plan_mode", "true")
+                    payload.setdefault(
+                        "agent_mode", _amode if _amode in ("plan", "plan_q") else "plan_q"
+                    )
         session = self._ensure_session(session_id)
+        if _converted_plan_confirm:
+            session.emit("mode_change", mode="normal")
         if spawn:
             # Owner-slot switch BEFORE the prompt-driven spawn so a prompt for a
             # session that is taking over an owner slot first terminates the old

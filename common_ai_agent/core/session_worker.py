@@ -40,6 +40,10 @@ sys.path.insert(0, _src_dir)
 sys.path.insert(0, _project_root)
 
 from core.atlas_db import AtlasDB  # noqa: E402
+from core.plan_mode import (  # noqa: E402
+    PLAN_CONFIRM_EXECUTE_PROMPT,
+    is_plan_confirm_input,
+)
 from core.prompt_input import prompt_input_from_payload  # noqa: E402
 
 _agent: Any = None
@@ -801,6 +805,7 @@ class SessionWorker:
         # reconcile both see it. Only reset on a real `prompt` (an `interrupt`
         # injects text mid-turn and must not flip the running turn's mode).
         payload = _decode_payload(msg.get("payload"))
+        prompt_text = _message_text(msg)
         if _message_type(msg) == "prompt":
             if isinstance(payload, dict) and payload.get("plan_mode") is not None:
                 _plan_on = str(payload.get("plan_mode")).strip().lower() == "true"
@@ -809,6 +814,20 @@ class SessionWorker:
             else:
                 _plan_on = False
                 _am = "normal"
+            if _plan_on and is_plan_confirm_input(prompt_text):
+                # Treat y/yc as plan confirmation at the process boundary. The
+                # web UI still sends the prompt while its plan pill is active,
+                # so the envelope says plan_mode=true; if we pass that through,
+                # react_loop sees AGENT_MODE_OVERRIDE=plan_q and interprets
+                # "y" as ordinary plan feedback. Convert it here into the same
+                # execution instruction chat_loop would have produced.
+                _plan_on = False
+                _am = "normal"
+                prompt_text = PLAN_CONFIRM_EXECUTE_PROMPT
+                try:
+                    self.emit_mode("normal")
+                except Exception:
+                    pass
             os.environ["PLAN_MODE"] = "true" if _plan_on else "false"
             os.environ["AGENT_MODE_OVERRIDE"] = _am
             if not _plan_on:
@@ -816,7 +835,7 @@ class SessionWorker:
                 # a stale count never leaks into the next plan session (parity
                 # across the keyless-reset and explicit plan_mode=false paths).
                 os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-        return prompt_input_from_payload(_message_text(msg), payload)
+        return prompt_input_from_payload(prompt_text, payload)
 
     def emit_content(self, text: str, cls: str = "") -> None:
         payload: dict[str, Any] = {"text": text}

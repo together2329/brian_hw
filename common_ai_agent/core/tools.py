@@ -3797,13 +3797,27 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
     # Update status if provided
     if status is not None and str(status).strip():
         status = str(status).strip()
-        # Normalize common aliases
-        from lib.todo_tracker import STATUS_ALIASES
+        # Normalize common aliases and run the shared transition gate used by
+        # Atlas web/UI as well. The prose/trace/git side effects below remain
+        # local to this LLM tool wrapper.
+        from lib.todo_transition import normalize_todo_status, validate_todo_status_transition
         valid = ["pending", "in_progress", "completed", "approved", "rejected"]
         if status not in valid:
-            status = STATUS_ALIASES.get(status, status)
+            status = normalize_todo_status(status)
         if status not in valid:
             return f"Error: status must be one of {valid} (got '{status}')"
+        import src.config as _cfg
+        _cursor_mode = getattr(_cfg, "CURSOR_AGENT_ENABLE", False)
+        _transition_check = validate_todo_status_transition(
+            todo_tracker,
+            idx,
+            status,
+            reason=reason,
+            plan_mode=False,
+            cursor_mode=_cursor_mode,
+        )
+        if not _transition_check.ok:
+            return _transition_check.message
 
         # Enforce sequential execution: all prior tasks must be approved.
         # Skipped in cursor-agent mode — cursor-agent makes its own approval judgment
@@ -3813,8 +3827,6 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
         # When Task N has on_reject=M (M>N) and fails, the flow jumps to Task M.
         # Task M should be allowed to complete even though Task N is rejected,
         # because Task N's failure is "handled" by the on_reject jump path.
-        import src.config as _cfg
-        _cursor_mode = getattr(_cfg, "CURSOR_AGENT_ENABLE", False)
         if not _cursor_mode and status in ("in_progress", "completed", "approved"):
             blocking = [
                 i + 1 for i in range(idx)
@@ -3903,7 +3915,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                         f"{_rej_count} times — needs ≥{_required} verification calls."
                     ) if _rej_count >= 2 else ""
                     return (
-                        f"❌ Cannot approve Task {index} — only {_evidence} verification tool call(s) "
+                        f"Approval blocked: Task {index} has only {_evidence} verification tool call(s) "
                         f"since review started (need ≥{_required}).{_esc}\n"
                         f"Self-written summary/report files are NOT trustworthy evidence. You must\n"
                         f"verify against ground-truth artifacts.\n"
@@ -4096,7 +4108,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                             _missing.append(_p)
                     if _missing:
                         return (
-                            f"❌ Cannot approve Task {index} — declared deliverable(s) missing or too small on disk:\n"
+                            f"Approval blocked: Task {index} declared deliverable(s) missing or too small on disk:\n"
                             + "\n".join(f"  • {p}" for p in _missing[:8])
                             + (f"\n  • … (+{len(_missing) - 8} more)" if len(_missing) > 8 else "")
                             + f"\nThe task content references these files but no `write_file` or `run_command` "
@@ -4147,9 +4159,28 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             # Gate check: reject fake completions — require at least one non-todo tool call
             _tools_since_start = getattr(item, 'tools_since_in_progress', 0)
             if _tools_since_start == 0:
+                # A blocked completion attempt can leave the task pending while
+                # subsequent read/run/write actions are buffered on the tracker
+                # as pending credit. Consume that credit here too, otherwise the
+                # user-visible recovery instruction ("call a tool, then retry
+                # completed") loops forever unless the LLM happens to restart
+                # the task with status=in_progress.
+                _pending_credit = int(getattr(todo_tracker, "_pending_tool_credit", 0) or 0)
+                _current_idx = int(getattr(todo_tracker, "current_index", -1) or -1)
+                if _pending_credit > 0 and (
+                    _current_idx == idx or getattr(item, "status", "") in ("pending", "rejected")
+                ):
+                    item.tools_since_in_progress = _pending_credit
+                    todo_tracker._pending_tool_credit = 0
+                    _tools_since_start = _pending_credit
+                    try:
+                        todo_tracker.save()
+                    except Exception:
+                        pass
+            if _tools_since_start == 0:
                 return (
-                    f"❌ Cannot mark Task {index} as completed — no tools were called since starting this task.\n"
-                    f"You MUST produce a deliverable (write a file, run a command, etc.) before marking completed.\n"
+                    f"Completion blocked: Task {index} cannot be marked completed because no tools were called since starting this task.\n"
+                    f"Produce a deliverable first (write a file, run a command, read evidence, etc.).\n"
                     f"→ Call a tool NOW (write_file, run_command, read_file, etc.)\n"
                     f"→ Then call todo_update(index={index}, status='completed') again."
                 )
@@ -4186,6 +4217,31 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
             )
             return review_steps
         elif status == "rejected":
+            _reason_stripped = (reason or "").strip()
+            _reason_lower = _reason_stripped.lower()
+            _tracker_block_markers = (
+                "no tools were called since starting this task",
+                "completion blocked",
+                "todo engine refuses completion",
+                "todo tracker",
+            )
+            if item.status != "completed" and any(m in _reason_lower for m in _tracker_block_markers):
+                _pending_credit = int(getattr(todo_tracker, "_pending_tool_credit", 0) or 0)
+                if getattr(item, "tools_since_in_progress", 0) == 0 and _pending_credit > 0:
+                    item.tools_since_in_progress = _pending_credit
+                    todo_tracker._pending_tool_credit = 0
+                    try:
+                        todo_tracker.save()
+                    except Exception:
+                        pass
+                return (
+                    f"Rejection blocked: Task {index} was not rejected because this reason describes "
+                    f"TodoTracker bookkeeping, not a failed task deliverable.\n"
+                    f"Retry the valid completion transition now:\n"
+                    f"→ todo_update(index={index}, status='completed')\n"
+                    f"If the actual task output is wrong, reject only after reading/running ground-truth evidence "
+                    f"and state the concrete unmet criterion."
+                )
             # Review-gate (same as approved branch): must have called at least
             # one non-write evidence tool since this task entered review.
             # Prevents agents from rejecting based on their own stale summary
@@ -4203,7 +4259,7 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     f"{_rej_count} times — needs ≥{_required} verification calls before another reject."
                 ) if _rej_count >= 2 else ""
                 return (
-                    f"❌ Cannot reject Task {index} — only {_evidence} verification tool call(s) "
+                    f"Rejection blocked: Task {index} has only {_evidence} verification tool call(s) "
                     f"since review started (need ≥{_required}).{_esc}\n"
                     f"You may be looking at stale evidence (your own report file or a prior\n"
                     f"compressed summary). Verify against ground truth before rejecting:\n"
@@ -4212,7 +4268,6 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                     f"→ OR grep for what you claim is missing (grep_file)\n"
                     f"Then call todo_update(index={index}, status='rejected', reason='<problem with file:line evidence>') again."
                 )
-            _reason_stripped = (reason or "").strip()
             if not _reason_stripped:
                 return (
                     f"Error: 'reason' is REQUIRED when rejecting Task {index}.\n"
@@ -4363,6 +4418,10 @@ def todo_update(index=None, id=None, status=None, reason="", content="", detail=
                 return f"▶ Task {index} in progress: {item.content}"
         else:  # pending
             # NOTE: Do NOT store reason in rejection_reason for pending either.
+            item.status = "pending"
+            item.completed_at = None
+            if getattr(todo_tracker, "current_index", -1) == idx:
+                todo_tracker.current_index = -1
             todo_tracker.save()
             return f"⏸ Task {index} set to pending: {item.content}"
 

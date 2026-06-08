@@ -19,6 +19,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, List, Optional, Tuple
 
 from lib.iteration_control import IterationTracker
+from core.plan_mode import PLAN_CONFIRM_EXECUTE_PROMPT, is_plan_confirm_input
 from core.prompt_input import prompt_has_content
 
 
@@ -156,12 +157,24 @@ def process_chat_turn(
     if not prompt_has_content(user_input):
         return state, "skip"
 
+    # Atlas process workers receive the UI mode on every prompt envelope and
+    # expose it through env before this function runs. Reconcile that runtime
+    # truth with ChatLoopState so a plan-confirm reply (`y`/`yc`) is not treated
+    # as ordinary chat when local state was stale.
+    _env_plan = str(os.environ.get("PLAN_MODE", "")).strip().lower() == "true"
+    _env_agent_mode = str(os.environ.get("AGENT_MODE_OVERRIDE", "")).strip()
+    if (
+        state.agent_mode not in ("plan", "plan_q")
+        and (_env_plan or _env_agent_mode in ("plan", "plan_q"))
+    ):
+        state.agent_mode = _env_agent_mode if _env_agent_mode in ("plan", "plan_q") else "plan_q"
+
     # --- Plan mode confirmation ---
     if state.agent_mode in ("plan", "plan_q"):
         inp = user_input.lower().strip()
 
         # y / yes / confirm → execute plan
-        if inp in ("y", "yes", "confirm", "proceed", "진행", "확인", "ok", "네", "예", "ㅇㅇ", "yc"):
+        if is_plan_confirm_input(inp):
             do_compress = (inp == "yc")
             state.agent_mode = "normal"
             import os as _os; _os.environ["PLAN_MODE"] = "false"
@@ -206,15 +219,7 @@ def process_chat_turn(
                     "todo_update(index=1, status='approved', reason='...')"
                 )
             else:
-                user_input = (
-                    "Confirmed. Execute all tasks in order. For EACH task follow this workflow:\n"
-                    "  1. todo_update(index=N, status='in_progress')\n"
-                    "  2. Do the work\n"
-                    "  3. todo_update(index=N, status='completed')\n"
-                    "  4. Verify the result\n"
-                    "  5. todo_update(index=N, status='approved', reason='what you verified')\n"
-                    "Start now: todo_update(index=1, status='in_progress')"
-                )
+                user_input = PLAN_CONFIRM_EXECUTE_PROMPT
 
             if state.messages:
                 state.messages[-1]["content"] = user_input

@@ -93,6 +93,40 @@ describe('workspace step update feed cards', () => {
     expect(screen.getByText(/todo_update.*blocked in plan mode/i)).toBeTruthy();
   });
 
+  it('renders refused completion gates as blocked updates, not task errors', () => {
+    const info = _parseTodoStepUpdate(
+      [
+        'Completion blocked: Task 1 cannot be marked completed because no tools were called since starting this task.',
+        'Produce a deliverable before marking completed.',
+      ].join('\n'),
+      'todo_update',
+      '▶ todo_update  #1 in_progress → completed',
+    );
+
+    expect(info?.toStatus).toBe('blocked');
+
+    render(
+      <ToolCard
+        action={{ kind: 'action', tool: 'todo_update', text: '▶ todo_update  #1 in_progress → completed', createdAt: Date.now() }}
+        obs={{
+          kind: 'obs',
+          tool: 'todo_update',
+          text: [
+            'Completion blocked: Task 1 cannot be marked completed because no tools were called since starting this task.',
+            'Produce a deliverable before marking completed.',
+          ].join('\n'),
+          createdAt: Date.now(),
+        }}
+        summaryMode
+      />,
+    );
+
+    expect(screen.getByText('Task #1')).toBeTruthy();
+    expect(screen.getByText('in-progress → blocked')).toBeTruthy();
+    expect(screen.getByText(/Completion blocked: Task 1 cannot be marked completed/i)).toBeTruthy();
+    expect(screen.queryByText('in-progress → error')).toBeNull();
+  });
+
   it('renders action-only plan-mode blocked status attempts as blocked', () => {
     render(
       <ToolCard

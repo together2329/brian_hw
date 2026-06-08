@@ -56,3 +56,11 @@ def test_worker_tool_dispatch_binds_todo_runtime():
 
     assert "scoped_todo_runtime" in source
     assert 'session_overrides.get("TODO_FILE")' in source
+
+
+def test_interactive_tool_dispatch_binds_todo_runtime():
+    source = Path("src/main.py").read_text(encoding="utf-8")
+
+    assert "def execute_tool(" in source
+    assert "with tools.scoped_todo_runtime(" in source
+    assert 'getattr(config, "TODO_FILE", None)' in source

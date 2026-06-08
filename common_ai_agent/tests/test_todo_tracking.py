@@ -660,7 +660,8 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         # No tools_since_in_progress increment
         result = todo_update(index=3, status="completed")
         self.assertIn("no tools were called", result)
-        self.assertIn("❌", result)
+        self.assertIn("Completion blocked", result)
+        self.assertNotIn("❌", result)
         self.assertEqual(self.tracker.todos[2].status, "in_progress")
 
     def test_gate_check_allows_with_tools(self):
@@ -674,6 +675,48 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
         result = todo_update(index=3, status="completed")
         self.assertIn("CRITICAL, ADVERSARIAL review", result)
         self.assertEqual(self.tracker.todos[2].status, "completed")
+
+    def test_gate_check_consumes_pending_tool_credit_after_blocked_completion(self):
+        """A blocked completion can recover after a real tool without restarting."""
+        from core.tools import todo_update
+        self.tracker.add_todos([
+            {"content": "Task 1", "status": "pending"},
+        ])
+
+        first = todo_update(index=1, status="completed")
+        self.assertIn("Completion blocked", first)
+        self.assertEqual(self.tracker.todos[0].status, "pending")
+
+        # Simulate react_loop crediting a real read/run/write tool while the
+        # task is still pending after the blocked completion.
+        self.tracker._pending_tool_credit = 1
+        retry = todo_update(index=1, status="completed")
+
+        self.assertIn("CRITICAL, ADVERSARIAL review", retry)
+        self.assertEqual(self.tracker.todos[0].status, "completed")
+        self.assertEqual(getattr(self.tracker, "_pending_tool_credit", 0), 0)
+
+    def test_rejecting_tracker_bookkeeping_blocker_is_blocked_not_recorded(self):
+        """A tracker bookkeeping issue must not be recorded as task rejection."""
+        from core.tools import todo_update
+        self.tracker.add_todos([
+            {"content": "Task 1", "status": "pending"},
+        ])
+        self.tracker._pending_tool_credit = 1
+
+        result = todo_update(
+            index=1,
+            status="rejected",
+            reason=(
+                "[BLOCKED] Todo engine refuses completion despite multiple "
+                "post-start tool actions and reports no tools were called since starting this task"
+            ),
+        )
+
+        self.assertIn("Rejection blocked", result)
+        self.assertEqual(self.tracker.todos[0].status, "pending")
+        self.assertEqual(self.tracker.todos[0].rejection_count, 0)
+        self.assertEqual(self.tracker.todos[0].tools_since_in_progress, 1)
 
     def test_approved_requires_reason(self):
         """Approving without reason is rejected."""

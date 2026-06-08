@@ -2974,9 +2974,12 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
         "ssot": (
             "[ATLAS_PIPELINE_SSOT_DIRECT_WRITE]\n"
             f"create or refresh {ip}/yaml/{ip}.ssot.yaml as the canonical SSOT for IP `{ip}`. "
-            f"Read {ip}/req/{ip}_requirements.md, {ip}/req/source_references.md, and "
-            f"{ip}/req/approval_manifest.json before writing the SSOT when those files exist. "
-            "Do not write or update locked truth files under req/*_requirements.md, "
+            f"Read {ip}/req/approval_manifest.json, {ip}/req/requirements_index.json, "
+            f"{ip}/req/obligations.json, {ip}/req/contract_refs.json, "
+            f"{ip}/req/structural_contracts.json, {ip}/req/behavioral_contracts.json, "
+            f"and {ip}/req/evidence_plan.json before "
+            "writing the SSOT when those files exist. "
+            "Do not write or update locked truth files under req/*.json, req/*_requirements.md, "
             "req/source_references.md, or req/approval_manifest.json. Requirement promotion and "
             "approval are human/requirement-ledger work, not ssot-gen worker work. If no locked "
             "requirement exists yet, use the orchestrator chat goal as starter input, record the "
@@ -5221,7 +5224,7 @@ def register_jobs_routes(
             "message": (
                 "Lock requirement truth before running workflow stages. "
                 "Use the default agent to draft requirement, obligation, "
-                "contract_ref, and evidence first."
+                "contract_ref, structural/behavioral contracts, and evidence first."
             ),
         }
 

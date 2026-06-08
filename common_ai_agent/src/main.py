@@ -793,15 +793,19 @@ def get_shared_context():
 
 
 def execute_tool(tool_name, args_str="", *, pre_parsed_kwargs=None):
-    return _dispatch_tool(
-        tool_name,
-        args_str,
-        pre_parsed_kwargs=pre_parsed_kwargs,
-        available_tools=tools.filtered_available_tools(),
-        debug=getattr(config, "DEBUG_MODE", False),
-        hook_registry=hook_registry,
-        global_timeout=getattr(config, "REACT_TOOL_GLOBAL_TIMEOUT", 300),
-    )
+    with tools.scoped_todo_runtime(
+        todo_tracker,
+        getattr(config, "TODO_FILE", None),
+    ):
+        return _dispatch_tool(
+            tool_name,
+            args_str,
+            pre_parsed_kwargs=pre_parsed_kwargs,
+            available_tools=tools.filtered_available_tools(),
+            debug=getattr(config, "DEBUG_MODE", False),
+            hook_registry=hook_registry,
+            global_timeout=getattr(config, "REACT_TOOL_GLOBAL_TIMEOUT", 300),
+        )
 
 # --- 5. Context Management ---
 

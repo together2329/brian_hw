@@ -7,9 +7,11 @@ stage commands, artifact paths, validator evidence, and blocker classification.
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -1400,14 +1402,11 @@ class WorkflowStageEngine:
         lines = [headline, f"script: {script}", f"module: {ip}", f"top: {top}"]
         self._append_runs(lines, [run])
         artifacts = [f"{ip}/lint/dut_lint.json"]
-        artifacts += self._write_stage_todo_evidence_plan(
-            ip=ip,
-            stage="lint",
-            status=status,
-            headline=headline,
-            runs=[run],
-            artifacts=artifacts,
-            tasks=[
+        _lint_proj = self._stage_obligation_todos(ip, "lint")
+        if _lint_proj:
+            _lint_tasks = _lint_proj + [self._stage_gate_task("lint", total=len(_lint_proj))]
+        else:
+            _lint_tasks = [
                 {
                     "id": "LINT-0001",
                     "content": "Run DUT lint and close all report findings",
@@ -1416,7 +1415,15 @@ class WorkflowStageEngine:
                     "required_evidence": [f"{ip}/lint/dut_lint.json", "dut_lint returncode 0"],
                     "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/rtl"],
                 }
-            ],
+            ]
+        artifacts += self._write_stage_todo_evidence_plan(
+            ip=ip,
+            stage="lint",
+            status=status,
+            headline=headline,
+            runs=[run],
+            artifacts=artifacts,
+            tasks=_lint_tasks,
         )
         self._append_expected(lines, artifacts)
         return self._result("lint", ip, status, headline, lines, runs=[run], artifacts=artifacts, metadata={"top": top})
@@ -1483,6 +1490,7 @@ class WorkflowStageEngine:
             f"{ip}/sim/scoreboard_events.jsonl after /sim",
             f"{ip}/cov/coverage.json after /sim",
         ]
+        _tb_proj = self._stage_obligation_todos(ip, "tb")
         artifacts += self._write_stage_todo_evidence_plan(
             ip=ip,
             stage="ssot-tb-cocotb",
@@ -1491,7 +1499,7 @@ class WorkflowStageEngine:
             runs=runs,
             artifacts=artifacts,
             human_review_needed=blocked_doc.get("questions") if blocked_doc else [],
-            visible_task={
+            visible_task=None if _tb_proj else {
                 "id": "GEN-TB",
                 "content": f"[gen-tb] Generate TB from SSOT contract ledger for {ip}",
                 "activeForm": f"Generating TB and closing TB gates for {ip}",
@@ -1517,7 +1525,7 @@ class WorkflowStageEngine:
                 ],
                 "source_refs": [f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/rtl/rtl_contract.json"],
             },
-            tasks=[
+            tasks=(_tb_proj + [self._stage_gate_task("tb", total=len(_tb_proj))]) if _tb_proj else [
                 {
                     "id": "TB-0001",
                     "content": "Generate SSOT-derived pyuvm/cocotb testbench",
@@ -1550,6 +1558,7 @@ class WorkflowStageEngine:
         return self._result("ssot-tb-cocotb", ip, status, headline, lines, runs=runs, artifacts=artifacts, blocker=blocker, metadata=metadata)
 
     def _run_sim(self, ip: str) -> StageEngineResult:
+        _sim_proj = self._stage_obligation_todos(ip, "sim")
         runner = self._find_tb_runner(ip)
         if runner is None:
             headline = "[sim] blocked: no executable TB runner found"
@@ -1560,7 +1569,7 @@ class WorkflowStageEngine:
                 headline=headline,
                 runs=[],
                 artifacts=[f"{ip}/tb/cocotb/test_runner.py", f"{ip}/sim/results.xml"],
-                visible_task={
+                visible_task=None if _sim_proj else {
                     "id": "SIM-LOOP",
                     "content": f"[sim] Run simulation evidence gate for {ip}",
                     "activeForm": f"Running simulation evidence gate for {ip}",
@@ -1581,7 +1590,7 @@ class WorkflowStageEngine:
                     ],
                     "source_refs": [f"{ip}/tb/cocotb", f"{ip}/yaml/{ip}.ssot.yaml"],
                 },
-                tasks=[
+                tasks=(_sim_proj + [self._stage_gate_task("sim", total=len(_sim_proj))]) if _sim_proj else [
                     {
                         "id": "SIM-0001",
                         "content": "Run generated testbench and collect simulator evidence",
@@ -1656,7 +1665,7 @@ class WorkflowStageEngine:
             headline=headline,
             runs=runs,
             artifacts=artifacts,
-            visible_task={
+            visible_task=None if _sim_proj else {
                 "id": "SIM-LOOP",
                 "content": f"[sim] Run simulation evidence gate for {ip}",
                 "activeForm": f"Running simulation evidence gate for {ip}",
@@ -1680,7 +1689,7 @@ class WorkflowStageEngine:
                 ],
                 "source_refs": [rel_runner, f"{ip}/yaml/{ip}.ssot.yaml", f"{ip}/verify/equivalence_goals.json"],
             },
-            tasks=[
+            tasks=(_sim_proj + [self._stage_gate_task("sim", total=len(_sim_proj))]) if _sim_proj else [
                 {
                     "id": "SIM-0001",
                     "content": "Run generated testbench and collect simulator evidence",
@@ -1971,6 +1980,51 @@ class WorkflowStageEngine:
         lines += ["", "artifacts:"]
         lines += [f"- {artifact}" for artifact in artifacts]
 
+    def _stage_obligation_todos(self, ip: str, stage: str) -> list[dict[str, Any]]:
+        """Project the locked req bundle into per-obligation visible todos for a stage.
+
+        Returns ``[]`` when no bundle / no owned obligations, so the caller keeps
+        its existing single-visible behaviour (back-compatible).
+        """
+        script = self.workflow_root / "req-gen" / "scripts" / "stage_contract_todos.py"
+        if not script.is_file():
+            return []
+        try:
+            spec = importlib.util.spec_from_file_location("atlas_stage_contract_todos", script)
+            if not spec or not spec.loader:
+                return []
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            todos = mod.stage_obligation_todos(ip, stage, str(self.project_root))
+            return todos if isinstance(todos, list) else []
+        except Exception:
+            return []
+
+    def _stage_gate_task(self, stage: str, *, total: int) -> dict[str, Any]:
+        """Deterministic detect-and-skip gate todo appended after the obligation todos."""
+        gate_script = (self.workflow_root / "req-gen" / "scripts" / "stage_gate.sh").resolve()
+        cmd = (
+            f"bash {shlex.quote(str(gate_script))} {stage} "
+            f'"$ATLAS_ACTIVE_IP" --root "$ATLAS_PROJECT_ROOT"'
+        )
+        return {
+            "id": f"GATE-{stage.upper()}",
+            "content": f"[gen-{stage} gate] Verify every {stage} obligation is closed",
+            "activeForm": f"Running deterministic {stage} gate",
+            "detail": (
+                f"Deterministic gate after {total} obligation todo(s). Detect-and-skip policy: "
+                "pure python/bash checks are hard; external-tool checks skip when the tool is "
+                "absent (the sim stage blocks if no simulator). On failure this loops back to the "
+                "first obligation todo so the agent repairs and the gate reruns."
+            ),
+            "criteria": f"stage_gate.sh {stage} exits 0 (all hard checks pass; tool-absent checks skipped)",
+            "command": cmd,
+            "on_reject": 1,
+            "priority": "high",
+            "required_evidence": [f"stage_gate.sh {stage} returncode 0"],
+            "source_refs": [],
+        }
+
     def _write_stage_todo_evidence_plan(
         self,
         *,
@@ -2068,7 +2122,7 @@ class WorkflowStageEngine:
         }
 
         def _tracker_entry(task: dict[str, Any], completion: dict[str, Any]) -> dict[str, Any]:
-            return {
+            entry = {
                 "content": task.get("content") or task.get("id"),
                 "activeForm": task.get("activeForm") or task.get("content") or task.get("id"),
                 "detail": task.get("detail", ""),
@@ -2081,6 +2135,14 @@ class WorkflowStageEngine:
                 "required_evidence": task.get("required_evidence", []),
                 "todo_completion": completion,
             }
+            # Deterministic gate todos carry a command the runtime auto-executes
+            # (lib/todo_tracker) and an on_reject loop-back target. Pass them
+            # through so VCM stage gates work; plain todos omit both.
+            if task.get("command"):
+                entry["command"] = task["command"]
+            if task.get("on_reject"):
+                entry["on_reject"] = task["on_reject"]
+            return entry
 
         tracker_tasks = []
         if visible_task:
@@ -2100,6 +2162,15 @@ class WorkflowStageEngine:
                 "strategy": "single_visible_stage_contract_gate",
                 "source_task_count": len(enriched_tasks),
                 "actual_count": 1,
+                "internal_plan": plan_rel,
+            }
+        elif any(task.get("command") for task in enriched_tasks):
+            # VCM per-obligation projection: N obligation todos + a deterministic
+            # gate todo (the gate carries the auto-executed command).
+            ui_grouping = {
+                "strategy": "vcm_obligation_contract_gate",
+                "source_task_count": len(enriched_tasks),
+                "actual_count": len(enriched_tasks),
                 "internal_plan": plan_rel,
             }
         else:

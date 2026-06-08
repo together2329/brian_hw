@@ -19,6 +19,7 @@ These are the two halves of the channel that was missing.
 """
 
 import os
+import queue
 import sys
 from pathlib import Path
 
@@ -98,6 +99,39 @@ def test_prompt_envelope_carries_plan_mode_when_active(monkeypatch):
     assert payload["agent_mode"] == "plan_q"
 
 
+def test_prompt_envelope_converts_plan_confirm_to_normal_execution(monkeypatch):
+    """The web-server side must not enqueue bare `y` as plan feedback.
+
+    This is the path the browser uses: the UI can still show PLAN when the user
+    presses y, so producer-side conversion protects old and new child workers.
+    """
+    monkeypatch.setenv("PLAN_MODE", "true")
+    monkeypatch.setenv("AGENT_MODE_OVERRIDE", "plan_q")
+
+    bridge, mgr = _bridge_with_capture()
+    bridge._send_process_input_for_session(SESSION, "prompt", {"text": "y"}, spawn=False)
+
+    payload = mgr.sent[-1][2]
+    assert payload["text"].startswith("Confirmed. Execute all tasks in order.")
+    assert "Start now: todo_update(index=1, status='in_progress')" in payload["text"]
+    assert payload["plan_mode"] == "false"
+    assert payload["agent_mode"] == "normal"
+    assert os.environ.get("PLAN_MODE") == "false"
+    assert os.environ.get("AGENT_MODE_OVERRIDE") == "normal"
+
+    outbox = []
+    session = bridge._ensure_session(SESSION)
+    while True:
+        try:
+            outbox.append(session._outbox.get_nowait())
+        except queue.Empty:
+            break
+    assert any(
+        row.get("type") == "mode_change" and row.get("mode") == "normal"
+        for row in outbox
+    )
+
+
 def test_prompt_envelope_is_minimal_when_normal(monkeypatch):
     """A normal-mode prompt carries NO mode key — the envelope stays byte
     identical to the historical contract (no bloat, key-absence == normal)."""
@@ -164,6 +198,32 @@ def test_worker_input_applies_plan_mode_from_envelope(tmp_path, monkeypatch):
     # allows a todo to move to in_progress.
     assert os.environ.get("PLAN_MODE") == "true"
     assert os.environ.get("AGENT_MODE_OVERRIDE") == "plan_q"
+
+
+def test_worker_input_plan_confirm_y_switches_to_normal_execution(tmp_path, monkeypatch):
+    """`y` on a plan-confirm prompt must execute, not become plan feedback.
+
+    The browser sends `y` while its PLAN pill is still active, so the envelope
+    is still plan_mode=true. The worker must convert that boundary event into
+    the normal execution instruction before main/react_loop sees it.
+    """
+    monkeypatch.setenv("PLAN_MODE", "true")
+    monkeypatch.setenv("AGENT_MODE_OVERRIDE", "plan_q")
+
+    worker = SessionWorker(SESSION, str(tmp_path / "atlas.db"))
+    try:
+        worker.db.enqueue_message(
+            SESSION, "in", "prompt",
+            {"text": "y", "plan_mode": "true", "agent_mode": "plan_q"},
+        )
+        text = worker.input("> ")
+    finally:
+        worker.close()
+
+    assert text.startswith("Confirmed. Execute all tasks in order.")
+    assert "Start now: todo_update(index=1, status='in_progress')" in text
+    assert os.environ.get("PLAN_MODE") == "false"
+    assert os.environ.get("AGENT_MODE_OVERRIDE") == "normal"
 
 
 def test_worker_input_resets_to_normal_on_keyless_prompt(tmp_path, monkeypatch):

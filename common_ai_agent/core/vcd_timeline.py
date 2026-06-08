@@ -141,9 +141,20 @@ class VcdTimeline:
         series = self.changes.get(vid) or []
         out: List[int] = []
         prev: Optional[str] = None
+        prev_raw: Optional[str] = None
         for t, v in series:
             cur = _scalar(v)
-            if prev is not None:
+            if prev is None:
+                # The implicit pre-simulation state is X (unknown). A signal
+                # first sampled as '1' — e.g. psel/penable asserted in
+                # $dumpvars at t0 for the FIRST APB access — is a real X->1
+                # rising edge and must be findable; otherwise "find the first
+                # access" silently skips an event that is active from t0.
+                # X->0 is NOT a falling edge (falling = 1->0), per standard
+                # convention, so falling/any keep "first sample is not an edge".
+                if kind == "rising" and cur == "1":
+                    out.append(t)
+            else:
                 if kind == "any" and v != prev_raw:
                     out.append(t)
                 elif kind == "rising" and prev != "1" and cur == "1":

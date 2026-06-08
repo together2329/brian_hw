@@ -910,8 +910,8 @@ Conversation rule:
 - Do not mark a legacy-derived requirement locked unless the user explicitly approves that requirement.
 - If an existing artifact conflicts with user answers or lacks approval, ask_user whether to keep, update, or ignore that candidate.
 - After ask_user answers, do not dump the full draft. Reply only with captured decisions, remaining blockers, and the next question.
-- Produce the full requirement/obligation/contract_ref/evidence draft only when the user explicitly asks to show/review/export it, or when asking for final approval.
-- Use /draft-req to write draft req JSON files: requirements_index.json, obligations.json, contract_refs.json, and evidence_plan.json.
+- Produce the full requirement/obligation/contract_ref/structural_contract/behavioral_contract/evidence draft only when the user explicitly asks to show/review/export it, or when asking for final approval.
+- Use /draft-req to write draft req JSON files: requirements_index.json, obligations.json, contract_refs.json, structural_contracts.json, behavioral_contracts.json, and evidence_plan.json.
 - Use /finalize-req to quality-review/repair those draft files and run check_locked_truth_bundle.py --review-candidate. Finalize means ready_for_human_review, not locked.
 - Use /lock-req only after explicit human approval. It runs lock_requirement_set.py --from-candidate and then check_locked_truth_bundle.py.
 - Do not say approved or locked unless /lock-req created or you can cite req/locked_truth.md and req/approval_manifest.json with status requirements_locked.
@@ -4456,20 +4456,32 @@ def create_app():
             if "rejectionReason" in body and body.get("rejectionReason") is not None:
                 todo.rejection_reason = str(body.get("rejectionReason"))
             if "state" in body and body.get("state") is not None:
-                from lib.todo_tracker import STATUS_ALIASES
+                from lib.todo_transition import apply_todo_status_transition, normalize_todo_status
                 raw_state = str(body.get("state")).strip()
-                new_status = STATUS_ALIASES.get(raw_state, raw_state)
-                # Plan-mode gate (mirror core/tools.py:todo_update). While plan
-                # mode is active the plan stays read-only until the user approves,
-                # so reject UI status transitions just as the agent's todo_update
-                # tool is blocked. Content/detail/criteria/priority edits above
-                # remain allowed; no-op (same-status) writes pass through.
-                if os.environ.get("PLAN_MODE") == "true" and new_status != getattr(todo, "status", None):
-                    return JSONResponse(
-                        {"error": "Changing status is blocked in plan mode. Approve the plan first."},
-                        status_code=409,
+                new_status = normalize_todo_status(raw_state)
+                if new_status != getattr(todo, "status", None):
+                    transition_reason = str(
+                        body.get("reason")
+                        or body.get("approved_reason")
+                        or body.get("approvedReason")
+                        or body.get("rejection_reason")
+                        or body.get("rejectionReason")
+                        or ""
                     )
-                todo.status = new_status
+                    transition = apply_todo_status_transition(
+                        tracker,
+                        index,
+                        new_status,
+                        reason=transition_reason,
+                        plan_mode=os.environ.get("PLAN_MODE") == "true",
+                    )
+                    if not transition.ok:
+                        return JSONResponse(
+                            {"error": transition.message, "code": transition.code},
+                            status_code=transition.http_status or 409,
+                        )
+                else:
+                    todo.status = new_status
             if todo.status == "approved" and not str(getattr(todo, "approved_reason", "") or "").strip():
                 return JSONResponse({"error": "approved_reason is required"}, status_code=400)
             if todo.status == "rejected" and not str(getattr(todo, "rejection_reason", "") or "").strip():
@@ -5306,6 +5318,10 @@ def create_app():
             }
             if req_workflow_root is not None:
                 session_cfg["ATLAS_WORKFLOW_ROOT"] = str(req_workflow_root)
+                # Atlas Runtime source-root note for split workspaces:
+                # allowed tooling lives under $ATLAS_SOURCE_ROOT/workflow/...
+                # do not ask the user to mount or copy workflow/;
+                # keep generated IP artifacts in the project workspace instead.
             for cfg_mod in cfg_modules:
                 for key, value in session_cfg.items():
                     had = hasattr(cfg_mod, key)
@@ -5373,6 +5389,8 @@ def create_app():
                 req_dir / "requirements_index.json",
                 req_dir / "obligations.json",
                 req_dir / "contract_refs.json",
+                req_dir / "structural_contracts.json",
+                req_dir / "behavioral_contracts.json",
                 req_dir / "evidence_plan.json",
             ]
             missing = [path.name for path in candidate_files if not path.exists()]
@@ -6877,12 +6895,14 @@ def create_app():
         requirements_doc = _read_json_file(req_dir / "requirements_index.json")
         obligations_doc = _read_json_file(req_dir / "obligations.json")
         contracts_doc = _read_json_file(req_dir / "contract_refs.json")
+        structural_doc = _read_json_file(req_dir / "structural_contracts.json")
+        behavioral_doc = _read_json_file(req_dir / "behavioral_contracts.json")
         evidence_doc = _read_json_file(req_dir / "evidence_plan.json")
         locked_truth_active = str(approval.get("status") or approval.get("locked_truth_status") or "").strip() == "requirements_locked"
 
         lines = [
             f"[WEB TO SSOT SPEC] {ip}",
-            f"kind: {state.get('kind') or 'simple APB peripheral'}",
+            f"kind: {state.get('kind') or 'generic IP block'}",
             (
                 "source: Approved Locked Truth req/ bundle + Web UI Plan Mode / import evidence"
                 if locked_truth_active else
@@ -6900,19 +6920,25 @@ def create_app():
             req_count = len(requirements_doc.get("requirements") or [])
             obl_count = len(obligations_doc.get("obligations") or [])
             contract_count = len(contracts_doc.get("contract_refs") or [])
+            structural_count = len(structural_doc.get("contracts") or [])
+            behavioral_count = len(behavioral_doc.get("contracts") or [])
             evidence_count = len(evidence_doc.get("evidence_plan") or [])
             lines.extend([
                 f"- {ip}/req/approval_manifest.json (status=requirements_locked, bundle_sha256={approval.get('bundle_sha256') or '(missing)'})",
                 f"- {ip}/req/requirements_index.json ({req_count} requirements)",
                 f"- {ip}/req/obligations.json ({obl_count} obligations)",
                 f"- {ip}/req/contract_refs.json ({contract_count} contract refs)",
+                f"- {ip}/req/structural_contracts.json ({structural_count} structural contracts)",
+                f"- {ip}/req/behavioral_contracts.json ({behavioral_count} behavioral contracts)",
                 f"- {ip}/req/evidence_plan.json ({evidence_count} evidence plan entries)",
                 f"- {ip}/req/locked_truth.md",
                 f"- {ip}/yaml/{ip}.ssot.yaml only as prior projection; replace/repair it if it is TBD-filled.",
                 "",
                 "Locked Truth projection rule:",
                 "- Derive SSOT Preview blockers from req/ before asking the user: top_module.description, io_list.interfaces[].ports[], registers.register_list[], clock_reset_domains, interrupts, scenarios, quality_gates, and traceability.",
-                "- Map requirements -> obligations -> contract_refs -> evidence_plan into source_refs/contract_refs/evidence_refs on Design Spec items.",
+                "- Project structural_contracts into io_list and clock/reset domains exactly: signal name, direction, width, sync/async timing, and clock/reset association.",
+                "- Project behavioral_contracts into function_model, cycle_model, fsm/register behavior, test_requirements, and quality_gates with decision tables or equivalent machine rules.",
+                "- Map requirements -> obligations -> contract_refs/structural_contracts/behavioral_contracts -> evidence_plan into source_refs/contract_refs/evidence_refs on Design Spec items.",
                 "- If req/ does not specify memory, FSM, child submodules, DFT, power, or security behavior, write an explicit no-feature/external-owner/non-goal policy instead of a TBD placeholder.",
                 "- Do not modify canonical req/*.json from ssot-gen; write only the YAML projection and SSOT-side validation artifacts.",
                 "",

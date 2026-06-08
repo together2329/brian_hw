@@ -86,6 +86,36 @@ def test_timeline_parse_edges_and_value(tmp_path):
     assert tl.edges("nope", "rising") == []
 
 
+def test_rising_edge_includes_signal_asserted_at_t0(tmp_path):
+    # Regression: a signal asserted in $dumpvars at t0 (e.g. psel for the FIRST
+    # APB access) is an X->1 rising edge and must be findable. Previously the
+    # first sample was never an edge, so "find the first access" skipped the t0
+    # transaction and the waveform window opened on the 2nd access instead.
+    vcd = """$timescale 1ns $end
+$scope module top $end
+$var wire 1 ! psel $end
+$upscope $end
+$enddefinitions $end
+#0
+$dumpvars
+1!
+$end
+#10
+0!
+#20
+1!
+"""
+    p = tmp_path / "t0.vcd"
+    p.write_text(vcd, encoding="utf-8")
+    tl = vcd_timeline.load(p)
+    # psel: (0,'1'),(10,'0'),(20,'1') -> rising at t0 AND at 20
+    assert tl.edges("psel", "rising") == [0, 20]
+    # X->0 is NOT a falling edge; first real fall is at 10
+    assert tl.edges("psel", "falling") == [10]
+    # 'any' keeps the documented "first sample is not an edge" behaviour
+    assert tl.edges("psel", "any") == [10, 20]
+
+
 def test_timeline_resolves_scope_and_refuses_ambiguous_leaf(tmp_path):
     p = tmp_path / "hier.vcd"
     p.write_text(_HIER_VCD, encoding="utf-8")
