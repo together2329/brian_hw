@@ -5708,20 +5708,38 @@ def create_app():
             ip, wf = ip_default, wf_default
             canon = PROJECT_ROOT / ".session" / owner / ip / wf
         # Migrate legacy 3-part / 2-part / 1-part dirs to canonical on first access.
-        if not canon.exists():
+        # The slash-command setup may create the canonical directory before the
+        # command handler reads conversation.json, so use the history file
+        # itself as the migration guard instead of the directory.
+        history_path = canon / "conversation.json"
+        if not history_path.exists():
             for legacy in (
                 *legacy_candidates,
                 PROJECT_ROOT / ".session" / ip / wf,    # 2-part: ip/wf
                 PROJECT_ROOT / ".session" / wf,          # 1-part: wf only
             ):
                 try:
-                    if legacy != canon and legacy.exists() and legacy.is_dir():
-                        canon.parent.mkdir(parents=True, exist_ok=True)
+                    if legacy == canon or not legacy.exists() or not legacy.is_dir():
+                        continue
+                    if not (legacy / "conversation.json").exists():
+                        continue
+                    canon.parent.mkdir(parents=True, exist_ok=True)
+                    if not canon.exists():
                         legacy.rename(canon)
+                    else:
+                        canon.mkdir(parents=True, exist_ok=True)
+                        for child in legacy.iterdir():
+                            target = canon / child.name
+                            if not target.exists():
+                                child.rename(target)
+                        try:
+                            legacy.rmdir()
+                        except OSError:
+                            pass
                         break
                 except OSError:
                     continue
-        return canon / "conversation.json"
+        return history_path
 
     def _append_session_message(session: str, role: str, content: str) -> None:
         session = normalize_session_name(session)

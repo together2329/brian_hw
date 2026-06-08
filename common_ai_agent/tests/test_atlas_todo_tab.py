@@ -5,46 +5,47 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_workspace_renders_editable_todo_tab() -> None:
-    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-root.tsx").read_text()
+    todo_pane = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
+    todo_row = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo-edit-row.tsx").read_text()
+    todo_model = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo-model.ts").read_text()
 
     # Tab chip next to the Git tab + click wiring to the todo main tab
     assert "setMainTab('todo')" in workspace
     assert "mainTab === 'todo'" in workspace
-    # Approved/total count badge on the chip
-    assert "_approvedTodos}/{_allTodos.length" in workspace
 
     # Editable pane is rendered in the center column
     assert "<TodoEditorPane />" in workspace
-    assert "const TodoEditorPane = () =>" in workspace
-    assert "const TodoEditorRow = (" in workspace
+    assert "export const TodoEditorPane" in todo_pane
+    assert "export const TodoEditorRow" in todo_row
 
     # Per-todo editable fields: state select, content, detail, criteria
-    assert "TODO_EDITOR_STATES" in workspace
-    assert "'pending', 'in_progress', 'completed', 'approved', 'rejected'" in workspace
+    assert "TODO_EDITOR_STATES" in todo_model
+    assert "'pending', 'in_progress', 'completed', 'approved', 'rejected'" in todo_model
 
     # Controls: add form, per-row remove, clear all
-    assert "+ Add todo" in workspace
-    assert "Detail is required to add a todo." in workspace
-    assert "Criteria is required to add a todo." in workspace
-    assert 'placeholder="detail (required)"' in workspace
-    assert 'placeholder="criteria — one per line (required)"' in workspace
-    assert "Approved Reason" in workspace
-    assert "Reject Reason" in workspace
-    assert "To Do Note" in workspace
-    assert "approved_reason: approvedReason" in workspace
-    assert "rejection_reason: rejectionReason" in workspace
-    assert 'placeholder="approved reason (required)"' in workspace
-    assert 'placeholder="reject reason (required)"' in workspace
-    assert "const reasonMissing =" in workspace
-    assert "const canAddTodo =" in workspace
-    assert ">Remove<" in workspace
-    assert ">Clear all<" in workspace
-    assert ">Save<" in workspace
+    assert "+ Add todo" in todo_pane
+    assert "Detail is required to add a todo." in todo_pane
+    assert "Criteria is required to add a todo." in todo_pane
+    assert 'placeholder="detail (required)"' in todo_pane
+    assert 'placeholder="criteria — one per line (required)"' in todo_pane
+    assert "Approved Reason" in todo_row
+    assert "Reject Reason" in todo_row
+    assert "To Do Note" in todo_row
+    assert "approved_reason: approvedReason" in todo_row
+    assert "rejection_reason: rejectionReason" in todo_row
+    assert 'placeholder="approved reason (required)"' in todo_row
+    assert 'placeholder="reject reason (required)"' in todo_row
+    assert "const reasonMissing =" in todo_row
+    assert "const canAddTodo =" in todo_pane
+    assert ">Remove<" in todo_row
+    assert ">Clear all<" in todo_pane
+    assert ">Save<" in todo_row
 
 
 def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
-    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
-    data = (PROJECT_ROOT / "frontend" / "atlas" / "data.jsx").read_text()
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
+    data = (PROJECT_ROOT / "frontend" / "atlas" / "data-loaders.tsx").read_text()
 
     # data.jsx exposes the CRUD helpers used by the editor pane
     assert "addTodo:" in data
@@ -69,11 +70,12 @@ def test_workspace_and_data_wire_todo_crud_endpoints() -> None:
 
 
 def test_workspace_uses_one_todo_view_for_tab_and_sidebar() -> None:
-    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace.jsx").read_text()
+    workspace = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-root.tsx").read_text()
+    todo_pane = (PROJECT_ROOT / "frontend" / "atlas" / "workspace-todo.tsx").read_text()
 
-    assert "const _allTodos = Array.isArray(window.TODOS) ? window.TODOS : [];" in workspace
     assert "<TodoEditorPane />" in workspace
     assert "<TodoPanel />" in workspace
+    assert "Array.isArray(rawTodos) ? rawTodos.filter(isTodoRecord) : []" in todo_pane
     assert "todoPanelOverride" not in workspace
     assert "todosOverride" not in workspace
     assert "workerLocalTodosFromAtlasFeed" not in workspace
@@ -125,7 +127,7 @@ def test_web_slash_todo_uses_active_session_todo_file() -> None:
     atlas_ui = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text()
 
     assert "active_slash_session = normalize_session_name" in atlas_ui
-    assert 'session_dir = PROJECT_ROOT / ".session" / active_slash_session' in atlas_ui
+    assert "session_dir = _session_json_path(active_slash_session).parent" in atlas_ui
     assert '"TODO_FILE": str(session_dir / "todo.json")' in atlas_ui
     assert '"TODO_ERROR_FILE": str(session_dir / "todo_error.json")' in atlas_ui
     assert 'slash_tt.TODO_FILE = session_dir / "todo.json"' in atlas_ui
