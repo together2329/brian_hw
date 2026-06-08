@@ -5255,7 +5255,7 @@ def test_rtl_stage_uses_dynamic_todo_gate_before_generation(tmp_path: Path):
     assert result.status == "human_gate", result.message
     # No locked req bundle: the contract-authority gate is skipped, but the skip
     # is now observable as a leading run (rc 0) rather than silently dropped.
-    assert result.runs[0].label == "contract_authority_gate"
+    assert result.runs[0].label == "contract_authority_gate_skipped"
     assert result.runs[0].returncode == 0
     assert "skipped" in result.runs[0].stdout.lower()
     assert result.runs[1].label == "derive_rtl_todos"
@@ -5351,10 +5351,14 @@ def test_rtl_stage_emits_visible_contract_authority_skip_without_manifest(tmp_pa
     result = WorkflowStageEngine(tmp_path).run_stage("ssot-rtl", ip)
 
     assert result.status == "human_gate", result.message
-    skip_runs = [run for run in result.runs if run.label == "contract_authority_gate"]
+    skip_runs = [run for run in result.runs if run.label == "contract_authority_gate_skipped"]
     assert skip_runs, "contract_authority_gate skip is silent (no run label emitted)"
     assert "skipped" in skip_runs[0].stdout.lower()
     assert "approval_manifest.json" in skip_runs[0].stdout
+    # skip must be distinguishable from an enforced pass (no rc-0 enforced run)
+    assert not [r for r in result.runs if r.label == "contract_authority_gate"], (
+        "skipped gate must not masquerade as an enforced contract_authority_gate pass"
+    )
     assert any(run.label == "derive_rtl_todos" for run in result.runs)
 
 
@@ -5365,10 +5369,14 @@ def test_tb_stage_emits_visible_contract_authority_skip_without_manifest(tmp_pat
 
     result = WorkflowStageEngine(tmp_path).run_stage("ssot-tb-cocotb", ip)
 
-    skip_runs = [run for run in result.runs if run.label == "contract_authority_gate"]
+    skip_runs = [run for run in result.runs if run.label == "contract_authority_gate_skipped"]
     assert skip_runs, "contract_authority_gate skip is silent (no run label emitted)"
     assert "skipped" in skip_runs[0].stdout.lower()
     assert "approval_manifest.json" in skip_runs[0].stdout
+    # skip must be distinguishable from an enforced pass (no rc-0 enforced run)
+    assert not [r for r in result.runs if r.label == "contract_authority_gate"], (
+        "skipped gate must not masquerade as an enforced contract_authority_gate pass"
+    )
     assert any(run.label == "derive_tb_todos" for run in result.runs)
 
 
@@ -5527,7 +5535,7 @@ def test_rtl_stage_refreshes_existing_provenance_after_deriving_plan(tmp_path: P
     result = engine.run_stage("ssot-rtl", ip)
 
     # Leading run is the observable contract-authority skip (no locked bundle).
-    assert result.runs[0].label == "contract_authority_gate"
+    assert result.runs[0].label == "contract_authority_gate_skipped"
     assert result.runs[1].label == "derive_rtl_todos"
     assert result.runs[2].label == "refresh_rtl_provenance"
     assert result.runs[3].label == "rtl_preflight"

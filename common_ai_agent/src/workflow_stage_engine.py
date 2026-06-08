@@ -936,11 +936,11 @@ class WorkflowStageEngine:
         manifest_path = self.ip_dir(ip) / "req" / "approval_manifest.json"
         if not manifest_path.is_file():
             # Make the bypass observable instead of silently skipping the gate.
-            # A skipped run (rc 0) is appended to the stage run labels so any
-            # flow that reaches RTL/TB generation without a locked req contract
-            # bundle shows the skip rather than hiding it.
+            # Use a DISTINCT label ("..._skipped") so the skip can never be
+            # mistaken for an enforced rc-0 pass by an rc/label-only consumer: a
+            # skipped authority check is not the same as a verified one.
             return ToolRun(
-                label="contract_authority_gate",
+                label="contract_authority_gate_skipped",
                 command=[],
                 returncode=0,
                 stdout=(

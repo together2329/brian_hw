@@ -21,10 +21,13 @@ into COVERED_GATES, and update the frozen set. Goal state: UNCOVERED_GATES == {}
 from __future__ import annotations
 
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
+from tests.test_atlas_to_ssot_locked_truth import _write_locked_contract_bundle
 from tests.test_derive_tb_todos import (
     _GOOD_COVERAGE,
     _GOOD_EVENT,
@@ -35,6 +38,7 @@ from tests.test_derive_tb_todos import (
     _write_ip,
     _write_tb_artifacts,
 )
+from tests.test_workflow_stage_engine import _clear_obligation_authority_refs
 
 REPO = Path(__file__).resolve().parents[1]
 MANIFEST = REPO / "workflow" / "STAGE_MANIFEST.json"
@@ -124,6 +128,59 @@ TB_CONTRACT_LEDGER_SELF_TEST = GateSelfTest(
 
 
 # ---------------------------------------------------------------------------
+# req contract-authority gate self-test (check_contract_bundle.py)
+# ---------------------------------------------------------------------------
+
+_REQ_IP = "gate_req"
+_REQ_GATE = REPO / "workflow" / "req-gen" / "scripts" / "check_contract_bundle.py"
+
+
+def _req_build_good(work: Path) -> dict:
+    # Writes + locks a full valid contract bundle under work/<ip>/req/.
+    _write_locked_contract_bundle(work, _REQ_IP)
+    return {"ip": _REQ_IP}
+
+
+def _req_run_gate(work: Path, ctx: dict) -> None:
+    proc = subprocess.run(
+        [sys.executable, str(_REQ_GATE), ctx["ip"], "--root", str(work)],
+        capture_output=True, text=True, check=False,
+    )
+    ctx["rc"] = proc.returncode
+    ctx["out"] = proc.stdout + proc.stderr
+
+
+def _req_read_status(work: Path, ctx: dict) -> str:
+    return "pass" if ctx.get("rc") == 0 else "fail"
+
+
+def _req_mut_anchor_only(work: Path, ctx: dict) -> None:
+    # Content authority: obligation with no structural/behavioral contract refs
+    # (manifest hash refreshed so it fails on the anchor-ref check, not the hash).
+    _clear_obligation_authority_refs(work / ctx["ip"] / "req")
+
+
+def _req_mut_tamper_without_rehash(work: Path, ctx: dict) -> None:
+    # Lock integrity: edit a hashed req-graph file but do NOT refresh the manifest
+    # hash — the gate must reject the tampered locked bundle.
+    obl_path = work / ctx["ip"] / "req" / "obligations.json"
+    obl = json.loads(obl_path.read_text(encoding="utf-8"))
+    obl["_tamper"] = "edited after lock; manifest hash intentionally not refreshed"
+    obl_path.write_text(json.dumps(obl, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+REQ_CONTRACT_AUTHORITY_SELF_TEST = GateSelfTest(
+    build_good=_req_build_good,
+    run_gate=_req_run_gate,
+    read_status=_req_read_status,
+    mutations=[
+        ("anchor_only_obligation", _req_mut_anchor_only),
+        ("tamper_without_rehash", _req_mut_tamper_without_rehash),
+    ],
+)
+
+
+# ---------------------------------------------------------------------------
 # Gate registry — single source of truth.
 # ---------------------------------------------------------------------------
 
@@ -134,12 +191,16 @@ COVERED_GATES = {
         "scripts": ("derive_tb_todos.py",),
         "self_test": TB_CONTRACT_LEDGER_SELF_TEST,
     },
+    # req contract-authority gate (manifest "contract_authority" entrypoint).
+    "req_contract_authority": {
+        "scripts": ("check_contract_bundle.py", "check_locked_truth_bundle.py"),
+        "self_test": REQ_CONTRACT_AUTHORITY_SELF_TEST,
+    },
 }
 
 # Explicit, FROZEN backlog: acknowledged gates that still lack a direct
 # mutation self-test. Shrinks only by a reviewed change (see module docstring).
 UNCOVERED_GATES = {
-    "check_contract_bundle.py": "req contract-authority gate (content-mutation covered indirectly in test_workflow_stage_engine; needs a direct gate self-test)",
     "check_ip_signoff.py": "final signoff aggregate gate",
     "check_truth_coverage.py": "locked-truth obligation coverage gate",
     "run_contract_check.py": "contract-reflection closure gate (incl. --require-contract-closure strict)",
@@ -254,7 +315,6 @@ def test_uncovered_backlog_is_explicit_and_frozen(capsys):
             f"uncovered={len(UNCOVERED_GATES)} -> {sorted(UNCOVERED_GATES)}"
         )
     frozen = {
-        "check_contract_bundle.py",
         "check_ip_signoff.py",
         "check_truth_coverage.py",
         "run_contract_check.py",
