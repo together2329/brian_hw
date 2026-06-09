@@ -209,17 +209,30 @@ def classify(ip_dir: Path) -> dict[str, Any]:
             "rationale": rationale,
             "next_action": next_action,
             "preview": str(row.get("preview") or ""),
+            # Closure contract consumed by check_ip_signoff: a survivor is closed
+            # ONLY by an evidence-backed equivalence (disposition equivalent/
+            # sec_caught + evidence_ref to the SEC/formal artifact) or an explicit
+            # human waiver (waived_by + waiver_reason). This script produces
+            # TRIAGE, not closure — these fields start empty on purpose.
+            "evidence_ref": "",
+            "waived_by": "",
+            "waiver_reason": "",
         })
     counts = Counter(str(row["disposition"]) for row in survivors)
     payload = {
         "schema_version": 1,
         "type": "survivor_classification",
         "generated_at": _utc(),
-        "status": "pass",
+        # This tool cannot certify closure: its dispositions are heuristic triage
+        # with no SEC/formal evidence. Stamping "pass" here used to rubber-stamp
+        # the signoff survivor gate. Survivors present => a human (or an SEC lane)
+        # must close each one before signoff.
+        "status": "pass" if not survivors else "needs_human_review",
         "source": str(report_path.relative_to(ip_dir)),
         "summary": {
             "total_survivors": len(survivors),
             "classified": len(survivors),
+            "closure_open": len(survivors),
             "equivalent": counts.get("equivalent", 0),
             "irrelevant": counts.get("irrelevant", 0),
             "test_hole": counts.get("test_hole", 0),
@@ -261,12 +274,29 @@ def main() -> int:
         "properties": _formal_properties(),
         "artifact": "verify/safety_properties.sva",
     }
-    _write_safety_properties(verify_dir / "safety_properties.sva")
-    (verify_dir / "formal_status.json").write_text(json.dumps(formal, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # Do not clobber owned verify/ artifacts: these are authoritative outputs of
+    # other lanes (formal/safety). Only seed them when absent.
+    sva_path = verify_dir / "safety_properties.sva"
+    formal_path = verify_dir / "formal_status.json"
+    if not sva_path.is_file():
+        _write_safety_properties(sva_path)
+        print(f"[classify_survivors] wrote {sva_path}")
+    else:
+        print(f"[classify_survivors] kept existing {sva_path}")
+    if not formal_path.is_file():
+        formal_path.write_text(json.dumps(formal, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        print(f"[classify_survivors] wrote {formal_path}")
+    else:
+        print(f"[classify_survivors] kept existing {formal_path}")
 
     print(f"[classify_survivors] wrote {json_path}")
     print(f"[classify_survivors] wrote {md_path}")
-    print(f"[classify_survivors] wrote {verify_dir / 'formal_status.json'}")
+    if payload["summary"]["total_survivors"]:
+        print(
+            f"[classify_survivors] status={payload['status']}: {payload['summary']['total_survivors']} "
+            "survivor(s) need evidence-backed closure (equivalent/sec_caught + evidence_ref) "
+            "or a human waiver (waived_by + waiver_reason) before signoff."
+        )
     print(f"[classify_survivors] wrote {verify_dir / 'safety_properties.sva'}")
     return 0
 

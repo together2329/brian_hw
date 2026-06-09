@@ -450,3 +450,153 @@ def test_ip_signoff_gate_rejects_failed_simulation_quality(tmp_path: Path) -> No
     gates = {gate["name"]: gate for gate in report["gates"]}
     assert gates["simulation_quality"]["status"] == "fail"
     assert "payload evidence" in "; ".join(gates["simulation_quality"]["issues"])
+
+
+# ---------------------------------------------------------------------------
+# Survivor-classification closure: per-survivor evidence, not summary counts.
+# classify_survivors.py used to rubber-stamp status="pass" with
+# classified==total_survivors unconditionally; the gates must re-derive the
+# verdict from the entries themselves.
+# ---------------------------------------------------------------------------
+
+def _write_mutation_with_survivors(ip_dir, survivors) -> None:
+    _write_json(
+        ip_dir / "mutation" / "mutation_report.json",
+        {
+            "status": "pass",
+            "summary": {"killed": 1, "survived": len(survivors), "invalid": 0, "kill_rate": 0.25},
+            "results": [{"status": "survived", **row} for row in survivors],
+        },
+    )
+
+
+def _rubber_stamp_classification(entries):
+    # The exact shape classify_survivors.py used to emit: status pass, counts
+    # equal, dispositions test_hole/irrelevant with canned prose, no evidence.
+    return {
+        "schema_version": 1,
+        "type": "survivor_classification",
+        "status": "pass",
+        "summary": {
+            "total_survivors": len(entries),
+            "classified": len(entries),
+            "equivalent": 0,
+            "irrelevant": sum(1 for e in entries if e["disposition"] == "irrelevant"),
+            "test_hole": sum(1 for e in entries if e["disposition"] == "test_hole"),
+        },
+        "survivors": entries,
+    }
+
+
+def test_mutation_guard_rejects_rubber_stamped_survivors(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "rubber_ip")
+    _write_mutation_with_survivors(
+        ip_dir,
+        [
+            {"id": "m1", "category": "operator_flip", "relpath": "rtl/x.sv", "preview": "because"},
+            {"id": "m2", "category": "state_update_drop", "relpath": "rtl/y.sv", "preview": "junk"},
+        ],
+    )
+    _write_json(
+        ip_dir / "mutation" / "survivor_classification.json",
+        _rubber_stamp_classification(
+            [
+                {"id": "m1", "category": "operator_flip", "disposition": "irrelevant",
+                 "rationale": "canned text", "next_action": "review someday"},
+                {"id": "m2", "category": "state_update_drop", "disposition": "test_hole",
+                 "rationale": "uncovered behavior", "next_action": "add scenario"},
+            ]
+        ),
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "rubber_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+
+    report = json.loads((tmp_path / "rubber_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["mutation_guard"]["status"] == "fail", (
+        "rubber-stamped survivor classification (test_hole/irrelevant, no evidence, "
+        "no waiver) must not satisfy the mutation_guard gate"
+    )
+    joined = "; ".join(gates["mutation_guard"]["issues"])
+    assert "m1" in joined or "m2" in joined or "closure" in joined.lower() or "waiv" in joined.lower()
+
+
+def test_mutation_guard_accepts_evidence_backed_or_waived_survivors(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "justified_ip")
+    _write_mutation_with_survivors(
+        ip_dir,
+        [
+            {"id": "m1", "category": "constant_flip", "relpath": "rtl/x.sv", "preview": "p"},
+            {"id": "m2", "category": "operator_flip", "relpath": "rtl/y.sv", "preview": "q"},
+        ],
+    )
+    _write_json(
+        ip_dir / "mutation" / "survivor_classification.json",
+        {
+            "schema_version": 1,
+            "type": "survivor_classification",
+            "status": "needs_human_review",
+            "summary": {"total_survivors": 2, "classified": 2, "equivalent": 1,
+                        "irrelevant": 0, "test_hole": 1},
+            "survivors": [
+                {"id": "m1", "category": "constant_flip", "disposition": "equivalent",
+                 "evidence_ref": "mutation/sec/m1_miter.log",
+                 "rationale": "SEC miter proves functional equivalence"},
+                {"id": "m2", "category": "operator_flip", "disposition": "test_hole",
+                 "waived_by": "brian", "waiver_reason": "boundary expression covered by formal P_AXI lane; accepted for this release"},
+            ],
+        },
+    )
+
+    result = subprocess.run(
+        ["python3", str(SCRIPT), "justified_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+
+    report = json.loads((tmp_path / "justified_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["mutation_guard"]["status"] == "pass", gates["mutation_guard"]["issues"]
+
+
+def test_verification_hardening_rejects_rubber_stamped_survivors(tmp_path: Path) -> None:
+    ip_dir = _make_ip(tmp_path, "hardening_rubber_ip")
+    # Full hardening artifact set so the ONLY defect is the rubber-stamped
+    # classification (the real-world mctp shape).
+    _write_json(
+        ip_dir / "sim" / "scenario_e2e_summary.json",
+        {"status": "pass", "total_directed_scenarios": 26, "missing_scenarios": [],
+         "failed_scenarios": []},
+    )
+    _write_json(
+        ip_dir / "sim" / "monitor_evidence.json",
+        {"status": "pass", "checks": {
+            "sram_payload_no_holes": True, "sram_payload_only": True,
+            "sram_no_header_or_pad_write": True, "axi_write_protocol_pass": True,
+            "axi_read_protocol_pass": True, "apb_per_q_readback_pass": True}},
+    )
+    _write_json(
+        ip_dir / "verify" / "formal_status.json",
+        {"status": "optional_not_run", "properties": [{"id": f"P{i}"} for i in range(5)]},
+    )
+    (ip_dir / "verify" / "safety_properties.sva").write_text("// props\n", encoding="utf-8")
+    _write_json(
+        ip_dir / "mutation" / "survivor_classification.json",
+        _rubber_stamp_classification(
+            [{"id": "m1", "category": "operator_flip", "disposition": "test_hole",
+              "rationale": "uncovered", "next_action": "add scenario"}]
+        ),
+    )
+
+    subprocess.run(
+        ["python3", str(SCRIPT), "hardening_rubber_ip", "--root", str(tmp_path)],
+        text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    )
+
+    report = json.loads((tmp_path / "hardening_rubber_ip" / "signoff" / "ip_signoff.json").read_text(encoding="utf-8"))
+    gates = {gate["name"]: gate for gate in report["gates"]}
+    assert gates["verification_hardening"]["status"] == "fail", (
+        "verification_hardening must not accept unwaived test_hole survivors as classified"
+    )

@@ -543,6 +543,45 @@ class SignoffChecker:
             issues,
         )
 
+    @staticmethod
+    def _survivor_closure_issues(doc: dict[str, Any], survived: int | None = None) -> list[str]:
+        """Re-derive survivor closure from the entries; never trust summary counts.
+
+        classify_survivors.py historically stamped status="pass" with
+        classified==total_survivors unconditionally (a tautology), so those two
+        fields prove nothing. A surviving mutant is closed ONLY by:
+          (a) an evidence-backed equivalence disposition — equivalent/sec_caught
+              with a non-empty evidence_ref pointing at the SEC/formal artifact, or
+          (b) an explicit human waiver — non-empty waived_by + waiver_reason.
+        Auto-generated test_hole/irrelevant triage prose is NOT closure: a
+        test_hole is by its own definition an uncovered fault.
+        """
+        issues: list[str] = []
+        if doc.get("status") == "fail":
+            issues.append("survivor_classification status=fail")
+        raw = doc.get("survivors") if isinstance(doc.get("survivors"), list) else []
+        entries = [entry for entry in raw if isinstance(entry, dict)]
+        if survived is not None and len(entries) < survived:
+            issues.append(
+                f"survivor_classification lists {len(entries)} survivor entr(ies) but the "
+                f"mutation report has {survived} survivor(s)"
+            )
+        for entry in entries:
+            sid = str(entry.get("id") or "?")
+            disposition = str(entry.get("disposition") or "")
+            evidence = str(entry.get("evidence_ref") or entry.get("evidence") or "").strip()
+            waived_by = str(entry.get("waived_by") or "").strip()
+            waiver_reason = str(entry.get("waiver_reason") or "").strip()
+            if disposition in {"equivalent", "sec_caught"} and evidence:
+                continue
+            if waived_by and waiver_reason:
+                continue
+            issues.append(
+                f"survivor {sid} ({disposition or 'unclassified'}) is not closure-grade: "
+                "needs equivalent/sec_caught with evidence_ref, or waived_by + waiver_reason"
+            )
+        return issues
+
     def check_mutation_guard(self) -> None:
         path = self.ip_dir / "mutation" / "mutation_report.json"
         if not path.is_file():
@@ -577,22 +616,10 @@ class SignoffChecker:
                 )
             else:
                 cls, cerr = _read_json(cls_path)
-                csum = cls.get("summary") if isinstance(cls.get("summary"), dict) else {}
                 if cerr:
                     issues.append(cerr)
-                elif cls.get("status") != "pass":
-                    issues.append(
-                        f"{survived} surviving mutant(s); survivor_classification status="
-                        f"{cls.get('status')!r}, expected pass"
-                    )
-                elif (
-                    _as_int(csum.get("classified")) != _as_int(csum.get("total_survivors"))
-                    or _as_int(csum.get("total_survivors")) < survived
-                ):
-                    issues.append(
-                        f"{survived} surviving mutant(s) not fully classified "
-                        f"(classified={csum.get('classified')} total_survivors={csum.get('total_survivors')})"
-                    )
+                else:
+                    issues.extend(self._survivor_closure_issues(cls, survived))
         self.add(
             "mutation_guard",
             "fail" if issues else "pass",
@@ -655,11 +682,7 @@ class SignoffChecker:
         if err:
             issues.append(err)
         else:
-            summary = cast(dict[str, Any], survivor.get("summary") if isinstance(survivor.get("summary"), dict) else {})
-            if survivor.get("status") != "pass":
-                issues.append(f"survivor_classification status is {survivor.get('status')!r}, expected pass")
-            if _as_int(summary.get("classified")) != _as_int(summary.get("total_survivors")):
-                issues.append("survivor_classification classified count must equal total_survivors")
+            issues.extend(self._survivor_closure_issues(survivor))
 
         formal, err = _read_json(formal_path)
         if err:
