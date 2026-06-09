@@ -329,6 +329,16 @@ def _signoff_mut_missing_observable(work: Path, ctx: dict) -> None:
     _signoff_make_ip(work, ctx["ip"], missing_observable=True)  # scoreboard omits an expected observable
 
 
+def _signoff_mut_mutation_survivors_unclassified(work: Path, ctx: dict) -> None:
+    # Ran mutation, caught ~10%, left 9 survivors, no survivor_classification.json.
+    # A weak TB that misses faults must not sign off (mutation_guard enforcement).
+    md = work / ctx["ip"] / "mutation"
+    md.mkdir(parents=True, exist_ok=True)
+    (md / "mutation_report.json").write_text(json.dumps(
+        {"status": "pass", "summary": {"killed": 1, "survived": 9, "invalid": 0, "kill_rate": 0.1}}),
+        encoding="utf-8")
+
+
 IP_SIGNOFF_SELF_TEST = GateSelfTest(
     build_good=_signoff_build_good,
     run_gate=_signoff_run_gate,
@@ -338,6 +348,7 @@ IP_SIGNOFF_SELF_TEST = GateSelfTest(
         ("missing_truth_coverage", _signoff_mut_missing_truth_coverage),
         ("stale_rtl_provenance", _signoff_mut_stale_rtl_provenance),
         ("missing_observable", _signoff_mut_missing_observable),
+        ("mutation_survivors_unclassified", _signoff_mut_mutation_survivors_unclassified),
     ],
 )
 

@@ -560,6 +560,39 @@ class SignoffChecker:
         summary = doc.get("summary") if isinstance(doc.get("summary"), dict) else {}
         if not issues and doc.get("status") == "fail":
             issues.append("mutation_guard status=fail")
+        # A mutation run that LEFT surviving mutants must not sign off on a weak
+        # kill-rate: every survivor has to be killed, or explicitly classified as
+        # provably-equivalent/justified in mutation/survivor_classification.json.
+        # This is not a kill-rate *threshold* (that is the deferred human policy) —
+        # it is the always-correct rule that an uncaught fault may not be left
+        # unexplained. Absent report stays advisory above, so legacy IPs that never
+        # ran mutation are unaffected; this only bites an IP that ran it and missed.
+        if not issues and _as_int(summary.get("survived")) > 0:
+            survived = _as_int(summary.get("survived"))
+            cls_path = self.ip_dir / "mutation" / "survivor_classification.json"
+            if not cls_path.is_file():
+                issues.append(
+                    f"{survived} surviving mutant(s) and no survivor_classification.json; "
+                    "each survivor must be killed or classified provably-equivalent"
+                )
+            else:
+                cls, cerr = _read_json(cls_path)
+                csum = cls.get("summary") if isinstance(cls.get("summary"), dict) else {}
+                if cerr:
+                    issues.append(cerr)
+                elif cls.get("status") != "pass":
+                    issues.append(
+                        f"{survived} surviving mutant(s); survivor_classification status="
+                        f"{cls.get('status')!r}, expected pass"
+                    )
+                elif (
+                    _as_int(csum.get("classified")) != _as_int(csum.get("total_survivors"))
+                    or _as_int(csum.get("total_survivors")) < survived
+                ):
+                    issues.append(
+                        f"{survived} surviving mutant(s) not fully classified "
+                        f"(classified={csum.get('classified')} total_survivors={csum.get('total_survivors')})"
+                    )
         self.add(
             "mutation_guard",
             "fail" if issues else "pass",
