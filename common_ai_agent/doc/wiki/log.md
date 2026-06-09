@@ -2,6 +2,14 @@
 
 ## 2026-06-09
 
+- Gate self-test meta-gate **backlog driven to 0** (commit `c8d72a98`): all 11
+  STAGE_MANIFEST gates now have a kill-proof self-test in `tests/test_gate_self_test.py`
+  (`UNCOVERED_GATES == {}`). Includes the 2 fixed silent-PASS gates (their
+  previously-surviving mutations now killed, guarding the fixes), the 5 confirmed-green
+  gates, and `dut_lint`/`rtl_compile` behind a `requires_tool` skipif. The ratchet now
+  protects every gate. Open: STAGE_MANIFEST `rtl_final_gate` `--enforce`→`--audit-rtl`
+  manifest bug. See [[silent-pass-gate-hardening-20260609]].
+
 - Gate self-test sweep of the 7 backlog gates (7 parallel read-only investigators):
   5 GREEN (`derive_rtl_todos`, `ssot_coverage_summary`, `dut_lint_report`,
   `check_tb_python_compile`, `rtl_compile_report` — genuinely content-enforcing),
