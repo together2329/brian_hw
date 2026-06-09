@@ -37,11 +37,18 @@ if [ ! -d "$TB_DIR" ]; then
 fi
 
 ALL_TEXT="$(find "$TB_DIR" -maxdepth 1 -type f -name '*.py' -print0 2>/dev/null | xargs -0 cat 2>/dev/null || true)"
+# Strip trailing '# comment' text from each line so that comment-only mentions
+# (e.g. "# the driver should drive_ the bus") no longer satisfy the structural
+# require_pattern checks below. Class-token checks still match real
+# "class ... driver" code, which lives before any '#'. The pyuvm import/fallback
+# checks below intentionally use the unstripped ALL_TEXT, because a documented
+# "pyuvm unavailable" fallback reason legitimately lives in a comment.
+CODE_TEXT="$(printf '%s\n' "$ALL_TEXT" | sed 's/[[:space:]]*#.*$//')"
 
 require_pattern() {
     local label="$1"
     local pattern="$2"
-    if ! printf '%s\n' "$ALL_TEXT" | grep -Eiq "$pattern"; then
+    if ! printf '%s\n' "$CODE_TEXT" | grep -Eiq "$pattern"; then
         echo "[check_pyuvm_structure] FAIL: missing $label ($pattern)"
         fail=1
     fi

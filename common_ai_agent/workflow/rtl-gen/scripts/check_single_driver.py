@@ -59,7 +59,7 @@ def _find_always_blocks(src: str) -> list[tuple[int, str]]:
 
     # Locate every `always @(...) begin` and walk forward counting
     # begin/end pairs to find the matching end.
-    for m in re.finditer(r"\balways\b[^@]*?@\s*\(", src_clean):
+    for m in re.finditer(r"\balways(?:_ff|_comb|_latch)?\b[^@]*?@\s*\(", src_clean):
         i = m.end()
         # Find matching close paren of @(...)
         depth = 1

@@ -248,7 +248,7 @@ def _obligation_reports(results: list[ObligationResult]) -> JsonList:
     return out
 
 
-def _analyze(ip_dir: Path) -> JsonMap:
+def _analyze(ip_dir: Path, require_nonempty: bool = False) -> JsonMap:
     index = _load_json(ip_dir / "verify" / "requirements_index.json", "evidence_contract")
     contract = _load_json(ip_dir / "verify" / "evidence_contract.json", "evidence_contract")
     rows = load_scoreboard_rows(ip_dir, contract)
@@ -261,6 +261,12 @@ def _analyze(ip_dir: Path) -> JsonMap:
     passed = sum(1 for item in results if item.status == "pass")
     failed = sum(1 for item in results if item.status != "pass")
     issues = [*index_issues, *artifact_issues]
+    # Opt-in vacuous-closure floor: a "pass" over ZERO required obligations
+    # enforces nothing. The parent run_contract_check applies this floor, but
+    # stage_gate.sh calls this child directly and would otherwise let an empty
+    # contract through. --require-nonempty closes that bypass.
+    if require_nonempty and not results:
+        issues.append("vacuous evidence contract: zero required obligations")
     return {
         "generated_at": _utc(),
         "ip": ip_dir.name,
@@ -273,27 +279,32 @@ def _analyze(ip_dir: Path) -> JsonMap:
     }
 
 
-def _parse_args(argv: list[str]) -> tuple[str, Path]:
+def _parse_args(argv: list[str]) -> tuple[str, Path, bool]:
     if not argv or argv[0] in {"-h", "--help"}:
-        raise SystemExit("usage: check_evidence_contract.py <ip> [--root <root>]")
+        raise SystemExit("usage: check_evidence_contract.py <ip> [--root <root>] [--require-nonempty]")
     ip = argv[0]
     root = Path(".")
+    require_nonempty = False
     index = 1
     while index < len(argv):
         token = argv[index]
+        if token == "--require-nonempty":
+            require_nonempty = True
+            index += 1
+            continue
         if token != "--root":
             raise SystemExit(f"usage: unexpected argument {token!r}")
         if index + 1 >= len(argv):
             raise SystemExit("usage: --root requires a value")
         root = Path(argv[index + 1])
         index += 2
-    return ip, root.resolve()
+    return ip, root.resolve(), require_nonempty
 
 
 def main() -> int:
-    ip, root = _parse_args(sys.argv[1:])
+    ip, root, require_nonempty = _parse_args(sys.argv[1:])
     ip_dir = _resolve_ip_dir(root, ip)
-    report = _analyze(ip_dir)
+    report = _analyze(ip_dir, require_nonempty=require_nonempty)
     out = ip_dir / "signoff" / "evidence_contract_coverage.json"
     out.parent.mkdir(parents=True, exist_ok=True)
     _ = out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")

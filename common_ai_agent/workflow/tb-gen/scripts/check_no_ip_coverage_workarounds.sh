@@ -17,21 +17,21 @@ if [ -z "$IP" ] || [ ! -d "$IP" ]; then
 fi
 
 BAD=""
-for path in \
-    "$IP"/tb/**/coverage_summary.py \
-    "$IP"/tb/**/*coverage_summary*.py \
-    "$IP"/tb/**/*cov_harness*.sv \
-    "$IP"/tb/**/*coverage_harness*.sv \
-    "$IP"/tb/**/*verilator*harness*.sv
-do
-    [ -e "$path" ] || continue
-    BAD="${BAD}${path}
-"
-done
+if [ -d "$IP/tb" ]; then
+    # Portable: walk the whole tb/ tree (any depth, including tb/ root) and
+    # match forbidden coverage-workaround artifacts by name. Avoids ** globs,
+    # which require globstar (absent in macOS bash 3.2 and off by default).
+    BAD=$(find "$IP/tb" -type f \( \
+        -name '*coverage_summary*.py' -o \
+        -name '*cov_harness*.sv' -o \
+        -name '*coverage_harness*.sv' -o \
+        -name '*verilator*harness*.sv' \
+        \) 2>/dev/null | sort -u)
+fi
 
 if [ -n "$BAD" ]; then
     echo "[check_no_ip_coverage_workarounds] FAIL: IP-specific coverage workaround artifacts found"
-    printf "%s" "$BAD"
+    printf "%s\n" "$BAD"
     echo "Static/code coverage must use workflow/coverage generic tools and SSOT summary."
     exit 1
 fi
