@@ -133,6 +133,15 @@ def _status(reflection: JsonMap, evidence: JsonMap, overlays: list[StepRun], ref
     if reflection.get("status") == "pass" and evidence.get("status") == "pass":
         if child_failed:
             return "fail"
+        # Vacuous-closure floor: a "pass" over ZERO required obligations and ZERO
+        # reflection refs is not a real pass — nothing was actually checked. Treat
+        # an empty contract set as blocked so a stripped/absent contract can't
+        # silently close. (--require-contract-closure adds the stricter semantic
+        # source requirement on top of this.)
+        evidence_total = _int_value(_as_map(evidence.get("summary")).get("total"))
+        reflection_total = _int_value(_as_map(reflection.get("summary")).get("total"))
+        if evidence_total == 0 and reflection_total == 0:
+            return "blocked"
         return "pass"
     return "blocked"
 
