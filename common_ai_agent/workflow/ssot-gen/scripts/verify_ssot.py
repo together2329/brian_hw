@@ -867,10 +867,16 @@ def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
         timeout=90,
     )
     if proc.returncode != 0:
-        try:
-            checker_py_err = Path("/tmp/_ssot_yaml.err").read_text(encoding="utf-8", errors="replace")
-        except Exception:
-            checker_py_err = ""
+        # The .sh helper writes its python stderr to /tmp; on Windows the bash
+        # (git-bash) /tmp is not Python's temp dir, so probe both locations.
+        import tempfile as _tempfile
+        checker_py_err = ""
+        for _cand in (Path("/tmp/_ssot_yaml.err"), Path(_tempfile.gettempdir()) / "_ssot_yaml.err"):
+            try:
+                checker_py_err = _cand.read_text(encoding="utf-8", errors="replace")
+                break
+            except Exception:
+                continue
         if "ModuleNotFoundError" in checker_py_err and "yaml" in checker_py_err:
             return _run_native_disk_check(
                 root,
