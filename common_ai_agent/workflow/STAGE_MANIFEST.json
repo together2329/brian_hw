@@ -177,7 +177,7 @@
     {
       "id": "rtl_final_gate",
       "owner": "rtl-gen",
-      "command": "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <ip-parent> --enforce",
+      "command": "python3 workflow/rtl-gen/scripts/derive_rtl_todos.py <ip> --root <ip-parent> --audit-rtl",
       "inputs": ["<ip>/yaml/<ip>.ssot.yaml", "<ip>/rtl/*.sv", "<ip>/rtl/rtl_authoring_provenance.json"],
       "outputs": ["<ip>/rtl/rtl_todo_plan.json"],
       "locked_truth": false,

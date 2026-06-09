@@ -64,6 +64,19 @@ STATUS_ALIASES = {
 }
 
 
+def _is_windows() -> bool:
+    """Platform seam (module-level so tests can monkeypatch without touching
+    os.name globally, which would break pathlib)."""
+    import os
+    return os.name == "nt"
+
+
+def _windows_bash() -> Optional[str]:
+    """git-bash/WSL-bash location on Windows, if any (None elsewhere/absent)."""
+    import shutil
+    return shutil.which("bash")
+
+
 def is_todo_status_open(status: Any) -> bool:
     """Return True for every status that still requires work or review."""
     return str(status or "") != "approved"
@@ -242,6 +255,22 @@ class TodoItem:
         return text
 
     @staticmethod
+    def _shell_run_args(cmd: str):
+        """Return (args, use_shell) for running a template shell string portably.
+
+        POSIX: the string via shell=True (/bin/sh) — unchanged behavior.
+        Windows + git-bash: ["...bash.exe", "-c", cmd] — todo templates use
+        POSIX syntax (`test -f ... || (...)`, $VAR) that cmd.exe cannot run,
+        but git-bash can.
+        Windows without bash: cmd.exe fallback (string, shell=True).
+        """
+        if _is_windows():
+            bash = _windows_bash()
+            if bash:
+                return [bash, "-c", cmd], False
+        return cmd, True
+
+    @staticmethod
     def _portable_python_cmd(cmd: str) -> str:
         """Rewrite hardcoded `python3` tokens to the running interpreter.
 
@@ -250,14 +279,16 @@ class TodoItem:
         venv wants THIS interpreter anyway. sys.executable is correct on every
         platform, so the data (14 templates + dynamic plans) stays untouched.
         """
-        import os as _os
         import re as _re
         import shlex as _shlex
         import sys as _sys
         exe = _sys.executable
         if not exe:
             return cmd
-        quoted = f'"{exe}"' if _os.name == "nt" else _shlex.quote(exe)
+        if _is_windows() and not _windows_bash():
+            quoted = f'"{exe}"'  # cmd.exe fallback quoting
+        else:
+            quoted = _shlex.quote(exe)  # POSIX shell or git-bash -c payload
         return _re.sub(r"\bpython3\b", quoted.replace("\\", "\\\\"), cmd)
 
     def run_validator(self, tool_output: str = "") -> Optional[str]:
@@ -298,9 +329,10 @@ class TodoItem:
         except Exception:
             cmd = self.validator
         cmd = self._portable_python_cmd(cmd)
+        run_args, use_shell = self._shell_run_args(cmd)
         try:
             r = _sp.run(
-                cmd, shell=True,
+                run_args, shell=use_shell,
                 capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=5, env=env,
             )
             if r.returncode != 0:
@@ -632,10 +664,11 @@ class TodoTracker:
 
         if isinstance(cmd, str):
             cmd = TodoItem._portable_python_cmd(cmd)
+            run_args, use_shell = TodoItem._shell_run_args(cmd)
             try:
                 r = _sp.run(
-                    cmd,
-                    shell=True,
+                    run_args,
+                    shell=use_shell,
                     capture_output=True,
                     text=True,
                     encoding="utf-8",

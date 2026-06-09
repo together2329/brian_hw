@@ -1078,6 +1078,10 @@ _EXPLICIT_GATE_SCRIPTS = {
     "ssot_coverage_summary.py",
     "dut_lint_report.py",
     "rtl_compile_report.py",
+    # rtl_final_gate: detected explicitly now that the manifest uses --audit-rtl
+    # (the old --enforce string was an invalid argparse arg AND the only thing
+    # the heuristic keyed on — keep the ratchet watching this gate either way).
+    "derive_rtl_todos.py",
 }
 
 
