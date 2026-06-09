@@ -2,6 +2,20 @@
 
 ## 2026-06-10
 
+- VCM semantic-contract GENERATOR integrated (extracted from `feat/vcm-generator`
+  `4d866ca4`, 3 new files only — its engine/manifest/signoff edits predate the
+  silent-pass hardening and were deliberately NOT taken):
+  `emit_semantic_contracts.py` (SSOT+scoreboard+VCD -> deterministic
+  `verify/semantic_contracts.json`, content-obligation hard-fail for payload
+  transactions, self-validated), `annotate_scoreboard_obligations.py` (row->obligation
+  sidecar), `contract-reflection/system_prompt.md`, and NEW
+  `todo_templates/contract-reflection.json` (emit -> annotate -> strict check ->
+  resolve). E2E on mctp_assembler_v3: 8 req / 9 obligations (1 content) generated vs
+  2/4 hand-authored; `run_contract_check` PASS default+strict (reflection 10/10,
+  evidence 111/111); rerun byte-identical. Engine-stage dispatch deferred — see
+  [[contract-reflection-workflow]] "Workflow Linkage" and
+  [[verification-contract-model]] "Generator".
+
 - Mutation-survivor signoff enforcement (commit `133c89e8`): `check_ip_signoff`
   passed any `mutation_report.json` with status=pass even at kill_rate 0.1 (9
   survivors) — a TB catching ~10% of planted faults still signed off. Now when a

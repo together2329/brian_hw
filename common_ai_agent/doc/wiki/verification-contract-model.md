@@ -2,7 +2,7 @@
 title: Verification Contract Model (VCM)
 category: architecture
 tags: [contract-reflection, ssot, freshness, evidence, signoff, mctp]
-status: generalized to a workflow primitive + locked by 6-case regression (2026-06-04); auto-generator + full matrix pending
+status: generalized to a workflow primitive + locked by 6-case regression (2026-06-04); auto-generator INTEGRATED (2026-06-10); full matrix pending
 ---
 
 # Verification Contract Model (VCM)
@@ -180,13 +180,43 @@ fingerprint layer's job ([[contract-reflection-workflow]] semantic_source_finger
 to be generalized to all stages.
 
 Still pending (full generalization, not in this slice): SSOT `function_model` declaring
-`payload_digest` for FL-native golden; obligation-generator rule auto-emitting content
-obligations for every payload-bearing transaction; per-stage input fingerprints + the
+`payload_digest` for FL-native golden; per-stage input fingerprints + the
 (stage x granularity) matrix in the truth-coverage gate.
+
+## Generator (integrated 2026-06-10, extracted from feat/vcm-generator 4d866ca4)
+
+The obligation generator is now in the tree — `semantic_contracts.json` no longer has
+to be hand-authored:
+
+- `workflow/contract-reflection/scripts/emit_semantic_contracts.py` — deterministically
+  derives `verify/semantic_contracts.json` from the SSOT `function_model`
+  (transactions/state_variables/invariants) + `test_requirements`, joined to REAL
+  passing scoreboard rows and the VCD wave. Every obligation is grounded in a row that
+  passes at generation time (no unsatisfiable claims); a payload-bearing transaction
+  MUST yield a `granularity:content` obligation or the generator hard-fails; the
+  document is self-validated with `semantic_source_validation.source_issues` before
+  writing. Runs AFTER sim (needs scoreboard + wave), BEFORE contract-check.
+- `workflow/contract-reflection/scripts/annotate_scoreboard_obligations.py` — additive
+  sidecar `sim/scoreboard_obligation_links.json` mapping evidence rows back to
+  obligation_ids/contract_refs (append-only `scoreboard_events.jsonl` untouched). Runs
+  after the overlay produces `evidence_contract.json`.
+- `workflow/contract-reflection/system_prompt.md` + `todo_templates/contract-reflection.json`
+  — agent-facing VCM authoring guidance and the 4-step todo plan
+  (emit -> annotate -> strict check -> resolve-at-owning-stage).
+
+E2E proof (mctp_assembler_v3, 2026-06-10): generated 8 requirements / 9 obligations
+(2 count, 6 temporal, 1 content) vs the hand-authored 2/4; `run_contract_check`
+passes in BOTH default and `--require-contract-closure` strict mode (reflection 10/10,
+evidence 111/111); output is byte-identical across reruns (deterministic). NOT taken
+from the branch: its edits to `check_ip_signoff.py` / `workflow_stage_engine.py` /
+`STAGE_MANIFEST.json` predate the silent-pass gate hardening — re-judge those against
+current main if engine-stage wiring is wanted (see "Workflow linkage" in
+[[contract-reflection-workflow]]).
 
 ## Status / coordination
 
-- First must-have IMPLEMENTED + proven (above). Generalization pending.
+- First must-have IMPLEMENTED + proven (above). Generator integrated (2026-06-10).
+  Full-matrix generalization pending.
 - The contract-reflection workflow files (`workflow/contract_reflection/*`,
   `workflow/contract-reflection/scripts/*`) are being **actively edited by another
   actor** (the semantic-freshness slice). The obligation-generator + validator-freshness
