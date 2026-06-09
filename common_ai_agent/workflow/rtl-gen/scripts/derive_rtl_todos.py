@@ -8980,8 +8980,11 @@ def _update_todo_completion(plan: dict[str, Any], ip_dir: Path, *, audit_rtl: bo
             if not isinstance(task, dict) or not bool(task.get("required")):
                 continue
             gate = task.get("gate_todo") if isinstance(task.get("gate_todo"), dict) else {}
-            if not include_closure and gate.get("kind") == "dynamic_todo_closure":
-                continue
+            if not include_closure:
+                if gate.get("kind") == "dynamic_todo_closure":
+                    continue
+                if gate.get("stage") != "rtl-gen":
+                    continue
             completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
             if completion.get("status") != "pass":
                 open_items.append({
