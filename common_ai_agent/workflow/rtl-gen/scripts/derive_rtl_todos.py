@@ -3593,7 +3593,6 @@ def _rtl_gate_ui_group(task: dict[str, Any]) -> tuple[int, str, str]:
         "locked_truth_contract_implementation",
         "owner_logic_structure_evidence",
         "rtl_placeholder_free_evidence",
-        "dynamic_todo_closure",
         "rtl_implementation_depth_evidence",
     }:
         return (81, "gate.traceability", "Close RTL traceability and implementation-depth gates")
