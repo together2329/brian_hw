@@ -103,9 +103,9 @@ All 7 backlog gates were exercised with mutation batteries (read-only, tmp dirs)
     `--require-contract-closure` already rejected it.
   149 consumer tests green after both fixes.
 - **Open items:**
-  1. STAGE_MANIFEST `rtl_final_gate` invokes `derive_rtl_todos.py … --enforce`, but
-     `--enforce` is not a valid argparse arg → rc=2, the gate never runs. Real flag
-     is `--audit-rtl`. Fix the manifest command (and the registry label).
+  1. ~~STAGE_MANIFEST `rtl_final_gate` `--enforce`~~ — RESOLVED 2026-06-10: manifest
+     now invokes `--audit-rtl` (the real enforcement flag); the meta-gate ratchet
+     keeps watching `derive_rtl_todos.py` via the explicit gate-script set.
   2. Register the 7 self-tests into `COVERED_GATES` (backlog → 0). The 2 fixed gates'
      batteries now kill their previously-surviving mutation, so registering them also
      guards the fixes against regression.
