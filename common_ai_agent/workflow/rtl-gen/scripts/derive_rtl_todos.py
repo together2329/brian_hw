@@ -7070,6 +7070,20 @@ def _rtl_depth_thresholds(plan: dict[str, Any]) -> dict[str, int]:
         parsed = _int_target(target_scale.get(source_key))
         if parsed is not None:
             thresholds[threshold_key] = max(int(thresholds.get(threshold_key) or 0), parsed)
+
+    # A target-scale request for behavior-owner logic modules is bounded by the
+    # SSOT-derived behavior-owner set after normal exclusions (for example,
+    # top-level modules marked wiring_only).  Requiring more behavior-owner
+    # logic modules than there are non-wiring behavior owners is not actionable
+    # by RTL implementation: adding logic to a wiring-only integration wrapper
+    # must not be rewarded, and changing owner classification is locked SSOT
+    # truth.  Keep the generic source-file/module thresholds intact, but cap
+    # this owner-specific threshold to the auditable owner population.
+    if behavior_owner_count > 0 and "min_behavior_owner_logic_modules" in thresholds:
+        thresholds["min_behavior_owner_logic_modules"] = min(
+            int(thresholds.get("min_behavior_owner_logic_modules") or 0),
+            behavior_owner_count,
+        )
     return thresholds
 
 
