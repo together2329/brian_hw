@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -613,4 +614,155 @@ def compare_behavioral_to_function_cycle(behavioral_doc: JsonDoc, ssot_doc: Json
         "matched_function_model": sorted(function_hits),
         "matched_cycle_model": sorted(set(cycle_hits) | set(cycle_waived)),
     }
+    return issues, summary
+
+
+_CONDITION_FIELDS = ("when", "rule", "predicate", "sample_condition", "condition")
+
+
+def _normalize_semantic(value: Any) -> str:
+    """Whitespace/underscore/case-insensitive normal form for semantic comparison.
+
+    `"selected register value"` and `"selected_register_value"` compare equal so a
+    legitimate projection that swaps spaces for underscores still passes, while a
+    falsified token like `"WRONG VALUE"` or `"never == true"` does not.
+    """
+
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    text = str(value).strip().lower()
+    return re.sub(r"[\s_]+", " ", text).strip()
+
+
+def _locked_conditions(decision_rows: list[JsonDoc]) -> set[str]:
+    conditions: set[str] = set()
+    for row in decision_rows:
+        cond = _normalize_semantic(row.get("when"))
+        if cond:
+            conditions.add(cond)
+    return conditions
+
+
+def _locked_then_values(decision_rows: list[JsonDoc]) -> dict[str, set[str]]:
+    expected: dict[str, set[str]] = {}
+    for row in decision_rows:
+        then = row.get("then")
+        if not isinstance(then, dict):
+            continue
+        for name, value in then.items():
+            key = _normalize_semantic(name)
+            if key:
+                expected.setdefault(key, set()).add(_normalize_semantic(value))
+    return expected
+
+
+def _ssot_conditions(entry: JsonDoc) -> list[tuple[str, str]]:
+    found: list[tuple[str, str]] = []
+    for field in _CONDITION_FIELDS:
+        raw = entry.get(field)
+        if isinstance(raw, str) and raw.strip():
+            found.append((field, raw))
+    pre = entry.get("preconditions")
+    if isinstance(pre, list):
+        for item in pre:
+            if isinstance(item, str) and item.strip():
+                found.append(("preconditions", item))
+    decision = entry.get("decision_table")
+    rows = decision.get("rows") if isinstance(decision, dict) else decision
+    if isinstance(rows, list):
+        for row in rows:
+            if isinstance(row, dict) and isinstance(row.get("when"), str) and row["when"].strip():
+                found.append(("decision_table.when", row["when"]))
+    return found
+
+
+def _ssot_then_values(entry: JsonDoc) -> list[tuple[str, str, str]]:
+    """Return (output_name, raw_value, where) tuples from an SSOT model row."""
+
+    found: list[tuple[str, str, str]] = []
+    decision = entry.get("decision_table")
+    rows = decision.get("rows") if isinstance(decision, dict) else decision
+    if isinstance(rows, list):
+        for row in rows:
+            then = row.get("then") if isinstance(row, dict) else None
+            if isinstance(then, dict):
+                for name, value in then.items():
+                    found.append((str(name), str(value), "decision_table.then"))
+    output_rules = entry.get("output_rules")
+    if isinstance(output_rules, list):
+        for rule in output_rules:
+            if not isinstance(rule, dict):
+                continue
+            name = rule.get("name") or rule.get("port")
+            expr = rule.get("expr")
+            if isinstance(name, str) and name.strip() and isinstance(expr, str) and expr.strip():
+                found.append((name, expr, "output_rules.expr"))
+    return found
+
+
+def compare_behavioral_content_to_ssot(behavioral_doc: JsonDoc, ssot_doc: JsonDoc) -> tuple[list[str], JsonDoc]:
+    """Cross-check SSOT behavioral projection VALUES against the locked contract.
+
+    `compare_behavioral_to_function_cycle` proves the SSOT carries *some* machine
+    semantics for each contract, but it is text-blind: a row whose ``when``/``then``/
+    ``expr`` values have been replaced with lies still passes because the keys stay
+    present and non-empty. This layer closes that hole by requiring the SSOT's
+    function_model decision rules, output_rules, and cycle_model conditions to be
+    consistent with the locked contract's own ``decision_table`` (``when`` conditions
+    and ``then`` output values). Comparison is whitespace/underscore/case-insensitive
+    so legitimate space<->underscore reprojection passes; falsified tokens fail.
+    """
+
+    issues: list[str] = []
+    contracts = behavioral_contract_map(behavioral_doc)
+    checked: dict[str, dict[str, Any]] = {}
+    for contract_id, contract in sorted(contracts.items()):
+        decision_rows = _decision_rows(contract.get("decision_table"))
+        if not decision_rows:
+            continue  # no locked decision_table anchor to compare against
+        expected_conditions = _locked_conditions(decision_rows)
+        expected_then = _locked_then_values(decision_rows)
+        if not expected_conditions and not expected_then:
+            continue
+
+        condition_mismatches: list[str] = []
+        value_mismatches: list[str] = []
+        for section, row_keys in (
+            ("function_model", FUNCTION_MODEL_ROW_KEYS),
+            ("cycle_model", CYCLE_MODEL_ROW_KEYS),
+        ):
+            section_value = ssot_doc.get(section) if isinstance(ssot_doc, dict) else None
+            for path, _row_key, entry in _iter_model_rows(section_value, section, row_keys):
+                if contract_id not in _collect_refs(entry):
+                    continue
+                if expected_conditions:
+                    for field, raw in _ssot_conditions(entry):
+                        if _normalize_semantic(raw) not in expected_conditions:
+                            condition_mismatches.append(f"{path}.{field}={raw!r}")
+                for name, raw, where in _ssot_then_values(entry):
+                    key = _normalize_semantic(name)
+                    allowed = expected_then.get(key)
+                    if allowed is not None and _normalize_semantic(raw) not in allowed:
+                        value_mismatches.append(f"{path}.{where}[{name}]={raw!r}")
+
+        if condition_mismatches:
+            issues.append(
+                f"behavioral contract content mismatch: {contract_id} condition(s) "
+                f"{', '.join(sorted(condition_mismatches))} are not in the locked decision_table "
+                f"when set {sorted(expected_conditions)}"
+            )
+        if value_mismatches:
+            issues.append(
+                f"behavioral contract content mismatch: {contract_id} output value(s) "
+                f"{', '.join(sorted(value_mismatches))} disagree with the locked decision_table then values "
+                f"{ {name: sorted(vals) for name, vals in sorted(expected_then.items())} }"
+            )
+        checked[contract_id] = {
+            "expected_conditions": sorted(expected_conditions),
+            "expected_then": {name: sorted(vals) for name, vals in sorted(expected_then.items())},
+            "condition_mismatches": sorted(condition_mismatches),
+            "value_mismatches": sorted(value_mismatches),
+        }
+
+    summary: JsonDoc = {"content_checked": sorted(checked), "detail": checked}
     return issues, summary
