@@ -8505,16 +8505,25 @@ try:
 except ImportError:
     pass  # spec_navigate_tool not available
 
-# tmux integration tools — observe/control modifiable_ai_agent pane
+# tmux integration tools — observe/control modifiable_ai_agent pane.
+# OPT-IN (TMUX_ENABLE=true): tmux is a POSIX-only control surface (absent on
+# native Windows) and config always had ENABLE_TMUX_TOOLS — this block just
+# never honored it (cmux below always did).
 try:
-    from core.tools_tmux import TMUX_TOOLS
-    AVAILABLE_TOOLS.update(TMUX_TOOLS)
-except ImportError:
+    import config as _tmux_cfg
+    _tmux_enabled = getattr(_tmux_cfg, "ENABLE_TMUX_TOOLS", False)
+except Exception:
+    _tmux_enabled = False
+if _tmux_enabled:
     try:
-        from tools_tmux import TMUX_TOOLS
+        from core.tools_tmux import TMUX_TOOLS
         AVAILABLE_TOOLS.update(TMUX_TOOLS)
     except ImportError:
-        pass  # tools_tmux not available
+        try:
+            from tools_tmux import TMUX_TOOLS
+            AVAILABLE_TOOLS.update(TMUX_TOOLS)
+        except ImportError:
+            pass  # tools_tmux not available
 
 # cmux integration tools — observe/control modifiable_ai_agent via cmux socket
 try:
