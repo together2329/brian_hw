@@ -541,5 +541,46 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
     return () => window.removeEventListener('atlas-session-switched', onSwitch);
   }, [activeIp, activeNamespace, applySessionMeta, currentWorkflow, invalidateRosterRefreshes, loggedInOwner, namespaceFor, normalizeSession, refreshTopTargets, resetIpRoster, rosterScopeFor, splitSessionNamespace, syncNamespaceUrl, workflowForExecMode]);
 
+  useEffect(() => {
+    // Worker-initiated workflow switch (/wf, /to-ssot inside the agent).
+    // The worker announces the NEW canonical session key via a structured
+    // workspace_changed event; follow it through the SAME activate path a
+    // dropdown click uses so the dropdown, URL, healthz context, and the
+    // next worker spawn all agree. Without this the switch stays a
+    // worker-local overlay: the UI keeps showing the old workflow and a
+    // respawned worker boots without the new workspace's system prompt.
+    //
+    // Guards: only worker-sourced events (the activate path emits the same
+    // type for UI-initiated switches — following those would loop), only
+    // the logged-in owner's namespace (never follow a cross-owner key),
+    // and only when the key actually differs from the live one.
+    if (!(window as any).backend?.subscribe) return undefined;
+    let unsubscribe: (() => void) | undefined;
+    try {
+      unsubscribe = (window as any).backend.subscribe('workspace_changed', (m: any) => {
+        const source = String((m && m.source) || '');
+        if (!source.startsWith('worker/')) return;
+        const nextNamespace = normalizeSession((m && m.session) || '');
+        if (!nextNamespace) return;
+        const current = normalizeSession(window.ACTIVE_SESSION || activeNamespace || '');
+        if (nextNamespace === current) return;
+        const parsed = splitSessionNamespace(nextNamespace);
+        const owner = loggedInOwner();
+        if (owner && parsed.sessionId && parsed.sessionId !== owner) return;
+        const ownerScope = parsed.workspaceSession
+          ? `${parsed.sessionId || owner || 'default'}/${parsed.workspaceSession}`
+          : (parsed.sessionId || owner || 'default');
+        activateNamespace(
+          ownerScope,
+          parsed.ipId || WORKFLOW_DEFAULT,
+          parsed.workflow || WORKFLOW_DEFAULT,
+          true,
+          { preserveRunning: true }
+        );
+      });
+    } catch (_) {}
+    return () => { try { unsubscribe && unsubscribe(); } catch (_) {} };
+  }, [activateNamespace, activeNamespace, loggedInOwner, normalizeSession, splitSessionNamespace, WORKFLOW_DEFAULT]);
+
   return { refreshTopTargets };
 }
