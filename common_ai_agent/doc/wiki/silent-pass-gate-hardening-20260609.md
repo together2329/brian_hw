@@ -87,6 +87,31 @@ Recipe for one item:
 - `mutation_guard.py` is `ADVISORY_NOT_GATE` (advisory kill-rate, no pass/fail
   contract) — no self-test required.
 
+## Update 2026-06-09 — backlog swept (7 parallel investigators)
+
+All 7 backlog gates were exercised with mutation batteries (read-only, tmp dirs):
+
+- **5 GREEN** (genuinely content-enforcing, no hole): `derive_rtl_todos` (RTL final),
+  `ssot_coverage_summary`, `dut_lint_report`, `check_tb_python_compile`,
+  `rtl_compile_report`. Ready to register COVERED (self-test recipes captured).
+- **2 RED → FIXED**:
+  - `check_truth_coverage` — credited `cov/coverage.json` bins with no provenance;
+    a fabricated coverage.json + deleted `sim/` "covered" everything. Fixed: credit
+    coverage only when a real passing scoreboard event exists (commit `7dd75a55`).
+  - `run_contract_check` (default mode) — returned PASS over 0 obligations (vacuous
+    closure). Fixed: `_status` floor blocks empty contract sets (commit `e38743b2`).
+    `--require-contract-closure` already rejected it.
+  149 consumer tests green after both fixes.
+- **Open items:**
+  1. STAGE_MANIFEST `rtl_final_gate` invokes `derive_rtl_todos.py … --enforce`, but
+     `--enforce` is not a valid argparse arg → rc=2, the gate never runs. Real flag
+     is `--audit-rtl`. Fix the manifest command (and the registry label).
+  2. Register the 7 self-tests into `COVERED_GATES` (backlog → 0). The 2 fixed gates'
+     batteries now kill their previously-surviving mutation, so registering them also
+     guards the fixes against regression.
+  3. `rtl_compile_report` / `dut_lint_report` self-tests need iverilog / verilator —
+     add a `pytest.mark.skipif(shutil.which(...) is None)` guard.
+
 ## Next operational step
-Merge `fix/silent-pass-gate-hardening` to `main` (8 commits) when ready, then
-resume the backlog from item 1.
+Merge `fix/silent-pass-gate-hardening` to `main` when ready. Then: fix the manifest
+`--enforce`→`--audit-rtl`, and register the 7 self-tests to drive the backlog to 0.

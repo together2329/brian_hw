@@ -2,6 +2,18 @@
 
 ## 2026-06-09
 
+- Gate self-test sweep of the 7 backlog gates (7 parallel read-only investigators):
+  5 GREEN (`derive_rtl_todos`, `ssot_coverage_summary`, `dut_lint_report`,
+  `check_tb_python_compile`, `rtl_compile_report` — genuinely content-enforcing),
+  and 2 RED holes FOUND + FIXED: `check_truth_coverage` credited `cov/coverage.json`
+  with no provenance (fabricated coverage + deleted sim/ passed) → now gated on a
+  real passing scoreboard event (commit `7dd75a55`); `run_contract_check` default
+  returned PASS over 0 obligations (vacuous closure) → `_status` floor now blocks
+  empty contracts (commit `e38743b2`). 149 consumer tests green. Open: STAGE_MANIFEST
+  `rtl_final_gate` uses `--enforce` (invalid argparse, rc=2 — the gate never runs;
+  real flag is `--audit-rtl`), and the 7 self-test recipes are not yet registered
+  into the meta-gate. See [[silent-pass-gate-hardening-20260609]].
+
 - Silent-PASS gate hardening on branch `fix/silent-pass-gate-hardening`: fixed the
   content-blind tb contract-ledger gate, the unanchored execution-resume matcher,
   and the req-gate visible-skip + auto `--audit-evidence` wiring (the A series),
