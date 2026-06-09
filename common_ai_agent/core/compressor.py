@@ -1302,6 +1302,7 @@ def compress_history(
     find_hook_fn: Optional[Callable] = None,
     hook_command_fn: Optional[Callable] = None,
     emit_fn: Optional[Callable] = None,
+    emit_summary: bool = True,
     raise_on_llm_failure: bool = False,
 ) -> List[Dict]:
     """Compress conversation history when it exceeds the token limit.
@@ -1322,6 +1323,10 @@ def compress_history(
         on_compressed_fn: Called (no args) after compression completes.
         find_hook_fn: Locates hook files (defaults to built-in _find_hook).
         hook_command_fn: Builds hook command list (defaults to built-in _hook_command).
+        emit_summary: If True, surface the generated compression markdown via
+            emit_fn/stdout. Auto-compaction callers should set this False so an
+            internal context-maintenance step does not appear as an assistant
+            answer in chat.
         raise_on_llm_failure: If True, raise CompressionLLMError when the
             summarizer LLM call fails (instead of returning a degraded
             truncation summary). The web /compact path opts in so it can fall
@@ -1993,7 +1998,7 @@ def compress_history(
             "configuration (model name, base URL, API key) and re-run /compact.",
         )
 
-    if md_parts:
+    if emit_summary and md_parts:
         md = "\n\n---\n\n".join(md_parts) + "\n"
         if emit_fn:
             emit_fn(md)

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -141,3 +142,43 @@ def test_preemptive_hook_still_compresses_large_text_context():
 
     assert result.metadata["compression_needed"] is True
     assert result.metadata["current_context_tokens"] >= 900
+
+
+def test_auto_compression_can_suppress_user_visible_summary_emit():
+    from core.compressor import compress_history
+
+    emitted = []
+    cfg = SimpleNamespace(
+        ENABLE_COMPRESSION=True,
+        MAX_CONTEXT_TOKENS=200_000,
+        PREEMPTIVE_COMPRESSION_THRESHOLD=0.85,
+        COMPRESSION_THRESHOLD=0.95,
+        COMPRESSION_PRE_ANALYSIS=False,
+        COMPRESSION_KEEP_RECENT=1,
+        ENABLE_TURN_PROTECTION=False,
+        COMPRESSION_MODE="traditional",
+        COMPRESSION_CHUNK_SIZE=10,
+        COMPRESSION_INPUT_MAX_CHARS=0,
+        COMPRESSION_INPUT_BUDGET_RATIO=0.5,
+        COMPRESSION_TOOL_CALL_PATHS=0,
+        MODEL_NAME="gpt-test",
+    )
+
+    def fake_llm(_messages, **_kwargs):
+        yield "internal summary"
+
+    result = compress_history(
+        [
+            {"role": "user", "content": "old task"},
+            {"role": "assistant", "content": "old answer"},
+            {"role": "user", "content": "latest"},
+        ],
+        cfg=cfg,
+        llm_call_fn=fake_llm,
+        force=True,
+        emit_fn=emitted.append,
+        emit_summary=False,
+    )
+
+    assert emitted == []
+    assert any("internal summary" in str(m.get("content", "")) for m in result)

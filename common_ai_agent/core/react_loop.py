@@ -810,7 +810,11 @@ def run_react_agent_impl(
         if cfg.DEBUG_MODE:
             _pre_count = len(messages)
             _pre_tok = sum(len(str(m.get("content","")))//4 for m in messages)
-        messages = deps.compress_fn(messages, todo_tracker=todo_tracker)
+        messages = deps.compress_fn(
+            messages,
+            todo_tracker=todo_tracker,
+            emit_summary=False,
+        )
         if cfg.DEBUG_MODE:
             _post_count = len(messages)
             _post_tok = sum(len(str(m.get("content","")))//4 for m in messages)
@@ -987,7 +991,12 @@ def run_react_agent_impl(
                 if cfg.DEBUG_MODE and len(str(messages)) != _pre_hook_len:
                     print(Color.info(f"[Inject] Hook:          BEFORE_LLM_CALL modified messages"))
                 if hook_ctx.metadata.get("compression_needed"):
-                    messages = deps.compress_fn(messages, todo_tracker=todo_tracker, force=True)
+                    messages = deps.compress_fn(
+                        messages,
+                        todo_tracker=todo_tracker,
+                        force=True,
+                        emit_summary=False,
+                    )
             except Exception as exc:
                 import traceback
                 print(f"  [Hook] Error in before_llm_call hook: {exc}")
@@ -1291,7 +1300,13 @@ def run_react_agent_impl(
                     print(_C.warning("\n  [Recovery] Empty response after reasoning — compressing context and retrying..."))
                 except Exception:
                     print("\n  [Recovery] Empty response after reasoning — compressing context and retrying...")
-                messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
+                messages = deps.compress_fn(
+                    messages,
+                    force=True,
+                    quiet=False,
+                    todo_tracker=todo_tracker,
+                    emit_summary=False,
+                )
                 continue
             _llm_retry = 0
             _empty_msg = (
@@ -1344,7 +1359,13 @@ def run_react_agent_impl(
                     print(_C.warning("\n  [Recovery] Reasoning overflow detected — compressing context and retrying..."))
                 except Exception:
                     print("\n  [Recovery] Reasoning overflow — compressing context and retrying...")
-                messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
+                messages = deps.compress_fn(
+                    messages,
+                    force=True,
+                    quiet=False,
+                    todo_tracker=todo_tracker,
+                    emit_summary=False,
+                )
                 continue
 
             _llm_retry = 0
