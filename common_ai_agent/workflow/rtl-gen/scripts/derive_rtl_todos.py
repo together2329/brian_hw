@@ -3593,7 +3593,6 @@ def _rtl_gate_ui_group(task: dict[str, Any]) -> tuple[int, str, str]:
         "locked_truth_contract_implementation",
         "owner_logic_structure_evidence",
         "rtl_placeholder_free_evidence",
-        "dynamic_todo_closure",
         "rtl_implementation_depth_evidence",
     }:
         return (81, "gate.traceability", "Close RTL traceability and implementation-depth gates")
@@ -3610,6 +3609,7 @@ def _rtl_gate_ui_group(task: dict[str, Any]) -> tuple[int, str, str]:
     if kind in {"dut_compile", "dut_lint"}:
         return (90, "gate.compile_lint", "Run DUT-only compile and lint closure gates")
     if kind in {
+        "dynamic_todo_closure",
         "cycle_model_artifacts",
         "protocol_assertion_evidence",
         "fl_rtl_goal_audit",
@@ -7070,6 +7070,20 @@ def _rtl_depth_thresholds(plan: dict[str, Any]) -> dict[str, int]:
         parsed = _int_target(target_scale.get(source_key))
         if parsed is not None:
             thresholds[threshold_key] = max(int(thresholds.get(threshold_key) or 0), parsed)
+
+    # A target-scale request for behavior-owner logic modules is bounded by the
+    # SSOT-derived behavior-owner set after normal exclusions (for example,
+    # top-level modules marked wiring_only).  Requiring more behavior-owner
+    # logic modules than there are non-wiring behavior owners is not actionable
+    # by RTL implementation: adding logic to a wiring-only integration wrapper
+    # must not be rewarded, and changing owner classification is locked SSOT
+    # truth.  Keep the generic source-file/module thresholds intact, but cap
+    # this owner-specific threshold to the auditable owner population.
+    if behavior_owner_count > 0 and "min_behavior_owner_logic_modules" in thresholds:
+        thresholds["min_behavior_owner_logic_modules"] = min(
+            int(thresholds.get("min_behavior_owner_logic_modules") or 0),
+            behavior_owner_count,
+        )
     return thresholds
 
 
@@ -8966,8 +8980,11 @@ def _update_todo_completion(plan: dict[str, Any], ip_dir: Path, *, audit_rtl: bo
             if not isinstance(task, dict) or not bool(task.get("required")):
                 continue
             gate = task.get("gate_todo") if isinstance(task.get("gate_todo"), dict) else {}
-            if not include_closure and gate.get("kind") == "dynamic_todo_closure":
-                continue
+            if not include_closure:
+                if gate.get("kind") == "dynamic_todo_closure":
+                    continue
+                if gate.get("stage") != "rtl-gen":
+                    continue
             completion = task.get("todo_completion") if isinstance(task.get("todo_completion"), dict) else {}
             if completion.get("status") != "pass":
                 open_items.append({

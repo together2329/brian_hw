@@ -66,7 +66,7 @@ from core.action_parser import (
     parse_value,
 )
 from core.observation_processor import process_observation as _process_observation_impl
-from core.prompt_input import prompt_content_for_llm, prompt_has_content
+from core.prompt_input import message_content_text, prompt_content_for_llm, prompt_has_content
 from core.history_manager import (
     save_conversation_history as _save_history_impl,
     load_conversation_history as _load_history_impl,
@@ -1179,7 +1179,8 @@ from core.compressor import _find_hook, _hook_command
 
 
 def compress_history(messages, todo_tracker=None, force=False, instruction=None,
-                     keep_recent=None, dry_run=False, quiet=False):
+                     keep_recent=None, dry_run=False, quiet=False,
+                     emit_summary=True):
     """Wrapper: delegates to core.compressor with main.py dependencies injected.
     Pre-compression analysis is handled inside core.compressor.compress_history
     (only runs after threshold checks confirm compression is needed).
@@ -1202,6 +1203,7 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
             (lambda md: (_textual_emit_content_fn(md), _textual_emit_flush_fn and _textual_emit_flush_fn()))
             if _textual_emit_content_fn else None
         ),
+        emit_summary=emit_summary,
     )
     # Update sidebar immediately after any compression (auto or /compact)
     if _textual_emit_context_fn and not dry_run and result is not messages:
@@ -1259,11 +1261,14 @@ def _maybe_inject_exploration_strategy(messages, task_description):
     if not messages:
         return False
 
-    user_query = messages[-1].get("content", "").lower()
+    user_query = message_content_text(messages[-1].get("content", "")).lower()
 
     # 이미 주입되었는지 확인 (중복 방지)
     for msg in messages:
-        if msg.get("role") == "system" and ("DELEGATION STRATEGY" in msg.get("content", "") or "EXPLORATION STRATEGY" in msg.get("content", "")):
+        if msg.get("role") == "system" and (
+            "DELEGATION STRATEGY" in message_content_text(msg.get("content", ""))
+            or "EXPLORATION STRATEGY" in message_content_text(msg.get("content", ""))
+        ):
             return False
 
     # === Priority 1: 명시적 agent delegation ===

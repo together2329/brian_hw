@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 from lib.display import Color
+from core.prompt_input import prompt_content_for_llm, prompt_has_content
 
 
 _ATLAS_DEFAULT_SESSION_PLACEHOLDERS = {
@@ -809,7 +810,11 @@ def run_react_agent_impl(
         if cfg.DEBUG_MODE:
             _pre_count = len(messages)
             _pre_tok = sum(len(str(m.get("content","")))//4 for m in messages)
-        messages = deps.compress_fn(messages, todo_tracker=todo_tracker)
+        messages = deps.compress_fn(
+            messages,
+            todo_tracker=todo_tracker,
+            emit_summary=False,
+        )
         if cfg.DEBUG_MODE:
             _post_count = len(messages)
             _post_tok = sum(len(str(m.get("content","")))//4 for m in messages)
@@ -986,7 +991,12 @@ def run_react_agent_impl(
                 if cfg.DEBUG_MODE and len(str(messages)) != _pre_hook_len:
                     print(Color.info(f"[Inject] Hook:          BEFORE_LLM_CALL modified messages"))
                 if hook_ctx.metadata.get("compression_needed"):
-                    messages = deps.compress_fn(messages, todo_tracker=todo_tracker, force=True)
+                    messages = deps.compress_fn(
+                        messages,
+                        todo_tracker=todo_tracker,
+                        force=True,
+                        emit_summary=False,
+                    )
             except Exception as exc:
                 import traceback
                 print(f"  [Hook] Error in before_llm_call hook: {exc}")
@@ -1290,7 +1300,13 @@ def run_react_agent_impl(
                     print(_C.warning("\n  [Recovery] Empty response after reasoning — compressing context and retrying..."))
                 except Exception:
                     print("\n  [Recovery] Empty response after reasoning — compressing context and retrying...")
-                messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
+                messages = deps.compress_fn(
+                    messages,
+                    force=True,
+                    quiet=False,
+                    todo_tracker=todo_tracker,
+                    emit_summary=False,
+                )
                 continue
             _llm_retry = 0
             _empty_msg = (
@@ -1343,7 +1359,13 @@ def run_react_agent_impl(
                     print(_C.warning("\n  [Recovery] Reasoning overflow detected — compressing context and retrying..."))
                 except Exception:
                     print("\n  [Recovery] Reasoning overflow — compressing context and retrying...")
-                messages = deps.compress_fn(messages, force=True, quiet=False, todo_tracker=todo_tracker)
+                messages = deps.compress_fn(
+                    messages,
+                    force=True,
+                    quiet=False,
+                    todo_tracker=todo_tracker,
+                    emit_summary=False,
+                )
                 continue
 
             _llm_retry = 0
@@ -2476,11 +2498,16 @@ def run_react_agent_impl(
             # Human-in-the-loop: inject queued user message before next LLM call
             if deps.poll_human_input_fn and getattr(cfg, "ENABLE_HUMAN_IN_THE_LOOP", False):
                 _human_msg = deps.poll_human_input_fn()
-                if _human_msg:
+                # _human_msg may be a PromptInput carrying image attachments; an
+                # image-only message has empty text (falsy as a bare str) but is
+                # still content, so gate on prompt_has_content (None-guarded
+                # because poll returns None when no message is queued).
+                if _human_msg is not None and prompt_has_content(_human_msg):
+                    _human_display = str(_human_msg) or "[image attachment]"
                     print(f"\n{Color.DIM}{'─' * 40}{Color.RESET}")
-                    print(f"  {Color.BOLD}👤 You:{Color.RESET} {_human_msg}")
+                    print(f"  {Color.BOLD}👤 You:{Color.RESET} {_human_display}")
                     print(f"{Color.DIM}{'─' * 40}{Color.RESET}\n")
-                    messages.append({"role": "user", "content": _human_msg})
+                    messages.append({"role": "user", "content": prompt_content_for_llm(_human_msg)})
 
             # Step-by-step mode
             if getattr(cfg, "STEP_BY_STEP_MODE", False) and (combined_results or _is_todo_write):

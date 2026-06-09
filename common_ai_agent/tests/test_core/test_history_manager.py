@@ -14,7 +14,11 @@ _tests_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(os.path.dirname(_tests_dir))
 sys.path.insert(0, os.path.join(_project_root, 'core'))
 
-from history_manager import save_conversation_history, load_conversation_history
+from history_manager import (
+    load_conversation_history,
+    sanitize_messages_for_history,
+    save_conversation_history,
+)
 
 
 def _make_cfg(save=True, path=None):
@@ -60,6 +64,55 @@ class TestSaveConversationHistory(unittest.TestCase):
         cfg = _make_cfg(path="/nonexistent/path/history.json")
         # Should not raise — just print error
         save_conversation_history([{"role": "user", "content": "x"}], cfg=cfg)
+
+    def test_sanitizes_inline_prompt_images_without_mutating_input(self):
+        cfg = _make_cfg(path=self.hist_path)
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "look at this"},
+                    {
+                        "type": "input_image",
+                        "image_url": "data:image/png;base64,aGVsbG8=",
+                        "detail": "high",
+                    },
+                ],
+            }
+        ]
+
+        save_conversation_history(messages, cfg=cfg)
+
+        with open(self.hist_path, encoding="utf-8") as f:
+            active = json.load(f)
+        with open(os.path.join(self.tmp_dir, "full_conversation.json"), encoding="utf-8") as f:
+            full = json.load(f)
+        active_text = json.dumps(active, ensure_ascii=False)
+        full_text = json.dumps(full, ensure_ascii=False)
+
+        self.assertNotIn("data:image", active_text)
+        self.assertNotIn("base64", active_text)
+        self.assertNotIn("data:image", full_text)
+        self.assertNotIn("base64", full_text)
+        self.assertEqual(
+            active[0]["content"][1],
+            {
+                "type": "text",
+                "text": "[Image omitted from saved conversation history] detail=high",
+            },
+        )
+        self.assertIn("data:image/png;base64,aGVsbG8=", messages[0]["content"][1]["image_url"])
+
+    def test_sanitizes_legacy_inline_image_strings(self):
+        messages = [{"role": "user", "content": "before data:image/png;base64,aGVsbG8= after"}]
+
+        sanitized = sanitize_messages_for_history(messages)
+
+        self.assertEqual(
+            sanitized,
+            [{"role": "user", "content": "before [Image omitted from saved conversation history] after"}],
+        )
+        self.assertIn("data:image/png;base64,aGVsbG8=", messages[0]["content"])
 
 
 class TestLoadConversationHistory(unittest.TestCase):

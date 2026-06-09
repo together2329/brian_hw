@@ -42,9 +42,12 @@ TIMING_MODULE_SUFFIX = "_timing"
 
 
 class _MagicVisitor(ast.NodeVisitor):
-    def __init__(self, file_path: str, allowed_names: set[str]):
+    def __init__(self, file_path: str, allowed_names: set[str], advisory: bool = False):
         self.file_path = file_path
         self.allowed_names = allowed_names
+        # When advisory, bare-timing literals stay at "warning" (legacy, rc 0).
+        # By default they are "error" so the gate can actually fail (rc 1).
+        self.advisory = advisory
         self.findings: list[dict[str, Any]] = []
         # Track current function context so we know when we're inside
         # an async function (cocotb sequence/agent body).
@@ -84,11 +87,15 @@ class _MagicVisitor(ast.NodeVisitor):
         is_clk_cyc = func_name in ("ClockCycles", "cocotb.triggers.ClockCycles")
         is_range = func_name == "range" and self._async_depth > 0
 
-        if (is_timer or is_clk_cyc) and node.args:
-            magic, val = self._arg_is_magic_literal(node.args[0])
-            if magic:
+        if is_timer or is_clk_cyc:
+            # Scan ALL positional args, not just args[0]: the bare timing
+            # count in ClockCycles(dut.clk, N) lives in args[1].
+            for arg in node.args:
+                magic, val = self._arg_is_magic_literal(arg)
+                if not magic:
+                    continue
                 # Allow tiny setup-time literals (Timer(K, "ns") with K <= 2)
-                # as a temporary simulator-race workaround. Flag as warning.
+                # as a temporary simulator-race workaround. Flag as info.
                 if is_timer and isinstance(val, (int, float)) and val <= 2:
                     self.findings.append({
                         "file": self.file_path, "line": node.lineno,
@@ -101,7 +108,7 @@ class _MagicVisitor(ast.NodeVisitor):
                         "file": self.file_path, "line": node.lineno,
                         "kind": "timer_magic_number",
                         "value": val, "func": func_name,
-                        "severity": "warning",
+                        "severity": "warning" if self.advisory else "error",
                     })
 
         if is_range and node.args:
@@ -143,7 +150,7 @@ def _collect_imported_names(tree: ast.AST) -> set[str]:
     return names
 
 
-def lint_file(path: Path, ip_dir: Path) -> list[dict[str, Any]]:
+def lint_file(path: Path, ip_dir: Path, advisory: bool = False) -> list[dict[str, Any]]:
     src = path.read_text(encoding="utf-8")
     try:
         tree = ast.parse(src, filename=str(path))
@@ -155,12 +162,12 @@ def lint_file(path: Path, ip_dir: Path) -> list[dict[str, Any]]:
             "severity": "warning",
         }]
     allowed = _collect_imported_names(tree)
-    v = _MagicVisitor(str(path.relative_to(ip_dir.parent)), allowed)
+    v = _MagicVisitor(str(path.relative_to(ip_dir.parent)), allowed, advisory=advisory)
     v.visit(tree)
     return v.findings
 
 
-def lint(ip: str, root: Path) -> dict[str, Any]:
+def lint(ip: str, root: Path, advisory: bool = False) -> dict[str, Any]:
     ip_dir = root / ip
     tb_dir = ip_dir / "tb" / "cocotb"
     if not tb_dir.is_dir():
@@ -171,7 +178,17 @@ def lint(ip: str, root: Path) -> dict[str, Any]:
         if py.name.endswith("_timing.py"):
             continue  # don't lint generated headers
         files_checked += 1
-        findings.extend(lint_file(py, ip_dir))
+        findings.extend(lint_file(py, ip_dir, advisory=advisory))
+
+    # Fail-closed floor: zero lintable .py files under tb/cocotb/ means there
+    # is nothing to check — a vacuous pass. Report it as an error.
+    if files_checked == 0:
+        findings.append({
+            "file": str((tb_dir).relative_to(ip_dir.parent)),
+            "line": 0,
+            "kind": "no_tb_files",
+            "severity": "error",
+        })
 
     summary = {
         "errors": sum(1 for f in findings if f.get("severity") == "error"),
@@ -201,9 +218,14 @@ def main() -> int:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("ip")
     p.add_argument("--root", default=".")
+    p.add_argument(
+        "--advisory",
+        action="store_true",
+        help="treat bare-timing literals as warnings (rc 0) instead of errors",
+    )
     args = p.parse_args()
 
-    res = lint(args.ip, Path(args.root).resolve())
+    res = lint(args.ip, Path(args.root).resolve(), advisory=args.advisory)
     print(f"[tb-magic] status={res['status']} "
           f"errors={res['summary']['errors']} "
           f"warnings={res['summary']['warnings']} "

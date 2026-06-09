@@ -146,8 +146,15 @@ class TestCompressFnCallback(unittest.TestCase):
         )
         compress_called = []
 
-        def mock_compress(messages, todo_tracker=None, force=False, quiet=False):
+        def mock_compress(
+            messages,
+            todo_tracker=None,
+            force=False,
+            quiet=False,
+            emit_summary=True,
+        ):
             compress_called.append(True)
+            assert emit_summary is False
             return messages  # no-op
 
         # Build messages that are already near the threshold

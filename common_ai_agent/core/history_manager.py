@@ -9,12 +9,62 @@ v2 layout (flat project):
 """
 import json
 import os
+import re
 from typing import List, Dict, Any, Optional
+
+_DATA_IMAGE_RE = re.compile(
+    r"data:image/[A-Za-z0-9.+-]+(?:;[A-Za-z0-9=.+-]+)*;base64,[A-Za-z0-9+/=\r\n]+"
+)
+_IMAGE_HISTORY_PLACEHOLDER = "[Image omitted from saved conversation history]"
 
 
 def _full_history_path(cfg) -> str:
     """Derive full_conversation.json path from HISTORY_FILE location."""
     return os.path.join(os.path.dirname(cfg.HISTORY_FILE), 'full_conversation.json')
+
+
+def _sanitize_history_text(value: str) -> str:
+    if "data:image/" not in value:
+        return value
+    sanitized = _DATA_IMAGE_RE.sub(_IMAGE_HISTORY_PLACEHOLDER, value)
+    if sanitized == value and value.strip().startswith("data:image/"):
+        return _IMAGE_HISTORY_PLACEHOLDER
+    return sanitized
+
+
+def _sanitize_history_value(value: Any) -> Any:
+    """Return a JSON-safe copy without inline image data URLs."""
+
+    if isinstance(value, str):
+        return _sanitize_history_text(value)
+    if isinstance(value, list):
+        return [_sanitize_history_value(item) for item in value]
+    if isinstance(value, dict):
+        image_url = value.get("image_url") or value.get("imageUrl") or value.get("url")
+        if (
+            str(value.get("type") or "") == "input_image"
+            and isinstance(image_url, str)
+            and image_url.startswith("data:image/")
+        ):
+            detail = str(value.get("detail") or "").strip()
+            text = _IMAGE_HISTORY_PLACEHOLDER
+            if detail:
+                text = f"{text} detail={detail}"
+            return {"type": "text", "text": text}
+        return {key: _sanitize_history_value(item) for key, item in value.items()}
+    return value
+
+
+def sanitize_messages_for_history(messages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Copy messages while removing large inline prompt images from history."""
+
+    if not isinstance(messages, list):
+        return []
+    return [
+        _sanitize_history_value(message)
+        for message in messages
+        if isinstance(message, dict)
+    ]
 
 
 def _append_to_full_history(messages: List[Dict[str, Any]], cfg) -> None:
@@ -32,13 +82,19 @@ def _append_to_full_history(messages: List[Dict[str, Any]], cfg) -> None:
                 existing = []
         else:
             existing = []
+        sanitized_existing = sanitize_messages_for_history(existing)
+        existing_changed = sanitized_existing != existing
+        existing = sanitized_existing
 
         # Only append messages beyond what's already stored
         new_count = len(messages) - len(existing)
         if new_count <= 0:
+            if existing_changed:
+                with open(full_path, 'w', encoding='utf-8') as f:
+                    json.dump(existing, f, indent=2, ensure_ascii=False)
             return
 
-        new_messages = messages[len(existing):]
+        new_messages = sanitize_messages_for_history(messages[len(existing):])
         existing.extend(new_messages)
 
         with open(full_path, 'w', encoding='utf-8') as f:
@@ -67,12 +123,13 @@ def save_conversation_history(
         return
 
     try:
+        safe_messages = sanitize_messages_for_history(messages)
         tmp_path = cfg.HISTORY_FILE + ".tmp"
         with open(tmp_path, 'w', encoding='utf-8') as f:
-            json.dump(messages, f, indent=2, ensure_ascii=False)
+            json.dump(safe_messages, f, indent=2, ensure_ascii=False)
         os.replace(tmp_path, cfg.HISTORY_FILE)
         # Also append new messages to the append-only full history
-        _append_to_full_history(messages, cfg)
+        _append_to_full_history(safe_messages, cfg)
         if not silent:
             try:
                 from lib.display import Color  # type: ignore
@@ -231,6 +288,7 @@ def load_conversation_history(cfg=None, silent=False) -> Optional[List[Dict[str,
         if os.path.exists(cfg.HISTORY_FILE) and os.path.getsize(cfg.HISTORY_FILE) > 0:
             with open(cfg.HISTORY_FILE, 'r', encoding='utf-8') as f:
                 messages = json.load(f)
+            messages = sanitize_messages_for_history(messages)
             if not silent:
                 try:
                     from lib.display import Color  # type: ignore

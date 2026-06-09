@@ -156,6 +156,7 @@ def _write_ssot(
     cmd_addr_width: int = 12,
     include_cycle_model: bool = True,
     function_anchor_only: bool = False,
+    falsify_behavior: bool = False,
 ) -> None:
     requirement_refs = ["REQ_TIMER_APB_001"] if include_req_ref else []
     central_contract_refs = ["C_TIMER_APB_IF"]
@@ -293,6 +294,20 @@ def _write_ssot(
                 }
             },
         }
+    if falsify_behavior:
+        # Replace every behavioral semantic VALUE while keeping keys present and
+        # non-empty. Presence-only checks accept this; a content-aware check must reject.
+        if include_cycle_model:
+            doc["cycle_model"]["handshake_rules"][0]["rule"] = "LIE LIE LIE"
+            doc["cycle_model"]["handshake_rules"][0]["signal"] = "bogus/bogus"
+            doc["cycle_model"]["latency"]["FM_APB_ACCESS"]["min_cycles"] = 9999
+            doc["cycle_model"]["latency"]["FM_APB_ACCESS"]["max_cycles"] = 9999
+        falsified_tx = doc["function_model"]["transactions"][0]
+        falsified_tx["preconditions"] = ["never == true"]
+        falsified_tx["output_rules"][0]["expr"] = "garbage_expr_999"
+        falsified_tx["decision_table"][0]["when"] = "never == true"
+        falsified_tx["decision_table"][0]["then"] = {"accept_cmd": 0, "rsp_rdata": "WRONG VALUE"}
+
     ssot = tmp_path / ip / "yaml" / f"{ip}.ssot.yaml"
     ssot.parent.mkdir(parents=True)
     ssot.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
@@ -376,6 +391,18 @@ def test_check_design_spec_trace_rejects_missing_cycle_model_contract(tmp_path: 
 
     assert result.returncode == 1
     assert "is not projected into a cycle_model row" in result.stdout
+
+
+def test_check_design_spec_trace_rejects_falsified_behavioral_semantics(tmp_path: Path) -> None:
+    ip = "brian_timer"
+    manifest = _lock_bundle(tmp_path, ip)
+    _write_ssot(tmp_path, ip, manifest, falsify_behavior=True)
+
+    result = _check(tmp_path, ip)
+
+    assert result.returncode == 1, result.stdout
+    assert "BC_TIMER_ACCESS" in result.stdout
+    assert "behavioral contract content mismatch" in result.stdout
 
 
 def test_atlas_pipeline_ssot_template_runs_trace_checker_conditionally() -> None:

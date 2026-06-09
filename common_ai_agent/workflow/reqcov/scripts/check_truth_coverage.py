@@ -242,18 +242,12 @@ def _add_tokens(tokens: set[str], value: str) -> None:
 
 def _evidence_tokens(ip_dir: Path) -> set[str]:
     tokens: set[str] = set()
-    coverage = _load_json(ip_dir / "cov" / "coverage.json")
-    for section in ("function_coverage", "cycle_coverage"):
-        bins = _as_map(_as_map(coverage.get(section)).get("bins"))
-        for name, item in bins.items():
-            data = _as_map(item)
-            if data.get("hit") is True:
-                _add_tokens(tokens, name)
-                _add_tokens(tokens, _text(data.get("goal_id")))
-                _add_tokens(tokens, _text(data.get("scenario_id")))
-                plan = _as_map(data.get("plan"))
-                _add_tokens(tokens, _text(plan.get("source")))
     sim_path = ip_dir / "sim" / "scoreboard_events.jsonl"
+    # cov/coverage.json is only authoritative when a real sim actually ran, i.e.
+    # there is >=1 PASSING scoreboard event. Without this provenance, a hand-written
+    # coverage.json with obligation-named hit:true bins and a deleted sim/ silently
+    # "covers" every required obligation.
+    has_passing_event = False
     if sim_path.is_file():
         for raw in sim_path.read_text(encoding="utf-8", errors="replace").splitlines():
             if not raw.strip():
@@ -261,6 +255,7 @@ def _evidence_tokens(ip_dir: Path) -> set[str]:
             row = _as_map(json.loads(raw))
             if row.get("passed") is not True:
                 continue
+            has_passing_event = True
             _add_tokens(tokens, _text(row.get("goal_id")))
             _add_tokens(tokens, _text(row.get("scenario_id")))
             for ref in _as_list(row.get("coverage_refs")):
@@ -285,6 +280,18 @@ def _evidence_tokens(ip_dir: Path) -> set[str]:
                 _add_tokens(tokens, "all_drop_scenarios_pass")
                 if _truthy_zero(observed.get("sram_wr_valid")) or _truthy_zero(observed.get("sram_write_valid")):
                     _add_tokens(tokens, "no_sram_write_on_drop")
+    coverage = _load_json(ip_dir / "cov" / "coverage.json") if has_passing_event else {}
+    for section in ("function_coverage", "cycle_coverage"):
+        bins = _as_map(_as_map(coverage.get(section)).get("bins"))
+        for name, item in bins.items():
+            data = _as_map(item)
+            if data.get("hit") is not True:
+                continue
+            _add_tokens(tokens, name)
+            _add_tokens(tokens, _text(data.get("goal_id")))
+            _add_tokens(tokens, _text(data.get("scenario_id")))
+            plan = _as_map(data.get("plan"))
+            _add_tokens(tokens, _text(plan.get("source")))
     rtl_todo = _load_json(ip_dir / "rtl" / "rtl_todo_plan.json")
     gate = _as_map(rtl_todo.get("gate"))
     if gate.get("status") == "pass":

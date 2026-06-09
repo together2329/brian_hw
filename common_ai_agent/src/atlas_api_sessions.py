@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 
 from core.atlas_context import AtlasContext
 from core.atlas_exec_policy import EXEC_MODE_SINGLE, current_exec_mode
+from core.history_manager import sanitize_messages_for_history
 try:
     from atlas_session_delete import force_delete_requested, session_delete_response
 except ModuleNotFoundError:  # imported package-style (src.atlas_api_sessions): src/ not on sys.path as bare
@@ -1060,6 +1061,7 @@ def register_sessions_routes(
             _request_user_id(request),
             limit,
         )
+        msgs = sanitize_messages_for_history(msgs)
         return JSONResponse({"messages": msgs, "session": session,
                              "path": _display_path(hpath, display_base),
                              "exists": bool(db_msgs is not None or hpath.is_file()),
@@ -1141,6 +1143,7 @@ def register_sessions_routes(
             _request_user_id(request),
             -1 if mode_norm == "full" else limit,
         )
+        messages = sanitize_messages_for_history(messages)
         if chat_merged:
             conversation_source = f"{conversation_source}+orchestrator_chat"
 

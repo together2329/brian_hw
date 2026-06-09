@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from src.workflow_stage_engine import ToolRun, WorkflowStageEngine
 
 
@@ -378,3 +380,110 @@ def test_stage_engine_tb_runs_contract_ledger_before_and_after_generation(tmp_pa
     ]
     assert "dynamic_todos" in result.message
     assert result.metadata["tb_todo_plan"]["gate"]["status"] == "pass"
+
+
+# ---------------------------------------------------------------------------
+# Mutation-gate negative tests (A0)
+#
+# A gate's defining test is the FAIL case: start from a known-good fixture that
+# legitimately passes, degrade exactly one thing the gate claims to enforce, and
+# assert the gate STOPS reporting "pass". These reproduce the content-blind
+# silent-PASS holes (HIGH-1/2/3) and are the red harness that A1-A3 must turn
+# green.
+# ---------------------------------------------------------------------------
+
+_GOOD_EVENT = {
+    "goal_id": "EQ_READ",
+    "scenario_id": "SC_READ",
+    "cycle": 3,
+    "stimulus": {"cmd_valid": 1},
+    "fl_expected": {"rsp_data": 0},
+    "rtl_observed": {"rsp_data": 0},
+    "passed": True,
+    "coverage_refs": ["FCOV_READ"],
+}
+_GOOD_COVERAGE = {
+    "status": "pass",
+    "rtl_observed": {"status": "pass", "missing_bins": [], "invalid_rows": []},
+}
+
+
+def _write_evidence(ip_dir: Path, *, event: dict, coverage: dict) -> None:
+    (ip_dir / "sim").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "cov").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "sim" / "scoreboard_events.jsonl").write_text(
+        json.dumps(event) + "\n", encoding="utf-8"
+    )
+    (ip_dir / "cov" / "coverage.json").write_text(
+        json.dumps(coverage) + "\n", encoding="utf-8"
+    )
+
+
+def _mut_comment_only_scoreboard(ip_dir: Path, ip: str) -> None:
+    # HIGH-1: substring "EquivalenceScoreboard" present, but only inside a comment
+    # — no real import/usage. A hollow scoreboard must not pass authoring.
+    (ip_dir / "tb" / "cocotb" / "scoreboard.py").write_text(
+        "# TODO: someday wire EquivalenceScoreboard\n", encoding="utf-8"
+    )
+
+
+def _mut_empty_tb_bodies(ip_dir: Path, ip: str) -> None:
+    # HIGH-1: scoreboard import kept intact, but the files that should carry the
+    # contract stimulus/sequences are gutted. File-existence-only checks miss this.
+    for name in ("transactions.py", "sequences.py", "agents.py", f"test_{ip}.py"):
+        (ip_dir / "tb" / "cocotb" / name).write_text("", encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    "name,mutate",
+    [
+        ("comment_only_scoreboard", _mut_comment_only_scoreboard),
+        ("empty_tb_bodies", _mut_empty_tb_bodies),
+    ],
+)
+def test_audit_tb_gate_rejects_hollow_authoring(tmp_path: Path, name, mutate) -> None:
+    ip = "tb_mut_authoring"
+    ip_dir = _write_ip(tmp_path, ip)
+    _write_tb_artifacts(ip_dir, ip)
+    mutate(ip_dir, ip)
+
+    _run(tmp_path, ip, "--audit-tb")
+
+    plan = json.loads((ip_dir / "tb" / "tb_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["gate"]["status"] != "pass", f"silent-PASS on hollow authoring `{name}`: {plan['gate']}"
+
+
+def test_audit_evidence_gate_rejects_vacuous_scoreboard_row(tmp_path: Path) -> None:
+    # HIGH-2: a row whose stimulus/fl_expected/rtl_observed are all empty dicts but
+    # passed=True (empty == empty) must not close contract validation.
+    ip = "tb_mut_vacuous"
+    ip_dir = _write_ip(tmp_path, ip)
+    _write_tb_artifacts(ip_dir, ip)
+    vacuous = {
+        "goal_id": "EQ_READ",
+        "scenario_id": "",
+        "stimulus": {},
+        "fl_expected": {},
+        "rtl_observed": {},
+        "passed": True,
+        "coverage_refs": [],
+    }
+    _write_evidence(ip_dir, event=vacuous, coverage=_GOOD_COVERAGE)
+
+    _run(tmp_path, ip, "--audit-evidence")
+
+    plan = json.loads((ip_dir / "tb" / "tb_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["gate"]["status"] != "pass", f"silent-PASS on vacuous scoreboard row: {plan['gate']}"
+
+
+def test_audit_evidence_gate_rejects_coverage_without_status(tmp_path: Path) -> None:
+    # HIGH-3: coverage.json with the status field omitted must fail, not pass.
+    ip = "tb_mut_coverage"
+    ip_dir = _write_ip(tmp_path, ip)
+    _write_tb_artifacts(ip_dir, ip)
+    _write_evidence(ip_dir, event=_GOOD_EVENT, coverage={"note": "no status field"})
+
+    _run(tmp_path, ip, "--audit-evidence")
+
+    plan = json.loads((ip_dir / "tb" / "tb_todo_plan.json").read_text(encoding="utf-8"))
+    assert plan["gate"]["status"] != "pass", f"silent-PASS on coverage without status: {plan['gate']}"

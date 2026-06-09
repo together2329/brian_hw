@@ -1,5 +1,49 @@
 # Wiki Log
 
+## 2026-06-10
+
+- Mutation-survivor signoff enforcement (commit `133c89e8`): `check_ip_signoff`
+  passed any `mutation_report.json` with status=pass even at kill_rate 0.1 (9
+  survivors) — a TB catching ~10% of planted faults still signed off. Now when a
+  mutation report is present, every survivor must be killed or classified
+  provably-equivalent in `survivor_classification.json`, else signoff fails (not a
+  kill-rate threshold; that stays the deferred `mutation_enforcement_requires_human_policy`
+  call). Absent report still advisory, so legacy IPs are unaffected. Guarded by a new
+  `mutation_survivors_unclassified` mutation in the ip_signoff gate self-test.
+  Open policy call: make mutation evidence MANDATORY (absent→fail).
+
+## 2026-06-09
+
+- Gate self-test meta-gate **backlog driven to 0** (commit `c8d72a98`): all 11
+  STAGE_MANIFEST gates now have a kill-proof self-test in `tests/test_gate_self_test.py`
+  (`UNCOVERED_GATES == {}`). Includes the 2 fixed silent-PASS gates (their
+  previously-surviving mutations now killed, guarding the fixes), the 5 confirmed-green
+  gates, and `dut_lint`/`rtl_compile` behind a `requires_tool` skipif. The ratchet now
+  protects every gate. Open: STAGE_MANIFEST `rtl_final_gate` `--enforce`→`--audit-rtl`
+  manifest bug. See [[silent-pass-gate-hardening-20260609]].
+
+- Gate self-test sweep of the 7 backlog gates (7 parallel read-only investigators):
+  5 GREEN (`derive_rtl_todos`, `ssot_coverage_summary`, `dut_lint_report`,
+  `check_tb_python_compile`, `rtl_compile_report` — genuinely content-enforcing),
+  and 2 RED holes FOUND + FIXED: `check_truth_coverage` credited `cov/coverage.json`
+  with no provenance (fabricated coverage + deleted sim/ passed) → now gated on a
+  real passing scoreboard event (commit `7dd75a55`); `run_contract_check` default
+  returned PASS over 0 obligations (vacuous closure) → `_status` floor now blocks
+  empty contracts (commit `e38743b2`). 149 consumer tests green. Open: STAGE_MANIFEST
+  `rtl_final_gate` uses `--enforce` (invalid argparse, rc=2 — the gate never runs;
+  real flag is `--audit-rtl`), and the 7 self-test recipes are not yet registered
+  into the meta-gate. See [[silent-pass-gate-hardening-20260609]].
+
+- Silent-PASS gate hardening on branch `fix/silent-pass-gate-hardening`: fixed the
+  content-blind tb contract-ledger gate, the unanchored execution-resume matcher,
+  and the req-gate visible-skip + auto `--audit-evidence` wiring (the A series),
+  then added the gate self-test **meta-gate** (`tests/test_gate_self_test.py`) — a
+  kill-proof `GATE_REGISTRY` + ratchet that fails if any `STAGE_MANIFEST` gate is
+  unregistered, so a new hollow gate cannot ship unacknowledged. 4 gates covered
+  (tb_contract_ledger, req_contract_authority, scoreboard_events, ip_signoff); an
+  explicit 7-gate frozen backlog remains. Full record + remaining TODO:
+  [[silent-pass-gate-hardening-20260609]].
+
 ## 2026-06-08
 
 - Extended [[todo-loop-verification-hardening-20260608]] with the follow-up

@@ -167,3 +167,41 @@ def test_model_contract_trace_rejects_direct_rtl_when_ssot_projection_is_anchor_
 
     assert result.returncode == 1
     assert "anchor-only function_model projection" in result.stdout
+
+
+def test_model_contract_trace_rejects_comment_only_representation(tmp_path: Path) -> None:
+    """T-M1/T-M2: contract tokens living only in a comment + apply() raising must fail."""
+    ip = "trace_ip"
+    ip_dir = _write_req_and_ssot(tmp_path, ip)
+    _write_model_artifacts(ip_dir)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        "# BC_ACCESS data_o state_q FM_ACCESS  (tokens live only in this comment)\n"
+        "class FunctionalModel:\n"
+        "    def apply(self, txn):\n"
+        "        raise NotImplementedError\n"
+        "\n"
+        "def run_self_check():\n"
+        "    return {'passed': True}\n",
+        encoding="utf-8",
+    )
+
+    result = _run_trace(tmp_path, ip)
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "not represented in FL artifacts" in result.stdout or "executable body" in result.stdout
+
+
+def test_model_contract_trace_rejects_emptied_cycle_model_comment(tmp_path: Path) -> None:
+    """T-M4: cycle_model.py emptied to a bare comment must fail even if cl_model_check lists strings."""
+    ip = "trace_ip"
+    ip_dir = _write_req_and_ssot(tmp_path, ip)
+    _write_model_artifacts(ip_dir)
+    (ip_dir / "model" / "cycle_model.py").write_text(
+        "# CM_ACCEPT BC_ACCESS  (cycle model emptied to a bare comment)\n",
+        encoding="utf-8",
+    )
+
+    result = _run_trace(tmp_path, ip)
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "not represented in CL artifacts" in result.stdout or "executable body" in result.stdout

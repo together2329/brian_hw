@@ -14,6 +14,7 @@ This script has two valid modes:
 from __future__ import annotations
 
 import argparse
+import ast
 import json
 import sys
 from pathlib import Path
@@ -129,12 +130,171 @@ def _path_tokens(paths: list[str], contract_id: str) -> set[str]:
     return {token for token in tokens if token and token not in {"function_model", "cycle_model"}}
 
 
-def _text_has_any(text: str, tokens: set[str]) -> bool:
-    return any(token in text for token in tokens)
+def _source_tokens(text: str) -> set[str]:
+    """Collect identifiers and string-Constant payloads from parsed source.
+
+    Comments never enter the AST, and pure module docstrings are excluded, so a
+    contract id that lives only in a ``# comment`` or top-level docstring no
+    longer counts as a representation. Names, attributes, import aliases, keyword
+    argument names, and the *substrings* of string literals are all considered so
+    that a contract id embedded in an executable string (e.g. a dict literal)
+    still matches.
+    """
+    tokens: set[str] = set()
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return tokens
+    docstring_nodes = {id(node) for node in (ast.get_docstring(tree, clean=False),) if node}
+    # Identify module docstring Constant node to exclude it.
+    module_doc_node = None
+    if tree.body and isinstance(tree.body[0], ast.Expr) and isinstance(tree.body[0].value, ast.Constant):
+        if isinstance(tree.body[0].value.value, str):
+            module_doc_node = tree.body[0].value
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name):
+            tokens.add(node.id)
+        elif isinstance(node, ast.Attribute):
+            tokens.add(node.attr)
+        elif isinstance(node, ast.arg):
+            tokens.add(node.arg)
+        elif isinstance(node, ast.keyword) and node.arg:
+            tokens.add(node.arg)
+        elif isinstance(node, ast.ImportFrom):
+            for alias in node.names:
+                tokens.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                tokens.add(alias.asname or alias.name)
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if node is module_doc_node:
+                continue  # module docstring is documentation, not representation
+            tokens.add(node.value)
+    tokens.discard("")
+    return tokens
 
 
-def _keys_have_any(keys: set[str], tokens: set[str]) -> bool:
-    return bool(keys & tokens)
+def _source_has_any(text: str, tokens: set[str]) -> bool:
+    """True if any token is represented in the parsed source (not in comments)."""
+    src_tokens = _source_tokens(text)
+    if tokens & src_tokens:
+        return True
+    # A contract id / path part may be embedded inside a larger string literal
+    # payload (e.g. {"BC_ACCESS": ...}); match those substrings too.
+    string_payloads = [tok for tok in src_tokens]
+    return any(any(token in payload for payload in string_payloads) for token in tokens)
+
+
+def _entry_point_executable(text: str, names: tuple[str, ...]) -> bool:
+    """True if at least one of the named entry-point functions has a real body.
+
+    Mirrors the executable-body floor in workflow/tb-gen/scripts/derive_tb_todos.py:
+    a function whose body is only ``pass``/docstring/``return None``/``raise
+    NotImplementedError`` is treated as a hollow stub. If no entry point matches
+    the requested names, the module-level floor (any statement beyond a docstring)
+    is used as a fallback so non-class cycle models are not over-rejected.
+    """
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return False
+
+    def real_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+        for stmt in node.body:
+            if isinstance(stmt, ast.Pass):
+                continue
+            if (
+                isinstance(stmt, ast.Expr)
+                and isinstance(stmt.value, ast.Constant)
+                and isinstance(stmt.value.value, str)
+            ):
+                continue  # docstring
+            if isinstance(stmt, ast.Return) and (
+                stmt.value is None
+                or (isinstance(stmt.value, ast.Constant) and stmt.value.value is None)
+            ):
+                continue
+            if isinstance(stmt, ast.Raise):
+                exc = stmt.exc
+                exc_name = ""
+                if isinstance(exc, ast.Call) and isinstance(exc.func, ast.Name):
+                    exc_name = exc.func.id
+                elif isinstance(exc, ast.Name):
+                    exc_name = exc.id
+                if exc_name == "NotImplementedError":
+                    continue  # explicit stub
+            return True
+        return False
+
+    found_named = False
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in names:
+            found_named = True
+            if real_body(node):
+                return True
+    if found_named:
+        return False
+    # Fallback: module floor (any statement beyond a docstring/pass).
+    for stmt in tree.body:
+        if isinstance(stmt, ast.Pass):
+            continue
+        if (
+            isinstance(stmt, ast.Expr)
+            and isinstance(stmt.value, ast.Constant)
+            and isinstance(stmt.value.value, str)
+        ):
+            continue
+        return True
+    return False
+
+
+def _per_contract_evidence(check: dict[str, Any]) -> set[str]:
+    """Collect contract ids represented by structured per-contract evidence.
+
+    Two complementary sources are unioned:
+
+    - dict rows under ``transaction_results``/``results``/``contracts``/etc. whose
+      ``passed`` is not explicitly false (rejects rows that lie); and
+    - coverage/key representation (``_extract_check_keys``), which is the real CL
+      authoring convention (per-contract coverage lists rather than per-row dicts).
+
+    A check file that only sets ``passed: true`` at the top with no contract
+    mention at all yields an empty set, so the caller's per-contract requirement
+    fails — but a check that lists the contract in a coverage row still passes.
+    """
+    seen: set[str] = set()
+
+    def row_id(item: dict[str, Any]) -> set[str]:
+        ids: set[str] = set()
+        for key in ("id", "contract_id", "contract", "contract_ref", "name", "goal_id"):
+            val = item.get(key)
+            if isinstance(val, str) and val.strip():
+                ids.add(val.strip())
+        for key in ("contract_refs", "contracts"):
+            val = item.get(key)
+            if isinstance(val, list):
+                for child in val:
+                    if isinstance(child, str) and child.strip():
+                        ids.add(child.strip())
+        return ids
+
+    def visit(item: Any) -> None:
+        if isinstance(item, dict):
+            if item.get("passed") is not False:
+                seen.update(row_id(item))
+            for child in item.values():
+                visit(child)
+        elif isinstance(item, list):
+            for child in item:
+                visit(child)
+
+    for key in ("transaction_results", "results", "contracts", "coverage", "trace", "checks"):
+        if key in check:
+            visit(check[key])
+    if isinstance(check.get("self_check"), dict):
+        visit(check["self_check"])
+    seen.update(_extract_check_keys(check))
+    return seen
 
 
 def _signature_issue(ip: str, ssot: dict[str, Any], signature: dict[str, Any]) -> str:
@@ -255,11 +415,9 @@ def validate(ip: str, root: Path, *, allow_direct_rtl: bool = False) -> dict[str
         issues.append("missing FL model contract artifact(s): " + ", ".join(missing_fl))
 
     fl_check: dict[str, Any] = {}
-    fl_keys: set[str] = set()
     if existing["fl_model_check"]:
         try:
             fl_check = _load_json(paths["fl_model_check"])
-            fl_keys = _extract_check_keys(fl_check)
             if fl_check.get("passed") is not True:
                 issues.append("model/fl_model_check.json must have passed=true")
         except Exception as exc:
@@ -275,14 +433,25 @@ def validate(ip: str, root: Path, *, allow_direct_rtl: bool = False) -> dict[str
             issues.append(f"cannot verify model/model_signature.json: {type(exc).__name__}: {exc}")
 
     fl_source = _read_text(paths["functional_model"]) if existing["functional_model"] else ""
+    if existing["functional_model"] and not _entry_point_executable(fl_source, ("apply",)):
+        issues.append(
+            "model/functional_model.py FunctionalModel.apply has no executable body "
+            "(only pass/docstring/return None/raise NotImplementedError); a hollow FL model is rejected"
+        )
+    fl_evidence_ids = _per_contract_evidence(fl_check) if existing["fl_model_check"] else set()
     function_hits = projection.get("function_model_hits") if isinstance(projection.get("function_model_hits"), dict) else {}
     for contract_id in sorted(contract_ids):
         hit_paths = [str(item) for item in _as_list(function_hits.get(contract_id))]
         tokens = _path_tokens(hit_paths, contract_id)
-        if hit_paths and not (_keys_have_any(fl_keys, tokens) or _text_has_any(fl_source, tokens)):
+        if hit_paths and not _source_has_any(fl_source, tokens):
             issues.append(
                 f"behavioral contract {contract_id} function_model rows are not represented in FL artifacts: "
                 + ", ".join(hit_paths)
+            )
+        elif hit_paths and existing["fl_model_check"] and contract_id not in fl_evidence_ids:
+            issues.append(
+                f"behavioral contract {contract_id} has no structured per-contract evidence in "
+                "model/fl_model_check.json (a passing per-contract row is required, not just top passed=true)"
             )
 
     cycle_required_contracts = sorted(
@@ -294,25 +463,38 @@ def validate(ip: str, root: Path, *, allow_direct_rtl: bool = False) -> dict[str
         issues.append("missing CL model contract artifact(s): " + ", ".join(missing_cl))
 
     cl_check: dict[str, Any] = {}
-    cl_keys: set[str] = set()
     if existing["cl_model_check"]:
         try:
             cl_check = _load_json(paths["cl_model_check"])
-            cl_keys = _extract_check_keys(cl_check)
             if cl_check.get("passed") is not True:
                 issues.append("model/cl_model_check.json must have passed=true")
         except Exception as exc:
             issues.append(f"cannot parse model/cl_model_check.json: {type(exc).__name__}: {exc}")
 
     cl_source = _read_text(paths["cycle_model"]) if existing["cycle_model"] else ""
+    if (
+        cycle_required_contracts
+        and existing["cycle_model"]
+        and not _entry_point_executable(cl_source, ("run_self_check", "self_check", "tick", "drive", "step"))
+    ):
+        issues.append(
+            "model/cycle_model.py has no executable cycle-model body "
+            "(emptied to a comment/stub); a hollow CL model is rejected"
+        )
+    cl_evidence_ids = _per_contract_evidence(cl_check) if existing["cl_model_check"] else set()
     cycle_hits = projection.get("cycle_model_hits") if isinstance(projection.get("cycle_model_hits"), dict) else {}
     for contract_id in cycle_required_contracts:
         hit_paths = [str(item) for item in _as_list(cycle_hits.get(contract_id))]
         tokens = _path_tokens(hit_paths, contract_id)
-        if hit_paths and not (_keys_have_any(cl_keys, tokens) or _text_has_any(cl_source, tokens)):
+        if hit_paths and not _source_has_any(cl_source, tokens):
             issues.append(
                 f"behavioral contract {contract_id} cycle_model rows are not represented in CL artifacts: "
                 + ", ".join(hit_paths)
+            )
+        elif hit_paths and existing["cl_model_check"] and contract_id not in cl_evidence_ids:
+            issues.append(
+                f"behavioral contract {contract_id} has no structured per-contract evidence in "
+                "model/cl_model_check.json (a passing per-contract row is required, not just top passed=true)"
             )
 
     return {

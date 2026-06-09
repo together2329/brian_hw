@@ -16,6 +16,7 @@ if str(WORKFLOW_ROOT) not in sys.path:
 from behavioral_contracts import (
     BehavioralContractError,
     behavioral_contract_ids,
+    compare_behavioral_content_to_ssot,
     compare_behavioral_to_function_cycle,
     compare_behavioral_to_ssot,
     normalize_behavioral_contracts,
@@ -241,6 +242,9 @@ def check_design_spec_trace(ip: str, root: Path) -> tuple[bool, list[str], dict[
         function_cycle_issues, function_cycle_compare = compare_behavioral_to_function_cycle(behavioral, doc)
         behavioral_summary["function_cycle_projection"] = function_cycle_compare
         issues.extend(function_cycle_issues)
+        content_issues, content_compare = compare_behavioral_content_to_ssot(behavioral, doc)
+        behavioral_summary["content_projection"] = content_compare
+        issues.extend(content_issues)
     except BehavioralContractError as exc:
         issues.append(str(exc))
 

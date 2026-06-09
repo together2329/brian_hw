@@ -390,6 +390,40 @@ class TestNormalTurn(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
+# TestExecutionResumeRequest
+# ---------------------------------------------------------------------------
+
+class TestExecutionResumeRequest(unittest.TestCase):
+    """`_is_execution_resume_request` must match resume intent WITHOUT firing on
+    negations/unrelated text. Unanchored substring matching used to misread
+    'don't continue', 'discontinue', or '진행 상황 보여줘' as resumes, defeating
+    the STOP-pause contract."""
+
+    def _f(self, text):
+        from core.chat_loop import _is_execution_resume_request
+        return _is_execution_resume_request(text)
+
+    def test_explicit_resume_words_are_true(self):
+        for t in ["continue", "keep going", "proceed", "resume", "계속", "진행", "다시"]:
+            self.assertTrue(self._f(t), t)
+
+    def test_natural_short_resume_is_true(self):
+        for t in ["Can you keep going?", "ok continue please", "계속해줘", "진행해줘"]:
+            self.assertTrue(self._f(t), t)
+
+    def test_negation_and_unrelated_are_false(self):
+        for t in [
+            "Don't continue with that, let's do something else",
+            "Stop. I want to resume the dma_v1 work instead, not this.",
+            "이 작업 말고 다른 IP 진행 상황 보여줘",
+            "그건 그만하고 다시 처음부터 설명해줘",
+            "discontinue this approach",
+            "진행 상황 보여줘",
+        ]:
+            self.assertFalse(self._f(t), t)
+
+
+# ---------------------------------------------------------------------------
 # TestPlanModeConfirmation
 # ---------------------------------------------------------------------------
 

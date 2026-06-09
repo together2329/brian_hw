@@ -64,7 +64,7 @@ case "$STAGE" in
         fi
         run_hard "sim_run" bash "$WF/tb-gen/scripts/sim.sh" "$IP"
         run_hard "sim_evidence" bash "$WF/tb-gen/scripts/check_tb_sim_evidence.sh" "$IP"
-        run_hard "evidence_contract_closure" python3 "$WF/contract-reflection/scripts/check_evidence_contract.py" "$IP" --root .
+        run_hard "evidence_contract_closure" python3 "$WF/contract-reflection/scripts/check_evidence_contract.py" "$IP" --root . --require-nonempty
         ;;
     *)
         echo "[stage_gate] unknown stage: $STAGE" >&2; exit 2 ;;

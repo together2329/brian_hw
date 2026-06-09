@@ -235,7 +235,7 @@ def _semantic_issues(row: JsonMap) -> list[str]:
     return issues
 
 
-def _analyze(ip_dir: Path, require_classes: list[str]) -> QualityResult:
+def _analyze(ip_dir: Path, require_classes: list[str], allow_unconstrained: bool = False) -> QualityResult:
     rows, issues = _load_rows(ip_dir / "sim" / "scoreboard_events.jsonl")
     classes = {name: 0 for name in CLASS_TOKENS}
     observed_names: set[str] = set()
@@ -246,6 +246,14 @@ def _analyze(ip_dir: Path, require_classes: list[str]) -> QualityResult:
         issues.extend(_semantic_issues(row))
     required_observables = _required_observables(ip_dir)
     missing_observables = sorted(set(required_observables) - observed_names)
+    # Fail-closed floor: with NO required observables (verify/ip_contract.json)
+    # AND NO --require-class flags, the gate enforces nothing — a junk passed:true
+    # row would yield a vacuous pass. Reject unless explicitly opted out.
+    if not required_observables and not require_classes and not allow_unconstrained:
+        issues.append(
+            "nothing enforced: no required observables (verify/ip_contract.json) "
+            "and no --require-class flags; pass --allow-unconstrained to override"
+        )
     if missing_observables:
         issues.append("missing required observable(s): " + ", ".join(missing_observables))
     for class_name in require_classes:
@@ -305,11 +313,16 @@ def main() -> int:
     parser.add_argument("ip")
     parser.add_argument("--root", default=".")
     parser.add_argument("--require-class", action="append", default=[])
+    parser.add_argument(
+        "--allow-unconstrained",
+        action="store_true",
+        help="permit a pass with no required observables and no --require-class (disables the fail-closed floor)",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
     ip_dir = _resolve_ip_dir(root, str(args.ip))
-    result = _analyze(ip_dir, [str(item) for item in args.require_class])
+    result = _analyze(ip_dir, [str(item) for item in args.require_class], allow_unconstrained=args.allow_unconstrained)
     _write_report(ip_dir, result)
     print(
         "[simulation_quality] "
