@@ -248,7 +248,10 @@ def process_chat_turn(
 
             if do_compress:
                 state.messages = deps.compress_fn(
-                    state.messages, todo_tracker=state.todo_tracker, force=True
+                    state.messages,
+                    todo_tracker=state.todo_tracker,
+                    force=True,
+                    emit_summary=False,
                 )
 
         # n / no → cancel
@@ -282,6 +285,7 @@ def process_chat_turn(
                 todo_tracker=state.todo_tracker,
                 force=True,
                 quiet=True,
+                emit_summary=False,
             )
             if deps.context_tracker:
                 deps.context_tracker.update_messages(state.messages, exclude_system=True)

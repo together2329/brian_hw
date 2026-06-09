@@ -115,7 +115,13 @@ def process_observation(
         except ImportError:
             print(f"[System] Compressing history (tokens: {total_tokens:,} > {threshold_tokens:,})")
 
-        messages = compress_fn(messages, todo_tracker=todo_tracker, force=True, quiet=True)
+        messages = compress_fn(
+            messages,
+            todo_tracker=todo_tracker,
+            force=True,
+            quiet=True,
+            emit_summary=False,
+        )
 
         current_tokens = sum(estimate_tokens_fn(m) for m in messages)
         total_tokens = current_tokens + observation_tokens

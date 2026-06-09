@@ -1179,7 +1179,8 @@ from core.compressor import _find_hook, _hook_command
 
 
 def compress_history(messages, todo_tracker=None, force=False, instruction=None,
-                     keep_recent=None, dry_run=False, quiet=False):
+                     keep_recent=None, dry_run=False, quiet=False,
+                     emit_summary=True):
     """Wrapper: delegates to core.compressor with main.py dependencies injected.
     Pre-compression analysis is handled inside core.compressor.compress_history
     (only runs after threshold checks confirm compression is needed).
@@ -1202,6 +1203,7 @@ def compress_history(messages, todo_tracker=None, force=False, instruction=None,
             (lambda md: (_textual_emit_content_fn(md), _textual_emit_flush_fn and _textual_emit_flush_fn()))
             if _textual_emit_content_fn else None
         ),
+        emit_summary=emit_summary,
     )
     # Update sidebar immediately after any compression (auto or /compact)
     if _textual_emit_context_fn and not dry_run and result is not messages:
