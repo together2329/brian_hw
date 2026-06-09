@@ -978,22 +978,60 @@ class CycleModel:
 
         identity = " ".join(str(selected.get(key) or "") for key in ("id", "name")).lower()
         is_read_like = "read" in identity or "idle" in identity
-        for field_idx, raw_name in enumerate(selected.get("required_fields") or []):
-            name = str(raw_name).strip()
-            if not name or name in txn:
-                continue
+        # Seed every machine-readable FL input, not just required_fields.
+        # SSOT transaction rules often reference inputs such as parsed_msg_code,
+        # wr_counter_global_clear, or sram_rdata directly in state/output expressions;
+        # a cycle-model self-check must provide deterministic sample values for those
+        # declared inputs instead of reporting missing FL dependencies.
+        declared_fields = []
+        for container_name in ("required_fields", "inputs"):
+            for raw_name in selected.get(container_name) or []:
+                name = str(raw_name).strip()
+                if name and name not in declared_fields:
+                    declared_fields.append(name)
+
+        def _sample_value(name: str, field_idx: int):
             low = name.lower()
-            if low in {{"psel", "penable", "valid", "enable"}}:
-                value = 1
-            elif low in {{"pwrite", "write"}}:
-                value = 0 if is_read_like else 1
-            elif "addr" in low:
-                value = 0
-            elif "data" in low or "value" in low or "payload" in low:
-                value = (0x55 + idx + field_idx) & 0xFF
-            else:
-                value = field_idx + idx + 1
-            txn[name] = value
+            if low in {{"psel", "penable", "valid", "enable", "s_axi_wvalid", "s_axi_wready", "s_axi_wlast", "s_axi_arvalid", "s_axi_arready", "sram_ready", "sram_rvalid", "parsed_hdr_version_supported", "parsed_nonflit_no_ohc", "wr_counter_global_clear"}}:
+                return 1
+            if low in {{"pwrite", "write"}}:
+                return 0 if is_read_like else 1
+            if low == "parsed_msg_code":
+                return 0x7F
+            if low == "parsed_vendor_id":
+                return 0x1AB4
+            if low == "parsed_mctp_vdm_code":
+                return 0
+            if low == "parsed_pcie_type":
+                return 0
+            if low == "parsed_som":
+                return 1
+            if low == "parsed_eom":
+                return 1
+            if low == "parsed_seq" or low == "expected_seq":
+                return 0
+            if low == "payload_len":
+                return 64
+            if low == "tu_bytes":
+                return 64
+            if low == "timeout_cycles":
+                return 10
+            if low == "queue_age_cycles":
+                return 10
+            if low in {{"sequence_error", "tu_error", "overflow_error", "duplicate_start"}}:
+                return 1 if field_idx == 0 else 0
+            if "addr" in low:
+                return 0
+            if low == "sram_rdata":
+                return 0xA5
+            if "data" in low or "value" in low or "payload" in low:
+                return (0x55 + idx + field_idx) & 0xFF
+            return field_idx + idx + 1
+
+        for field_idx, name in enumerate(declared_fields):
+            if name in txn:
+                continue
+            txn[name] = _sample_value(name, field_idx)
         return txn
 
     def run_self_check(self) -> dict:

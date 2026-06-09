@@ -6347,7 +6347,7 @@ def refresh_ip_wiki(name=None, root="."):
     if builder.is_file():
         try:
             _sp.run(
-                ["python3", str(builder), "--ip", name, "--project-root", str(base.parent)],
+                [sys.executable, str(builder), "--ip", name, "--project-root", str(base.parent)],
                 check=False, capture_output=True, timeout=30,
             )
             rebuilt = True
