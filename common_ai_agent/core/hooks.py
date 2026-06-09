@@ -21,6 +21,11 @@ from enum import Enum
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Set
 
+_DATA_IMAGE_RE = re.compile(
+    r"data:image/[A-Za-z0-9.+-]+(?:;[A-Za-z0-9=.+-]+)*;base64,[A-Za-z0-9+/=\r\n]+"
+)
+_RESIZED_IMAGE_BYTES_ESTIMATE = 7373
+
 
 def _get_hook_message(key: str, default: str, **kwargs) -> str:
     """
@@ -232,6 +237,32 @@ def tool_output_truncator(context: HookContext) -> HookContext:
     return context
 
 
+def _estimate_text_tokens_with_image_discount(text: str) -> int:
+    adjusted = len(text)
+    for match in _DATA_IMAGE_RE.finditer(text):
+        adjusted -= len(match.group(0))
+        adjusted += _RESIZED_IMAGE_BYTES_ESTIMATE
+    return max(0, adjusted // 4)
+
+
+def _estimate_content_tokens(content: Any) -> int:
+    if isinstance(content, str):
+        return _estimate_text_tokens_with_image_discount(content)
+    if isinstance(content, dict):
+        if content.get("type") == "input_image":
+            return max(1, _RESIZED_IMAGE_BYTES_ESTIMATE // 4)
+        return sum(
+            _estimate_content_tokens(value)
+            for value in content.values()
+            if isinstance(value, (str, list, dict))
+        )
+    if isinstance(content, list):
+        return sum(_estimate_content_tokens(block) for block in content)
+    if content is None:
+        return 0
+    return len(str(content)) // 4
+
+
 # ============================================================
 # Built-in Hook: PreemptiveCompactor
 # ============================================================
@@ -247,20 +278,19 @@ def preemptive_compactor(context: HookContext) -> HookContext:
     if not context.messages:
         return context
 
-    # Estimate current context size in TOKENS
-    # Must match compressor.py which uses: limit_tokens = MAX_CONTEXT_TOKENS
-    total_chars = sum(
-        len(str(m.get("content", ""))) for m in context.messages
-    )
-    total_tokens = total_chars // 4
+    # Estimate current context size in TOKENS. Inline image data URLs are
+    # transport payloads; count them as fixed image cost instead of raw base64.
+    total_tokens = sum(_estimate_content_tokens(m.get("content", "")) for m in context.messages)
     limit_tokens = context.max_context_tokens
 
     threshold_tokens = int(limit_tokens * context.compression_threshold)
 
     if total_tokens > threshold_tokens:
         context.metadata["compression_needed"] = True
-        context.metadata["current_context_chars"] = total_chars
+        context.metadata["current_context_chars"] = total_tokens * 4
+        context.metadata["current_context_tokens"] = total_tokens
         context.metadata["threshold_chars"] = threshold_tokens * 4  # store as chars for display
+        context.metadata["threshold_tokens"] = threshold_tokens
         usage_pct = (total_tokens / limit_tokens) * 100
         context.metadata["context_usage_pct"] = usage_pct
 
