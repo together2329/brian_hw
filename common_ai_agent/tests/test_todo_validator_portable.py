@@ -179,12 +179,15 @@ def test_windows_bash_discovery_derives_from_git_and_skips_system32(monkeypatch)
     import shutil
     import lib.todo_tracker as tt
 
+    # Forward-slash Windows paths: valid on Windows, and they keep this test
+    # runnable on POSIX (posixpath.dirname cannot split backslash paths — the
+    # production code on real Windows uses ntpath, which handles both).
     which_map = {
         # PATH bash is the System32 WSL launcher — must NOT be treated as git-bash.
-        "bash": r"C:\Windows\System32\bash.exe",
-        "git": r"C:\Program Files\Git\cmd\git.exe",
+        "bash": "C:/Windows/System32/bash.exe",
+        "git": "C:/Program Files/Git/cmd/git.exe",
     }
-    derived = r"C:\Program Files\Git\bin\bash.exe"
+    derived = os.path.join("C:/Program Files/Git", "bin", "bash.exe")
     monkeypatch.setattr(shutil, "which", lambda name: which_map.get(name))
     monkeypatch.setattr(os.path, "isfile", lambda p: p == derived)
 
