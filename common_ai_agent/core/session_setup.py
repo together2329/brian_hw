@@ -134,3 +134,30 @@ def setup_session(project: str = 'default', workflow: str = '') -> Path:
         pass
 
     return session_dir
+
+
+def workflow_switch_target(active_session: str, workflow_name: str) -> tuple[str, str]:
+    """Rebuild the active session key with only the workflow segment swapped.
+
+    Returns ``(target_session, prev_workflow)``. Namespace shapes:
+
+      4-seg v2:    <owner>/<workspace_session>/<ip>/<workflow>
+      3-seg legacy: <owner>/<ip>/<workflow>
+
+    The 4-seg shape must keep its workspace_session segment intact — treating
+    segment[1] as the IP (the old 3-seg assumption) silently drops the real IP
+    and collapses the namespace, so the switched workflow lands in the wrong
+    session directory and the canonical key never reflects the new workflow.
+    Missing segments pad with "default" so the switch works before an IP is
+    picked.
+    """
+    parts = [p for p in str(active_session or "").split("/") if p]
+    workflow = str(workflow_name or "").strip() or "default"
+    if len(parts) >= 4:
+        owner, workspace_session, ip = parts[0], parts[1], parts[2]
+        prev_workflow = parts[3]
+        return f"{owner}/{workspace_session}/{ip}/{workflow}", prev_workflow
+    owner = parts[0] if len(parts) >= 1 and parts[0] else "default"
+    ip = parts[1] if len(parts) >= 2 and parts[1] else "default"
+    prev_workflow = parts[2] if len(parts) >= 3 else ""
+    return f"{owner}/{ip}/{workflow}", prev_workflow

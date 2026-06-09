@@ -1463,6 +1463,12 @@ def run_worker(session_id: str, db_path: str) -> int:
         agent._textual_poll_human_input_fn = worker.poll_interrupt
         agent._textual_set_agent_running_fn = worker.set_agent_running
         agent._textual_emit_mode_fn = worker.emit_mode
+        # Structured event channel for in-worker workflow switches (/wf,
+        # /to-ssot). worker.emit routes through the out-queue to the web UI,
+        # which follows the announced session key via the normal activate
+        # path — without this a worker-side switch never reaches the
+        # dropdown/healthz canonical state.
+        agent._textual_emit_event_fn = worker.emit
 
         try:
             from core import tools as _tools

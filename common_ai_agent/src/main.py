@@ -144,6 +144,7 @@ _textual_native_tui = False  # True only for the local Textual app, where stdout
 _textual_emit_mode_fn = None  # (mode: str) → None: notify frontend that agent_mode flipped (plan_q/plan/normal). Used to sync the UI mode pill when chat_loop's `y`/`yc` confirmation auto-promotes plan→normal — without this signal, the user typed "y", agent started executing, but the sidebar still showed PLAN.
 _textual_active_session_fn = None  # () → str: read the per-thread active session (atlas_ui sets this; falls through to ATLAS_ACTIVE_SESSION env when None). Lets atlas_ui retire the per-request os.environ write that races between concurrent users.
 _textual_active_ip_fn = None       # () → str: same idea for ATLAS_ACTIVE_IP — used by core/tools.py path validators.
+_textual_emit_event_fn = None      # (msg_type: str, payload: dict) → None: structured event emit to the web UI (session_worker binds worker.emit). Lets an in-worker workflow switch (/wf, /to-ssot) announce the NEW canonical session key so the frontend can follow via the normal activate path instead of silently diverging from the dropdown.
 
 
 def _get_active_session_str() -> str:
@@ -2634,16 +2635,31 @@ def chat_loop():
                             # that namespace instead of collapsing every IP
                             # into the flat workflow name.
                             _active_session = _get_active_session_str()
-                            # Session paths normally carry three
-                            # segments — <owner>/<ip>/<workflow>. Pad
-                            # missing segments with "default" so the
-                            # switch always works even before the user
-                            # picks an IP; nothing downstream cares if
-                            # the IP slot is literally "default".
-                            _parts = [p for p in (_active_session or "").split("/") if p]
-                            _owner = _parts[0] if len(_parts) >= 1 and _parts[0] else "default"
-                            _ip = _parts[1] if len(_parts) >= 2 and _parts[1] else "default"
-                            _target_session = f"{_owner}/{_ip}/{ws_name}"
+                            # Rebuild the session key with ONLY the workflow
+                            # segment swapped. 4-seg v2 namespaces
+                            # (<owner>/<workspace_session>/<ip>/<workflow>)
+                            # must keep their workspace_session — the old
+                            # 3-seg parse treated segment[1] as the IP and
+                            # silently dropped the real IP. Missing segments
+                            # pad with "default" so the switch works before
+                            # an IP is picked.
+                            from core.session_setup import workflow_switch_target as _wf_switch_target
+                            _target_session, _prev_wf = _wf_switch_target(_active_session, ws_name)
+                            _ip_parts = [p for p in _target_session.split("/") if p]
+                            _switch_ip = _ip_parts[-2] if len(_ip_parts) >= 2 else "default"
+                            if not _prev_wf:
+                                _prev_wf = os.environ.get("ACTIVE_WORKSPACE", "")
+                            if _textual_emit_event_fn is not None:
+                                try:
+                                    _textual_emit_event_fn("workspace_changing", {
+                                        "workspace": ws_name,
+                                        "prev": _prev_wf,
+                                        "ip": _switch_ip,
+                                        "session": _target_session,
+                                        "source": "worker/workflow-switch",
+                                    })
+                                except Exception:
+                                    pass
                             _setup_session(_target_session)
                             if _active_session:
                                 os.environ["ATLAS_SESSION_APPLIED"] = _active_session
@@ -2651,6 +2667,27 @@ def chat_loop():
                             _setup_workspace(ws_name)
                             # Mark active workspace in env
                             os.environ["ACTIVE_WORKSPACE"] = ws_name
+                            # Announce the switch as a STRUCTURED event, not just
+                            # chat text. The web UI's canonical session key (and
+                            # therefore /healthz active_workflow, the workflow
+                            # dropdown, and the next worker spawn) only changes
+                            # through the activate path — without this event a
+                            # worker-side /wf or /to-ssot switch stays a local
+                            # overlay: the UI keeps showing the old workflow and
+                            # a respawned worker boots WITHOUT this workspace's
+                            # system prompt. The frontend follows this event via
+                            # the same activate path a dropdown click uses.
+                            if _textual_emit_event_fn is not None:
+                                try:
+                                    _textual_emit_event_fn("workspace_changed", {
+                                        "workspace": ws_name,
+                                        "prev": _prev_wf,
+                                        "ip": _switch_ip,
+                                        "session": _target_session,
+                                        "source": "worker/workflow-switch",
+                                    })
+                                except Exception:
+                                    pass
                             # Rebuild system prompt with new workspace context
                             _new_sys = _build_system_prompt_str(agent_mode=agent_mode)
                             # Try to resume existing history for this workspace
