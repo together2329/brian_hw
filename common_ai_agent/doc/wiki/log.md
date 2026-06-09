@@ -1,5 +1,17 @@
 # Wiki Log
 
+## 2026-06-10
+
+- Mutation-survivor signoff enforcement (commit `133c89e8`): `check_ip_signoff`
+  passed any `mutation_report.json` with status=pass even at kill_rate 0.1 (9
+  survivors) — a TB catching ~10% of planted faults still signed off. Now when a
+  mutation report is present, every survivor must be killed or classified
+  provably-equivalent in `survivor_classification.json`, else signoff fails (not a
+  kill-rate threshold; that stays the deferred `mutation_enforcement_requires_human_policy`
+  call). Absent report still advisory, so legacy IPs are unaffected. Guarded by a new
+  `mutation_survivors_unclassified` mutation in the ip_signoff gate self-test.
+  Open policy call: make mutation evidence MANDATORY (absent→fail).
+
 ## 2026-06-09
 
 - Gate self-test meta-gate **backlog driven to 0** (commit `c8d72a98`): all 11
