@@ -100,3 +100,44 @@ def test_llm_client_image_token_estimate_discounts_base64_payload():
 
     assert llm_client.estimate_message_tokens(message) < 3_000
     assert llm_client.estimate_message_tokens(string_message) < 3_000
+
+
+def test_preemptive_hook_does_not_compress_for_image_payload_under_context_limit():
+    from core.hooks import HookContext, preemptive_compactor
+
+    ctx = HookContext(
+        messages=[
+            {"role": "system", "content": "sys"},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": "inspect this screenshot"},
+                    _image_block(payload_size=800_000),
+                ],
+            },
+        ],
+        max_context_tokens=200_000,
+        compression_threshold=0.85,
+    )
+
+    result = preemptive_compactor(ctx)
+
+    assert "compression_needed" not in result.metadata
+
+
+def test_preemptive_hook_still_compresses_large_text_context():
+    from core.hooks import HookContext, preemptive_compactor
+
+    ctx = HookContext(
+        messages=[
+            {"role": "system", "content": "sys"},
+            {"role": "user", "content": "x" * 3_600},
+        ],
+        max_context_tokens=1_000,
+        compression_threshold=0.85,
+    )
+
+    result = preemptive_compactor(ctx)
+
+    assert result.metadata["compression_needed"] is True
+    assert result.metadata["current_context_tokens"] >= 900

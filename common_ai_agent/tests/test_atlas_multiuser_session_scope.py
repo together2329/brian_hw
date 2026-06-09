@@ -1,3 +1,4 @@
+import base64
 import json
 import importlib
 import os
@@ -3070,3 +3071,100 @@ def test_ip_list_phantom_not_unmasked_by_shared_root_ssot(tmp_path, monkeypatch)
     listed2 = client.get("/api/ip/list?session_id=alice/s1/shared_ip/ssot-gen")
     assert listed2.status_code == 200, listed2.text
     assert "shared_ip" in {item["name"] for item in listed2.json()["items"]}
+
+
+def test_ssot_import_upload_lands_in_session_workspace(tmp_path, monkeypatch):
+    """Imported evidence must land in the caller's per-session workspace
+    (<root>/<owner>/<ws>/<ip>/req/imports), the same directory the file tree
+    and /to-ssot read — not the legacy shared PROJECT_ROOT/<ip> location.
+
+    Regression for /api/ssot/import/upload ignoring the (already-sent) session
+    and writing under the non-session _ip_root(ip), which made imports invisible
+    in the UI and scaffolded wiki/yaml in the wrong root.
+    """
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    # A prior activate-calling test may have leaked these into os.environ
+    # (os.environ.update(context.export_env())), which would steer _ip_root.
+    for key in ("ATLAS_IP_ROOT", "ATLAS_ACTIVE_SESSION", "ATLAS_ACTIVE_IP"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    # The upload endpoint resolves the per-session workspace directly from the
+    # `session` string the frontend already sends — no /api/session/activate
+    # required (and avoiding it keeps this test from leaking session env into
+    # later tests).
+    session = "alice/s1/mctp_assembler/ssot-gen"
+    content = b"# MCTP Assembler\n\nAPB register CTRL at offset 0x00; clk/rst_n.\n"
+    upload = client.post("/api/ssot/import/upload", json={
+        "ip": "mctp_assembler",
+        "session": session,
+        "files": [{"name": "spec.md",
+                   "content_b64": base64.b64encode(content).decode("ascii")}],
+    })
+    assert upload.status_code == 200, upload.text
+    payload = upload.json()
+    assert payload["errors"] == [], payload
+    saved_path = payload["paths"][0]
+
+    # Lands under the per-session workspace, NOT the bare shared root.
+    assert saved_path.startswith("alice/s1/mctp_assembler/req/imports/"), saved_path
+    assert (tmp_path / saved_path).is_file()
+    assert (tmp_path / "alice" / "s1" / "mctp_assembler" / "req" / "imports").is_dir()
+    # The legacy non-session location must NOT be created by the import.
+    assert not (tmp_path / "mctp_assembler" / "req" / "imports").exists(), \
+        "import must not write to the non-session PROJECT_ROOT/<ip> root"
+
+
+def test_ssot_validate_targets_session_workspace(tmp_path, monkeypatch):
+    """`/api/ssot/validate` must run the verifier against the caller's per-session
+    workspace root (<root>/<owner>/<ws>), not the shared PROJECT_ROOT.
+
+    Same session-blindness class as the import bug: the route took only `ip` and
+    ran the verifier with `--root PROJECT_ROOT`, validating the wrong copy for a
+    session user.
+    """
+    import shlex
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    for key in ("ATLAS_IP_ROOT", "ATLAS_ACTIVE_SESSION", "ATLAS_ACTIVE_IP"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    _register(client, "alice")
+
+    # Minimal SSOT in the per-session workspace so the verifier has a target.
+    session = "alice/s1/mctp_assembler/ssot-gen"
+    ip_yaml = tmp_path / "alice" / "s1" / "mctp_assembler" / "yaml"
+    ip_yaml.mkdir(parents=True, exist_ok=True)
+    (ip_yaml / "mctp_assembler.ssot.yaml").write_text(
+        "top_module:\n  name: mctp_assembler\n", encoding="utf-8")
+
+    resp = client.post("/api/ssot/validate", json={
+        "ip": "mctp_assembler", "mode": "engineering", "session": session})
+    assert resp.status_code == 200, resp.text
+    cmd = resp.json().get("command", "")
+    parts = shlex.split(cmd)
+    assert "--root" in parts, cmd
+    root_arg = parts[parts.index("--root") + 1]
+    # verifier root is the per-session workspace, NOT the shared PROJECT_ROOT
+    assert root_arg == str((tmp_path / "alice" / "s1").resolve()), root_arg
+    assert root_arg != str(tmp_path.resolve()), "validate must not target the shared root"

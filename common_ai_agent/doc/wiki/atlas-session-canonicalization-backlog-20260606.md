@@ -83,3 +83,61 @@ Suggested order:
 Fallback is acceptable for one thing only: read-only recovery/reporting of old
 runs. It should not be used for new writes, command side effects, todo state,
 locked-truth files, or signoff evidence.
+
+## Resolved — SSOT import wrote to the non-session IP root (2026-06-08)
+
+A concrete instance of the "new writes must use canonical per-session layout"
+rule being violated.
+
+- **Symptom**: `/api/ssot/import/upload` + the `/import` command stored evidence
+  under the non-session `_ip_root(ip)` (`PROJECT_ROOT/<ip>`), while the file
+  tree, chat worker, and `/to-ssot` read the per-session
+  `<root>/<owner>/<workspace_session>/<ip>`. Imports were therefore invisible in
+  the UI ("import이 아예 안 되는 느낌"), and `wiki/`+`yaml/` were scaffolded in
+  the wrong root.
+- **Frontend was fine** — `ssot-qa-board.tsx` / `ssot-review.tsx` already send
+  `session`; the upload endpoint just ignored it.
+- **Fix** (branch `fix/ip-roster-phantom-leak`): thread `base_root` (= session
+  workspace root) through the import chain. Entry points:
+  `api_ssot_import_upload` (resolve `_ssot_context_for_session` →
+  `_validated_context_workspace_root`) and `_handle_import_command`
+  (`_session_script_root(ip, client_session)`). All helpers take
+  `base_root=None` (legacy-compatible). The `/import` command runs in the
+  multi-session main server, so explicit `client_session` threading — not a
+  pinned `PROJECT_ROOT` — is the only correct approach.
+- **Migration script** (satisfies backlog item 5):
+  `scripts/migrate_misscoped_import.py` — backup-first, `.trash` quarantine of
+  the drained legacy dir, and rewrites embedded `<ip>/{req,wiki,yaml}/` path
+  prefixes so downstream resolution still finds the moved files. It preserves
+  the session's own live wiki (`_graph.json`, `_generated/`, `user/`) and only
+  brings over the import outputs.
+- **Test**: `tests/test_atlas_multiuser_session_scope.py::test_ssot_import_upload_lands_in_session_workspace`.
+  Note: `/api/session/activate` does `os.environ.update(context.export_env())`,
+  which leaks `ATLAS_IP_ROOT`/`ATLAS_ROOT`/`ATLAS_ACTIVE_SESSION` past
+  monkeypatch into later tests — a separate latent isolation bug to fix.
+
+## Session-blind HTTP route audit (2026-06-09)
+
+Process model clarified: `ATLAS_MULTI_USER_PROC=1` (default) gives **process-per-session**
+workers (env frozen at spawn), so agent/command/worker state is already isolated.
+The residual risk is only the **single shared main web process**: HTTP routes that
+resolve per-IP filesystem paths from global state instead of the request's session.
+
+Audit of `src/atlas_ui.py` routes that touch per-IP FS:
+
+- **FIXED** `POST /api/ssot/validate` — ran the verifier with `--root PROJECT_ROOT`
+  (took only `ip` + `_active_ssot_ip()`, no session). Now reads `session`, resolves
+  `_ssot_context_for_session` → `_validated_context_workspace_root`, and runs
+  `--root <owner>/<ws>`. Frontend (`ssot-qa-board.tsx`) now sends `session` too.
+  Test: `...::test_ssot_validate_targets_session_workspace`.
+- **OPEN — design question** `POST /api/soc/{layout,connect,instance/add,instance/delete}`
+  and `POST /api/ipxact/import`: all read/write a single global
+  `PROJECT_ROOT/soc.ssot.yaml` (and `PROJECT_ROOT/<name>`), no session. This is a
+  cross-tenant write surface **iff** SoC is meant to be per-user; if SoC composition
+  is one global artifact per deployment, it is correct by design. Decide before fixing.
+- **OPEN** `GET /api/workspace/tree`: scans `PROJECT_ROOT.iterdir()` — shows the shared
+  root, not the caller's session workspace. Fine if admin/debug; fix if user-facing.
+- **PARTIAL (known / in-progress)** `/api/ip/create`, `/api/ip/list`: session-scoped in
+  multi-user; single-user `PROJECT_ROOT` fallback only. The `fix/ip-roster-phantom-leak`
+  branch already hardens `/api/ip/list`.
+- **CORRECT** import/upload, ssot/doc-feedback, doc-source, export, req/export, ip git/*.

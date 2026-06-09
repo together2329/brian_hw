@@ -431,7 +431,7 @@ export function SsotQaBoard({
       const res = await fetch('/api/ssot/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ip: data.ip, mode: validationMode }),
+        body: JSON.stringify({ ip: data.ip, mode: validationMode, session: activeSessionNorm || '' }),
       });
       const payload = await res.json().catch(() => ({}));
       setValidationResult({

@@ -339,6 +339,20 @@ def register_sessions_routes(
             context = AtlasContext.from_session_key(f"{sid}/{ip}/{wf}", atlas_root=project_root())
         canonical = context.active_session_key
         user_id = _request_user_id(req)
+        # Side-door / phantom-IP guard. activate must not MINT a namespace for an
+        # IP the user never created: a stale cross-owner ip= carried into another
+        # login would otherwise leave a ghost session row + skeleton dir (the
+        # dma_v1_good "shows for multiple users" leak). Legit IP creation goes
+        # through /api/ip/create (which registers the ip_blocks catalog) BEFORE
+        # activating, so by the time activate sees a real new IP it is already
+        # owned. Programmatic callers that intentionally mint a fresh IP via
+        # activate must opt in with {"create": true}.
+        raw_create = (body or {}).get("create")
+        if raw_create is None:
+            raw_create = (body or {}).get("allow_create")
+        allow_create = (raw_create is True) or (
+            str(raw_create or "").strip().lower() in ("1", "true", "yes", "on")
+        )
         if ip != "default" and not context.legacy:
             try:
                 with _atlas_db() as db:
@@ -347,7 +361,32 @@ def register_sessions_routes(
                         context.workspace_root,
                         user_id if multi_user_on else "",
                     )
-                if catalog_ip_names is not None and ip not in catalog_ip_names:
+                in_catalog = bool(catalog_ip_names) and ip in catalog_ip_names
+                # Real authored IP keeps an SSOT under ITS OWN workspace ip_root.
+                # Scope strictly here (no shared-root fallback) so a same-named
+                # top-level IP can't vouch for a cross-owner phantom.
+                own_ssot = False
+                try:
+                    own_yaml = context.ip_root / "yaml"
+                    own_ssot = own_yaml.is_dir() and any(own_yaml.glob("*.ssot.yaml"))
+                except OSError:
+                    own_ssot = False
+                owned = in_catalog or own_ssot
+                if multi_user_on:
+                    # FAIL CLOSED: not owned and not an explicit create → don't
+                    # materialize; collapse to default so no ghost is minted.
+                    downgrade = not owned and not allow_create
+                else:
+                    # Desktop/single-user keeps the legacy behavior (the on-disk
+                    # IP check above already validated existence).
+                    downgrade = catalog_ip_names is not None and not in_catalog
+                if downgrade:
+                    print(
+                        f"[Session] activate: IP {ip!r} not owned by {sid!r} and "
+                        f"create not requested — falling back to default/default "
+                        f"(phantom-IP side-door guard)",
+                        flush=True,
+                    )
                     ip = "default"
                     wf = "default"
                     context = AtlasContext(

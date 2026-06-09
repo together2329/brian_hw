@@ -118,7 +118,12 @@ def make_slash_handlers(
             _emit_workflow_result(err, "import")
             return True
         _set_active_ssot_ip(ip)
-        ip_dir = _ip_root(ip)
+        # Resolve the per-session workspace root so imported evidence lands in
+        # the same IP directory the file tree, chat worker, and /to-ssot use.
+        # base_root is the workspace root (parent of the IP dir); falls back to
+        # the legacy PROJECT_ROOT/ip layout in single-user/legacy contexts.
+        base_root = _session_script_root(ip, client_session)
+        ip_dir = _session_ip_root(ip, client_session)
         try:
             ip_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
@@ -127,8 +132,8 @@ def make_slash_handlers(
 
         state = _load_ssot_state(ip) or _new_ssot_state(ip)
         kind = str(state.get("kind") or "imported IP evidence")
-        _ensure_ssot_draft(ip, kind)
-        files, errors = _collect_import_files(ip, raw_paths)
+        _ensure_ssot_draft(ip, kind, base_root=base_root)
+        files, errors = _collect_import_files(ip, raw_paths, base_root=base_root)
         if not files:
             msg = (
                 f"[SSOT IMPORT] {ip}: no importable files found\n"
@@ -148,14 +153,14 @@ def make_slash_handlers(
             return True
 
         artifacts, candidates, sources = _extract_import_candidates(ip, files)
-        filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources)
+        filled, conflicts = _merge_import_candidates(ip, kind, state, artifacts, candidates, sources, base_root=base_root)
         state.setdefault("ip", ip)
         state.setdefault("kind", kind)
         state["active_session"] = _ssot_session_for_ip(ip)
         state["last_step"] = "import"
-        state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
+        state["status"] = "answered" if not _missing_ssot_decisions(ip, state, base_root=base_root) else "planned"
         _save_ssot_state(ip, state)
-        missing = _missing_ssot_decisions(ip, state)
+        missing = _missing_ssot_decisions(ip, state, base_root=base_root)
         next_action = "/grill-me" if conflicts or missing else "/to-ssot"
 
         lines = [

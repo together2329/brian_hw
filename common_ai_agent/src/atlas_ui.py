@@ -6291,8 +6291,8 @@ def create_app():
         _save_ssot_draft(ip, doc, base_root=base_root)
         return doc
 
-    def _ssot_custom(ip: str, kind: str = "TBD") -> tuple[dict[str, Any], dict[str, Any]]:
-        doc = _ensure_ssot_draft(ip, kind)
+    def _ssot_custom(ip: str, kind: str = "TBD", base_root: Path | None = None) -> tuple[dict[str, Any], dict[str, Any]]:
+        doc = _ensure_ssot_draft(ip, kind, base_root=base_root)
         custom = doc.setdefault("custom", {})
         if not isinstance(custom, dict):
             custom = {}
@@ -6404,12 +6404,12 @@ def create_app():
 
         return out
 
-    def _ssot_raw_top_keys(ip: str) -> set[str]:
+    def _ssot_raw_top_keys(ip: str, base_root: Path | None = None) -> set[str]:
         # Regex fallback when PyYAML can't parse the file. Real-world SSOT
         # files occasionally contain block-style entries that confuse the
         # parser; we still want the Validation pane to reflect the actual
         # set of top-level sections written to disk.
-        path = _ssot_yaml_path(ip)
+        path = _ssot_yaml_path(ip, base_root=base_root)
         if not path.is_file():
             return set()
         try:
@@ -6454,8 +6454,8 @@ def create_app():
                 out[decision] = f"{sorted(hit)[0]} section present"
         return out
 
-    def _ssot_decisions(ip: str, state: dict[str, Any] | None = None) -> dict[str, str]:
-        doc = _load_ssot_draft(ip)
+    def _ssot_decisions(ip: str, state: dict[str, Any] | None = None, base_root: Path | None = None) -> dict[str, str]:
+        doc = _load_ssot_draft(ip, base_root=base_root)
         custom = doc.get("custom") if isinstance(doc.get("custom"), dict) else {}
         raw = custom.get("atlas_decisions") if isinstance(custom, dict) else {}
         if not isinstance(raw, dict) or not raw:
@@ -6474,13 +6474,13 @@ def create_app():
         # parseable draft: the /new-ip TBD scaffold has all top-level keys,
         # but those keys are not approved design decisions.
         if not doc:
-            for k, v in _decisions_from_top_keys(_ssot_raw_top_keys(ip)).items():
+            for k, v in _decisions_from_top_keys(_ssot_raw_top_keys(ip, base_root=base_root)).items():
                 if k not in merged and v:
                     merged[k] = v
         return merged
 
-    def _missing_ssot_decisions(ip: str, state: dict[str, Any] | None = None) -> list[str]:
-        decisions = _ssot_decisions(ip, state)
+    def _missing_ssot_decisions(ip: str, state: dict[str, Any] | None = None, base_root: Path | None = None) -> list[str]:
+        decisions = _ssot_decisions(ip, state, base_root=base_root)
         return [key for key, _ in _SSOT_REQUIRED_DECISIONS if not str(decisions.get(key) or "").strip()]
 
     def _record_ssot_decisions(
@@ -6488,8 +6488,9 @@ def create_app():
         kind: str,
         updates: dict[str, str],
         sources: dict[str, list[dict[str, str]]] | None = None,
+        base_root: Path | None = None,
     ) -> tuple[list[str], list[dict[str, Any]]]:
-        doc, custom = _ssot_custom(ip, kind)
+        doc, custom = _ssot_custom(ip, kind, base_root=base_root)
         decisions = custom.get("atlas_decisions")
         if not isinstance(decisions, dict):
             decisions = {}
@@ -6523,7 +6524,7 @@ def create_app():
             if not isinstance(prior, list):
                 prior = []
             custom["atlas_import_conflicts"] = prior + conflicts
-        _save_ssot_draft(ip, doc)
+        _save_ssot_draft(ip, doc, base_root=base_root)
         return filled, conflicts
 
     def _latest_pending_ssot_ip() -> str:
@@ -7145,10 +7146,11 @@ def create_app():
         conflicts: list[dict[str, Any]],
         todo_summary: dict[str, Any],
         next_action: str,
+        base_root: Path | None = None,
     ) -> None:
         try:
-            _scaffold_ip_wiki(ip)
-            wiki_dir = PROJECT_ROOT / ip / "wiki"
+            _scaffold_ip_wiki(ip, base_root=base_root)
+            wiki_dir = (base_root if base_root is not None else PROJECT_ROOT) / ip / "wiki"
             wiki_dir.mkdir(parents=True, exist_ok=True)
             updated = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
             page = wiki_dir / "import-evidence.md"
@@ -7573,11 +7575,11 @@ def create_app():
             )
         return ip, paths, ""
 
-    def _default_import_roots(ip: str) -> list[Path]:
-        ip_dir = _ip_root(ip)
+    def _default_import_roots(ip: str, base_root: Path | None = None) -> list[Path]:
+        ip_dir = (base_root / ip) if base_root is not None else _ip_root(ip)
         return [ip_dir] if ip_dir.exists() else []
 
-    def _collect_import_files(ip: str, raw_paths: list[str]) -> tuple[list[Path], list[str]]:
+    def _collect_import_files(ip: str, raw_paths: list[str], base_root: Path | None = None) -> tuple[list[Path], list[str]]:
         roots: list[Path] = []
         errors: list[str] = []
         if raw_paths:
@@ -7588,7 +7590,7 @@ def create_app():
                 if p is not None and p.exists():
                     roots.append(p)
         else:
-            roots = _default_import_roots(ip)
+            roots = _default_import_roots(ip, base_root=base_root)
 
         files: list[Path] = []
         seen: set[Path] = set()
@@ -8001,13 +8003,15 @@ def create_app():
         artifacts: list[dict[str, Any]],
         candidates: dict[str, str],
         sources: dict[str, list[dict[str, str]]],
+        base_root: Path | None = None,
     ) -> tuple[list[str], list[dict[str, Any]]]:
-        filled, conflicts = _record_ssot_decisions(ip, kind, candidates, sources)
-        doc, custom = _ssot_custom(ip, kind)
+        filled, conflicts = _record_ssot_decisions(ip, kind, candidates, sources, base_root=base_root)
+        doc, custom = _ssot_custom(ip, kind, base_root=base_root)
         todo_summary = _apply_import_yaml_todos(ip, doc, custom, artifacts, candidates, sources)
-        next_action = "/grill-me" if conflicts or _missing_ssot_decisions(ip, state) else "/to-ssot"
-        manifest_path = PROJECT_ROOT / ip / "req" / "import_manifest.json"
-        extracted_path = PROJECT_ROOT / ip / "req" / "extracted_decisions.json"
+        next_action = "/grill-me" if conflicts or _missing_ssot_decisions(ip, state, base_root=base_root) else "/to-ssot"
+        ip_artifact_root = (base_root if base_root is not None else PROJECT_ROOT) / ip
+        manifest_path = ip_artifact_root / "req" / "import_manifest.json"
+        extracted_path = ip_artifact_root / "req" / "extracted_decisions.json"
         try:
             manifest_path.parent.mkdir(parents=True, exist_ok=True)
             manifest_doc = {
@@ -8057,7 +8061,7 @@ def create_app():
             "yaml_todos": todo_summary,
         })
         custom["atlas_imports"] = imports
-        _save_ssot_draft(ip, doc)
+        _save_ssot_draft(ip, doc, base_root=base_root)
         imported_artifacts = state.get("imported_artifacts")
         if not isinstance(imported_artifacts, list):
             imported_artifacts = []
@@ -8073,8 +8077,8 @@ def create_app():
         if conflicts:
             state["approved"] = False
             state["approved_at"] = 0
-        state["status"] = "answered" if not _missing_ssot_decisions(ip, state) else "planned"
-        _write_import_wiki_index(ip, kind, artifacts, candidates, sources, filled, conflicts, todo_summary, next_action)
+        state["status"] = "answered" if not _missing_ssot_decisions(ip, state, base_root=base_root) else "planned"
+        _write_import_wiki_index(ip, kind, artifacts, candidates, sources, filled, conflicts, todo_summary, next_action, base_root=base_root)
         return filled, conflicts
 
     def _import_defaults_if_available(ip: str, kind: str, state: dict[str, Any]) -> tuple[list[str], list[dict[str, Any]], list[dict[str, Any]], list[str]]:
@@ -9052,12 +9056,14 @@ def create_app():
         content_type = (request.headers.get("content-type") or "").lower()
         upload_entries: list[tuple[str, bytes]] = []
         ip = ""
+        session = str(request.query_params.get("session") or "").strip()
         if "json" in content_type:
             try:
                 body = await request.json()
             except Exception as exc:
                 return JSONResponse({"error": f"invalid json body: {exc}"}, status_code=400)
             ip = str((body or {}).get("ip") or _active_ssot_ip() or "").strip()
+            session = str((body or {}).get("session") or session or "").strip()
             import base64 as _base64_import
 
             for idx, item in enumerate((body or {}).get("files") or []):
@@ -9077,6 +9083,7 @@ def create_app():
             except Exception as exc:
                 return JSONResponse({"error": f"invalid multipart form: {exc}"}, status_code=400)
             ip = str(form.get("ip") or _active_ssot_ip() or "").strip()
+            session = str(form.get("session") or session or "").strip()
             uploads = []
             try:
                 uploads.extend(form.getlist("files"))  # type: ignore[attr-defined]
@@ -9101,7 +9108,19 @@ def create_app():
         if not upload_entries:
             return JSONResponse({"error": "missing file upload"}, status_code=400)
 
-        dest_dir = _ip_root(ip) / "req" / "imports"
+        # Land imported evidence in the caller's per-session workspace so the
+        # file tree, chat worker, and /to-ssot all see it. The frontend already
+        # sends `session`; resolve it to the owner/session workspace root and
+        # nest the IP under it. Fall back to the legacy PROJECT_ROOT/ip layout
+        # when no (or an unresolvable) session is supplied.
+        import_root = _ip_root(ip)
+        if session:
+            context, _ctx_err = _ssot_context_for_session(session)
+            if context is not None and not context.legacy:
+                workspace_root, ws_err = _validated_context_workspace_root(context)
+                if not ws_err and workspace_root is not None:
+                    import_root = workspace_root / ip
+        dest_dir = import_root / "req" / "imports"
         originals_dir = dest_dir / "originals"
         images_dir = dest_dir / "images"
         visual_dir = dest_dir / "visual"
@@ -9559,9 +9578,28 @@ def create_app():
             body = await request.json()
         except Exception:
             body = {}
-        ip = str((body or {}).get("ip") or "").strip()
-        ip = ip if _valid_ip_name(ip) else _active_ssot_ip()
-        mode = str((body or {}).get("mode") or "engineering").strip().lower().replace("_", "-")
+        body = body if isinstance(body, dict) else {}
+        # Validate the caller's per-session copy, not the shared PROJECT_ROOT/<ip>.
+        # Resolve the session workspace root and run the verifier against it; fall
+        # back to PROJECT_ROOT only when no (or an unresolvable) session is given.
+        session = str(
+            body.get("session") or body.get("session_id")
+            or request.query_params.get("session") or ""
+        ).strip()
+        validate_root = PROJECT_ROOT
+        context = None
+        if session:
+            context, _ctx_err = _ssot_context_for_session(session)
+            if context is not None and not context.legacy:
+                workspace_root, ws_err = _validated_context_workspace_root(context)
+                if not ws_err and workspace_root is not None:
+                    validate_root = workspace_root
+        ip = str(body.get("ip") or "").strip()
+        if not _valid_ip_name(ip) and context is not None and not context.legacy:
+            ip = context.ip_name
+        if not _valid_ip_name(ip):
+            ip = _active_ssot_ip()
+        mode = str(body.get("mode") or "engineering").strip().lower().replace("_", "-")
         if mode == "eng":
             mode = "engineering"
         if mode == "sign-off":
@@ -9578,13 +9616,13 @@ def create_app():
         env = os.environ.copy()
         env["IP_NAME"] = ip
         env["ATLAS_RUN_MODE"] = mode
-        env["ATLAS_PROJECT_ROOT"] = str(PROJECT_ROOT)
+        env["ATLAS_PROJECT_ROOT"] = str(validate_root)
         cmd = [
             "python",
             str(script),
             ip,
             "--root",
-            str(PROJECT_ROOT),
+            str(validate_root),
             "--mode",
             mode,
             "--preview",
