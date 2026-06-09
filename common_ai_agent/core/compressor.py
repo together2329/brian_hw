@@ -47,6 +47,14 @@ _LLM_FAILURE_MARKERS = (
     "[Compression failed]",
 )
 
+_DATA_IMAGE_RE = _re.compile(
+    r"data:image/[A-Za-z0-9.+-]+(?:;[A-Za-z0-9=.+-]+)*;base64,[A-Za-z0-9+/=\r\n]+"
+)
+# Mirrors Codex's fixed context estimate for resized prompt images. The raw
+# base64 payload is transport data, not model-visible text.
+_RESIZED_IMAGE_BYTES_ESTIMATE = 7373
+_IMAGE_TEXT_PLACEHOLDER = "[Image omitted from compression text]"
+
 
 def _summary_is_llm_fallback(compressed: Optional[List[Dict]]) -> bool:
     """True if any compressed part is a non-LLM truncation fallback."""
@@ -59,6 +67,83 @@ def _summary_is_llm_fallback(compressed: Optional[List[Dict]]) -> bool:
         if any(_mk in _content for _mk in _LLM_FAILURE_MARKERS):
             return True
     return False
+
+
+def _image_placeholder(block: Dict[str, Any]) -> str:
+    detail = str(block.get("detail") or "").strip()
+    if detail:
+        return f"{_IMAGE_TEXT_PLACEHOLDER} detail={detail}"
+    return _IMAGE_TEXT_PLACEHOLDER
+
+
+def _content_text(content: Any) -> str:
+    """Flatten content without turning inline image payloads into text."""
+
+    if isinstance(content, str):
+        return _DATA_IMAGE_RE.sub(_IMAGE_TEXT_PLACEHOLDER, content)
+    if isinstance(content, list):
+        parts: list[str] = []
+        for block in content:
+            if isinstance(block, dict):
+                block_type = str(block.get("type") or "")
+                if block_type in ("text", "input_text", "output_text"):
+                    text = block.get("text")
+                    if text is not None:
+                        parts.append(str(text))
+                elif block_type == "input_image":
+                    parts.append(_image_placeholder(block))
+                elif "text" in block and block.get("text") is not None:
+                    parts.append(str(block.get("text")))
+            elif block is not None:
+                parts.append(str(block))
+        return "\n".join(part for part in parts if part)
+    if content is None:
+        return ""
+    return str(content)
+
+
+def _content_estimate_tokens(content: Any) -> int:
+    """Estimate model-visible tokens for text plus image blocks."""
+
+    if isinstance(content, str):
+        adjusted = len(content)
+        for match in _DATA_IMAGE_RE.finditer(content):
+            adjusted -= len(match.group(0))
+            adjusted += _RESIZED_IMAGE_BYTES_ESTIMATE
+        return max(0, adjusted // 4)
+    if isinstance(content, dict):
+        if str(content.get("type") or "") == "input_image":
+            return max(1, _RESIZED_IMAGE_BYTES_ESTIMATE // 4)
+        return sum(
+            _content_estimate_tokens(value)
+            for value in content.values()
+            if isinstance(value, (str, list, dict))
+        )
+    if isinstance(content, list):
+        return sum(_content_estimate_tokens(block) for block in content)
+    return len(str(content)) // 4 if content is not None else 0
+
+
+def _content_blocks(content: Any) -> list[Any]:
+    if isinstance(content, list):
+        return list(content)
+    text = _content_text(content)
+    return [{"type": "text", "text": text}] if text else []
+
+
+def _merge_message_content(left: Any, right: Any) -> Any:
+    if not isinstance(left, list) and not isinstance(right, list):
+        left_text = str(left or "")
+        right_text = str(right or "")
+        if left_text and right_text:
+            return left_text + "\n\n---\n\n" + right_text
+        return left_text or right_text
+
+    merged = _content_blocks(left)
+    if merged and _content_blocks(right):
+        merged.append({"type": "text", "text": "\n\n---\n\n"})
+    merged.extend(_content_blocks(right))
+    return merged
 
 # ---------------------------------------------------------------------------
 # Working-path collector — snapshot current project context at compress time
@@ -240,14 +325,7 @@ def _hook_command(hook_path: Path) -> list:
 # ---------------------------------------------------------------------------
 
 def _default_estimate(message: Dict[str, Any]) -> int:
-    content = message.get("content", "")
-    if isinstance(content, list):
-        text = " ".join(
-            p.get("text", "") if isinstance(p, dict) else str(p) for p in content
-        )
-    else:
-        text = str(content)
-    total = len(text)
+    total_tokens = _content_estimate_tokens(message.get("content", ""))
 
     # Native tool-call assistant turns often have empty content; the actual
     # tokens live in tool_calls (function name + serialized arguments). Without
@@ -258,21 +336,16 @@ def _default_estimate(message: Dict[str, Any]) -> int:
             if not isinstance(tc, dict):
                 continue
             fn = tc.get("function", {}) if isinstance(tc.get("function"), dict) else {}
-            total += len(str(fn.get("name", "")))
+            total_tokens += len(str(fn.get("name", ""))) // 4
             args = fn.get("arguments", "")
-            total += len(args) if isinstance(args, str) else len(str(args))
+            total_tokens += (len(args) if isinstance(args, str) else len(str(args))) // 4
 
-    return total // 4
+    return total_tokens
 
 
 def _message_text(m: Dict[str, Any]) -> str:
     """Flatten a message's content to a plain string for scanning."""
-    c = m.get("content", "")
-    if isinstance(c, list):
-        return " ".join(
-            p.get("text", "") if isinstance(p, dict) else str(p) for p in c
-        )
-    return str(c)
+    return _content_text(m.get("content", ""))
 
 
 # ---------------------------------------------------------------------------
@@ -630,12 +703,10 @@ def _validate_and_repair_sequence(
             and _role in ("user", "assistant")
         ):
             _prev = _collapsed[-1]
-            _prev_c = str(_prev.get("content") or "")
-            _cur_c = str(_m.get("content") or "")
-            if _prev_c and _cur_c:
-                _prev["content"] = _prev_c + "\n\n---\n\n" + _cur_c
-            else:
-                _prev["content"] = _prev_c or _cur_c
+            _prev["content"] = _merge_message_content(
+                _prev.get("content"),
+                _m.get("content"),
+            )
             # Preserve tool_calls if either has them
             if _m.get("tool_calls"):
                 _prev["tool_calls"] = _m["tool_calls"]
@@ -653,7 +724,7 @@ def _validate_and_repair_sequence(
     # adjacent (assistant→tool) pairs by content fingerprint and keep only
     # the first occurrence.
     def _fp(_msg: Dict) -> str:
-        _c = str(_msg.get("content") or "")[:400]
+        _c = _message_text(_msg)[:400]
         _r = _msg.get("role", "")
         _t = ""
         _tcs = _msg.get("tool_calls") or []
@@ -737,6 +808,8 @@ def _validate_and_repair_sequence(
             _c = _m.get("content")
             if _c is None or _c == "None":
                 _m["content"] = " "
+            elif isinstance(_c, list) and _r == "user":
+                pass
             elif not isinstance(_c, str):
                 _m["content"] = str(_c)
 
@@ -912,14 +985,14 @@ def _compress_single(
         role = m.get("role", "unknown")
         if role == "tool":
             # Tool result — include tool name if available for context
-            content = _smart_truncate(str(m.get("content", "")), role, cfg=cfg)
+            content = _smart_truncate(_message_text(m), role, cfg=cfg)
             tool_name = m.get("name", "")
             if tool_name:
                 conversation_text += f"tool({tool_name}): {content}\n"
             else:
                 conversation_text += f"observation: {content}\n"
             continue
-        content = _smart_truncate(str(m.get("content") or ""), role, cfg=cfg)
+        content = _smart_truncate(_message_text(m), role, cfg=cfg)
 
         # Tool-calling assistant turns have no text — annotate with func(args) so the
         # summarizing LLM knows exactly what was called and with what arguments.
@@ -989,7 +1062,7 @@ def _compress_single(
         if not messages:
             return {"role": "system", "content": "[Compression failed]"}
         combined = "\n".join(
-            f"{m.get('role', 'unknown')}: {str(m.get('content', ''))[:500]}"
+            f"{m.get('role', 'unknown')}: {_message_text(m)[:500]}"
             for m in messages
         )
         return {
@@ -1037,14 +1110,14 @@ def _compress_chunked(
         for m in chunk:
             role = m.get("role", "unknown")
             if role == "tool":
-                content = _smart_truncate(str(m.get("content", "")), role, cfg=cfg)
+                content = _smart_truncate(_message_text(m), role, cfg=cfg)
                 tool_name = m.get("name", "")
                 if tool_name:
                     conversation_text += f"tool({tool_name}): {content}\n"
                 else:
                     conversation_text += f"observation: {content}\n"
                 continue
-            content = _smart_truncate(str(m.get("content") or ""), role, cfg=cfg)
+            content = _smart_truncate(_message_text(m), role, cfg=cfg)
 
             # Tool-calling assistant turns have no text — annotate with func(args)
             # so the summarizing LLM still sees what action the agent took.
@@ -1095,7 +1168,7 @@ def _compress_chunked(
                 # Preserve ALL messages in the chunk, not just chunk[0].
                 # Combine into a single system message with head+tail truncation.
                 _combined = "\n".join(
-                    f"{m.get('role', '?')}: {str(m.get('content', ''))[:500]}"
+                    f"{m.get('role', '?')}: {_message_text(m)[:500]}"
                     for m in chunk
                 )
                 if len(_combined) > 4000:
@@ -1170,7 +1243,7 @@ def _pre_analysis(messages: List[Dict], llm_call_fn: Callable) -> str:
     conv_text = ""
     for m in recent:
         role = m.get("role", "?")
-        content = str(m.get("content") or "")[:600]
+        content = _message_text(m)[:600]
         conv_text += role + ": " + content + "\n"
 
     analysis_msgs = [
@@ -1369,7 +1442,7 @@ def compress_history(
     important_msgs = []
     other_msgs = []
     for msg in regular_msgs:
-        content = str(msg.get("content", ""))
+        content = _message_text(msg)
         if "!important" in content.lower():
             msg_copy = msg.copy()
             msg_copy["content"] = (
@@ -1884,7 +1957,7 @@ def compress_history(
         _imp_lines = []
         for _im in important_msgs:
             _im_role = _im.get("role", "unknown")
-            _im_content = str(_im.get("content", ""))[:500]
+            _im_content = _message_text(_im)[:500]
             _imp_lines.append("**[" + _im_role + "]** " + _im_content)
         md_parts.append("## Important Messages (" + str(len(important_msgs)) + ")\n\n" + "\n\n".join(_imp_lines))
 
@@ -1893,7 +1966,7 @@ def compress_history(
         _rm_lines = []
         for _rm in recent_msgs:
             _rm_role = _rm.get("role", "unknown")
-            _rm_content = str(_rm.get("content", ""))[:200]
+            _rm_content = _message_text(_rm)[:200]
             _rm_lines.append("**[" + _rm_role + "]** " + _rm_content)
         md_parts.append(
             "## Recent Messages (" + str(len(recent_msgs)) + " kept)\n\n"

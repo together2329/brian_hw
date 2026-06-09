@@ -46,6 +46,11 @@ last_output_tokens = 0  # Last reported output tokens from API
 _last_debug_prompt_text = ""
 _last_debug_messages = None
 
+_DATA_IMAGE_RE = re.compile(
+    r"data:image/[A-Za-z0-9.+-]+(?:;[A-Za-z0-9=.+-]+)*;base64,[A-Za-z0-9+/=\r\n]+"
+)
+_RESIZED_IMAGE_BYTES_ESTIMATE = 7373
+
 
 def get_active_model() -> str:
     """Return the display name for the currently active LLM backend.
@@ -5028,6 +5033,30 @@ def is_anthropic_provider():
 
     return False
 
+def _estimate_text_tokens_with_image_discount(text: str) -> int:
+    adjusted = len(text)
+    for match in _DATA_IMAGE_RE.finditer(text):
+        adjusted -= len(match.group(0))
+        adjusted += _RESIZED_IMAGE_BYTES_ESTIMATE
+    return max(0, adjusted // 4)
+
+
+def _estimate_content_tokens(content):
+    if isinstance(content, str):
+        return _estimate_text_tokens_with_image_discount(content)
+    if isinstance(content, dict):
+        if content.get("type") == "input_image":
+            return max(1, _RESIZED_IMAGE_BYTES_ESTIMATE // 4)
+        return sum(
+            _estimate_content_tokens(value)
+            for value in content.values()
+            if isinstance(value, (str, list, dict))
+        )
+    if isinstance(content, list):
+        return sum(_estimate_content_tokens(block) for block in content)
+    return 0
+
+
 def estimate_message_tokens(message):
     """
     Estimates token count for a single message.
@@ -5041,25 +5070,11 @@ def estimate_message_tokens(message):
     """
     content = message.get("content", "")
 
-    # Handle string content
-    if isinstance(content, str):
-        return len(content) // 4
-
-    # Handle optimized prompt structure (dict)
-    if isinstance(content, dict):
-        total_chars = 0
-        for val in content.values():
-            if isinstance(val, str):
-                total_chars += len(val)
-        return total_chars // 4
-
-    # Handle structured content (list of blocks)
-    if isinstance(content, list):
-        total_chars = 0
-        for block in content:
-            if isinstance(block, dict) and block.get("type") == "text":
-                total_chars += len(block.get("text", ""))
-        return total_chars // 4
+    # Handle string, optimized dict, and structured block content. Inline
+    # image data URLs are transport payloads, so estimate them as fixed image
+    # cost instead of charging every base64 character as model-visible text.
+    if isinstance(content, (str, dict, list)):
+        return _estimate_content_tokens(content)
 
     return 0
 
