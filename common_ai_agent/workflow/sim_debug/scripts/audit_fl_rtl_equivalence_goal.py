@@ -228,11 +228,20 @@ def _approved_req_status(ip: str, root: Path, ip_dir: Path) -> tuple[bool, list[
     manifest, manifest_error = _read_json(manifest_path)
     if manifest_error:
         return False, req_paths, f"missing or invalid approval manifest: {manifest_error}"
-    if manifest.get("type") != "requirement_approval_manifest":
+    manifest_type = manifest.get("type")
+    if manifest_type == "locked_truth_approval_manifest" and manifest.get("status") in {"requirements_locked", "locked", "approved"}:
+        if manifest.get("ip") != ip:
+            return False, req_paths, f"approval_manifest.json ip mismatch: {manifest.get('ip')!r}"
+        if not str(manifest.get("approved_by") or "").strip():
+            return False, req_paths, "approval_manifest.json approved_by is required"
+        if not str(manifest.get("approved_at_utc") or "").strip():
+            return False, req_paths, "approval_manifest.json approved_at_utc is required"
+        return True, req_paths, "locked truth approval manifest accepted"
+    if manifest_type != "requirement_approval_manifest":
         starter_ok, starter_detail = _starter_manifest_status(ip, root, ip_dir, manifest, req_paths)
         if starter_ok:
             return True, req_paths, starter_detail
-        return False, req_paths, "approval_manifest.json type must be requirement_approval_manifest"
+        return False, req_paths, "approval_manifest.json type must be requirement_approval_manifest or locked_truth_approval_manifest"
     if manifest.get("ip") != ip:
         return False, req_paths, f"approval_manifest.json ip mismatch: {manifest.get('ip')!r}"
     if not str(manifest.get("approved_by") or "").strip():

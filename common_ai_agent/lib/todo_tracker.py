@@ -241,6 +241,25 @@ class TodoItem:
             pass
         return text
 
+    @staticmethod
+    def _portable_python_cmd(cmd: str) -> str:
+        """Rewrite hardcoded `python3` tokens to the running interpreter.
+
+        Todo templates and generated todo plans carry `python3 ...` shell
+        strings; Windows ships `python`/`py` but no `python3`, and an active
+        venv wants THIS interpreter anyway. sys.executable is correct on every
+        platform, so the data (14 templates + dynamic plans) stays untouched.
+        """
+        import os as _os
+        import re as _re
+        import shlex as _shlex
+        import sys as _sys
+        exe = _sys.executable
+        if not exe:
+            return cmd
+        quoted = f'"{exe}"' if _os.name == "nt" else _shlex.quote(exe)
+        return _re.sub(r"\bpython3\b", quoted.replace("\\", "\\\\"), cmd)
+
     def run_validator(self, tool_output: str = "") -> Optional[str]:
         """
         Run self.validator shell command as a harness assertion.
@@ -278,6 +297,7 @@ class TodoItem:
                 )
         except Exception:
             cmd = self.validator
+        cmd = self._portable_python_cmd(cmd)
         try:
             r = _sp.run(
                 cmd, shell=True,
@@ -611,6 +631,7 @@ class TodoTracker:
         full_output = ""
 
         if isinstance(cmd, str):
+            cmd = TodoItem._portable_python_cmd(cmd)
             try:
                 r = _sp.run(
                     cmd,
