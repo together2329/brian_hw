@@ -122,3 +122,98 @@ def test_check_fl_model_artifacts_rejects_placeholder_model(tmp_path: Path):
 
     assert proc.returncode == 1
     assert "forbidden marker 'PLACEHOLDER'" in proc.stdout
+
+
+def _run_gate(tmp_path: Path, ip: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(GATE), ip, "--root", str(tmp_path)],
+        text=True,
+        capture_output=True,
+    )
+
+
+def test_check_fl_model_artifacts_rejects_zero_logic_apply(tmp_path: Path):
+    """HOLE 1c: apply() with no executable body (returns None) must fail."""
+    ip = "gate_probe"
+    ip_dir = _write_valid_fl_fixture(tmp_path, ip)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        "class FunctionalModel:\n"
+        "    def apply(self, txn):\n"
+        "        return None\n"
+        "\n"
+        "\n"
+        "def run_self_check():\n"
+        '    return {"passed": True, "transaction_results": [{"transaction_id": "TX_WRITE", "passed": True}]}\n',
+        encoding="utf-8",
+    )
+
+    proc = _run_gate(tmp_path, ip)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "FunctionalModel.apply" in proc.stdout and "executable body" in proc.stdout
+
+
+def test_check_fl_model_artifacts_rejects_bare_string_self_check_trace(tmp_path: Path):
+    """HOLE 1b/M4b: bare string mentions of a transaction no longer count as coverage."""
+    ip = "gate_probe"
+    ip_dir = _write_valid_fl_fixture(tmp_path, ip)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        "class FunctionalModel:\n"
+        "    def apply(self, txn):\n"
+        '        return {"resp": 0, "transaction_id": txn.get("id", "TX_WRITE")}\n'
+        "\n"
+        "\n"
+        "def run_self_check():\n"
+        '    return {"passed": True, "covered_transactions": ["TX_WRITE"]}\n',
+        encoding="utf-8",
+    )
+    (ip_dir / "model" / "fl_model_check.json").write_text(
+        json.dumps({"passed": True, "covered_transactions": ["TX_WRITE"]}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    proc = _run_gate(tmp_path, ip)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "structured" in proc.stdout.lower()
+
+
+def test_check_fl_model_artifacts_rejects_self_check_lie(tmp_path: Path):
+    """HOLE 1a/M2: inner transaction_results passed=False with top passed=True must fail."""
+    ip = "gate_probe"
+    ip_dir = _write_valid_fl_fixture(tmp_path, ip)
+    (ip_dir / "model" / "functional_model.py").write_text(
+        "class FunctionalModel:\n"
+        "    def apply(self, txn):\n"
+        '        return {"resp": 0, "transaction_id": txn.get("id", "TX_WRITE")}\n'
+        "\n"
+        "\n"
+        "def run_self_check():\n"
+        '    return {"passed": True, "transaction_results": [{"transaction_id": "TX_WRITE", "passed": False}]}\n',
+        encoding="utf-8",
+    )
+
+    proc = _run_gate(tmp_path, ip)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "self-check lies" in proc.stdout
+
+
+def test_check_fl_model_artifacts_rejects_fl_check_inner_actual_ne_expected(tmp_path: Path):
+    """M3: fl_model_check inner passed=False / actual!=expected with top passed=True must fail."""
+    ip = "gate_probe"
+    ip_dir = _write_valid_fl_fixture(tmp_path, ip)
+    (ip_dir / "model" / "fl_model_check.json").write_text(
+        json.dumps(
+            {
+                "passed": True,
+                "transaction_results": [
+                    {"transaction_id": "TX_WRITE", "passed": False, "actual": 1, "expected": 0}
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    proc = _run_gate(tmp_path, ip)
+    assert proc.returncode == 1, proc.stdout + proc.stderr
+    assert "self-check lies" in proc.stdout

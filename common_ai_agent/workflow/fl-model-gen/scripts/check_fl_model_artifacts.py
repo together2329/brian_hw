@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import importlib.util
 import json
 import sys
@@ -62,39 +63,117 @@ def _string_blob(value: Any) -> str:
         return str(value)
 
 
-def _extract_check_keys(value: Any) -> set[str]:
-    seen: set[str] = set()
+def _func_has_executable_body(node: ast.FunctionDef | ast.AsyncFunctionDef) -> bool:
+    """True if a function body has a statement beyond a docstring/``pass``/``return None``.
 
-    def visit(item: Any) -> None:
-        if isinstance(item, dict):
-            for key in item:
-                if isinstance(key, str) and key.strip():
-                    seen.add(key.strip())
-            for key in ("id", "transaction_id", "txn_id", "name", "transaction_name"):
-                val = item.get(key)
-                if isinstance(val, str) and val.strip():
-                    seen.add(val.strip())
-            for child in item.values():
-                visit(child)
-        elif isinstance(item, list):
-            for child in item:
-                visit(child)
-        elif isinstance(item, str) and item.strip():
-            seen.add(item.strip())
-
-    if isinstance(value, dict):
-        for key in (
-            "transaction_results",
-            "transactions",
-            "covered_transactions",
-            "trace",
-            "checks",
-            "results",
+    Mirrors the ast floor used by workflow/tb-gen/scripts/derive_tb_todos.py
+    (``_has_executable_body``), specialised to a single function definition so a
+    zero-logic ``apply`` that only ``pass``/``return``/``return None`` is rejected.
+    """
+    for stmt in node.body:
+        if isinstance(stmt, ast.Pass):
+            continue
+        if (
+            isinstance(stmt, ast.Expr)
+            and isinstance(stmt.value, ast.Constant)
+            and isinstance(stmt.value.value, str)
         ):
-            if key in value:
-                visit(value[key])
-    visit(value)
-    return seen
+            continue  # docstring
+        if isinstance(stmt, ast.Return) and (
+            stmt.value is None
+            or (isinstance(stmt.value, ast.Constant) and stmt.value.value is None)
+        ):
+            continue  # bare `return` / `return None`
+        return True
+    return False
+
+
+def _apply_executable_issue(text: str) -> str:
+    """Return an issue string if FunctionalModel.apply lacks a real body, else ''."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError as exc:
+        return f"functional_model.py does not parse: {exc}"
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ClassDef) and node.name == "FunctionalModel":
+            for child in node.body:
+                if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)) and child.name == "apply":
+                    if not _func_has_executable_body(child):
+                        return (
+                            "FunctionalModel.apply(txn) has no executable body "
+                            "(only pass/docstring/return None); a zero-logic model is rejected"
+                        )
+                    return ""
+            return "FunctionalModel.apply(txn) is missing"
+    return "functional_model.py must define FunctionalModel"
+
+
+def _structured_result_entries(value: Any) -> list[dict[str, Any]]:
+    """Collect structured per-transaction result dicts.
+
+    Looks at ``transaction_results``/``results`` both at the top level and nested
+    under ``self_check`` (the real authoring convention nests them). Bare string
+    mentions are intentionally ignored — only dict rows count as structured
+    evidence.
+    """
+    entries: list[dict[str, Any]] = []
+    scopes: list[Any] = [value]
+    if isinstance(value, dict) and isinstance(value.get("self_check"), dict):
+        scopes.append(value["self_check"])
+    for scope in scopes:
+        if not isinstance(scope, dict):
+            continue
+        for key in ("transaction_results", "results"):
+            for item in _as_list(scope.get(key)):
+                if isinstance(item, dict):
+                    entries.append(item)
+    return entries
+
+
+def _entry_ids(entry: dict[str, Any]) -> set[str]:
+    ids: set[str] = set()
+    for key in ("id", "transaction_id", "txn_id", "name", "transaction_name", "kind"):
+        val = entry.get(key)
+        if isinstance(val, str) and val.strip():
+            ids.add(val.strip())
+    return ids
+
+
+def _inner_consistency_issue(label: str, entries: list[dict[str, Any]]) -> str:
+    """Return an issue if any structured entry lies (passed!=true or actual!=expected)."""
+    for entry in entries:
+        if entry.get("passed") is not True:
+            return (
+                f"{label} self-check lies: top passed=true but inner entry "
+                f"{sorted(_entry_ids(entry)) or '<unidentified>'} has passed={entry.get('passed')!r}"
+            )
+        if "actual" in entry and "expected" in entry and entry.get("actual") != entry.get("expected"):
+            return (
+                f"{label} self-check lies: top passed=true but inner entry "
+                f"{sorted(_entry_ids(entry)) or '<unidentified>'} has actual!=expected "
+                f"({entry.get('actual')!r} != {entry.get('expected')!r})"
+            )
+    return ""
+
+
+def _structured_coverage_issue(label: str, tx_keys: list[str], entries: list[dict[str, Any]]) -> str:
+    """Return an issue if any SSOT transaction lacks a structured (dict) result row."""
+    if not tx_keys:
+        # No SSOT transactions to cover: coverage is vacuously satisfied. The
+        # missing-transactions condition is reported separately by validate().
+        return ""
+    if not entries:
+        return f"{label} has no structured per-transaction results[]; bare string mentions do not count"
+    covered: set[str] = set()
+    for entry in entries:
+        covered.update(_entry_ids(entry))
+    missing = [key for key in tx_keys if key not in covered]
+    if missing:
+        return (
+            f"{label} structured per-transaction results missing (id+passed required for each): "
+            + ", ".join(missing)
+        )
+    return ""
 
 
 def _import_functional_model(path: Path):
@@ -163,6 +242,11 @@ def validate(ip: str, root: Path) -> dict[str, Any]:
             if marker in text:
                 issues.append(f"{name} contains forbidden marker {marker!r}")
 
+    fl_source = paths["functional_model"].read_text(encoding="utf-8", errors="replace")
+    apply_issue = _apply_executable_issue(fl_source)
+    if apply_issue:
+        issues.append(apply_issue)
+
     try:
         module = _import_functional_model(paths["functional_model"])
         cls = getattr(module, "FunctionalModel", None)
@@ -177,12 +261,13 @@ def validate(ip: str, root: Path) -> dict[str, Any]:
     evidence["self_check"] = self_check
     if not bool(self_check.get("passed")):
         issues.append("run_self_check() did not return passed=true")
-    self_check_keys = _extract_check_keys(self_check)
-    missing_self_check = [key for key in tx_keys if key not in self_check_keys]
-    if missing_self_check:
-        issues.append(
-            "run_self_check transaction trace missing: " + ", ".join(missing_self_check)
-        )
+    self_check_entries = _structured_result_entries(self_check)
+    sc_lie = _inner_consistency_issue("run_self_check", self_check_entries)
+    if sc_lie:
+        issues.append(sc_lie)
+    sc_cover = _structured_coverage_issue("run_self_check", tx_keys, self_check_entries)
+    if sc_cover:
+        issues.append(sc_cover)
 
     try:
         fl_check = _load_json(paths["fl_model_check"])
@@ -192,12 +277,13 @@ def validate(ip: str, root: Path) -> dict[str, Any]:
     evidence["fl_model_check"] = fl_check
     if not isinstance(fl_check, dict) or not bool(fl_check.get("passed")):
         issues.append("fl_model_check.json must be an object with passed=true")
-    fl_check_keys = _extract_check_keys(fl_check)
-    missing_fl_check = [key for key in tx_keys if key not in fl_check_keys]
-    if missing_fl_check:
-        issues.append(
-            "fl_model_check transaction trace missing: " + ", ".join(missing_fl_check)
-        )
+    fl_check_entries = _structured_result_entries(fl_check)
+    fl_lie = _inner_consistency_issue("fl_model_check", fl_check_entries)
+    if fl_lie:
+        issues.append(fl_lie)
+    fl_cover = _structured_coverage_issue("fl_model_check", tx_keys, fl_check_entries)
+    if fl_cover:
+        issues.append(fl_cover)
 
     try:
         decomp = _load_json(paths["decomposition"])
