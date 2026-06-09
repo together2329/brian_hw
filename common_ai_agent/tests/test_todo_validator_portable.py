@@ -5,6 +5,7 @@ The execution layer must rewrite the `python3` token to sys.executable so all
 """
 from __future__ import annotations
 
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -32,9 +33,8 @@ def test_run_validator_rewrites_python3_to_current_interpreter(monkeypatch):
     item = TodoItem(content="x", active_form="x", validator='python3 workflow/foo/check.py ip --root .')
     assert item.run_validator() is None
 
-    cmd = captured["cmd"]
-    assert "python3 " not in cmd, f"python3 token must be rewritten, got: {cmd}"
-    assert sys.executable in cmd.replace('"', ""), cmd
+    q = shlex.quote(sys.executable)
+    assert captured["cmd"] == f"{q} workflow/foo/check.py ip --root ."
 
 
 def test_run_validator_rewrites_every_python3_token(monkeypatch):
@@ -48,9 +48,8 @@ def test_run_validator_rewrites_every_python3_token(monkeypatch):
     )
     item.run_validator()
 
-    cmd = captured["cmd"]
-    assert "python3" not in cmd, cmd
-    assert cmd.replace('"', "").count(sys.executable) == 2, cmd
+    q = shlex.quote(sys.executable)
+    assert captured["cmd"] == f"{q} a.py && {q} b.py --flag"
 
 
 def test_run_validator_does_not_touch_similar_names(monkeypatch):
@@ -74,6 +73,5 @@ def test_run_command_rewrites_python3(monkeypatch, tmp_path: Path):
     ok, _tail, _lines = tracker._run_command(todo, tmp_path / "cmd.log")
 
     assert ok is True
-    cmd = captured["cmd"]
-    assert "python3 " not in cmd, cmd
-    assert sys.executable in cmd.replace('"', ""), cmd
+    q = shlex.quote(sys.executable)
+    assert captured["cmd"] == f"{q} workflow/bar/run.py ip"
