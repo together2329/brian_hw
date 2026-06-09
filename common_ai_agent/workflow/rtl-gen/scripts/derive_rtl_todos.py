@@ -3609,6 +3609,7 @@ def _rtl_gate_ui_group(task: dict[str, Any]) -> tuple[int, str, str]:
     if kind in {"dut_compile", "dut_lint"}:
         return (90, "gate.compile_lint", "Run DUT-only compile and lint closure gates")
     if kind in {
+        "dynamic_todo_closure",
         "cycle_model_artifacts",
         "protocol_assertion_evidence",
         "fl_rtl_goal_audit",
