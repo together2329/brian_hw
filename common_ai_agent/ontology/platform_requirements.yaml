@@ -26,25 +26,25 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_api_sessions_content.py::test_get_session_cross_user_returns_404"
-            observed_at: e7025b86
+            observed_at: a515c974
       - id: OBL_SESS_WRITE_CROSS_USER_404
         owned_by: api.sessions
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_api_sessions_content.py::test_update_session_cross_user_returns_404"
-            observed_at: e7025b86
+            observed_at: a515c974
           - test: "tests/test_api_sessions_content.py::test_delete_session_cross_user_returns_404"
-            observed_at: e7025b86
+            observed_at: a515c974
       - id: OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED
         owned_by: api.sessions
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_api_sessions_content.py::test_session_history_cross_user_denied"
-            observed_at: e7025b86
+            observed_at: a515c974
           - test: "tests/test_api_sessions_content.py::test_session_state_cross_user_denied"
-            observed_at: e7025b86
+            observed_at: a515c974
       - id: OBL_FS_AUTHZ_FAIL_CLOSED
         owned_by: runtime.authz
         granularity: behavior
@@ -62,73 +62,21 @@ requirements:
           - test: "tests/test_fs_authz.py::test_traversal_denied"
             observed_at: a515c974
           - test: "tests/test_api_sessions_content.py::test_session_history_path_traversal_rejected"
-            observed_at: e7025b86
+            observed_at: a515c974
       - id: OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
         owned_by: api.sessions
         granularity: concurrent
-        status: closed   # 78685249 에서 수정: no-DB-row read 는 403 (fail-closed)
-        evidence:
-          - test: "tests/test_api_sessions_content.py::test_authorize_no_db_row_denied_on_read"
-            observed_at: e7025b86
-          - test: "tests/test_api_sessions_content.py::test_authorize_no_db_row_denied_state_endpoint"
-            observed_at: e7025b86
+        status: refuted
+        refuted_by: >-
+          신규 세션이 DB row 없이 namespace-owner 매치만으로 allow —
+          create↔authorize 사이 race 가능 (_authorize_session_request fail-open 분기)
       - id: OBL_ACTIVATE_ENV_NO_CROSS_LEAK
         owned_by: api.sessions
         granularity: behavior
-        status: closed   # 78685249 에서 수정: multi-user 는 os.environ 변이 금지
-        evidence:
-          - test: "tests/test_api_sessions_content.py::test_activate_multi_user_does_not_mutate_os_environ"
-            observed_at: e7025b86
-          - test: "tests/test_api_sessions_content.py::test_activate_single_user_preserves_os_environ_update"
-            observed_at: e7025b86
-      # ── ATLAS-wide adversarial review (61-agent) cross-tenant authz holes ──
-      # 196b4b53 닫음: 미게이트 엔드포인트 잔존(runtime.authz known_gap)을 구체화.
-      - id: OBL_GIT_REST_CROSS_TENANT_GATED
-        owned_by: runtime.authz
-        granularity: behavior
-        status: closed   # 196b4b53: per-IP git REST(commit/log/graph/revert) _fs_authz 게이트
-        evidence:
-          - test: "tests/test_atlas_authz_e2e.py::test_ip_git_rest_endpoints_cross_user_denied"
-            observed_at: "196b4b53"
-      - id: OBL_IP_REPORTS_CROSS_TENANT_GATED
-        owned_by: runtime.authz
-        granularity: behavior
-        status: closed   # 196b4b53: lint/coverage/ssot-gates per-IP authz
-        evidence:
-          - test: "tests/test_atlas_authz_e2e.py::test_ip_report_endpoints_cross_user_denied"
-            observed_at: "196b4b53"
-      - id: OBL_WORKSPACE_DOWNLOAD_GATED
-        owned_by: runtime.authz
-        granularity: behavior
-        status: closed   # 196b4b53: /api/workspace/download.zip subpath authz + whole-tree 거부
-        evidence:
-          - test: "tests/test_atlas_authz_e2e.py::test_workspace_download_blocks_cross_tenant_and_whole_tree"
-            observed_at: "196b4b53"
-      - id: OBL_SETTINGS_ADMIN_ONLY_MULTIUSER
-        owned_by: runtime.authz
-        granularity: behavior
-        status: closed   # 196b4b53: /api/settings/* 글로벌 .env 변조 → 멀티유저 admin-only
-        evidence:
-          - test: "tests/test_atlas_authz_e2e.py::test_settings_endpoints_admin_only_in_multiuser"
-            observed_at: "196b4b53"
-      - id: OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER
-        owned_by: runtime.authz
-        granularity: behavior
-        status: closed   # 196b4b53: 익명 git fetch/clone 멀티유저 기본 OFF
-        evidence:
-          - test: "tests/test_atlas_authz_e2e.py::test_git_default_blocks_anon_clone_in_multiuser"
-            observed_at: "196b4b53"
-      # ── DEFERRED (리뷰 confirmed, 별도 Perforce-aware 패스 필요) ──
-      - id: OBL_SCM_JSON_API_CROSS_TENANT_GATED
-        owned_by: runtime.authz
-        granularity: behavior
-        status: open   # /api/scm/*·/api/git/* tenant authz 미적용 + scm_root PROJECT_ROOT 탈출
-                       # (src/atlas_api_git.py) — Perforce 절대경로 정당성 때문에 신중 수정 보류
-      - id: OBL_CONVERSATION_SSOT_IMPORT_OWNER_SCOPED
-        owned_by: runtime.authz
-        granularity: behavior
-        status: open   # 196b4b53 에서 fix는 반영(/api/conversation own-session, ssot-import
-                       # owner gate)되었으나 전용 cross-tenant 테스트 미작성 → 테스트 추가 후 closed 승급
+        status: refuted
+        refuted_by: >-
+          비프로세스 모드 activate 가 os.environ.update(context.export_env()) 로
+          전역 env 를 오염 — 멀티테넌트에서 사용자 간 누수 가능
 
   - id: REQ_PLAT_MEMORY_DURABILITY_001
     claim: "에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다"
@@ -140,39 +88,37 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryPreferences::test_persistence_across_instances"
-            observed_at: d8924d51
+            observed_at: a515c974
       - id: OBL_MEM_CORRUPT_STORE_RECOVERY
         owned_by: agent.memory
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryRules::test_corrupt_rules_file_falls_back_to_empty"
-            observed_at: d8924d51
+            observed_at: a515c974
           - test: "tests/test_agent_memory_content.py::TestProceduralMemoryPersistence::test_corrupt_trajectories_file_loads_empty"
-            observed_at: d8924d51
+            observed_at: a515c974
       - id: OBL_MEM_USER_ISOLATION
         owned_by: agent.memory
         granularity: content
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryUserNormalization::test_user_isolation_separate_files"
-            observed_at: d8924d51
+            observed_at: a515c974
       - id: OBL_MEM_EXPORT_IMPORT_ROUNDTRIP
         owned_by: agent.memory
         granularity: content
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryExportImport::test_export_import_round_trip"
-            observed_at: d8924d51
+            observed_at: a515c974
       - id: OBL_MEM_ABS_PATH_RESPECTED
         owned_by: agent.memory
         granularity: structural
-        status: closed   # d8924d51 에서 수정: 절대경로 그대로 사용
-        evidence:
-          - test: "tests/test_agent_memory_content.py::TestProceduralMemoryAbsolutePath::test_absolute_memory_dir_used_as_is"
-            observed_at: d8924d51
-          - test: "tests/test_agent_memory_content.py::TestProceduralMemoryAbsolutePath::test_relative_path_still_goes_under_home"
-            observed_at: d8924d51
+        status: refuted
+        refuted_by: >-
+          ProceduralMemory.__init__ 이 절대경로 memory_dir 도 무조건
+          Path.home() 밑에 prepend (MemorySystem 과 불일치) — 저장 위치 제어 불가
 
   - id: REQ_PLAT_LLM_FAILURE_VISIBILITY_001
     claim: "LLM 호출 실패는 절대 정상 결과로 둔갑하지 않는다 (green-while-broken 금지)"
@@ -181,21 +127,16 @@ requirements:
       - id: OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE
         owned_by: agent.memory
         granularity: behavior
-        status: closed   # d8924d51 에서 수정: 실패 시 llm_error 키로 표면화
-        evidence:
-          - test: "tests/test_agent_memory_content.py::TestAutoExtractLLMErrorMarker::test_llm_raises_produces_llm_error_key"
-            observed_at: d8924d51
-          - test: "tests/test_agent_memory_content.py::TestAutoExtractLLMErrorMarker::test_llm_returns_empty_list_no_llm_error_key"
-            observed_at: d8924d51
+        status: refuted
+        refuted_by: >-
+          auto_extract_and_update 가 LLM 불가 시 {"extracted": 0} 을 반환 —
+          호출자가 'LLM 미상담'과 '추출할 것 없음'을 구분할 수 없음
       - id: OBL_COMPRESS_LLM_FAIL_SURFACED
         owned_by: agent.compression
         granularity: behavior
-        status: closed   # 픽스는 브랜치 선재, c319da37 에서 증거 테스트 20개 확보
-        evidence:
-          - test: "tests/test_compressor_llm_failure.py::TestLLMFailureSurfacedInContent::test_failure_marker_present_in_result"
-            observed_at: c319da37
-          - test: "tests/test_compressor_llm_failure.py::TestRaiseOnLLMFailureFlag::test_raises_compression_llm_error"
-            observed_at: c319da37
+        status: refuted
+        refuted_by: >-
+          compressor 가 LLM 실패를 조용히 truncation dump 로 대체 (silent swallow)
         repro: scripts/verify_compression_llm.py
 
   - id: REQ_PLAT_DEV_TRACEABILITY_001
@@ -208,23 +149,23 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_declared_paths_all_exist"
-            observed_at: e7025b86
+            observed_at: b3df2164
       - id: OBL_NEW_MODULE_REGISTERED
         owned_by: platform.ontology
         granularity: structural
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_no_ownership_overlap_and_orphan_ratchet"
-            observed_at: e7025b86
+            observed_at: b3df2164
       - id: OBL_SPINE_INTEGRITY_ENFORCED
         owned_by: platform.ontology
         granularity: structural
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_spine_integrity_on_real_repo"
-            observed_at: e7025b86
+            observed_at: b3df2164
           - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
-            observed_at: e7025b86
+            observed_at: b3df2164
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
@@ -236,7 +177,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_checkout_folder_target_unsynced_opens_edit_and_submits"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_EDIT_FAILURE_NOT_SOFTENED
         owned_by: platform.scm
@@ -244,7 +185,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_depot_selection_checkout_unsynced_opens_for_edit"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL
         owned_by: platform.scm
@@ -252,17 +193,25 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_failed_default_submit_strands_no_numbered_changelist"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
+      - id: OBL_P4_STREAM_ROOT_TARGET_MAPS_IP
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_open_paths_stream_root_folder_target_mirrors_ip_subpath"
+            observed_at: b3df2164
+        repro: scripts/e2e_perforce_ui_flow.py
       - id: OBL_P4_PENDING_CL_DELETABLE
         owned_by: platform.scm
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_delete_pending_changelist_keeps_workspace_content"
-            observed_at: 8098c181
+            observed_at: b3df2164
           - test: "tests/test_scm_perforce_adapter.py::test_live_revert_paths_deletes_emptied_numbered_changelist"
-            observed_at: 8098c181
+            observed_at: b3df2164
           - test: "tests/test_atlas_git_api.py::test_scm_change_delete_route_uses_perforce_adapter"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py

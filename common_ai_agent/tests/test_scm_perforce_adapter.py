@@ -878,6 +878,45 @@ def test_open_paths_maps_selected_depot_folder_target(tmp_path):
     assert adapter.calls == [("reconcile", (p4_root / "rtl" / "mapped.sv").as_posix())]
 
 
+def test_open_paths_stream_root_folder_target_mirrors_ip_subpath(tmp_path):
+    # REQ_PLAT_SCM_PERFORCE_SYNC_001 / OBL_P4_STREAM_ROOT_TARGET_MAPS_IP.
+    # The UI's default Add/Checkout target is the depot pane's current folder,
+    # which starts at the STREAM ROOT. That used to resolve to rel="" -> None
+    # -> "cannot map local paths to Perforce target paths", so nothing was ever
+    # opened and submit reported "no changes to submit".
+    local_root = tmp_path / "my_ip"
+    p4_root = tmp_path / "perforce_workspace"
+    (local_root / "rtl").mkdir(parents=True)
+    p4_root.mkdir()
+    (local_root / "rtl" / "main.sv").write_text("module mapped; endmodule\n", encoding="utf-8")
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+
+        def _info(self) -> dict[str, str]:
+            return {"clientRoot": p4_root.as_posix()}
+
+        def _run_p4(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            return self._result(ok=True, stdout="opened")
+
+    adapter = RecordingAdapter(p4_root)
+
+    result = adapter.open_paths(
+        ["rtl/main.sv"],
+        stream="//GOOD_SOC/GOOD_IP",
+        local_root=local_root,
+        target_paths=["//GOOD_SOC/GOOD_IP/"],
+    )
+
+    target = p4_root / "my_ip" / "rtl" / "main.sv"
+    assert result.ok is True, result.error
+    assert target.read_text(encoding="utf-8") == "module mapped; endmodule\n"
+    assert adapter.calls == [("reconcile", target.as_posix())]
+
+
 def test_open_paths_does_not_reuse_single_file_target_for_multiple_sources(tmp_path):
     local_root = tmp_path / "local_ip"
     p4_root = tmp_path / "perforce_workspace"

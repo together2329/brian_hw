@@ -521,15 +521,37 @@ class PerforceP4Adapter(SCMAdapter):
             return None
         return Path(filespec)
 
+    def _ip_mirror_target(
+        self,
+        base: Path,
+        source: Path,
+        originals: list[Any],
+        idx: int,
+        local_root: str | Path | None,
+    ) -> Path:
+        """1:1 mirror of a local IP file under the workspace root:
+        <workspace>/<ip>/<relative path> (the documented depot mapping)."""
+        raw = str(originals[idx]) if idx < len(originals) else source.name
+        rel = Path(raw)
+        if raw.startswith("//") or rel.is_absolute():
+            try:
+                rel = source.resolve().relative_to(self._local_root_path(local_root))
+            except (OSError, RuntimeError, ValueError):
+                rel = Path(source.name)
+        ip_name = Path(local_root).resolve().name if local_root is not None else ""
+        return (base / ip_name / rel) if ip_name else (base / rel)
+
     def _workspace_targets_for_sources(
         self,
         sources: list[Path],
         original_paths: Any,
         target_paths: Any,
+        local_root: str | Path | None = None,
     ) -> list[Path]:
         base = self._workspace_root_path()
         targets = self._target_values(target_paths)
         originals = [original_paths] if isinstance(original_paths, str) else list(original_paths or [])
+        stream_root = (self._selected_stream or self._branch()).rstrip("/")
         out: list[Path] = []
         for idx, source in enumerate(sources):
             if idx < len(targets):
@@ -540,8 +562,18 @@ class PerforceP4Adapter(SCMAdapter):
                 target_text = ""
             if target_text.startswith("//"):
                 if target_text.endswith("/"):
-                    rel = self._depot_output_rel(target_text)
-                    target = (base / rel / source.name) if rel else None
+                    # The UI's default target is the depot pane's current folder,
+                    # which starts at the stream root. That folder IS the
+                    # workspace root (rel would be empty/garbage), so mirror the
+                    # IP 1:1 instead of dropping basenames at the root.
+                    if stream_root and target_text.rstrip("/") == stream_root:
+                        target = self._ip_mirror_target(base, source, originals, idx, local_root)
+                    else:
+                        rel = self._depot_output_rel(target_text)
+                        if rel:
+                            target = base / rel / source.name
+                        else:
+                            target = self._ip_mirror_target(base, source, originals, idx, local_root)
                 else:
                     target = self._client_path_for_depot(target_text)
             elif target_text:
@@ -1002,7 +1034,7 @@ class PerforceP4Adapter(SCMAdapter):
         sources = self._safe_local_paths(paths, local_root)
         if not sources:
             return self._result(ok=False, returncode=2, error="no valid local paths to open")
-        targets = self._workspace_targets_for_sources(sources, paths, target_paths)
+        targets = self._workspace_targets_for_sources(sources, paths, target_paths, local_root)
         if len(targets) != len(sources):
             return self._result(ok=False, returncode=2, error="cannot map local paths to Perforce target paths")
         specs: list[str] = []

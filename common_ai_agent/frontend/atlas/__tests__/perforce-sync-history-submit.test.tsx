@@ -136,7 +136,7 @@ describe('PerforceSyncTab history and submit refresh', () => {
 
   it('removes a submitted pending changelist from the visible pending list', async () => {
     render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
-    expect(await screen.findByRole('button', { name: /diff/i })).toBeVisible();
+    expect((await screen.findAllByRole('button', { name: /diff/i }))[0]).toBeVisible();
     expect(screen.getByRole('button', { name: /history/i })).toBeVisible();
     expect(screen.getByRole('button', { name: /pending list/i })).toBeVisible();
 

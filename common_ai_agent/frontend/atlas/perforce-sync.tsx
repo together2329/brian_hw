@@ -83,6 +83,17 @@ const ACTION_COLOR: Record<string, string> = {
   'move/delete': 'var(--err)',
 };
 
+// unified-diff line coloring: green = added, red = removed
+const diffLineStyle = (line: string): CSSProperties => {
+  if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('====')) {
+    return { color: 'var(--fg-dim)' };
+  }
+  if (line.startsWith('@@')) return { color: 'var(--accent)' };
+  if (line.startsWith('+')) return { color: 'var(--ok)', background: 'rgba(80, 200, 120, 0.08)' };
+  if (line.startsWith('-')) return { color: 'var(--err)', background: 'rgba(220, 80, 80, 0.08)' };
+  return { color: 'var(--fg)' };
+};
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 
@@ -388,6 +399,19 @@ function PerforceSyncTab(props: PerforceSyncProps) {
             const entries = [...kept, nextLocation].slice(-50);
             return { entries, index: entries.length - 1 };
           });
+          const sessionId = activeSessionId();
+          fetch('/api/scm/uiprefs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ip: targetIp,
+              ...(sessionId ? { session_id: sessionId } : {}),
+              localDir: nextLocation.localDir,
+              depotDir: nextLocation.depotDir,
+              stream: nextStream,
+              scmRoot: targetScmRoot || d.scmRoot || '',
+            }),
+          }).catch(() => {});
         }
         if (!d.ok && d.error) setErr(d.error);
         setSelLocal(new Set()); setSelDepot(new Set()); setSelPend(new Set());
@@ -396,9 +420,30 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .finally(() => { if (mounted.current && reqRef.current === reqId) setBusy(false); });
   }, [stream, scmRoot]);
 
+  // Restore the last-visited pane locations (saved server-side under the
+  // user's home dir) so each visit does not restart at the roots.
   useEffect(() => {
     setNav({ entries: [], index: -1 });
-    loadPane(ip, stream, scmRoot, '', '', { remember: true, clearLocal: true, clearDepot: true });
+    if (!ip) { setPane(null); return; }
+    let cancelled = false;
+    const params = new URLSearchParams({ ip });
+    const sessionId = activeSessionId();
+    if (sessionId) params.set('session_id', sessionId);
+    fetch(`/api/scm/uiprefs?${params.toString()}`, { cache: 'no-store' })
+      .then(r => (r.ok ? r.json() : null))
+      .catch(() => null)
+      .then((d: unknown) => {
+        if (cancelled || !mounted.current) return;
+        const prefs = isRecord(d) && isRecord(d.prefs) ? d.prefs : {};
+        const savedStream = stream || (typeof prefs.stream === 'string' ? prefs.stream : '');
+        const savedLocal = typeof prefs.localDir === 'string' ? prefs.localDir : '';
+        const savedDepot = typeof prefs.depotDir === 'string' ? prefs.depotDir : '';
+        if (savedStream && !stream) setStream(savedStream);
+        if (savedLocal) setLocalDir(savedLocal);
+        if (savedDepot) setDepotDir(savedDepot);
+        loadPane(ip, savedStream, scmRoot, savedLocal, savedDepot, { remember: true, clearLocal: true, clearDepot: true });
+      });
+    return () => { cancelled = true; };
   }, [ip]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadHistory = useCallback((targetIp = ip, targetStream = activeStream, targetScmRoot = activeScmRoot) => {
@@ -632,6 +677,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     if (!paths.length) { setErr('nothing to revert'); return; }
     post('/api/scm/revert', { paths }, `reverted ${paths.length} file(s)`);
   };
+  const onShowDiff = () => {
+    const path = [...selPend][0] || '';
+    if (!path) { setErr('select a pending file first'); return; }
+    loadPendingDiff(path);
+  };
   const onDeleteChange = () => {
     if (selectedChange === 'default') return;
     post('/api/scm/change/delete', { changelist: selectedChange }, `deleted CL ${selectedChange}`, () => {
@@ -778,7 +828,13 @@ function PerforceSyncTab(props: PerforceSyncProps) {
               </div>
               {activeDiffBusy ? <div style={sx.empty}>{diffSource === 'history' ? 'loading changelist…' : 'loading diff…'}</div> :
                 activeDiffError ? <div style={{ ...sx.empty, color: 'var(--err)' }}>{activeDiffError}</div> :
-                  activeDiffText ? <pre style={sx.diffPre}>{activeDiffText}</pre> :
+                  activeDiffText ? (
+                    <pre style={sx.diffPre}>
+                      {activeDiffText.split('\n').map((line, idx) => (
+                        <div key={idx} style={diffLineStyle(line)}>{line || ' '}</div>
+                      ))}
+                    </pre>
+                  ) :
                     <div style={sx.empty}>{activeDiffEmpty}</div>}
             </div>
           ) : null}
@@ -823,6 +879,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
                   ))}
                 </select>
                 <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  <button style={sx.btn} onClick={onShowDiff} disabled={busy || !selPend.size} title="Show diff for the selected pending file">Diff</button>
                   {selectedChange !== 'default' ? (
                     <button style={sx.btn} onClick={onDeleteChange} disabled={busy} title="Revert (-k) and delete this pending changelist">Delete CL</button>
                   ) : null}
@@ -837,10 +894,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
                       <div
                         key={r.path}
                         style={sx.rowLi}
-                        onClick={() => {
-                          toggle(selPend, r.path, setSelPend);
-                          loadPendingDiff(r.path);
-                        }}
+                        onClick={() => toggle(selPend, r.path, setSelPend)}
                       >
                         <input type="checkbox" checked={checked} readOnly />
                         <span style={{ color: ACTION_COLOR[r.action] || 'var(--fg-mute)', width: 76, flex: 'none' }}>{r.action}</span>
