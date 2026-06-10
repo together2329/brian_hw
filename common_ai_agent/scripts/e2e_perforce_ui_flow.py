@@ -136,6 +136,10 @@ def main() -> None:
         (tmp / "home").mkdir(exist_ok=True)
         os.environ.update({
             "HOME": (tmp / "home").as_posix(),
+            # This E2E exercises SCM adapter routing, not tenant authz — run
+            # single-user so the per-IP authz gate (covered by
+            # tests/test_atlas_authz_e2e.py) allows the throwaway IP.
+            "ATLAS_MULTI_USER": "0",
             "ATLAS_COOKIE_SECRET": "e2e-secret",
             "ATLAS_SCM_PROVIDER": "perforce",
             "ATLAS_SCM_ADAPTER_PERFORCE": "core.scm_perforce:PerforceP4Adapter",
