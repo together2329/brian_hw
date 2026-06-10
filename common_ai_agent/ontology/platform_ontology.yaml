@@ -202,11 +202,21 @@ units:
     summary: Cursor 에이전트 팩 (.cursor rules/hooks/subagents/skills — todo-loop hook + ROCEV chain)
     owns:
       - .cursor/hooks/stop-todo-loop.py
+      - .cursor/hooks/subagent-evidence-check.py
       - .cursor/hooks/stop-loop-check.py
       - .cursor/hooks/guard-shell.py
       - .cursor/hooks/protect-generated-artifacts.py
+      - scripts/atlas_mcp_server.py
     content_tests:
       - tests/test_cursor_pack.py
+
+  - id: platform.ip-wiki
+    kind: tooling
+    summary: IP 폴더 내장 wiki (<ip>/wiki) — 개발 히스토리 축적 + frontmatter/link 무결성 게이트
+    owns:
+      - scripts/ip_wiki.py
+    content_tests:
+      - tests/test_ip_wiki.py
 
   - id: platform.ontology
     kind: meta

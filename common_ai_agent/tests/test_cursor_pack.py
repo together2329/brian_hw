@@ -88,6 +88,63 @@ def test_hook_default_path_uses_project_dir(tmp_path):
     assert "프로젝트 기본 경로" in out.get("followup_message", "")
 
 
+# ---------- subagentStop 증거 hook ----------
+
+SUBAGENT_HOOK = CURSOR / "hooks" / "subagent-evidence-check.py"
+
+
+def _run_subagent_hook(stdin_obj):
+    proc = subprocess.run(
+        [sys.executable, str(SUBAGENT_HOOK)],
+        input=json.dumps(stdin_obj, ensure_ascii=False), capture_output=True,
+        text=True, env={"PATH": "/usr/bin:/bin"}, timeout=15)
+    assert proc.returncode == 0, proc.stderr
+    return json.loads(proc.stdout)
+
+
+def test_subagent_hook_blocks_claim_without_evidence():
+    out = _run_subagent_hook({
+        "subagent_type": "atlas-sim", "status": "completed",
+        "summary": "시뮬레이션을 잘 마쳤고 모든 것이 정상으로 보입니다.", "loop_count": 0})
+    assert "증거" in out.get("followup_message", "")
+
+
+def test_subagent_hook_passes_with_evidence():
+    for summary in ("sim gate PASS: 28/28 scoreboard, results.xml fresh",
+                    "pytest: 11 passed; check_sim_disk rc=0"):
+        out = _run_subagent_hook({
+            "subagent_type": "atlas-sim", "status": "completed",
+            "summary": summary, "loop_count": 0})
+        assert out == {}, summary
+
+
+def test_subagent_hook_ignores_non_owner_and_aborts():
+    assert _run_subagent_hook({
+        "subagent_type": "explorer", "status": "completed", "summary": "둘러봄"}) == {}
+    assert _run_subagent_hook({
+        "subagent_type": "atlas-sim", "status": "aborted", "summary": ""}) == {}
+
+
+# ---------- 루프 시뮬레이션: hook이 todo를 닫아가며 종료까지 가는가 ----------
+
+def test_stop_loop_simulation_terminates(tmp_path):
+    """todo를 하나씩 닫는 에이전트를 흉내내 루프가 정확히 N회로 끝나는지."""
+    todos = [{"content": f"task-{i}", "status": "pending"} for i in range(3)]
+    p = _todo_file(tmp_path, todos)
+    loops = 0
+    while loops < 10:
+        out = _run_hook({"status": "completed", "loop_count": loops}, todo_file=p)
+        if out == {}:
+            break
+        loops += 1
+        for t in todos:  # 에이전트가 todo 하나를 완료
+            if t["status"] != "completed":
+                t["status"] = "completed"
+                break
+        p.write_text(json.dumps({"todos": todos}), encoding="utf-8")
+    assert loops == 3  # 3개 todo → 정확히 3번 followup 후 종료
+
+
 # ---------- 팩 참조 무결성 (유령 참조 차단) ----------
 
 def _frontmatter(path: Path) -> dict:
@@ -130,6 +187,22 @@ def test_agents_frontmatter_valid():
         assert fm.get("name"), f"{path.name}: name missing"
         assert fm.get("description"), f"{path.name}: description missing"
         assert re.fullmatch(r"[a-z0-9-]+", fm["name"]), f"{path.name}: name not kebab-case"
+
+
+def test_rules_frontmatter_valid():
+    rules = sorted((CURSOR / "rules").glob("*.mdc"))
+    assert rules
+    for path in rules:
+        fm = _frontmatter(path)
+        assert fm.get("description"), f"{path.name}: description missing"
+
+
+def test_mcp_json_valid_and_server_exists():
+    doc = json.loads((CURSOR / "mcp.json").read_text(encoding="utf-8"))
+    for name, server in doc["mcpServers"].items():
+        for arg in server.get("args", []):
+            if arg.endswith(".py"):
+                assert (REPO / arg).is_file(), f"mcp server {name}: missing {arg}"
 
 
 def test_skills_name_matches_folder():

@@ -15,6 +15,14 @@
         "failClosed": false
       }
     ],
+    "subagentStop": [
+      {
+        "command": ".cursor/hooks/subagent-evidence-check.py",
+        "timeout": 5,
+        "failClosed": false,
+        "loop_limit": 2
+      }
+    ],
     "stop": [
       {
         "command": ".cursor/hooks/stop-todo-loop.py",
