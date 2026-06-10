@@ -555,6 +555,21 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
           }}
         >req</span>
       )}
+      {showReqTab && (
+        <span
+          className="tab-chip"
+          onClick={() => setMainTab('vcm')}
+          title="VCM: requirement → obligation → contract → evidence → validation spine (React Flow graph)"
+          style={{
+            cursor: 'pointer',
+            padding: '2px 8px', borderRadius: 2, marginLeft: 4,
+            color: mainTab === 'vcm' ? 'var(--accent)' : 'var(--fg-mute)',
+            background: mainTab === 'vcm' ? 'color-mix(in oklch, var(--accent) 14%, transparent)' : 'transparent',
+            border: '1px solid ' + (mainTab === 'vcm' ? 'var(--accent)' : 'transparent'),
+            fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
+          }}
+        >vcm</span>
+      )}
       {showSsotTab && (
         <span
           className="tab-chip"
