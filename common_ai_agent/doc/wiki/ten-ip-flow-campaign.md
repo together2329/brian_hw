@@ -47,7 +47,20 @@ failures are the acceptance test ([[llm-authored-oracle-architecture]]).
 
 ## Ledger (append per IP: interventions + what was generalized)
 
-- hx4: (pending run completion)
+- **hx4 (pulse_counter_hx4)**: ZERO interventions — req-contracts locked in one
+  round, build-first flow ran to sim, scoreboard 57/59 (2 open rows pending
+  analysis). First no-touch IP of the campaign.
+- **ip5 (apb_gpio_w1c, W1C idiom)**: 2 stalls, both generalized. (a) ssot-gen
+  YAML flow-mapping syntax error — converged on retry (runner loop, no code
+  change needed; YAML-error feedback precision logged as a watch item).
+  (b) evidence/meta contract failed FUNCTION-side projection (hx3's class on
+  the other side) → `projection_waiver` single-key waiver honored by both
+  function and cycle gates + req-contracts prompt rule (commit d1734fa6).
+  rtl-gen/lint passed unaided. sim 43/50: the 7 open rows are one semantic
+  class — FL-vs-timeline state visibility for sticky flags/edge detect on a
+  4-pin vector (irq level with pre-set flags, edge-detect pre-state
+  evaluation, vector sync fl_apply_count) — the W1C variant of the known
+  stimulus-contract family; next session's worker-repair + brief target.
 
 Related: [[headless-stage-validation-phase2-20260610]],
 [[llm-authored-oracle-architecture]], [[stage-validation-reflections-20260610]].
