@@ -59,6 +59,20 @@ Related: [[orchestrator-chat-ux]], [[verification-contract-model]],
 
 ### End-to-end chain status (after 06-11 fixes)
 chat input visible ✓ · orchestrator reads state ✓ · ask_user/resume round-trip ✓ ·
-IPC supervisor respawn ✓ · dispatch past the truth gate ✓ · worker execution → (in progress)
+IPC supervisor respawn ✓ · dispatch past the truth gate ✓ · **ssot-gen IPC worker
+(gpt-5.4) produced real artifacts** ✓ · orchestrator yielded on the job & completed ✓
+
+cnt8_en_v1 ssot-gen output (05:05): `yaml/cnt8_en_v1.ssot.yaml` (52 KB) +
+`ssot.provenance.json` (372 KB). Orchestrator steps 13 `dispatch_workflow:ok`
+→ 14 `yield_run` (waited on the job, did not prematurely finalize). First
+genuine chat→orchestrator→worker→artifact traversal of the campaign.
+
+Open follow-ons (next session):
+- finding 4: paused-run watchdog (zombie thread) — OBL_ORCH_RUN_STUCK_WATCHDOG_001.
+- finding 7: harden the gate-vs-author truth path contract so a human lock at
+  the top-level root is either honored or rejected loudly (not silently unseen).
+- step 12 `read_pipeline_state:tool_failed` mid-run — investigate the transient.
+- continue cnt8_en_v1 past ssot-gen (fl→rtl→lint→tb→sim) and the remaining 9 IPs;
+  exercise web-UI and headless entry points.
 
 (continued as the campaign progresses)
