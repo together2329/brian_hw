@@ -236,6 +236,25 @@ def build_pack(ip: str, spec: dict) -> dict[str, object]:
                  "obligation_refs": obl_refs})
     structural = [{"id": f"SC_{tag}_PORTS", "obligations": obl_refs,
                    "ssot_anchor": "io_list", "signals": spec["ports"]}]
+    # Close EVERY contract (contract_refs C_, structural SC_, behavioral BC_) in
+    # the evidence plan: check_locked_truth_bundle requires
+    # all_contract_ids = con_ids | structural_ids | behavioral_ids to each appear
+    # as an evidence_plan entry's contract_ref. The per-feature C_ evidence above
+    # only closes the anchor contracts; add SC_/BC_ closures here.
+    closed = {e["contract_ref"] for e in evidence}
+    extra_ids = [s["id"] for s in structural] + [b["id"] for b in behaviorals]
+    for cid in extra_ids:
+        if cid in closed:
+            continue
+        closed.add(cid)
+        is_lint = cid.endswith("-LINT") or cid.endswith("_LINT")
+        evidence.append({
+            "evidence_id": f"E_{cid.replace('-', '_')}",
+            "contract_ref": cid,
+            "artifact": "lint/dut_lint.json" if is_lint else f"tb/cocotb/test_{ip}.py",
+            "validator": "dut_lint_report.py" if is_lint else "check_scoreboard_events.py",
+            "pass_condition": "contract satisfied by the implementation + its stage check",
+        })
     return {
         "requirements_index.json": {"schema_version": 1, "type": "requirements_index", "ip": ip, "requirements": reqs},
         "obligations.json": {"schema_version": 1, "type": "obligations", "ip": ip, "obligations": obls},
