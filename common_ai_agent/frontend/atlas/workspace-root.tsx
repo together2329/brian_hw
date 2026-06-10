@@ -41,6 +41,7 @@ import {
 import { TodoEditorPane } from './workspace-todo';
 import { useWorkspaceSession, type UseWorkspaceSessionDeps } from './workspace-root-session-hook';
 import { useWorkspaceData, type WorkspaceDataDeps } from './workspace-root-data-hook';
+import { ATLAS_INPUT_PERF } from './workspace-root-render';
 import {
   renderWorkspaceLeftRail,
   renderWorkspaceCenterTabStrip,
@@ -120,6 +121,9 @@ export const Workspace = ({
   activeNamespace?: string;
   activeWorkflow?: string;
 }) => {
+  // Opt-in input-perf meter: counts root re-renders so the prompt-row HUD can
+  // show renders/sec while typing (plain counter bump — no subscription).
+  ATLAS_INPUT_PERF.rootRenders += 1;
   // The two state hooks share a circular deps contract: useWorkspaceSession
   // consumes data-hook-owned primitives (setStreaming/streamingRef/
   // streamBufferRef/setStreamText/setMainTab) while useWorkspaceData consumes

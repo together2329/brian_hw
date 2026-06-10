@@ -214,11 +214,24 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(textarea.value).toBe('abc');
     expect(setInput).not.toHaveBeenCalled();
 
+    // Plain prose syncs on the slow (idle) tier — still pending at 80ms…
     await act(async () => {
       vi.advanceTimersByTime(80);
     });
+    expect(setInput).not.toHaveBeenCalled();
 
+    // …and lands once the 240ms idle delay expires.
+    await act(async () => {
+      vi.advanceTimersByTime(200);
+    });
     expect(setInput).toHaveBeenLastCalledWith('abc');
+
+    // Slash drafts keep the fast 60ms tier (the popup is root-rendered).
+    fireEvent.change(textarea, { target: { value: '/sc' } });
+    await act(async () => {
+      vi.advanceTimersByTime(60);
+    });
+    expect(setInput).toHaveBeenLastCalledWith('/sc');
     vi.useRealTimers();
   });
 
@@ -253,7 +266,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
     fireEvent.change(textarea, { target: { value: 'l' } });
     await act(async () => {
-      vi.advanceTimersByTime(60);
+      vi.advanceTimersByTime(240);
     });
     expect(setInput).toHaveBeenLastCalledWith('l');
 

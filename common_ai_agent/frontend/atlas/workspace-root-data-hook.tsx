@@ -42,6 +42,15 @@ import {
 } from './workspace-tool-theme';
 import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
 import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } from './workspace-root-render';
+
+// Poll bail-out: the periodic pollers below (worker status / orch workers /
+// telemetry / worker progress) rebuild their payload object every tick, which
+// re-renders the whole Workspace root even when nothing changed. Returning the
+// previous reference from the updater lets React skip the render entirely.
+const samePolledState = (a: any, b: any): boolean => {
+  if (a === b) return true;
+  try { return JSON.stringify(a) === JSON.stringify(b); } catch (_) { return false; }
+};
 import {
   normalizePromptSubmit,
   promptFeedText,
@@ -451,10 +460,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           const effectiveSession = uiEffectiveHealthSession(j);
           const acceptCounters = uiHealthCountersMatchBrowserRoute(j);
           const effectiveRoute = uiSessionRoute(effectiveSession);
-          setWorkspaceTelemetry((prev: any) => ({
-            ...prev,
-            ...mergeHealthTelemetry(prev, j, effectiveSession, acceptCounters, effectiveRoute),
-          }));
+          setWorkspaceTelemetry((prev: any) => {
+            const next = {
+              ...prev,
+              ...mergeHealthTelemetry(prev, j, effectiveSession, acceptCounters, effectiveRoute),
+            };
+            return samePolledState(prev, next) ? prev : next;
+          });
         })
         .catch(() => {});
     };
@@ -478,7 +490,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const status = interactiveWorkerStatusFromPayload(await r.json());
         if (!status) return;
         if (!cancelled) {
-          setInteractiveWorkerStatus(status);
+          setInteractiveWorkerStatus((prev: any) => (samePolledState(prev, status) ? prev : status));
           setInteractiveWorkerStatusError('');
         }
       } catch (e) {
@@ -493,10 +505,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   useEffect(() => {
     const syncContextUsage = () => {
       const ctx = w.CONTEXT || {};
-      setWorkspaceTelemetry((prev: any) => ({
-        ...prev,
-        ...mergeContextTelemetry(prev, ctx),
-      }));
+      setWorkspaceTelemetry((prev: any) => {
+        const next = { ...prev, ...mergeContextTelemetry(prev, ctx) };
+        return samePolledState(prev, next) ? prev : next;
+      });
     };
     window.addEventListener('atlas-data-changed', syncContextUsage);
     window.addEventListener('atlas-session-loaded', syncContextUsage);
@@ -3035,12 +3047,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const snap = await workspaceFetchWorkerSnapshot({ ip, activeOnly: true });
         if (dead) return;
         const all = Array.isArray(snap && snap.workers) ? snap.workers : [];
-        setOrchWorkers(all.filter((wk: any) =>
+        const active = all.filter((wk: any) =>
           Number(wk.running_count || 0) > 0 ||
           Number(wk.pending_count || 0) > 0 ||
           Number(wk.queued_count || 0) > 0 ||
           Number(wk.blocked_count || 0) > 0
-        ));
+        );
+        setOrchWorkers((prev: any[]) => (samePolledState(prev, active) ? prev : active));
       } catch (_) {}
     };
     poll();
@@ -3128,12 +3141,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         if (!r.ok) { if (r.status === 404) workerLogJobRef.current = ''; return; }
         const d = await r.json();
         const jb = d.job || {};
-        setWorkerProgress({
+        const progress = {
           workflow: wf,
           status: String(d.status || jb.status || 'running'),
           startedAt: Number(jb.started_at || 0),
           iterations: Number(jb.iterations || 0),
-        });
+        };
+        setWorkerProgress((prev: any) => (samePolledState(prev, progress) ? prev : progress));
         const entries = Array.isArray(d.entries) ? d.entries : [];
         const fresh: any[] = [];
         let maxIdx = workerLogSinceRef.current;
