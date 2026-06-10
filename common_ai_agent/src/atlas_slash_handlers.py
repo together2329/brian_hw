@@ -1237,6 +1237,20 @@ def make_slash_handlers(
                 # separate structured RTL Blocker Q&A panel so /gen-rtl
                 # stops short with a single readable message.
                 return True
+            # Land the UI in this stage's home workflow, mirroring /to-ssot's
+            # explicit "/wf ssot-gen". The LLM-authoring branches already
+            # carry their own "/wf <stage>" inside queue_prompts; every other
+            # branch (deterministic engine result, check stages like
+            # /lint /sim /coverage) previously left the UI in the previous
+            # workflow even though stage history is appended to the stage's
+            # own lane — so /gen-rtl after /to-ssot stayed pinned on ssot-gen.
+            # (The rtl_blocked early-return above intentionally stays put:
+            # its [SSOT QUESTION] is answered in the ssot context.)
+            if not any(
+                str(p).strip().lower().startswith("/wf ")
+                for p in surface.queue_prompts
+            ):
+                _queue_prompt_for_session(client_session, f"/wf {workflow}")
             for prompt in surface.queue_prompts:
                 _queue_prompt_for_session(client_session, prompt)
             if surface.queue_prompts:
