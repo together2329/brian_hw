@@ -2,7 +2,7 @@
 title: Platform Ontology — 개발 단위/테스트/완성도 DB
 category: architecture
 tags: [ontology, dev-units, maturity, ratchet, meta]
-status: v1 live (2026-06-10) — 19 units seeded, orphan ratchet @124, first snapshot in DB
+status: v1 live (2026-06-10) — 19 units, orphan ratchet @124; L2 캠페인 1차 완료 (agent.memory 0→56 tests, api.sessions +28 → 둘 다 L2; 히스토그램 L3×2/L2×6/L1×10/L0×1)
 ---
 
 # Platform Ontology

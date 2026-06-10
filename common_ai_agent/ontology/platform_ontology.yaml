@@ -121,6 +121,12 @@ units:
     owns:
       - src/atlas_api_sessions.py
       - src/atlas_runtime_run.py
+    content_tests:
+      - tests/test_api_sessions_content.py
+    known_gaps:
+      - activate 계열 endpoint 미테스트 (full bridge+warmup 기계 필요, 통합테스트 의존)
+      - activate 비프로세스 모드 os.environ.update 전역 누수 (설계 caveat)
+      - 신규 세션 namespace-owner 매치 시 authorize fail-open (create 흐름 의도, race 가능)
 
   - id: ui.workspace
     kind: ui
@@ -165,6 +171,12 @@ units:
       - lib/memory.py
       - lib/procedural_memory.py
       - lib/curator.py
+    content_tests:
+      - tests/test_agent_memory_content.py
+    known_gaps:
+      - auto_extract_and_update가 LLM 불가 시 "추출 0건"과 구분 불가 (silent swallow)
+      - ProceduralMemory가 절대경로 memory_dir 무시 (Path.home() 무조건 prepend)
+      - _db_rules_* 경로 미테스트 (live AtlasDB 필요)
 
   - id: platform.config
     kind: config
