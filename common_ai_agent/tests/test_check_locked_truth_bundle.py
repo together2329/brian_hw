@@ -419,7 +419,12 @@ def test_lock_req_template_commands_run_with_env(tmp_path: Path) -> None:
         "ATLAS_APPROVED_BY": "brian",
     }
 
-    writer = subprocess.run(
+    # lock-req is two todos since 2026-06-10: human approval (no command)
+    # then one stamp-and-validate action whose compound command runs the
+    # lock stamper and the bundle checker in sequence — same gates, less
+    # ceremony.
+    assert len(template["tasks"]) == 2
+    lock_and_check = subprocess.run(
         str(template["tasks"][1]["command"]),
         shell=True,
         text=True,
@@ -427,16 +432,7 @@ def test_lock_req_template_commands_run_with_env(tmp_path: Path) -> None:
         env=env,
         check=False,
     )
-    checker = subprocess.run(
-        str(template["tasks"][2]["command"]),
-        shell=True,
-        text=True,
-        capture_output=True,
-        env=env,
-        check=False,
-    )
 
-    assert writer.returncode == 0, writer.stderr
-    assert checker.returncode == 0, checker.stdout + checker.stderr
-    assert "[check_contract_bundle] PASS brian_timer" in checker.stdout
-    assert "mode=locked" in checker.stdout
+    assert lock_and_check.returncode == 0, lock_and_check.stdout + lock_and_check.stderr
+    assert "[check_contract_bundle] PASS brian_timer" in lock_and_check.stdout
+    assert "mode=locked" in lock_and_check.stdout
