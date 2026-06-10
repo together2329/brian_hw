@@ -46,6 +46,11 @@ const ATLAS_GUIDE_CSS = `
 .atlas-guide .ag-aux td:first-child { font-weight: 600; white-space: nowrap; }
 .atlas-guide .ag-aux { font-size: 12.5px; }
 .atlas-guide .ag-cmds code { margin-right: 4px; }
+.atlas-guide .ag-flow { font-size: 12.5px; }
+.atlas-guide .ag-flow td:first-child { text-align: center; font-weight: 700; color: var(--accent); background: color-mix(in oklch, var(--accent) 10%, transparent); }
+.atlas-guide .ag-flow .ag-cmds { margin-top: 4px; }
+.atlas-guide .ag-gate { display: block; margin-top: 4px; color: var(--fg-mute); font-size: 11.5px; }
+.atlas-guide .ag-tag2 { display: inline-block; margin-left: 4px; font-size: 9px; font-weight: 700; color: var(--bg); background: var(--accent); padding: 1px 5px; border-radius: 999px; vertical-align: middle; }
 .atlas-guide .ag-foot { margin-top: 28px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--fg-mute); font-size: 12px; }
 `;
 
@@ -86,6 +91,77 @@ const ATLAS_GUIDE_HTML = `
     </tr>
   </table>
 
+  <h2>전체 파이프라인 — 단계별 흐름 (req → signoff)</h2>
+  <p class="ag-muted">공통 엔진의 캐노니컬 순서입니다. 각 단계는 <b>명령</b>으로 돌리고, <b>게이트</b>(검증기)가 산출물을 증거로 승인해야 다음으로 넘어갑니다. ATLAS Web UI · Textual · headless가 모두 같은 엔진 경로를 호출합니다.</p>
+  <table class="ag-flow">
+    <tr><th style="width:4%">#</th><th style="width:23%">단계 / 명령</th><th>하는 일</th><th style="width:30%">산출물 · 게이트</th></tr>
+    <tr>
+      <td>1</td>
+      <td><b>요구사항 · 계약 포착</b><div class="ag-cmds"><code>/req-gen</code> <code>/import</code></div></td>
+      <td>요구사항을 기계검증 가능한 <b>obligation/계약</b>으로 정규화(req → obligation → contract). 사람이 의도·미정의동작·프로토콜·waiver·수용기준을 소유.</td>
+      <td><code>req/requirements_index.json</code>, <code>obligations.json</code>, <code>structural/behavioral_contracts.json</code>, <code>approval_manifest.json</code><br/><span class="ag-gate">게이트: <code>check_contract_bundle.py</code> → <code>contract_authority_report.json</code> · <code>contract_closure.json</code></span></td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><b>SSOT 생성 · 승인</b> <span class="ag-tag2">CORE</span><div class="ag-cmds"><code>/new-ip</code> <code>/import</code> <code>/grill-me</code> <code>/to-ssot</code></div></td>
+      <td>설계 계약(SSOT YAML) 작성. 잠긴 req가 있으면 req가 authority이고 SSOT는 그 projection(새 의도 발명 금지). 빠진 의미는 템플릿 우회가 아니라 <b>사람 게이트</b>로.</td>
+      <td><code>&lt;ip&gt;/yaml/&lt;ip&gt;.ssot.yaml</code><br/><span class="ag-muted">import 시: <code>req/imports/</code>, <code>import_manifest.json</code>, <code>extracted_decisions.json</code></span></td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><b>기능(FL) 모델</b><div class="ag-cmds"><code>/ssot-fl-model</code></div></td>
+      <td>실행 가능한 <b>골든 기능/사이클 모델</b> 생성 → RTL 등가성 기준 확보.</td>
+      <td><code>model/functional_model.py</code>, <code>model/decomposition.json</code>, <code>model/fl_model_check.json</code>, <code>cov/fcov_plan.json</code></td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><b>FL↔RTL 등가 목표</b><div class="ag-cmds"><code>/ssot-equiv-goals</code></div></td>
+      <td>무엇을 LLM 루프가 증명하고 무엇이 사람 소유인지 정의.</td>
+      <td><code>verify/equivalence_goals.json</code></td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><b>RTL 생성 · DUT 승인</b> <span class="ag-tag2">CORE</span><div class="ag-cmds"><code>/ssot-rtl</code></div></td>
+      <td>SSOT를 <b>구속 계약</b>으로 RTL 생성. SSOT-derived TODO가 전부 <code>pass</code>될 때까지 생성·수리. 기존 RTL은 재사용 증거일 뿐.</td>
+      <td><code>rtl/*.sv</code>, <code>list/&lt;ip&gt;.f</code>, <code>rtl/rtl_contract.json</code>, <code>rtl/rtl_traceability.json</code>, <code>rtl/rtl_compile.json</code>, <code>lint/dut_lint.json</code><br/><span class="ag-gate">게이트: DUT-only 컴파일/lint 무오류 (sim 로그는 lint 승인 아님)</span></td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><b>테스트벤치 생성</b><div class="ag-cmds"><code>/ssot-tb</code> <code>/ssot-tb-cocotb</code></div></td>
+      <td>goal-driven 스코어보드를 가진 cocotb/pyuvm 검증 환경 생성.</td>
+      <td><code>tb/cocotb/*</code>, TB manifest · 생성 리포트</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><b>시뮬레이션</b><div class="ag-cmds"><code>/sim</code></div></td>
+      <td>FL-vs-RTL 동시 실행으로 기능 정확성 확인 + 파형 수집.</td>
+      <td><code>sim/sim_report.txt</code>, <code>results.xml</code>, <code>*.vcd</code></td>
+    </tr>
+    <tr>
+      <td>8</td>
+      <td><b>Sim 디버그 · 소유자 분류</b><div class="ag-cmds"><code>/sim-debug</code></div></td>
+      <td>FL↔RTL 불일치를 비교·분류. <code>llm_loop_allowed:true</code>만 LLM이 수리, 의미 결정은 사람 게이트.</td>
+      <td><code>sim/fl_rtl_compare.json</code>, <code>sim/mismatch_classification.json</code></td>
+    </tr>
+    <tr>
+      <td>9</td>
+      <td><b>목표 감사 · 사인오프</b><div class="ag-cmds"><code>/goal-audit</code> <code>/signoff</code></div></td>
+      <td>SSOT 목표 마감 확인. 사인오프는 SSOT·FL·사이클·RTL·TB·sim·coverage·sim-debug·goal-audit 증거가 모두 있어야 성립.</td>
+      <td><code>sim/fl_rtl_goal_audit.json</code> + 사인오프 묶음</td>
+    </tr>
+  </table>
+  <p class="ag-muted">합성·타이밍·물리 품질이 필요하면 <code>syn → sta → pnr → sta-post</code>를 이어서 돌립니다(아래 부수 워크플로우).</p>
+
+  <h2>사람 게이트 vs LLM 루프 — 누가 무엇을 소유하나</h2>
+  <p class="ag-muted">LLM은 <b>객관 증거</b>(PASS/FAIL/DIFF, coverage gap, lint/compile 진단, 프로토콜 assertion, traceability gap, stale 증거, 파형 gap, 성능 gap)가 있는 곳에서만 루프합니다. "RTL이 FL과 다르면 → RTL을 수리하거나 사람 게이트를 연다"가 하드룰입니다.</p>
+  <table class="ag-aux">
+    <tr><th style="width:50%">🔒 사람이 소유 (LLM 변경 금지)</th><th>🔁 LLM 루프 가능</th></tr>
+    <tr>
+      <td>요구사항 의도·범위·우선순위·수용기준 · SSOT 동작/인터페이스 계약 · coverage 목표 · waiver · 성능 타깃 · FL 골든 의미 · <b>최종 사인오프</b></td>
+      <td>RTL · cocotb/pyuvm TB · 테스트 벡터 · 스코어보드 구현 · lint/스타일 픽스 · 리포트 · 생성 증거 (목표는 바꾸지 않고 자극/구현을 보강)</td>
+    </tr>
+  </table>
+
   <h2>RTL 품질 확보용 부수 워크플로우</h2>
   <p class="ag-muted">생성된 RTL이 "맞는지·합성 가능한지·타이밍을 만족하는지"를 보증하는 보조 단계들입니다. 필요할 때만 돌립니다.</p>
   <table class="ag-aux">
@@ -102,7 +178,7 @@ const ATLAS_GUIDE_HTML = `
   <h2>전환 방법</h2>
   <p>채팅에서 <code>/wf &lt;workflow&gt;</code> 를 입력하거나 상단 워크플로우 셀렉터로 바꿉니다. 어떤 단계를 돌릴지 정하지 않았다면 <code>default</code> 에서 자연어로 시작하세요.</p>
 
-  <div class="ag-foot">출처: <code>doc/wiki/default-agent-ip-flow.md</code> · <code>doc/wiki/workflow-ownership-and-boundaries.md</code> · <code>workflow/wiki/ip_knowledge/*.md</code></div>
+  <div class="ag-foot">출처: <code>workflow/COMMON_ENGINE_FLOW.md</code> (캐노니컬 flow) · <code>doc/wiki/default-agent-ip-flow.md</code> · <code>doc/wiki/workflow-ownership-and-boundaries.md</code> · <code>workflow/wiki/ip_knowledge/*.md</code></div>
 
 </div>
 `;
