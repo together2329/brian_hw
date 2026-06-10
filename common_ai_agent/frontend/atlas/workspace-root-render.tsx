@@ -45,7 +45,36 @@ import {
 // stay decoupled from them with a permissive cast).
 const Kbd: any = (window as any).Kbd
   || (({ children }: { children?: ReactNode }) => <span className="kbd">{children}</span>);
+// Parent input sync: slash/@ drafts need the root to see the text quickly
+// (the completion popups are root-rendered), but plain prose can wait — every
+// sync costs a full Workspace-root re-render, which is what makes fast typing
+// stutter on large sessions.
 const PARENT_INPUT_SYNC_DELAY_MS = 60;
+const PARENT_INPUT_SYNC_IDLE_DELAY_MS = 240;
+const parentInputSyncDelayFor = (next: string): number => (
+  /^\/\S*$/.test(next) || /(^|\s)@\S*$/.test(next)
+    ? PARENT_INPUT_SYNC_DELAY_MS
+    : PARENT_INPUT_SYNC_IDLE_DELAY_MS
+);
+
+// ── ATLAS_INPUT_PERF — live input-latency meter (opt-in) ────────────────────
+// Enable with localStorage.ATLAS_PERF = '1' (or load with ?perf=1), then
+// reload. The composer stamps keystroke→paint latency, the Workspace root
+// increments rootRenders, and WorkspaceInputPerfHud (rendered in the prompt
+// row) shows both live so re-render storms are visible while typing.
+export const ATLAS_INPUT_PERF = {
+  enabled: false,
+  keyToPaintMs: 0,
+  keyToPaintMaxMs: 0,
+  rootRenders: 0,
+  parentSyncs: 0,
+};
+try {
+  ATLAS_INPUT_PERF.enabled =
+    (typeof localStorage !== 'undefined' && localStorage.getItem('ATLAS_PERF') === '1')
+    || (typeof location !== 'undefined' && /[?&]perf=1\b/.test(location.search));
+} catch (_) { /* storage blocked — meter stays off */ }
+
 export type WorkspacePromptKeyResult = 'handled' | 'submitted' | void;
 
 // ── renderWorkspaceFeedEntries ──────────────────────────────────────────────
@@ -409,6 +438,43 @@ interface WorkspacePromptComposerProps {
   workflowReadyBlocking: boolean;
 }
 
+// Tiny opt-in HUD (see ATLAS_INPUT_PERF above). Self-ticking on a 500ms
+// interval so it stays live inside the memo'd composer without subscribing
+// the composer itself to perf-store changes.
+const WorkspaceInputPerfHud = memo(function WorkspaceInputPerfHud() {
+  const [snap, setSnap] = useState({ keyMs: 0, maxMs: 0, rootPerSec: 0, syncs: 0 });
+  const tickRef = useRef<{ renders: number; at: number }>({ renders: 0, at: 0 });
+  useEffect(() => {
+    if (!ATLAS_INPUT_PERF.enabled) return;
+    tickRef.current = { renders: ATLAS_INPUT_PERF.rootRenders, at: performance.now() };
+    const id = setInterval(() => {
+      const now = performance.now();
+      const prev = tickRef.current;
+      const rootPerSec = (ATLAS_INPUT_PERF.rootRenders - prev.renders)
+        / Math.max(0.001, (now - prev.at) / 1000);
+      tickRef.current = { renders: ATLAS_INPUT_PERF.rootRenders, at: now };
+      setSnap({
+        keyMs: ATLAS_INPUT_PERF.keyToPaintMs,
+        maxMs: ATLAS_INPUT_PERF.keyToPaintMaxMs,
+        rootPerSec,
+        syncs: ATLAS_INPUT_PERF.parentSyncs,
+      });
+    }, 500);
+    return () => clearInterval(id);
+  }, []);
+  if (!ATLAS_INPUT_PERF.enabled) return null;
+  return (
+    <span
+      className="mute"
+      style={{ fontSize: 11, fontFamily: 'var(--mono)', whiteSpace: 'nowrap' }}
+      title={'Input perf meter — keystroke→paint latency · Workspace root renders/sec · '
+        + 'debounced parent input syncs. Disable: localStorage.removeItem("ATLAS_PERF")'}
+    >
+      ⌨ {snap.keyMs.toFixed(0)}ms (max {snap.maxMs.toFixed(0)}) · root {snap.rootPerSec.toFixed(1)}/s · sync {snap.syncs}
+    </span>
+  );
+});
+
 const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
   input,
   setInput,
@@ -453,11 +519,21 @@ const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
     parentSyncTimerRef.current = setTimeout(() => {
       parentSyncTimerRef.current = null;
       lastLocalParentSyncRef.current = next;
+      if (ATLAS_INPUT_PERF.enabled) ATLAS_INPUT_PERF.parentSyncs += 1;
       setInput(next);
-    }, PARENT_INPUT_SYNC_DELAY_MS);
+    }, parentInputSyncDelayFor(next));
   }, [clearParentInputSync, setInput]);
   const updateDraftFromUser = useCallback((next: string, el: HTMLTextAreaElement) => {
     localDraftDirtyRef.current = true;
+    if (ATLAS_INPUT_PERF.enabled) {
+      const t0 = performance.now();
+      // Double rAF ≈ after the next paint commits — what the eye sees.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        const dt = performance.now() - t0;
+        ATLAS_INPUT_PERF.keyToPaintMs = dt;
+        if (dt > ATLAS_INPUT_PERF.keyToPaintMaxMs) ATLAS_INPUT_PERF.keyToPaintMaxMs = dt;
+      }));
+    }
     inputHistoryIndexRef.current = null;
     inputHistoryDraftRef.current = '';
     applyDraftInput(next);
@@ -612,6 +688,7 @@ const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
           </>
         )}
       </span>
+      <WorkspaceInputPerfHud />
     </div>
   );
 });

@@ -26,6 +26,7 @@ This section is additive; it does not replace the reading order below.
 | Review note for Atlas single-worker readiness / warmup refactor | [[atlas-refactoring-review-20260528]] |
 | Tech direction (language/runtime/build): keep Python backend, finish TSX + Vite build cutover, Go/Rust/Bun/Tauri surgical only | [[tech-direction-recommendation-20260529]] |
 | Frontend modernization arc (overview): .jsx→.tsx migration + Vite cutover (ATLAS_FRONTEND_MODE) + Tauri desktop + gpt-5.5 | [[frontend-modernization-2026-05-29]] |
+| Chat input latency: round-2 perf pass (adaptive parent-sync debounce, poller bail-outs) + opt-in live input-perf HUD (`localStorage.ATLAS_PERF='1'`) | [[atlas-input-latency-perf-20260610]] |
 | 테스트 방법론 — 4층 피라미드 + green-while-broken 교훈 + 프론트 컷오버 전 E2E 필수 | [[testing-methodology]] |
 | uart_tx 직접 end-to-end 실행 — flow 골격 검증 + MSB-first mutation으로 shallow-observation silent-PASS 실증 + same-cycle 생성기 경계 + 직접 구동 cheat-sheet (audit=mutation kill-rate 권고) | [[uart-tx-end-to-end-findings-20260530]] |
 | MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 18/18 pass, mutation advisory interpretation, post-signoff RTL risks | [[mctp-assembler-scratch-flow-20260531]] |
