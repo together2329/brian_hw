@@ -1,0 +1,104 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_FIFO_FLAGS",
+      "obligation_refs": [
+        "OBL_FIFO_FLAGS_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_WRITE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_fifo_sync_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_LINT",
+      "obligation_refs": [
+        "OBL_FIFO_LINT_001"
+      ],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_READ",
+      "obligation_refs": [
+        "OBL_FIFO_READ_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_READ",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_fifo_sync_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_RESET",
+      "obligation_refs": [
+        "OBL_FIFO_RESET_001"
+      ],
+      "ssot_anchor": "cycle_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_fifo_sync_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_WRITE",
+      "obligation_refs": [
+        "OBL_FIFO_WRITE_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_WRITE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_fifo_sync_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    }
+  ],
+  "ip": "fifo_sync_cx1",
+  "schema_version": 1,
+  "type": "contract_refs"
+}

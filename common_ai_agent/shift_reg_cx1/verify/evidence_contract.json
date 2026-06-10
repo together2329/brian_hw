@@ -1,0 +1,68 @@
+{
+  "ip": "shift_reg_cx1",
+  "schema_version": 1,
+  "type": "evidence_contract",
+  "generated_at": "2026-06-10T14:30:00Z",
+  "source": "rocev-chain-cx1",
+  "obligations": [
+    {
+      "obligation_id": "OBL_SR8_RESET_001",
+      "requirement_ids": ["REQ_SR8_FUNC_001"],
+      "claim": "Synchronous reset clears po to 0 within one cycle.",
+      "contract_refs": ["C_SR8_RESET", "BC_SR8_RESET"],
+      "scenario_ids": ["SC_RESET"],
+      "required_observables": ["po"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_SR8_RESET", "scenario_id": "SC_RESET"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "reset_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_SR8_SHIFT_001",
+      "requirement_ids": ["REQ_SR8_FUNC_001"],
+      "claim": "po left-shifts on each cycle with si entering at bit 0; alternating pattern produces 0xAA.",
+      "contract_refs": ["C_SR8_SHIFT", "BC_SR8_SHIFT"],
+      "scenario_ids": [
+        "SC_SHIFT_0_0", "SC_SHIFT_0_1", "SC_SHIFT_0_2", "SC_SHIFT_0_3",
+        "SC_SHIFT_0_4", "SC_SHIFT_0_5", "SC_SHIFT_0_6", "SC_SHIFT_0_7",
+        "SC_SHIFT_1_0", "SC_SHIFT_1_1", "SC_SHIFT_1_2", "SC_SHIFT_1_3",
+        "SC_SHIFT_1_4", "SC_SHIFT_1_5", "SC_SHIFT_1_6", "SC_SHIFT_1_7",
+        "SC_PAT_0", "SC_PAT_1", "SC_PAT_2", "SC_PAT_3",
+        "SC_PAT_4", "SC_PAT_5", "SC_PAT_6", "SC_PAT_7"
+      ],
+      "required_observables": ["po"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_SR8_SHIFT_ZERO"}
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_SR8_SHIFT_ONE"}
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_SR8_PATTERN"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "shift_scoreboard_rows_passed",
+          "kind": "row_passed"
+        }
+      ]
+    }
+  ]
+}

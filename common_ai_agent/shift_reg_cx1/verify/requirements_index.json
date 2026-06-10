@@ -1,0 +1,26 @@
+{
+  "ip": "shift_reg_cx1",
+  "requirements": [
+    {
+      "obligation_ids": [
+        "OBL_SR8_RESET_001",
+        "OBL_SR8_SHIFT_001"
+      ],
+      "required": true,
+      "requirement_id": "REQ_SR8_FUNC_001",
+      "statement": "8-bit SIPO shift register: synchronous reset clears po to 0; on each clock edge with rst_n=1, po shifts left and si enters at bit 0.",
+      "status": "locked",
+      "title": "8-bit serial-in parallel-out shift register with sync reset",
+      "source_refs": [
+        "yaml/shift_reg_cx1.ssot.yaml:function_model",
+        "verify/equivalence_goals.json:EQ_SR8_RESET",
+        "verify/equivalence_goals.json:EQ_SR8_SHIFT_ZERO",
+        "verify/equivalence_goals.json:EQ_SR8_SHIFT_ONE",
+        "verify/equivalence_goals.json:EQ_SR8_PATTERN",
+        "sim/scoreboard_events.jsonl"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "requirements_index"
+}

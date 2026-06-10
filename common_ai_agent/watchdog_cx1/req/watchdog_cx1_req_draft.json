@@ -1,0 +1,348 @@
+{
+  "ip": "watchdog_cx1",
+  "requirements": [
+    {
+      "requirement_id": "REQ_WDT_FUNC_001",
+      "title": "Watchdog counter decrement and timeout pulse",
+      "statement": "The watchdog counter decrements by 1 on each rising PCLK edge when CTRL.enable==1. When the counter reaches 1 it emits timeout_pulse=1 for exactly one cycle and auto-reloads from PERIOD.period. When CTRL.enable==0 the counter is frozen and timeout_pulse=0. APB write to KICK reloads the counter.",
+      "required": true,
+      "obligation_refs": ["OBL_WDT_TICK_001", "OBL_WDT_TIMEOUT_001", "OBL_WDT_IDLE_001", "OBL_WDT_KICK_001", "OBL_WDT_LINT_001"]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "OBL_WDT_TICK_001",
+      "requirement_refs": ["REQ_WDT_FUNC_001"],
+      "statement": "count_q decrements by 1 each enabled PCLK cycle when no kick occurs.",
+      "contract_refs": ["C_WDT_TICK"],
+      "structural_contract_refs": ["SC_WDT_PORTS"],
+      "behavioral_contract_refs": ["BC_WDT_TICK"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_WDT_TIMEOUT_001",
+      "requirement_refs": ["REQ_WDT_FUNC_001"],
+      "statement": "When count_q reaches 1, timeout_pulse=1 for exactly 1 cycle and count_q auto-reloads from period_q.",
+      "contract_refs": ["C_WDT_TIMEOUT"],
+      "structural_contract_refs": ["SC_WDT_PORTS"],
+      "behavioral_contract_refs": ["BC_WDT_TIMEOUT"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_WDT_IDLE_001",
+      "requirement_refs": ["REQ_WDT_FUNC_001"],
+      "statement": "When CTRL.enable==0, count_q holds its value and timeout_pulse=0.",
+      "contract_refs": ["C_WDT_IDLE"],
+      "structural_contract_refs": ["SC_WDT_PORTS"],
+      "behavioral_contract_refs": ["BC_WDT_IDLE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_WDT_KICK_001",
+      "requirement_refs": ["REQ_WDT_FUNC_001"],
+      "statement": "An APB write to KICK (offset 4) reloads count_q from period_q and clears timeout_pulse.",
+      "contract_refs": ["C_WDT_KICK"],
+      "structural_contract_refs": ["SC_WDT_PORTS"],
+      "behavioral_contract_refs": ["BC_WDT_KICK"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_WDT_LINT_001",
+      "requirement_refs": ["REQ_WDT_FUNC_001"],
+      "statement": "No inferred latches; all registered signals are single-driver.",
+      "contract_refs": ["C_WDT_LINT"],
+      "structural_contract_refs": ["SC_WDT_PORTS"],
+      "behavioral_contract_refs": ["BC_WDT_LINT"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ],
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_WDT_TICK",
+      "obligation_refs": ["OBL_WDT_TICK_001"],
+      "ssot_anchor": "function_model.transactions.FM_TICK",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/watchdog_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_watchdog_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_TIMEOUT",
+      "obligation_refs": ["OBL_WDT_TIMEOUT_001"],
+      "ssot_anchor": "function_model.transactions.FM_TICK",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/watchdog_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_watchdog_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_IDLE",
+      "obligation_refs": ["OBL_WDT_IDLE_001"],
+      "ssot_anchor": "function_model.transactions.FM_IDLE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/watchdog_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_watchdog_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_KICK",
+      "obligation_refs": ["OBL_WDT_KICK_001"],
+      "ssot_anchor": "function_model.transactions.FM_KICK",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/watchdog_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_watchdog_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_LINT",
+      "obligation_refs": ["OBL_WDT_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ],
+  "structural_contracts": {
+    "ip": "watchdog_cx1",
+    "contracts": [
+      {
+        "id": "SC_WDT_PORTS",
+        "obligations": ["OBL_WDT_TICK_001", "OBL_WDT_TIMEOUT_001", "OBL_WDT_IDLE_001", "OBL_WDT_KICK_001", "OBL_WDT_LINT_001"],
+        "signals": [
+          {"name": "PCLK",         "dir": "input",  "width": 1,  "timing": {"kind": "clock"}},
+          {"name": "PRESETn",       "dir": "input",  "width": 1,  "timing": {"kind": "reset"}},
+          {"name": "PADDR",         "dir": "input",  "width": 4,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PSEL",          "dir": "input",  "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PENABLE",       "dir": "input",  "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PWRITE",        "dir": "input",  "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PWDATA",        "dir": "input",  "width": 32, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PRDATA",        "dir": "output", "width": 32, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PREADY",        "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PSLVERR",       "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "timeout_pulse", "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}}
+        ],
+        "clock_domains": [
+          {"id": "main", "clock_signal": "PCLK"}
+        ],
+        "reset_domains": [
+          {"id": "async_rst", "reset_signal": "PRESETn", "clock_domain": "main"}
+        ],
+        "interfaces": [
+          {"id": "apb_iface", "signals": ["PADDR","PSEL","PENABLE","PWRITE","PWDATA","PRDATA","PREADY","PSLVERR"], "clock_domain": "main"},
+          {"id": "wdt_iface", "signals": ["timeout_pulse"], "clock_domain": "main"}
+        ]
+      }
+    ]
+  },
+  "behavioral_contracts": {
+    "ip": "watchdog_cx1",
+    "contracts": [
+      {
+        "id": "BC_WDT_TICK",
+        "obligation_refs": ["OBL_WDT_TICK_001"],
+        "ssot_section": "function_model",
+        "timing": "count_q registered on rising PCLK; decrements 1 cycle after sampling enable",
+        "latency": {
+          "count_decrement": "1 clock cycle: count_q updates one rising PCLK after enable sampled"
+        },
+        "ordering": "KICK write has priority over tick in the same cycle",
+        "transactions": [
+          {
+            "id": "TR_TICK",
+            "preconditions": ["PRESETn == 1", "enable_q == 1", "not (PSEL==1 and PENABLE==1 and PWRITE==1 and PADDR==4)"],
+            "outputs": [{"name": "timeout_pulse", "expr": "1 if count_q == 1 else 0"}],
+            "state_updates": [{"name": "count_q", "expr": "period_q if count_q == 1 else (count_q - 1) & 0xFF"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/watchdog_cx1.sv", "timing": "synchronous PCLK, 1-cycle latency"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_watchdog_cx1.py", "timing": "stimulus applied one cycle before expected result"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "count_q decrements match FL expected", "latency": "1 clock cycle per decrement"}
+        ]
+      },
+      {
+        "id": "BC_WDT_TIMEOUT",
+        "obligation_refs": ["OBL_WDT_TIMEOUT_001"],
+        "ssot_section": "function_model",
+        "timing": "timeout_pulse asserted for exactly 1 PCLK cycle when count_q==1; count_q reloads on same cycle",
+        "latency": {
+          "timeout_pulse_width": "exactly 1 clock cycle"
+        },
+        "ordering": "timeout fires when count_q reaches 1 (one tick before zero)",
+        "transactions": [
+          {
+            "id": "TR_TIMEOUT",
+            "preconditions": ["PRESETn == 1", "enable_q == 1", "count_q == 1"],
+            "outputs": [{"name": "timeout_pulse", "expr": "1"}],
+            "state_updates": [{"name": "count_q", "expr": "period_q"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/watchdog_cx1.sv", "timing": "timeout_pulse is registered output, 1-cycle wide"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_watchdog_cx1.py", "timing": "verify pulse width=1 cycle and auto-reload"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "timeout_pulse==1 for exactly 1 cycle when count_q==1", "latency": "1 cycle pulse"}
+        ]
+      },
+      {
+        "id": "BC_WDT_IDLE",
+        "obligation_refs": ["OBL_WDT_IDLE_001"],
+        "ssot_section": "function_model",
+        "timing": "count_q holds its registered value when enable_q==0; no decrement cycle",
+        "cycle_model_waiver": "frozen counter: no state change when enable_q==0; cycle semantics covered by BC_WDT_TICK",
+        "transactions": [
+          {
+            "id": "TR_IDLE",
+            "preconditions": ["PRESETn == 1", "enable_q == 0"],
+            "outputs": [{"name": "timeout_pulse", "expr": "0"}],
+            "state_updates": [{"name": "count_q", "expr": "count_q"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/watchdog_cx1.sv", "timing": "no state change when enable_q==0"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_watchdog_cx1.py", "timing": "verify count_q stable across multiple cycles with enable==0"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "count_q unchanged and timeout_pulse==0 when disabled", "latency": "0 cycles of change"}
+        ]
+      },
+      {
+        "id": "BC_WDT_KICK",
+        "obligation_refs": ["OBL_WDT_KICK_001"],
+        "ssot_section": "function_model",
+        "timing": "count_q reloads from period_q 1 cycle after APB KICK access-phase write",
+        "latency": {
+          "kick_to_reload": "1 clock cycle after KICK access-phase write"
+        },
+        "ordering": "KICK write takes priority over tick decrement in the same cycle",
+        "transactions": [
+          {
+            "id": "TR_KICK",
+            "preconditions": ["PRESETn == 1", "PSEL == 1", "PENABLE == 1", "PWRITE == 1", "PADDR == 4"],
+            "outputs": [{"name": "timeout_pulse", "expr": "0"}],
+            "state_updates": [{"name": "count_q", "expr": "period_q"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/watchdog_cx1.sv", "timing": "synchronous PCLK, 1-cycle latency"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_watchdog_cx1.py", "timing": "stimulus applied one cycle before expected result"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "count_q=period_q after KICK write", "latency": "1 clock cycle"}
+        ]
+      },
+      {
+        "id": "BC_WDT_LINT",
+        "obligation_refs": ["OBL_WDT_LINT_001"],
+        "ssot_section": "coding_rules",
+        "timing": "count_q is a clocked register; no combinational loop or latch inference",
+        "cycle_model_waiver": "lint-only obligation; functional cycle model covered by BC_WDT_TICK and BC_WDT_KICK",
+        "invariants": [
+          "No inferred latches in watchdog_cx1 RTL",
+          "All registers are single-driver"
+        ],
+        "stage_contracts": [
+          {"stage": "lint", "artifact": "lint/dut_lint.json", "pass_condition": "no latch findings", "timing": "registered outputs; no async path"}
+        ]
+      }
+    ]
+  },
+  "evidence_plan": [
+    {
+      "evidence_id": "E_WDT_BC_TICK",
+      "contract_ref": "BC_WDT_TICK",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "count_q decrement matches BC_WDT_TICK TR_TICK expected"
+    },
+    {
+      "evidence_id": "E_WDT_BC_TIMEOUT",
+      "contract_ref": "BC_WDT_TIMEOUT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "timeout_pulse==1 for exactly 1 cycle per BC_WDT_TIMEOUT"
+    },
+    {
+      "evidence_id": "E_WDT_BC_IDLE",
+      "contract_ref": "BC_WDT_IDLE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "count_q unchanged and timeout_pulse==0 when disabled per BC_WDT_IDLE"
+    },
+    {
+      "evidence_id": "E_WDT_BC_KICK",
+      "contract_ref": "BC_WDT_KICK",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "count_q reloaded to period_q per BC_WDT_KICK"
+    },
+    {
+      "evidence_id": "E_WDT_BC_LINT",
+      "contract_ref": "BC_WDT_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch findings per BC_WDT_LINT"
+    },
+    {
+      "evidence_id": "E_WDT_TICK",
+      "contract_ref": "C_WDT_TICK",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "observed count_q decrement sequence matches FL expected"
+    },
+    {
+      "evidence_id": "E_WDT_TIMEOUT",
+      "contract_ref": "C_WDT_TIMEOUT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "timeout_pulse==1 for exactly 1 cycle when count_q reaches 1"
+    },
+    {
+      "evidence_id": "E_WDT_IDLE",
+      "contract_ref": "C_WDT_IDLE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "count_q unchanged and timeout_pulse==0 when enable_q==0"
+    },
+    {
+      "evidence_id": "E_WDT_KICK",
+      "contract_ref": "C_WDT_KICK",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "count_q reloaded to period_q after KICK write"
+    },
+    {
+      "evidence_id": "E_WDT_LINT",
+      "contract_ref": "C_WDT_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch / no single-driver violations"
+    },
+    {
+      "evidence_id": "E_WDT_SC_PORTS",
+      "contract_ref": "SC_WDT_PORTS",
+      "artifact": "rtl/watchdog_cx1.sv",
+      "validator": "check_tb_python_compile.py",
+      "pass_condition": "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR timeout_pulse present with correct widths"
+    }
+  ]
+}

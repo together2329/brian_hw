@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "type": "structural_contracts",
+  "ip": "pwm_gen_cx1",
+  "contracts": [
+    {
+      "id": "SC_PWM_PORTS",
+      "obligations": ["OBL_PWM_COUNTER_001", "OBL_PWM_DUTY_001", "OBL_PWM_OUT_001", "OBL_PWM_RESET_001", "OBL_PWM_LINT_001"],
+      "signals": [
+        {"name": "clk",      "dir": "input",  "width": 1},
+        {"name": "rst_n",    "dir": "input",  "width": 1},
+        {"name": "duty_in",  "dir": "input",  "width": 8},
+        {"name": "wr_en",    "dir": "input",  "width": 1},
+        {"name": "pwm_out",  "dir": "output", "width": 1}
+      ],
+      "clock_domains": [
+        {"id": "clk_domain", "clock_signal": "clk"}
+      ],
+      "reset_domains": [
+        {"id": "rst_n_domain", "reset_signal": "rst_n", "clock_domain": "clk_domain"}
+      ],
+      "interfaces": [
+        {"id": "duty_in",  "signals": ["duty_in", "wr_en"],  "clock_domain": "clk_domain"},
+        {"id": "pwm_out",  "signals": ["pwm_out"],           "clock_domain": "clk_domain"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-06-10T14:57:43Z",
+  "functional": {
+    "hit": 10,
+    "total": 10,
+    "pct": 100.0,
+    "bins": {
+      "function_primary_behavior": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_PRIMARY"
+      },
+      "SC02_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC02",
+        "scenario_id": "SC_003_EQ_SCENARIO_SC02"
+      },
+      "SC03_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC03",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC03"
+      },
+      "cycle_valid_bin_gray": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_VALID_BIN_GRAY",
+        "scenario_id": "SC_005_EQ_PROTOCOL_VALID_BIN_GRAY"
+      },
+      "cycle_reset_clear": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_VALID_BIN_GRAY",
+        "scenario_id": "SC_005_EQ_PROTOCOL_VALID_BIN_GRAY"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_0",
+        "scenario_id": "SC_007_EQ_TIMING_ORDERING_0"
+      },
+      "cycle_pipeline_sample_bin_gray": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_SAMPLE_BIN_GRAY",
+        "scenario_id": "SC_009_EQ_COVERAGE_CYCLE_PIPELINE_SAMPLE_BIN_GRAY"
+      },
+      "cycle_pipeline_drive_gray_bin": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_DRIVE_GRAY_BIN",
+        "scenario_id": "SC_010_EQ_COVERAGE_CYCLE_PIPELINE_DRIVE_GRAY_BIN"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_011_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_012_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+      }
+    }
+  }
+}

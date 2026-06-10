@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "parity_gen_cx1",
+  "top": "parity_gen_cx1",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "contract": {
+    "top": "parity_gen_cx1",
+    "transaction": "FM_PARITY",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "((rst_n) != 0)",
+    "input_map": {
+      "data_in": "data_in"
+    },
+    "outputs": [
+      {
+        "name": "even_rule",
+        "port": "even_par",
+        "expr": "data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1)",
+        "width": 1,
+        "source": {
+          "name": "even_rule",
+          "port": "even_par",
+          "expr": "data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1)",
+          "width": 1
+        }
+      },
+      {
+        "name": "odd_rule",
+        "port": "odd_par",
+        "expr": "1 - (data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1))",
+        "width": 1,
+        "source": {
+          "name": "odd_rule",
+          "port": "odd_par",
+          "expr": "1 - (data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1))",
+          "width": 1
+        }
+      },
+      {
+        "name": "par_reg_rule",
+        "port": "par_reg",
+        "expr": "par_reg_q",
+        "width": 1,
+        "source": {
+          "name": "par_reg_rule",
+          "port": "par_reg",
+          "expr": "par_reg_q",
+          "width": 1
+        }
+      }
+    ],
+    "state_vars": {
+      "par_reg_q": {
+        "width": 1,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "par_reg_q",
+        "expr": "data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1)",
+        "source": {
+          "name": "par_reg_q",
+          "expr": "data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1)",
+          "width": 1
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "S0_COMB",
+      "S1_REG"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

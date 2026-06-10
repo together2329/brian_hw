@@ -1,0 +1,21 @@
+{
+  "ip": "watchdog_cx1",
+  "requirements": [
+    {
+      "obligation_refs": [
+        "OBL_WDT_IDLE_001",
+        "OBL_WDT_KICK_001",
+        "OBL_WDT_LINT_001",
+        "OBL_WDT_TICK_001",
+        "OBL_WDT_TIMEOUT_001"
+      ],
+      "required": true,
+      "requirement_id": "REQ_WDT_FUNC_001",
+      "statement": "The watchdog counter decrements by 1 on each rising PCLK edge when CTRL.enable==1. When the counter reaches 1 it emits timeout_pulse=1 for exactly one cycle and auto-reloads from PERIOD.period. When CTRL.enable==0 the counter is frozen and timeout_pulse=0. APB write to KICK reloads the counter.",
+      "status": "locked",
+      "title": "Watchdog counter decrement and timeout pulse"
+    }
+  ],
+  "schema_version": 1,
+  "type": "requirements_index"
+}

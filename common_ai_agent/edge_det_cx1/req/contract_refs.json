@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "type": "contract_refs",
+  "ip": "edge_det_cx1",
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_EDGE_SYNC",
+      "obligation_refs": ["OBL_EDGE_SYNC_001"],
+      "ssot_anchor": "function_model.transactions.FM_STABLE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/edge_det_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_edge_det_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_EDGE_RISE",
+      "obligation_refs": ["OBL_EDGE_RISE_001"],
+      "ssot_anchor": "function_model.transactions.FM_RISE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/edge_det_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_edge_det_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_EDGE_FALL",
+      "obligation_refs": ["OBL_EDGE_FALL_001"],
+      "ssot_anchor": "function_model.transactions.FM_FALL",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/edge_det_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_edge_det_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_EDGE_RESET",
+      "obligation_refs": ["OBL_EDGE_RESET_001"],
+      "ssot_anchor": "cycle_model.reset",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/edge_det_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_edge_det_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_EDGE_LINT",
+      "obligation_refs": ["OBL_EDGE_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ]
+}

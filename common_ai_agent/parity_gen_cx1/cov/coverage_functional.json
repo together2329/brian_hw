@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-06-10T15:08:14Z",
+  "functional": {
+    "hit": 15,
+    "total": 15,
+    "pct": 100.0,
+    "bins": {
+      "function_parity_compute": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_PARITY",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY"
+      },
+      "SC2_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC2",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC2"
+      },
+      "SC4_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC4"
+      },
+      "cycle_handshake_0": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+      },
+      "error_error_0": {
+        "hit": true,
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_013_EQ_ERROR_NONE"
+      },
+      "cycle_latency_even_odd_par": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+        "scenario_id": "SC_015_EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR"
+      },
+      "cycle_latency_par_reg": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+        "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_PAR_REG"
+      },
+      "cycle_pipeline_s0_comb": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+        "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB"
+      },
+      "cycle_pipeline_s1_reg": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+        "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_PIPELINE_S1_REG"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+      }
+    }
+  }
+}

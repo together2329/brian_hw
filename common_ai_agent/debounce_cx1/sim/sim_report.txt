@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=debounce_cx1/sim/results.xml
+scoreboard=debounce_cx1/sim/scoreboard_events.jsonl
+coverage_functional=debounce_cx1/cov/coverage_functional.json
+waveforms=debounce_cx1/sim/debounce_cx1.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=19 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/debounce_cx1/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_STABLE: db_out: expected=0 observed=1; EQ_TRANSACTION_FM_BOUNCE: db_out: expected=0 observed=1; EQ_SCENARIO_SC1: db_out: expected=0 observed=1; EQ_SCENARIO_SC2: db_out: expected=0 observed=1; EQ_SCENARIO_SC3: db_out: expected=0 observed=1; EQ_SCENARIO_SC4: db_out: expected=0 observed=1; EQ_PROTOCOL_HANDSHAKE_0: db_out: expected=0 observed=1; EQ_TIMING_ORDERING_0: db_out: expected=0 observed=1; ... +11 more

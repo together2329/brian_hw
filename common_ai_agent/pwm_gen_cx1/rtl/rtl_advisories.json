@@ -1,0 +1,35 @@
+{
+  "ip": "pwm_gen_cx1",
+  "next_action": "Answer these questions inline so SSOT-gen records them, update SSOT, regenerate FL/equivalence goals, then rerun /ssot-rtl.",
+  "owner": "ssot-gen",
+  "questions": [
+    {
+      "blocking_items": [
+        {
+          "id": "LOCKED_TRUTH_CONTRACT_NO_RTL_STAGE_BC_PWM_LINT",
+          "owner": "req-gen",
+          "reason": "Behavioral contract must declare an rtl/rtl-gen stage_contract before RTL evidence can close it.",
+          "source_ref": "req/behavioral_contracts.json:BC_PWM_LINT.stage_contracts"
+        }
+      ],
+      "decision_needed": "Repair the SSOT so rtl-gen has mandatory source sections and well-formed SSOT-defined workflow todos.",
+      "evidence": "rtl/rtl_todo_plan.json blockers",
+      "id": "RTL_DYNAMIC_TODO_SSOT_REQUIRED_SECTIONS",
+      "options": [
+        "Update SSOT with structured function_model and cycle_model sections.",
+        "Update workflow_todos.rtl-gen[] entries so every item has content, detail, and criteria.",
+        "Move non-RTL intent out of RTL implementation sections and rerun /ssot-rtl."
+      ],
+      "recommended_default": "Use ssot-gen to fill function_model, cycle_model, workflow_todos.rtl-gen content/detail/criteria, decomposition, DV plan, and coverage from the requirement.",
+      "required_fields": [
+        "req/behavioral_contracts.json:BC_PWM_LINT.stage_contracts"
+      ]
+    }
+  ],
+  "reason": "SSOT findings recorded as advisories (starter/engineering run mode): authoring proceeds, signoff still requires closure.",
+  "schema_version": 1,
+  "status": "advisory",
+  "timestamp": "2026-06-10T14:07:09Z",
+  "top": "pwm_gen_cx1",
+  "type": "rtl_advisory"
+}

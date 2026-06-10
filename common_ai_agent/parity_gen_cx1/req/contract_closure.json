@@ -1,0 +1,248 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PAR_FUNC",
+      "evidence_refs": [
+        "E_PAR_BC_FUNC"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_EVEN_001",
+        "OBL_PAR_ODD_001",
+        "OBL_PAR_REG_001"
+      ],
+      "pass_conditions": [
+        "even_par/odd_par/par_reg match behavioral contract FM_PARITY expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PAR_FUNC",
+      "evidence_refs": [
+        "E_PAR_BC_FUNC"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_PAR_EVEN_001",
+        "OBL_PAR_ODD_001",
+        "OBL_PAR_REG_001"
+      ],
+      "pass_conditions": [
+        "even_par/odd_par/par_reg match behavioral contract FM_PARITY expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PAR_RESET",
+      "evidence_refs": [
+        "E_PAR_BC_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_RESET_001"
+      ],
+      "pass_conditions": [
+        "par_reg=0 during reset per BC_PAR_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PAR_RESET",
+      "evidence_refs": [
+        "E_PAR_BC_RESET"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_PAR_RESET_001"
+      ],
+      "pass_conditions": [
+        "par_reg=0 during reset per BC_PAR_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PAR_EVEN",
+      "evidence_refs": [
+        "E_PAR_EVEN"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_EVEN_001"
+      ],
+      "pass_conditions": [
+        "even_par = ^data_in for all stimulus values"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_PAR_LINT",
+      "evidence_refs": [
+        "E_PAR_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / single-driver findings"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PAR_ODD",
+      "evidence_refs": [
+        "E_PAR_ODD"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_ODD_001"
+      ],
+      "pass_conditions": [
+        "odd_par = ~even_par for all stimulus values"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PAR_REG",
+      "evidence_refs": [
+        "E_PAR_REG"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_REG_001"
+      ],
+      "pass_conditions": [
+        "par_reg equals previous-cycle even_par"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PAR_RESET",
+      "evidence_refs": [
+        "E_PAR_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_RESET_001"
+      ],
+      "pass_conditions": [
+        "par_reg=0 during and immediately after reset"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/parity_gen_cx1.sv"
+      ],
+      "contract_ref": "SC_PAR_PORTS",
+      "evidence_refs": [
+        "E_PAR_SC_PORTS"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PAR_EVEN_001",
+        "OBL_PAR_ODD_001",
+        "OBL_PAR_REG_001",
+        "OBL_PAR_RESET_001",
+        "OBL_PAR_LINT_001"
+      ],
+      "pass_conditions": [
+        "all 6 ports present with correct directions and widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "iverilog compile check"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/parity_gen_cx1.sv"
+      ],
+      "contract_ref": "SC_PAR_PORTS",
+      "evidence_refs": [
+        "E_PAR_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_PAR_EVEN_001",
+        "OBL_PAR_ODD_001",
+        "OBL_PAR_REG_001",
+        "OBL_PAR_RESET_001",
+        "OBL_PAR_LINT_001"
+      ],
+      "pass_conditions": [
+        "all 6 ports present with correct directions and widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "iverilog compile check"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "parity_gen_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 11,
+    "contracts": 11,
+    "required_closed": 11,
+    "required_contracts": 11
+  },
+  "type": "contract_authority_closure"
+}

@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "fifo_sync_cx1",
+  "top": "fifo_sync_cx1",
+  "generated_at": "2026-06-10T14:58:46Z",
+  "contract": {
+    "top": "fifo_sync_cx1",
+    "transaction": "FM_WRITE",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "wr_en",
+    "outputs": [
+      {
+        "name": "rd_data",
+        "port": "rd_data",
+        "expr": "8'(head_data)",
+        "width": 8,
+        "source": {
+          "name": "rd_data",
+          "port": "rd_data",
+          "expr": "head_data",
+          "width": 8,
+          "description": "Data at read pointer tracked by head_data state variable."
+        }
+      },
+      {
+        "name": "full",
+        "port": "full",
+        "expr": "(((((((count) == (8))) != 0))) != 0)",
+        "width": 1,
+        "source": {
+          "name": "full",
+          "port": "full",
+          "expr": "count == 8",
+          "width": 1,
+          "description": "FIFO full when count reaches depth 8."
+        }
+      },
+      {
+        "name": "empty",
+        "port": "empty",
+        "expr": "(((((((count) == (0))) != 0))) != 0)",
+        "width": 1,
+        "source": {
+          "name": "empty",
+          "port": "empty",
+          "expr": "count == 0",
+          "width": 1,
+          "description": "FIFO empty when count is zero."
+        }
+      }
+    ],
+    "state_vars": {
+      "count": {
+        "width": 4,
+        "reset": 0
+      },
+      "wr_ptr": {
+        "width": 3,
+        "reset": 0
+      },
+      "rd_ptr": {
+        "width": 3,
+        "reset": 0
+      },
+      "head_data": {
+        "width": 8,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "count",
+        "expr": "(count + 1)",
+        "source": {
+          "name": "count",
+          "expr": "count + 1",
+          "width": 4
+        }
+      },
+      {
+        "name": "wr_ptr",
+        "expr": "((wr_ptr + 1) % 8)",
+        "source": {
+          "name": "wr_ptr",
+          "expr": "(wr_ptr + 1) % 8",
+          "width": 3
+        }
+      },
+      {
+        "name": "head_data",
+        "expr": "((((((((count) == (0))) != 0))) != 0) ? (wr_data) : (head_data))",
+        "source": {
+          "name": "head_data",
+          "expr": "wr_data if count == 0 else head_data",
+          "width": 8
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "WRITE_WR_EN",
+      "READ_RD_EN",
+      "COUNT_FULL_EMPTY"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "wr_data": "wr_data"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

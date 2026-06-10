@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "type": "requirements_index",
+  "ip": "parity_gen_cx1",
+  "requirements": [
+    {
+      "requirement_id": "REQ_PAR_EVEN_001",
+      "title": "Even parity (combinational)",
+      "statement": "even_par = XOR of all 8 bits of data_in (combinational, no latency).",
+      "status": "locked",
+      "priority": "must",
+      "source": "user-defined"
+    },
+    {
+      "requirement_id": "REQ_PAR_ODD_001",
+      "title": "Odd parity (combinational)",
+      "statement": "odd_par = ~even_par (combinational, no latency).",
+      "status": "locked",
+      "priority": "must",
+      "source": "user-defined"
+    },
+    {
+      "requirement_id": "REQ_PAR_REG_001",
+      "title": "Registered parity",
+      "statement": "par_reg latches even_par on each rising clock edge (1-cycle delay).",
+      "status": "locked",
+      "priority": "must",
+      "source": "user-defined"
+    },
+    {
+      "requirement_id": "REQ_PAR_RESET_001",
+      "title": "Reset clears registered parity",
+      "statement": "rst_n=0 clears par_reg to 0 within 1 cycle.",
+      "status": "locked",
+      "priority": "must",
+      "source": "user-defined"
+    }
+  ]
+}

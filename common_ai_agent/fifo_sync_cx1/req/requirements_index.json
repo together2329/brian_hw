@@ -1,0 +1,21 @@
+{
+  "ip": "fifo_sync_cx1",
+  "requirements": [
+    {
+      "obligation_refs": [
+        "OBL_FIFO_FLAGS_001",
+        "OBL_FIFO_LINT_001",
+        "OBL_FIFO_READ_001",
+        "OBL_FIFO_RESET_001",
+        "OBL_FIFO_WRITE_001"
+      ],
+      "required": true,
+      "requirement_id": "REQ_FIFO_FUNC_001",
+      "statement": "The FIFO accepts a write when wr_en is high and full is low; data is stored and count increments. Accepts a read when rd_en is high and empty is low; rd_data presents the head entry and count decrements. full asserts when count==8; empty asserts when count==0. All state clears synchronously when rst_n is low.",
+      "status": "locked",
+      "title": "8-deep 8-bit synchronous FIFO with full/empty flags"
+    }
+  ],
+  "schema_version": 1,
+  "type": "requirements_index"
+}

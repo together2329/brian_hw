@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "type": "rtl_contract",
+  "ip": "uart_tx_lite_cx1",
+  "transaction": "FM_TX_BYTE",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "sample_condition": "PRESETn == 1",
+  "input_map": {
+    "psel":    "PSEL",
+    "penable": "PENABLE",
+    "pwrite":  "PWRITE",
+    "paddr":   "PADDR",
+    "pwdata":  "PWDATA"
+  },
+  "output_map": {
+    "prdata":  "PRDATA",
+    "pready":  "PREADY",
+    "pslverr": "PSLVERR",
+    "tx_out":  "tx_out",
+    "tx_busy": "tx_busy"
+  }
+}

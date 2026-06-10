@@ -1,0 +1,407 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 18,
+      "enabled": true,
+      "index": 3,
+      "key": "io_list",
+      "module_task_count": 67,
+      "rule": "Owner module pwm_gen_cx1 is split into 18 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pwm_gen_cx1.sv",
+      "name": "pwm_gen_cx1",
+      "refs": [
+        "function_model",
+        "function_model.transactions",
+        "function_model.transactions.FM_TICK",
+        "function_model.transactions.FM_WRITE",
+        "io_list",
+        "io_list.interfaces",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pwm_gen_cx1.sv",
+        "name": "pwm_gen_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "duty_in_wr_en",
+          "wr_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_in_pwm_out",
+          "pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pwm_gen_cx1",
+  "kind": "module",
+  "owner_file": "rtl/pwm_gen_cx1.sv",
+  "owner_module": "pwm_gen_cx1",
+  "packet_id": "module__pwm_gen_cx1__io_list",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "io_list.port": 5
+    },
+    "module_slice": {
+      "count": 18,
+      "enabled": true,
+      "index": 3,
+      "key": "io_list",
+      "module_task_count": 67,
+      "rule": "Owner module pwm_gen_cx1 is split into 18 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "io_list",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 5,
+    "source_refs": [
+      "io_list.clock_domains.clk.ports.clk",
+      "io_list.resets.rst_n.ports.rst_n",
+      "io_list.interfaces.duty_in.ports.duty_in",
+      "io_list.interfaces.duty_in.ports.wr_en",
+      "io_list.interfaces.duty_in.ports.pwm_out"
+    ],
+    "status_counts": {
+      "pass": 5
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port clk",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.clock_domains.clk.ports.clk",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "clk width matches SSOT value 1",
+        "clk port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.clock_domains.clk.ports.clk.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via io_list.\nSSOT item context: name=clk; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0023",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.clock_domains.clk.ports.clk",
+      "ssot_context": {
+        "direction": "input",
+        "name": "clk",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.clock_domains.clk.ports.clk"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port rst_n",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.resets.rst_n.ports.rst_n",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "rst_n width matches SSOT value 1",
+        "rst_n port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.resets.rst_n.ports.rst_n.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via io_list.\nSSOT item context: name=rst_n; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0024",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.resets.rst_n.ports.rst_n",
+      "ssot_context": {
+        "direction": "input",
+        "name": "rst_n",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.resets.rst_n.ports.rst_n"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port duty_in",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.duty_in.ports.duty_in",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "duty_in width matches SSOT value 8",
+        "duty_in port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.duty_in.ports.duty_in.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via io_list.interfaces.\nSSOT item context: name=duty_in; width=8; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0025",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.duty_in.ports.duty_in",
+      "ssot_context": {
+        "direction": "input",
+        "name": "duty_in",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.duty_in.ports.duty_in"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port wr_en",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.duty_in.ports.wr_en",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "wr_en width matches SSOT value 1",
+        "wr_en port direction remains input"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.duty_in.ports.wr_en.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via io_list.interfaces.\nSSOT item context: name=wr_en; width=1; direction=input.",
+      "evidence_terms": [],
+      "id": "RTL-0026",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.duty_in.ports.wr_en",
+      "ssot_context": {
+        "direction": "input",
+        "name": "wr_en",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.duty_in.ports.wr_en"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "io_list.port",
+      "content": "Implement and connect port pwm_out",
+      "criteria": [
+        "RTL declaration matches SSOT direction and width",
+        "Active input controls are consumed by behavior or explicitly justified",
+        "Active outputs are driven by implemented logic, not placeholder constants",
+        "Traceability keeps source_ref io_list.interfaces.duty_in.ports.pwm_out",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "pwm_out width matches SSOT value 1",
+        "pwm_out port direction remains output"
+      ],
+      "detail": "The port must be declared with the SSOT direction/width and participate in the described protocol or reset/clock behavior.\nSSOT ref: io_list.interfaces.duty_in.ports.pwm_out.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via io_list.interfaces.\nSSOT item context: name=pwm_out; width=1; direction=output.",
+      "evidence_terms": [],
+      "id": "RTL-0027",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "normal",
+      "required": true,
+      "source_ref": "io_list.interfaces.duty_in.ports.pwm_out",
+      "ssot_context": {
+        "direction": "output",
+        "name": "pwm_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "io_list.interfaces.duty_in.ports.pwm_out"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2443e02841856f2c0d51ef267e23d10eb485682306d888b42c959dcf7c3ff98f",
+  "top": "pwm_gen_cx1",
+  "type": "rtl_authoring_packet"
+}

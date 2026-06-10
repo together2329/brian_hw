@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "type": "evidence_plan",
+  "ip": "pwm_gen_cx1",
+  "evidence_plan": [
+    {
+      "evidence_id": "E_PWM_BC_COUNT",
+      "contract_ref": "BC_PWM_COUNT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "pwm_out matches FL expected (counter_q < duty_reg) each cycle",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_BC_DUTY",
+      "contract_ref": "BC_PWM_DUTY",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "duty_reg matches duty_in one cycle after wr_en per BC_PWM_DUTY",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_BC_RESET",
+      "contract_ref": "BC_PWM_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "counter_q=0 and duty_reg=0 observed during reset per BC_PWM_RESET",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_BC_LINT",
+      "contract_ref": "BC_PWM_LINT",
+      "artifact": "lint/dut_lint.json",
+      "pass_condition": "no latch / no single-driver violations per BC_PWM_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "evidence_id": "E_PWM_COUNTER",
+      "contract_ref": "C_PWM_COUNTER",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "counter_q increments observed in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_DUTY",
+      "contract_ref": "C_PWM_DUTY",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "duty_reg write observed in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_OUT",
+      "contract_ref": "C_PWM_OUT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "pwm_out = (counter_q < duty_reg) observed in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_RESET",
+      "contract_ref": "C_PWM_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "pwm_out=0 observed during reset in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_PWM_LINT",
+      "contract_ref": "C_PWM_LINT",
+      "artifact": "lint/dut_lint.json",
+      "pass_condition": "no latch / no single-driver violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "evidence_id": "E_PWM_SC_PORTS",
+      "contract_ref": "SC_PWM_PORTS",
+      "artifact": "rtl/pwm_gen_cx1.sv",
+      "pass_condition": "top ports clk rst_n duty_in wr_en pwm_out present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    }
+  ]
+}

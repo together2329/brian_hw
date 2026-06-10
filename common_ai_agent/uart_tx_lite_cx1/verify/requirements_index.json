@@ -1,0 +1,28 @@
+{
+  "ip": "uart_tx_lite_cx1",
+  "schema_version": 1,
+  "type": "requirements_index",
+  "requirements": [
+    {
+      "requirement_id": "REQ_UART_FUNC_001",
+      "title": "Minimal UART TX 8N1 byte transmit with fixed baud divisor",
+      "statement": "Writing a byte to TX_DATA CSR (offset 0) when not busy begins an 8N1 UART frame on tx_out. The frame: start bit (0), 8 data bits LSB-first, stop bit (1), each for BAUD_DIV PCLK cycles. tx_busy=1 during transmission. Writes while tx_busy are silently dropped.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": [
+        "OBL_UART_IDLE_001",
+        "OBL_UART_TX_001",
+        "OBL_UART_BUSY_001",
+        "OBL_UART_DROP_001"
+      ],
+      "source_refs": [
+        "yaml/uart_tx_lite_cx1.ssot.yaml:function_model",
+        "verify/equivalence_goals.json:EQ_UART_IDLE",
+        "verify/equivalence_goals.json:EQ_UART_TX_BYTE",
+        "verify/equivalence_goals.json:EQ_UART_BUSY_CLEARS",
+        "verify/equivalence_goals.json:EQ_UART_BUSY_DROP",
+        "sim/scoreboard_events.jsonl"
+      ]
+    }
+  ]
+}

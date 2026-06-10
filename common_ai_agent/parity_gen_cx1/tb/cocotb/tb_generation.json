@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "parity_gen_cx1",
+  "generated_at": "2026-06-10T15:04:41Z",
+  "manifest": "parity_gen_cx1/tb/cocotb/tb_manifest.json",
+  "test": "parity_gen_cx1/tb/cocotb/test_parity_gen_cx1.py",
+  "runner": "parity_gen_cx1/tb/cocotb/test_runner.py",
+  "goals": 21,
+  "rtl_sources": 1
+}

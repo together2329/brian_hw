@@ -1,0 +1,25 @@
+{
+  "agent": "common_ai_agent",
+  "filelist": "list/debounce_cx1.f",
+  "generated_at": "2026-06-10T14:00:00Z",
+  "ip": "debounce_cx1",
+  "model_profile": "deterministic_handwritten",
+  "notes": "RTL handwritten from SSOT contract for ROCEV chain exercise; deterministic-only (no LLM billing).",
+  "refresh_reason": "Initial RTL authoring from SSOT.",
+  "rtl_files": [
+    "rtl/debounce_cx1.sv"
+  ],
+  "schema_version": 1,
+  "ssot": "yaml/debounce_cx1.ssot.yaml",
+  "surface": "headless_common_engine",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "3eef79305ca45d51ae44efa2bac5fb3c6e05343eb5c3bd7c8ae227f5d3bc3b00",
+  "todo_plan_sha256_raw": "441c4a9e00a68b1f503d05d12c7e209339daa6fd2589c371d90334976ca058b1",
+  "toolchain": {
+    "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
+    "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
+  },
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-06-10T14:00:00Z",
+  "workflow": "rtl-gen"
+}

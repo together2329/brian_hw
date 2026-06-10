@@ -1,0 +1,63 @@
+{
+  "ip": "edge_det_cx1",
+  "schema_version": 1,
+  "type": "requirements_index",
+  "requirements": [
+    {
+      "requirement_id": "REQ_EDGE_SYNC_001",
+      "title": "2-flop synchronizer",
+      "statement": "sig_in is captured into sync1 then sync2 over 2 consecutive rising clock edges.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_EDGE_SYNC_001"],
+      "source_refs": [
+        "yaml/edge_det_cx1.ssot.yaml:function_model",
+        "req/requirements_index.json:REQ_EDGE_SYNC_001",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_STABLE",
+        "sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "requirement_id": "REQ_EDGE_RISE_001",
+      "title": "Rising edge detection",
+      "statement": "rise_out pulses high for exactly 1 cycle when sync2 transitions from 0 to 1.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_EDGE_RISE_001"],
+      "source_refs": [
+        "yaml/edge_det_cx1.ssot.yaml:function_model.transactions.FM_RISE",
+        "req/requirements_index.json:REQ_EDGE_RISE_001",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_RISE",
+        "sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "requirement_id": "REQ_EDGE_FALL_001",
+      "title": "Falling edge detection",
+      "statement": "fall_out pulses high for exactly 1 cycle when sync2 transitions from 1 to 0.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_EDGE_FALL_001"],
+      "source_refs": [
+        "yaml/edge_det_cx1.ssot.yaml:function_model.transactions.FM_FALL",
+        "req/requirements_index.json:REQ_EDGE_FALL_001",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_FALL",
+        "sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "requirement_id": "REQ_EDGE_RESET_001",
+      "title": "Reset clears all state",
+      "statement": "All FFs (sync1, sync2, prev_sync) clear to 0 on rst_n=0; rise_out=fall_out=0.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_EDGE_RESET_001"],
+      "source_refs": [
+        "yaml/edge_det_cx1.ssot.yaml:function_model",
+        "req/requirements_index.json:REQ_EDGE_RESET_001",
+        "verify/equivalence_goals.json:EQ_SCENARIO_SC1",
+        "sim/scoreboard_events.jsonl"
+      ]
+    }
+  ]
+}

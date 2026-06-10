@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "gray_code_cx1",
+  "top": "gray_code_cx1",
+  "generated_at": "2026-06-10T14:28:51Z",
+  "contract": {
+    "top": "gray_code_cx1",
+    "transaction": "FM_PRIMARY",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "valid",
+    "outputs": [
+      {
+        "name": "gray_out",
+        "port": "gray_out",
+        "expr": "4'(((bin_in) ^ (((bin_in) >> 1))))",
+        "width": 4,
+        "source": {
+          "name": "gray_out",
+          "port": "gray_out",
+          "expr": "bin_in ^ (bin_in >> 1)",
+          "width": 4,
+          "description": "Binary to Gray encoding of bin_in."
+        }
+      },
+      {
+        "name": "bin_out",
+        "port": "bin_out",
+        "expr": "4'(((((((gray_in) ^ (((gray_in) >> 1)))) ^ (((gray_in) >> 2)))) ^ (((gray_in) >> 3))))",
+        "width": 4,
+        "source": {
+          "name": "bin_out",
+          "port": "bin_out",
+          "expr": "gray_in ^ (gray_in >> 1) ^ (gray_in >> 2) ^ (gray_in >> 3)",
+          "width": 4,
+          "description": "Gray to binary decoding via cascaded XOR (4-bit)."
+        }
+      }
+    ],
+    "state_vars": {},
+    "state_updates": [],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "SAMPLE_BIN_GRAY",
+      "DRIVE_GRAY_BIN"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "bin_in": "bin_in",
+      "gray_in": "gray_in",
+      "mode": "mode"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

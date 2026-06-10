@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "type": "evidence_plan",
+  "ip": "parity_gen_cx1",
+  "evidence_plan": [
+    {
+      "evidence_id": "E_PAR_EVEN",
+      "contract_ref": "C_PAR_EVEN",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "even_par = ^data_in for all stimulus values"
+    },
+    {
+      "evidence_id": "E_PAR_ODD",
+      "contract_ref": "C_PAR_ODD",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "odd_par = ~even_par for all stimulus values"
+    },
+    {
+      "evidence_id": "E_PAR_REG",
+      "contract_ref": "C_PAR_REG",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "par_reg equals previous-cycle even_par"
+    },
+    {
+      "evidence_id": "E_PAR_RESET",
+      "contract_ref": "C_PAR_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "par_reg=0 during and immediately after reset"
+    },
+    {
+      "evidence_id": "E_PAR_LINT",
+      "contract_ref": "C_PAR_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch / single-driver findings"
+    },
+    {
+      "evidence_id": "E_PAR_SC_PORTS",
+      "contract_ref": "SC_PAR_PORTS",
+      "artifact": "rtl/parity_gen_cx1.sv",
+      "validator": "iverilog compile check",
+      "pass_condition": "all 6 ports present with correct directions and widths"
+    },
+    {
+      "evidence_id": "E_PAR_BC_FUNC",
+      "contract_ref": "BC_PAR_FUNC",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "even_par/odd_par/par_reg match behavioral contract FM_PARITY expected"
+    },
+    {
+      "evidence_id": "E_PAR_BC_RESET",
+      "contract_ref": "BC_PAR_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "par_reg=0 during reset per BC_PAR_RESET"
+    }
+  ]
+}

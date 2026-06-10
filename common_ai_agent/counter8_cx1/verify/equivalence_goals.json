@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "ip": "counter8_cx1",
+  "generated_at": "2026-06-10T14:00:00Z",
+  "source_of_truth": {
+    "ssot": "counter8_cx1/yaml/counter8_cx1.ssot.yaml",
+    "functional_model": "counter8_cx1/model/functional_model.py",
+    "functional_model_exists": true
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_CNT8_RESET",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Synchronous reset clears count to 0",
+      "source_refs": ["function_model.transactions.TR_RESET"],
+      "scope": {"level": "top", "rtl_module": "counter8_cx1"},
+      "stimulus_contract": {
+        "kind": "TR_RESET",
+        "required_fields": ["rst_n"],
+        "defaults": {"rst_n": 0, "en": 0}
+      },
+      "expected_contract": {
+        "observables": ["count"],
+        "pass_condition": "count == 0 one cycle after rst_n asserts"
+      },
+      "coverage_refs": ["FCOV_RESET"]
+    },
+    {
+      "goal_id": "EQ_CNT8_COUNT",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Count increments by 1 each cycle when en==1",
+      "source_refs": ["function_model.transactions.TR_COUNT"],
+      "scope": {"level": "top", "rtl_module": "counter8_cx1"},
+      "stimulus_contract": {
+        "kind": "TR_COUNT",
+        "required_fields": ["en"],
+        "defaults": {"rst_n": 1, "en": 1}
+      },
+      "expected_contract": {
+        "observables": ["count"],
+        "pass_condition": "count == (prev_count + 1) & 0xFF"
+      },
+      "coverage_refs": ["FCOV_COUNT"]
+    },
+    {
+      "goal_id": "EQ_CNT8_HOLD",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Count holds when en==0",
+      "source_refs": ["function_model.transactions.TR_HOLD"],
+      "scope": {"level": "top", "rtl_module": "counter8_cx1"},
+      "stimulus_contract": {
+        "kind": "TR_HOLD",
+        "required_fields": ["en"],
+        "defaults": {"rst_n": 1, "en": 0}
+      },
+      "expected_contract": {
+        "observables": ["count"],
+        "pass_condition": "count unchanged"
+      },
+      "coverage_refs": ["FCOV_HOLD"]
+    },
+    {
+      "goal_id": "EQ_CNT8_WRAP",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Count wraps from 255 to 0",
+      "source_refs": ["function_model.transactions.TR_COUNT"],
+      "scope": {"level": "top", "rtl_module": "counter8_cx1"},
+      "stimulus_contract": {
+        "kind": "TR_COUNT",
+        "required_fields": ["en"],
+        "defaults": {"rst_n": 1, "en": 1, "count_init": 255}
+      },
+      "expected_contract": {
+        "observables": ["count"],
+        "pass_condition": "count == 0 after wrapping from 255"
+      },
+      "coverage_refs": ["FCOV_COUNT"]
+    }
+  ]
+}

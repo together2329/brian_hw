@@ -1,0 +1,104 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_WDT_IDLE",
+      "obligation_refs": [
+        "OBL_WDT_IDLE_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_IDLE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/watchdog_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_watchdog_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_KICK",
+      "obligation_refs": [
+        "OBL_WDT_KICK_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_KICK",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/watchdog_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_watchdog_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_LINT",
+      "obligation_refs": [
+        "OBL_WDT_LINT_001"
+      ],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_TICK",
+      "obligation_refs": [
+        "OBL_WDT_TICK_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_TICK",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/watchdog_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_watchdog_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_WDT_TIMEOUT",
+      "obligation_refs": [
+        "OBL_WDT_TIMEOUT_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_TICK",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/watchdog_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_watchdog_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    }
+  ],
+  "ip": "watchdog_cx1",
+  "schema_version": 1,
+  "type": "contract_refs"
+}

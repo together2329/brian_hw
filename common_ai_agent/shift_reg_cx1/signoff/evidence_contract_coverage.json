@@ -1,0 +1,136 @@
+{
+  "generated_at": "2026-06-10T14:27:29Z",
+  "ip": "shift_reg_cx1",
+  "issues": [],
+  "obligations": [
+    {
+      "condition_results": {
+        "reset_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_SR8_RESET",
+          "scenario_id": "SC_RESET"
+        }
+      ],
+      "obligation_id": "OBL_SR8_RESET_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "shift_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_0"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_1"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_2"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_3"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_4"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_5"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_6"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ZERO",
+          "scenario_id": "SC_SHIFT_0_7"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_0"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_1"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_2"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_3"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_4"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_5"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_6"
+        },
+        {
+          "goal_id": "EQ_SR8_SHIFT_ONE",
+          "scenario_id": "SC_SHIFT_1_7"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_0"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_1"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_2"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_3"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_4"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_5"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_6"
+        },
+        {
+          "goal_id": "EQ_SR8_PATTERN",
+          "scenario_id": "SC_PAT_7"
+        }
+      ],
+      "obligation_id": "OBL_SR8_SHIFT_001",
+      "status": "pass"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "failed": 0,
+    "index_issues": 0,
+    "passed": 2,
+    "total": 2
+  },
+  "type": "evidence_contract_coverage"
+}

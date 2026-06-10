@@ -1,0 +1,27 @@
+{
+  "artifacts": [
+    "fifo_sync_cx1/model/functional_model.py",
+    "fifo_sync_cx1/model/decomposition.json",
+    "fifo_sync_cx1/model/fl_model_check.json",
+    "fifo_sync_cx1/cov/fcov_plan.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-06-10T14:49:34Z",
+  "headline": "[ssot-fl-model] generic SSOT-driven FL model stage",
+  "ip": "fifo_sync_cx1",
+  "message": "[ssot-fl-model] generic SSOT-driven FL model stage\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py\nmodule: fifo_sync_cx1\nsource: fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml\nexit: 0\n\nruns:\n- emit_fl_model: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync_cx1/model/functional_model.py\n[emit_fl_model] decomposition_units=3 fcov_bins=13 passed=True\n\nexpected artifacts:\n- fifo_sync_cx1/model/functional_model.py\n- fifo_sync_cx1/model/decomposition.json\n- fifo_sync_cx1/model/fl_model_check.json\n- fifo_sync_cx1/cov/fcov_plan.json",
+  "metadata": {},
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/fl-model-gen/scripts/emit_fl_model.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_fl_model",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_fl_model] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync_cx1/model/functional_model.py\n[emit_fl_model] decomposition_units=3 fcov_bins=13 passed=True"
+    }
+  ],
+  "stage": "ssot-fl-model",
+  "status": "pass",
+  "workflow": "fl-model-gen"
+}

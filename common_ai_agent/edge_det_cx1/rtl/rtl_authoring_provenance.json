@@ -1,0 +1,24 @@
+{
+  "agent": "common_ai_agent",
+  "filelist": "list/edge_det_cx1.f",
+  "generated_at": "2026-06-10T14:06:26Z",
+  "ip": "edge_det_cx1",
+  "model_profile": "cursor-agent-deterministic",
+  "notes": "RTL hand-authored by cursor-agent from SSOT during ROCEV chain exercise.",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "rtl_files": [
+    "rtl/edge_det_cx1.sv"
+  ],
+  "schema_version": 1,
+  "ssot": "yaml/edge_det_cx1.ssot.yaml",
+  "surface": "headless_common_engine",
+  "todo_plan": "rtl/rtl_todo_plan.json",
+  "todo_plan_sha256": "1d11b814cabf42954ca06cd88ad0bf019a13abc686b761df855bcf6b3b6bdd11",
+  "toolchain": {
+    "dut_lint_report": "workflow/lint/scripts/dut_lint_report.py",
+    "rtl_compile_report": "workflow/rtl-gen/scripts/rtl_compile_report.py"
+  },
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-06-10T14:19:00Z",
+  "workflow": "rtl-gen"
+}

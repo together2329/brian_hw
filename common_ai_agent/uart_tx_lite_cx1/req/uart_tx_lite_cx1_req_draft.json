@@ -1,0 +1,349 @@
+{
+  "ip": "uart_tx_lite_cx1",
+  "requirements": [
+    {
+      "requirement_id": "REQ_UART_FUNC_001",
+      "title": "Minimal UART TX 8N1 byte transmit with fixed baud divisor",
+      "statement": "Writing a byte to TX_DATA CSR (offset 0) when not busy begins an 8N1 UART frame on tx_out. The frame: start bit (0), 8 data bits LSB-first, stop bit (1), each for BAUD_DIV PCLK cycles. tx_busy=1 during transmission. Writes while tx_busy are silently dropped.",
+      "required": true,
+      "obligation_refs": ["OBL_UART_TX_001", "OBL_UART_BUSY_001", "OBL_UART_IDLE_001", "OBL_UART_DROP_001", "OBL_UART_LINT_001"]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "OBL_UART_TX_001",
+      "requirement_refs": ["REQ_UART_FUNC_001"],
+      "statement": "After APB write to TX_DATA when idle, tx_out emits start(0), 8 data bits LSB-first, stop(1), each for BAUD_DIV PCLK cycles.",
+      "contract_refs": ["C_UART_TX"],
+      "structural_contract_refs": ["SC_UART_PORTS"],
+      "behavioral_contract_refs": ["BC_UART_TX"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_UART_BUSY_001",
+      "requirement_refs": ["REQ_UART_FUNC_001"],
+      "statement": "tx_busy=1 from TX_DATA write acceptance until the stop bit completes; tx_busy=0 after stop bit.",
+      "contract_refs": ["C_UART_BUSY"],
+      "structural_contract_refs": ["SC_UART_PORTS"],
+      "behavioral_contract_refs": ["BC_UART_BUSY"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_UART_IDLE_001",
+      "requirement_refs": ["REQ_UART_FUNC_001"],
+      "statement": "When tx_busy=0 and no write, tx_out=1 (idle/mark) and tx_busy=0.",
+      "contract_refs": ["C_UART_IDLE"],
+      "structural_contract_refs": ["SC_UART_PORTS"],
+      "behavioral_contract_refs": ["BC_UART_IDLE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_UART_DROP_001",
+      "requirement_refs": ["REQ_UART_FUNC_001"],
+      "statement": "APB write to TX_DATA while tx_busy=1 is silently ignored; current frame is unaffected.",
+      "contract_refs": ["C_UART_DROP"],
+      "structural_contract_refs": ["SC_UART_PORTS"],
+      "behavioral_contract_refs": ["BC_UART_DROP"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_UART_LINT_001",
+      "requirement_refs": ["REQ_UART_FUNC_001"],
+      "statement": "No inferred latches; all registered signals are single-driver.",
+      "contract_refs": ["C_UART_LINT"],
+      "structural_contract_refs": ["SC_UART_PORTS"],
+      "behavioral_contract_refs": ["BC_UART_LINT"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ],
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_UART_TX",
+      "obligation_refs": ["OBL_UART_TX_001"],
+      "ssot_anchor": "function_model.transactions.FM_TX_BYTE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/uart_tx_lite_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_BUSY",
+      "obligation_refs": ["OBL_UART_BUSY_001"],
+      "ssot_anchor": "function_model.transactions.FM_TX_BYTE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/uart_tx_lite_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_IDLE",
+      "obligation_refs": ["OBL_UART_IDLE_001"],
+      "ssot_anchor": "function_model.transactions.FM_IDLE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/uart_tx_lite_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_DROP",
+      "obligation_refs": ["OBL_UART_DROP_001"],
+      "ssot_anchor": "function_model.transactions.FM_TX_BYTE",
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/uart_tx_lite_cx1.sv"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_LINT",
+      "obligation_refs": ["OBL_UART_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ],
+  "structural_contracts": {
+    "ip": "uart_tx_lite_cx1",
+    "contracts": [
+      {
+        "id": "SC_UART_PORTS",
+        "obligations": ["OBL_UART_TX_001", "OBL_UART_BUSY_001", "OBL_UART_IDLE_001", "OBL_UART_DROP_001", "OBL_UART_LINT_001"],
+        "signals": [
+          {"name": "PCLK",    "dir": "input",  "width": 1,  "timing": {"kind": "clock"}},
+          {"name": "PRESETn", "dir": "input",  "width": 1,  "timing": {"kind": "reset"}},
+          {"name": "PADDR",   "dir": "input",  "width": 4,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PSEL",    "dir": "input",  "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PENABLE", "dir": "input",  "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PWRITE",  "dir": "input",  "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PWDATA",  "dir": "input",  "width": 32, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PRDATA",  "dir": "output", "width": 32, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PREADY",  "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "PSLVERR", "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "tx_out",  "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "tx_busy", "dir": "output", "width": 1,  "timing": {"kind": "sync", "clock_domain": "main"}}
+        ],
+        "clock_domains": [
+          {"id": "main", "clock_signal": "PCLK"}
+        ],
+        "reset_domains": [
+          {"id": "async_rst", "reset_signal": "PRESETn", "clock_domain": "main"}
+        ],
+        "interfaces": [
+          {"id": "apb_iface",  "signals": ["PADDR","PSEL","PENABLE","PWRITE","PWDATA","PRDATA","PREADY","PSLVERR"], "clock_domain": "main"},
+          {"id": "uart_iface", "signals": ["tx_out","tx_busy"], "clock_domain": "main"}
+        ]
+      }
+    ]
+  },
+  "behavioral_contracts": {
+    "ip": "uart_tx_lite_cx1",
+    "contracts": [
+      {
+        "id": "BC_UART_TX",
+        "obligation_refs": ["OBL_UART_TX_001"],
+        "ssot_section": "function_model",
+        "timing": "tx_out registered on rising PCLK; each bit state held for BAUD_DIV cycles",
+        "latency": {
+          "frame_length": "10 * BAUD_DIV PCLK cycles: 1 start + 8 data + 1 stop"
+        },
+        "ordering": "start bit begins on cycle after TX_DATA APB write accepted",
+        "transactions": [
+          {
+            "id": "TR_TX_BYTE",
+            "preconditions": ["PRESETn == 1", "PSEL == 1", "PENABLE == 1", "PWRITE == 1", "PADDR == 0", "tx_busy_q == 0"],
+            "outputs": [{"name": "tx_busy", "expr": "1"}, {"name": "tx_out", "expr": "1"}],
+            "state_updates": [{"name": "tx_busy_q", "expr": "1"}, {"name": "shift_reg", "expr": "PWDATA & 0xFF"}, {"name": "tx_state", "expr": "1"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/uart_tx_lite_cx1.sv", "timing": "baud counter gates bit transitions; 8N1 frame"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py", "timing": "observe tx_out for full 10*BAUD_DIV cycles"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "8N1 frame shape matches FL expected", "latency": "10*BAUD_DIV cycles per frame"}
+        ]
+      },
+      {
+        "id": "BC_UART_BUSY",
+        "obligation_refs": ["OBL_UART_BUSY_001"],
+        "ssot_section": "function_model",
+        "timing": "tx_busy registered on rising PCLK; set on TX_DATA write, cleared after stop bit completes",
+        "latency": {
+          "busy_duration": "10 * BAUD_DIV PCLK cycles from TX_DATA write to tx_busy deassertion"
+        },
+        "ordering": "tx_busy clears on the cycle after the stop bit baud period ends",
+        "transactions": [
+          {
+            "id": "TR_BUSY",
+            "preconditions": ["PRESETn == 1", "tx_busy_q == 1"],
+            "outputs": [{"name": "tx_busy", "expr": "1"}],
+            "state_updates": [{"name": "tx_busy_q", "expr": "1"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/uart_tx_lite_cx1.sv", "timing": "tx_busy set on TX_DATA write; cleared after stop bit"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py", "timing": "verify tx_busy high through frame, low after stop"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit", "latency": "10*BAUD_DIV cycles"}
+        ]
+      },
+      {
+        "id": "BC_UART_IDLE",
+        "obligation_refs": ["OBL_UART_IDLE_001"],
+        "ssot_section": "function_model",
+        "timing": "tx_out holds 1 (mark/idle) and tx_busy holds 0 when no transmission active",
+        "cycle_model_waiver": "idle is steady-state; cycle semantics covered by BC_UART_TX and BC_UART_BUSY",
+        "transactions": [
+          {
+            "id": "TR_IDLE",
+            "preconditions": ["PRESETn == 1", "tx_busy_q == 0"],
+            "outputs": [{"name": "tx_out", "expr": "1"}, {"name": "tx_busy", "expr": "0"}],
+            "state_updates": [{"name": "tx_busy_q", "expr": "0"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/uart_tx_lite_cx1.sv", "timing": "tx_out=1 static when no frame active"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py", "timing": "verify idle state before and after frames"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "tx_out=1 and tx_busy=0 when idle", "latency": "0 cycles of change"}
+        ]
+      },
+      {
+        "id": "BC_UART_DROP",
+        "obligation_refs": ["OBL_UART_DROP_001"],
+        "ssot_section": "function_model",
+        "timing": "ignored write completes APB handshake in 1 cycle but does not change shift register or FSM state",
+        "latency": {
+          "drop_response": "1 cycle APB PREADY; no frame effect"
+        },
+        "ordering": "busy check occurs before loading shift register; write ignored when tx_busy==1",
+        "transactions": [
+          {
+            "id": "TR_DROP",
+            "preconditions": ["PRESETn == 1", "PSEL == 1", "PENABLE == 1", "PWRITE == 1", "PADDR == 0", "tx_busy_q == 1"],
+            "outputs": [{"name": "tx_busy", "expr": "1"}],
+            "state_updates": [{"name": "tx_busy_q", "expr": "1"}]
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/uart_tx_lite_cx1.sv", "timing": "write while busy completes APB but does not reload shift_reg"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py", "timing": "verify second write mid-frame does not corrupt output"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "write while busy silently ignored; frame unaffected", "latency": "1 cycle APB handshake only"}
+        ]
+      },
+      {
+        "id": "BC_UART_LINT",
+        "obligation_refs": ["OBL_UART_LINT_001"],
+        "ssot_section": "coding_rules",
+        "timing": "all signals are registered; no combinational loop or latch inference",
+        "cycle_model_waiver": "lint-only obligation; functional cycle model covered by BC_UART_TX",
+        "invariants": [
+          "No inferred latches in uart_tx_lite_cx1 RTL",
+          "All registers are single-driver"
+        ],
+        "stage_contracts": [
+          {"stage": "lint", "artifact": "lint/dut_lint.json", "pass_condition": "no latch findings", "timing": "registered outputs; no async path"}
+        ]
+      }
+    ]
+  },
+  "evidence_plan": [
+    {
+      "evidence_id": "E_UART_BC_TX",
+      "contract_ref": "BC_UART_TX",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "8N1 frame shape matches behavioral contract TR_TX_BYTE expected"
+    },
+    {
+      "evidence_id": "E_UART_BC_BUSY",
+      "contract_ref": "BC_UART_BUSY",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit per BC_UART_BUSY"
+    },
+    {
+      "evidence_id": "E_UART_BC_IDLE",
+      "contract_ref": "BC_UART_IDLE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "tx_out=1 and tx_busy=0 when idle per BC_UART_IDLE"
+    },
+    {
+      "evidence_id": "E_UART_BC_DROP",
+      "contract_ref": "BC_UART_DROP",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "write while busy silently ignored per BC_UART_DROP"
+    },
+    {
+      "evidence_id": "E_UART_BC_LINT",
+      "contract_ref": "BC_UART_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch findings per BC_UART_LINT"
+    },
+    {
+      "evidence_id": "E_UART_TX",
+      "contract_ref": "C_UART_TX",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "8N1 frame shape on tx_out matches FL expected"
+    },
+    {
+      "evidence_id": "E_UART_BUSY",
+      "contract_ref": "C_UART_BUSY",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit"
+    },
+    {
+      "evidence_id": "E_UART_IDLE",
+      "contract_ref": "C_UART_IDLE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "tx_out=1 and tx_busy=0 when no transmission active"
+    },
+    {
+      "evidence_id": "E_UART_DROP",
+      "contract_ref": "C_UART_DROP",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "write while busy silently ignored; frame unaffected"
+    },
+    {
+      "evidence_id": "E_UART_LINT",
+      "contract_ref": "C_UART_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch / no single-driver violations"
+    },
+    {
+      "evidence_id": "E_UART_SC_PORTS",
+      "contract_ref": "SC_UART_PORTS",
+      "artifact": "rtl/uart_tx_lite_cx1.sv",
+      "validator": "check_tb_python_compile.py",
+      "pass_condition": "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR tx_out tx_busy present with correct widths"
+    }
+  ]
+}

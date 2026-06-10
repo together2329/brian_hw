@@ -1,0 +1,856 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 2,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 6,
+      "key": "cycle_model",
+      "module_task_count": 79,
+      "rule": "Owner module fifo_sync_cx1 is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync_cx1.sv",
+      "name": "fifo_sync_cx1",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "features",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_READ",
+        "function_model.transactions.FM_WRITE",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_cx1.sv",
+        "name": "fifo_sync_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_cx1",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_cx1",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_io_wr_en",
+          "wr_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_io_wr_data",
+          "wr_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_data",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "fifo_io_rd_en",
+          "rd_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rd_en",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_io_rd_data",
+          "rd_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rd_data",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "fifo_io_full",
+          "full"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "full",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "empty",
+          "fifo_io_empty"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "empty",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync_cx1",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync_cx1.sv",
+  "owner_module": "fifo_sync_cx1",
+  "packet_id": "module__fifo_sync_cx1__cycle_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "cycle_model.clock": 1,
+      "cycle_model.handshake_rules": 3,
+      "cycle_model.latency": 1,
+      "cycle_model.ordering": 1,
+      "cycle_model.pipeline": 3,
+      "cycle_model.reset": 1
+    },
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 6,
+      "key": "cycle_model",
+      "module_task_count": 79,
+      "rule": "Owner module fifo_sync_cx1 is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "cycle_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 10,
+    "source_refs": [
+      "cycle_model.clock",
+      "cycle_model.reset",
+      "cycle_model.latency",
+      "cycle_model.handshake_rules.wr_en_full",
+      "cycle_model.handshake_rules.rd_en_empty",
+      "cycle_model.handshake_rules.reset_clear",
+      "cycle_model.pipeline.WRITE_WR_EN",
+      "cycle_model.pipeline.READ_RD_EN",
+      "cycle_model.pipeline.COUNT_FULL_EMPTY",
+      "cycle_model.ordering.ordering_rule_0"
+    ],
+    "status_counts": {
+      "pass": 10
+    },
+    "task_count": 10
+  },
+  "tasks": [
+    {
+      "category": "cycle_model.clock",
+      "content": "Implement cycle-model clock",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.clock",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.clock appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.clock.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.\nSSOT item context: value=clk.",
+      "evidence_terms": [],
+      "id": "RTL-0066",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.clock",
+      "ssot_context": {
+        "value": "clk"
+      },
+      "ssot_refs": [
+        "cycle_model.clock"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.reset",
+      "content": "Implement cycle-model reset",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.reset",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.reset appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.reset.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.\nSSOT item context: value=rst_n.",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0067",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.reset",
+      "ssot_context": {
+        "value": "rst_n"
+      },
+      "ssot_refs": [
+        "cycle_model.reset"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "rst",
+          "rst_n"
+        ],
+        "source_scope": "rtl/fifo_sync_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.latency",
+      "content": "Implement cycle-model latency",
+      "criteria": [
+        "RTL sequential logic uses the SSOT clock/reset phase",
+        "Latency/phase behavior is encoded in flops, counters, FSM, or explicit zero-latency evidence",
+        "Downstream scoreboard samples the same acceptance/result phase",
+        "Traceability keeps source_ref cycle_model.latency",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.latency appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Clock/reset/latency semantics must be realized in sequential RTL and observable by the TB where applicable.\nSSOT ref: cycle_model.latency.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.\nSSOT item context: value=1.",
+      "evidence_terms": [],
+      "id": "RTL-0068",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency",
+      "ssot_context": {
+        "value": "1"
+      },
+      "ssot_refs": [
+        "cycle_model.latency"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: wr_en_full",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.wr_en_full",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "wr_en_full condition is implemented as RTL control logic: wr_data sampled when wr_en is high and full is low.",
+        "wr_en_full appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.wr_en_full.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via top_level_handshake_rule.\nSSOT item context: name=wr_en_full; signal=wr_en; condition=wr_data sampled when wr_en is high and full is low..",
+      "evidence_terms": [
+        "data",
+        "en",
+        "full",
+        "wr",
+        "wr_data",
+        "wr_en",
+        "wr_en_full"
+      ],
+      "id": "RTL-0069",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.wr_en_full",
+      "ssot_context": {
+        "condition": "wr_data sampled when wr_en is high and full is low.",
+        "name": "wr_en_full",
+        "signal": "wr_en"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.wr_en_full"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "data",
+          "en",
+          "full",
+          "wr",
+          "wr_data",
+          "wr_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "en",
+          "full",
+          "wr",
+          "wr_data",
+          "wr_en",
+          "wr_en_full"
+        ],
+        "source_scope": "rtl/fifo_sync_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: rd_en_empty",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.rd_en_empty",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "rd_en_empty condition is implemented as RTL control logic: rd_ptr advanced when rd_en is high and empty is low.",
+        "rd_en_empty appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.rd_en_empty.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via top_level_handshake_rule.\nSSOT item context: name=rd_en_empty; signal=rd_en; condition=rd_ptr advanced when rd_en is high and empty is low..",
+      "evidence_terms": [
+        "empty",
+        "en",
+        "ptr",
+        "rd",
+        "rd_en",
+        "rd_en_empty",
+        "rd_ptr"
+      ],
+      "id": "RTL-0070",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.rd_en_empty",
+      "ssot_context": {
+        "condition": "rd_ptr advanced when rd_en is high and empty is low.",
+        "name": "rd_en_empty",
+        "signal": "rd_en"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.rd_en_empty"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "empty",
+          "en",
+          "ptr",
+          "rd",
+          "rd_en",
+          "rd_ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "empty",
+          "en",
+          "ptr",
+          "rd",
+          "rd_en",
+          "rd_en_empty",
+          "rd_ptr"
+        ],
+        "source_scope": "rtl/fifo_sync_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.handshake_rules",
+      "content": "Implement handshake rule: reset_clear",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.handshake_rules.reset_clear",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "reset_clear condition is implemented as RTL control logic: rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.",
+        "reset_clear appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.handshake_rules.reset_clear.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via top_level_handshake_rule.\nSSOT item context: name=reset_clear; signal=rst_n; condition=rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously..",
+      "evidence_terms": [
+        "ptr",
+        "rd",
+        "rd_ptr",
+        "reset",
+        "reset_clear",
+        "rst",
+        "rst_n",
+        "wr",
+        "wr_ptr"
+      ],
+      "id": "RTL-0071",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.reset_clear",
+      "ssot_context": {
+        "condition": "rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.",
+        "name": "reset_clear",
+        "signal": "rst_n"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.reset_clear"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "ptr",
+          "rd",
+          "rd_ptr",
+          "rst",
+          "rst_n",
+          "wr",
+          "wr_ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "ptr",
+          "rd",
+          "rd_ptr",
+          "reset",
+          "reset_clear",
+          "rst",
+          "rst_n",
+          "wr",
+          "wr_ptr"
+        ],
+        "source_scope": "rtl/fifo_sync_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: WRITE_WR_EN",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.WRITE_WR_EN",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.pipeline.WRITE_WR_EN timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.WRITE_WR_EN appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.WRITE_WR_EN.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.pipeline.\nSSOT item context: stage=WRITE_WR_EN; action=Accept wr_data when wr_en and not full.; cycle=0.",
+      "evidence_terms": [
+        "data",
+        "en",
+        "wr",
+        "wr_data",
+        "wr_en"
+      ],
+      "id": "RTL-0072",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.WRITE_WR_EN",
+      "ssot_context": {
+        "action": "Accept wr_data when wr_en and not full.",
+        "cycle": "0",
+        "stage": "WRITE_WR_EN"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.WRITE_WR_EN"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "data",
+          "en",
+          "wr",
+          "wr_data",
+          "wr_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "data",
+          "en",
+          "wr",
+          "wr_data",
+          "wr_en"
+        ],
+        "source_scope": "rtl/fifo_sync_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: READ_RD_EN",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.READ_RD_EN",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.pipeline.READ_RD_EN timing uses SSOT cycle/latency 0",
+        "cycle_model.pipeline.READ_RD_EN appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.READ_RD_EN.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.pipeline.\nSSOT item context: stage=READ_RD_EN; action=Advance rd_ptr when rd_en and not empty.; cycle=0.",
+      "evidence_terms": [
+        "en",
+        "ptr",
+        "rd",
+        "rd_en",
+        "rd_ptr"
+      ],
+      "id": "RTL-0073",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.READ_RD_EN",
+      "ssot_context": {
+        "action": "Advance rd_ptr when rd_en and not empty.",
+        "cycle": "0",
+        "stage": "READ_RD_EN"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.READ_RD_EN"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "en",
+          "ptr",
+          "rd",
+          "rd_en",
+          "rd_ptr"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "en",
+          "ptr",
+          "rd",
+          "rd_en",
+          "rd_ptr"
+        ],
+        "source_scope": "rtl/fifo_sync_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.pipeline",
+      "content": "Implement pipeline stage: COUNT_FULL_EMPTY",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.pipeline.COUNT_FULL_EMPTY",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.pipeline.COUNT_FULL_EMPTY timing uses SSOT cycle/latency 1",
+        "cycle_model.pipeline.COUNT_FULL_EMPTY appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.pipeline.COUNT_FULL_EMPTY.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.pipeline.\nSSOT item context: stage=COUNT_FULL_EMPTY; action=Update count, full and empty flags.; cycle=1.",
+      "evidence_terms": [],
+      "id": "RTL-0074",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.COUNT_FULL_EMPTY",
+      "ssot_context": {
+        "action": "Update count, full and empty flags.",
+        "cycle": "1",
+        "stage": "COUNT_FULL_EMPTY"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.COUNT_FULL_EMPTY"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 7,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "cycle_model.ordering",
+      "content": "Implement ordering rule: ordering_rule_0",
+      "criteria": [
+        "RTL contains the control/state/handshake logic for this cycle rule",
+        "Rule timing is reflected in sample/hold/ready/valid or FSM behavior",
+        "TB scoreboard/coverage can observe the rule at the declared phase",
+        "Traceability keeps source_ref cycle_model.ordering.ordering_rule_0",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv",
+        "cycle_model.ordering.ordering_rule_0 appears in RTL sample/hold/FSM/ready-valid timing, not only in TB"
+      ],
+      "detail": "Cycle-level behavior must be implemented in RTL, not only described in TB or FunctionalModel prose.\nSSOT ref: cycle_model.ordering.ordering_rule_0.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via cycle_model.\nSSOT item context: value=Simultaneous write and read (bypass) is allowed when !full && !empty..",
+      "evidence_terms": [],
+      "id": "RTL-0075",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.ordering_rule_0",
+      "ssot_context": {
+        "value": "Simultaneous write and read (bypass) is allowed when !full && !empty."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.ordering_rule_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "f60a21ce95a3bb1d9b8f9064274b58761f11fac9e77f49b03ad55bd518d76b86",
+  "top": "fifo_sync_cx1",
+  "type": "rtl_authoring_packet"
+}

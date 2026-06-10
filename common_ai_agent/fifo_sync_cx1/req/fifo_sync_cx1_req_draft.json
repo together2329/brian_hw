@@ -1,0 +1,329 @@
+{
+  "ip": "fifo_sync_cx1",
+  "requirements": [
+    {
+      "requirement_id": "REQ_FIFO_FUNC_001",
+      "title": "8-deep 8-bit synchronous FIFO with full/empty flags",
+      "statement": "The FIFO accepts a write when wr_en is high and full is low; data is stored and count increments. Accepts a read when rd_en is high and empty is low; rd_data presents the head entry and count decrements. full asserts when count==8; empty asserts when count==0. All state clears synchronously when rst_n is low.",
+      "required": true,
+      "obligation_refs": ["OBL_FIFO_WRITE_001", "OBL_FIFO_READ_001", "OBL_FIFO_FLAGS_001", "OBL_FIFO_RESET_001", "OBL_FIFO_LINT_001"]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "OBL_FIFO_WRITE_001",
+      "requirement_refs": ["REQ_FIFO_FUNC_001"],
+      "statement": "When wr_en is high and full is low, wr_data is stored and count increments on the rising clock edge.",
+      "contract_refs": ["C_FIFO_WRITE"],
+      "structural_contract_refs": ["SC_FIFO_PORTS"],
+      "behavioral_contract_refs": ["BC_FIFO_WRITE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_FIFO_READ_001",
+      "requirement_refs": ["REQ_FIFO_FUNC_001"],
+      "statement": "When rd_en is high and empty is low, rd_data presents the head entry and count decrements on the rising clock edge.",
+      "contract_refs": ["C_FIFO_READ"],
+      "structural_contract_refs": ["SC_FIFO_PORTS"],
+      "behavioral_contract_refs": ["BC_FIFO_READ"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_FIFO_FLAGS_001",
+      "requirement_refs": ["REQ_FIFO_FUNC_001"],
+      "statement": "full asserts when count reaches 8; empty asserts when count is 0.",
+      "contract_refs": ["C_FIFO_FLAGS"],
+      "structural_contract_refs": ["SC_FIFO_PORTS"],
+      "behavioral_contract_refs": ["BC_FIFO_FLAGS"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "count",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_FIFO_RESET_001",
+      "requirement_refs": ["REQ_FIFO_FUNC_001"],
+      "statement": "All FIFO state clears to reset values synchronously when rst_n is low.",
+      "contract_refs": ["C_FIFO_RESET"],
+      "structural_contract_refs": ["SC_FIFO_PORTS"],
+      "behavioral_contract_refs": ["BC_FIFO_RESET"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_FIFO_LINT_001",
+      "requirement_refs": ["REQ_FIFO_FUNC_001"],
+      "statement": "No inferred latches; all state is registered.",
+      "contract_refs": ["C_FIFO_LINT"],
+      "structural_contract_refs": ["SC_FIFO_PORTS"],
+      "behavioral_contract_refs": ["BC_FIFO_LINT"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ],
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_FIFO_WRITE",
+      "obligation_refs": ["OBL_FIFO_WRITE_001"],
+      "ssot_anchor": "function_model.transactions.FM_WRITE",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_fifo_sync_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_READ",
+      "obligation_refs": ["OBL_FIFO_READ_001"],
+      "ssot_anchor": "function_model.transactions.FM_READ",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_fifo_sync_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_FLAGS",
+      "obligation_refs": ["OBL_FIFO_FLAGS_001"],
+      "ssot_anchor": "function_model.transactions.FM_WRITE",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_fifo_sync_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_RESET",
+      "obligation_refs": ["OBL_FIFO_RESET_001"],
+      "ssot_anchor": "cycle_model",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_fifo_sync_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_FIFO_LINT",
+      "obligation_refs": ["OBL_FIFO_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ],
+  "structural_contracts": {
+    "ip": "fifo_sync_cx1",
+    "contracts": [
+      {
+        "id": "SC_FIFO_PORTS",
+        "obligations": ["OBL_FIFO_WRITE_001", "OBL_FIFO_READ_001", "OBL_FIFO_FLAGS_001", "OBL_FIFO_RESET_001", "OBL_FIFO_LINT_001"],
+        "signals": [
+          {"name": "clk",     "dir": "input",  "width": 1, "timing": {"kind": "clock"}},
+          {"name": "rst_n",   "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "wr_en",   "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "wr_data", "dir": "input",  "width": 8, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "rd_en",   "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "rd_data", "dir": "output", "width": 8, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "full",    "dir": "output", "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "empty",   "dir": "output", "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}}
+        ],
+        "clock_domains": [
+          {"id": "main", "clock_signal": "clk"}
+        ],
+        "reset_domains": [
+          {"id": "sync_rst", "reset_signal": "rst_n", "clock_domain": "main"}
+        ],
+        "interfaces": [
+          {"id": "fifo_io", "signals": ["wr_en", "wr_data", "rd_en", "rd_data", "full", "empty"], "clock_domain": "main"}
+        ]
+      }
+    ]
+  },
+  "behavioral_contracts": {
+    "ip": "fifo_sync_cx1",
+    "contracts": [
+      {
+        "id": "BC_FIFO_WRITE",
+        "obligation_refs": ["OBL_FIFO_WRITE_001"],
+        "ssot_section": "function_model",
+        "transactions": [
+          {
+            "id": "FM_WRITE",
+            "preconditions": ["rst_n == 1", "wr_en == 1", "full == 0"],
+            "outputs": [{"name": "full", "expr": "(count + 1) == 8"}, {"name": "empty", "expr": "0"}],
+            "state_updates": [{"name": "count", "expr": "count + 1"}, {"name": "wr_ptr", "expr": "(wr_ptr + 1) % 8"}]
+          }
+        ],
+        "latency": {"write_update": "1 clock cycle: count and wr_ptr update one rising clk after wr_en sampled"},
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_fifo_sync_cx1.py"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "count increments on each accepted write"}
+        ]
+      },
+      {
+        "id": "BC_FIFO_READ",
+        "obligation_refs": ["OBL_FIFO_READ_001"],
+        "ssot_section": "function_model",
+        "transactions": [
+          {
+            "id": "FM_READ",
+            "preconditions": ["rst_n == 1", "rd_en == 1", "empty == 0"],
+            "outputs": [{"name": "rd_data", "expr": "head_data"}, {"name": "empty", "expr": "(count - 1) == 0"}],
+            "state_updates": [{"name": "count", "expr": "count - 1"}, {"name": "rd_ptr", "expr": "(rd_ptr + 1) % 8"}]
+          }
+        ],
+        "latency": {"read_update": "1 clock cycle: count and rd_ptr update one rising clk after rd_en sampled"},
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_fifo_sync_cx1.py"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "rd_data matches written data; count decrements"}
+        ]
+      },
+      {
+        "id": "BC_FIFO_FLAGS",
+        "obligation_refs": ["OBL_FIFO_FLAGS_001"],
+        "ssot_section": "function_model",
+        "cycle_model_waiver": "flags are combinational state functions (count==8, count==0); no additional cycle model beyond write/read BCs",
+        "timing": "full and empty update within the same clock cycle as count; combinational decode of registered count",
+        "transactions": [
+          {
+            "id": "FM_FLAGS",
+            "preconditions": ["rst_n == 1"],
+            "outputs": [{"name": "full", "expr": "count == 8"}, {"name": "empty", "expr": "count == 0"}],
+            "state_updates": []
+          }
+        ],
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv", "timing": "combinational decode of registered count"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "full asserts at count==8; empty asserts at count==0"}
+        ]
+      },
+      {
+        "id": "BC_FIFO_RESET",
+        "obligation_refs": ["OBL_FIFO_RESET_001"],
+        "ssot_section": "cycle_model",
+        "transactions": [
+          {
+            "id": "TR_RESET",
+            "preconditions": ["rst_n == 0"],
+            "outputs": [{"name": "full", "expr": "0"}, {"name": "empty", "expr": "1"}],
+            "state_updates": [{"name": "count", "expr": "0"}, {"name": "wr_ptr", "expr": "0"}, {"name": "rd_ptr", "expr": "0"}]
+          }
+        ],
+        "reset": "synchronous active-low; count/ptrs clear to 0 on rising clk when rst_n==0",
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/fifo_sync_cx1.sv"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "empty==1 and full==0 after reset"}
+        ]
+      },
+      {
+        "id": "BC_FIFO_LINT",
+        "obligation_refs": ["OBL_FIFO_LINT_001"],
+        "ssot_section": "coding_rules",
+        "cycle_model_waiver": "lint-only obligation; no cycle model required — latch-free structure is a static synthesis property",
+        "invariants": [
+          "No inferred latches in fifo_sync_cx1 RTL",
+          "All state (count, wr_ptr, rd_ptr, fifo_memory) is registered"
+        ],
+        "stage_contracts": [
+          {"stage": "lint", "artifact": "lint/dut_lint.json", "pass_condition": "no latch findings"}
+        ]
+      }
+    ]
+  },
+  "evidence_plan": [
+    {
+      "evidence_id": "E_FIFO_WRITE",
+      "contract_ref": "C_FIFO_WRITE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "count increments correctly on each accepted write"
+    },
+    {
+      "evidence_id": "E_FIFO_READ",
+      "contract_ref": "C_FIFO_READ",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "rd_data matches written data; count decrements correctly"
+    },
+    {
+      "evidence_id": "E_FIFO_FLAGS",
+      "contract_ref": "C_FIFO_FLAGS",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "full asserts at depth 8; empty asserts at depth 0"
+    },
+    {
+      "evidence_id": "E_FIFO_RESET",
+      "contract_ref": "C_FIFO_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "empty==1 and full==0 after reset"
+    },
+    {
+      "evidence_id": "E_FIFO_LINT",
+      "contract_ref": "C_FIFO_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch violations"
+    },
+    {
+      "evidence_id": "E_FIFO_SC_PORTS",
+      "contract_ref": "SC_FIFO_PORTS",
+      "artifact": "rtl/fifo_sync_cx1.sv",
+      "validator": "check_tb_python_compile.py",
+      "pass_condition": "ports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths"
+    },
+    {
+      "evidence_id": "E_FIFO_BC_WRITE",
+      "contract_ref": "BC_FIFO_WRITE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "write behavior matches BC_FIFO_WRITE"
+    },
+    {
+      "evidence_id": "E_FIFO_BC_READ",
+      "contract_ref": "BC_FIFO_READ",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "read behavior matches BC_FIFO_READ"
+    },
+    {
+      "evidence_id": "E_FIFO_BC_RESET",
+      "contract_ref": "BC_FIFO_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "reset behavior matches BC_FIFO_RESET"
+    },
+    {
+      "evidence_id": "E_FIFO_BC_FLAGS",
+      "contract_ref": "BC_FIFO_FLAGS",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "full/empty flags match count==8 and count==0 per BC_FIFO_FLAGS"
+    },
+    {
+      "evidence_id": "E_FIFO_BC_LINT",
+      "contract_ref": "BC_FIFO_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch findings per BC_FIFO_LINT"
+    }
+  ]
+}

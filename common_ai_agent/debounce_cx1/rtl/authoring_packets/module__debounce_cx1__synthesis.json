@@ -1,0 +1,364 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 11,
+      "key": "synthesis",
+      "module_task_count": 69,
+      "rule": "Owner module debounce_cx1 is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "synthesis",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/debounce_cx1.sv",
+      "name": "debounce_cx1",
+      "refs": [
+        "decomposition.units.output_latch",
+        "decomposition.units.stability_counter",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions",
+        "function_model.transactions.FM_BOUNCE",
+        "function_model.transactions.FM_STABLE",
+        "io_list",
+        "io_list.interfaces",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/debounce_cx1.sv",
+        "name": "debounce_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "btn_if_btn_in",
+          "btn_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "btn_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "btn_if_db_out",
+          "db_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "db_out",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": true,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": true,
+    "llm_actionable_open_count": 5,
+    "open_required_count": 5,
+    "pass_allowed": false,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "debounce_cx1",
+  "kind": "module",
+  "owner_file": "rtl/debounce_cx1.sv",
+  "owner_module": "debounce_cx1",
+  "packet_id": "module__debounce_cx1__synthesis",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "synthesis.constraints": 2,
+      "synthesis.ppa_targets": 3
+    },
+    "module_slice": {
+      "count": 17,
+      "enabled": true,
+      "index": 11,
+      "key": "synthesis",
+      "module_task_count": 69,
+      "rule": "Owner module debounce_cx1 is split into 17 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "synthesis",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 5,
+    "required_count": 5,
+    "source_refs": [
+      "synthesis.constraints.constraint_0",
+      "synthesis.constraints.constraint_1",
+      "synthesis.ppa_targets.area_um2_max",
+      "synthesis.ppa_targets.power_mw_max",
+      "synthesis.ppa_targets.frequency_mhz_min"
+    ],
+    "status_counts": {
+      "planned": 5
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_0",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_0",
+        "Primary implementation evidence is in rtl/debounce_cx1.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_0.\nOwner: debounce_cx1 in rtl/debounce_cx1.sv via single_owner.\nSSOT item context: value=No inferred latches..",
+      "evidence_terms": [],
+      "id": "RTL-0078",
+      "owner_file": "rtl/debounce_cx1.sv",
+      "owner_module": "debounce_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_0",
+      "ssot_context": {
+        "value": "No inferred latches."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "synthesis.constraints",
+      "content": "Implement synthesis item constraint_1",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.constraints.constraint_1",
+        "Primary implementation evidence is in rtl/debounce_cx1.sv"
+      ],
+      "detail": "This SSOT synthesis.constraints item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.constraints.constraint_1.\nOwner: debounce_cx1 in rtl/debounce_cx1.sv via single_owner.\nSSOT item context: value=All architectural flops reset by rst_n..",
+      "evidence_terms": [
+        "rst",
+        "rst_n"
+      ],
+      "id": "RTL-0079",
+      "owner_file": "rtl/debounce_cx1.sv",
+      "owner_module": "debounce_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.constraints.constraint_1",
+      "ssot_context": {
+        "value": "All architectural flops reset by rst_n."
+      },
+      "ssot_refs": [
+        "synthesis.constraints.constraint_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item area_um2_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.area_um2_max",
+        "Primary implementation evidence is in rtl/debounce_cx1.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.area_um2_max.\nOwner: debounce_cx1 in rtl/debounce_cx1.sv via single_owner.\nSSOT item context: name=area_um2_max.",
+      "evidence_terms": [],
+      "id": "RTL-0080",
+      "owner_file": "rtl/debounce_cx1.sv",
+      "owner_module": "debounce_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.area_um2_max",
+      "ssot_context": {
+        "name": "area_um2_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.area_um2_max"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item power_mw_max",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.power_mw_max",
+        "Primary implementation evidence is in rtl/debounce_cx1.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.power_mw_max.\nOwner: debounce_cx1 in rtl/debounce_cx1.sv via single_owner.\nSSOT item context: name=power_mw_max.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/debounce_cx1.sv",
+      "owner_module": "debounce_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.power_mw_max",
+      "ssot_context": {
+        "name": "power_mw_max"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.power_mw_max"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "synthesis.ppa_targets",
+      "content": "Implement synthesis item frequency_mhz_min",
+      "criteria": [
+        "RTL owner/evidence is named for this SSOT item",
+        "Behavior is not represented only by comments or TB code",
+        "Downstream verification can observe or justify the item",
+        "Traceability keeps source_ref synthesis.ppa_targets.frequency_mhz_min",
+        "Primary implementation evidence is in rtl/debounce_cx1.sv"
+      ],
+      "detail": "This SSOT synthesis.ppa_targets item must map to RTL behavior, integration evidence, or a precise blocker.\nSSOT ref: synthesis.ppa_targets.frequency_mhz_min.\nOwner: debounce_cx1 in rtl/debounce_cx1.sv via single_owner.\nSSOT item context: name=frequency_mhz_min; value=50.",
+      "evidence_terms": [],
+      "id": "RTL-0082",
+      "owner_file": "rtl/debounce_cx1.sv",
+      "owner_module": "debounce_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "synthesis.ppa_targets.frequency_mhz_min",
+      "ssot_context": {
+        "name": "frequency_mhz_min",
+        "value": "50"
+      },
+      "ssot_refs": [
+        "synthesis.ppa_targets.frequency_mhz_min"
+      ],
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "RTL audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_plan_sha256": "3eef79305ca45d51ae44efa2bac5fb3c6e05343eb5c3bd7c8ae227f5d3bc3b00",
+  "top": "debounce_cx1",
+  "type": "rtl_authoring_packet"
+}

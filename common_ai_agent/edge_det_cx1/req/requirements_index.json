@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "requirements_index",
+  "ip": "edge_det_cx1",
+  "status": "requirements_locked",
+  "requirements": [
+    {
+      "requirement_id": "REQ_EDGE_SYNC_001",
+      "title": "2-flop synchronizer",
+      "statement": "sig_in must pass through two flip-flop stages (sync1, sync2) clocked by clk before reaching the edge detector, providing CDC safety.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_EDGE_SYNC_001", "OBL_EDGE_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_EDGE_RISE_001",
+      "title": "Rising edge detection",
+      "statement": "rise_out shall pulse high for exactly one clock cycle when sync2 transitions from 0 to 1 (detected via sync2 & ~prev_sync).",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_EDGE_RISE_001", "OBL_EDGE_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_EDGE_FALL_001",
+      "title": "Falling edge detection",
+      "statement": "fall_out shall pulse high for exactly one clock cycle when sync2 transitions from 1 to 0 (detected via ~sync2 & prev_sync).",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_EDGE_FALL_001", "OBL_EDGE_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_EDGE_RESET_001",
+      "title": "Reset clears all state",
+      "statement": "On active-low reset (rst_n=0), all internal registers (sync1, sync2, prev_sync) shall clear to 0, producing rise_out=0 and fall_out=0.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_EDGE_RESET_001", "OBL_EDGE_LINT_001"]
+    }
+  ]
+}

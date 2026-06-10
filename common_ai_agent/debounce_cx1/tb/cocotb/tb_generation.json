@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "debounce_cx1",
+  "generated_at": "2026-06-10T14:41:27Z",
+  "manifest": "debounce_cx1/tb/cocotb/tb_manifest.json",
+  "test": "debounce_cx1/tb/cocotb/test_debounce_cx1.py",
+  "runner": "debounce_cx1/tb/cocotb/test_runner.py",
+  "goals": 21,
+  "rtl_sources": 1
+}

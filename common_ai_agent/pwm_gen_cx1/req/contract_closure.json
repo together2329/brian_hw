@@ -1,0 +1,221 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PWM_COUNT",
+      "evidence_refs": [
+        "E_PWM_BC_COUNT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_PWM_COUNTER_001",
+        "OBL_PWM_OUT_001"
+      ],
+      "pass_conditions": [
+        "pwm_out matches FL expected (counter_q < duty_reg) each cycle"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PWM_DUTY",
+      "evidence_refs": [
+        "E_PWM_BC_DUTY"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_PWM_DUTY_001"
+      ],
+      "pass_conditions": [
+        "duty_reg matches duty_in one cycle after wr_en per BC_PWM_DUTY"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_PWM_LINT",
+      "evidence_refs": [
+        "E_PWM_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_PWM_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations per BC_PWM_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_PWM_RESET",
+      "evidence_refs": [
+        "E_PWM_BC_RESET"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_PWM_RESET_001"
+      ],
+      "pass_conditions": [
+        "counter_q=0 and duty_reg=0 observed during reset per BC_PWM_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PWM_COUNTER",
+      "evidence_refs": [
+        "E_PWM_COUNTER"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PWM_COUNTER_001"
+      ],
+      "pass_conditions": [
+        "counter_q increments observed in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PWM_DUTY",
+      "evidence_refs": [
+        "E_PWM_DUTY"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PWM_DUTY_001"
+      ],
+      "pass_conditions": [
+        "duty_reg write observed in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_PWM_LINT",
+      "evidence_refs": [
+        "E_PWM_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PWM_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PWM_OUT",
+      "evidence_refs": [
+        "E_PWM_OUT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PWM_OUT_001"
+      ],
+      "pass_conditions": [
+        "pwm_out = (counter_q < duty_reg) observed in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_PWM_RESET",
+      "evidence_refs": [
+        "E_PWM_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_PWM_RESET_001"
+      ],
+      "pass_conditions": [
+        "pwm_out=0 observed during reset in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/pwm_gen_cx1.sv"
+      ],
+      "contract_ref": "SC_PWM_PORTS",
+      "evidence_refs": [
+        "E_PWM_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_PWM_COUNTER_001",
+        "OBL_PWM_DUTY_001",
+        "OBL_PWM_OUT_001",
+        "OBL_PWM_RESET_001",
+        "OBL_PWM_LINT_001"
+      ],
+      "pass_conditions": [
+        "top ports clk rst_n duty_in wr_en pwm_out present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "pwm_gen_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 10,
+    "contracts": 10,
+    "required_closed": 10,
+    "required_contracts": 10
+  },
+  "type": "contract_authority_closure"
+}

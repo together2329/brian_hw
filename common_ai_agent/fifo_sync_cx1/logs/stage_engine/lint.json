@@ -1,0 +1,29 @@
+{
+  "artifacts": [
+    "fifo_sync_cx1/lint/dut_lint.json",
+    "fifo_sync_cx1/lint/lint_todo_plan.json",
+    "fifo_sync_cx1/todo/lint_todo_tracker.json",
+    "fifo_sync_cx1/lint/lint_todo_tracker.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-06-10T14:58:47Z",
+  "headline": "[lint] PASS",
+  "ip": "fifo_sync_cx1",
+  "message": "[lint] PASS\nscript: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py\nmodule: fifo_sync_cx1\ntop: fifo_sync_cx1\n\nruns:\n- dut_lint: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py fifo_sync_cx1 --top fifo_sync_cx1\n  stdout:\n[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync_cx1/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0\n\nexpected artifacts:\n- fifo_sync_cx1/lint/dut_lint.json\n- fifo_sync_cx1/lint/lint_todo_plan.json\n- fifo_sync_cx1/todo/lint_todo_tracker.json\n- fifo_sync_cx1/lint/lint_todo_tracker.json",
+  "metadata": {
+    "top": "fifo_sync_cx1"
+  },
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py fifo_sync_cx1 --top fifo_sync_cx1",
+      "label": "dut_lint",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync_cx1/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0"
+    }
+  ],
+  "stage": "lint",
+  "status": "pass",
+  "workflow": "lint"
+}

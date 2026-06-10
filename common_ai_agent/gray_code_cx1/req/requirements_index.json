@@ -1,0 +1,20 @@
+{
+  "ip": "gray_code_cx1",
+  "requirements": [
+    {
+      "obligation_refs": [
+        "OBL_GC_DECODE_001",
+        "OBL_GC_ENCODE_001",
+        "OBL_GC_LINT_001",
+        "OBL_GC_RESET_001"
+      ],
+      "required": true,
+      "requirement_id": "REQ_GC_FUNC_001",
+      "statement": "On each rising clock edge when valid is high, gray_out is registered as bin_in XOR (bin_in>>1) and bin_out is registered as the cascaded XOR reduction of gray_in. Both outputs clear to 0 synchronously when rst_n is low.",
+      "status": "locked",
+      "title": "4-bit binary-to-Gray and Gray-to-binary converter (registered)"
+    }
+  ],
+  "schema_version": 1,
+  "type": "requirements_index"
+}

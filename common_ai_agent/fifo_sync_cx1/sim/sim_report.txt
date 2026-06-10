@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=fifo_sync_cx1/sim/results.xml
+scoreboard=fifo_sync_cx1/sim/scoreboard_events.jsonl
+coverage_functional=fifo_sync_cx1/cov/coverage_functional.json
+waveforms=fifo_sync_cx1/sim/fifo_sync_cx1.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=5 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync_cx1/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_READ: rd_data: expected=0 observed=13; empty: expected=0 observed=1; count: expected=-1 observed=0; rd_ptr: expected=1 observed=0; EQ_SCENARIO_SC01: empty: expected=0 observed=1; count: expected=1 observed=0; wr_ptr: expected=1 observed=0; EQ_PROTOCOL_RD_EN_EMPTY: rd_data: expected=0 observed=19; empty: expected=0 observed=1; count: expected=-1 observed=0; rd_ptr: expected=1 observed=0; EQ_PROTOCOL_RESET_CLEAR: empty: expected=0 observed=1; count: expected=1 observed=0; wr_ptr: expected=1 observed=0; EQ_TIMING_ORDERING_0: empty: expected=0 observed=1; count: expected=1 observed=0; wr_ptr: expected=1 observed=0

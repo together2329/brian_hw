@@ -1,0 +1,13 @@
+{
+  "errors": [],
+  "files": [
+    "counter8_cx1/tb/cocotb/test_counter8_cx1.py",
+    "counter8_cx1/tb/cocotb/test_runner.py"
+  ],
+  "generated_at": "2026-06-10T14:21:40Z",
+  "ip": "counter8_cx1",
+  "passed": true,
+  "schema_version": 1,
+  "tb_dir": "counter8_cx1/tb/cocotb",
+  "type": "tb_python_compile"
+}

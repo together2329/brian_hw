@@ -1,0 +1,96 @@
+{
+  "ip": "parity_gen_cx1",
+  "schema_version": 1,
+  "type": "evidence_contract",
+  "generated_at": "2026-06-11T00:00:00Z",
+  "source": "rocev-chain-cursor-agent",
+  "obligations": [
+    {
+      "obligation_id": "OBL_PAR_EVEN_001",
+      "requirement_ids": ["REQ_PAR_EVEN_001"],
+      "claim": "even_par = ^data_in: combinational XOR of all 8 data_in bits.",
+      "contract_refs": ["C_PAR_EVEN", "BC_PAR_FUNC"],
+      "scenario_ids": ["SC2", "SC3", "SC4"],
+      "required_observables": ["even_par", "even_rule"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_TRANSACTION_FM_PARITY" } },
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_SCENARIO_SC2" } },
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_SCENARIO_SC4" } }
+      ],
+      "pass_conditions": [
+        { "id": "fm_parity_scoreboard_row_passed", "kind": "row_passed" }
+      ]
+    },
+    {
+      "obligation_id": "OBL_PAR_ODD_001",
+      "requirement_ids": ["REQ_PAR_ODD_001"],
+      "claim": "odd_par = ~even_par: combinational inversion.",
+      "contract_refs": ["C_PAR_ODD", "BC_PAR_FUNC"],
+      "scenario_ids": ["SC2", "SC4"],
+      "required_observables": ["odd_par", "odd_rule"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_TRANSACTION_FM_PARITY" } },
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_SCENARIO_SC2" } },
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_SCENARIO_SC4" } }
+      ],
+      "pass_conditions": [
+        { "id": "fm_parity_odd_scoreboard_row_passed", "kind": "row_passed" }
+      ]
+    },
+    {
+      "obligation_id": "OBL_PAR_REG_001",
+      "requirement_ids": ["REQ_PAR_REG_001"],
+      "claim": "par_reg latches even_par on each rising clock edge (1-cycle registered).",
+      "contract_refs": ["C_PAR_REG", "BC_PAR_FUNC"],
+      "scenario_ids": ["SC5"],
+      "required_observables": ["par_reg", "par_reg_rule"],
+      "required": true,
+      "status": "escalated",
+      "escalation_reason": "SC3/SC5 par_reg_rule: FL model samples par_reg_q before state update (pre-update=0) but RTL samples par_reg after clock edge (post-update=1). Generator limitation: FL model applies output_rules before state_updates.",
+      "evidence_rows": [
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG" } },
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG" } }
+      ],
+      "pass_conditions": [
+        { "id": "par_reg_latency_coverage_passed", "kind": "row_passed" }
+      ]
+    },
+    {
+      "obligation_id": "OBL_PAR_RESET_001",
+      "requirement_ids": ["REQ_PAR_RESET_001"],
+      "claim": "par_reg=0 while rst_n=0 and for 1 cycle after rst_n de-assertion.",
+      "contract_refs": ["C_PAR_RESET", "BC_PAR_RESET"],
+      "scenario_ids": ["SC2"],
+      "required_observables": ["par_reg", "par_reg_rule"],
+      "required": true,
+      "status": "escalated",
+      "escalation_reason": "FM_RESET/SC1: functional_model.py short-circuits FM_RESET to kind=reset (no output_rules applied). par_reg=0 verified via SC2 (data_in=0 after reset: par_reg_q=0 so par_reg=0 on first passing cycle).",
+      "evidence_rows": [
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_SCENARIO_SC2" } }
+      ],
+      "pass_conditions": [
+        { "id": "sc2_par_reg_zero_after_reset", "kind": "row_passed" }
+      ]
+    },
+    {
+      "obligation_id": "OBL_PAR_LINT_001",
+      "requirement_ids": ["REQ_PAR_EVEN_001"],
+      "claim": "No inferred latches; single driver per output.",
+      "contract_refs": ["C_PAR_LINT"],
+      "scenario_ids": ["SC2"],
+      "required_observables": ["even_par", "odd_par"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        { "artifact": "sim/scoreboard_events.jsonl", "match": { "goal_id": "EQ_TRANSACTION_FM_PARITY" } }
+      ],
+      "pass_conditions": [
+        { "id": "lint_clean_via_parity_goal", "kind": "row_passed" }
+      ]
+    }
+  ]
+}

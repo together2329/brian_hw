@@ -1,0 +1,56 @@
+{
+  "approved_at_utc": "2026-06-10T14:04:58Z",
+  "approved_by": "cursor-agent",
+  "bundle_sha256": "7ccd006270e25e8f64deef597e41bc747ea3da3c71416d09ad8c1249139b6273",
+  "decision_note": "uart_tx_lite_cx1 cursor demo",
+  "draft": "uart_tx_lite_cx1/req/uart_tx_lite_cx1_req_draft.json",
+  "draft_sha256": "80855393e9354b7c3af7c07be35d0a4529880139724c99ecdca128777581b8eb",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 7153,
+      "path": "uart_tx_lite_cx1/req/behavioral_contracts.json",
+      "sha256": "96c6c3474d6181ac19538e7ce43f2a249ff73db977cc715039477c64e311831e"
+    },
+    "req/contract_refs.json": {
+      "bytes": 2430,
+      "path": "uart_tx_lite_cx1/req/contract_refs.json",
+      "sha256": "62e3224cb77687f974b2fc050187c9b39a5d8601747da28cb68ecf675ef5bc8b"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 3020,
+      "path": "uart_tx_lite_cx1/req/evidence_plan.json",
+      "sha256": "d338310c85229a453753349f9e9f71ffef358a4170a08f70eba12383ed8032be"
+    },
+    "req/locked_truth.md": {
+      "bytes": 20902,
+      "path": "uart_tx_lite_cx1/req/locked_truth.md",
+      "sha256": "a8deba49a2ee91ab68c9d21ceed2730c0b6e49a7b797da320489c6e2e75233cd"
+    },
+    "req/obligations.json": {
+      "bytes": 3222,
+      "path": "uart_tx_lite_cx1/req/obligations.json",
+      "sha256": "de69cc7eeb104fd89317938fd542dedf3befe852154416ae7afc74e220c8761c"
+    },
+    "req/requirements_index.json": {
+      "bytes": 752,
+      "path": "uart_tx_lite_cx1/req/requirements_index.json",
+      "sha256": "045a97fe71d64e867d2fcb675d1eed216cc51115ca41cdc71c119af2fdb9cf20"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 3366,
+      "path": "uart_tx_lite_cx1/req/structural_contracts.json",
+      "sha256": "bfef854ad369b7b57d56903f1c9321c359522693673bd9fb2a01858e11512f3d"
+    }
+  },
+  "ip": "uart_tx_lite_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_UART_FUNC_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "status": "requirements_locked",
+  "type": "locked_truth_approval_manifest"
+}

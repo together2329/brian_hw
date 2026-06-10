@@ -1,0 +1,79 @@
+#! /opt/homebrew/Cellar/icarus-verilog/12.0/bin/vvp
+:ivl_version "12.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/system.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2005_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/va_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2009.vpi";
+S_0x1300062b0 .scope package, "$unit" "$unit" 2 1;
+ .timescale -9 -12;
+S_0x130006420 .scope module, "edge_det_cx1" "edge_det_cx1" 3 8;
+ .timescale -9 -12;
+    .port_info 0 /INPUT 1 "clk";
+    .port_info 1 /INPUT 1 "rst_n";
+    .port_info 2 /INPUT 1 "sig_in";
+    .port_info 3 /OUTPUT 1 "rise_out";
+    .port_info 4 /OUTPUT 1 "fall_out";
+P_0x6000025ecc40 .param/l "IDLE" 1 3 17, C4<0>;
+L_0x600001be05b0 .functor NOT 1, v0x6000002e85a0_0, C4<0>, C4<0>, C4<0>;
+L_0x600001be0620 .functor AND 1, v0x6000002e8870_0, L_0x600001be05b0, C4<1>, C4<1>;
+L_0x600001be0690 .functor NOT 1, v0x6000002e8870_0, C4<0>, C4<0>, C4<0>;
+L_0x600001be0700 .functor AND 1, L_0x600001be0690, v0x6000002e85a0_0, C4<1>, C4<1>;
+v0x6000002e8360_0 .net *"_ivl_0", 0 0, L_0x600001be05b0;  1 drivers
+v0x6000002e83f0_0 .net *"_ivl_4", 0 0, L_0x600001be0690;  1 drivers
+o0x128040070 .functor BUFZ 1, C4<z>; HiZ drive
+v0x6000002e8480_0 .net "clk", 0 0, o0x128040070;  0 drivers
+v0x6000002e8510_0 .net "fall_out", 0 0, L_0x600001be0700;  1 drivers
+v0x6000002e85a0_0 .var "prev_sync", 0 0;
+v0x6000002e8630_0 .net "rise_out", 0 0, L_0x600001be0620;  1 drivers
+o0x128040130 .functor BUFZ 1, C4<z>; HiZ drive
+v0x6000002e86c0_0 .net "rst_n", 0 0, o0x128040130;  0 drivers
+o0x128040160 .functor BUFZ 1, C4<z>; HiZ drive
+v0x6000002e8750_0 .net "sig_in", 0 0, o0x128040160;  0 drivers
+v0x6000002e87e0_0 .var "sync1", 0 0;
+v0x6000002e8870_0 .var "sync2", 0 0;
+E_0x6000025eccc0/0 .event negedge, v0x6000002e86c0_0;
+E_0x6000025eccc0/1 .event posedge, v0x6000002e8480_0;
+E_0x6000025eccc0 .event/or E_0x6000025eccc0/0, E_0x6000025eccc0/1;
+S_0x130004290 .scope module, "atlas_iverilog_vcd_dump" "atlas_iverilog_vcd_dump" 4 1;
+ .timescale -9 -12;
+    .scope S_0x130006420;
+T_0 ;
+    %wait E_0x6000025eccc0;
+    %load/vec4 v0x6000002e86c0_0;
+    %nor/r;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.0, 8;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x6000002e87e0_0, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x6000002e8870_0, 0;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x6000002e85a0_0, 0;
+    %jmp T_0.1;
+T_0.0 ;
+    %load/vec4 v0x6000002e8750_0;
+    %assign/vec4 v0x6000002e87e0_0, 0;
+    %load/vec4 v0x6000002e87e0_0;
+    %assign/vec4 v0x6000002e8870_0, 0;
+    %load/vec4 v0x6000002e8870_0;
+    %assign/vec4 v0x6000002e85a0_0, 0;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0;
+    .scope S_0x130004290;
+T_1 ;
+    %vpi_call/w 4 3 "$dumpfile", "edge_det_cx1.vcd" {0 0 0};
+    %vpi_call/w 4 4 "$dumpvars", 32'sb00000000000000000000000000000000, S_0x130006420 {0 0 0};
+    %end;
+    .thread T_1;
+# The file index is used to find the file name in the following table.
+:file_names 5;
+    "N/A";
+    "<interactive>";
+    "-";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_det_cx1/rtl/edge_det_cx1.sv";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_det_cx1/sim/cocotb_build/atlas_iverilog_vcd_dump.v";

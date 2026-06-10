@@ -1,0 +1,653 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 18,
+      "enabled": true,
+      "index": 2,
+      "key": "contract",
+      "module_task_count": 67,
+      "rule": "Owner module pwm_gen_cx1 is split into 18 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "contract",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pwm_gen_cx1.sv",
+      "name": "pwm_gen_cx1",
+      "refs": [
+        "function_model",
+        "function_model.transactions",
+        "function_model.transactions.FM_TICK",
+        "function_model.transactions.FM_WRITE",
+        "io_list",
+        "io_list.interfaces",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pwm_gen_cx1.sv",
+        "name": "pwm_gen_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "duty_in_wr_en",
+          "wr_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_in_pwm_out",
+          "pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pwm_gen_cx1",
+  "kind": "module",
+  "owner_file": "rtl/pwm_gen_cx1.sv",
+  "owner_module": "pwm_gen_cx1",
+  "packet_id": "module__pwm_gen_cx1__contract",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "contract.behavioral.rtl": 4,
+      "contract.structural.rtl": 1
+    },
+    "module_slice": {
+      "count": 18,
+      "enabled": true,
+      "index": 2,
+      "key": "contract",
+      "module_task_count": 67,
+      "rule": "Owner module pwm_gen_cx1 is split into 18 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "contract",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 5,
+    "source_refs": [
+      "req.behavioral_contracts.BC_PWM_COUNT",
+      "req.behavioral_contracts.BC_PWM_DUTY",
+      "req.behavioral_contracts.BC_PWM_LINT",
+      "req.behavioral_contracts.BC_PWM_RESET",
+      "req.structural_contracts.SC_PWM_PORTS"
+    ],
+    "status_counts": {
+      "pass": 5
+    },
+    "task_count": 5
+  },
+  "tasks": [
+    {
+      "category": "contract.behavioral.rtl",
+      "content": "Implement locked behavioral contract BC_PWM_COUNT",
+      "contract_kind": "behavioral",
+      "contract_projection_refs": [
+        "rtl_contract"
+      ],
+      "contract_ref": "BC_PWM_COUNT",
+      "contract_stage_contracts": [
+        {
+          "artifact": "rtl/pwm_gen_cx1.sv",
+          "stage": "rtl",
+          "timing": "counter_q registered, pwm_out combinational"
+        }
+      ],
+      "criteria": [
+        "Contract BC_PWM_COUNT remains traceable to req/behavioral_contracts.json",
+        "At least one SSOT behavior section projects this contract and owns RTL implementation work",
+        "An explicit rtl/rtl-gen stage_contract states the RTL observable/check/pass condition",
+        "Live owner RTL contains evidence terms from the contract inputs/outputs/state/observables",
+        "Traceability keeps source_ref req.behavioral_contracts.BC_PWM_COUNT",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/behavioral_contracts.json. The RTL must implement the contract's machine behavior and close the listed RTL stage_contracts.\nSSOT ref: req.behavioral_contracts.BC_PWM_COUNT.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via single_owner.\nSSOT item context: signal=[\"counter_q\", \"duty_reg\", \"pwm_gen_cx1\", \"pwm_out\", \"xFF\"].",
+      "evidence_terms": [
+        "counter_q",
+        "cx1",
+        "duty",
+        "duty_reg",
+        "out",
+        "pwm",
+        "pwm_gen_cx1",
+        "pwm_out",
+        "reg",
+        "xFF"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.behavioral_contracts.BC_PWM_COUNT",
+      "ssot_context": {
+        "signal": "[\"counter_q\", \"duty_reg\", \"pwm_gen_cx1\", \"pwm_out\", \"xFF\"]"
+      },
+      "ssot_refs": [
+        "req.behavioral_contracts.BC_PWM_COUNT",
+        "rtl_contract"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 9,
+        "matched_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_gen_cx1",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_gen_cx1",
+          "pwm_out",
+          "reg",
+          "xFF"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "contract.behavioral.rtl",
+      "content": "Implement locked behavioral contract BC_PWM_DUTY",
+      "contract_kind": "behavioral",
+      "contract_projection_refs": [
+        "rtl_contract"
+      ],
+      "contract_ref": "BC_PWM_DUTY",
+      "contract_stage_contracts": [
+        {
+          "artifact": "rtl/pwm_gen_cx1.sv",
+          "stage": "rtl",
+          "timing": "duty_reg registered on rising clk"
+        }
+      ],
+      "criteria": [
+        "Contract BC_PWM_DUTY remains traceable to req/behavioral_contracts.json",
+        "At least one SSOT behavior section projects this contract and owns RTL implementation work",
+        "An explicit rtl/rtl-gen stage_contract states the RTL observable/check/pass condition",
+        "Live owner RTL contains evidence terms from the contract inputs/outputs/state/observables",
+        "Traceability keeps source_ref req.behavioral_contracts.BC_PWM_DUTY",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/behavioral_contracts.json. The RTL must implement the contract's machine behavior and close the listed RTL stage_contracts.\nSSOT ref: req.behavioral_contracts.BC_PWM_DUTY.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via single_owner.\nSSOT item context: signal=[\"counter_q\", \"duty_in\", \"duty_reg\", \"pwm_gen_cx1\", \"pwm_out\", \"xFF\"].",
+      "evidence_terms": [
+        "counter_q",
+        "cx1",
+        "duty",
+        "duty_in",
+        "duty_reg",
+        "in",
+        "out",
+        "pwm",
+        "pwm_gen_cx1",
+        "pwm_out",
+        "reg",
+        "xFF"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.behavioral_contracts.BC_PWM_DUTY",
+      "ssot_context": {
+        "signal": "[\"counter_q\", \"duty_in\", \"duty_reg\", \"pwm_gen_cx1\", \"pwm_out\", \"xFF\"]"
+      },
+      "ssot_refs": [
+        "req.behavioral_contracts.BC_PWM_DUTY",
+        "rtl_contract"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 11,
+        "matched_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "out",
+          "pwm",
+          "pwm_gen_cx1",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "out",
+          "pwm",
+          "pwm_gen_cx1",
+          "pwm_out",
+          "reg",
+          "xFF"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "contract.behavioral.rtl",
+      "content": "Implement locked behavioral contract BC_PWM_LINT",
+      "contract_kind": "behavioral",
+      "contract_projection_refs": [
+        "rtl_contract"
+      ],
+      "contract_ref": "BC_PWM_LINT",
+      "contract_stage_contracts": [
+        {
+          "artifact": "rtl/pwm_gen_cx1.sv",
+          "stage": "rtl",
+          "timing": "registered outputs; no latch inference"
+        }
+      ],
+      "criteria": [
+        "Contract BC_PWM_LINT remains traceable to req/behavioral_contracts.json",
+        "At least one SSOT behavior section projects this contract and owns RTL implementation work",
+        "An explicit rtl/rtl-gen stage_contract states the RTL observable/check/pass condition",
+        "Live owner RTL contains evidence terms from the contract inputs/outputs/state/observables",
+        "Traceability keeps source_ref req.behavioral_contracts.BC_PWM_LINT",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/behavioral_contracts.json. The RTL must implement the contract's machine behavior and close the listed RTL stage_contracts.\nSSOT ref: req.behavioral_contracts.BC_PWM_LINT.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via single_owner.\nSSOT item context: signal=[\"counter_q\", \"duty_reg\", \"pwm_gen_cx1\"].",
+      "evidence_terms": [
+        "counter_q",
+        "cx1",
+        "duty",
+        "duty_reg",
+        "pwm",
+        "pwm_gen_cx1",
+        "reg"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.behavioral_contracts.BC_PWM_LINT",
+      "ssot_context": {
+        "signal": "[\"counter_q\", \"duty_reg\", \"pwm_gen_cx1\"]"
+      },
+      "ssot_refs": [
+        "req.behavioral_contracts.BC_PWM_LINT",
+        "rtl_contract"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 7,
+        "matched_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_reg",
+          "pwm",
+          "pwm_gen_cx1",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_reg",
+          "pwm",
+          "pwm_gen_cx1",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "contract.behavioral.rtl",
+      "content": "Implement locked behavioral contract BC_PWM_RESET",
+      "contract_kind": "behavioral",
+      "contract_projection_refs": [
+        "rtl_contract"
+      ],
+      "contract_ref": "BC_PWM_RESET",
+      "contract_stage_contracts": [
+        {
+          "artifact": "rtl/pwm_gen_cx1.sv",
+          "reset": "async active-low",
+          "stage": "rtl"
+        }
+      ],
+      "criteria": [
+        "Contract BC_PWM_RESET remains traceable to req/behavioral_contracts.json",
+        "At least one SSOT behavior section projects this contract and owns RTL implementation work",
+        "An explicit rtl/rtl-gen stage_contract states the RTL observable/check/pass condition",
+        "Live owner RTL contains evidence terms from the contract inputs/outputs/state/observables",
+        "Traceability keeps source_ref req.behavioral_contracts.BC_PWM_RESET",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/behavioral_contracts.json. The RTL must implement the contract's machine behavior and close the listed RTL stage_contracts.\nSSOT ref: req.behavioral_contracts.BC_PWM_RESET.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via single_owner.\nSSOT item context: signal=[\"counter_q\", \"duty_reg\", \"pwm_gen_cx1\", \"pwm_out\"].",
+      "evidence_terms": [
+        "counter_q",
+        "cx1",
+        "duty",
+        "duty_reg",
+        "out",
+        "pwm",
+        "pwm_gen_cx1",
+        "pwm_out",
+        "reg"
+      ],
+      "id": "RTL-0031",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.behavioral_contracts.BC_PWM_RESET",
+      "ssot_context": {
+        "signal": "[\"counter_q\", \"duty_reg\", \"pwm_gen_cx1\", \"pwm_out\"]"
+      },
+      "ssot_refs": [
+        "req.behavioral_contracts.BC_PWM_RESET",
+        "rtl_contract"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 9,
+        "matched_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_gen_cx1",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "counter_q",
+          "cx1",
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_gen_cx1",
+          "pwm_out",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "contract.structural.rtl",
+      "content": "Implement locked structural contract SC_PWM_PORTS",
+      "contract_kind": "structural",
+      "contract_ref": "SC_PWM_PORTS",
+      "contract_stage_contracts": [
+        {
+          "check": "RTL top declaration matches structural signal dir/width/timing intent",
+          "stage": "rtl-gen"
+        }
+      ],
+      "criteria": [
+        "Contract SC_PWM_PORTS remains traceable to req/structural_contracts.json",
+        "Every structural signal is declared on the RTL top or explicitly waived by locked truth",
+        "Direction and width are checked against the RTL top declaration",
+        "Active structural inputs/outputs participate in live RTL logic or explicit SSOT waiver",
+        "Traceability keeps source_ref req.structural_contracts.SC_PWM_PORTS",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/structural_contracts.json. RTL top ports must satisfy the contract's signal names, direction, width, and timing ownership.\nSSOT ref: req.structural_contracts.SC_PWM_PORTS.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via single_owner.\nSSOT item context: signal=[\"clk\", \"duty_in\", \"pwm_out\", \"rst_n\", \"wr_en\"].",
+      "evidence_terms": [
+        "clk",
+        "duty",
+        "duty_in",
+        "en",
+        "in",
+        "out",
+        "pwm",
+        "pwm_out",
+        "rst",
+        "rst_n",
+        "wr",
+        "wr_en"
+      ],
+      "id": "RTL-0032",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.structural_contracts.SC_PWM_PORTS",
+      "ssot_context": {
+        "signal": "[\"clk\", \"duty_in\", \"pwm_out\", \"rst_n\", \"wr_en\"]"
+      },
+      "ssot_refs": [
+        "io_list",
+        "req.structural_contracts.SC_PWM_PORTS",
+        "top_module"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 12,
+        "matched_terms": [
+          "clk",
+          "duty",
+          "duty_in",
+          "en",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "rst",
+          "rst_n",
+          "wr",
+          "wr_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "duty",
+          "duty_in",
+          "en",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "rst",
+          "rst_n",
+          "wr",
+          "wr_en"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2443e02841856f2c0d51ef267e23d10eb485682306d888b42c959dcf7c3ff98f",
+  "top": "pwm_gen_cx1",
+  "type": "rtl_authoring_packet"
+}

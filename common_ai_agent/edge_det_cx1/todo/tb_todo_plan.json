@@ -1,0 +1,4316 @@
+{
+  "blockers": [
+    {
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_0",
+      "owner": "ssot-gen",
+      "reason": "behavioral contract BC_EDGE_SYNC is not projected into a function_model row with behavioral contract_refs",
+      "source_ref": "req/behavioral_contracts.json"
+    },
+    {
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_1",
+      "owner": "ssot-gen",
+      "reason": "behavioral contract BC_EDGE_SYNC is not projected into a cycle_model row with behavioral contract_refs; add timing/protocol rows or an explicit cycle_model_waiver",
+      "source_ref": "req/behavioral_contracts.json"
+    }
+  ],
+  "gate": {
+    "advisory_findings": 2,
+    "all_required_todos_pass": false,
+    "audit_evidence": false,
+    "audit_tb": false,
+    "authoring_open_todos": 52,
+    "blocking_questions": 2,
+    "plan_sha256": "69cf88dc63e2014dec6bc5338b3b8451b0ee486788cf1a6f1a54761ecfb91d99",
+    "relaxed_mode": true,
+    "status": "planned",
+    "validation_open_todos": 57
+  },
+  "generated_at": "2026-06-10T14:54:54Z",
+  "ip": "edge_det_cx1",
+  "locked_truth_contracts": {
+    "behavioral_contract_ids": [
+      "BC_EDGE_SYNC"
+    ],
+    "load_issues": [],
+    "present": {
+      "behavioral_contracts": true,
+      "structural_contracts": true
+    },
+    "structural_contract_ids": [
+      "SC_EDGE_PORTS"
+    ]
+  },
+  "policy": {
+    "authority_rule": "Expected behavior comes from locked req contracts plus SSOT Function/Cycle model; RTL is DUT structure only.",
+    "timing_rule": "Structural signal timing.kind/clock_domain/sync_to drives TB driver/monitor synchronization when present.",
+    "validation_rule": "TB authoring PASS requires --audit-tb; contract validation closure requires --audit-evidence after sim and coverage.",
+    "visible_todo_rule": "Expose one visible gen-tb TODO while preserving every per-contract validation row in tb/tb_todo_plan.json."
+  },
+  "schema_version": 1,
+  "source": "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml",
+  "summary": {
+    "blocking_questions": 2,
+    "by_category": {
+      "contract.behavioral.coverage": 1,
+      "contract.behavioral.scoreboard": 1,
+      "contract.behavioral.stimulus": 1,
+      "contract.structural.signal": 5,
+      "cycle_model.monitor": 9,
+      "equivalence.goal_scoreboard": 19,
+      "function_model.observation": 3,
+      "function_model.scoreboard": 6,
+      "tb_flow.seed": 1,
+      "tb_gate.tb_gen": 7,
+      "test_requirements.scenario": 4
+    },
+    "by_phase": {
+      "authoring": 52,
+      "evidence": 5
+    },
+    "equivalence_goals": 19,
+    "locked_truth_behavioral_contracts": 1,
+    "locked_truth_structural_contracts": 1,
+    "required_tasks": 57,
+    "total_tasks": 57
+  },
+  "tasks": [
+    {
+      "category": "tb_flow.seed",
+      "content": "Read SSOT and build dynamic TB validation ledger",
+      "criteria": [
+        "tb_todo_plan.json was regenerated from the current SSOT and locked contracts",
+        "Each structural/behavioral contract maps to TB authoring or evidence responsibilities",
+        "No expected behavior is inferred from RTL observations"
+      ],
+      "detail": "Use tb_todo_plan.json as the verification checklist. Fixed templates are generator helpers only, not authority.",
+      "id": "TB-0001",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "top_module",
+      "ssot_context": {
+        "ip": "edge_det_cx1",
+        "top": "edge_det_cx1"
+      },
+      "ssot_refs": [
+        "top_module"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "top_module"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: TB authority inputs are present and contract-owned",
+      "criteria": [
+        "SSOT YAML is present",
+        "function_model, cycle_model, and test_requirements are present or an SSOT blocker is emitted",
+        "verify/equivalence_goals.json and rtl/rtl_contract.json exist before generated scoreboard approval",
+        "Locked behavioral/structural contract files are loaded directly when present"
+      ],
+      "detail": "TB generation must derive stimulus and expected behavior from locked req contracts, SSOT Function/Cycle models, equivalence goals, and the RTL contract.",
+      "gate_todo": {
+        "kind": "authority_inputs",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0002",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.authority_inputs",
+      "ssot_context": {
+        "gate_check": "authority_inputs"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.authority_inputs"
+      ],
+      "todo_completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.authority_inputs"
+        ],
+        "phase": "authoring",
+        "reason": "2 authority blocker(s) remain.",
+        "required": true,
+        "status": "open"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: generated cocotb/pyuvm TB artifacts are present",
+      "criteria": [
+        "test_<ip>.py, test_runner.py, transactions.py, sequences.py, agents.py, scoreboard.py, tb_coverage.py, and uvm_env.py exist",
+        "tb_manifest.json top matches SSOT top_module.name",
+        "tb_generation.json reports status=pass"
+      ],
+      "detail": "Generated TB must contain the layered files, manifest, and generation report expected by the common TB flow.",
+      "gate_todo": {
+        "kind": "tb_artifacts",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0003",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.generated_artifacts",
+      "ssot_context": {
+        "gate_check": "tb_artifacts"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.generated_artifacts"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.generated_artifacts"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: common equivalence scoreboard contract is loadable",
+      "criteria": [
+        "workflow/tb-gen/runtime/equivalence_scoreboard.py --self-check passes",
+        "Generated scoreboard.py imports or wraps EquivalenceScoreboard",
+        "scoreboard rows are configured from verify/equivalence_goals.json"
+      ],
+      "detail": "The generated TB must preserve EquivalenceScoreboard as the expected-behavior adapter instead of copying observed RTL behavior.",
+      "gate_todo": {
+        "kind": "scoreboard_self_check",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0004",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.scoreboard_self_check",
+      "ssot_context": {
+        "gate_check": "scoreboard_self_check"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.scoreboard_self_check"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.scoreboard_self_check"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: simulation emits passing scoreboard events for required goals",
+      "criteria": [
+        "sim/scoreboard_events.jsonl exists",
+        "At least one required unblocked goal has a passing scoreboard row",
+        "Rows contain goal_id, scenario_id, stimulus, fl_expected, rtl_observed, passed, and coverage_refs"
+      ],
+      "detail": "TB validation is not closed by file generation alone. Simulation must emit RTL-observed scoreboard rows carrying goal IDs and coverage refs.",
+      "gate_todo": {
+        "kind": "scoreboard_events",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0005",
+      "phase": "evidence",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.scoreboard_events",
+      "ssot_context": {
+        "gate_check": "scoreboard_events"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.scoreboard_events"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.scoreboard_events"
+        ],
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: TB evidence reaches functional/cycle coverage closure",
+      "criteria": [
+        "cov/coverage.json exists",
+        "coverage status is pass",
+        "rtl_observed coverage has no missing bins or invalid rows when reported"
+      ],
+      "detail": "Coverage evidence must come from generic coverage artifacts and passing scoreboard rows, not IP-specific parsers or weakened bins.",
+      "gate_todo": {
+        "kind": "coverage_closure",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0006",
+      "phase": "evidence",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.coverage_closure",
+      "ssot_context": {
+        "gate_check": "coverage_closure"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.coverage_closure"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.coverage_closure"
+        ],
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: every locked contract has TB validation evidence",
+      "criteria": [
+        "Behavioral contract stimulus and scoreboard rows are authored",
+        "Structural signals are mapped to driver/monitor responsibilities with timing/synchronization notes",
+        "Passing scoreboard or coverage evidence references the contract/goal aliases"
+      ],
+      "detail": "Each obligation-owned behavioral/structural contract must map to stimulus, observation, scoreboard/assertion, and coverage or carry an explicit human gate.",
+      "gate_todo": {
+        "kind": "contract_validation_closure",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0007",
+      "phase": "evidence",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+      "ssot_context": {
+        "gate_check": "contract_validation_closure"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.contract_validation_closure"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.contract_validation_closure"
+        ],
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "content": "Gate: every required tb_todo_plan item is closed",
+      "criteria": [
+        "open_required_todos is zero for the requested audit mode",
+        "all_required_todos_pass is true"
+      ],
+      "detail": "TB-gen PASS for validation evidence is forbidden until every required authoring and evidence ledger row has pass status.",
+      "gate_todo": {
+        "kind": "dynamic_todo_closure",
+        "stage": "tb-gen"
+      },
+      "id": "TB-0008",
+      "phase": "evidence",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+      "ssot_context": {
+        "gate_check": "dynamic_todo_closure"
+      },
+      "ssot_refs": [
+        "quality_gates.tb_gen.dynamic_todo_closure"
+      ],
+      "todo_completion": {
+        "criteria_total": 2,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.dynamic_todo_closure"
+        ],
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.structural.signal",
+      "content": "Map structural signal clk into TB driver/monitor contract",
+      "criteria": [
+        "DUT port clk is bound in tb_manifest.json",
+        "Driver responsibility exists for input/inout signals",
+        "Signal width/direction follows the structural contract",
+        "Synchronization policy is recorded: kind=unspecified, clock_domain=n/a"
+      ],
+      "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+      "id": "TB-0009",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "contract.structural.SC_EDGE_PORTS.signals.clk",
+      "ssot_context": {
+        "contract_id": "SC_EDGE_PORTS",
+        "effective_timing": {},
+        "signal": {
+          "dir": "input",
+          "name": "clk",
+          "width": 1
+        }
+      },
+      "ssot_refs": [
+        "contract.structural.SC_EDGE_PORTS.signals.clk"
+      ],
+      "todo_completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_EDGE_PORTS.signals.clk"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.structural.signal",
+      "content": "Map structural signal rst_n into TB driver/monitor contract",
+      "criteria": [
+        "DUT port rst_n is bound in tb_manifest.json",
+        "Driver responsibility exists for input/inout signals",
+        "Signal width/direction follows the structural contract",
+        "Synchronization policy is recorded: kind=unspecified, clock_domain=n/a"
+      ],
+      "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+      "id": "TB-0010",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "contract.structural.SC_EDGE_PORTS.signals.rst_n",
+      "ssot_context": {
+        "contract_id": "SC_EDGE_PORTS",
+        "effective_timing": {},
+        "signal": {
+          "dir": "input",
+          "name": "rst_n",
+          "width": 1
+        }
+      },
+      "ssot_refs": [
+        "contract.structural.SC_EDGE_PORTS.signals.rst_n"
+      ],
+      "todo_completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_EDGE_PORTS.signals.rst_n"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.structural.signal",
+      "content": "Map structural signal sig_in into TB driver/monitor contract",
+      "criteria": [
+        "DUT port sig_in is bound in tb_manifest.json",
+        "Driver responsibility exists for input/inout signals",
+        "Signal width/direction follows the structural contract",
+        "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+      ],
+      "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+      "id": "TB-0011",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "contract.structural.SC_EDGE_PORTS.signals.sig_in",
+      "ssot_context": {
+        "contract_id": "SC_EDGE_PORTS",
+        "effective_timing": {
+          "clock_domain": "clk_domain",
+          "kind": "sync"
+        },
+        "signal": {
+          "dir": "input",
+          "name": "sig_in",
+          "width": 1
+        }
+      },
+      "ssot_refs": [
+        "contract.structural.SC_EDGE_PORTS.signals.sig_in"
+      ],
+      "todo_completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_EDGE_PORTS.signals.sig_in"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.structural.signal",
+      "content": "Map structural signal rise_out into TB driver/monitor contract",
+      "criteria": [
+        "DUT port rise_out is bound in tb_manifest.json",
+        "Monitor observation exists for output/inout signals",
+        "Signal width/direction follows the structural contract",
+        "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+      ],
+      "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+      "id": "TB-0012",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "contract.structural.SC_EDGE_PORTS.signals.rise_out",
+      "ssot_context": {
+        "contract_id": "SC_EDGE_PORTS",
+        "effective_timing": {
+          "clock_domain": "clk_domain",
+          "kind": "sync"
+        },
+        "signal": {
+          "dir": "output",
+          "name": "rise_out",
+          "width": 1
+        }
+      },
+      "ssot_refs": [
+        "contract.structural.SC_EDGE_PORTS.signals.rise_out"
+      ],
+      "todo_completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_EDGE_PORTS.signals.rise_out"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.structural.signal",
+      "content": "Map structural signal fall_out into TB driver/monitor contract",
+      "criteria": [
+        "DUT port fall_out is bound in tb_manifest.json",
+        "Monitor observation exists for output/inout signals",
+        "Signal width/direction follows the structural contract",
+        "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+      ],
+      "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+      "id": "TB-0013",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "contract.structural.SC_EDGE_PORTS.signals.fall_out",
+      "ssot_context": {
+        "contract_id": "SC_EDGE_PORTS",
+        "effective_timing": {
+          "clock_domain": "clk_domain",
+          "kind": "sync"
+        },
+        "signal": {
+          "dir": "output",
+          "name": "fall_out",
+          "width": 1
+        }
+      },
+      "ssot_refs": [
+        "contract.structural.SC_EDGE_PORTS.signals.fall_out"
+      ],
+      "todo_completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_EDGE_PORTS.signals.fall_out"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.behavioral.stimulus",
+      "content": "Create TB stimulus for behavioral contract BC_EDGE_SYNC",
+      "criteria": [
+        "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+        "At least one generated scenario or equivalence goal exercises this contract",
+        "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+      ],
+      "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+      "id": "TB-0014",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "contract.behavioral.BC_EDGE_SYNC.stimulus",
+      "ssot_context": {
+        "contract_id": "BC_EDGE_SYNC",
+        "obligations": [
+          "OBL_EDGE_FALL_001",
+          "OBL_EDGE_RESET_001",
+          "OBL_EDGE_RISE_001",
+          "OBL_EDGE_SYNC_001"
+        ],
+        "projection_refs": [],
+        "tb_stage_contracts": [
+          {
+            "artifact": "tb/cocotb/test_edge_det_cx1.py",
+            "pass_condition": "rise/fall observed at correct cycle",
+            "stage": "tb",
+            "validator": "cocotb scoreboard"
+          },
+          {
+            "artifact": "sim/scoreboard_events.jsonl",
+            "pass_condition": "all scoreboard events pass",
+            "stage": "sim",
+            "validator": "check_sim_disk.py"
+          }
+        ]
+      },
+      "ssot_refs": [
+        "contract.behavioral.BC_EDGE_SYNC.stimulus"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_EDGE_SYNC.stimulus"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.behavioral.scoreboard",
+      "content": "Bind behavioral contract BC_EDGE_SYNC to scoreboard expectation",
+      "criteria": [
+        "FunctionalModel or contract decision table is the expected-behavior source",
+        "Generated scoreboard event rows carry an equivalence goal or contract alias",
+        "Outputs/state updates from the contract are observable or explicitly blocked"
+      ],
+      "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+      "id": "TB-0015",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "contract.behavioral.BC_EDGE_SYNC.scoreboard",
+      "ssot_context": {
+        "contract_id": "BC_EDGE_SYNC",
+        "obligations": [
+          "OBL_EDGE_FALL_001",
+          "OBL_EDGE_RESET_001",
+          "OBL_EDGE_RISE_001",
+          "OBL_EDGE_SYNC_001"
+        ],
+        "projection_refs": [],
+        "tb_stage_contracts": [
+          {
+            "artifact": "tb/cocotb/test_edge_det_cx1.py",
+            "pass_condition": "rise/fall observed at correct cycle",
+            "stage": "tb",
+            "validator": "cocotb scoreboard"
+          },
+          {
+            "artifact": "sim/scoreboard_events.jsonl",
+            "pass_condition": "all scoreboard events pass",
+            "stage": "sim",
+            "validator": "check_sim_disk.py"
+          }
+        ]
+      },
+      "ssot_refs": [
+        "contract.behavioral.BC_EDGE_SYNC.scoreboard"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_EDGE_SYNC.scoreboard"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "contract.behavioral.coverage",
+      "content": "Close coverage evidence for behavioral contract BC_EDGE_SYNC",
+      "criteria": [
+        "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+        "Coverage refs for the scenario/bin are hit",
+        "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+      ],
+      "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+      "id": "TB-0016",
+      "phase": "evidence",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "contract.behavioral.BC_EDGE_SYNC.coverage",
+      "ssot_context": {
+        "contract_id": "BC_EDGE_SYNC",
+        "obligations": [
+          "OBL_EDGE_FALL_001",
+          "OBL_EDGE_RESET_001",
+          "OBL_EDGE_RISE_001",
+          "OBL_EDGE_SYNC_001"
+        ],
+        "projection_refs": [],
+        "tb_stage_contracts": [
+          {
+            "artifact": "tb/cocotb/test_edge_det_cx1.py",
+            "pass_condition": "rise/fall observed at correct cycle",
+            "stage": "tb",
+            "validator": "cocotb scoreboard"
+          },
+          {
+            "artifact": "sim/scoreboard_events.jsonl",
+            "pass_condition": "all scoreboard events pass",
+            "stage": "sim",
+            "validator": "check_sim_disk.py"
+          }
+        ]
+      },
+      "ssot_refs": [
+        "contract.behavioral.BC_EDGE_SYNC.coverage"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_EDGE_SYNC.coverage"
+        ],
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.scoreboard",
+      "content": "Map function_model transactions.FM_RISE into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0017",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE",
+      "ssot_context": {
+        "error_cases": [],
+        "id": "FM_RISE",
+        "inputs": [
+          "sig_in"
+        ],
+        "name": "rising_edge",
+        "output_rules": [
+          {
+            "expr": "1",
+            "name": "rise_rule",
+            "port": "rise_out",
+            "width": 1
+          },
+          {
+            "expr": "0",
+            "name": "fall_rule",
+            "port": "fall_out",
+            "width": 1
+          }
+        ],
+        "outputs": [
+          "rise_out=1, fall_out=0"
+        ],
+        "preconditions": [
+          "prev_sync == 0",
+          "sync2 == 1"
+        ],
+        "side_effects": [
+          "rise_out pulses for 1 cycle"
+        ],
+        "state_updates": [
+          {
+            "expr": "sig_in",
+            "name": "sync1",
+            "width": 1
+          },
+          {
+            "expr": "sync1",
+            "name": "sync2",
+            "width": 1
+          },
+          {
+            "expr": "sync2",
+            "name": "prev_sync",
+            "width": 1
+          }
+        ]
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.transactions.FM_RISE"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.scoreboard",
+      "content": "Map function_model transactions.FM_FALL into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0018",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL",
+      "ssot_context": {
+        "error_cases": [],
+        "id": "FM_FALL",
+        "inputs": [
+          "sig_in"
+        ],
+        "name": "falling_edge",
+        "output_rules": [
+          {
+            "expr": "0",
+            "name": "rise_rule",
+            "port": "rise_out",
+            "width": 1
+          },
+          {
+            "expr": "1",
+            "name": "fall_rule",
+            "port": "fall_out",
+            "width": 1
+          }
+        ],
+        "outputs": [
+          "rise_out=0, fall_out=1"
+        ],
+        "preconditions": [
+          "prev_sync == 1",
+          "sync2 == 0"
+        ],
+        "side_effects": [
+          "fall_out pulses for 1 cycle"
+        ],
+        "state_updates": [
+          {
+            "expr": "sig_in",
+            "name": "sync1",
+            "width": 1
+          },
+          {
+            "expr": "sync1",
+            "name": "sync2",
+            "width": 1
+          },
+          {
+            "expr": "sync2",
+            "name": "prev_sync",
+            "width": 1
+          }
+        ]
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.transactions.FM_FALL"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.scoreboard",
+      "content": "Map function_model transactions.FM_STABLE into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0019",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE",
+      "ssot_context": {
+        "error_cases": [],
+        "id": "FM_STABLE",
+        "inputs": [
+          "sig_in"
+        ],
+        "name": "stable",
+        "output_rules": [
+          {
+            "expr": "0",
+            "name": "rise_rule",
+            "port": "rise_out",
+            "width": 1
+          },
+          {
+            "expr": "0",
+            "name": "fall_rule",
+            "port": "fall_out",
+            "width": 1
+          }
+        ],
+        "outputs": [
+          "rise_out=0, fall_out=0"
+        ],
+        "preconditions": [
+          "prev_sync == sync2"
+        ],
+        "side_effects": [],
+        "state_updates": [
+          {
+            "expr": "sig_in",
+            "name": "sync1",
+            "width": 1
+          },
+          {
+            "expr": "sync1",
+            "name": "sync2",
+            "width": 1
+          },
+          {
+            "expr": "sync2",
+            "name": "prev_sync",
+            "width": 1
+          }
+        ]
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.transactions.FM_STABLE"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.scoreboard",
+      "content": "Map function_model invariants.0 into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0020",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.0",
+      "ssot_context": {
+        "value": "rise_out = sync2 & ~prev_sync (combinational)"
+      },
+      "ssot_refs": [
+        "function_model.invariants.0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.invariants.0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.scoreboard",
+      "content": "Map function_model invariants.1 into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0021",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.1",
+      "ssot_context": {
+        "value": "fall_out = ~sync2 & prev_sync (combinational)"
+      },
+      "ssot_refs": [
+        "function_model.invariants.1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.invariants.1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.scoreboard",
+      "content": "Map function_model invariants.2 into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0022",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.2",
+      "ssot_context": {
+        "value": "sync2 is always 2-cycle delayed version of sig_in"
+      },
+      "ssot_refs": [
+        "function_model.invariants.2"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.invariants.2"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.observation",
+      "content": "Map function_model state_variables.sync1 into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0023",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.sync1",
+      "ssot_context": {
+        "description": "First synchronizer FF",
+        "name": "sync1",
+        "reset": 0,
+        "source": "io_list.interfaces.signal_input"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.sync1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.state_variables.sync1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.observation",
+      "content": "Map function_model state_variables.sync2 into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0024",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.sync2",
+      "ssot_context": {
+        "description": "Second synchronizer FF",
+        "name": "sync2",
+        "reset": 0,
+        "source": "io_list.interfaces.signal_input"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.sync2"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.state_variables.sync2"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "function_model.observation",
+      "content": "Map function_model state_variables.prev_sync into TB expected behavior",
+      "criteria": [
+        "Stimulus or observation covers the model row",
+        "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+        "Generated scoreboard rows preserve the source goal/scenario ID"
+      ],
+      "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+      "id": "TB-0025",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.prev_sync",
+      "ssot_context": {
+        "description": "Previous value of sync2 for edge detection",
+        "name": "prev_sync",
+        "reset": 0,
+        "source": "io_list.interfaces.signal_input"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.prev_sync"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.state_variables.prev_sync"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model handshake_rules.rise_out into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0026",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.rise_out",
+      "ssot_context": {
+        "rule": "Pulses 1 cycle 3 clocks after input rising edge",
+        "signal": "rise_out"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.rise_out"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.handshake_rules.rise_out"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model handshake_rules.fall_out into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0027",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.handshake_rules.fall_out",
+      "ssot_context": {
+        "rule": "Pulses 1 cycle 3 clocks after input falling edge",
+        "signal": "fall_out"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules.fall_out"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.handshake_rules.fall_out"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model pipeline.item into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0028",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.item",
+      "ssot_context": {
+        "action": "sig_in sampled into sync1",
+        "cycle": 1,
+        "stage": "S0_SYNC1"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.item"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.pipeline.item"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model pipeline.item_1 into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0029",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.item_1",
+      "ssot_context": {
+        "action": "sync1 sampled into sync2",
+        "cycle": 2,
+        "stage": "S1_SYNC2"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.item_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.pipeline.item_1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model pipeline.item_2 into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0030",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.pipeline.item_2",
+      "ssot_context": {
+        "action": "Edge detect: rise_out/fall_out combinational from sync2/prev_sync",
+        "cycle": 3,
+        "stage": "S2_EDGE"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline.item_2"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.pipeline.item_2"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model latency.edge_detect into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0031",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.latency.edge_detect",
+      "ssot_context": {
+        "name": "edge_detect",
+        "value": {
+          "max_cycles": 3,
+          "min_cycles": 3
+        }
+      },
+      "ssot_refs": [
+        "cycle_model.latency.edge_detect"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.latency.edge_detect"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model ordering.0 into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0032",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.ordering.0",
+      "ssot_context": {
+        "value": "prev_sync updated same cycle as sync2 output; edge outputs are combinational."
+      },
+      "ssot_refs": [
+        "cycle_model.ordering.0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.ordering.0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model backpressure.0 into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0033",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.backpressure.0",
+      "ssot_context": {
+        "value": "No backpressure."
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.backpressure.0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "cycle_model.monitor",
+      "content": "Map cycle_model observability.0 into TB monitor/assertion",
+      "criteria": [
+        "Drive and sample points are synchronized to the declared clock/reset domain",
+        "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+        "Missing CDC/latency facts are blocked instead of guessed"
+      ],
+      "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+      "id": "TB-0034",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "cycle_model.observability.0",
+      "ssot_context": {
+        "value": "rise_out/fall_out observable each cycle."
+      },
+      "ssot_refs": [
+        "cycle_model.observability.0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.observability.0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Create executable TB scenario SC1",
+      "criteria": [
+        "Scenario stimulus is represented by a sequence or bounded test",
+        "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+        "Scenario contributes scoreboard and/or coverage evidence"
+      ],
+      "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+      "id": "TB-0035",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC1",
+      "ssot_context": {
+        "checker": "Scoreboard checks outputs=0 after reset.",
+        "coverage": [
+          "reset"
+        ],
+        "expected": "rise_out=0, fall_out=0",
+        "id": "SC1",
+        "name": "Reset — all outputs 0",
+        "stimulus": "Assert rst_n=0 for 3 cycles",
+        "stimulus_machine_spec": {
+          "assign": {
+            "sig_in": 0
+          }
+        }
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Create executable TB scenario SC2",
+      "criteria": [
+        "Scenario stimulus is represented by a sequence or bounded test",
+        "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+        "Scenario contributes scoreboard and/or coverage evidence"
+      ],
+      "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+      "id": "TB-0036",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC2",
+      "ssot_context": {
+        "checker": "Scoreboard verifies rise_out=1.",
+        "coverage": [
+          "FM_RISE"
+        ],
+        "expected": "rise_out=1 for 1 cycle (3 clocks later), fall_out=0",
+        "id": "SC2",
+        "name": "Rising edge — rise_out pulses",
+        "stimulus": "sig_in 0->1",
+        "stimulus_machine_spec": {
+          "timeline": [
+            {
+              "assign": {
+                "sig_in": 1
+              }
+            }
+          ]
+        }
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC2"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC2"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Create executable TB scenario SC3",
+      "criteria": [
+        "Scenario stimulus is represented by a sequence or bounded test",
+        "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+        "Scenario contributes scoreboard and/or coverage evidence"
+      ],
+      "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+      "id": "TB-0037",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC3",
+      "ssot_context": {
+        "checker": "Scoreboard verifies fall_out=1.",
+        "coverage": [
+          "FM_FALL"
+        ],
+        "expected": "fall_out=1 for 1 cycle (3 clocks later), rise_out=0",
+        "id": "SC3",
+        "name": "Falling edge — fall_out pulses",
+        "stimulus": "sig_in 1->0 (after prior rising edge settled)",
+        "stimulus_machine_spec": {
+          "timeline": [
+            {
+              "assign": {
+                "sig_in": 0
+              }
+            }
+          ]
+        }
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC3"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC3"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "test_requirements.scenario",
+      "content": "Create executable TB scenario SC4",
+      "criteria": [
+        "Scenario stimulus is represented by a sequence or bounded test",
+        "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+        "Scenario contributes scoreboard and/or coverage evidence"
+      ],
+      "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+      "id": "TB-0038",
+      "phase": "authoring",
+      "priority": "high",
+      "required": true,
+      "source_ref": "test_requirements.scenarios.SC4",
+      "ssot_context": {
+        "checker": "Scoreboard verifies no pulses.",
+        "coverage": [
+          "FM_STABLE"
+        ],
+        "expected": "rise_out=0, fall_out=0",
+        "id": "SC4",
+        "name": "Stable signal — no pulse",
+        "stimulus": "sig_in held constant",
+        "stimulus_machine_spec": {
+          "assign": {
+            "sig_in": 1
+          }
+        }
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios.SC4"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC4"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_TRANSACTION_FM_RISE to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0039",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_RISE",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "function_rising_edge"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/ordering must hold when applicable",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_TRANSACTION_FM_RISE",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+          "RTL observed outputs equal FL expected outputs",
+          "RTL side effects match FL model state updates",
+          "Linked functional coverage bins are hit when stimulus executes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "function_model.transactions[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Transaction rising_edge matches FunctionalModel",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_TRANSACTION_FM_RISE"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_TRANSACTION_FM_RISE"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_TRANSACTION_FM_FALL to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0040",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_FALL",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "function_falling_edge"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/ordering must hold when applicable",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=0, fall_out=1",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "fall_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_TRANSACTION_FM_FALL",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+          "RTL observed outputs equal FL expected outputs",
+          "RTL side effects match FL model state updates",
+          "Linked functional coverage bins are hit when stimulus executes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "function_model.transactions[1]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 1",
+            "sync2 == 0"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_FALL",
+          "transaction_type": "falling_edge"
+        },
+        "title": "Transaction falling_edge matches FunctionalModel",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_TRANSACTION_FM_FALL"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_TRANSACTION_FM_FALL"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_TRANSACTION_FM_STABLE to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0041",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_STABLE",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "SC4_executed",
+          "function_stable"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/ordering must hold when applicable",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=0, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_TRANSACTION_FM_STABLE",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+          "RTL observed outputs equal FL expected outputs",
+          "RTL side effects match FL model state updates",
+          "Linked functional coverage bins are hit when stimulus executes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "function_model.transactions[2]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == sync2"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_STABLE",
+          "transaction_type": "stable"
+        },
+        "title": "Transaction stable matches FunctionalModel",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_TRANSACTION_FM_STABLE"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_TRANSACTION_FM_STABLE"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_SCENARIO_SC1 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0042",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC1",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "SC1_executed"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to the scenario",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=0, fall_out=0",
+            "Scenario expected result from SSOT"
+          ],
+          "state_updates": []
+        },
+        "goal_id": "EQ_SCENARIO_SC1",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated sequence executes the SSOT stimulus",
+          "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+          "RTL observed result matches expected result",
+          "Scenario coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "test_requirements.scenarios[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "Assert rst_n=0 for 3 cycles"
+          ],
+          "machine_spec": {
+            "assign": {
+              "sig_in": 0
+            }
+          },
+          "required_fields": [
+            "scenario_id",
+            "kind"
+          ],
+          "transaction_type": "SC1"
+        },
+        "title": "Scenario SC1: Reset — all outputs 0",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_SCENARIO_SC1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_SCENARIO_SC2 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0043",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC2",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "SC2_executed"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to the scenario",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1 for 1 cycle (3 clocks later), fall_out=0",
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_SCENARIO_SC2",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated sequence executes the SSOT stimulus",
+          "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+          "RTL observed result matches expected result",
+          "Scenario coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "test_requirements.scenarios[1]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "sig_in 0->1",
+            "prev_sync == 0",
+            "sync2 == 1"
+          ],
+          "machine_spec": {
+            "timeline": [
+              {
+                "assign": {
+                  "sig_in": 1
+                }
+              }
+            ]
+          },
+          "required_fields": [
+            "scenario_id",
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Scenario SC2: Rising edge — rise_out pulses",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_SCENARIO_SC2"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC2"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_SCENARIO_SC3 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0044",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC3",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "SC3_executed"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to the scenario",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "fall_out=1 for 1 cycle (3 clocks later), rise_out=0",
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_SCENARIO_SC3",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated sequence executes the SSOT stimulus",
+          "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+          "RTL observed result matches expected result",
+          "Scenario coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "test_requirements.scenarios[2]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "sig_in 1->0 (after prior rising edge settled)",
+            "prev_sync == 0",
+            "sync2 == 1"
+          ],
+          "machine_spec": {
+            "timeline": [
+              {
+                "assign": {
+                  "sig_in": 0
+                }
+              }
+            ]
+          },
+          "required_fields": [
+            "scenario_id",
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Scenario SC3: Falling edge — fall_out pulses",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_SCENARIO_SC3"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC3"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_SCENARIO_SC4 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0045",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC4",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "SC4_executed"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to the scenario",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=0, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_SCENARIO_SC4",
+        "kind": "transaction",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated sequence executes the SSOT stimulus",
+          "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+          "RTL observed result matches expected result",
+          "Scenario coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "test_requirements.scenarios[3]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "sig_in held constant",
+            "prev_sync == sync2"
+          ],
+          "machine_spec": {
+            "assign": {
+              "sig_in": 1
+            }
+          },
+          "required_fields": [
+            "scenario_id",
+            "kind"
+          ],
+          "transaction_id": "FM_STABLE",
+          "transaction_type": "stable"
+        },
+        "title": "Scenario SC4: Stable signal — no pulse",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_SCENARIO_SC4"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC4"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_PROTOCOL_HANDSHAKE_0 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0046",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_handshake_0",
+          "cycle_handshake_1"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_fsm_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "{'edge_detect': {'min_cycles': 3, 'max_cycles': 3}}",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "ready/valid/control observables named by SSOT and DUT ports"
+          ],
+          "state_updates": []
+        },
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+        "kind": "protocol",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "RTL holds payload/control stability according to cycle_model",
+          "Handshake completion timing matches cycle_model latency/ordering",
+          "Protocol coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.handshake_rules[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "{'signal': 'rise_out', 'rule': 'Pulses 1 cycle 3 clocks after input rising edge'}"
+          ],
+          "required_fields": [
+            "cycle",
+            "observed_signals"
+          ],
+          "transaction_type": "handshake_0"
+        },
+        "title": "Cycle/handshake rule handshake_0",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_PROTOCOL_HANDSHAKE_1 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0047",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_handshake_0",
+          "cycle_handshake_1"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_fsm_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "{'edge_detect': {'min_cycles': 3, 'max_cycles': 3}}",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "ready/valid/control observables named by SSOT and DUT ports"
+          ],
+          "state_updates": []
+        },
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "kind": "protocol",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "RTL holds payload/control stability according to cycle_model",
+          "Handshake completion timing matches cycle_model latency/ordering",
+          "Protocol coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.handshake_rules[1]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "{'signal': 'fall_out', 'rule': 'Pulses 1 cycle 3 clocks after input falling edge'}"
+          ],
+          "required_fields": [
+            "cycle",
+            "observed_signals"
+          ],
+          "transaction_type": "handshake_1"
+        },
+        "title": "Cycle/handshake rule handshake_1",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_TIMING_ORDERING_0 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0048",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_ordering_0"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "{'edge_detect': {'min_cycles': 3, 'max_cycles': 3}}",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "ordered RTL observable sequence"
+          ],
+          "state_updates": []
+        },
+        "goal_id": "EQ_TIMING_ORDERING_0",
+        "kind": "timing",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "RTL response order matches cycle_model ordering",
+          "FL trace and RTL monitor trace preserve the same transaction order"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.ordering[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync updated same cycle as sync2 output; edge outputs are combinational."
+          ],
+          "required_fields": [
+            "cycle",
+            "transaction_order"
+          ],
+          "transaction_type": "ordering_0"
+        },
+        "title": "Ordering rule ordering_0",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_TIMING_ORDERING_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_TIMING_ORDERING_0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_ERROR_NONE to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0049",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_ERROR_NONE",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "error_error_0"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "error propagation timing from cycle_model",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "error response",
+            "status/interrupt/debug observable"
+          ],
+          "state_updates": [
+            "error state/counter/status update"
+          ]
+        },
+        "goal_id": "EQ_ERROR_NONE",
+        "kind": "error",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Fault stimulus produces the SSOT-defined error response",
+          "No illegal side effect occurs unless SSOT allows it",
+          "Error coverage bin is hit"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "error_handling.error_sources[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+          ],
+          "required_fields": [
+            "fault_condition"
+          ],
+          "transaction_type": "None"
+        },
+        "title": "Error policy None",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_ERROR_NONE"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_ERROR_NONE"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_MODULE_EDGE_DET_CX1 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0050",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_MODULE_EDGE_DET_CX1",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [],
+        "decomposition_refs": [
+          "edge_det_cx1"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/ordering must hold at the module boundary",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_MODULE_EDGE_DET_CX1",
+        "kind": "module",
+        "owner_on_fail": {
+          "default": "rtl",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "rtl",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+          "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+          "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+          "Record a scoreboard row for this module goal before top-level signoff"
+        ],
+        "scope": {
+          "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply",
+          "level": "module",
+          "rtl_file": "rtl/edge_det_cx1.sv",
+          "rtl_module": "edge_det_cx1"
+        },
+        "ssot_refs": [
+          "cycle_model",
+          "cycle_model.backpressure.backpressure_0",
+          "cycle_model.clock",
+          "cycle_model.handshake_rules.fall_out",
+          "cycle_model.handshake_rules.rise_out",
+          "cycle_model.latency",
+          "cycle_model.observability.observability_0",
+          "cycle_model.ordering.ordering_0",
+          "cycle_model.pipeline.s0_sync1",
+          "cycle_model.pipeline.s1_sync2",
+          "cycle_model.pipeline.s2_edge",
+          "cycle_model.reset",
+          "dataflow",
+          "decomposition",
+          "decomposition.units.edge_detect",
+          "decomposition.units.sync2ff",
+          "features.2_flop_synchronizer",
+          "features.falling_edge_detect",
+          "features.rising_edge_detect",
+          "fsm",
+          "function_model",
+          "function_model.invariants.invariant_0",
+          "function_model.invariants.invariant_1",
+          "function_model.invariants.invariant_2",
+          "function_model.state_variables",
+          "function_model.state_variables.prev_sync",
+          "function_model.state_variables.sync1",
+          "function_model.state_variables.sync2",
+          "function_model.transactions",
+          "function_model.transactions.FM_FALL",
+          "function_model.transactions.FM_RISE",
+          "function_model.transactions.FM_STABLE",
+          "function_model.transactions.fm_fall",
+          "function_model.transactions.fm_fall.inputs.input_0",
+          "function_model.transactions.fm_fall.output_rules.fall_rule",
+          "function_model.transactions.fm_fall.output_rules.rise_rule",
+          "function_model.transactions.fm_fall.outputs.output_0",
+          "function_model.transactions.fm_fall.preconditions.precondition_0",
+          "function_model.transactions.fm_fall.preconditions.precondition_1",
+          "function_model.transactions.fm_fall.side_effects.side_effect_0",
+          "function_model.transactions.fm_fall.state_updates.prev_sync",
+          "function_model.transactions.fm_fall.state_updates.sync1",
+          "function_model.transactions.fm_fall.state_updates.sync2",
+          "function_model.transactions.fm_rise",
+          "function_model.transactions.fm_rise.inputs.input_0",
+          "function_model.transactions.fm_rise.output_rules.fall_rule",
+          "function_model.transactions.fm_rise.output_rules.rise_rule",
+          "function_model.transactions.fm_rise.outputs.output_0",
+          "function_model.transactions.fm_rise.preconditions.precondition_0",
+          "function_model.transactions.fm_rise.preconditions.precondition_1",
+          "function_model.transactions.fm_rise.side_effects.side_effect_0",
+          "function_model.transactions.fm_rise.state_updates.prev_sync",
+          "function_model.transactions.fm_rise.state_updates.sync1",
+          "function_model.transactions.fm_rise.state_updates.sync2",
+          "function_model.transactions.fm_stable",
+          "function_model.transactions.fm_stable.inputs.input_0",
+          "function_model.transactions.fm_stable.output_rules.fall_rule",
+          "function_model.transactions.fm_stable.output_rules.rise_rule",
+          "function_model.transactions.fm_stable.outputs.output_0",
+          "function_model.transactions.fm_stable.preconditions.precondition_0",
+          "function_model.transactions.fm_stable.state_updates.prev_sync",
+          "function_model.transactions.fm_stable.state_updates.sync1",
+          "function_model.transactions.fm_stable.state_updates.sync2",
+          "io_list",
+          "io_list.interfaces.signal_input",
+          "registers.config.addr_width",
+          "registers.config.byte_addressable",
+          "registers.config.register_width"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Module edge_det_cx1 functionality equals FunctionalModel",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_MODULE_EDGE_DET_CX1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_MODULE_EDGE_DET_CX1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0051",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_latency_edge_detect"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.latency.edge_detect"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "{'min_cycles': 3, 'max_cycles': 3}"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_latency_edge_detect: {'min_cycles': 3, 'max_cycles': 3}",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0052",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_pipeline_s0_sync1"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.pipeline[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "sig_in sampled into sync1"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_pipeline_s0_sync1: sig_in sampled into sync1",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0053",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_pipeline_s1_sync2"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.pipeline[1]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "sync1 sampled into sync2"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_pipeline_s1_sync2: sync1 sampled into sync2",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0054",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_pipeline_s2_edge"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.pipeline[2]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "Edge detect: rise_out/fall_out combinational from sync2/prev_sync"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_pipeline_s2_edge: Edge detect: rise_out/fall_out combinational from sync2/prev_sync",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_BACKPRESSURE_0 to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0055",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_backpressure_0"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.backpressure[0]"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "No backpressure."
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_backpressure_0: No backpressure.",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0056",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_perf_frequency_mhz"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.performance.frequency_mhz"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "50"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PERF_THROUGHPUT to TB scoreboard",
+      "criteria": [
+        "Goal ID is emitted in sim/scoreboard_events.jsonl",
+        "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+        "Module-scope goals observe real module-boundary RTL signals"
+      ],
+      "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+      "id": "TB-0057",
+      "phase": "authoring",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "ssot_context": {
+        "blocked": false,
+        "blocker": "",
+        "coverage_refs": [
+          "cycle_perf_throughput"
+        ],
+        "decomposition_refs": [
+          "edge_det_cx1",
+          "edge_det_cx1_protocol_model",
+          "edge_det_cx1_register_model",
+          "edge_det_cx1_datapath_model",
+          "edge_det_cx1_fsm_model",
+          "edge_det_cx1_error_model"
+        ],
+        "expected_contract": {
+          "error_policy": "",
+          "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+          "model_api": "FunctionalModel.apply",
+          "observables": [
+            "rise_out=1, fall_out=0",
+            "rise_rule",
+            "fall_rule"
+          ],
+          "state_updates": [
+            "rise_out pulses for 1 cycle",
+            "sync1",
+            "sync2",
+            "prev_sync"
+          ]
+        },
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "kind": "coverage",
+        "owner_on_fail": {
+          "default": "coverage",
+          "possible": [
+            "ssot",
+            "fl_model",
+            "tb",
+            "coverage",
+            "human"
+          ]
+        },
+        "pass_criteria": [
+          "Generated stimulus executes an SSOT-derived behavior path",
+          "Scoreboard expected result comes from FunctionalModel.apply",
+          "Coverage collector samples this planned bin only after the scoreboard row passes"
+        ],
+        "scope": {
+          "level": "top"
+        },
+        "ssot_refs": [
+          "cycle_model.performance.throughput"
+        ],
+        "stimulus_contract": {
+          "constraints": [
+            "prev_sync == 0",
+            "sync2 == 1",
+            "{'detections_per_cycle': 1}"
+          ],
+          "required_fields": [
+            "kind"
+          ],
+          "transaction_id": "FM_RISE",
+          "transaction_type": "rising_edge"
+        },
+        "title": "Functional coverage bin cycle_perf_throughput: {'detections_per_cycle': 1}",
+        "unverified": false
+      },
+      "ssot_refs": [
+        "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+      ],
+      "todo_completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+        ],
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": false,
+    "audit_evidence": false,
+    "audit_tb": false,
+    "authoring_open_tasks": 52,
+    "authoring_required_tasks": 52,
+    "authoring_todos_pass": false,
+    "open_authoring": [
+      {
+        "category": "tb_flow.seed",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "top_module",
+        "task_id": "TB-0001"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "authoring",
+        "reason": "2 authority blocker(s) remain.",
+        "source_ref": "quality_gates.tb_gen.authority_inputs",
+        "task_id": "TB-0002"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.generated_artifacts",
+        "task_id": "TB-0003"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.scoreboard_self_check",
+        "task_id": "TB-0004"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.clk",
+        "task_id": "TB-0009"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.rst_n",
+        "task_id": "TB-0010"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.sig_in",
+        "task_id": "TB-0011"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.rise_out",
+        "task_id": "TB-0012"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.fall_out",
+        "task_id": "TB-0013"
+      },
+      {
+        "category": "contract.behavioral.stimulus",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.behavioral.BC_EDGE_SYNC.stimulus",
+        "task_id": "TB-0014"
+      },
+      {
+        "category": "contract.behavioral.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.behavioral.BC_EDGE_SYNC.scoreboard",
+        "task_id": "TB-0015"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_RISE",
+        "task_id": "TB-0017"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_FALL",
+        "task_id": "TB-0018"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_STABLE",
+        "task_id": "TB-0019"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.invariants.0",
+        "task_id": "TB-0020"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.invariants.1",
+        "task_id": "TB-0021"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.invariants.2",
+        "task_id": "TB-0022"
+      },
+      {
+        "category": "function_model.observation",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.state_variables.sync1",
+        "task_id": "TB-0023"
+      },
+      {
+        "category": "function_model.observation",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.state_variables.sync2",
+        "task_id": "TB-0024"
+      },
+      {
+        "category": "function_model.observation",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.state_variables.prev_sync",
+        "task_id": "TB-0025"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.handshake_rules.rise_out",
+        "task_id": "TB-0026"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.handshake_rules.fall_out",
+        "task_id": "TB-0027"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.item",
+        "task_id": "TB-0028"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.item_1",
+        "task_id": "TB-0029"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.item_2",
+        "task_id": "TB-0030"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.latency.edge_detect",
+        "task_id": "TB-0031"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.ordering.0",
+        "task_id": "TB-0032"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.backpressure.0",
+        "task_id": "TB-0033"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.observability.0",
+        "task_id": "TB-0034"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC1",
+        "task_id": "TB-0035"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC2",
+        "task_id": "TB-0036"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC3",
+        "task_id": "TB-0037"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC4",
+        "task_id": "TB-0038"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_RISE",
+        "task_id": "TB-0039"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_FALL",
+        "task_id": "TB-0040"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_STABLE",
+        "task_id": "TB-0041"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC1",
+        "task_id": "TB-0042"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC2",
+        "task_id": "TB-0043"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC3",
+        "task_id": "TB-0044"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC4",
+        "task_id": "TB-0045"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0",
+        "task_id": "TB-0046"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1",
+        "task_id": "TB-0047"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+        "task_id": "TB-0048"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_ERROR_NONE",
+        "task_id": "TB-0049"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_MODULE_EDGE_DET_CX1",
+        "task_id": "TB-0050"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT",
+        "task_id": "TB-0051"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1",
+        "task_id": "TB-0052"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2",
+        "task_id": "TB-0053"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE",
+        "task_id": "TB-0054"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "task_id": "TB-0055"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "task_id": "TB-0056"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "task_id": "TB-0057"
+      }
+    ],
+    "open_validation": [
+      {
+        "category": "tb_flow.seed",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "top_module",
+        "task_id": "TB-0001"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "authoring",
+        "reason": "2 authority blocker(s) remain.",
+        "source_ref": "quality_gates.tb_gen.authority_inputs",
+        "task_id": "TB-0002"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.generated_artifacts",
+        "task_id": "TB-0003"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.scoreboard_self_check",
+        "task_id": "TB-0004"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.scoreboard_events",
+        "task_id": "TB-0005"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.coverage_closure",
+        "task_id": "TB-0006"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+        "task_id": "TB-0007"
+      },
+      {
+        "category": "tb_gate.tb_gen",
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+        "task_id": "TB-0008"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.clk",
+        "task_id": "TB-0009"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.rst_n",
+        "task_id": "TB-0010"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.sig_in",
+        "task_id": "TB-0011"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.rise_out",
+        "task_id": "TB-0012"
+      },
+      {
+        "category": "contract.structural.signal",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.structural.SC_EDGE_PORTS.signals.fall_out",
+        "task_id": "TB-0013"
+      },
+      {
+        "category": "contract.behavioral.stimulus",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.behavioral.BC_EDGE_SYNC.stimulus",
+        "task_id": "TB-0014"
+      },
+      {
+        "category": "contract.behavioral.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.behavioral.BC_EDGE_SYNC.scoreboard",
+        "task_id": "TB-0015"
+      },
+      {
+        "category": "contract.behavioral.coverage",
+        "phase": "evidence",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "contract.behavioral.BC_EDGE_SYNC.coverage",
+        "task_id": "TB-0016"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_RISE",
+        "task_id": "TB-0017"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_FALL",
+        "task_id": "TB-0018"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.transactions.FM_STABLE",
+        "task_id": "TB-0019"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.invariants.0",
+        "task_id": "TB-0020"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.invariants.1",
+        "task_id": "TB-0021"
+      },
+      {
+        "category": "function_model.scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.invariants.2",
+        "task_id": "TB-0022"
+      },
+      {
+        "category": "function_model.observation",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.state_variables.sync1",
+        "task_id": "TB-0023"
+      },
+      {
+        "category": "function_model.observation",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.state_variables.sync2",
+        "task_id": "TB-0024"
+      },
+      {
+        "category": "function_model.observation",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "function_model.state_variables.prev_sync",
+        "task_id": "TB-0025"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.handshake_rules.rise_out",
+        "task_id": "TB-0026"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.handshake_rules.fall_out",
+        "task_id": "TB-0027"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.item",
+        "task_id": "TB-0028"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.item_1",
+        "task_id": "TB-0029"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.pipeline.item_2",
+        "task_id": "TB-0030"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.latency.edge_detect",
+        "task_id": "TB-0031"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.ordering.0",
+        "task_id": "TB-0032"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.backpressure.0",
+        "task_id": "TB-0033"
+      },
+      {
+        "category": "cycle_model.monitor",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "cycle_model.observability.0",
+        "task_id": "TB-0034"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC1",
+        "task_id": "TB-0035"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC2",
+        "task_id": "TB-0036"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC3",
+        "task_id": "TB-0037"
+      },
+      {
+        "category": "test_requirements.scenario",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "test_requirements.scenarios.SC4",
+        "task_id": "TB-0038"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_RISE",
+        "task_id": "TB-0039"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_FALL",
+        "task_id": "TB-0040"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_STABLE",
+        "task_id": "TB-0041"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC1",
+        "task_id": "TB-0042"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC2",
+        "task_id": "TB-0043"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC3",
+        "task_id": "TB-0044"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC4",
+        "task_id": "TB-0045"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0",
+        "task_id": "TB-0046"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1",
+        "task_id": "TB-0047"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+        "task_id": "TB-0048"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_ERROR_NONE",
+        "task_id": "TB-0049"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_MODULE_EDGE_DET_CX1",
+        "task_id": "TB-0050"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EDGE_DETECT",
+        "task_id": "TB-0051"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_SYNC1",
+        "task_id": "TB-0052"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_SYNC2",
+        "task_id": "TB-0053"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S2_EDGE",
+        "task_id": "TB-0054"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "task_id": "TB-0055"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "task_id": "TB-0056"
+      },
+      {
+        "category": "equivalence.goal_scoreboard",
+        "phase": "authoring",
+        "reason": "TB audit has not run yet.",
+        "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "task_id": "TB-0057"
+      }
+    ],
+    "rule": "tb-gen may claim authoring PASS after authoring rows close; contract validation PASS requires --audit-evidence after sim/coverage.",
+    "validation_open_tasks": 57,
+    "validation_required_tasks": 57
+  },
+  "top": "edge_det_cx1",
+  "type": "ssot_derived_tb_todo_plan"
+}

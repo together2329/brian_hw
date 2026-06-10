@@ -503,7 +503,20 @@ def _model_hits(
 
 
 def _cycle_model_waived(contract: JsonDoc) -> bool:
-    for key in ("cycle_model_waiver", "cycle_waiver", "cycle_model_not_applicable", "no_cycle_model"):
+    for key in ("cycle_model_waiver", "cycle_waiver", "cycle_model_not_applicable", "no_cycle_model",
+                "projection_waiver"):
+        if _present(contract.get(key)):
+            return True
+    return False
+
+
+def _function_model_waived(contract: JsonDoc) -> bool:
+    """Evidence/meta contracts (required artifacts/reports, no DUT behavior of
+    their own) have nothing to project into function_model rows either; an
+    explicit waiver says so instead of failing the projection gate.
+    `projection_waiver` covers both sides with one declaration."""
+    for key in ("function_model_waiver", "function_waiver", "function_model_not_applicable",
+                "projection_waiver"):
         if _present(contract.get(key)):
             return True
     return False
@@ -572,7 +585,9 @@ def compare_behavioral_to_function_cycle(behavioral_doc: JsonDoc, ssot_doc: Json
         cycle_machine = [str(item["path"]) for item in cycle_rows if item.get("machine")]
         function_anchor = [str(item["path"]) for item in function_rows if not item.get("machine")]
         cycle_anchor = [str(item["path"]) for item in cycle_rows if not item.get("machine")]
-        if function_machine:
+        if _function_model_waived(contract):
+            pass  # evidence/meta contract: no DUT behavior to project (explicit waiver)
+        elif function_machine:
             function_hits[contract_id] = sorted(function_machine)
         elif function_anchor:
             function_anchor_only[contract_id] = sorted(function_anchor)
@@ -584,7 +599,7 @@ def compare_behavioral_to_function_cycle(behavioral_doc: JsonDoc, ssot_doc: Json
         else:
             issues.append(
                 f"behavioral contract {contract_id} is not projected into a function_model row with "
-                "behavioral contract_refs"
+                "behavioral contract_refs or an explicit function_model_waiver/projection_waiver"
             )
 
         if _cycle_model_waived(contract):

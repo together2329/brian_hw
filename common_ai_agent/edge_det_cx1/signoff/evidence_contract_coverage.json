@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-06-10T14:35:23Z",
+  "ip": "edge_det_cx1",
+  "issues": [],
+  "obligations": [
+    {
+      "condition_results": {
+        "stable_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_TRANSACTION_FM_STABLE",
+          "scenario_id": "SC_003_EQ_TRANSACTION_FM_STABLE"
+        },
+        {
+          "goal_id": "EQ_SCENARIO_SC4",
+          "scenario_id": "SC_007_EQ_SCENARIO_SC4"
+        }
+      ],
+      "obligation_id": "OBL_EDGE_SYNC_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "fm_rise_scoreboard_row_passed": false
+      },
+      "issues": [
+        "SC_001_EQ_TRANSACTION_FM_RISE: scoreboard row did not pass",
+        "fm_rise_scoreboard_row_passed: EQ_TRANSACTION_FM_RISE/SC_001_EQ_TRANSACTION_FM_RISE: scoreboard row did not pass"
+      ],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_TRANSACTION_FM_RISE",
+          "scenario_id": "SC_001_EQ_TRANSACTION_FM_RISE"
+        }
+      ],
+      "obligation_id": "OBL_EDGE_RISE_001",
+      "status": "fail"
+    },
+    {
+      "condition_results": {
+        "fm_fall_scoreboard_row_passed": false
+      },
+      "issues": [
+        "SC_002_EQ_TRANSACTION_FM_FALL: scoreboard row did not pass",
+        "fm_fall_scoreboard_row_passed: EQ_TRANSACTION_FM_FALL/SC_002_EQ_TRANSACTION_FM_FALL: scoreboard row did not pass"
+      ],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_TRANSACTION_FM_FALL",
+          "scenario_id": "SC_002_EQ_TRANSACTION_FM_FALL"
+        }
+      ],
+      "obligation_id": "OBL_EDGE_FALL_001",
+      "status": "fail"
+    },
+    {
+      "condition_results": {
+        "reset_scoreboard_row_passed": false
+      },
+      "issues": [
+        "SC_004_EQ_SCENARIO_SC1: scoreboard row did not pass",
+        "reset_scoreboard_row_passed: EQ_SCENARIO_SC1/SC_004_EQ_SCENARIO_SC1: scoreboard row did not pass"
+      ],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_SCENARIO_SC1",
+          "scenario_id": "SC_004_EQ_SCENARIO_SC1"
+        }
+      ],
+      "obligation_id": "OBL_EDGE_RESET_001",
+      "status": "fail"
+    }
+  ],
+  "schema_version": 1,
+  "status": "fail",
+  "summary": {
+    "failed": 3,
+    "index_issues": 0,
+    "passed": 1,
+    "total": 4
+  },
+  "type": "evidence_contract_coverage"
+}

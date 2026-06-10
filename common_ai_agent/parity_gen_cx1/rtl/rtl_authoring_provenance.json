@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "type": "rtl_authoring_provenance",
+  "ip": "parity_gen_cx1",
+  "surface": "headless_common_engine",
+  "agent": "common_ai_agent",
+  "workflow": "rtl-gen",
+  "todo_plan_sha256": "9bb19aba3219d329ba13040d24424d18410a9101e52ba3fd44a30a81c7499856",
+  "generated_at": "2026-06-10T14:00:00Z"
+}

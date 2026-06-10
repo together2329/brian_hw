@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=edge_det_cx1/sim/results.xml
+scoreboard=edge_det_cx1/sim/scoreboard_events.jsonl
+coverage_functional=edge_det_cx1/cov/coverage_functional.json
+waveforms=edge_det_cx1/sim/edge_det_cx1.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=17 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_det_cx1/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_RISE: rise_rule: expected=1 observed=0; rise_out: expected=1 observed=0; EQ_TRANSACTION_FM_FALL: fall_rule: expected=1 observed=0; fall_out: expected=1 observed=0; sync2: expected=0 observed=1; prev_sync: expected=0 observed=1; EQ_SCENARIO_SC1: rise_rule: expected=1 observed=0; rise_out: expected=1 observed=0; EQ_SCENARIO_SC2: rise_rule: expected=1 observed=0; rise_out: expected=1 observed=0; EQ_SCENARIO_SC3: rise_rule: expected=1 observed=0; rise_out: expected=1 observed=0; EQ_PROTOCOL_HANDSHAKE_0: rise_rule: expected=1 observed=0; rise_out: expected=1 observed=0; EQ_PROTOCOL_HANDSHAKE_1: fall_rule: expected=1 observed=0; fall_out: expected=1 observed=0; EQ_TIMING_ORDERING_0: rise_rule: expected=1 observed=0; rise_out: expected=1 observed=0; ... +9 more

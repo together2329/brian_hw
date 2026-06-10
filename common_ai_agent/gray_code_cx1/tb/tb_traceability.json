@@ -1,0 +1,970 @@
+{
+  "generated_at": "2026-06-10T14:50:03Z",
+  "ip": "gray_code_cx1",
+  "rows": [
+    {
+      "category": "tb_flow.seed",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "top_module",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "top_module",
+      "task_id": "TB-0001"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.authority_inputs",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "quality_gates.tb_gen.authority_inputs",
+      "task_id": "TB-0002"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.generated_artifacts",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "quality_gates.tb_gen.generated_artifacts",
+      "task_id": "TB-0003"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.scoreboard_self_check",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "quality_gates.tb_gen.scoreboard_self_check",
+      "task_id": "TB-0004"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.scoreboard_events"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": null,
+      "phase": "evidence",
+      "source_ref": "quality_gates.tb_gen.scoreboard_events",
+      "task_id": "TB-0005"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.coverage_closure"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": null,
+      "phase": "evidence",
+      "source_ref": "quality_gates.tb_gen.coverage_closure",
+      "task_id": "TB-0006"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.contract_validation_closure"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": null,
+      "phase": "evidence",
+      "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+      "task_id": "TB-0007"
+    },
+    {
+      "category": "tb_gate.tb_gen",
+      "completion": {
+        "criteria_total": 2,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "quality_gates.tb_gen.dynamic_todo_closure"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": null,
+      "phase": "evidence",
+      "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+      "task_id": "TB-0008"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.clk",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.clk",
+      "task_id": "TB-0009"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.rst_n",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.rst_n",
+      "task_id": "TB-0010"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.valid",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.valid",
+      "task_id": "TB-0011"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.mode",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.mode",
+      "task_id": "TB-0012"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.bin_in",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.bin_in",
+      "task_id": "TB-0013"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.gray_in",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.gray_in",
+      "task_id": "TB-0014"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.gray_out",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.gray_out",
+      "task_id": "TB-0015"
+    },
+    {
+      "category": "contract.structural.signal",
+      "completion": {
+        "criteria_total": 4,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.structural.SC_GC_PORTS.signals.bin_out",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "SC_GC_PORTS",
+      "phase": "authoring",
+      "source_ref": "contract.structural.SC_GC_PORTS.signals.bin_out",
+      "task_id": "TB-0016"
+    },
+    {
+      "category": "contract.behavioral.stimulus",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_DECODE.stimulus",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_DECODE",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_DECODE.stimulus",
+      "task_id": "TB-0017"
+    },
+    {
+      "category": "contract.behavioral.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_DECODE.scoreboard",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_DECODE",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_DECODE.scoreboard",
+      "task_id": "TB-0018"
+    },
+    {
+      "category": "contract.behavioral.coverage",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_DECODE.coverage"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": "BC_GC_DECODE",
+      "phase": "evidence",
+      "source_ref": "contract.behavioral.BC_GC_DECODE.coverage",
+      "task_id": "TB-0019"
+    },
+    {
+      "category": "contract.behavioral.stimulus",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_ENCODE.stimulus",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_ENCODE",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_ENCODE.stimulus",
+      "task_id": "TB-0020"
+    },
+    {
+      "category": "contract.behavioral.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_ENCODE.scoreboard",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_ENCODE",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_ENCODE.scoreboard",
+      "task_id": "TB-0021"
+    },
+    {
+      "category": "contract.behavioral.coverage",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_ENCODE.coverage"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": "BC_GC_ENCODE",
+      "phase": "evidence",
+      "source_ref": "contract.behavioral.BC_GC_ENCODE.coverage",
+      "task_id": "TB-0022"
+    },
+    {
+      "category": "contract.behavioral.stimulus",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_LINT.stimulus",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_LINT",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_LINT.stimulus",
+      "task_id": "TB-0023"
+    },
+    {
+      "category": "contract.behavioral.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_LINT.scoreboard",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_LINT",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_LINT.scoreboard",
+      "task_id": "TB-0024"
+    },
+    {
+      "category": "contract.behavioral.coverage",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_LINT.coverage"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": "BC_GC_LINT",
+      "phase": "evidence",
+      "source_ref": "contract.behavioral.BC_GC_LINT.coverage",
+      "task_id": "TB-0025"
+    },
+    {
+      "category": "contract.behavioral.stimulus",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_RESET.stimulus",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_RESET",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_RESET.stimulus",
+      "task_id": "TB-0026"
+    },
+    {
+      "category": "contract.behavioral.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_RESET.scoreboard",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": "BC_GC_RESET",
+      "phase": "authoring",
+      "source_ref": "contract.behavioral.BC_GC_RESET.scoreboard",
+      "task_id": "TB-0027"
+    },
+    {
+      "category": "contract.behavioral.coverage",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "contract.behavioral.BC_GC_RESET.coverage"
+        ],
+        "phase": "evidence",
+        "reason": "Simulation/coverage evidence audit has not run yet.",
+        "required": true,
+        "status": "planned"
+      },
+      "contract_ref": "BC_GC_RESET",
+      "phase": "evidence",
+      "source_ref": "contract.behavioral.BC_GC_RESET.coverage",
+      "task_id": "TB-0028"
+    },
+    {
+      "category": "function_model.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.transactions.FM_PRIMARY",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "function_model.transactions.FM_PRIMARY",
+      "task_id": "TB-0029"
+    },
+    {
+      "category": "function_model.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.invariants.0",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "function_model.invariants.0",
+      "task_id": "TB-0030"
+    },
+    {
+      "category": "function_model.scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "function_model.invariants.1",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "function_model.invariants.1",
+      "task_id": "TB-0031"
+    },
+    {
+      "category": "cycle_model.monitor",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.handshake_rules.valid_bin_gray",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "cycle_model.handshake_rules.valid_bin_gray",
+      "task_id": "TB-0032"
+    },
+    {
+      "category": "cycle_model.monitor",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.handshake_rules.reset_clear",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "cycle_model.handshake_rules.reset_clear",
+      "task_id": "TB-0033"
+    },
+    {
+      "category": "cycle_model.monitor",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.pipeline.item",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "cycle_model.pipeline.item",
+      "task_id": "TB-0034"
+    },
+    {
+      "category": "cycle_model.monitor",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.pipeline.item_1",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "cycle_model.pipeline.item_1",
+      "task_id": "TB-0035"
+    },
+    {
+      "category": "cycle_model.monitor",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.latency.0",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "cycle_model.latency.0",
+      "task_id": "TB-0036"
+    },
+    {
+      "category": "cycle_model.monitor",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "cycle_model.ordering.0",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "cycle_model.ordering.0",
+      "task_id": "TB-0037"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC01",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "test_requirements.scenarios.SC01",
+      "task_id": "TB-0038"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC02",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "test_requirements.scenarios.SC02",
+      "task_id": "TB-0039"
+    },
+    {
+      "category": "test_requirements.scenario",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "test_requirements.scenarios.SC03",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "test_requirements.scenarios.SC03",
+      "task_id": "TB-0040"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_TRANSACTION_FM_PRIMARY",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_PRIMARY",
+      "task_id": "TB-0041"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC01",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC01",
+      "task_id": "TB-0042"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC02",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC02",
+      "task_id": "TB-0043"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_SCENARIO_SC03",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC03",
+      "task_id": "TB-0044"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_PROTOCOL_VALID_SAMPLE",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_VALID_SAMPLE",
+      "task_id": "TB-0045"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+      "task_id": "TB-0046"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0",
+      "task_id": "TB-0047"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1",
+      "task_id": "TB-0048"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_MODULE_GRAY_CODE_CX1",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_MODULE_GRAY_CODE_CX1",
+      "task_id": "TB-0049"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "task_id": "TB-0050"
+    },
+    {
+      "category": "equivalence.goal_scoreboard",
+      "completion": {
+        "criteria_total": 3,
+        "evidence_basis": [
+          "tb/tb_todo_plan.json",
+          "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+          "tb/cocotb/tb_manifest.json"
+        ],
+        "phase": "authoring",
+        "reason": "TB authoring artifacts are present and structurally mapped.",
+        "required": true,
+        "status": "pass"
+      },
+      "contract_ref": null,
+      "phase": "authoring",
+      "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "task_id": "TB-0051"
+    }
+  ],
+  "schema_version": 1,
+  "top": "gray_code_cx1",
+  "type": "tb_traceability_matrix"
+}

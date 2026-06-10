@@ -1,0 +1,130 @@
+{
+  "ip": "uart_tx_lite_cx1",
+  "obligations": [
+    {
+      "behavioral_contract_refs": [
+        "BC_UART_BUSY"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_UART_BUSY"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_UART_BUSY_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_UART_FUNC_001"
+      ],
+      "statement": "tx_busy=1 from TX_DATA write acceptance until the stop bit completes; tx_busy=0 after stop bit.",
+      "structural_contract_refs": [
+        "SC_UART_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_UART_DROP"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_UART_DROP"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_UART_DROP_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_UART_FUNC_001"
+      ],
+      "statement": "APB write to TX_DATA while tx_busy=1 is silently ignored; current frame is unaffected.",
+      "structural_contract_refs": [
+        "SC_UART_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_UART_IDLE"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_UART_IDLE"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_UART_IDLE_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_UART_FUNC_001"
+      ],
+      "statement": "When tx_busy=0 and no write, tx_out=1 (idle/mark) and tx_busy=0.",
+      "structural_contract_refs": [
+        "SC_UART_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_UART_LINT"
+      ],
+      "closure_stage": "lint",
+      "contract_refs": [
+        "C_UART_LINT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "structural",
+      "obligation_id": "OBL_UART_LINT_001",
+      "owned_by_stage": "lint",
+      "required_stages": [
+        "lint"
+      ],
+      "requirement_refs": [
+        "REQ_UART_FUNC_001"
+      ],
+      "statement": "No inferred latches; all registered signals are single-driver.",
+      "structural_contract_refs": [
+        "SC_UART_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_UART_TX"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_UART_TX"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_UART_TX_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_UART_FUNC_001"
+      ],
+      "statement": "After APB write to TX_DATA when idle, tx_out emits start(0), 8 data bits LSB-first, stop(1), each for BAUD_DIV PCLK cycles.",
+      "structural_contract_refs": [
+        "SC_UART_PORTS"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "obligations"
+}

@@ -1,0 +1,106 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "pwm_gen_cx1/lint/dut_lint.json"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": true,
+    "approval_state": "approved",
+    "open_required_todos": 0,
+    "status": "pass"
+  },
+  "generated_at": "2026-06-10T14:11:39Z",
+  "headline": "[lint] PASS",
+  "human_review_needed": [],
+  "ip": "pwm_gen_cx1",
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py pwm_gen_cx1 --top pwm_gen_cx1",
+      "label": "dut_lint",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/pwm_gen_cx1/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "lint",
+  "status": "pass",
+  "summary": {},
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_PWM_LINT_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 1/1] RTL must have no inferred latches and a single driver per register.",
+      "criteria": "no latch / no single-driver violations\nno latch / no single-driver violations per BC_PWM_LINT\ntop ports clk rst_n duty_in wr_en pwm_out present with correct widths\ncheck_evidence_contract.py confirms OBL_PWM_LINT_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_PWM_LINT_001 (lint stage; granularity=structural).\nRequirement(s): REQ_PWM_COUNTER_001, REQ_PWM_DUTY_001, REQ_PWM_OUT_001, REQ_PWM_RESET_001\nContract(s): C_PWM_LINT\nStructural contract(s): SC_PWM_PORTS\nBehavioral contract(s): BC_PWM_LINT\nSSOT anchor: coding_rules\nRTL must have no inferred latches and a single driver per register.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_PWM_LINT_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "lint/dut_lint.json",
+        "rtl/pwm_gen_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_PWM_COUNTER_001",
+        "REQ_PWM_DUTY_001",
+        "REQ_PWM_OUT_001",
+        "REQ_PWM_RESET_001",
+        "OBL_PWM_LINT_001",
+        "C_PWM_LINT",
+        "SC_PWM_PORTS",
+        "BC_PWM_LINT",
+        "coding_rules"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "lint/dut_lint.json",
+          "rtl/pwm_gen_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic lint gate",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "command": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.py lint \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-lint gate] Verify every lint obligation is closed",
+      "criteria": "stage_gate.py lint exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 1 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "GATE-LINT",
+      "on_reject": 1,
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "stage_gate.py lint returncode 0"
+      ],
+      "source_refs": [],
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.py lint returncode 0",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": true,
+    "open_required_tasks": 0,
+    "status_counts": {
+      "open": 0,
+      "pass": 2
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "lint"
+}

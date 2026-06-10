@@ -1,0 +1,493 @@
+top_module:
+  name: fifo_sync_cx1
+  file: rtl/fifo_sync_cx1.sv
+  description: 8-deep by 8-bit synchronous FIFO with full and empty status flags.
+  type: memory_fifo
+  version: '1.0'
+  reference_spec: user-defined
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+
+sub_modules:
+- name: fifo_sync_cx1
+  file: rtl/fifo_sync_cx1.sv
+  ownership: manifest
+  wiring_only: false
+  implements:
+  - io_list
+  - function_model
+  - cycle_model
+  - rtl_contract
+  - decomposition
+  - features
+  - dataflow
+  description: 8-deep 8-bit synchronous FIFO with full/empty flags.
+  ssot_gen: true
+  source_sections:
+  - io_list
+  - function_model
+  - cycle_model
+  - rtl_contract
+  - features
+  - dataflow
+  - decomposition
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions.FM_WRITE
+  - function_model.transactions.FM_READ
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model
+  dataflow_refs:
+  - dataflow.sequence
+  - dataflow
+  decomposition_refs:
+  - decomposition
+  feature_refs:
+  - features
+
+decomposition:
+  strategy: single_module
+  owners:
+  - module: fifo_sync_cx1
+    file: rtl/fifo_sync_cx1.sv
+    responsibility: 8-deep 8-bit synchronous FIFO.
+    source_sections:
+    - io_list
+    - function_model
+    - cycle_model
+    - rtl_contract
+  integration_policy: Single module.
+
+rtl_contract:
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  transaction: FM_WRITE
+  sample_condition: wr_en
+  input_map:
+    wr_data: wr_data
+  output_map:
+    rd_data: rd_data
+    full: full
+    empty: empty
+  output_rules:
+  - name: rd_data
+    port: rd_data
+    expr: head_data
+    width: 8
+    description: Data at read pointer tracked by head_data state variable.
+  - name: full
+    port: full
+    expr: count == 8
+    width: 1
+    description: FIFO full when count reaches depth 8.
+  - name: empty
+    port: empty
+    expr: count == 0
+    width: 1
+    description: FIFO empty when count is zero.
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  contract_invariants:
+  - Write is accepted when wr_en is high and full is low.
+  - Read is accepted when rd_en is high and empty is low.
+  - full and empty flags reflect the FIFO occupancy.
+
+io_list:
+  clock_domains:
+  - name: main
+    ports:
+    - name: clk
+      direction: input
+      width: 1
+      timing:
+        kind: clock
+  resets:
+  - name: rst_n
+    active: low
+    ports:
+    - name: rst_n
+      direction: input
+      width: 1
+      timing:
+        kind: sync
+        clock_domain: main
+  interfaces:
+  - name: fifo_io
+    type: custom
+    role: target
+    clock_domain: main
+    reset_domain: rst_n
+    protocol:
+      acceptance: Write accepted when wr_en && !full on rising clk. Read accepted when rd_en && !empty.
+      response: rd_data presents the head of the FIFO combinationally.
+    ports:
+    - name: wr_en
+      direction: input
+      width: 1
+      description: Write enable. Data is written when wr_en && !full.
+    - name: wr_data
+      direction: input
+      width: 8
+      description: Data to write into the FIFO.
+    - name: rd_en
+      direction: input
+      width: 1
+      description: Read enable. Head data consumed when rd_en && !empty.
+    - name: rd_data
+      direction: output
+      width: 8
+      description: Data at the FIFO head (combinational from rd_ptr).
+    - name: full
+      direction: output
+      width: 1
+      description: Asserted when FIFO has 8 entries.
+    - name: empty
+      direction: output
+      width: 1
+      description: Asserted when FIFO has 0 entries.
+
+features:
+- name: fifo_write
+  description: Push wr_data into the FIFO when wr_en and not full.
+  requirement_trace: 'Standard synchronous FIFO write.'
+  behavioral_contract_refs:
+  - BC_FIFO_WRITE
+- name: fifo_read
+  description: Pop the head entry from the FIFO when rd_en and not empty.
+  requirement_trace: 'Standard synchronous FIFO read.'
+  behavioral_contract_refs:
+  - BC_FIFO_READ
+- name: full_flag
+  description: full asserted when count == DEPTH (8).
+  requirement_trace: 'Standard FIFO full indicator.'
+  behavioral_contract_refs:
+  - BC_FIFO_FLAGS
+- name: empty_flag
+  description: empty asserted when count == 0.
+  requirement_trace: 'Standard FIFO empty indicator.'
+  behavioral_contract_refs:
+  - BC_FIFO_FLAGS
+- name: reset_behavior
+  description: Sync active-low reset clears all state.
+  requirement_trace: 'Standard sync reset clears pointers and count.'
+  behavioral_contract_refs:
+  - BC_FIFO_RESET
+- name: lint_clean
+  description: RTL passes lint with no errors.
+  requirement_trace: 'Clean RTL required for signoff.'
+  behavioral_contract_refs:
+  - BC_FIFO_LINT
+
+dataflow:
+  sequence:
+  - On rising clk with wr_en and !full, push wr_data at wr_ptr, advance wr_ptr.
+  - On rising clk with rd_en and !empty, advance rd_ptr.
+  - rd_data is combinationally driven from fifo_memory[rd_ptr].
+  - full asserted when count == 8, empty asserted when count == 0.
+  ordering:
+  - Write precedes read for the same slot.
+  - FIFO ordering is strict FIFO (first-in first-out).
+
+function_model:
+  state_variables:
+  - name: count
+    width: 4
+    reset: 0
+  - name: wr_ptr
+    width: 3
+    reset: 0
+  - name: rd_ptr
+    width: 3
+    reset: 0
+  - name: head_data
+    width: 8
+    reset: 0
+    description: Tracks the data at the current read pointer (FIFO head).
+  transactions:
+  - id: FM_WRITE
+    name: write_behavior
+    behavioral_contract_refs:
+    - BC_FIFO_WRITE
+    - BC_FIFO_FLAGS
+    required_fields:
+    - wr_data
+    - wr_en
+    preconditions:
+    - rst_n is deasserted
+    - wr_en is high
+    - full is low
+    outputs:
+    - full
+    - empty
+    output_rules:
+    - name: full
+      port: full
+      expr: (count + 1) == 8
+      width: 1
+      behavioral_contract_refs:
+      - BC_FIFO_FLAGS
+    - name: empty
+      port: empty
+      expr: (count + 1) == 0
+      width: 1
+      behavioral_contract_refs:
+      - BC_FIFO_FLAGS
+    state_updates:
+    - name: count
+      expr: count + 1
+      width: 4
+    - name: wr_ptr
+      expr: (wr_ptr + 1) % 8
+      width: 3
+    - name: head_data
+      expr: wr_data if count == 0 else head_data
+      width: 8
+  - id: FM_READ
+    name: read_behavior
+    behavioral_contract_refs:
+    - BC_FIFO_READ
+    - BC_FIFO_FLAGS
+    required_fields:
+    - rd_en
+    preconditions:
+    - rst_n is deasserted
+    - rd_en is high
+    - empty is low
+    outputs:
+    - rd_data
+    - full
+    - empty
+    output_rules:
+    - name: rd_data
+      port: rd_data
+      expr: head_data
+      width: 8
+      behavioral_contract_refs:
+      - BC_FIFO_READ
+    - name: full
+      port: full
+      expr: (count - 1) == 8
+      width: 1
+      behavioral_contract_refs:
+      - BC_FIFO_FLAGS
+    - name: empty
+      port: empty
+      expr: (count - 1) == 0
+      width: 1
+      behavioral_contract_refs:
+      - BC_FIFO_FLAGS
+    state_updates:
+    - name: count
+      expr: count - 1
+      width: 4
+    - name: rd_ptr
+      expr: (rd_ptr + 1) % 8
+      width: 3
+  invariants:
+  - count is always in [0, 8].
+  - full is equivalent to count == 8.
+  - empty is equivalent to count == 0.
+  rules:
+  - name: latch_free
+    condition: All state registered; no combinational loops; no inferred latches.
+    behavioral_contract_refs:
+    - BC_FIFO_LINT
+  reset:
+    condition: rst_n low clears count, wr_ptr, rd_ptr to 0 on rising clk.
+    behavioral_contract_refs:
+    - BC_FIFO_RESET
+  reference_model_hint: >
+    FunctionalModel maintains a Python deque of max length 8;
+    write pushes, read pops, full/empty derived from len.
+
+cycle_model:
+  executable: python
+  clock: clk
+  reset: rst_n
+  latency: 1
+  handshake_rules:
+  - name: wr_en_full
+    signal: wr_en
+    condition: wr_data sampled when wr_en is high and full is low.
+    behavioral_contract_refs:
+    - BC_FIFO_WRITE
+  - name: rd_en_empty
+    signal: rd_en
+    condition: rd_ptr advanced when rd_en is high and empty is low.
+    behavioral_contract_refs:
+    - BC_FIFO_READ
+  - name: reset_clear
+    signal: rst_n
+    condition: rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.
+    behavioral_contract_refs:
+    - BC_FIFO_RESET
+  pipeline:
+  - stage: WRITE_WR_EN
+    cycle: 0
+    action: Accept wr_data when wr_en and not full.
+    behavioral_contract_refs:
+    - BC_FIFO_WRITE
+    - BC_FIFO_FLAGS
+  - stage: READ_RD_EN
+    cycle: 0
+    action: Advance rd_ptr when rd_en and not empty.
+    behavioral_contract_refs:
+    - BC_FIFO_READ
+    - BC_FIFO_FLAGS
+  - stage: COUNT_FULL_EMPTY
+    cycle: 1
+    action: Update count, full and empty flags.
+    behavioral_contract_refs:
+    - BC_FIFO_FLAGS
+  ordering:
+  - Simultaneous write and read (bypass) is allowed when !full && !empty.
+
+clock_reset_domains:
+  domains:
+  - name: main
+    clock: clk
+    reset: rst_n
+    reset_active: low
+
+registers:
+  no_registers: true
+  register_list: []
+
+memory:
+  instances: []
+
+interrupts:
+  sources: []
+  outputs: []
+
+fsm:
+  control:
+    states: []
+    transitions: []
+    note: No explicit FSM; fifo_sync_cx1 uses registered count/wr_ptr/rd_ptr updated each cycle.
+
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    period_ns: 10.0
+  latency_budget:
+    write_to_full_update:
+      min: 1
+      max: 1
+      unit: cycles
+
+synthesis:
+  dialect: systemverilog_2012
+  top_module: fifo_sync_cx1
+
+integration:
+  bus_attachment:
+    type: native_valid_ready
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rst_n
+  connections:
+  - module: fifo_sync_cx1
+    port: clk
+    signal: clk
+  - module: fifo_sync_cx1
+    port: rst_n
+    signal: rst_n
+
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert rst_n; verify empty is high and full is low after release.
+    expected: empty=1, full=0, count=0 after reset.
+    checker: Reset checker.
+    coverage:
+    - function_model.reset
+  - id: SC02
+    name: single write then read
+    stimulus: Write one entry then read it back.
+    expected: rd_data matches written wr_data.
+    checker: FL-vs-RTL scoreboard.
+    coverage:
+    - function_model.transactions.FM_WRITE
+    - function_model.transactions.FM_READ
+  - id: SC03
+    name: fill to full
+    stimulus: Write 8 entries; verify full is asserted.
+    expected: full=1 after 8 writes.
+    checker: FL-vs-RTL scoreboard.
+    coverage:
+    - features.full_flag
+  - id: SC04
+    name: drain to empty
+    stimulus: Write 8, read 8; verify empty is asserted.
+    expected: empty=1 after draining.
+    checker: FL-vs-RTL scoreboard.
+    coverage:
+    - features.empty_flag
+  scoreboard_checks: 4
+
+quality_gates:
+  rtl:
+    pass: RTL compiles and maps every declared port.
+    evidence:
+    - rtl_compile.json
+  dv:
+    pass: All scenarios pass with scoreboard evidence.
+    evidence:
+    - sim/results.xml
+    - sim/scoreboard_events.jsonl
+
+traceability:
+  llm_stage: ssot-gen
+  yaml_to_output:
+  - yaml: io_list
+    output: RTL ports
+  - yaml: function_model
+    output: FunctionalModel and scoreboard expected values
+  - yaml: cycle_model
+    output: RTL latency checks
+
+workflow_todos:
+  rtl-gen:
+  - id: RTL_FIFO_CORE
+    content: Implement 8x8 synchronous FIFO with full/empty flags
+    detail: >
+      Registered write and read with wr_ptr, rd_ptr, count.
+      full = (count==8), empty = (count==0).
+      rd_data = fifo_memory[rd_ptr] combinational.
+    criteria:
+    - RTL compiles with no errors
+    - full/empty flags correct for boundary cases
+    - rd_data tracks written data
+    source_refs:
+    - function_model.transactions.FM_WRITE
+    - function_model.transactions.FM_READ
+    owner_module: fifo_sync_cx1
+    owner_file: rtl/fifo_sync_cx1.sv
+    priority: high
+    required: true
+  tb-gen: []
+  sim_debug: []
+
+dir_structure:
+  yaml_dir: yaml/
+  rtl_dir: rtl/
+  tb_dir: tb/
+  sim_dir: sim/
+
+filelist:
+  rtl:
+  - rtl/fifo_sync_cx1.sv
+  tb:
+  - tb/cocotb/test_fifo_sync_cx1.py
+  sim:
+  - sim/results.xml

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "ip": "uart_tx_lite_cx1",
+  "tool": "iverilog",
+  "flags": ["-g2012", "-Wall"],
+  "sources": ["rtl/uart_tx_lite_cx1.sv"],
+  "exit_code": 0,
+  "warnings": [],
+  "errors": [],
+  "status": "PASS"
+}

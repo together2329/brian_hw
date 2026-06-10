@@ -1,0 +1,158 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_SR8_LINT",
+      "evidence_refs": [
+        "E_SR8_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_SR8_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch findings per BC_SR8_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_SR8_RESET",
+      "evidence_refs": [
+        "E_SR8_BC_RESET"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_SR8_RESET_001"
+      ],
+      "pass_conditions": [
+        "po==0 one cycle after rst_n asserts per BC_SR8_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_SR8_SHIFT",
+      "evidence_refs": [
+        "E_SR8_BC_SHIFT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_SR8_SHIFT_001"
+      ],
+      "pass_conditions": [
+        "shift sequence matches BC_SR8_SHIFT TR_SHIFT expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_SR8_LINT",
+      "evidence_refs": [
+        "E_SR8_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_SR8_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_SR8_RESET",
+      "evidence_refs": [
+        "E_SR8_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_SR8_RESET_001"
+      ],
+      "pass_conditions": [
+        "po==0 observed one cycle after rst_n asserts"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_SR8_SHIFT",
+      "evidence_refs": [
+        "E_SR8_SHIFT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_SR8_SHIFT_001"
+      ],
+      "pass_conditions": [
+        "observed shift sequence matches FL expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/shift_reg_cx1.sv"
+      ],
+      "contract_ref": "SC_SR8_PORTS",
+      "evidence_refs": [
+        "E_SR8_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_SR8_LINT_001",
+        "OBL_SR8_RESET_001",
+        "OBL_SR8_SHIFT_001"
+      ],
+      "pass_conditions": [
+        "top ports clk rst_n si po present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "shift_reg_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 7,
+    "contracts": 7,
+    "required_closed": 7,
+    "required_contracts": 7
+  },
+  "type": "contract_authority_closure"
+}

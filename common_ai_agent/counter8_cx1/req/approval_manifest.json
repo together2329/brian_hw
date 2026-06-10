@@ -1,0 +1,56 @@
+{
+  "approved_at_utc": "2026-06-10T14:00:08Z",
+  "approved_by": "cursor_agent",
+  "bundle_sha256": "e0928b374c510b328ff8558c3b1c54b615c55f83ffa49cc4355457afac5e1fdb",
+  "decision_note": "",
+  "draft": "counter8_cx1/req/counter8_cx1_req_draft.json",
+  "draft_sha256": "758904bc20ec0cc810d32ddd26a0bb07dbc6275f8f7f9984ba8c8d96de153bbd",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 4863,
+      "path": "counter8_cx1/req/behavioral_contracts.json",
+      "sha256": "3702a8c8e8e635eadf7fa1a811a92e80b1280068300964229541e03288634166"
+    },
+    "req/contract_refs.json": {
+      "bytes": 1893,
+      "path": "counter8_cx1/req/contract_refs.json",
+      "sha256": "dafa8b3c497442ddc4b32a901643f17f7b4040ec87e1bd9fce73c1c0042bfe07"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 2399,
+      "path": "counter8_cx1/req/evidence_plan.json",
+      "sha256": "4e29820cc8dc4ab88c55458b4842096f28a5597029264e51a26f5d7ac584f4b1"
+    },
+    "req/locked_truth.md": {
+      "bytes": 14701,
+      "path": "counter8_cx1/req/locked_truth.md",
+      "sha256": "de3a0dbe6fe5686220b9e5a78d5b7947b59f8245daece076dac160cdf57ec21d"
+    },
+    "req/obligations.json": {
+      "bytes": 2489,
+      "path": "counter8_cx1/req/obligations.json",
+      "sha256": "a816aa83d6919d9a889a8596e88b31f2158e5db1a56e8bbbd6643ccce7eebae9"
+    },
+    "req/requirements_index.json": {
+      "bytes": 599,
+      "path": "counter8_cx1/req/requirements_index.json",
+      "sha256": "d267753947e1fd3bc027a56f89e3723b293fbdb8bb6c29b130b253eb48a12a7f"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 1503,
+      "path": "counter8_cx1/req/structural_contracts.json",
+      "sha256": "ac989dcccf1c4c4df0659af33e7ade54e6d8fbb81cecbbf1f8ccf70034e90786"
+    }
+  },
+  "ip": "counter8_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_CNT8_FUNC_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "status": "requirements_locked",
+  "type": "locked_truth_approval_manifest"
+}

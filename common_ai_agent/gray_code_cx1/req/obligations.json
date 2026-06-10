@@ -1,0 +1,105 @@
+{
+  "ip": "gray_code_cx1",
+  "obligations": [
+    {
+      "behavioral_contract_refs": [
+        "BC_GC_DECODE"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_GC_DECODE"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_GC_DECODE_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_GC_FUNC_001"
+      ],
+      "statement": "bin_out is registered as cascaded XOR reduction of gray_in one cycle after valid is sampled.",
+      "structural_contract_refs": [
+        "SC_GC_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_GC_ENCODE"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_GC_ENCODE"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_GC_ENCODE_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_GC_FUNC_001"
+      ],
+      "statement": "gray_out is registered as bin_in XOR (bin_in>>1) one cycle after valid is sampled.",
+      "structural_contract_refs": [
+        "SC_GC_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_GC_LINT"
+      ],
+      "closure_stage": "lint",
+      "contract_refs": [
+        "C_GC_LINT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "structural",
+      "obligation_id": "OBL_GC_LINT_001",
+      "owned_by_stage": "lint",
+      "required_stages": [
+        "lint"
+      ],
+      "requirement_refs": [
+        "REQ_GC_FUNC_001"
+      ],
+      "statement": "No inferred latches; gray_out and bin_out are registered single-driver outputs.",
+      "structural_contract_refs": [
+        "SC_GC_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_GC_RESET"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_GC_RESET"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_GC_RESET_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_GC_FUNC_001"
+      ],
+      "statement": "gray_out and bin_out clear to 0 synchronously when rst_n is low.",
+      "structural_contract_refs": [
+        "SC_GC_PORTS"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "obligations"
+}

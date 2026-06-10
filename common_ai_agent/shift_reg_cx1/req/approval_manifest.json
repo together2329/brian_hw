@@ -1,0 +1,56 @@
+{
+  "approved_at_utc": "2026-06-10T14:01:00Z",
+  "approved_by": "cursor_agent",
+  "bundle_sha256": "35455048389c72a9094f9cda2c5574bc8e86610b7fe4f4abb9d5fcb88eee7066",
+  "decision_note": "",
+  "draft": "shift_reg_cx1/req/shift_reg_cx1_req_draft.json",
+  "draft_sha256": "61a8ca25da6defb8d654c166393ba1e2a0ff6965c65af922b196012635fd13cf",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 3544,
+      "path": "shift_reg_cx1/req/behavioral_contracts.json",
+      "sha256": "9d1bec8edf641c556e8faf1e26c011c983b9eb3b78b8bfa3724d8dc4f3397eef"
+    },
+    "req/contract_refs.json": {
+      "bytes": 1390,
+      "path": "shift_reg_cx1/req/contract_refs.json",
+      "sha256": "c21e7be085d161a47d0eca1cd1f8b9024c7033a12996f468742303a750cc8383"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 1867,
+      "path": "shift_reg_cx1/req/evidence_plan.json",
+      "sha256": "190b4c8c8898ee811dac843ab4a76408050b25a94c6a74d47fe935edf605a360"
+    },
+    "req/locked_truth.md": {
+      "bytes": 11637,
+      "path": "shift_reg_cx1/req/locked_truth.md",
+      "sha256": "e1b60fbe118f3e38a705cdf2d2f14537851825cd6e6cb719f8d5105138e5de6e"
+    },
+    "req/obligations.json": {
+      "bytes": 1854,
+      "path": "shift_reg_cx1/req/obligations.json",
+      "sha256": "77e00c6ef5c8ecd5dc259934ae9c25b3d6c2f86633265873e98ccab0febcf825"
+    },
+    "req/requirements_index.json": {
+      "bytes": 559,
+      "path": "shift_reg_cx1/req/requirements_index.json",
+      "sha256": "8a897ae817110542478df836ae82d93c78153ba1ef7fd7275349e4cbc03b2e5f"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 1467,
+      "path": "shift_reg_cx1/req/structural_contracts.json",
+      "sha256": "3ce8f9f03bd0bfbd663c112f57d27c2b047270f7366b3b919e162f88af835075"
+    }
+  },
+  "ip": "shift_reg_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_SR8_FUNC_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "status": "requirements_locked",
+  "type": "locked_truth_approval_manifest"
+}

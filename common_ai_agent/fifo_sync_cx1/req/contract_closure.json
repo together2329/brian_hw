@@ -1,0 +1,240 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_FIFO_FLAGS",
+      "evidence_refs": [
+        "E_FIFO_BC_FLAGS"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_FIFO_FLAGS_001"
+      ],
+      "pass_conditions": [
+        "full/empty flags match count==8 and count==0 per BC_FIFO_FLAGS"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_FIFO_LINT",
+      "evidence_refs": [
+        "E_FIFO_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_FIFO_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch findings per BC_FIFO_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_FIFO_READ",
+      "evidence_refs": [
+        "E_FIFO_BC_READ"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_FIFO_READ_001"
+      ],
+      "pass_conditions": [
+        "read behavior matches BC_FIFO_READ"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_FIFO_RESET",
+      "evidence_refs": [
+        "E_FIFO_BC_RESET"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_FIFO_RESET_001"
+      ],
+      "pass_conditions": [
+        "reset behavior matches BC_FIFO_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_FIFO_WRITE",
+      "evidence_refs": [
+        "E_FIFO_BC_WRITE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_FIFO_WRITE_001"
+      ],
+      "pass_conditions": [
+        "write behavior matches BC_FIFO_WRITE"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_FIFO_FLAGS",
+      "evidence_refs": [
+        "E_FIFO_FLAGS"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_FIFO_FLAGS_001"
+      ],
+      "pass_conditions": [
+        "full asserts at depth 8; empty asserts at depth 0"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_FIFO_LINT",
+      "evidence_refs": [
+        "E_FIFO_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_FIFO_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_FIFO_READ",
+      "evidence_refs": [
+        "E_FIFO_READ"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_FIFO_READ_001"
+      ],
+      "pass_conditions": [
+        "rd_data matches written data; count decrements correctly"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_FIFO_RESET",
+      "evidence_refs": [
+        "E_FIFO_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_FIFO_RESET_001"
+      ],
+      "pass_conditions": [
+        "empty==1 and full==0 after reset"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_FIFO_WRITE",
+      "evidence_refs": [
+        "E_FIFO_WRITE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_FIFO_WRITE_001"
+      ],
+      "pass_conditions": [
+        "count increments correctly on each accepted write"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/fifo_sync_cx1.sv"
+      ],
+      "contract_ref": "SC_FIFO_PORTS",
+      "evidence_refs": [
+        "E_FIFO_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_FIFO_FLAGS_001",
+        "OBL_FIFO_LINT_001",
+        "OBL_FIFO_READ_001",
+        "OBL_FIFO_RESET_001",
+        "OBL_FIFO_WRITE_001"
+      ],
+      "pass_conditions": [
+        "ports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "fifo_sync_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 11,
+    "contracts": 11,
+    "required_closed": 11,
+    "required_contracts": 11
+  },
+  "type": "contract_authority_closure"
+}

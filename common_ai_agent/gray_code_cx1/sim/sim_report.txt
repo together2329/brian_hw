@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=gray_code_cx1/sim/results.xml
+scoreboard=gray_code_cx1/sim/scoreboard_events.jsonl
+coverage_functional=gray_code_cx1/cov/coverage_functional.json
+waveforms=gray_code_cx1/sim/gray_code_cx1.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=2 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/gray_code_cx1/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_SCENARIO_SC01: gray_out: expected=3 observed=0; bin_out: expected=3 observed=0; EQ_PROTOCOL_RESET_CLEAR: gray_out: expected=5 observed=0; bin_out: expected=4 observed=0

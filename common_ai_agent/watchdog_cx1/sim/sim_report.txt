@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=watchdog_cx1/sim/results.xml
+scoreboard=watchdog_cx1/sim/scoreboard_events.jsonl
+coverage_functional=watchdog_cx1/cov/coverage_functional.json
+waveforms=watchdog_cx1/sim/watchdog_cx1.vcd
+0 errors, 0 warnings

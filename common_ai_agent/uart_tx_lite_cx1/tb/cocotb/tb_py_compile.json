@@ -1,0 +1,13 @@
+{
+  "errors": [],
+  "files": [
+    "uart_tx_lite_cx1/tb/cocotb/test_runner.py",
+    "uart_tx_lite_cx1/tb/cocotb/test_uart_tx_lite_cx1.py"
+  ],
+  "generated_at": "2026-06-10T14:50:07Z",
+  "ip": "uart_tx_lite_cx1",
+  "passed": true,
+  "schema_version": 1,
+  "tb_dir": "uart_tx_lite_cx1/tb/cocotb",
+  "type": "tb_python_compile"
+}

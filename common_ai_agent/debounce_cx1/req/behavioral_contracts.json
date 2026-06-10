@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "type": "behavioral_contracts",
+  "ip": "debounce_cx1",
+  "contracts": [
+    {
+      "id": "BC_DEB_STABLE",
+      "obligations": ["OBL_DEB_STABLE_001", "OBL_DEB_OUTPUT_001"],
+      "ssot_section": "function_model",
+      "timing": "stability counter registered on rising clk; db_out registered",
+      "latency": {
+        "count_update": "1 clock cycle: counter increments one rising clk after stable sample",
+        "db_update": "THRESH clock cycles: db_out updates THRESH cycles after first stable sample"
+      },
+      "ordering": "reset (rst_n==0) takes priority over normal counting",
+      "transactions": [
+        {
+          "id": "TR_STABLE",
+          "preconditions": ["rst_n == 1", "btn_in == fl_last"],
+          "outputs": [{"name": "db_out", "expr": "btn_in if (fl_ctr + 1) >= 4 else fl_db"}],
+          "state_updates": [
+            {"name": "fl_ctr",  "expr": "min(fl_ctr + 1, 255)"},
+            {"name": "fl_last", "expr": "btn_in"},
+            {"name": "fl_db",   "expr": "btn_in if (fl_ctr + 1) >= 4 else fl_db"}
+          ]
+        }
+      ],
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/debounce_cx1.sv", "timing": "counter registered, db_out registered"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_debounce_cx1.py", "timing": "check db_out each cycle"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "db_out matches FL expected each cycle"}
+      ]
+    },
+    {
+      "id": "BC_DEB_BOUNCE",
+      "obligations": ["OBL_DEB_BOUNCE_001"],
+      "ssot_section": "function_model",
+      "timing": "counter resets registered on rising clk when input changes",
+      "latency": {
+        "counter_reset": "1 clock cycle: counter clears one rising clk after input change"
+      },
+      "ordering": "counter reset occurs before any increment on same cycle",
+      "transactions": [
+        {
+          "id": "TR_BOUNCE",
+          "preconditions": ["rst_n == 1", "btn_in != fl_last"],
+          "outputs": [{"name": "db_out", "expr": "fl_db"}],
+          "state_updates": [
+            {"name": "fl_ctr",  "expr": "0"},
+            {"name": "fl_last", "expr": "btn_in"},
+            {"name": "fl_db",   "expr": "fl_db"}
+          ]
+        }
+      ],
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/debounce_cx1.sv", "timing": "counter resets on input change"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_debounce_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "db_out unchanged on bounce"}
+      ]
+    },
+    {
+      "id": "BC_DEB_RESET",
+      "obligations": ["OBL_DEB_RESET_001"],
+      "ssot_section": "function_model",
+      "timing": "async reset assertion; sync deassertion",
+      "reset": "async active-low; fl_ctr, fl_last, fl_db clear to 0 on rst_n=0",
+      "transactions": [
+        {
+          "id": "TR_RESET",
+          "preconditions": ["rst_n == 0"],
+          "outputs": [{"name": "db_out", "expr": "0"}],
+          "state_updates": [
+            {"name": "fl_ctr",  "expr": "0"},
+            {"name": "fl_last", "expr": "0"},
+            {"name": "fl_db",   "expr": "0"}
+          ]
+        }
+      ],
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/debounce_cx1.sv", "reset": "async active-low"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_debounce_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "db_out=0 during reset"}
+      ]
+    },
+    {
+      "id": "BC_DEB_LINT",
+      "obligations": ["OBL_DEB_LINT_001"],
+      "ssot_section": "coding_rules",
+      "cycle_model_waiver": "lint-only obligation; functional cycle model covered by BC_DEB_STABLE, BC_DEB_BOUNCE, and BC_DEB_RESET",
+      "invariants": [
+        "No inferred latches in debounce_cx1 RTL",
+        "fl_ctr, fl_last, and db_out are registered; single driver each"
+      ],
+      "timing": "registered outputs; no combinational loop or latch inference",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/debounce_cx1.sv",   "timing": "registered outputs; no latch inference"},
+        {"stage": "lint", "artifact": "lint/dut_lint.json",     "pass_condition": "no latch findings"}
+      ]
+    }
+  ]
+}

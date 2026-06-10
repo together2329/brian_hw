@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "type": "starter_llm_rtl_authoring_contract",
+  "ip": "pwm_gen_cx1",
+  "top": "pwm_gen_cx1",
+  "mode": "starter",
+  "contract": {
+    "top": "pwm_gen_cx1",
+    "transaction": "FM_WRITE",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "(rst_n == 1)",
+    "outputs": [
+      {
+        "name": "pwm_out_rule",
+        "port": "pwm_out",
+        "expr": "(((counter < duty_in)) ? 1 : 0)",
+        "width": 1,
+        "source": {
+          "name": "pwm_out_rule",
+          "port": "pwm_out",
+          "expr": "1 if counter < duty_in else 0",
+          "width": 1,
+          "description": "pwm_out based on counter vs new duty"
+        }
+      }
+    ],
+    "state_vars": {
+      "duty_reg": {
+        "width": 32,
+        "reset": 0
+      },
+      "counter": {
+        "width": 32,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "duty_reg",
+        "expr": "((duty_in) & (255))",
+        "source": {
+          "name": "duty_reg",
+          "expr": "duty_in & 0xff",
+          "width": 8
+        }
+      },
+      {
+        "name": "counter",
+        "expr": "((counter + 1) & (255))",
+        "source": {
+          "name": "counter",
+          "expr": "(counter + 1) & 0xff",
+          "width": 8
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "S0_COMPARE",
+      "S1_COUNT"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "duty_in": "duty_in",
+      "wr_en": "wr_en"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  },
+  "generated_at": "2026-06-10T14:10:25Z",
+  "rule": "Starter RTL must be authored by an LLM/worker and verified by gates; this file is an authoring contract, not generated RTL."
+}

@@ -1,0 +1,19 @@
+{
+  "ip": "shift_reg_cx1",
+  "requirements": [
+    {
+      "obligation_refs": [
+        "OBL_SR8_LINT_001",
+        "OBL_SR8_RESET_001",
+        "OBL_SR8_SHIFT_001"
+      ],
+      "required": true,
+      "requirement_id": "REQ_SR8_FUNC_001",
+      "statement": "The shift register shifts left by 1 on every rising clock edge when rst_n==1 (si enters at bit 0) and clears to 0 synchronously when rst_n==0.",
+      "status": "locked",
+      "title": "8-bit SIPO shift register with sync reset"
+    }
+  ],
+  "schema_version": 1,
+  "type": "requirements_index"
+}

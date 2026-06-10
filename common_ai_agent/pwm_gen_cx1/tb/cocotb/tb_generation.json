@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "pwm_gen_cx1",
+  "generated_at": "2026-06-10T14:19:19Z",
+  "manifest": "pwm_gen_cx1/tb/cocotb/tb_manifest.json",
+  "test": "pwm_gen_cx1/tb/cocotb/test_pwm_gen_cx1.py",
+  "runner": "pwm_gen_cx1/tb/cocotb/test_runner.py",
+  "goals": 18,
+  "rtl_sources": 1
+}

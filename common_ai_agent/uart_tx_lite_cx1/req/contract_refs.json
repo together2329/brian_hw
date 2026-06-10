@@ -1,0 +1,104 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_UART_BUSY",
+      "obligation_refs": [
+        "OBL_UART_BUSY_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_TX_BYTE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/uart_tx_lite_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_DROP",
+      "obligation_refs": [
+        "OBL_UART_DROP_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_TX_BYTE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/uart_tx_lite_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_IDLE",
+      "obligation_refs": [
+        "OBL_UART_IDLE_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_IDLE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/uart_tx_lite_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_LINT",
+      "obligation_refs": [
+        "OBL_UART_LINT_001"
+      ],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_UART_TX",
+      "obligation_refs": [
+        "OBL_UART_TX_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_TX_BYTE",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/uart_tx_lite_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_uart_tx_lite_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    }
+  ],
+  "ip": "uart_tx_lite_cx1",
+  "schema_version": 1,
+  "type": "contract_refs"
+}

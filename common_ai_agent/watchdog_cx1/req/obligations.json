@@ -1,0 +1,130 @@
+{
+  "ip": "watchdog_cx1",
+  "obligations": [
+    {
+      "behavioral_contract_refs": [
+        "BC_WDT_IDLE"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_WDT_IDLE"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_WDT_IDLE_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_WDT_FUNC_001"
+      ],
+      "statement": "When CTRL.enable==0, count_q holds its value and timeout_pulse=0.",
+      "structural_contract_refs": [
+        "SC_WDT_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_WDT_KICK"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_WDT_KICK"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_WDT_KICK_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_WDT_FUNC_001"
+      ],
+      "statement": "An APB write to KICK (offset 4) reloads count_q from period_q and clears timeout_pulse.",
+      "structural_contract_refs": [
+        "SC_WDT_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_WDT_LINT"
+      ],
+      "closure_stage": "lint",
+      "contract_refs": [
+        "C_WDT_LINT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "structural",
+      "obligation_id": "OBL_WDT_LINT_001",
+      "owned_by_stage": "lint",
+      "required_stages": [
+        "lint"
+      ],
+      "requirement_refs": [
+        "REQ_WDT_FUNC_001"
+      ],
+      "statement": "No inferred latches; all registered signals are single-driver.",
+      "structural_contract_refs": [
+        "SC_WDT_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_WDT_TICK"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_WDT_TICK"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_WDT_TICK_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_WDT_FUNC_001"
+      ],
+      "statement": "count_q decrements by 1 each enabled PCLK cycle when no kick occurs.",
+      "structural_contract_refs": [
+        "SC_WDT_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_WDT_TIMEOUT"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_WDT_TIMEOUT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_WDT_TIMEOUT_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_WDT_FUNC_001"
+      ],
+      "statement": "When count_q reaches 1, timeout_pulse=1 for exactly 1 cycle and count_q auto-reloads from period_q.",
+      "structural_contract_refs": [
+        "SC_WDT_PORTS"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "obligations"
+}

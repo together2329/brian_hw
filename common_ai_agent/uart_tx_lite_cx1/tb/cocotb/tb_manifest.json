@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "uart_tx_lite_cx1",
+  "top": "uart_tx_lite_cx1",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "uart_tx_lite_cx1/yaml/uart_tx_lite_cx1.ssot.yaml",
+  "equivalence_goals": "uart_tx_lite_cx1/verify/equivalence_goals.json",
+  "rtl_contract": "uart_tx_lite_cx1/rtl/rtl_contract.json",
+  "rtl_contract_source": "rtl_contract_json",
+  "clock": "PCLK",
+  "reset": "PRESETn",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "APB_ADDR_WIDTH": 4,
+    "APB_DATA_WIDTH": 32,
+    "BAUD_DIV": 434
+  },
+  "ports": [
+    {"name": "PCLK",    "direction": "input",  "width": 1},
+    {"name": "PRESETn", "direction": "input",  "width": 1},
+    {"name": "PADDR",   "direction": "input",  "width": 4},
+    {"name": "PSEL",    "direction": "input",  "width": 1},
+    {"name": "PENABLE", "direction": "input",  "width": 1},
+    {"name": "PWRITE",  "direction": "input",  "width": 1},
+    {"name": "PWDATA",  "direction": "input",  "width": 32},
+    {"name": "PRDATA",  "direction": "output", "width": 32},
+    {"name": "PREADY",  "direction": "output", "width": 1},
+    {"name": "PSLVERR", "direction": "output", "width": 1},
+    {"name": "tx_out",  "direction": "output", "width": 1},
+    {"name": "tx_busy", "direction": "output", "width": 1}
+  ],
+  "input_map": {
+    "psel":    "PSEL",
+    "penable": "PENABLE",
+    "pwrite":  "PWRITE",
+    "paddr":   "PADDR",
+    "pwdata":  "PWDATA"
+  },
+  "sample_condition": "PRESETn == 1",
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_tx_lite_cx1/rtl/uart_tx_lite_cx1.sv"
+  ],
+  "goal_count": 4,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_UART_TX_LITE_CX1",
+      "rtl_module": "uart_tx_lite_cx1",
+      "rtl_file": "rtl/uart_tx_lite_cx1.sv"
+    }
+  ]
+}

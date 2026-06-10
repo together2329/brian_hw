@@ -1,0 +1,101 @@
+{
+  "ip": "edge_det_cx1",
+  "schema_version": 1,
+  "type": "evidence_contract",
+  "generated_at": "2026-06-10T14:00:00Z",
+  "source": "rocev-chain-cursor-agent",
+  "obligations": [
+    {
+      "obligation_id": "OBL_EDGE_SYNC_001",
+      "requirement_ids": ["REQ_EDGE_SYNC_001"],
+      "claim": "2-flop sync chain: sig_in sampled into sync1, then sync2 over 2 rising clock edges.",
+      "contract_refs": ["C_EDGE_SYNC", "BC_EDGE_SYNC"],
+      "scenario_ids": ["SC4"],
+      "required_observables": ["rise_out", "fall_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_TRANSACTION_FM_STABLE"}
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_SCENARIO_SC4"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "stable_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_EDGE_RISE_001",
+      "requirement_ids": ["REQ_EDGE_RISE_001"],
+      "claim": "rise_out = sync2 & ~prev_sync: 1-cycle pulse on 0->1 transition.",
+      "contract_refs": ["C_EDGE_RISE", "BC_EDGE_SYNC"],
+      "scenario_ids": ["SC2"],
+      "required_observables": ["rise_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_TRANSACTION_FM_RISE"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "fm_rise_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_EDGE_FALL_001",
+      "requirement_ids": ["REQ_EDGE_FALL_001"],
+      "claim": "fall_out = ~sync2 & prev_sync: 1-cycle pulse on 1->0 transition.",
+      "contract_refs": ["C_EDGE_FALL", "BC_EDGE_SYNC"],
+      "scenario_ids": ["SC3"],
+      "required_observables": ["fall_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_TRANSACTION_FM_FALL"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "fm_fall_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_EDGE_RESET_001",
+      "requirement_ids": ["REQ_EDGE_RESET_001"],
+      "claim": "rst_n=0 clears sync1=sync2=prev_sync=0 within 1 cycle; rise_out=fall_out=0.",
+      "contract_refs": ["C_EDGE_RESET", "BC_EDGE_SYNC"],
+      "scenario_ids": ["SC1"],
+      "required_observables": ["rise_out", "fall_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_SCENARIO_SC1"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "reset_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    }
+  ]
+}

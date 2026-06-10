@@ -1,0 +1,176 @@
+{
+  "contracts": [
+    {
+      "id": "BC_CNT8_COUNT",
+      "latency": {
+        "count_update": "1 clock cycle: count updates one rising clk after en sampled"
+      },
+      "obligations": [
+        "OBL_CNT8_COUNT_001"
+      ],
+      "ordering": "reset (rst_n==0) takes priority over enable (en==1) in same cycle",
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/counter8_cx1.sv",
+          "stage": "rtl",
+          "timing": "synchronous reset, 1-cycle latency"
+        },
+        {
+          "artifact": "tb/cocotb/test_counter8_cx1.py",
+          "stage": "tb",
+          "timing": "stimulus applied one cycle before expected count"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "latency": "1 clock cycle per increment",
+          "pass_condition": "count increments match FL expected",
+          "stage": "sim"
+        }
+      ],
+      "timing": "count registered on rising clk edge; reset synchronous active-low",
+      "transactions": [
+        {
+          "id": "TR_COUNT",
+          "outputs": [
+            {
+              "expr": "(count_reg + 1) & 0xFF",
+              "name": "count"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1",
+            "en == 1"
+          ],
+          "state_updates": [
+            {
+              "expr": "(count_reg + 1) & 0xFF",
+              "name": "count_reg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BC_CNT8_HOLD",
+      "obligations": [
+        "OBL_CNT8_HOLD_001"
+      ],
+      "ordering": "hold is the default state when en==0 and rst_n==1",
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/counter8_cx1.sv",
+          "stage": "rtl",
+          "timing": "no state change when en==0"
+        },
+        {
+          "artifact": "tb/cocotb/test_counter8_cx1.py",
+          "stage": "tb",
+          "timing": "verify count stable across multiple cycles with en==0"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "latency": "0 cycles of change",
+          "pass_condition": "count unchanged when en==0",
+          "stage": "sim"
+        }
+      ],
+      "timing": "count holds its registered value when en==0; no increment cycle",
+      "transactions": [
+        {
+          "id": "TR_HOLD",
+          "outputs": [
+            {
+              "expr": "count_reg",
+              "name": "count"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1",
+            "en == 0"
+          ],
+          "state_updates": [
+            {
+              "expr": "count_reg",
+              "name": "count_reg"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "cycle_model_waiver": "lint-only obligation; functional cycle model covered by BC_CNT8_COUNT and BC_CNT8_RESET",
+      "id": "BC_CNT8_LINT",
+      "invariants": [
+        "No inferred latches in counter8_cx1 RTL",
+        "count is registered; single driver"
+      ],
+      "obligations": [
+        "OBL_CNT8_LINT_001"
+      ],
+      "ssot_section": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "pass_condition": "no latch findings",
+          "stage": "lint",
+          "timing": "registered output; no async path"
+        }
+      ],
+      "timing": "count is a clocked register; no combinational loop or latch inference"
+    },
+    {
+      "id": "BC_CNT8_RESET",
+      "latency": {
+        "reset_clear": "1 clock cycle: count==0 one rising clk after rst_n asserts"
+      },
+      "obligations": [
+        "OBL_CNT8_RESET_001"
+      ],
+      "reset": "synchronous active-low; count clears to 0 on rising clk when rst_n==0",
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/counter8_cx1.sv",
+          "reset": "synchronous active-low",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_counter8_cx1.py",
+          "reset": "drive rst_n=0 one cycle, check count==0 next cycle",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "latency": "1 cycle reset-to-clear",
+          "pass_condition": "count==0 one cycle after rst_n asserts",
+          "stage": "sim"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "TR_RESET",
+          "outputs": [
+            {
+              "expr": "0",
+              "name": "count"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 0"
+          ],
+          "state_updates": [
+            {
+              "expr": "0",
+              "name": "count_reg"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ip": "counter8_cx1",
+  "schema_version": 1,
+  "type": "behavioral_contracts"
+}

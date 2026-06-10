@@ -1,0 +1,2576 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 12,
+      "enabled": true,
+      "index": 4,
+      "key": "function_model",
+      "module_task_count": 74,
+      "rule": "Owner module edge_det_cx1 is split into 12 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/edge_det_cx1.sv",
+      "name": "edge_det_cx1",
+      "refs": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "decomposition.units.edge_detect",
+        "decomposition.units.sync2ff",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.prev_sync",
+        "function_model.state_variables.sync1",
+        "function_model.state_variables.sync2",
+        "function_model.transactions",
+        "function_model.transactions.FM_FALL",
+        "function_model.transactions.FM_RISE",
+        "function_model.transactions.FM_STABLE",
+        "io_list",
+        "io_list.interfaces.signal_input"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/edge_det_cx1.sv",
+        "name": "edge_det_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sig_in",
+          "signal_input_sig_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sig_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rise_out",
+          "signal_input_rise_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rise_out",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fall_out",
+          "signal_input_fall_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "fall_out",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "edge_det_cx1",
+  "kind": "module",
+  "owner_file": "rtl/edge_det_cx1.sv",
+  "owner_module": "edge_det_cx1",
+  "packet_id": "module__edge_det_cx1__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.input": 3,
+      "function_model.invariant": 3,
+      "function_model.output": 3,
+      "function_model.output_rule": 6,
+      "function_model.precondition": 5,
+      "function_model.side_effect": 2,
+      "function_model.state_update": 9,
+      "function_model.state_variable": 3,
+      "function_model.transaction": 3
+    },
+    "module_slice": {
+      "count": 12,
+      "enabled": true,
+      "index": 4,
+      "key": "function_model",
+      "module_task_count": 74,
+      "rule": "Owner module edge_det_cx1 is split into 12 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 37,
+    "source_refs": [
+      "function_model.state_variables.sync1",
+      "function_model.state_variables.sync2",
+      "function_model.state_variables.prev_sync",
+      "function_model.transactions.FM_RISE",
+      "function_model.transactions.FM_RISE.preconditions.precondition_0",
+      "function_model.transactions.FM_RISE.preconditions.precondition_1",
+      "function_model.transactions.FM_RISE.inputs.input_0",
+      "function_model.transactions.FM_RISE.outputs.output_0",
+      "function_model.transactions.FM_RISE.output_rules.rise_rule",
+      "function_model.transactions.FM_RISE.output_rules.fall_rule",
+      "function_model.transactions.FM_RISE.state_updates.sync1",
+      "function_model.transactions.FM_RISE.state_updates.sync2",
+      "function_model.transactions.FM_RISE.state_updates.prev_sync",
+      "function_model.transactions.FM_RISE.side_effects.side_effect_0",
+      "function_model.transactions.FM_FALL",
+      "function_model.transactions.FM_FALL.preconditions.precondition_0",
+      "function_model.transactions.FM_FALL.preconditions.precondition_1",
+      "function_model.transactions.FM_FALL.inputs.input_0",
+      "function_model.transactions.FM_FALL.outputs.output_0",
+      "function_model.transactions.FM_FALL.output_rules.rise_rule",
+      "function_model.transactions.FM_FALL.output_rules.fall_rule",
+      "function_model.transactions.FM_FALL.state_updates.sync1",
+      "function_model.transactions.FM_FALL.state_updates.sync2",
+      "function_model.transactions.FM_FALL.state_updates.prev_sync"
+    ],
+    "status_counts": {
+      "pass": 37
+    },
+    "task_count": 37
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state sync1",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.sync1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync1 reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sync1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.state_variables.sync1.\nSSOT item context: name=sync1; reset=0.",
+      "evidence_terms": [
+        "sync1"
+      ],
+      "id": "RTL-0028",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.sync1",
+      "ssot_context": {
+        "name": "sync1",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.sync1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "sync1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sync1"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state sync2",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.sync2",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync2 reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.sync2.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.state_variables.sync2.\nSSOT item context: name=sync2; reset=0.",
+      "evidence_terms": [
+        "sync2"
+      ],
+      "id": "RTL-0029",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.sync2",
+      "ssot_context": {
+        "name": "sync2",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.sync2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 1,
+        "matched_terms": [
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state prev_sync",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.prev_sync",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "prev_sync reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.prev_sync.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.state_variables.prev_sync.\nSSOT item context: name=prev_sync; reset=0.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync"
+      ],
+      "id": "RTL-0030",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.prev_sync",
+      "ssot_context": {
+        "name": "prev_sync",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.prev_sync"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_RISE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_RISE.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: id=FM_RISE; name=rising_edge.",
+      "evidence_terms": [],
+      "id": "RTL-0031",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE",
+      "ssot_context": {
+        "id": "FM_RISE",
+        "name": "rising_edge"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RISE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.preconditions.precondition_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: value=prev_sync == 0.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync"
+      ],
+      "id": "RTL-0032",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "prev_sync == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_RISE: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.preconditions.precondition_1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: value=sync2 == 1.",
+      "evidence_terms": [],
+      "id": "RTL-0033",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "sync2 == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_RISE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.inputs.input_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\"] is the implementation/observation point for rising_edge"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.inputs.input_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: id=FM_RISE; name=rising_edge; port=[\"rise_out\", \"fall_out\"]; signal=[\"sig_in\"]; state=[\"sync1\", \"sync2\", \"prev_sync\"].",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "in",
+        "out",
+        "prev",
+        "prev_sync",
+        "rise",
+        "rise_out",
+        "sig",
+        "sig_in",
+        "sync",
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0034",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_RISE",
+        "name": "rising_edge",
+        "port": "[\"rise_out\", \"fall_out\"]",
+        "signal": "[\"sig_in\"]",
+        "state": "[\"sync1\", \"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 13,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_RISE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.outputs.output_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.outputs.output_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: value=rise_out=1, fall_out=0.",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "out",
+        "rise",
+        "rise_out"
+      ],
+      "id": "RTL-0035",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.outputs.output_0",
+      "ssot_context": {
+        "value": "rise_out=1, fall_out=0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RISE: rise_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.output_rules.rise_rule",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "rise_rule width matches SSOT value 1",
+        "rise_rule RTL expression implements SSOT expression 1",
+        "DUT port rise_out is the implementation/observation point for rise_rule",
+        "rise_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.output_rules.rise_rule.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: name=rise_rule; port=rise_out; expr=1; width=1.",
+      "evidence_terms": [
+        "out",
+        "rise",
+        "rise_out",
+        "rise_rule"
+      ],
+      "id": "RTL-0036",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.output_rules.rise_rule",
+      "ssot_context": {
+        "expr": "1",
+        "name": "rise_rule",
+        "port": "rise_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.output_rules.rise_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "rise",
+          "rise_out",
+          "rise_rule"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_RISE: fall_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.output_rules.fall_rule",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "fall_rule width matches SSOT value 1",
+        "fall_rule RTL expression implements SSOT expression 0",
+        "DUT port fall_out is the implementation/observation point for fall_rule",
+        "fall_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.output_rules.fall_rule.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: name=fall_rule; port=fall_out; expr=0; width=1.",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "fall_rule",
+        "out"
+      ],
+      "id": "RTL-0037",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.output_rules.fall_rule",
+      "ssot_context": {
+        "expr": "0",
+        "name": "fall_rule",
+        "port": "fall_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.output_rules.fall_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "fall_rule",
+          "out"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RISE: sync1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.state_updates.sync1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync1 width matches SSOT value 1",
+        "sync1 RTL expression implements SSOT expression sig_in",
+        "sync1 updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.state_updates.sync1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: name=sync1; expr=sig_in; width=1.",
+      "evidence_terms": [
+        "in",
+        "sig",
+        "sig_in",
+        "sync1"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.state_updates.sync1",
+      "ssot_context": {
+        "expr": "sig_in",
+        "name": "sync1",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.state_updates.sync1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "in",
+          "sig",
+          "sig_in",
+          "sync1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "in",
+          "sig",
+          "sig_in",
+          "sync1"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RISE: sync2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.state_updates.sync2",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync2 width matches SSOT value 1",
+        "sync2 RTL expression implements SSOT expression sync1",
+        "sync2 updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.state_updates.sync2.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: name=sync2; expr=sync1; width=1.",
+      "evidence_terms": [
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0039",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.state_updates.sync2",
+      "ssot_context": {
+        "expr": "sync1",
+        "name": "sync2",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.state_updates.sync2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_RISE: prev_sync",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.state_updates.prev_sync",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "prev_sync width matches SSOT value 1",
+        "prev_sync RTL expression implements SSOT expression sync2",
+        "prev_sync updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.state_updates.prev_sync.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: name=prev_sync; expr=sync2; width=1.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync",
+        "sync2"
+      ],
+      "id": "RTL-0040",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.state_updates.prev_sync",
+      "ssot_context": {
+        "expr": "sync2",
+        "name": "prev_sync",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.state_updates.prev_sync"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_RISE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_RISE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\"] is the implementation/observation point for rising_edge"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_RISE.side_effects.side_effect_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_RISE.\nSSOT item context: id=FM_RISE; name=rising_edge; port=[\"rise_out\", \"fall_out\"]; signal=[\"rise_out pulses for 1 cycle\"]; state=[\"sync1\", \"sync2\", \"prev_sync\"].",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "out",
+        "prev",
+        "prev_sync",
+        "rise",
+        "rise_out",
+        "sync",
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0041",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_RISE.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_RISE",
+        "name": "rising_edge",
+        "port": "[\"rise_out\", \"fall_out\"]",
+        "signal": "[\"rise_out pulses for 1 cycle\"]",
+        "state": "[\"sync1\", \"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_RISE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_FALL",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_FALL.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: id=FM_FALL; name=falling_edge.",
+      "evidence_terms": [],
+      "id": "RTL-0042",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL",
+      "ssot_context": {
+        "id": "FM_FALL",
+        "name": "falling_edge"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FALL: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.preconditions.precondition_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: value=prev_sync == 1.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync"
+      ],
+      "id": "RTL-0043",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "prev_sync == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_FALL: precondition_1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.preconditions.precondition_1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.preconditions.precondition_1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: value=sync2 == 0.",
+      "evidence_terms": [],
+      "id": "RTL-0044",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.preconditions.precondition_1",
+      "ssot_context": {
+        "value": "sync2 == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.preconditions.precondition_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_FALL: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.inputs.input_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\"] is the implementation/observation point for falling_edge"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.inputs.input_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: id=FM_FALL; name=falling_edge; port=[\"rise_out\", \"fall_out\"]; signal=[\"sig_in\"]; state=[\"sync1\", \"sync2\", \"prev_sync\"].",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "in",
+        "out",
+        "prev",
+        "prev_sync",
+        "rise",
+        "rise_out",
+        "sig",
+        "sig_in",
+        "sync",
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_FALL",
+        "name": "falling_edge",
+        "port": "[\"rise_out\", \"fall_out\"]",
+        "signal": "[\"sig_in\"]",
+        "state": "[\"sync1\", \"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 13,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_FALL: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.outputs.output_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.outputs.output_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: value=rise_out=0, fall_out=1.",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "out",
+        "rise",
+        "rise_out"
+      ],
+      "id": "RTL-0046",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.outputs.output_0",
+      "ssot_context": {
+        "value": "rise_out=0, fall_out=1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FALL: rise_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.output_rules.rise_rule",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "rise_rule width matches SSOT value 1",
+        "rise_rule RTL expression implements SSOT expression 0",
+        "DUT port rise_out is the implementation/observation point for rise_rule",
+        "rise_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.output_rules.rise_rule.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: name=rise_rule; port=rise_out; expr=0; width=1.",
+      "evidence_terms": [
+        "out",
+        "rise",
+        "rise_out",
+        "rise_rule"
+      ],
+      "id": "RTL-0047",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.output_rules.rise_rule",
+      "ssot_context": {
+        "expr": "0",
+        "name": "rise_rule",
+        "port": "rise_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.output_rules.rise_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "rise",
+          "rise_out",
+          "rise_rule"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_FALL: fall_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.output_rules.fall_rule",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "fall_rule width matches SSOT value 1",
+        "fall_rule RTL expression implements SSOT expression 1",
+        "DUT port fall_out is the implementation/observation point for fall_rule",
+        "fall_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.output_rules.fall_rule.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: name=fall_rule; port=fall_out; expr=1; width=1.",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "fall_rule",
+        "out"
+      ],
+      "id": "RTL-0048",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.output_rules.fall_rule",
+      "ssot_context": {
+        "expr": "1",
+        "name": "fall_rule",
+        "port": "fall_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.output_rules.fall_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "fall_rule",
+          "out"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FALL: sync1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.state_updates.sync1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync1 width matches SSOT value 1",
+        "sync1 RTL expression implements SSOT expression sig_in",
+        "sync1 updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.state_updates.sync1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: name=sync1; expr=sig_in; width=1.",
+      "evidence_terms": [
+        "in",
+        "sig",
+        "sig_in",
+        "sync1"
+      ],
+      "id": "RTL-0049",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.state_updates.sync1",
+      "ssot_context": {
+        "expr": "sig_in",
+        "name": "sync1",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.state_updates.sync1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "in",
+          "sig",
+          "sig_in",
+          "sync1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "in",
+          "sig",
+          "sig_in",
+          "sync1"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FALL: sync2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.state_updates.sync2",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync2 width matches SSOT value 1",
+        "sync2 RTL expression implements SSOT expression sync1",
+        "sync2 updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.state_updates.sync2.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: name=sync2; expr=sync1; width=1.",
+      "evidence_terms": [
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0050",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.state_updates.sync2",
+      "ssot_context": {
+        "expr": "sync1",
+        "name": "sync2",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.state_updates.sync2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_FALL: prev_sync",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.state_updates.prev_sync",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "prev_sync width matches SSOT value 1",
+        "prev_sync RTL expression implements SSOT expression sync2",
+        "prev_sync updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.state_updates.prev_sync.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: name=prev_sync; expr=sync2; width=1.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync",
+        "sync2"
+      ],
+      "id": "RTL-0051",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.state_updates.prev_sync",
+      "ssot_context": {
+        "expr": "sync2",
+        "name": "prev_sync",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.state_updates.prev_sync"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_FALL: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_FALL.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\"] is the implementation/observation point for falling_edge"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_FALL.side_effects.side_effect_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_FALL.\nSSOT item context: id=FM_FALL; name=falling_edge; port=[\"rise_out\", \"fall_out\"]; signal=[\"fall_out pulses for 1 cycle\"]; state=[\"sync1\", \"sync2\", \"prev_sync\"].",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "out",
+        "prev",
+        "prev_sync",
+        "rise",
+        "rise_out",
+        "sync",
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0052",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_FALL.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_FALL",
+        "name": "falling_edge",
+        "port": "[\"rise_out\", \"fall_out\"]",
+        "signal": "[\"fall_out pulses for 1 cycle\"]",
+        "state": "[\"sync1\", \"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_FALL.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 10,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_STABLE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_STABLE.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: id=FM_STABLE; name=stable.",
+      "evidence_terms": [],
+      "id": "RTL-0053",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE",
+      "ssot_context": {
+        "id": "FM_STABLE",
+        "name": "stable"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_STABLE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.preconditions.precondition_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: value=prev_sync == sync2.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync"
+      ],
+      "id": "RTL-0054",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "prev_sync == sync2"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_STABLE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.inputs.input_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\"] is the implementation/observation point for stable"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.inputs.input_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: id=FM_STABLE; name=stable; port=[\"rise_out\", \"fall_out\"]; signal=[\"sig_in\"]; state=[\"sync1\", \"sync2\", \"prev_sync\"].",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "in",
+        "out",
+        "prev",
+        "prev_sync",
+        "rise",
+        "rise_out",
+        "sig",
+        "sig_in",
+        "sync",
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0055",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_STABLE",
+        "name": "stable",
+        "port": "[\"rise_out\", \"fall_out\"]",
+        "signal": "[\"sig_in\"]",
+        "state": "[\"sync1\", \"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 13,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_STABLE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.outputs.output_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.outputs.output_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: value=rise_out=0, fall_out=0.",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "out",
+        "rise",
+        "rise_out"
+      ],
+      "id": "RTL-0056",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.outputs.output_0",
+      "ssot_context": {
+        "value": "rise_out=0, fall_out=0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_STABLE: rise_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.output_rules.rise_rule",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "rise_rule width matches SSOT value 1",
+        "rise_rule RTL expression implements SSOT expression 0",
+        "DUT port rise_out is the implementation/observation point for rise_rule",
+        "rise_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.output_rules.rise_rule.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: name=rise_rule; port=rise_out; expr=0; width=1.",
+      "evidence_terms": [
+        "out",
+        "rise",
+        "rise_out",
+        "rise_rule"
+      ],
+      "id": "RTL-0057",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.output_rules.rise_rule",
+      "ssot_context": {
+        "expr": "0",
+        "name": "rise_rule",
+        "port": "rise_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.output_rules.rise_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "out",
+          "rise",
+          "rise_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "out",
+          "rise",
+          "rise_out",
+          "rise_rule"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_STABLE: fall_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.output_rules.fall_rule",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "fall_rule width matches SSOT value 1",
+        "fall_rule RTL expression implements SSOT expression 0",
+        "DUT port fall_out is the implementation/observation point for fall_rule",
+        "fall_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.output_rules.fall_rule.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: name=fall_rule; port=fall_out; expr=0; width=1.",
+      "evidence_terms": [
+        "fall",
+        "fall_out",
+        "fall_rule",
+        "out"
+      ],
+      "id": "RTL-0058",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.output_rules.fall_rule",
+      "ssot_context": {
+        "expr": "0",
+        "name": "fall_rule",
+        "port": "fall_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.output_rules.fall_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "fall",
+          "fall_out",
+          "out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "fall",
+          "fall_out",
+          "fall_rule",
+          "out"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_STABLE: sync1",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.state_updates.sync1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync1 width matches SSOT value 1",
+        "sync1 RTL expression implements SSOT expression sig_in",
+        "sync1 updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.state_updates.sync1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: name=sync1; expr=sig_in; width=1.",
+      "evidence_terms": [
+        "in",
+        "sig",
+        "sig_in",
+        "sync1"
+      ],
+      "id": "RTL-0059",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.state_updates.sync1",
+      "ssot_context": {
+        "expr": "sig_in",
+        "name": "sync1",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.state_updates.sync1"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "in",
+          "sig",
+          "sig_in",
+          "sync1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "in",
+          "sig",
+          "sig_in",
+          "sync1"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_STABLE: sync2",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.state_updates.sync2",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "sync2 width matches SSOT value 1",
+        "sync2 RTL expression implements SSOT expression sync1",
+        "sync2 updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.state_updates.sync2.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: name=sync2; expr=sync1; width=1.",
+      "evidence_terms": [
+        "sync1",
+        "sync2"
+      ],
+      "id": "RTL-0060",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.state_updates.sync2",
+      "ssot_context": {
+        "expr": "sync1",
+        "name": "sync2",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.state_updates.sync2"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 2,
+        "matched_terms": [
+          "sync1",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "sync1",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_STABLE: prev_sync",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_STABLE.state_updates.prev_sync",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "prev_sync width matches SSOT value 1",
+        "prev_sync RTL expression implements SSOT expression sync2",
+        "prev_sync updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_STABLE.state_updates.prev_sync.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.transactions.FM_STABLE.\nSSOT item context: name=prev_sync; expr=sync2; width=1.",
+      "evidence_terms": [
+        "prev",
+        "prev_sync",
+        "sync",
+        "sync2"
+      ],
+      "id": "RTL-0061",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_STABLE.state_updates.prev_sync",
+      "ssot_context": {
+        "expr": "sync2",
+        "name": "prev_sync",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_STABLE.state_updates.prev_sync"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 4,
+        "matched_terms": [
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync2"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "prev",
+          "prev_sync",
+          "sync",
+          "sync2"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"] is the implementation/observation point for [\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.\nSSOT item context: port=[\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]; signal=rise_out = sync2 & ~prev_sync (combinational); state=[\"sync2\", \"prev_sync\"].",
+      "evidence_terms": [],
+      "id": "RTL-0062",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "port": "[\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]",
+        "signal": "rise_out = sync2 & ~prev_sync (combinational)",
+        "state": "[\"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"] is the implementation/observation point for [\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.\nSSOT item context: port=[\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]; signal=fall_out = ~sync2 & prev_sync (combinational); state=[\"sync2\", \"prev_sync\"].",
+      "evidence_terms": [],
+      "id": "RTL-0063",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "port": "[\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]",
+        "signal": "fall_out = ~sync2 & prev_sync (combinational)",
+        "state": "[\"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv",
+        "DUT port [\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"] is the implementation/observation point for [\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via function_model.\nSSOT item context: port=[\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]; signal=sync2 is always 2-cycle delayed version of sig_in; state=[\"sync2\", \"prev_sync\"].",
+      "evidence_terms": [],
+      "id": "RTL-0064",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "port": "[\"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\", \"rise_out\", \"fall_out\"]",
+        "signal": "sync2 is always 2-cycle delayed version of sig_in",
+        "state": "[\"sync2\", \"prev_sync\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "1d11b814cabf42954ca06cd88ad0bf019a13abc686b761df855bcf6b3b6bdd11",
+  "top": "edge_det_cx1",
+  "type": "rtl_authoring_packet"
+}

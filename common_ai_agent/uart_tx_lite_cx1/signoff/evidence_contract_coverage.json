@@ -1,0 +1,80 @@
+{
+  "generated_at": "2026-06-10T14:49:13Z",
+  "ip": "uart_tx_lite_cx1",
+  "issues": [],
+  "obligations": [
+    {
+      "condition_results": {
+        "idle_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_UART_IDLE",
+          "scenario_id": "SC_RESET_IDLE"
+        }
+      ],
+      "obligation_id": "OBL_UART_IDLE_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "tx_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_UART_TX_BYTE",
+          "scenario_id": "SC_TX_WRITE"
+        },
+        {
+          "goal_id": "EQ_UART_TX_BYTE",
+          "scenario_id": "SC_TX_START_BIT"
+        },
+        {
+          "goal_id": "EQ_UART_TX_BYTE",
+          "scenario_id": "SC_TX_DATA_BITS"
+        }
+      ],
+      "obligation_id": "OBL_UART_TX_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "busy_clears_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_UART_BUSY_CLEARS",
+          "scenario_id": "SC_BUSY_CLEARED"
+        }
+      ],
+      "obligation_id": "OBL_UART_BUSY_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "drop_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_UART_BUSY_DROP",
+          "scenario_id": "SC_DROP_WHILE_BUSY"
+        }
+      ],
+      "obligation_id": "OBL_UART_DROP_001",
+      "status": "pass"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "failed": 0,
+    "index_issues": 0,
+    "passed": 4,
+    "total": 4
+  },
+  "type": "evidence_contract_coverage"
+}

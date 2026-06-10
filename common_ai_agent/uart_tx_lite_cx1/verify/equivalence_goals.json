@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "ip": "uart_tx_lite_cx1",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "source_of_truth": {
+    "ssot": "uart_tx_lite_cx1/yaml/uart_tx_lite_cx1.ssot.yaml",
+    "functional_model": "uart_tx_lite_cx1/model/functional_model.py",
+    "functional_model_exists": true
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_UART_IDLE",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "tx_out=1 and tx_busy=0 when no transmission active",
+      "source_refs": ["function_model.transactions.FM_IDLE"],
+      "scope": {"level": "top", "rtl_module": "uart_tx_lite_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_IDLE",
+        "required_fields": [],
+        "defaults": {"psel": 0, "penable": 0, "pwrite": 0, "paddr": 0, "pwdata": 0}
+      },
+      "expected_contract": {
+        "observables": ["tx_busy", "tx_out"],
+        "pass_condition": "tx_busy==0 and tx_out==1 in idle state"
+      },
+      "coverage_refs": ["FCOV_IDLE"]
+    },
+    {
+      "goal_id": "EQ_UART_TX_BYTE",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "After TX_DATA write: tx_busy=1 until frame complete; 8N1 frame shape on tx_out",
+      "source_refs": ["function_model.transactions.FM_TX_BYTE"],
+      "scope": {"level": "top", "rtl_module": "uart_tx_lite_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_TX_BYTE",
+        "required_fields": ["psel", "penable", "pwrite", "paddr", "pwdata"],
+        "defaults": {"psel": 1, "penable": 1, "pwrite": 1, "paddr": 0, "pwdata": 165}
+      },
+      "expected_contract": {
+        "observables": ["tx_busy", "tx_out"],
+        "pass_condition": "tx_busy=1 during frame; frame shape: start=0, 8 bits LSB-first, stop=1"
+      },
+      "coverage_refs": ["FCOV_TX_BYTE"]
+    },
+    {
+      "goal_id": "EQ_UART_BUSY_CLEARS",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "tx_busy clears after stop bit; tx_out returns to 1",
+      "source_refs": ["function_model.transactions.FM_TX_BYTE"],
+      "scope": {"level": "top", "rtl_module": "uart_tx_lite_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_TX_BYTE",
+        "required_fields": ["psel", "penable", "pwrite", "paddr", "pwdata"],
+        "defaults": {"psel": 1, "penable": 1, "pwrite": 1, "paddr": 0, "pwdata": 85}
+      },
+      "expected_contract": {
+        "observables": ["tx_busy"],
+        "pass_condition": "tx_busy==0 after stop bit; tx_out==1"
+      },
+      "coverage_refs": ["FCOV_BUSY"]
+    },
+    {
+      "goal_id": "EQ_UART_BUSY_DROP",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Write to TX_DATA while busy is silently dropped",
+      "source_refs": ["function_model.transactions.FM_TX_BYTE"],
+      "scope": {"level": "top", "rtl_module": "uart_tx_lite_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_TX_BYTE_DROP",
+        "required_fields": ["psel", "penable", "pwrite", "paddr", "pwdata"],
+        "defaults": {"psel": 1, "penable": 1, "pwrite": 1, "paddr": 0, "pwdata": 255}
+      },
+      "expected_contract": {
+        "observables": ["tx_busy"],
+        "pass_condition": "second write ignored; tx_busy stays 1; frame unaffected"
+      },
+      "coverage_refs": ["FCOV_DROP"]
+    }
+  ]
+}

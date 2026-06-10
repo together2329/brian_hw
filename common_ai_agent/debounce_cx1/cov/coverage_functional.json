@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-06-10T14:41:38Z",
+  "functional": {
+    "hit": 1,
+    "total": 1,
+    "pct": 100.0,
+    "bins": {
+      "ccov_reset": {
+        "hit": true,
+        "goal_id": "EQ_COVERAGE_CCOV_RESET",
+        "scenario_id": "SC_014_EQ_COVERAGE_CCOV_RESET"
+      }
+    }
+  }
+}

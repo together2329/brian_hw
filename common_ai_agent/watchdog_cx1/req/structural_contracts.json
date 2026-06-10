@@ -1,0 +1,152 @@
+{
+  "contracts": [
+    {
+      "clock_domains": [
+        {
+          "clock_signal": "PCLK",
+          "id": "main"
+        }
+      ],
+      "id": "SC_WDT_PORTS",
+      "interfaces": [
+        {
+          "clock_domain": "main",
+          "id": "apb_iface",
+          "signals": [
+            "PADDR",
+            "PENABLE",
+            "PRDATA",
+            "PREADY",
+            "PSEL",
+            "PSLVERR",
+            "PWDATA",
+            "PWRITE"
+          ]
+        },
+        {
+          "clock_domain": "main",
+          "id": "wdt_iface",
+          "signals": [
+            "timeout_pulse"
+          ]
+        }
+      ],
+      "obligations": [
+        "OBL_WDT_IDLE_001",
+        "OBL_WDT_KICK_001",
+        "OBL_WDT_LINT_001",
+        "OBL_WDT_TICK_001",
+        "OBL_WDT_TIMEOUT_001"
+      ],
+      "reset_domains": [
+        {
+          "clock_domain": "main",
+          "id": "async_rst",
+          "reset_signal": "PRESETn"
+        }
+      ],
+      "signals": [
+        {
+          "dir": "input",
+          "name": "PCLK",
+          "timing": {
+            "kind": "clock"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "PRESETn",
+          "timing": {
+            "kind": "reset"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "PADDR",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 4
+        },
+        {
+          "dir": "input",
+          "name": "PSEL",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "PENABLE",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "PWRITE",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "PWDATA",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 32
+        },
+        {
+          "dir": "output",
+          "name": "PRDATA",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 32
+        },
+        {
+          "dir": "output",
+          "name": "PREADY",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "output",
+          "name": "PSLVERR",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "output",
+          "name": "timeout_pulse",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        }
+      ]
+    }
+  ],
+  "ip": "watchdog_cx1",
+  "schema_version": 1,
+  "type": "structural_contracts"
+}

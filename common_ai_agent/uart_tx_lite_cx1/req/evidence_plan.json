@@ -1,0 +1,84 @@
+{
+  "evidence_plan": [
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_UART_BUSY",
+      "evidence_id": "E_UART_BC_BUSY",
+      "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit per BC_UART_BUSY",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_UART_DROP",
+      "evidence_id": "E_UART_BC_DROP",
+      "pass_condition": "write while busy silently ignored per BC_UART_DROP",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_UART_IDLE",
+      "evidence_id": "E_UART_BC_IDLE",
+      "pass_condition": "tx_out=1 and tx_busy=0 when idle per BC_UART_IDLE",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "BC_UART_LINT",
+      "evidence_id": "E_UART_BC_LINT",
+      "pass_condition": "no latch findings per BC_UART_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_UART_TX",
+      "evidence_id": "E_UART_BC_TX",
+      "pass_condition": "8N1 frame shape matches behavioral contract TR_TX_BYTE expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_UART_BUSY",
+      "evidence_id": "E_UART_BUSY",
+      "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_UART_DROP",
+      "evidence_id": "E_UART_DROP",
+      "pass_condition": "write while busy silently ignored; frame unaffected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_UART_IDLE",
+      "evidence_id": "E_UART_IDLE",
+      "pass_condition": "tx_out=1 and tx_busy=0 when no transmission active",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "C_UART_LINT",
+      "evidence_id": "E_UART_LINT",
+      "pass_condition": "no latch / no single-driver violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "rtl/uart_tx_lite_cx1.sv",
+      "contract_ref": "SC_UART_PORTS",
+      "evidence_id": "E_UART_SC_PORTS",
+      "pass_condition": "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR tx_out tx_busy present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_UART_TX",
+      "evidence_id": "E_UART_TX",
+      "pass_condition": "8N1 frame shape on tx_out matches FL expected",
+      "validator": "check_evidence_contract.py"
+    }
+  ],
+  "ip": "uart_tx_lite_cx1",
+  "schema_version": 1,
+  "type": "evidence_plan"
+}

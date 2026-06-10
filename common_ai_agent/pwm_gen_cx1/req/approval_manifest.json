@@ -1,0 +1,71 @@
+{
+  "approved_at_utc": "2026-06-10T14:00:00Z",
+  "approved_by": "cursor-agent",
+  "bundle_sha256": "372967102e41cf4366db85f39ddc330acfd594feee7ebe377a3eeba457c91297",
+  "decision_note": "ROCEV chain exercise: deterministic-only run",
+  "draft": "pwm_gen_cx1/req/pwm_gen_cx1_requirements_index.json",
+  "draft_sha256": "9184c51ec8e85c488c5e6cd0163d74e9c202a73560cee836f4505c96c40d7a69",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 4107,
+      "path": "pwm_gen_cx1/req/behavioral_contracts.json",
+      "sha256": "c68a77194bd7868e2d098299aad5f0257c5b39fe323c3b3fc0b7104df214466e"
+    },
+    "req/contract_refs.json": {
+      "bytes": 1905,
+      "path": "pwm_gen_cx1/req/contract_refs.json",
+      "sha256": "09b013efa511fde11204ffed9ae128c7fabe7ca3936d7b9cb2605c16328458d0"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 2709,
+      "path": "pwm_gen_cx1/req/evidence_plan.json",
+      "sha256": "d171910b00758eecc7c157cd202e4dd2a54c3bcc95495b9bbf8c82b4fb2bac6e"
+    },
+    "req/locked_truth.md": {
+      "bytes": 2474,
+      "path": "pwm_gen_cx1/req/locked_truth.md",
+      "sha256": "4210fbd8ebac3f140bbba017f682257adaa318459acf31feab042853823bc4cf"
+    },
+    "req/obligations.json": {
+      "bytes": 2709,
+      "path": "pwm_gen_cx1/req/obligations.json",
+      "sha256": "69e2a647237546d8bf4fa6950de433135222f0def1be0e049dc0b9e6a1d3b1e6"
+    },
+    "req/requirements_index.json": {
+      "bytes": 1485,
+      "path": "pwm_gen_cx1/req/requirements_index.json",
+      "sha256": "9184c51ec8e85c488c5e6cd0163d74e9c202a73560cee836f4505c96c40d7a69"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 1012,
+      "path": "pwm_gen_cx1/req/structural_contracts.json",
+      "sha256": "364323c5f8814158fbc821b7d1c95ca2734367727f9b234339f1da8609eeee3d"
+    }
+  },
+  "ip": "pwm_gen_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_PWM_COUNTER_001",
+      "status": "locked"
+    },
+    {
+      "required": true,
+      "requirement_id": "REQ_PWM_DUTY_001",
+      "status": "locked"
+    },
+    {
+      "required": true,
+      "requirement_id": "REQ_PWM_OUT_001",
+      "status": "locked"
+    },
+    {
+      "required": true,
+      "requirement_id": "REQ_PWM_RESET_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "status": "requirements_locked",
+  "type": "locked_truth_approval_manifest"
+}

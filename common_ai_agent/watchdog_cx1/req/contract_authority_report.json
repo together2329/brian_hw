@@ -1,0 +1,240 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_WDT_IDLE",
+      "evidence_refs": [
+        "E_WDT_BC_IDLE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_WDT_IDLE_001"
+      ],
+      "pass_conditions": [
+        "count_q unchanged and timeout_pulse==0 when disabled per BC_WDT_IDLE"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_WDT_KICK",
+      "evidence_refs": [
+        "E_WDT_BC_KICK"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_WDT_KICK_001"
+      ],
+      "pass_conditions": [
+        "count_q reloaded to period_q per BC_WDT_KICK"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_WDT_LINT",
+      "evidence_refs": [
+        "E_WDT_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_WDT_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch findings per BC_WDT_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_WDT_TICK",
+      "evidence_refs": [
+        "E_WDT_BC_TICK"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_WDT_TICK_001"
+      ],
+      "pass_conditions": [
+        "count_q decrement matches BC_WDT_TICK TR_TICK expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_WDT_TIMEOUT",
+      "evidence_refs": [
+        "E_WDT_BC_TIMEOUT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_WDT_TIMEOUT_001"
+      ],
+      "pass_conditions": [
+        "timeout_pulse==1 for exactly 1 cycle per BC_WDT_TIMEOUT"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_WDT_IDLE",
+      "evidence_refs": [
+        "E_WDT_IDLE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_WDT_IDLE_001"
+      ],
+      "pass_conditions": [
+        "count_q unchanged and timeout_pulse==0 when enable_q==0"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_WDT_KICK",
+      "evidence_refs": [
+        "E_WDT_KICK"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_WDT_KICK_001"
+      ],
+      "pass_conditions": [
+        "count_q reloaded to period_q after KICK write"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_WDT_LINT",
+      "evidence_refs": [
+        "E_WDT_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_WDT_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_WDT_TICK",
+      "evidence_refs": [
+        "E_WDT_TICK"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_WDT_TICK_001"
+      ],
+      "pass_conditions": [
+        "observed count_q decrement sequence matches FL expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_WDT_TIMEOUT",
+      "evidence_refs": [
+        "E_WDT_TIMEOUT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_WDT_TIMEOUT_001"
+      ],
+      "pass_conditions": [
+        "timeout_pulse==1 for exactly 1 cycle when count_q reaches 1"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/watchdog_cx1.sv"
+      ],
+      "contract_ref": "SC_WDT_PORTS",
+      "evidence_refs": [
+        "E_WDT_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_WDT_IDLE_001",
+        "OBL_WDT_KICK_001",
+        "OBL_WDT_LINT_001",
+        "OBL_WDT_TICK_001",
+        "OBL_WDT_TIMEOUT_001"
+      ],
+      "pass_conditions": [
+        "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR timeout_pulse present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "watchdog_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 11,
+    "contracts": 11,
+    "required_closed": 11,
+    "required_contracts": 11
+  },
+  "type": "contract_authority_closure"
+}

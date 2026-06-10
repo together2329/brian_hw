@@ -1,0 +1,106 @@
+{
+  "generated_at": "2026-06-10T15:11:37Z",
+  "ip": "parity_gen_cx1",
+  "issues": [],
+  "obligations": [
+    {
+      "condition_results": {
+        "fm_parity_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_TRANSACTION_FM_PARITY",
+          "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY"
+        },
+        {
+          "goal_id": "EQ_SCENARIO_SC2",
+          "scenario_id": "SC_004_EQ_SCENARIO_SC2"
+        },
+        {
+          "goal_id": "EQ_SCENARIO_SC4",
+          "scenario_id": "SC_006_EQ_SCENARIO_SC4"
+        }
+      ],
+      "obligation_id": "OBL_PAR_EVEN_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "fm_parity_odd_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_TRANSACTION_FM_PARITY",
+          "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY"
+        },
+        {
+          "goal_id": "EQ_SCENARIO_SC2",
+          "scenario_id": "SC_004_EQ_SCENARIO_SC2"
+        },
+        {
+          "goal_id": "EQ_SCENARIO_SC4",
+          "scenario_id": "SC_006_EQ_SCENARIO_SC4"
+        }
+      ],
+      "obligation_id": "OBL_PAR_ODD_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "par_reg_latency_coverage_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+          "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_PAR_REG"
+        },
+        {
+          "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+          "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_PIPELINE_S1_REG"
+        }
+      ],
+      "obligation_id": "OBL_PAR_REG_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "sc2_par_reg_zero_after_reset": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_SCENARIO_SC2",
+          "scenario_id": "SC_004_EQ_SCENARIO_SC2"
+        }
+      ],
+      "obligation_id": "OBL_PAR_RESET_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "lint_clean_via_parity_goal": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_TRANSACTION_FM_PARITY",
+          "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY"
+        }
+      ],
+      "obligation_id": "OBL_PAR_LINT_001",
+      "status": "pass"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "failed": 0,
+    "index_issues": 0,
+    "passed": 5,
+    "total": 5
+  },
+  "type": "evidence_contract_coverage"
+}

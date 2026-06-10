@@ -1,0 +1,4091 @@
+{
+  "artifacts": [
+    "parity_gen_cx1/tb/cocotb/test_parity_gen_cx1.py",
+    "parity_gen_cx1/tb/cocotb/test_runner.py",
+    "parity_gen_cx1/tb/cocotb/tb_manifest.json",
+    "parity_gen_cx1/tb/cocotb/tb_generation.json",
+    "parity_gen_cx1/tb/tb_todo_plan.json",
+    "parity_gen_cx1/tb/tb_todo_tracker.json",
+    "parity_gen_cx1/tb/tb_traceability.json",
+    "parity_gen_cx1/sim/scoreboard_events.jsonl after /sim",
+    "parity_gen_cx1/cov/coverage.json after /sim",
+    "parity_gen_cx1/tb/tb_todo_plan.json",
+    "parity_gen_cx1/todo/tb_todo_tracker.json",
+    "parity_gen_cx1/tb/tb_todo_tracker.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-06-10T15:04:43Z",
+  "headline": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+  "ip": "parity_gen_cx1",
+  "message": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard\nmodule: parity_gen_cx1\nsource: parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml\ndynamic_todos: parity_gen_cx1/tb/tb_todo_plan.json\ngenerator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py\n\nruns:\n- contract_authority_gate: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/check_contract_bundle.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[check_contract_bundle] PASS parity_gen_cx1: mode=locked requirements=4 obligations=5 contract_refs=8 structural_contracts=1 behavioral_contracts=2 evidence=8 closed_contracts=11\n- derive_tb_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[derive_tb_todos] parity_gen_cx1: tasks=64 blockers=0 authoring_open=58 validation_open=64 gate=planned\n- emit_goal_scoreboard_cocotb: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_goal_scoreboard_cocotb] wrote 8 Python files for parity_gen_cx1\n[emit_goal_scoreboard_cocotb] goals=21 rtl_sources=1\n[emit_goal_scoreboard_cocotb] runner=parity_gen_cx1/tb/cocotb/test_runner.py\n- check_pyuvm_structure: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py parity_gen_cx1\n  stdout:\n[check_scoreboard_events] PASS: goals=21 required=21 scoreboard_rows=0 goals_with_rows=0\n[check_pyuvm_structure] PASS: layered pyuvm/cocotb structure exists for parity_gen_cx1\n- equivalence_scoreboard_self_check: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check\n  stdout:\n{\n  \"checked\": 21,\n  \"contract_gaps\": [],\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/parity_gen_cx1/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-06-10T15:04:42Z\",\n  \"goals\": 21,\n  \"ip\": \"parity_gen_cx1\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 21,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_BACKPRESSURE_0\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_LATENCY_PAR_REG\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_THROUGHPUT\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_S1_REG\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_ERROR_NONE\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    }\n  ],\n  \"ssot_questions\": 0,\n  \"unsupported_transactions\": 0\n}\n- audit_tb_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-tb\n  stdout:\n[derive_tb_todos] parity_gen_cx1: tasks=64 blockers=0 authoring_open=0 validation_open=6 gate=pass\n\nexpected artifacts:\n- parity_gen_cx1/tb/cocotb/test_parity_gen_cx1.py\n- parity_gen_cx1/tb/cocotb/test_runner.py\n- parity_gen_cx1/tb/cocotb/tb_manifest.json\n- parity_gen_cx1/tb/cocotb/tb_generation.json\n- parity_gen_cx1/tb/tb_todo_plan.json\n- parity_gen_cx1/tb/tb_todo_tracker.json\n- parity_gen_cx1/tb/tb_traceability.json\n- parity_gen_cx1/sim/scoreboard_events.jsonl after /sim\n- parity_gen_cx1/cov/coverage.json after /sim\n- parity_gen_cx1/tb/tb_todo_plan.json\n- parity_gen_cx1/todo/tb_todo_tracker.json\n- parity_gen_cx1/tb/tb_todo_tracker.json\n\nnext: run /sim, /coverage, and derive_tb_todos.py --audit-evidence to close contract validation evidence.",
+  "metadata": {
+    "tb_todo_plan": {
+      "blockers": [],
+      "gate": {
+        "advisory_findings": 0,
+        "all_required_todos_pass": false,
+        "audit_evidence": false,
+        "audit_tb": true,
+        "authoring_open_todos": 0,
+        "blocking_questions": 0,
+        "plan_sha256": "11eb19820b5dfcc50c510c465685f908c95b7df46d973cde0c3257a87cbfcd1f",
+        "relaxed_mode": true,
+        "status": "pass",
+        "validation_open_todos": 6
+      },
+      "generated_at": "2026-06-10T15:04:42Z",
+      "ip": "parity_gen_cx1",
+      "locked_truth_contracts": {
+        "behavioral_contract_ids": [
+          "BC_PAR_FUNC",
+          "BC_PAR_RESET"
+        ],
+        "load_issues": [],
+        "present": {
+          "behavioral_contracts": true,
+          "structural_contracts": true
+        },
+        "structural_contract_ids": [
+          "SC_PAR_PORTS"
+        ]
+      },
+      "policy": {
+        "authority_rule": "Expected behavior comes from locked req contracts plus SSOT Function/Cycle model; RTL is DUT structure only.",
+        "timing_rule": "Structural signal timing.kind/clock_domain/sync_to drives TB driver/monitor synchronization when present.",
+        "validation_rule": "TB authoring PASS requires --audit-tb; contract validation closure requires --audit-evidence after sim and coverage.",
+        "visible_todo_rule": "Expose one visible gen-tb TODO while preserving every per-contract validation row in tb/tb_todo_plan.json."
+      },
+      "schema_version": 1,
+      "source": "parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml",
+      "summary": {
+        "blocking_questions": 0,
+        "by_category": {
+          "contract.behavioral.coverage": 2,
+          "contract.behavioral.scoreboard": 2,
+          "contract.behavioral.stimulus": 2,
+          "contract.structural.signal": 6,
+          "cycle_model.monitor": 12,
+          "equivalence.goal_scoreboard": 21,
+          "function_model.observation": 1,
+          "function_model.scoreboard": 5,
+          "tb_flow.seed": 1,
+          "tb_gate.tb_gen": 7,
+          "test_requirements.scenario": 5
+        },
+        "by_phase": {
+          "authoring": 58,
+          "evidence": 6
+        },
+        "equivalence_goals": 21,
+        "locked_truth_behavioral_contracts": 2,
+        "locked_truth_structural_contracts": 1,
+        "required_tasks": 64,
+        "total_tasks": 64
+      },
+      "tasks": [
+        {
+          "category": "tb_flow.seed",
+          "content": "Read SSOT and build dynamic TB validation ledger",
+          "criteria": [
+            "tb_todo_plan.json was regenerated from the current SSOT and locked contracts",
+            "Each structural/behavioral contract maps to TB authoring or evidence responsibilities",
+            "No expected behavior is inferred from RTL observations"
+          ],
+          "detail": "Use tb_todo_plan.json as the verification checklist. Fixed templates are generator helpers only, not authority.",
+          "id": "TB-0001",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "top_module",
+          "ssot_context": {
+            "ip": "parity_gen_cx1",
+            "top": "parity_gen_cx1"
+          },
+          "ssot_refs": [
+            "top_module"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "top_module",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: TB authority inputs are present and contract-owned",
+          "criteria": [
+            "SSOT YAML is present",
+            "function_model, cycle_model, and test_requirements are present or an SSOT blocker is emitted",
+            "verify/equivalence_goals.json and rtl/rtl_contract.json exist before generated scoreboard approval",
+            "Locked behavioral/structural contract files are loaded directly when present"
+          ],
+          "detail": "TB generation must derive stimulus and expected behavior from locked req contracts, SSOT Function/Cycle models, equivalence goals, and the RTL contract.",
+          "gate_todo": {
+            "kind": "authority_inputs",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0002",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.authority_inputs",
+          "ssot_context": {
+            "gate_check": "authority_inputs"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.authority_inputs"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.authority_inputs",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: generated cocotb/pyuvm TB artifacts are present",
+          "criteria": [
+            "test_<ip>.py, test_runner.py, transactions.py, sequences.py, agents.py, scoreboard.py, tb_coverage.py, and uvm_env.py exist",
+            "tb_manifest.json top matches SSOT top_module.name",
+            "tb_generation.json reports status=pass"
+          ],
+          "detail": "Generated TB must contain the layered files, manifest, and generation report expected by the common TB flow.",
+          "gate_todo": {
+            "kind": "tb_artifacts",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0003",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.generated_artifacts",
+          "ssot_context": {
+            "gate_check": "tb_artifacts"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.generated_artifacts"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.generated_artifacts",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: common equivalence scoreboard contract is loadable",
+          "criteria": [
+            "workflow/tb-gen/runtime/equivalence_scoreboard.py --self-check passes",
+            "Generated scoreboard.py imports or wraps EquivalenceScoreboard",
+            "scoreboard rows are configured from verify/equivalence_goals.json"
+          ],
+          "detail": "The generated TB must preserve EquivalenceScoreboard as the expected-behavior adapter instead of copying observed RTL behavior.",
+          "gate_todo": {
+            "kind": "scoreboard_self_check",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0004",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.scoreboard_self_check",
+          "ssot_context": {
+            "gate_check": "scoreboard_self_check"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.scoreboard_self_check"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.scoreboard_self_check",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: simulation emits passing scoreboard events for required goals",
+          "criteria": [
+            "sim/scoreboard_events.jsonl exists",
+            "At least one required unblocked goal has a passing scoreboard row",
+            "Rows contain goal_id, scenario_id, stimulus, fl_expected, rtl_observed, passed, and coverage_refs"
+          ],
+          "detail": "TB validation is not closed by file generation alone. Simulation must emit RTL-observed scoreboard rows carrying goal IDs and coverage refs.",
+          "gate_todo": {
+            "kind": "scoreboard_events",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0005",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.scoreboard_events",
+          "ssot_context": {
+            "gate_check": "scoreboard_events"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.scoreboard_events"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.scoreboard_events"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: TB evidence reaches functional/cycle coverage closure",
+          "criteria": [
+            "cov/coverage.json exists",
+            "coverage status is pass",
+            "rtl_observed coverage has no missing bins or invalid rows when reported"
+          ],
+          "detail": "Coverage evidence must come from generic coverage artifacts and passing scoreboard rows, not IP-specific parsers or weakened bins.",
+          "gate_todo": {
+            "kind": "coverage_closure",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0006",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.coverage_closure",
+          "ssot_context": {
+            "gate_check": "coverage_closure"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.coverage_closure"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.coverage_closure"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: every locked contract has TB validation evidence",
+          "criteria": [
+            "Behavioral contract stimulus and scoreboard rows are authored",
+            "Structural signals are mapped to driver/monitor responsibilities with timing/synchronization notes",
+            "Passing scoreboard or coverage evidence references the contract/goal aliases"
+          ],
+          "detail": "Each obligation-owned behavioral/structural contract must map to stimulus, observation, scoreboard/assertion, and coverage or carry an explicit human gate.",
+          "gate_todo": {
+            "kind": "contract_validation_closure",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0007",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+          "ssot_context": {
+            "gate_check": "contract_validation_closure"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.contract_validation_closure"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.contract_validation_closure"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: every required tb_todo_plan item is closed",
+          "criteria": [
+            "open_required_todos is zero for the requested audit mode",
+            "all_required_todos_pass is true"
+          ],
+          "detail": "TB-gen PASS for validation evidence is forbidden until every required authoring and evidence ledger row has pass status.",
+          "gate_todo": {
+            "kind": "dynamic_todo_closure",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0008",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+          "ssot_context": {
+            "gate_check": "dynamic_todo_closure"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.dynamic_todo_closure"
+          ],
+          "todo_completion": {
+            "criteria_total": 2,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.dynamic_todo_closure"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal clk into TB driver/monitor contract",
+          "criteria": [
+            "DUT port clk is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=clock, clock_domain=n/a"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0009",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_PAR_PORTS.signals.clk",
+          "ssot_context": {
+            "contract_id": "SC_PAR_PORTS",
+            "effective_timing": {
+              "kind": "clock"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "clk",
+              "timing": {
+                "kind": "clock"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_PAR_PORTS.signals.clk"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_PAR_PORTS.signals.clk",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal rst_n into TB driver/monitor contract",
+          "criteria": [
+            "DUT port rst_n is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0010",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_PAR_PORTS.signals.rst_n",
+          "ssot_context": {
+            "contract_id": "SC_PAR_PORTS",
+            "effective_timing": {
+              "clock_domain": "clk_domain",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "rst_n",
+              "timing": {
+                "clock_domain": "clk_domain",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_PAR_PORTS.signals.rst_n"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_PAR_PORTS.signals.rst_n",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal data_in into TB driver/monitor contract",
+          "criteria": [
+            "DUT port data_in is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0011",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_PAR_PORTS.signals.data_in",
+          "ssot_context": {
+            "contract_id": "SC_PAR_PORTS",
+            "effective_timing": {
+              "clock_domain": "clk_domain",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "data_in",
+              "timing": {
+                "clock_domain": "clk_domain",
+                "kind": "sync"
+              },
+              "width": 8
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_PAR_PORTS.signals.data_in"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_PAR_PORTS.signals.data_in",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal even_par into TB driver/monitor contract",
+          "criteria": [
+            "DUT port even_par is bound in tb_manifest.json",
+            "Monitor observation exists for output/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0012",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_PAR_PORTS.signals.even_par",
+          "ssot_context": {
+            "contract_id": "SC_PAR_PORTS",
+            "effective_timing": {
+              "clock_domain": "clk_domain",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "output",
+              "name": "even_par",
+              "timing": {
+                "clock_domain": "clk_domain",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_PAR_PORTS.signals.even_par"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_PAR_PORTS.signals.even_par",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal odd_par into TB driver/monitor contract",
+          "criteria": [
+            "DUT port odd_par is bound in tb_manifest.json",
+            "Monitor observation exists for output/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0013",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_PAR_PORTS.signals.odd_par",
+          "ssot_context": {
+            "contract_id": "SC_PAR_PORTS",
+            "effective_timing": {
+              "clock_domain": "clk_domain",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "output",
+              "name": "odd_par",
+              "timing": {
+                "clock_domain": "clk_domain",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_PAR_PORTS.signals.odd_par"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_PAR_PORTS.signals.odd_par",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal par_reg into TB driver/monitor contract",
+          "criteria": [
+            "DUT port par_reg is bound in tb_manifest.json",
+            "Monitor observation exists for output/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=clk_domain"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0014",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_PAR_PORTS.signals.par_reg",
+          "ssot_context": {
+            "contract_id": "SC_PAR_PORTS",
+            "effective_timing": {
+              "clock_domain": "clk_domain",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "output",
+              "name": "par_reg",
+              "timing": {
+                "clock_domain": "clk_domain",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_PAR_PORTS.signals.par_reg"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_PAR_PORTS.signals.par_reg",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.stimulus",
+          "content": "Create TB stimulus for behavioral contract BC_PAR_FUNC",
+          "criteria": [
+            "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+            "At least one generated scenario or equivalence goal exercises this contract",
+            "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+          ],
+          "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+          "id": "TB-0015",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_PAR_FUNC.stimulus",
+          "ssot_context": {
+            "contract_id": "BC_PAR_FUNC",
+            "obligations": [
+              "OBL_PAR_EVEN_001",
+              "OBL_PAR_ODD_001",
+              "OBL_PAR_REG_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.handshake_rules[1]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "function_model.transactions[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_parity_gen_cx1.py",
+                "stage": "tb",
+                "timing": "combinational outputs sampled same cycle; par_reg sampled 1 cycle after drive"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "latency": "0 cycles for comb outputs, 1 cycle for par_reg",
+                "pass_condition": "even_par/odd_par/par_reg match FL expected",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_PAR_FUNC.stimulus"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_PAR_FUNC.stimulus",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.scoreboard",
+          "content": "Bind behavioral contract BC_PAR_FUNC to scoreboard expectation",
+          "criteria": [
+            "FunctionalModel or contract decision table is the expected-behavior source",
+            "Generated scoreboard event rows carry an equivalence goal or contract alias",
+            "Outputs/state updates from the contract are observable or explicitly blocked"
+          ],
+          "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+          "id": "TB-0016",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_PAR_FUNC.scoreboard",
+          "ssot_context": {
+            "contract_id": "BC_PAR_FUNC",
+            "obligations": [
+              "OBL_PAR_EVEN_001",
+              "OBL_PAR_ODD_001",
+              "OBL_PAR_REG_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.handshake_rules[1]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "function_model.transactions[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_parity_gen_cx1.py",
+                "stage": "tb",
+                "timing": "combinational outputs sampled same cycle; par_reg sampled 1 cycle after drive"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "latency": "0 cycles for comb outputs, 1 cycle for par_reg",
+                "pass_condition": "even_par/odd_par/par_reg match FL expected",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_PAR_FUNC.scoreboard"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_PAR_FUNC.scoreboard",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.coverage",
+          "content": "Close coverage evidence for behavioral contract BC_PAR_FUNC",
+          "criteria": [
+            "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+            "Coverage refs for the scenario/bin are hit",
+            "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+          ],
+          "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+          "id": "TB-0017",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_PAR_FUNC.coverage",
+          "ssot_context": {
+            "contract_id": "BC_PAR_FUNC",
+            "obligations": [
+              "OBL_PAR_EVEN_001",
+              "OBL_PAR_ODD_001",
+              "OBL_PAR_REG_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.handshake_rules[1]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "function_model.transactions[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_parity_gen_cx1.py",
+                "stage": "tb",
+                "timing": "combinational outputs sampled same cycle; par_reg sampled 1 cycle after drive"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "latency": "0 cycles for comb outputs, 1 cycle for par_reg",
+                "pass_condition": "even_par/odd_par/par_reg match FL expected",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_PAR_FUNC.coverage"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_PAR_FUNC.coverage"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "contract.behavioral.stimulus",
+          "content": "Create TB stimulus for behavioral contract BC_PAR_RESET",
+          "criteria": [
+            "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+            "At least one generated scenario or equivalence goal exercises this contract",
+            "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+          ],
+          "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+          "id": "TB-0018",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_PAR_RESET.stimulus",
+          "ssot_context": {
+            "contract_id": "BC_PAR_RESET",
+            "obligations": [
+              "OBL_PAR_RESET_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[2]",
+              "cycle_model.pipeline[2]",
+              "function_model.transactions[1]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "par_reg=0 during and immediately after reset",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_PAR_RESET.stimulus"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_PAR_RESET.stimulus",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.scoreboard",
+          "content": "Bind behavioral contract BC_PAR_RESET to scoreboard expectation",
+          "criteria": [
+            "FunctionalModel or contract decision table is the expected-behavior source",
+            "Generated scoreboard event rows carry an equivalence goal or contract alias",
+            "Outputs/state updates from the contract are observable or explicitly blocked"
+          ],
+          "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+          "id": "TB-0019",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_PAR_RESET.scoreboard",
+          "ssot_context": {
+            "contract_id": "BC_PAR_RESET",
+            "obligations": [
+              "OBL_PAR_RESET_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[2]",
+              "cycle_model.pipeline[2]",
+              "function_model.transactions[1]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "par_reg=0 during and immediately after reset",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_PAR_RESET.scoreboard"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_PAR_RESET.scoreboard",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.coverage",
+          "content": "Close coverage evidence for behavioral contract BC_PAR_RESET",
+          "criteria": [
+            "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+            "Coverage refs for the scenario/bin are hit",
+            "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+          ],
+          "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+          "id": "TB-0020",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_PAR_RESET.coverage",
+          "ssot_context": {
+            "contract_id": "BC_PAR_RESET",
+            "obligations": [
+              "OBL_PAR_RESET_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[2]",
+              "cycle_model.pipeline[2]",
+              "function_model.transactions[1]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "par_reg=0 during and immediately after reset",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_PAR_RESET.coverage"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_PAR_RESET.coverage"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model transactions.FM_PARITY into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0021",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.transactions.FM_PARITY",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_PAR_FUNC"
+            ],
+            "error_cases": [],
+            "id": "FM_PARITY",
+            "inputs": [
+              "data_in"
+            ],
+            "name": "parity_compute",
+            "output_rules": [
+              {
+                "description": "XOR of all 8 input bits",
+                "expr": "data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1)",
+                "name": "even_rule",
+                "port": "even_par",
+                "width": 1
+              },
+              {
+                "description": "Inversion of even_par",
+                "expr": "1 - (data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1))",
+                "name": "odd_rule",
+                "port": "odd_par",
+                "width": 1
+              },
+              {
+                "description": "Registered parity (previous cycle even_par)",
+                "expr": "par_reg_q",
+                "name": "par_reg_rule",
+                "port": "par_reg",
+                "width": 1
+              }
+            ],
+            "outputs": [
+              "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)"
+            ],
+            "preconditions": [
+              "rst_n == 1"
+            ],
+            "side_effects": [
+              "par_reg_q updated each clock"
+            ],
+            "state_updates": [
+              {
+                "expr": "data_in & 1 ^ (data_in >> 1 & 1) ^ (data_in >> 2 & 1) ^ (data_in >> 3 & 1) ^ (data_in >> 4 & 1) ^ (data_in >> 5 & 1) ^ (data_in >> 6 & 1) ^ (data_in >> 7 & 1)",
+                "name": "par_reg_q",
+                "width": 1
+              }
+            ]
+          },
+          "ssot_refs": [
+            "function_model.transactions.FM_PARITY"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.transactions.FM_PARITY",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model transactions.FM_RESET into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0022",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.transactions.FM_RESET",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_PAR_RESET"
+            ],
+            "error_cases": [],
+            "id": "FM_RESET",
+            "inputs": [
+              "data_in"
+            ],
+            "name": "reset",
+            "output_rules": [
+              {
+                "expr": "0",
+                "name": "par_reg_rule",
+                "port": "par_reg",
+                "width": 1
+              }
+            ],
+            "outputs": [
+              "par_reg=0"
+            ],
+            "preconditions": [
+              "rst_n == 0"
+            ],
+            "side_effects": [
+              "par_reg cleared to 0"
+            ],
+            "state_updates": [
+              {
+                "expr": "0",
+                "name": "par_reg_q",
+                "width": 1
+              }
+            ]
+          },
+          "ssot_refs": [
+            "function_model.transactions.FM_RESET"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.transactions.FM_RESET",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model invariants.0 into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0023",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.invariants.0",
+          "ssot_context": {
+            "value": "even_par = ^data_in (combinational XOR reduction)"
+          },
+          "ssot_refs": [
+            "function_model.invariants.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.invariants.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model invariants.1 into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0024",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.invariants.1",
+          "ssot_context": {
+            "value": "odd_par = ~even_par (combinational)"
+          },
+          "ssot_refs": [
+            "function_model.invariants.1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.invariants.1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model invariants.2 into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0025",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.invariants.2",
+          "ssot_context": {
+            "value": "par_reg is even_par delayed by 1 clock cycle"
+          },
+          "ssot_refs": [
+            "function_model.invariants.2"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.invariants.2",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.observation",
+          "content": "Map function_model state_variables.par_reg_q into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0026",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.state_variables.par_reg_q",
+          "ssot_context": {
+            "description": "Registered parity state",
+            "name": "par_reg_q",
+            "reset": 0,
+            "source": "io_list.interfaces.data_input"
+          },
+          "ssot_refs": [
+            "function_model.state_variables.par_reg_q"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.state_variables.par_reg_q",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model handshake_rules.even_par into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0027",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.handshake_rules.even_par",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_PAR_FUNC"
+            ],
+            "rule": "Combinational — reflects data_in immediately",
+            "signal": "even_par"
+          },
+          "ssot_refs": [
+            "cycle_model.handshake_rules.even_par"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.handshake_rules.even_par",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model handshake_rules.par_reg into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0028",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.handshake_rules.par_reg",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_PAR_FUNC"
+            ],
+            "rule": "Registered — reflects even_par from previous cycle",
+            "signal": "par_reg"
+          },
+          "ssot_refs": [
+            "cycle_model.handshake_rules.par_reg"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.handshake_rules.par_reg",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model handshake_rules.par_reg into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0029",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.handshake_rules.par_reg",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_PAR_RESET"
+            ],
+            "rule": "Cleared to 0 when rst_n=0",
+            "signal": "par_reg"
+          },
+          "ssot_refs": [
+            "cycle_model.handshake_rules.par_reg"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.handshake_rules.par_reg",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model pipeline.item into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0030",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.pipeline.item",
+          "ssot_context": {
+            "action": "even_par = ^data_in, odd_par = ~even_par (combinational)",
+            "behavioral_contract_refs": [
+              "BC_PAR_FUNC"
+            ],
+            "cycle": 0,
+            "stage": "S0_COMB"
+          },
+          "ssot_refs": [
+            "cycle_model.pipeline.item"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.pipeline.item",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model pipeline.item_1 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0031",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.pipeline.item_1",
+          "ssot_context": {
+            "action": "par_reg <= even_par on rising clk",
+            "behavioral_contract_refs": [
+              "BC_PAR_FUNC"
+            ],
+            "cycle": 1,
+            "stage": "S1_REG"
+          },
+          "ssot_refs": [
+            "cycle_model.pipeline.item_1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.pipeline.item_1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model pipeline.item_2 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0032",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.pipeline.item_2",
+          "ssot_context": {
+            "action": "par_reg <= 0 when rst_n=0 (async reset)",
+            "behavioral_contract_refs": [
+              "BC_PAR_RESET"
+            ],
+            "cycle": 0,
+            "stage": "S0_RESET"
+          },
+          "ssot_refs": [
+            "cycle_model.pipeline.item_2"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.pipeline.item_2",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model latency.even_odd_par into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0033",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.latency.even_odd_par",
+          "ssot_context": {
+            "name": "even_odd_par",
+            "value": {
+              "max_cycles": 0,
+              "min_cycles": 0
+            }
+          },
+          "ssot_refs": [
+            "cycle_model.latency.even_odd_par"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.latency.even_odd_par",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model latency.par_reg into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0034",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.latency.par_reg",
+          "ssot_context": {
+            "name": "par_reg",
+            "value": {
+              "max_cycles": 1,
+              "min_cycles": 1
+            }
+          },
+          "ssot_refs": [
+            "cycle_model.latency.par_reg"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.latency.par_reg",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model ordering.0 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0035",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.ordering.0",
+          "ssot_context": {
+            "value": "even_par/odd_par update combinationally when data_in changes."
+          },
+          "ssot_refs": [
+            "cycle_model.ordering.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.ordering.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model ordering.1 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0036",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.ordering.1",
+          "ssot_context": {
+            "value": "par_reg updates on clock edge."
+          },
+          "ssot_refs": [
+            "cycle_model.ordering.1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.ordering.1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model backpressure.0 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0037",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.backpressure.0",
+          "ssot_context": {
+            "value": "No backpressure."
+          },
+          "ssot_refs": [
+            "cycle_model.backpressure.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.backpressure.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model observability.0 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0038",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.observability.0",
+          "ssot_context": {
+            "value": "even_par/odd_par/par_reg observable each cycle."
+          },
+          "ssot_refs": [
+            "cycle_model.observability.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.observability.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC1",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0039",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC1",
+          "ssot_context": {
+            "checker": "Scoreboard checks par_reg=0 after reset.",
+            "coverage": [
+              "reset",
+              "FM_RESET"
+            ],
+            "expected": "par_reg=0",
+            "id": "SC1",
+            "name": "Reset — par_reg=0",
+            "stimulus": "Assert rst_n=0",
+            "stimulus_machine_spec": {
+              "assign": {
+                "data_in": 0
+              }
+            }
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC2",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0040",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC2",
+          "ssot_context": {
+            "checker": "Scoreboard verifies even_par=0, odd_par=1.",
+            "coverage": [
+              "FM_PARITY"
+            ],
+            "expected": "even_par=0, odd_par=1",
+            "id": "SC2",
+            "name": "All zeros — even parity 0",
+            "stimulus": "data_in=0x00",
+            "stimulus_machine_spec": {
+              "timeline": [
+                {
+                  "assign": {
+                    "data_in": 0
+                  }
+                }
+              ]
+            }
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC2"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC2",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC3",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0041",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC3",
+          "ssot_context": {
+            "checker": "Scoreboard verifies even_par=1, odd_par=0.",
+            "coverage": [
+              "FM_PARITY"
+            ],
+            "expected": "even_par=1, odd_par=0",
+            "id": "SC3",
+            "name": "0x01 — even parity 1",
+            "stimulus": "data_in=0x01 (one bit set)",
+            "stimulus_machine_spec": {
+              "timeline": [
+                {
+                  "assign": {
+                    "data_in": 1
+                  }
+                }
+              ]
+            }
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC3"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC3",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC4",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0042",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC4",
+          "ssot_context": {
+            "checker": "Scoreboard verifies even_par=0, odd_par=1.",
+            "coverage": [
+              "FM_PARITY"
+            ],
+            "expected": "even_par=0, odd_par=1",
+            "id": "SC4",
+            "name": "0xFF — even parity 0 (8 bits set)",
+            "stimulus": "data_in=0xFF",
+            "stimulus_machine_spec": {
+              "timeline": [
+                {
+                  "assign": {
+                    "data_in": 255
+                  }
+                }
+              ]
+            }
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC4"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC4",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC5",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0043",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC5",
+          "ssot_context": {
+            "checker": "Scoreboard verifies par_reg=even_par delayed by 1 clk.",
+            "coverage": [
+              "FM_PARITY"
+            ],
+            "expected": "par_reg=1 one cycle after data_in=0x01",
+            "id": "SC5",
+            "name": "Registered parity latches after clock",
+            "stimulus": "data_in=0x01; wait 1 cycle",
+            "stimulus_machine_spec": {
+              "timeline": [
+                {
+                  "assign": {
+                    "data_in": 1
+                  }
+                }
+              ]
+            }
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC5"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC5",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_TRANSACTION_FM_PARITY to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0044",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_PARITY",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "function_parity_compute"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/ordering must hold when applicable",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_TRANSACTION_FM_PARITY",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+              "RTL observed outputs equal FL expected outputs",
+              "RTL side effects match FL model state updates",
+              "Linked functional coverage bins are hit when stimulus executes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "function_model.transactions[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Transaction parity_compute matches FunctionalModel",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_TRANSACTION_FM_PARITY"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_TRANSACTION_FM_PARITY",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_TRANSACTION_FM_RESET to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0045",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_RESET",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC1_executed",
+              "function_reset"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/ordering must hold when applicable",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "par_reg=0",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg cleared to 0",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_TRANSACTION_FM_RESET",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+              "RTL observed outputs equal FL expected outputs",
+              "RTL side effects match FL model state updates",
+              "Linked functional coverage bins are hit when stimulus executes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "function_model.transactions[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 0"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_RESET",
+              "transaction_type": "reset"
+            },
+            "title": "Transaction reset matches FunctionalModel",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_TRANSACTION_FM_RESET"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_TRANSACTION_FM_RESET",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC1 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0046",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC1",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC1_executed"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "par_reg=0",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg cleared to 0",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_SCENARIO_SC1",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "Assert rst_n=0",
+                "rst_n == 0"
+              ],
+              "machine_spec": {
+                "assign": {
+                  "data_in": 0
+                }
+              },
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_id": "FM_RESET",
+              "transaction_type": "reset"
+            },
+            "title": "Scenario SC1: Reset — par_reg=0",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC2 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0047",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC2",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC2_executed"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par=0, odd_par=1",
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_SCENARIO_SC2",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "data_in=0x00",
+                "rst_n == 1"
+              ],
+              "machine_spec": {
+                "timeline": [
+                  {
+                    "assign": {
+                      "data_in": 0
+                    }
+                  }
+                ]
+              },
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Scenario SC2: All zeros — even parity 0",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC2"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC2",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC3 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0048",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC3",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC3_executed"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par=1, odd_par=0",
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_SCENARIO_SC3",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[2]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "data_in=0x01 (one bit set)",
+                "rst_n == 1"
+              ],
+              "machine_spec": {
+                "timeline": [
+                  {
+                    "assign": {
+                      "data_in": 1
+                    }
+                  }
+                ]
+              },
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Scenario SC3: 0x01 — even parity 1",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC3"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC3",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC4 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0049",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC4",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC4_executed"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par=0, odd_par=1",
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_SCENARIO_SC4",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[3]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "data_in=0xFF",
+                "rst_n == 1"
+              ],
+              "machine_spec": {
+                "timeline": [
+                  {
+                    "assign": {
+                      "data_in": 255
+                    }
+                  }
+                ]
+              },
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Scenario SC4: 0xFF — even parity 0 (8 bits set)",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC4"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC4",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC5 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0050",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC5",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC5_executed"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "par_reg=1 one cycle after data_in=0x01",
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_SCENARIO_SC5",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[4]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "data_in=0x01; wait 1 cycle",
+                "rst_n == 1"
+              ],
+              "machine_spec": {
+                "timeline": [
+                  {
+                    "assign": {
+                      "data_in": 1
+                    }
+                  }
+                ]
+              },
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Scenario SC5: Registered parity latches after clock",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC5"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC5",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_PROTOCOL_HANDSHAKE_0 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0051",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_handshake_0",
+              "cycle_handshake_1"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ready/valid/control observables named by SSOT and DUT ports"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+            "kind": "protocol",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL holds payload/control stability according to cycle_model",
+              "Handshake completion timing matches cycle_model latency/ordering",
+              "Protocol coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.handshake_rules[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "{'signal': 'even_par', 'rule': 'Combinational — reflects data_in immediately', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+              ],
+              "required_fields": [
+                "cycle",
+                "observed_signals"
+              ],
+              "transaction_type": "handshake_0"
+            },
+            "title": "Cycle/handshake rule handshake_0",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_PROTOCOL_HANDSHAKE_1 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0052",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_handshake_0",
+              "cycle_handshake_1"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ready/valid/control observables named by SSOT and DUT ports"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+            "kind": "protocol",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL holds payload/control stability according to cycle_model",
+              "Handshake completion timing matches cycle_model latency/ordering",
+              "Protocol coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.handshake_rules[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "{'signal': 'par_reg', 'rule': 'Registered — reflects even_par from previous cycle', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+              ],
+              "required_fields": [
+                "cycle",
+                "observed_signals"
+              ],
+              "transaction_type": "handshake_1"
+            },
+            "title": "Cycle/handshake rule handshake_1",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_PROTOCOL_HANDSHAKE_2 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0053",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_2",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_handshake_0",
+              "cycle_handshake_1"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ready/valid/control observables named by SSOT and DUT ports"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+            "kind": "protocol",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL holds payload/control stability according to cycle_model",
+              "Handshake completion timing matches cycle_model latency/ordering",
+              "Protocol coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.handshake_rules[2]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "{'signal': 'par_reg', 'rule': 'Cleared to 0 when rst_n=0', 'behavioral_contract_refs': ['BC_PAR_RESET']}"
+              ],
+              "required_fields": [
+                "cycle",
+                "observed_signals"
+              ],
+              "transaction_type": "handshake_2"
+            },
+            "title": "Cycle/handshake rule handshake_2",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_2"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_PROTOCOL_HANDSHAKE_2",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_TIMING_ORDERING_0 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0054",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_ordering_0",
+              "cycle_ordering_1"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ordered RTL observable sequence"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_TIMING_ORDERING_0",
+            "kind": "timing",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL response order matches cycle_model ordering",
+              "FL trace and RTL monitor trace preserve the same transaction order"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.ordering[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "even_par/odd_par update combinationally when data_in changes."
+              ],
+              "required_fields": [
+                "cycle",
+                "transaction_order"
+              ],
+              "transaction_type": "ordering_0"
+            },
+            "title": "Ordering rule ordering_0",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_TIMING_ORDERING_0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_TIMING_ORDERING_1 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0055",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_1",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_ordering_0",
+              "cycle_ordering_1"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ordered RTL observable sequence"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_TIMING_ORDERING_1",
+            "kind": "timing",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL response order matches cycle_model ordering",
+              "FL trace and RTL monitor trace preserve the same transaction order"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.ordering[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "par_reg updates on clock edge."
+              ],
+              "required_fields": [
+                "cycle",
+                "transaction_order"
+              ],
+              "transaction_type": "ordering_1"
+            },
+            "title": "Ordering rule ordering_1",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_TIMING_ORDERING_1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_TIMING_ORDERING_1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_ERROR_NONE to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0056",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_ERROR_NONE",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "error_error_0"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "error propagation timing from cycle_model",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "error response",
+                "status/interrupt/debug observable"
+              ],
+              "state_updates": [
+                "error state/counter/status update"
+              ]
+            },
+            "goal_id": "EQ_ERROR_NONE",
+            "kind": "error",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Fault stimulus produces the SSOT-defined error response",
+              "No illegal side effect occurs unless SSOT allows it",
+              "Error coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "error_handling.error_sources[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+              ],
+              "required_fields": [
+                "fault_condition"
+              ],
+              "transaction_type": "None"
+            },
+            "title": "Error policy None",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_ERROR_NONE"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_ERROR_NONE",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_MODULE_PARITY_GEN_CX1 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0057",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_MODULE_PARITY_GEN_CX1",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [],
+            "decomposition_refs": [
+              "parity_gen_cx1"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/ordering must hold at the module boundary",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_MODULE_PARITY_GEN_CX1",
+            "kind": "module",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+              "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+              "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+              "Record a scoreboard row for this module goal before top-level signoff"
+            ],
+            "scope": {
+              "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply",
+              "level": "module",
+              "rtl_file": "rtl/parity_gen_cx1.sv",
+              "rtl_module": "parity_gen_cx1"
+            },
+            "ssot_refs": [
+              "cycle_model.backpressure.backpressure_0",
+              "cycle_model.clock",
+              "cycle_model.handshake_rules.even_par",
+              "cycle_model.handshake_rules.par_reg",
+              "cycle_model.latency",
+              "cycle_model.observability.observability_0",
+              "cycle_model.ordering.ordering_0",
+              "cycle_model.ordering.ordering_1",
+              "cycle_model.pipeline.s0_comb",
+              "cycle_model.pipeline.s1_reg",
+              "cycle_model.reset",
+              "features.even_parity_combinational",
+              "features.odd_parity_combinational",
+              "features.registered_parity",
+              "function_model",
+              "function_model.invariants.invariant_0",
+              "function_model.invariants.invariant_1",
+              "function_model.invariants.invariant_2",
+              "function_model.state_variables.par_reg_q",
+              "function_model.transactions",
+              "function_model.transactions.FM_PARITY",
+              "function_model.transactions.fm_parity",
+              "function_model.transactions.fm_parity.inputs.input_0",
+              "function_model.transactions.fm_parity.output_rules.even_rule",
+              "function_model.transactions.fm_parity.output_rules.odd_rule",
+              "function_model.transactions.fm_parity.output_rules.par_reg_rule",
+              "function_model.transactions.fm_parity.outputs.output_0",
+              "function_model.transactions.fm_parity.side_effects.side_effect_0",
+              "function_model.transactions.fm_parity.state_updates.par_reg_q",
+              "function_model.transactions.fm_reset",
+              "function_model.transactions.fm_reset.inputs.input_0",
+              "function_model.transactions.fm_reset.output_rules.par_reg_reset_rule",
+              "function_model.transactions.fm_reset.outputs.output_0",
+              "function_model.transactions.fm_reset.preconditions.precondition_0",
+              "function_model.transactions.fm_reset.side_effects.side_effect_0",
+              "function_model.transactions.fm_reset.state_updates.par_reg_q",
+              "io_list",
+              "io_list.interfaces.data_input",
+              "registers.config.addr_width",
+              "registers.config.byte_addressable",
+              "registers.config.register_width"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Module parity_gen_cx1 functionality equals FunctionalModel",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_MODULE_PARITY_GEN_CX1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_MODULE_PARITY_GEN_CX1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0058",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_latency_even_odd_par"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.latency.even_odd_par"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "{'min_cycles': 0, 'max_cycles': 0}"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_latency_even_odd_par: {'min_cycles': 0, 'max_cycles': 0}",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_LATENCY_PAR_REG to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0059",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_latency_par_reg"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.latency.par_reg"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "{'min_cycles': 1, 'max_cycles': 1}"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_latency_par_reg: {'min_cycles': 1, 'max_cycles': 1}",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_PAR_REG"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0060",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_pipeline_s0_comb"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.pipeline[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "even_par = ^data_in, odd_par = ~even_par (combinational)"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_pipeline_s0_comb: even_par = ^data_in, odd_par = ~even_par (combinational)",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PIPELINE_S1_REG to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0061",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_pipeline_s1_reg"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.pipeline[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "par_reg <= even_par on rising clk"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_pipeline_s1_reg: par_reg <= even_par on rising clk",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_REG"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_BACKPRESSURE_0 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0062",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_backpressure_0"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.backpressure[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "No backpressure."
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_backpressure_0: No backpressure.",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0063",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_perf_frequency_mhz"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.performance.frequency_mhz"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "50"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PERF_THROUGHPUT to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0064",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_perf_throughput"
+            ],
+            "decomposition_refs": [
+              "parity_gen_cx1",
+              "parity_gen_cx1_protocol_model",
+              "parity_gen_cx1_register_model",
+              "parity_gen_cx1_datapath_model",
+              "parity_gen_cx1_fsm_model",
+              "parity_gen_cx1_error_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+                "even_rule",
+                "odd_rule",
+                "par_reg_rule"
+              ],
+              "state_updates": [
+                "par_reg_q updated each clock",
+                "par_reg_q"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.performance.throughput"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n == 1",
+                "{'computes_per_cycle': 1}"
+              ],
+              "required_fields": [
+                "kind"
+              ],
+              "transaction_id": "FM_PARITY",
+              "transaction_type": "parity_compute"
+            },
+            "title": "Functional coverage bin cycle_perf_throughput: {'computes_per_cycle': 1}",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        }
+      ],
+      "todo_completion": {
+        "all_required_todos_pass": false,
+        "audit_evidence": false,
+        "audit_tb": true,
+        "authoring_open_tasks": 0,
+        "authoring_required_tasks": 58,
+        "authoring_todos_pass": true,
+        "open_authoring": [],
+        "open_validation": [
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.scoreboard_events",
+            "task_id": "TB-0005"
+          },
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.coverage_closure",
+            "task_id": "TB-0006"
+          },
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+            "task_id": "TB-0007"
+          },
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+            "task_id": "TB-0008"
+          },
+          {
+            "category": "contract.behavioral.coverage",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "contract.behavioral.BC_PAR_FUNC.coverage",
+            "task_id": "TB-0017"
+          },
+          {
+            "category": "contract.behavioral.coverage",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "contract.behavioral.BC_PAR_RESET.coverage",
+            "task_id": "TB-0020"
+          }
+        ],
+        "rule": "tb-gen may claim authoring PASS after authoring rows close; contract validation PASS requires --audit-evidence after sim/coverage.",
+        "validation_open_tasks": 6,
+        "validation_required_tasks": 64
+      },
+      "top": "parity_gen_cx1",
+      "type": "ssot_derived_tb_todo_plan"
+    }
+  },
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/check_contract_bundle.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "contract_authority_gate",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_contract_bundle] PASS parity_gen_cx1: mode=locked requirements=4 obligations=5 contract_refs=8 structural_contracts=1 behavioral_contracts=2 evidence=8 closed_contracts=11"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "derive_tb_todos",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[derive_tb_todos] parity_gen_cx1: tasks=64 blockers=0 authoring_open=58 validation_open=64 gate=planned"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_goal_scoreboard_cocotb] wrote 8 Python files for parity_gen_cx1\n[emit_goal_scoreboard_cocotb] goals=21 rtl_sources=1\n[emit_goal_scoreboard_cocotb] runner=parity_gen_cx1/tb/cocotb/test_runner.py"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py parity_gen_cx1",
+      "label": "check_pyuvm_structure",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_scoreboard_events] PASS: goals=21 required=21 scoreboard_rows=0 goals_with_rows=0\n[check_pyuvm_structure] PASS: layered pyuvm/cocotb structure exists for parity_gen_cx1"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check",
+      "label": "equivalence_scoreboard_self_check",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\n  \"checked\": 21,\n  \"contract_gaps\": [],\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/parity_gen_cx1/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-06-10T15:04:42Z\",\n  \"goals\": 21,\n  \"ip\": \"parity_gen_cx1\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 21,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_BACKPRESSURE_0\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_LATENCY_PAR_REG\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_THROUGHPUT\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_S1_REG\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_ERROR_NONE\",\n      \"kind\": \"FM_PARITY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"even_par\": 0,\n        \"even_rule\": 0,\n        \"odd_par\": 1,\n        \"odd_rule\": 1,\n        \"par_reg\": 0,\n        \"par_reg_rule\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"par_reg_q\": 0\n        },\n        \"transaction_id\": \"FM_PARITY\",\n        \"transaction_name\": \"parity_compute\"\n      }\n    }\n  ],\n  \"ssot_questions\": 0,\n  \"unsupported_transactions\": 0\n}"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py parity_gen_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-tb",
+      "label": "audit_tb_todos",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[derive_tb_todos] parity_gen_cx1: tasks=64 blockers=0 authoring_open=0 validation_open=6 gate=pass"
+    }
+  ],
+  "stage": "ssot-tb-cocotb",
+  "status": "pass",
+  "workflow": "tb-gen"
+}

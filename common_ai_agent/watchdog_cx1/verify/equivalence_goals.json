@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "ip": "watchdog_cx1",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "source_of_truth": {
+    "ssot": "watchdog_cx1/yaml/watchdog_cx1.ssot.yaml",
+    "functional_model": "watchdog_cx1/model/functional_model.py",
+    "functional_model_exists": true
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_WDT_TICK",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Counter decrements by 1 each enabled cycle (no kick)",
+      "source_refs": ["function_model.transactions.FM_TICK"],
+      "scope": {"level": "top", "rtl_module": "watchdog_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_TICK",
+        "required_fields": [],
+        "defaults": {"psel": 0, "penable": 0, "pwrite": 0, "paddr": 0, "pwdata": 0}
+      },
+      "expected_contract": {
+        "observables": ["timeout_pulse"],
+        "pass_condition": "timeout_pulse == FL model expectation each cycle"
+      },
+      "coverage_refs": ["FCOV_TICK"]
+    },
+    {
+      "goal_id": "EQ_WDT_TIMEOUT",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "timeout_pulse=1 for exactly 1 cycle when count_q reaches 1; auto-reloads",
+      "source_refs": ["function_model.transactions.FM_TICK"],
+      "scope": {"level": "top", "rtl_module": "watchdog_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_TICK",
+        "required_fields": [],
+        "defaults": {"psel": 0, "penable": 0, "pwrite": 0, "paddr": 0, "pwdata": 0}
+      },
+      "expected_contract": {
+        "observables": ["timeout_pulse"],
+        "pass_condition": "timeout_pulse==1 exactly when count_q==1; width=1 cycle"
+      },
+      "coverage_refs": ["FCOV_TIMEOUT"]
+    },
+    {
+      "goal_id": "EQ_WDT_KICK",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "KICK write reloads counter from PERIOD",
+      "source_refs": ["function_model.transactions.FM_KICK"],
+      "scope": {"level": "top", "rtl_module": "watchdog_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_KICK",
+        "required_fields": ["psel", "penable", "pwrite", "paddr"],
+        "defaults": {"psel": 1, "penable": 1, "pwrite": 1, "paddr": 4, "pwdata": 1}
+      },
+      "expected_contract": {
+        "observables": ["timeout_pulse"],
+        "pass_condition": "timeout_pulse==0 on KICK cycle; count reloads"
+      },
+      "coverage_refs": ["FCOV_KICK"]
+    },
+    {
+      "goal_id": "EQ_WDT_IDLE",
+      "kind": "transaction",
+      "blocked": false,
+      "description": "Counter frozen and timeout_pulse=0 when disabled",
+      "source_refs": ["function_model.transactions.FM_IDLE"],
+      "scope": {"level": "top", "rtl_module": "watchdog_cx1"},
+      "stimulus_contract": {
+        "kind": "FM_IDLE",
+        "required_fields": [],
+        "defaults": {"psel": 0, "penable": 0, "pwrite": 0, "paddr": 0, "pwdata": 0}
+      },
+      "expected_contract": {
+        "observables": ["timeout_pulse"],
+        "pass_condition": "timeout_pulse==0 always when disabled"
+      },
+      "coverage_refs": ["FCOV_IDLE"]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "fifo_sync_cx1",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-06-10T14:01:03Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 2,
+    "results_observed": 2,
+    "coverage_bins": 5,
+    "coverage_hit": 5,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": null,
+      "throughput": null,
+      "outstanding": null,
+      "pipeline_stages": null,
+      "queue_depth": null
+    }
+  },
+  "symbol_contract": {
+    "schema_version": 1,
+    "status": "pass",
+    "failure_owner": "",
+    "stage": "cl-model",
+    "reason": "",
+    "unknown_symbols": [],
+    "required_rerun": [],
+    "transactions": [
+      {
+        "id": "FM_WRITE",
+        "declared_symbols": [
+          "busy",
+          "clk",
+          "count",
+          "empty",
+          "error",
+          "fifo_io",
+          "full",
+          "head_data",
+          "main",
+          "rd_data",
+          "rd_en",
+          "rd_ptr",
+          "rst_n",
+          "wr_data",
+          "wr_en",
+          "wr_ptr"
+        ],
+        "used_symbols": [
+          "count",
+          "head_data",
+          "wr_data",
+          "wr_ptr"
+        ],
+        "missing_symbols": []
+      },
+      {
+        "id": "FM_READ",
+        "declared_symbols": [
+          "busy",
+          "clk",
+          "count",
+          "empty",
+          "error",
+          "fifo_io",
+          "full",
+          "head_data",
+          "main",
+          "rd_data",
+          "rd_en",
+          "rd_ptr",
+          "rst_n",
+          "wr_data",
+          "wr_en",
+          "wr_ptr"
+        ],
+        "used_symbols": [
+          "count",
+          "head_data",
+          "rd_ptr"
+        ],
+        "missing_symbols": []
+      }
+    ],
+    "cycle_rules": []
+  },
+  "performance_targets": {
+    "frequency_mhz": null,
+    "throughput": null,
+    "outstanding": null,
+    "pipeline_stages": null,
+    "queue_depth": null
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 5
+}

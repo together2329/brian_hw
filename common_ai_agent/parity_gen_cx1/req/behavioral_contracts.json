@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "type": "behavioral_contracts",
+  "ip": "parity_gen_cx1",
+  "contracts": [
+    {
+      "id": "BC_PAR_FUNC",
+      "ssot_section": "function_model",
+      "obligations": [
+        "OBL_PAR_EVEN_001",
+        "OBL_PAR_ODD_001",
+        "OBL_PAR_REG_001"
+      ],
+      "latency": {
+        "even_par_update": "0 cycles: combinational XOR of data_in",
+        "odd_par_update":  "0 cycles: combinational inversion of even_par",
+        "par_reg_update":  "1 clock cycle: registered even_par"
+      },
+      "ordering": "even_par and odd_par update combinationally; par_reg latches even_par on next posedge clk",
+      "timing": { "clock": "clk", "reset": "rst_n", "reset_active": "low" },
+      "transactions": [
+        {
+          "id": "FM_PARITY",
+          "preconditions": ["rst_n == 1"],
+          "outputs": [
+            { "name": "even_par_rule", "expr": "parity(data_in)" },
+            { "name": "odd_par_rule",  "expr": "1 - parity(data_in)" }
+          ],
+          "state_updates": [
+            { "name": "par_reg_q", "expr": "parity(data_in)" }
+          ]
+        }
+      ],
+      "invariants": [
+        "even_par = ^data_in (combinational)",
+        "odd_par = ~even_par (combinational)",
+        "par_reg = par_reg_q (registered even_par from previous cycle)"
+      ],
+      "stage_contracts": [
+        {
+          "stage": "rtl",
+          "artifact": "rtl/parity_gen_cx1.sv",
+          "timing": "even_par/odd_par combinational; par_reg registered with async reset"
+        },
+        {
+          "stage": "tb",
+          "artifact": "tb/cocotb/test_parity_gen_cx1.py",
+          "timing": "combinational outputs sampled same cycle; par_reg sampled 1 cycle after drive"
+        },
+        {
+          "stage": "sim",
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "even_par/odd_par/par_reg match FL expected",
+          "latency": "0 cycles for comb outputs, 1 cycle for par_reg"
+        }
+      ]
+    },
+    {
+      "id": "BC_PAR_RESET",
+      "ssot_section": "function_model",
+      "obligations": ["OBL_PAR_RESET_001"],
+      "latency": { "par_reg_clear": "cleared within 1 cycle of rst_n assertion" },
+      "ordering": "async reset takes priority; par_reg=0 immediately on rst_n=0",
+      "timing": { "clock": "clk", "reset": "rst_n", "reset_active": "low" },
+      "transactions": [
+        {
+          "id": "FM_RESET",
+          "preconditions": ["rst_n == 0"],
+          "outputs": [
+            { "name": "par_reg_rule", "expr": "0" }
+          ],
+          "state_updates": [
+            { "name": "par_reg_q", "expr": "0" }
+          ]
+        }
+      ],
+      "invariants": [
+        "par_reg = 0 when rst_n = 0"
+      ],
+      "stage_contracts": [
+        {
+          "stage": "rtl",
+          "artifact": "rtl/parity_gen_cx1.sv",
+          "timing": "always @(posedge clk or negedge rst_n): if (!rst_n) par_reg <= 0"
+        },
+        {
+          "stage": "sim",
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "par_reg=0 during and immediately after reset"
+        }
+      ]
+    }
+  ]
+}

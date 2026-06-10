@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "type": "evidence_plan",
+  "ip": "debounce_cx1",
+  "evidence_plan": [
+    {
+      "evidence_id": "E_DEB_BC_STABLE",
+      "contract_ref": "BC_DEB_STABLE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "db_out matches FL expected (updates after THRESH stable cycles) each cycle",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_BC_BOUNCE",
+      "contract_ref": "BC_DEB_BOUNCE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "db_out unchanged on bounce; counter resets observed",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_BC_RESET",
+      "contract_ref": "BC_DEB_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "db_out=0 observed during reset per BC_DEB_RESET",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_BC_LINT",
+      "contract_ref": "BC_DEB_LINT",
+      "artifact": "lint/dut_lint.json",
+      "pass_condition": "no latch / no single-driver violations per BC_DEB_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "evidence_id": "E_DEB_STABLE",
+      "contract_ref": "C_DEB_STABLE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "stability counter increment observed in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_BOUNCE",
+      "contract_ref": "C_DEB_BOUNCE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "bounce reset observed in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_OUTPUT",
+      "contract_ref": "C_DEB_OUTPUT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "db_out update after THRESH cycles observed in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_RESET",
+      "contract_ref": "C_DEB_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "pass_condition": "db_out=0 observed during reset in scoreboard",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "evidence_id": "E_DEB_LINT",
+      "contract_ref": "C_DEB_LINT",
+      "artifact": "lint/dut_lint.json",
+      "pass_condition": "no latch / no single-driver violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "evidence_id": "E_DEB_SC_PORTS",
+      "contract_ref": "SC_DEB_PORTS",
+      "artifact": "rtl/debounce_cx1.sv",
+      "pass_condition": "top ports clk rst_n btn_in db_out present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    }
+  ]
+}

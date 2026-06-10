@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "gray_code_cx1",
+  "source": "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "gray_code_cx1/req/",
+      "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml",
+      "gray_code_cx1/model/functional_model.py",
+      "gray_code_cx1/cov/fcov_plan.json",
+      "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml#io_list",
+      "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "gray_code_cx1/rtl/",
+      "gray_code_cx1/tb/",
+      "gray_code_cx1/sim/",
+      "gray_code_cx1/vectors/",
+      "gray_code_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "binary to gray encoding"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "gray to binary decoding"
+    },
+    {
+      "id": "function_primary_behavior",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_primary",
+      "description": "FM_PRIMARY primary_behavior"
+    },
+    {
+      "id": "cycle_valid_bin_gray",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'name': 'valid_bin_gray', 'signal': 'valid', 'condition': 'valid is high; bin_in and gray_in sampled on rising clk.', 'behavioral_contract_refs': ['BC_GC_ENCODE', 'BC_GC_DECODE']}"
+    },
+    {
+      "id": "cycle_reset_clear",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'name': 'reset_clear', 'signal': 'rst_n', 'condition': 'rst_n low clears gray_out and bin_out to 0 synchronously.', 'behavioral_contract_refs': ['BC_GC_RESET']}"
+    },
+    {
+      "id": "cycle_pipeline_sample_bin_gray",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Sample bin_in and gray_in when valid is high."
+    },
+    {
+      "id": "cycle_pipeline_drive_gray_bin",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Drive registered gray_out and bin_out."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Outputs appear one cycle after the accepted input."
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "100"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'sustained_beats_per_cycle': 1}"
+    }
+  ],
+  "summary": {
+    "total_bins": 11,
+    "scenario_bins": 3,
+    "transaction_bins": 1,
+    "protocol_bins": 2,
+    "state_transition_bins": 0,
+    "error_bins": 0
+  }
+}

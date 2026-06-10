@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=pwm_gen_cx1/sim/results.xml
+scoreboard=pwm_gen_cx1/sim/scoreboard_events.jsonl
+coverage_functional=pwm_gen_cx1/cov/coverage_functional.json
+waveforms=pwm_gen_cx1/sim/pwm_gen_cx1.vcd
+0 errors, 0 warnings

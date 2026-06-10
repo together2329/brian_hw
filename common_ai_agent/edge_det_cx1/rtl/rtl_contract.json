@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "edge_det_cx1",
+  "top": "edge_det_cx1",
+  "generated_at": "2026-06-10T14:19:00Z",
+  "contract": {
+    "top": "edge_det_cx1",
+    "transaction": "FM_RISE",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "((((((rst_n) != 0) == 1'b1)) != 0))",
+    "outputs": [
+      {
+        "name": "rise_rule",
+        "port": "rise_out",
+        "expr": "1'b1",
+        "width": 1,
+        "source": {
+          "name": "rise_rule",
+          "port": "rise_out",
+          "expr": "1",
+          "width": 1
+        }
+      },
+      {
+        "name": "fall_rule",
+        "port": "fall_out",
+        "expr": "1'b0",
+        "width": 1,
+        "source": {
+          "name": "fall_rule",
+          "port": "fall_out",
+          "expr": "0",
+          "width": 1
+        }
+      }
+    ],
+    "state_vars": {
+      "sync1": {
+        "width": 32,
+        "reset": 0
+      },
+      "sync2": {
+        "width": 32,
+        "reset": 0
+      },
+      "prev_sync": {
+        "width": 32,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "sync1",
+        "expr": "sig_in",
+        "source": {
+          "name": "sync1",
+          "expr": "sig_in",
+          "width": 1
+        }
+      },
+      {
+        "name": "sync2",
+        "expr": "sync1",
+        "source": {
+          "name": "sync2",
+          "expr": "sync1",
+          "width": 1
+        }
+      },
+      {
+        "name": "prev_sync",
+        "expr": "sync2",
+        "source": {
+          "name": "prev_sync",
+          "expr": "sync2",
+          "width": 1
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "S0_SYNC1",
+      "S1_SYNC2",
+      "S2_EDGE"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "sig_in": "sig_in"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "description": "Dynamic coverage todo list from cov/coverage_todo_plan.json",
+  "name": "gray_code_cx1-coverage",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "cov/coverage_todo_plan.json",
+  "source_task_count": 2,
+  "tasks": [
+    {
+      "activeForm": "Audit SSOT function and cycle coverage against RTL simulation evidence",
+      "approval_policy": "evidence_required",
+      "content": "Audit SSOT function and cycle coverage against RTL simulation evidence",
+      "criteria": "check_tb_sim_evidence exits 0, ssot_coverage_summary exits 0, coverage.json status is pass/ok, and function/cycle bins meet target.",
+      "detail": "Coverage approval comes from SSOT coverage bins matched to scoreboard rows observed from RTL simulation, not raw model-only hits.",
+      "priority": "high",
+      "required_evidence": [
+        "gray_code_cx1/cov/fcov_plan.json",
+        "gray_code_cx1/cov/coverage_functional.json",
+        "gray_code_cx1/cov/coverage.json",
+        "gray_code_cx1/sim/scoreboard_events.jsonl"
+      ],
+      "source_id": "COV-0001",
+      "source_plan": "cov/coverage_todo_plan.json",
+      "status": "blocked",
+      "todo_completion": {
+        "evidence_basis": [
+          "gray_code_cx1/cov/fcov_plan.json",
+          "gray_code_cx1/cov/coverage_functional.json",
+          "gray_code_cx1/cov/coverage.json",
+          "gray_code_cx1/sim/scoreboard_events.jsonl",
+          "sim_evidence",
+          "ssot_coverage_summary",
+          "audit_tb_evidence"
+        ],
+        "reason": "[coverage] BLOCKED - coverage gaps or capability limits remain",
+        "status": "open"
+      }
+    },
+    {
+      "activeForm": "Record coverage limitations instead of approving unsupported proof",
+      "approval_policy": "evidence_required",
+      "content": "Record coverage limitations instead of approving unsupported proof",
+      "criteria": "coverage.json limitations is empty for pass, or each limitation is surfaced in human_review_needed.",
+      "detail": "If a coverage adapter cannot prove a bin, keep the stage blocked or human_review_needed with limitations attached.",
+      "priority": "high",
+      "required_evidence": [
+        "gray_code_cx1/cov/coverage.json limitations"
+      ],
+      "source_id": "COV-0002",
+      "source_plan": "cov/coverage_todo_plan.json",
+      "status": "blocked",
+      "todo_completion": {
+        "evidence_basis": [
+          "gray_code_cx1/cov/coverage.json limitations",
+          "sim_evidence",
+          "ssot_coverage_summary",
+          "audit_tb_evidence"
+        ],
+        "reason": "[coverage] BLOCKED - coverage gaps or capability limits remain",
+        "status": "open"
+      }
+    }
+  ],
+  "ui_grouping": false
+}

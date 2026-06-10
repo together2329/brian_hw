@@ -1,0 +1,27 @@
+{
+  "ip": "counter8_cx1",
+  "requirements": [
+    {
+      "obligation_ids": [
+        "OBL_CNT8_RESET_001",
+        "OBL_CNT8_COUNT_001",
+        "OBL_CNT8_HOLD_001"
+      ],
+      "required": true,
+      "requirement_id": "REQ_CNT8_FUNC_001",
+      "statement": "The counter increments by 1 on each rising clock edge when en==1 and rst_n==1, holds when en==0, resets to 0 when rst_n==0, and wraps from 255 to 0.",
+      "status": "locked",
+      "title": "8-bit up-counter with sync reset and enable",
+      "source_refs": [
+        "yaml/counter8_cx1.ssot.yaml:function_model",
+        "verify/equivalence_goals.json:EQ_CNT8_RESET",
+        "verify/equivalence_goals.json:EQ_CNT8_COUNT",
+        "verify/equivalence_goals.json:EQ_CNT8_HOLD",
+        "verify/equivalence_goals.json:EQ_CNT8_WRAP",
+        "sim/scoreboard_events.jsonl"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "requirements_index"
+}

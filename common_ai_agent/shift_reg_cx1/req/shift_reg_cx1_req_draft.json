@@ -1,0 +1,218 @@
+{
+  "ip": "shift_reg_cx1",
+  "requirements": [
+    {
+      "requirement_id": "REQ_SR8_FUNC_001",
+      "title": "8-bit SIPO shift register with sync reset",
+      "statement": "The shift register shifts left by 1 on every rising clock edge when rst_n==1 (si enters at bit 0) and clears to 0 synchronously when rst_n==0.",
+      "required": true,
+      "obligation_refs": ["OBL_SR8_SHIFT_001", "OBL_SR8_RESET_001", "OBL_SR8_LINT_001"]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "OBL_SR8_SHIFT_001",
+      "requirement_refs": ["REQ_SR8_FUNC_001"],
+      "statement": "po shifts left each cycle with si entering at bit 0.",
+      "contract_refs": ["C_SR8_SHIFT"],
+      "structural_contract_refs": ["SC_SR8_PORTS"],
+      "behavioral_contract_refs": ["BC_SR8_SHIFT"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_SR8_RESET_001",
+      "requirement_refs": ["REQ_SR8_FUNC_001"],
+      "statement": "po clears to 0 synchronously when rst_n==0.",
+      "contract_refs": ["C_SR8_RESET"],
+      "structural_contract_refs": ["SC_SR8_PORTS"],
+      "behavioral_contract_refs": ["BC_SR8_RESET"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_SR8_LINT_001",
+      "requirement_refs": ["REQ_SR8_FUNC_001"],
+      "statement": "No inferred latches; po is a single-driver registered output.",
+      "contract_refs": ["C_SR8_LINT"],
+      "structural_contract_refs": ["SC_SR8_PORTS"],
+      "behavioral_contract_refs": ["BC_SR8_LINT"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ],
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_SR8_SHIFT",
+      "obligation_refs": ["OBL_SR8_SHIFT_001"],
+      "ssot_anchor": "function_model.transactions.TR_SHIFT",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/shift_reg_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_shift_reg_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_SR8_RESET",
+      "obligation_refs": ["OBL_SR8_RESET_001"],
+      "ssot_anchor": "function_model.transactions.TR_RESET",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/shift_reg_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_shift_reg_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_SR8_LINT",
+      "obligation_refs": ["OBL_SR8_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ],
+  "structural_contracts": {
+    "ip": "shift_reg_cx1",
+    "contracts": [
+      {
+        "id": "SC_SR8_PORTS",
+        "obligations": ["OBL_SR8_SHIFT_001", "OBL_SR8_RESET_001", "OBL_SR8_LINT_001"],
+        "signals": [
+          {"name": "clk",  "dir": "input",  "width": 1, "timing": {"kind": "clock"}},
+          {"name": "rst_n","dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "si",   "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "po",   "dir": "output", "width": 8, "timing": {"kind": "sync", "clock_domain": "main"}}
+        ],
+        "clock_domains": [
+          {"id": "main", "clock_signal": "clk"}
+        ],
+        "reset_domains": [
+          {"id": "sync_rst", "reset_signal": "rst_n", "clock_domain": "main"}
+        ],
+        "interfaces": [
+          {"id": "serial_iface", "signals": ["si", "po"], "clock_domain": "main"}
+        ]
+      }
+    ]
+  },
+  "behavioral_contracts": {
+    "ip": "shift_reg_cx1",
+    "contracts": [
+      {
+        "id": "BC_SR8_SHIFT",
+        "obligation_refs": ["OBL_SR8_SHIFT_001"],
+        "ssot_section": "function_model",
+        "transactions": [
+          {
+            "id": "TR_SHIFT",
+            "preconditions": ["rst_n == 1"],
+            "outputs": [{"name": "po", "expr": "((shift_reg << 1) | (si & 1)) & 0xFF"}],
+            "state_updates": [{"name": "shift_reg", "expr": "((shift_reg << 1) | (si & 1)) & 0xFF"}]
+          }
+        ],
+        "latency": {"shift_update": "1 clock cycle: po updates one rising clk after si sampled"},
+        "timing": "po registered on rising clk edge; si sampled every cycle when rst_n==1",
+        "ordering": "reset (rst_n==0) takes priority over shift in same cycle",
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/shift_reg_cx1.sv", "timing": "synchronous reset, 1-cycle latency"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_shift_reg_cx1.py", "timing": "si applied one cycle before expected po update"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "shift sequence matches FL expected", "latency": "1 clock cycle per shift"}
+        ]
+      },
+      {
+        "id": "BC_SR8_RESET",
+        "obligation_refs": ["OBL_SR8_RESET_001"],
+        "ssot_section": "function_model",
+        "transactions": [
+          {
+            "id": "TR_RESET",
+            "preconditions": ["rst_n == 0"],
+            "outputs": [{"name": "po", "expr": "0"}],
+            "state_updates": [{"name": "shift_reg", "expr": "0"}]
+          }
+        ],
+        "reset": "synchronous active-low; po clears to 0 on rising clk when rst_n==0",
+        "latency": {"reset_clear": "1 clock cycle: po==0 one rising clk after rst_n asserts"},
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/shift_reg_cx1.sv", "reset": "synchronous active-low"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_shift_reg_cx1.py", "reset": "drive rst_n=0 one cycle, check po==0 next cycle"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "po==0 one cycle after rst_n asserts", "latency": "1 cycle reset-to-clear"}
+        ]
+      },
+      {
+        "id": "BC_SR8_LINT",
+        "obligation_refs": ["OBL_SR8_LINT_001"],
+        "ssot_section": "coding_rules",
+        "invariants": [
+          "No inferred latches in shift_reg_cx1 RTL",
+          "po is registered; single driver"
+        ],
+        "timing": "po is a clocked register; no combinational loop or latch inference",
+        "cycle_model_waiver": "lint-only obligation; functional cycle model covered by BC_SR8_SHIFT and BC_SR8_RESET",
+        "stage_contracts": [
+          {"stage": "lint", "artifact": "lint/dut_lint.json", "pass_condition": "no latch findings", "timing": "registered output; no async path"}
+        ]
+      }
+    ]
+  },
+  "evidence_plan": [
+    {
+      "evidence_id": "E_SR8_SHIFT",
+      "contract_ref": "C_SR8_SHIFT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "observed shift sequence matches FL expected"
+    },
+    {
+      "evidence_id": "E_SR8_RESET",
+      "contract_ref": "C_SR8_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "po==0 observed one cycle after rst_n asserts"
+    },
+    {
+      "evidence_id": "E_SR8_LINT",
+      "contract_ref": "C_SR8_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch / no single-driver violations"
+    },
+    {
+      "evidence_id": "E_SR8_SC_PORTS",
+      "contract_ref": "SC_SR8_PORTS",
+      "artifact": "rtl/shift_reg_cx1.sv",
+      "validator": "check_tb_python_compile.py",
+      "pass_condition": "top ports clk rst_n si po present with correct widths"
+    },
+    {
+      "evidence_id": "E_SR8_BC_SHIFT",
+      "contract_ref": "BC_SR8_SHIFT",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "shift sequence matches BC_SR8_SHIFT TR_SHIFT expected"
+    },
+    {
+      "evidence_id": "E_SR8_BC_RESET",
+      "contract_ref": "BC_SR8_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "po==0 one cycle after rst_n asserts per BC_SR8_RESET"
+    },
+    {
+      "evidence_id": "E_SR8_BC_LINT",
+      "contract_ref": "BC_SR8_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch findings per BC_SR8_LINT"
+    }
+  ]
+}

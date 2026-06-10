@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "type": "obligations",
+  "ip": "edge_det_cx1",
+  "obligations": [
+    {
+      "obligation_id": "OBL_EDGE_SYNC_001",
+      "requirement_refs": ["REQ_EDGE_SYNC_001"],
+      "statement": "Two flip-flop synchronizer stages capture sig_in into sync1 then sync2 on every rising clk edge.",
+      "contract_refs": ["C_EDGE_SYNC"],
+      "structural_contract_refs": ["SC_EDGE_PORTS"],
+      "behavioral_contract_refs": ["BC_EDGE_SYNC"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_EDGE_RISE_001",
+      "requirement_refs": ["REQ_EDGE_RISE_001"],
+      "statement": "rise_out is combinationally driven as sync2 & ~prev_sync and pulses for exactly one cycle on each rising edge.",
+      "contract_refs": ["C_EDGE_RISE"],
+      "structural_contract_refs": ["SC_EDGE_PORTS"],
+      "behavioral_contract_refs": ["BC_EDGE_SYNC"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_EDGE_FALL_001",
+      "requirement_refs": ["REQ_EDGE_FALL_001"],
+      "statement": "fall_out is combinationally driven as ~sync2 & prev_sync and pulses for exactly one cycle on each falling edge.",
+      "contract_refs": ["C_EDGE_FALL"],
+      "structural_contract_refs": ["SC_EDGE_PORTS"],
+      "behavioral_contract_refs": ["BC_EDGE_SYNC"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_EDGE_RESET_001",
+      "requirement_refs": ["REQ_EDGE_RESET_001"],
+      "statement": "All FFs clear to 0 on rst_n=0; rise_out and fall_out are both 0 during reset.",
+      "contract_refs": ["C_EDGE_RESET"],
+      "structural_contract_refs": ["SC_EDGE_PORTS"],
+      "behavioral_contract_refs": ["BC_EDGE_SYNC"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_EDGE_LINT_001",
+      "requirement_refs": ["REQ_EDGE_SYNC_001", "REQ_EDGE_RISE_001", "REQ_EDGE_FALL_001", "REQ_EDGE_RESET_001"],
+      "statement": "RTL must have no inferred latches and a single driver per register.",
+      "contract_refs": ["C_EDGE_LINT"],
+      "structural_contract_refs": ["SC_EDGE_PORTS"],
+      "behavioral_contract_refs": ["BC_EDGE_SYNC"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ]
+}

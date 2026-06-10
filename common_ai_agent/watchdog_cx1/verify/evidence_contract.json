@@ -1,0 +1,97 @@
+{
+  "ip": "watchdog_cx1",
+  "schema_version": 1,
+  "type": "evidence_contract",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "source": "rocev-chain-cx1",
+  "obligations": [
+    {
+      "obligation_id": "OBL_WDT_TICK_001",
+      "requirement_ids": ["REQ_WDT_FUNC_001"],
+      "claim": "Counter decrements by 1 each enabled PCLK cycle; FL model matches RTL.",
+      "contract_refs": ["BC_WDT_TICK"],
+      "scenario_ids": ["SC_TICK_0", "SC_TICK_1", "SC_TICK_2", "SC_TICK_3"],
+      "required_observables": ["timeout_pulse"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_WDT_TICK"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "tick_scoreboard_rows_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_WDT_TIMEOUT_001",
+      "requirement_ids": ["REQ_WDT_FUNC_001"],
+      "claim": "timeout_pulse=1 for exactly 1 cycle when count_q==1; auto-reloads from period.",
+      "contract_refs": ["BC_WDT_TIMEOUT"],
+      "scenario_ids": ["SC_TIMEOUT_0", "SC_TIMEOUT_1", "SC_TIMEOUT_2", "SC_TIMEOUT_3"],
+      "required_observables": ["timeout_pulse"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_WDT_TIMEOUT"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "timeout_scoreboard_rows_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_WDT_IDLE_001",
+      "requirement_ids": ["REQ_WDT_FUNC_001"],
+      "claim": "Counter frozen and timeout_pulse=0 when CTRL.enable==0.",
+      "contract_refs": ["BC_WDT_IDLE"],
+      "scenario_ids": ["SC_IDLE_0", "SC_IDLE_1", "SC_IDLE_2"],
+      "required_observables": ["timeout_pulse"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_WDT_IDLE"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "idle_scoreboard_rows_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_WDT_KICK_001",
+      "requirement_ids": ["REQ_WDT_FUNC_001"],
+      "claim": "APB write to KICK register reloads counter from PERIOD; timeout_pulse=0 on kick cycle.",
+      "contract_refs": ["BC_WDT_KICK"],
+      "scenario_ids": ["SC_KICK"],
+      "required_observables": ["timeout_pulse"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_WDT_KICK", "scenario_id": "SC_KICK"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "kick_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    }
+  ]
+}

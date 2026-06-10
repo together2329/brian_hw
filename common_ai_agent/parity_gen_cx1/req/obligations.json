@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "type": "obligations",
+  "ip": "parity_gen_cx1",
+  "obligations": [
+    {
+      "obligation_id": "OBL_PAR_EVEN_001",
+      "requirement_refs": ["REQ_PAR_EVEN_001"],
+      "contract_refs": ["C_PAR_EVEN"],
+      "statement": "even_par = ^data_in observed combinationally for all 256 possible data_in values.",
+      "closure_stage": "sim",
+      "owned_by_stage": "sim",
+      "required_stages": ["rtl", "tb", "sim"],
+      "granularity": "content",
+      "failure_owner": "rtl-gen",
+      "structural_contract_refs": ["SC_PAR_PORTS"],
+      "behavioral_contract_refs": ["BC_PAR_FUNC"]
+    },
+    {
+      "obligation_id": "OBL_PAR_ODD_001",
+      "requirement_refs": ["REQ_PAR_ODD_001"],
+      "contract_refs": ["C_PAR_ODD"],
+      "statement": "odd_par = ~even_par = ~^data_in observed combinationally.",
+      "closure_stage": "sim",
+      "owned_by_stage": "sim",
+      "required_stages": ["rtl", "tb", "sim"],
+      "granularity": "content",
+      "failure_owner": "rtl-gen",
+      "structural_contract_refs": ["SC_PAR_PORTS"],
+      "behavioral_contract_refs": ["BC_PAR_FUNC"]
+    },
+    {
+      "obligation_id": "OBL_PAR_REG_001",
+      "requirement_refs": ["REQ_PAR_REG_001"],
+      "contract_refs": ["C_PAR_REG"],
+      "statement": "par_reg equals even_par from the previous clock cycle (1-cycle registered output).",
+      "closure_stage": "sim",
+      "owned_by_stage": "sim",
+      "required_stages": ["rtl", "tb", "sim"],
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen",
+      "structural_contract_refs": ["SC_PAR_PORTS"],
+      "behavioral_contract_refs": ["BC_PAR_FUNC"]
+    },
+    {
+      "obligation_id": "OBL_PAR_RESET_001",
+      "requirement_refs": ["REQ_PAR_RESET_001"],
+      "contract_refs": ["C_PAR_RESET"],
+      "statement": "par_reg=0 while rst_n=0 and for 1 cycle after rst_n=1.",
+      "closure_stage": "sim",
+      "owned_by_stage": "sim",
+      "required_stages": ["rtl", "tb", "sim"],
+      "granularity": "structural",
+      "failure_owner": "rtl-gen",
+      "structural_contract_refs": ["SC_PAR_PORTS"],
+      "behavioral_contract_refs": ["BC_PAR_FUNC"]
+    },
+    {
+      "obligation_id": "OBL_PAR_LINT_001",
+      "requirement_refs": ["REQ_PAR_EVEN_001"],
+      "contract_refs": ["C_PAR_LINT"],
+      "statement": "No inferred latches; single driver per output.",
+      "closure_stage": "lint",
+      "owned_by_stage": "lint",
+      "required_stages": ["rtl"],
+      "granularity": "structural",
+      "failure_owner": "rtl-gen",
+      "structural_contract_refs": ["SC_PAR_PORTS"],
+      "behavioral_contract_refs": []
+    }
+  ]
+}

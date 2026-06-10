@@ -1,0 +1,573 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "fifo_sync_cx1",
+  "source": "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml",
+  "units": [
+    {
+      "name": "fifo_sync_cx1",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "function_model",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "rtl_candidates": [
+        "fifo_sync_cx1"
+      ],
+      "rtl_file": "rtl/fifo_sync_cx1.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.rd_en_empty",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.wr_en_full",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.count_full_empty",
+        "cycle_model.pipeline.read_rd_en",
+        "cycle_model.pipeline.write_wr_en",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "features",
+        "features.empty_flag",
+        "features.fifo_read",
+        "features.fifo_write",
+        "features.full_flag",
+        "features.lint_clean",
+        "features.reset_behavior",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables",
+        "function_model.state_variables.count",
+        "function_model.state_variables.head_data",
+        "function_model.state_variables.rd_ptr",
+        "function_model.state_variables.wr_ptr",
+        "function_model.transactions.FM_READ",
+        "function_model.transactions.FM_WRITE",
+        "function_model.transactions.fm_read",
+        "function_model.transactions.fm_read.output_rules.empty",
+        "function_model.transactions.fm_read.output_rules.full",
+        "function_model.transactions.fm_read.output_rules.rd_data",
+        "function_model.transactions.fm_read.outputs.output_0",
+        "function_model.transactions.fm_read.outputs.output_1",
+        "function_model.transactions.fm_read.outputs.output_2",
+        "function_model.transactions.fm_read.preconditions.precondition_0",
+        "function_model.transactions.fm_read.preconditions.precondition_1",
+        "function_model.transactions.fm_read.preconditions.precondition_2",
+        "function_model.transactions.fm_read.state_updates.count",
+        "function_model.transactions.fm_read.state_updates.rd_ptr",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.output_rules.empty",
+        "function_model.transactions.fm_write.output_rules.full",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.outputs.output_1",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.state_updates.count",
+        "function_model.transactions.fm_write.state_updates.head_data",
+        "function_model.transactions.fm_write.state_updates.wr_ptr",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.count",
+        "function_model.state_variables.head_data",
+        "function_model.state_variables.rd_ptr",
+        "function_model.state_variables.wr_ptr",
+        "function_model.transactions.fm_read",
+        "function_model.transactions.fm_read.output_rules.empty",
+        "function_model.transactions.fm_read.output_rules.full",
+        "function_model.transactions.fm_read.output_rules.rd_data",
+        "function_model.transactions.fm_read.outputs.output_0",
+        "function_model.transactions.fm_read.outputs.output_1",
+        "function_model.transactions.fm_read.outputs.output_2",
+        "function_model.transactions.fm_read.preconditions.precondition_0",
+        "function_model.transactions.fm_read.preconditions.precondition_1",
+        "function_model.transactions.fm_read.preconditions.precondition_2",
+        "function_model.transactions.fm_read.state_updates.count",
+        "function_model.transactions.fm_read.state_updates.rd_ptr",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.output_rules.empty",
+        "function_model.transactions.fm_write.output_rules.full",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.outputs.output_1",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.state_updates.count",
+        "function_model.transactions.fm_write.state_updates.head_data",
+        "function_model.transactions.fm_write.state_updates.wr_ptr"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.rd_en_empty",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.wr_en_full",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.count_full_empty",
+        "cycle_model.pipeline.read_rd_en",
+        "cycle_model.pipeline.write_wr_en",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.empty_flag",
+        "features.fifo_read",
+        "features.fifo_write",
+        "features.full_flag",
+        "features.lint_clean",
+        "features.reset_behavior"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "fifo_sync_cx1_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "fifo_sync_cx1_axi_slv",
+        "fifo_sync_cx1_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "fifo_sync_cx1_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "fifo_sync_cx1_core",
+        "fifo_sync_cx1_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "fifo_sync_cx1",
+      "kind": "rtl_module",
+      "rtl_module": "fifo_sync_cx1",
+      "rtl_file": "rtl/fifo_sync_cx1.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "function_model",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.rd_en_empty",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.wr_en_full",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.count_full_empty",
+        "cycle_model.pipeline.read_rd_en",
+        "cycle_model.pipeline.write_wr_en",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "features",
+        "features.empty_flag",
+        "features.fifo_read",
+        "features.fifo_write",
+        "features.full_flag",
+        "features.lint_clean",
+        "features.reset_behavior",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables",
+        "function_model.state_variables.count",
+        "function_model.state_variables.head_data",
+        "function_model.state_variables.rd_ptr",
+        "function_model.state_variables.wr_ptr",
+        "function_model.transactions.FM_READ",
+        "function_model.transactions.FM_WRITE",
+        "function_model.transactions.fm_read",
+        "function_model.transactions.fm_read.output_rules.empty",
+        "function_model.transactions.fm_read.output_rules.full",
+        "function_model.transactions.fm_read.output_rules.rd_data",
+        "function_model.transactions.fm_read.outputs.output_0",
+        "function_model.transactions.fm_read.outputs.output_1",
+        "function_model.transactions.fm_read.outputs.output_2",
+        "function_model.transactions.fm_read.preconditions.precondition_0",
+        "function_model.transactions.fm_read.preconditions.precondition_1",
+        "function_model.transactions.fm_read.preconditions.precondition_2",
+        "function_model.transactions.fm_read.state_updates.count",
+        "function_model.transactions.fm_read.state_updates.rd_ptr",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.output_rules.empty",
+        "function_model.transactions.fm_write.output_rules.full",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.outputs.output_1",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.state_updates.count",
+        "function_model.transactions.fm_write.state_updates.head_data",
+        "function_model.transactions.fm_write.state_updates.wr_ptr",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.count",
+        "function_model.state_variables.head_data",
+        "function_model.state_variables.rd_ptr",
+        "function_model.state_variables.wr_ptr",
+        "function_model.transactions.fm_read",
+        "function_model.transactions.fm_read.output_rules.empty",
+        "function_model.transactions.fm_read.output_rules.full",
+        "function_model.transactions.fm_read.output_rules.rd_data",
+        "function_model.transactions.fm_read.outputs.output_0",
+        "function_model.transactions.fm_read.outputs.output_1",
+        "function_model.transactions.fm_read.outputs.output_2",
+        "function_model.transactions.fm_read.preconditions.precondition_0",
+        "function_model.transactions.fm_read.preconditions.precondition_1",
+        "function_model.transactions.fm_read.preconditions.precondition_2",
+        "function_model.transactions.fm_read.state_updates.count",
+        "function_model.transactions.fm_read.state_updates.rd_ptr",
+        "function_model.transactions.fm_write",
+        "function_model.transactions.fm_write.output_rules.empty",
+        "function_model.transactions.fm_write.output_rules.full",
+        "function_model.transactions.fm_write.outputs.output_0",
+        "function_model.transactions.fm_write.outputs.output_1",
+        "function_model.transactions.fm_write.preconditions.precondition_0",
+        "function_model.transactions.fm_write.preconditions.precondition_1",
+        "function_model.transactions.fm_write.preconditions.precondition_2",
+        "function_model.transactions.fm_write.state_updates.count",
+        "function_model.transactions.fm_write.state_updates.head_data",
+        "function_model.transactions.fm_write.state_updates.wr_ptr"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.rd_en_empty",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.wr_en_full",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.count_full_empty",
+        "cycle_model.pipeline.read_rd_en",
+        "cycle_model.pipeline.write_wr_en",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.empty_flag",
+        "features.fifo_read",
+        "features.fifo_write",
+        "features.full_flag",
+        "features.lint_clean",
+        "features.reset_behavior"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.count",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.wr_ptr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.rd_ptr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.head_data",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.preconditions.precondition_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.preconditions.precondition_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.outputs.output_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.output_rules.full",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.output_rules.empty",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.state_updates.count",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.state_updates.wr_ptr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_write.state_updates.head_data",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.preconditions.precondition_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.preconditions.precondition_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.outputs.output_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.outputs.output_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.output_rules.rd_data",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.output_rules.full",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.output_rules.empty",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.state_updates.count",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_read.state_updates.rd_ptr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.wr_en_full",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.rd_en_empty",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.reset_clear",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.write_wr_en",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.read_rd_en",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.count_full_empty",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "features.fifo_write",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.fifo_read",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.full_flag",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.empty_flag",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.reset_behavior",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.lint_clean",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 40,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "fifo_sync_cx1/req/",
+      "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml",
+      "fifo_sync_cx1/model/functional_model.py",
+      "fifo_sync_cx1/cov/fcov_plan.json",
+      "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml#io_list",
+      "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "fifo_sync_cx1/rtl/",
+      "fifo_sync_cx1/tb/",
+      "fifo_sync_cx1/sim/",
+      "fifo_sync_cx1/vectors/",
+      "fifo_sync_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

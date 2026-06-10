@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "type": "obligations",
+  "ip": "debounce_cx1",
+  "obligations": [
+    {
+      "obligation_id": "OBL_DEB_STABLE_001",
+      "requirement_refs": ["REQ_DEB_STABLE_001"],
+      "statement": "Stability counter increments each rising clk edge when btn_in == last sampled value, when rst_n=1.",
+      "contract_refs": ["C_DEB_STABLE"],
+      "structural_contract_refs": ["SC_DEB_PORTS"],
+      "behavioral_contract_refs": ["BC_DEB_STABLE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_DEB_BOUNCE_001",
+      "requirement_refs": ["REQ_DEB_BOUNCE_001"],
+      "statement": "Stability counter resets to 0 when btn_in != last sampled value on rising clk edge.",
+      "contract_refs": ["C_DEB_BOUNCE"],
+      "structural_contract_refs": ["SC_DEB_PORTS"],
+      "behavioral_contract_refs": ["BC_DEB_BOUNCE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_DEB_OUTPUT_001",
+      "requirement_refs": ["REQ_DEB_OUTPUT_001"],
+      "statement": "db_out updates to btn_in when stability counter reaches THRESH consecutive stable cycles.",
+      "contract_refs": ["C_DEB_OUTPUT"],
+      "structural_contract_refs": ["SC_DEB_PORTS"],
+      "behavioral_contract_refs": ["BC_DEB_STABLE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "content",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_DEB_RESET_001",
+      "requirement_refs": ["REQ_DEB_RESET_001"],
+      "statement": "Stability counter, last-sample register, and db_out clear to 0 on rst_n=0.",
+      "contract_refs": ["C_DEB_RESET"],
+      "structural_contract_refs": ["SC_DEB_PORTS"],
+      "behavioral_contract_refs": ["BC_DEB_RESET"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_DEB_LINT_001",
+      "requirement_refs": ["REQ_DEB_STABLE_001", "REQ_DEB_BOUNCE_001", "REQ_DEB_OUTPUT_001", "REQ_DEB_RESET_001"],
+      "statement": "RTL must have no inferred latches and a single driver per register.",
+      "contract_refs": ["C_DEB_LINT"],
+      "structural_contract_refs": ["SC_DEB_PORTS"],
+      "behavioral_contract_refs": ["BC_DEB_LINT"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ]
+}

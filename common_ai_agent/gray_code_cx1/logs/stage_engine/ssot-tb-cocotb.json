@@ -1,0 +1,3002 @@
+{
+  "artifacts": [
+    "gray_code_cx1/tb/cocotb/test_gray_code_cx1.py",
+    "gray_code_cx1/tb/cocotb/test_runner.py",
+    "gray_code_cx1/tb/cocotb/tb_manifest.json",
+    "gray_code_cx1/tb/cocotb/tb_generation.json",
+    "gray_code_cx1/tb/tb_todo_plan.json",
+    "gray_code_cx1/tb/tb_todo_tracker.json",
+    "gray_code_cx1/tb/tb_traceability.json",
+    "gray_code_cx1/sim/scoreboard_events.jsonl after /sim",
+    "gray_code_cx1/cov/coverage.json after /sim",
+    "gray_code_cx1/tb/tb_todo_plan.json",
+    "gray_code_cx1/todo/tb_todo_tracker.json",
+    "gray_code_cx1/tb/tb_todo_tracker.json"
+  ],
+  "blocker": "",
+  "created_at": "2026-06-10T14:50:04Z",
+  "headline": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+  "ip": "gray_code_cx1",
+  "message": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard\nmodule: gray_code_cx1\nsource: gray_code_cx1/yaml/gray_code_cx1.ssot.yaml\ndynamic_todos: gray_code_cx1/tb/tb_todo_plan.json\ngenerator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py\nvalidator: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py\n\nruns:\n- contract_authority_gate: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/check_contract_bundle.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[check_contract_bundle] PASS gray_code_cx1: mode=locked requirements=1 obligations=4 contract_refs=4 structural_contracts=1 behavioral_contracts=4 evidence=9 closed_contracts=9\n- derive_tb_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[derive_tb_todos] gray_code_cx1: tasks=51 blockers=0 authoring_open=43 validation_open=51 gate=planned\n- emit_goal_scoreboard_cocotb: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent\n  stdout:\n[emit_goal_scoreboard_cocotb] wrote 8 Python files for gray_code_cx1\n[emit_goal_scoreboard_cocotb] goals=11 rtl_sources=1\n[emit_goal_scoreboard_cocotb] runner=gray_code_cx1/tb/cocotb/test_runner.py\n- check_pyuvm_structure: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py gray_code_cx1\n  stdout:\n[check_scoreboard_events] PASS: goals=11 required=11 scoreboard_rows=0 goals_with_rows=0\n[check_pyuvm_structure] PASS: layered pyuvm/cocotb structure exists for gray_code_cx1\n- equivalence_scoreboard_self_check: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check\n  stdout:\n{\n  \"checked\": 11,\n  \"contract_gaps\": [],\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/gray_code_cx1/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-06-10T14:50:03Z\",\n  \"goals\": 11,\n  \"ip\": \"gray_code_cx1\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 11,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 2,\n        \"gray_out\": 3,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_THROUGHPUT\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 2,\n        \"gray_out\": 3,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_MODULE_GRAY_CODE_CX1\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 2,\n        \"gray_out\": 3,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_PROTOCOL_VALID_SAMPLE\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC01\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC02\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC03\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    }\n  ],\n  \"ssot_questions\": 0,\n  \"unsupported_transactions\": 0\n}\n- audit_tb_todos: exit 0\n  cmd: /Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-tb\n  stdout:\n[derive_tb_todos] gray_code_cx1: tasks=51 blockers=0 authoring_open=0 validation_open=8 gate=pass\n\nexpected artifacts:\n- gray_code_cx1/tb/cocotb/test_gray_code_cx1.py\n- gray_code_cx1/tb/cocotb/test_runner.py\n- gray_code_cx1/tb/cocotb/tb_manifest.json\n- gray_code_cx1/tb/cocotb/tb_generation.json\n- gray_code_cx1/tb/tb_todo_plan.json\n- gray_code_cx1/tb/tb_todo_tracker.json\n- gray_code_cx1/tb/tb_traceability.json\n- gray_code_cx1/sim/scoreboard_events.jsonl after /sim\n- gray_code_cx1/cov/coverage.json after /sim\n- gray_code_cx1/tb/tb_todo_plan.json\n- gray_code_cx1/todo/tb_todo_tracker.json\n- gray_code_cx1/tb/tb_todo_tracker.json\n\nnext: run /sim, /coverage, and derive_tb_todos.py --audit-evidence to close contract validation evidence.",
+  "metadata": {
+    "tb_todo_plan": {
+      "blockers": [],
+      "gate": {
+        "advisory_findings": 0,
+        "all_required_todos_pass": false,
+        "audit_evidence": false,
+        "audit_tb": true,
+        "authoring_open_todos": 0,
+        "blocking_questions": 0,
+        "plan_sha256": "c669c570f52eeb6415830069de0e7bc224a82effc5103341d449c97164da3434",
+        "relaxed_mode": true,
+        "status": "pass",
+        "validation_open_todos": 8
+      },
+      "generated_at": "2026-06-10T14:50:03Z",
+      "ip": "gray_code_cx1",
+      "locked_truth_contracts": {
+        "behavioral_contract_ids": [
+          "BC_GC_DECODE",
+          "BC_GC_ENCODE",
+          "BC_GC_LINT",
+          "BC_GC_RESET"
+        ],
+        "load_issues": [],
+        "present": {
+          "behavioral_contracts": true,
+          "structural_contracts": true
+        },
+        "structural_contract_ids": [
+          "SC_GC_PORTS"
+        ]
+      },
+      "policy": {
+        "authority_rule": "Expected behavior comes from locked req contracts plus SSOT Function/Cycle model; RTL is DUT structure only.",
+        "timing_rule": "Structural signal timing.kind/clock_domain/sync_to drives TB driver/monitor synchronization when present.",
+        "validation_rule": "TB authoring PASS requires --audit-tb; contract validation closure requires --audit-evidence after sim and coverage.",
+        "visible_todo_rule": "Expose one visible gen-tb TODO while preserving every per-contract validation row in tb/tb_todo_plan.json."
+      },
+      "schema_version": 1,
+      "source": "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml",
+      "summary": {
+        "blocking_questions": 0,
+        "by_category": {
+          "contract.behavioral.coverage": 4,
+          "contract.behavioral.scoreboard": 4,
+          "contract.behavioral.stimulus": 4,
+          "contract.structural.signal": 8,
+          "cycle_model.monitor": 6,
+          "equivalence.goal_scoreboard": 11,
+          "function_model.scoreboard": 3,
+          "tb_flow.seed": 1,
+          "tb_gate.tb_gen": 7,
+          "test_requirements.scenario": 3
+        },
+        "by_phase": {
+          "authoring": 43,
+          "evidence": 8
+        },
+        "equivalence_goals": 11,
+        "locked_truth_behavioral_contracts": 4,
+        "locked_truth_structural_contracts": 1,
+        "required_tasks": 51,
+        "total_tasks": 51
+      },
+      "tasks": [
+        {
+          "category": "tb_flow.seed",
+          "content": "Read SSOT and build dynamic TB validation ledger",
+          "criteria": [
+            "tb_todo_plan.json was regenerated from the current SSOT and locked contracts",
+            "Each structural/behavioral contract maps to TB authoring or evidence responsibilities",
+            "No expected behavior is inferred from RTL observations"
+          ],
+          "detail": "Use tb_todo_plan.json as the verification checklist. Fixed templates are generator helpers only, not authority.",
+          "id": "TB-0001",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "top_module",
+          "ssot_context": {
+            "ip": "gray_code_cx1",
+            "top": "gray_code_cx1"
+          },
+          "ssot_refs": [
+            "top_module"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "top_module",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: TB authority inputs are present and contract-owned",
+          "criteria": [
+            "SSOT YAML is present",
+            "function_model, cycle_model, and test_requirements are present or an SSOT blocker is emitted",
+            "verify/equivalence_goals.json and rtl/rtl_contract.json exist before generated scoreboard approval",
+            "Locked behavioral/structural contract files are loaded directly when present"
+          ],
+          "detail": "TB generation must derive stimulus and expected behavior from locked req contracts, SSOT Function/Cycle models, equivalence goals, and the RTL contract.",
+          "gate_todo": {
+            "kind": "authority_inputs",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0002",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.authority_inputs",
+          "ssot_context": {
+            "gate_check": "authority_inputs"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.authority_inputs"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.authority_inputs",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: generated cocotb/pyuvm TB artifacts are present",
+          "criteria": [
+            "test_<ip>.py, test_runner.py, transactions.py, sequences.py, agents.py, scoreboard.py, tb_coverage.py, and uvm_env.py exist",
+            "tb_manifest.json top matches SSOT top_module.name",
+            "tb_generation.json reports status=pass"
+          ],
+          "detail": "Generated TB must contain the layered files, manifest, and generation report expected by the common TB flow.",
+          "gate_todo": {
+            "kind": "tb_artifacts",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0003",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.generated_artifacts",
+          "ssot_context": {
+            "gate_check": "tb_artifacts"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.generated_artifacts"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.generated_artifacts",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: common equivalence scoreboard contract is loadable",
+          "criteria": [
+            "workflow/tb-gen/runtime/equivalence_scoreboard.py --self-check passes",
+            "Generated scoreboard.py imports or wraps EquivalenceScoreboard",
+            "scoreboard rows are configured from verify/equivalence_goals.json"
+          ],
+          "detail": "The generated TB must preserve EquivalenceScoreboard as the expected-behavior adapter instead of copying observed RTL behavior.",
+          "gate_todo": {
+            "kind": "scoreboard_self_check",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0004",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.scoreboard_self_check",
+          "ssot_context": {
+            "gate_check": "scoreboard_self_check"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.scoreboard_self_check"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.scoreboard_self_check",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: simulation emits passing scoreboard events for required goals",
+          "criteria": [
+            "sim/scoreboard_events.jsonl exists",
+            "At least one required unblocked goal has a passing scoreboard row",
+            "Rows contain goal_id, scenario_id, stimulus, fl_expected, rtl_observed, passed, and coverage_refs"
+          ],
+          "detail": "TB validation is not closed by file generation alone. Simulation must emit RTL-observed scoreboard rows carrying goal IDs and coverage refs.",
+          "gate_todo": {
+            "kind": "scoreboard_events",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0005",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.scoreboard_events",
+          "ssot_context": {
+            "gate_check": "scoreboard_events"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.scoreboard_events"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.scoreboard_events"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: TB evidence reaches functional/cycle coverage closure",
+          "criteria": [
+            "cov/coverage.json exists",
+            "coverage status is pass",
+            "rtl_observed coverage has no missing bins or invalid rows when reported"
+          ],
+          "detail": "Coverage evidence must come from generic coverage artifacts and passing scoreboard rows, not IP-specific parsers or weakened bins.",
+          "gate_todo": {
+            "kind": "coverage_closure",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0006",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.coverage_closure",
+          "ssot_context": {
+            "gate_check": "coverage_closure"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.coverage_closure"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.coverage_closure"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: every locked contract has TB validation evidence",
+          "criteria": [
+            "Behavioral contract stimulus and scoreboard rows are authored",
+            "Structural signals are mapped to driver/monitor responsibilities with timing/synchronization notes",
+            "Passing scoreboard or coverage evidence references the contract/goal aliases"
+          ],
+          "detail": "Each obligation-owned behavioral/structural contract must map to stimulus, observation, scoreboard/assertion, and coverage or carry an explicit human gate.",
+          "gate_todo": {
+            "kind": "contract_validation_closure",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0007",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+          "ssot_context": {
+            "gate_check": "contract_validation_closure"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.contract_validation_closure"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.contract_validation_closure"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "tb_gate.tb_gen",
+          "content": "Gate: every required tb_todo_plan item is closed",
+          "criteria": [
+            "open_required_todos is zero for the requested audit mode",
+            "all_required_todos_pass is true"
+          ],
+          "detail": "TB-gen PASS for validation evidence is forbidden until every required authoring and evidence ledger row has pass status.",
+          "gate_todo": {
+            "kind": "dynamic_todo_closure",
+            "stage": "tb-gen"
+          },
+          "id": "TB-0008",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+          "ssot_context": {
+            "gate_check": "dynamic_todo_closure"
+          },
+          "ssot_refs": [
+            "quality_gates.tb_gen.dynamic_todo_closure"
+          ],
+          "todo_completion": {
+            "criteria_total": 2,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "quality_gates.tb_gen.dynamic_todo_closure"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal clk into TB driver/monitor contract",
+          "criteria": [
+            "DUT port clk is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=clock, clock_domain=n/a"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0009",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.clk",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "kind": "clock"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "clk",
+              "timing": {
+                "kind": "clock"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.clk"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.clk",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal rst_n into TB driver/monitor contract",
+          "criteria": [
+            "DUT port rst_n is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0010",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.rst_n",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "rst_n",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.rst_n"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.rst_n",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal valid into TB driver/monitor contract",
+          "criteria": [
+            "DUT port valid is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0011",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.valid",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "valid",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.valid"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.valid",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal mode into TB driver/monitor contract",
+          "criteria": [
+            "DUT port mode is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0012",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.mode",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "mode",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 1
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.mode"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.mode",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal bin_in into TB driver/monitor contract",
+          "criteria": [
+            "DUT port bin_in is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0013",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.bin_in",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "bin_in",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 4
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.bin_in"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.bin_in",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal gray_in into TB driver/monitor contract",
+          "criteria": [
+            "DUT port gray_in is bound in tb_manifest.json",
+            "Driver responsibility exists for input/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0014",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.gray_in",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "input",
+              "name": "gray_in",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 4
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.gray_in"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.gray_in",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal gray_out into TB driver/monitor contract",
+          "criteria": [
+            "DUT port gray_out is bound in tb_manifest.json",
+            "Monitor observation exists for output/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0015",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.gray_out",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "output",
+              "name": "gray_out",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 4
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.gray_out"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.gray_out",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.structural.signal",
+          "content": "Map structural signal bin_out into TB driver/monitor contract",
+          "criteria": [
+            "DUT port bin_out is bound in tb_manifest.json",
+            "Monitor observation exists for output/inout signals",
+            "Signal width/direction follows the structural contract",
+            "Synchronization policy is recorded: kind=sync, clock_domain=main"
+          ],
+          "detail": "The TB must treat structural contract IO as executable driver/monitor responsibilities. Timing metadata records whether the signal is sync, async, reset, clock, or cross-domain.",
+          "id": "TB-0016",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.structural.SC_GC_PORTS.signals.bin_out",
+          "ssot_context": {
+            "contract_id": "SC_GC_PORTS",
+            "effective_timing": {
+              "clock_domain": "main",
+              "kind": "sync"
+            },
+            "signal": {
+              "dir": "output",
+              "name": "bin_out",
+              "timing": {
+                "clock_domain": "main",
+                "kind": "sync"
+              },
+              "width": 4
+            }
+          },
+          "ssot_refs": [
+            "contract.structural.SC_GC_PORTS.signals.bin_out"
+          ],
+          "todo_completion": {
+            "criteria_total": 4,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.structural.SC_GC_PORTS.signals.bin_out",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.stimulus",
+          "content": "Create TB stimulus for behavioral contract BC_GC_DECODE",
+          "criteria": [
+            "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+            "At least one generated scenario or equivalence goal exercises this contract",
+            "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+          ],
+          "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+          "id": "TB-0017",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_DECODE.stimulus",
+          "ssot_context": {
+            "contract_id": "BC_GC_DECODE",
+            "obligations": [
+              "OBL_GC_DECODE_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "features[1]",
+              "function_model.transactions[0]",
+              "function_model.transactions[0].output_rules[1]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "bin_out matches cascaded XOR of gray_in",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_DECODE.stimulus"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_DECODE.stimulus",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.scoreboard",
+          "content": "Bind behavioral contract BC_GC_DECODE to scoreboard expectation",
+          "criteria": [
+            "FunctionalModel or contract decision table is the expected-behavior source",
+            "Generated scoreboard event rows carry an equivalence goal or contract alias",
+            "Outputs/state updates from the contract are observable or explicitly blocked"
+          ],
+          "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+          "id": "TB-0018",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_DECODE.scoreboard",
+          "ssot_context": {
+            "contract_id": "BC_GC_DECODE",
+            "obligations": [
+              "OBL_GC_DECODE_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "features[1]",
+              "function_model.transactions[0]",
+              "function_model.transactions[0].output_rules[1]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "bin_out matches cascaded XOR of gray_in",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_DECODE.scoreboard"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_DECODE.scoreboard",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.coverage",
+          "content": "Close coverage evidence for behavioral contract BC_GC_DECODE",
+          "criteria": [
+            "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+            "Coverage refs for the scenario/bin are hit",
+            "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+          ],
+          "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+          "id": "TB-0019",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_DECODE.coverage",
+          "ssot_context": {
+            "contract_id": "BC_GC_DECODE",
+            "obligations": [
+              "OBL_GC_DECODE_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "features[1]",
+              "function_model.transactions[0]",
+              "function_model.transactions[0].output_rules[1]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "bin_out matches cascaded XOR of gray_in",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_DECODE.coverage"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_DECODE.coverage"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "contract.behavioral.stimulus",
+          "content": "Create TB stimulus for behavioral contract BC_GC_ENCODE",
+          "criteria": [
+            "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+            "At least one generated scenario or equivalence goal exercises this contract",
+            "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+          ],
+          "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+          "id": "TB-0020",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_ENCODE.stimulus",
+          "ssot_context": {
+            "contract_id": "BC_GC_ENCODE",
+            "obligations": [
+              "OBL_GC_ENCODE_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "features[0]",
+              "function_model.transactions[0]",
+              "function_model.transactions[0].output_rules[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "gray_out matches bin_in XOR (bin_in>>1) for all 16 inputs",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_ENCODE.stimulus"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_ENCODE.stimulus",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.scoreboard",
+          "content": "Bind behavioral contract BC_GC_ENCODE to scoreboard expectation",
+          "criteria": [
+            "FunctionalModel or contract decision table is the expected-behavior source",
+            "Generated scoreboard event rows carry an equivalence goal or contract alias",
+            "Outputs/state updates from the contract are observable or explicitly blocked"
+          ],
+          "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+          "id": "TB-0021",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_ENCODE.scoreboard",
+          "ssot_context": {
+            "contract_id": "BC_GC_ENCODE",
+            "obligations": [
+              "OBL_GC_ENCODE_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "features[0]",
+              "function_model.transactions[0]",
+              "function_model.transactions[0].output_rules[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "gray_out matches bin_in XOR (bin_in>>1) for all 16 inputs",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_ENCODE.scoreboard"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_ENCODE.scoreboard",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.coverage",
+          "content": "Close coverage evidence for behavioral contract BC_GC_ENCODE",
+          "criteria": [
+            "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+            "Coverage refs for the scenario/bin are hit",
+            "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+          ],
+          "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+          "id": "TB-0022",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_ENCODE.coverage",
+          "ssot_context": {
+            "contract_id": "BC_GC_ENCODE",
+            "obligations": [
+              "OBL_GC_ENCODE_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[0]",
+              "cycle_model.pipeline[0]",
+              "cycle_model.pipeline[1]",
+              "features[0]",
+              "function_model.transactions[0]",
+              "function_model.transactions[0].output_rules[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "gray_out matches bin_in XOR (bin_in>>1) for all 16 inputs",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_ENCODE.coverage"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_ENCODE.coverage"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "contract.behavioral.stimulus",
+          "content": "Create TB stimulus for behavioral contract BC_GC_LINT",
+          "criteria": [
+            "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+            "At least one generated scenario or equivalence goal exercises this contract",
+            "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+          ],
+          "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+          "id": "TB-0023",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_LINT.stimulus",
+          "ssot_context": {
+            "contract_id": "BC_GC_LINT",
+            "obligations": [
+              "OBL_GC_LINT_001"
+            ],
+            "projection_refs": [
+              "features[3]",
+              "function_model.rules[0]"
+            ],
+            "tb_stage_contracts": []
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_LINT.stimulus"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_LINT.stimulus",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.scoreboard",
+          "content": "Bind behavioral contract BC_GC_LINT to scoreboard expectation",
+          "criteria": [
+            "FunctionalModel or contract decision table is the expected-behavior source",
+            "Generated scoreboard event rows carry an equivalence goal or contract alias",
+            "Outputs/state updates from the contract are observable or explicitly blocked"
+          ],
+          "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+          "id": "TB-0024",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_LINT.scoreboard",
+          "ssot_context": {
+            "contract_id": "BC_GC_LINT",
+            "obligations": [
+              "OBL_GC_LINT_001"
+            ],
+            "projection_refs": [
+              "features[3]",
+              "function_model.rules[0]"
+            ],
+            "tb_stage_contracts": []
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_LINT.scoreboard"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_LINT.scoreboard",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.coverage",
+          "content": "Close coverage evidence for behavioral contract BC_GC_LINT",
+          "criteria": [
+            "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+            "Coverage refs for the scenario/bin are hit",
+            "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+          ],
+          "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+          "id": "TB-0025",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_LINT.coverage",
+          "ssot_context": {
+            "contract_id": "BC_GC_LINT",
+            "obligations": [
+              "OBL_GC_LINT_001"
+            ],
+            "projection_refs": [
+              "features[3]",
+              "function_model.rules[0]"
+            ],
+            "tb_stage_contracts": []
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_LINT.coverage"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_LINT.coverage"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "contract.behavioral.stimulus",
+          "content": "Create TB stimulus for behavioral contract BC_GC_RESET",
+          "criteria": [
+            "Stimulus fields are driven from function_model/test_requirements/contract inputs",
+            "At least one generated scenario or equivalence goal exercises this contract",
+            "Blocked or ambiguous stimulus is emitted as tb_blocked.json instead of guessed"
+          ],
+          "detail": "Generate sequence/scenario stimulus that exercises the contract decision table or transaction rule without deriving expected values from RTL.",
+          "id": "TB-0026",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_RESET.stimulus",
+          "ssot_context": {
+            "contract_id": "BC_GC_RESET",
+            "obligations": [
+              "OBL_GC_RESET_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[1]",
+              "features[2]",
+              "function_model.transactions[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "gray_out==0 and bin_out==0 during reset",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_RESET.stimulus"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_RESET.stimulus",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.scoreboard",
+          "content": "Bind behavioral contract BC_GC_RESET to scoreboard expectation",
+          "criteria": [
+            "FunctionalModel or contract decision table is the expected-behavior source",
+            "Generated scoreboard event rows carry an equivalence goal or contract alias",
+            "Outputs/state updates from the contract are observable or explicitly blocked"
+          ],
+          "detail": "Scoreboard expected behavior must trace to FunctionalModel/contract tables and must not mirror DUT observations.",
+          "id": "TB-0027",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_RESET.scoreboard",
+          "ssot_context": {
+            "contract_id": "BC_GC_RESET",
+            "obligations": [
+              "OBL_GC_RESET_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[1]",
+              "features[2]",
+              "function_model.transactions[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "gray_out==0 and bin_out==0 during reset",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_RESET.scoreboard"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_RESET.scoreboard",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "contract.behavioral.coverage",
+          "content": "Close coverage evidence for behavioral contract BC_GC_RESET",
+          "criteria": [
+            "Passing scoreboard row references this contract, its obligation, or an equivalence goal derived from it",
+            "Coverage refs for the scenario/bin are hit",
+            "Failures are routed to rtl-gen, tb-gen, ssot-gen, or human with evidence"
+          ],
+          "detail": "A behavioral contract is validated only after simulation produces passing scoreboard/coverage evidence for the exercised contract.",
+          "id": "TB-0028",
+          "phase": "evidence",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "contract.behavioral.BC_GC_RESET.coverage",
+          "ssot_context": {
+            "contract_id": "BC_GC_RESET",
+            "obligations": [
+              "OBL_GC_RESET_001"
+            ],
+            "projection_refs": [
+              "cycle_model.handshake_rules[1]",
+              "features[2]",
+              "function_model.transactions[0]"
+            ],
+            "tb_stage_contracts": [
+              {
+                "artifact": "tb/cocotb/test_gray_code_cx1.py",
+                "stage": "tb"
+              },
+              {
+                "artifact": "sim/scoreboard_events.jsonl",
+                "pass_condition": "gray_out==0 and bin_out==0 during reset",
+                "stage": "sim"
+              }
+            ]
+          },
+          "ssot_refs": [
+            "contract.behavioral.BC_GC_RESET.coverage"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "contract.behavioral.BC_GC_RESET.coverage"
+            ],
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "required": true,
+            "status": "planned"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model transactions.FM_PRIMARY into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0029",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.transactions.FM_PRIMARY",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_GC_ENCODE",
+              "BC_GC_DECODE",
+              "BC_GC_RESET"
+            ],
+            "id": "FM_PRIMARY",
+            "name": "primary_behavior",
+            "output_rules": [
+              {
+                "behavioral_contract_refs": [
+                  "BC_GC_ENCODE"
+                ],
+                "expr": "bin_in ^ (bin_in >> 1)",
+                "name": "gray_out",
+                "port": "gray_out",
+                "width": 4
+              },
+              {
+                "behavioral_contract_refs": [
+                  "BC_GC_DECODE"
+                ],
+                "expr": "gray_in ^ (gray_in >> 1) ^ (gray_in >> 2) ^ (gray_in >> 3)",
+                "name": "bin_out",
+                "port": "bin_out",
+                "width": 4
+              }
+            ],
+            "outputs": [
+              "gray_out",
+              "bin_out"
+            ],
+            "preconditions": [
+              "rst_n is deasserted",
+              "valid is high"
+            ],
+            "required_fields": [
+              "bin_in",
+              "gray_in"
+            ],
+            "side_effects": [],
+            "state_updates": []
+          },
+          "ssot_refs": [
+            "function_model.transactions.FM_PRIMARY"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.transactions.FM_PRIMARY",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model invariants.0 into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0030",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.invariants.0",
+          "ssot_context": {
+            "value": "gray_out is always the XOR-folded encoding of bin_in."
+          },
+          "ssot_refs": [
+            "function_model.invariants.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.invariants.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "function_model.scoreboard",
+          "content": "Map function_model invariants.1 into TB expected behavior",
+          "criteria": [
+            "Stimulus or observation covers the model row",
+            "Scoreboard expected data comes from FunctionalModel.apply or an equivalent model adapter",
+            "Generated scoreboard rows preserve the source goal/scenario ID"
+          ],
+          "detail": "The generated TB must use FunctionalModel as the reference adapter for this function-level behavior.",
+          "id": "TB-0031",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "function_model.invariants.1",
+          "ssot_context": {
+            "value": "bin_out is always the cascaded XOR decoding of gray_in."
+          },
+          "ssot_refs": [
+            "function_model.invariants.1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "function_model.invariants.1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model handshake_rules.valid_bin_gray into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0032",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.handshake_rules.valid_bin_gray",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_GC_ENCODE",
+              "BC_GC_DECODE"
+            ],
+            "condition": "valid is high; bin_in and gray_in sampled on rising clk.",
+            "name": "valid_bin_gray",
+            "signal": "valid"
+          },
+          "ssot_refs": [
+            "cycle_model.handshake_rules.valid_bin_gray"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.handshake_rules.valid_bin_gray",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model handshake_rules.reset_clear into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0033",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.handshake_rules.reset_clear",
+          "ssot_context": {
+            "behavioral_contract_refs": [
+              "BC_GC_RESET"
+            ],
+            "condition": "rst_n low clears gray_out and bin_out to 0 synchronously.",
+            "name": "reset_clear",
+            "signal": "rst_n"
+          },
+          "ssot_refs": [
+            "cycle_model.handshake_rules.reset_clear"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.handshake_rules.reset_clear",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model pipeline.item into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0034",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.pipeline.item",
+          "ssot_context": {
+            "action": "Sample bin_in and gray_in when valid is high.",
+            "behavioral_contract_refs": [
+              "BC_GC_ENCODE",
+              "BC_GC_DECODE"
+            ],
+            "cycle": 0,
+            "stage": "SAMPLE_BIN_GRAY"
+          },
+          "ssot_refs": [
+            "cycle_model.pipeline.item"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.pipeline.item",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model pipeline.item_1 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0035",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.pipeline.item_1",
+          "ssot_context": {
+            "action": "Drive registered gray_out and bin_out.",
+            "behavioral_contract_refs": [
+              "BC_GC_ENCODE",
+              "BC_GC_DECODE"
+            ],
+            "cycle": 1,
+            "stage": "DRIVE_GRAY_BIN"
+          },
+          "ssot_refs": [
+            "cycle_model.pipeline.item_1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.pipeline.item_1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model latency.0 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0036",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.latency.0",
+          "ssot_context": {
+            "value": 1
+          },
+          "ssot_refs": [
+            "cycle_model.latency.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.latency.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "cycle_model.monitor",
+          "content": "Map cycle_model ordering.0 into TB monitor/assertion",
+          "criteria": [
+            "Drive and sample points are synchronized to the declared clock/reset domain",
+            "Latency/ordering/backpressure rules become monitors, timeouts, or assertions",
+            "Missing CDC/latency facts are blocked instead of guessed"
+          ],
+          "detail": "Drivers, monitors, timeouts, and sampling must follow the SSOT cycle/handshake contract.",
+          "id": "TB-0037",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "cycle_model.ordering.0",
+          "ssot_context": {
+            "value": "Outputs appear one cycle after the accepted input."
+          },
+          "ssot_refs": [
+            "cycle_model.ordering.0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "cycle_model.ordering.0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC01",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0038",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC01",
+          "ssot_context": {
+            "checker": "Reset checker.",
+            "coverage": [
+              "function_model.reset"
+            ],
+            "expected": "gray_out and bin_out are 0 during reset.",
+            "id": "SC01",
+            "name": "reset contract",
+            "stimulus": "Assert and release rst_n; all outputs zero during reset."
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC01"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC01",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC02",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0039",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC02",
+          "ssot_context": {
+            "checker": "FL-vs-RTL scoreboard checks every output.",
+            "coverage": [
+              "function_model.transactions.FM_PRIMARY",
+              "features.bin_to_gray"
+            ],
+            "expected": "gray_out matches bin_in ^ (bin_in >> 1) one cycle later.",
+            "id": "SC02",
+            "name": "binary to gray encoding",
+            "stimulus": "Drive all 16 values of bin_in with valid=1."
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC02"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC02",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "test_requirements.scenario",
+          "content": "Create executable TB scenario SC03",
+          "criteria": [
+            "Scenario stimulus is represented by a sequence or bounded test",
+            "Expected result/checker comes from SSOT/FunctionalModel, not RTL",
+            "Scenario contributes scoreboard and/or coverage evidence"
+          ],
+          "detail": "Each SSOT scenario must become bounded executable stimulus with explicit expected/checker mapping.",
+          "id": "TB-0040",
+          "phase": "authoring",
+          "priority": "high",
+          "required": true,
+          "source_ref": "test_requirements.scenarios.SC03",
+          "ssot_context": {
+            "checker": "FL-vs-RTL scoreboard.",
+            "coverage": [
+              "features.gray_to_bin"
+            ],
+            "expected": "bin_out matches cascaded XOR decoding of gray_in.",
+            "id": "SC03",
+            "name": "gray to binary decoding",
+            "stimulus": "Drive all 16 values of gray_in with valid=1."
+          },
+          "ssot_refs": [
+            "test_requirements.scenarios.SC03"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "test_requirements.scenarios.SC03",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_TRANSACTION_FM_PRIMARY to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0041",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_TRANSACTION_FM_PRIMARY",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "function_primary_behavior"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/ordering must hold when applicable",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "gray_out",
+                "bin_out"
+              ],
+              "state_updates": [
+                "sample_count increments on each accepted transaction",
+                "sample_count"
+              ]
+            },
+            "goal_id": "EQ_TRANSACTION_FM_PRIMARY",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+              "RTL observed outputs equal FL expected outputs",
+              "RTL side effects match FL model state updates",
+              "Linked functional coverage bins are hit when stimulus executes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "function_model.transactions[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n is deasserted",
+                "valid is high"
+              ],
+              "required_fields": [
+                "kind",
+                "bin_in",
+                "gray_in"
+              ],
+              "transaction_id": "FM_PRIMARY",
+              "transaction_type": "primary_behavior"
+            },
+            "title": "Transaction primary_behavior matches FunctionalModel",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_TRANSACTION_FM_PRIMARY"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_TRANSACTION_FM_PRIMARY",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC01 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0042",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC01",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC01_executed"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1",
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "gray_out and bin_out are 0 during reset.",
+                "Scenario expected result from SSOT"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_SCENARIO_SC01",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "Assert and release rst_n; all outputs zero during reset."
+              ],
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_type": "SC01"
+            },
+            "title": "Scenario SC01: reset contract",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC01"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC01",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC02 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0043",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC02",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC02_executed"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1",
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "gray_out matches bin_in ^ (bin_in >> 1) one cycle later.",
+                "gray_out",
+                "bin_out"
+              ],
+              "state_updates": [
+                "sample_count increments on each accepted transaction",
+                "sample_count"
+              ]
+            },
+            "goal_id": "EQ_SCENARIO_SC02",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "Drive all 16 values of bin_in with valid=1.",
+                "rst_n is deasserted",
+                "valid is high"
+              ],
+              "required_fields": [
+                "scenario_id",
+                "kind",
+                "bin_in",
+                "gray_in"
+              ],
+              "transaction_id": "FM_PRIMARY",
+              "transaction_type": "primary_behavior"
+            },
+            "title": "Scenario SC02: binary to gray encoding",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC02"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC02",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_SCENARIO_SC03 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0044",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_SCENARIO_SC03",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "SC03_executed"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1",
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to the scenario",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "bin_out matches cascaded XOR decoding of gray_in.",
+                "Scenario expected result from SSOT"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_SCENARIO_SC03",
+            "kind": "transaction",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated sequence executes the SSOT stimulus",
+              "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+              "RTL observed result matches expected result",
+              "Scenario coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "test_requirements.scenarios[2]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "Drive all 16 values of gray_in with valid=1."
+              ],
+              "required_fields": [
+                "scenario_id",
+                "kind"
+              ],
+              "transaction_type": "SC03"
+            },
+            "title": "Scenario SC03: gray to binary decoding",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_SCENARIO_SC03"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_SCENARIO_SC03",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_PROTOCOL_VALID_SAMPLE to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0045",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_PROTOCOL_VALID_SAMPLE",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_valid_sample"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "1",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ready/valid/control observables named by SSOT and DUT ports"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_PROTOCOL_VALID_SAMPLE",
+            "kind": "protocol",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL holds payload/control stability according to cycle_model",
+              "Handshake completion timing matches cycle_model latency/ordering",
+              "Protocol coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.handshake_rules[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "bin_in and gray_in are sampled only when valid is high."
+              ],
+              "required_fields": [
+                "cycle",
+                "observed_signals"
+              ],
+              "transaction_type": "valid_sample"
+            },
+            "title": "Cycle/handshake rule valid_sample",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_PROTOCOL_VALID_SAMPLE"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_PROTOCOL_VALID_SAMPLE",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_TIMING_ORDERING_0 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0046",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_ordering_0"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "1",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "ordered RTL observable sequence"
+              ],
+              "state_updates": []
+            },
+            "goal_id": "EQ_TIMING_ORDERING_0",
+            "kind": "timing",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL response order matches cycle_model ordering",
+              "FL trace and RTL monitor trace preserve the same transaction order"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.ordering[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "Outputs appear one cycle after the accepted input."
+              ],
+              "required_fields": [
+                "cycle",
+                "transaction_order"
+              ],
+              "transaction_type": "ordering_0"
+            },
+            "title": "Ordering rule ordering_0",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_TIMING_ORDERING_0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_TIMING_ORDERING_0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0047",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_pipeline_s0_sample",
+              "cycle_pipeline_s1_out",
+              "fsm_control_s0_sample_to_s1_out_0",
+              "fsm_control_s1_out_to_s0_sample_1"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "next-state timing from cycle_model pipeline/latency",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "next state",
+                "state-dependent outputs"
+              ],
+              "state_updates": [
+                "control state"
+              ]
+            },
+            "goal_id": "EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0",
+            "kind": "state",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL state transition matches SSOT condition",
+              "FSM transition coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "fsm.control.transitions[0]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "valid"
+              ],
+              "required_fields": [
+                "pre_state",
+                "stimulus"
+              ],
+              "transaction_type": "control_S0_SAMPLE_to_S1_OUT_0"
+            },
+            "title": "FSM transition control: S0_SAMPLE -> S1_OUT",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0048",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_pipeline_s0_sample",
+              "cycle_pipeline_s1_out",
+              "fsm_control_s0_sample_to_s1_out_0",
+              "fsm_control_s1_out_to_s0_sample_1"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "next-state timing from cycle_model pipeline/latency",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "next state",
+                "state-dependent outputs"
+              ],
+              "state_updates": [
+                "control state"
+              ]
+            },
+            "goal_id": "EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1",
+            "kind": "state",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "RTL state transition matches SSOT condition",
+              "FSM transition coverage bin is hit"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "fsm.control.transitions[1]"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "next cycle"
+              ],
+              "required_fields": [
+                "pre_state",
+                "stimulus"
+              ],
+              "transaction_type": "control_S1_OUT_to_S0_SAMPLE_1"
+            },
+            "title": "FSM transition control: S1_OUT -> S0_SAMPLE",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_STATE_CONTROL_S1_OUT_TO_S0_SAMPLE_1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_MODULE_GRAY_CODE_CX1 to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0049",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_MODULE_GRAY_CODE_CX1",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [],
+            "decomposition_refs": [
+              "gray_code_cx1"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/ordering must hold at the module boundary",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "gray_out",
+                "bin_out"
+              ],
+              "state_updates": [
+                "sample_count increments on each accepted transaction",
+                "sample_count"
+              ]
+            },
+            "goal_id": "EQ_MODULE_GRAY_CODE_CX1",
+            "kind": "module",
+            "owner_on_fail": {
+              "default": "rtl",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "rtl",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+              "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+              "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+              "Record a scoreboard row for this module goal before top-level signoff"
+            ],
+            "scope": {
+              "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply",
+              "level": "module",
+              "rtl_file": "rtl/gray_code_cx1.sv",
+              "rtl_module": "gray_code_cx1"
+            },
+            "ssot_refs": [
+              "cycle_model",
+              "cycle_model.clock",
+              "cycle_model.handshake_rules.valid_sample",
+              "cycle_model.latency",
+              "cycle_model.ordering.ordering_0",
+              "cycle_model.pipeline",
+              "cycle_model.pipeline.s0_sample",
+              "cycle_model.pipeline.s1_out",
+              "cycle_model.reset",
+              "dataflow",
+              "dataflow.sequence",
+              "decomposition",
+              "features",
+              "features.bin_to_gray",
+              "features.gray_to_bin",
+              "function_model",
+              "function_model.invariants.invariant_0",
+              "function_model.invariants.invariant_1",
+              "function_model.state_variables",
+              "function_model.state_variables.sample_count",
+              "function_model.transactions.FM_PRIMARY",
+              "function_model.transactions.fm_primary",
+              "function_model.transactions.fm_primary.output_rules.bin_out",
+              "function_model.transactions.fm_primary.output_rules.gray_out",
+              "function_model.transactions.fm_primary.outputs.output_0",
+              "function_model.transactions.fm_primary.outputs.output_1",
+              "function_model.transactions.fm_primary.preconditions.precondition_0",
+              "function_model.transactions.fm_primary.preconditions.precondition_1",
+              "function_model.transactions.fm_primary.side_effects.side_effect_0",
+              "function_model.transactions.fm_primary.state_updates.sample_count",
+              "io_list",
+              "rtl_contract",
+              "test_requirements"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n is deasserted",
+                "valid is high",
+                "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+              ],
+              "required_fields": [
+                "kind",
+                "bin_in",
+                "gray_in"
+              ],
+              "transaction_id": "FM_PRIMARY",
+              "transaction_type": "primary_behavior"
+            },
+            "title": "Module gray_code_cx1 functionality equals FunctionalModel",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_MODULE_GRAY_CODE_CX1"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_MODULE_GRAY_CODE_CX1",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0050",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_perf_frequency_mhz"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1",
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "gray_out",
+                "bin_out"
+              ],
+              "state_updates": [
+                "sample_count increments on each accepted transaction",
+                "sample_count"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.performance.frequency_mhz"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n is deasserted",
+                "valid is high",
+                "100"
+              ],
+              "required_fields": [
+                "kind",
+                "bin_in",
+                "gray_in"
+              ],
+              "transaction_id": "FM_PRIMARY",
+              "transaction_type": "primary_behavior"
+            },
+            "title": "Functional coverage bin cycle_perf_frequency_mhz: 100",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        },
+        {
+          "category": "equivalence.goal_scoreboard",
+          "content": "Bind equivalence goal EQ_COVERAGE_CYCLE_PERF_THROUGHPUT to TB scoreboard",
+          "criteria": [
+            "Goal ID is emitted in sim/scoreboard_events.jsonl",
+            "Stimulus and expected contract trace to the SSOT Function/Cycle model",
+            "Module-scope goals observe real module-boundary RTL signals"
+          ],
+          "detail": "Each unblocked equivalence goal must produce scoreboard evidence or a precise blocker.",
+          "id": "TB-0051",
+          "phase": "authoring",
+          "priority": "critical",
+          "required": true,
+          "source_ref": "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+          "ssot_context": {
+            "blocked": false,
+            "blocker": "",
+            "coverage_refs": [
+              "cycle_perf_throughput"
+            ],
+            "decomposition_refs": [
+              "gray_code_cx1",
+              "gray_code_cx1_protocol_model",
+              "gray_code_cx1_datapath_model",
+              "gray_code_cx1_fsm_model"
+            ],
+            "expected_contract": {
+              "error_policy": "",
+              "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+              "model_api": "FunctionalModel.apply",
+              "observables": [
+                "gray_out",
+                "bin_out"
+              ],
+              "state_updates": [
+                "sample_count increments on each accepted transaction",
+                "sample_count"
+              ]
+            },
+            "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+            "kind": "coverage",
+            "owner_on_fail": {
+              "default": "coverage",
+              "possible": [
+                "ssot",
+                "fl_model",
+                "tb",
+                "coverage",
+                "human"
+              ]
+            },
+            "pass_criteria": [
+              "Generated stimulus executes an SSOT-derived behavior path",
+              "Scoreboard expected result comes from FunctionalModel.apply",
+              "Coverage collector samples this planned bin only after the scoreboard row passes"
+            ],
+            "scope": {
+              "level": "top"
+            },
+            "ssot_refs": [
+              "cycle_model.performance.throughput"
+            ],
+            "stimulus_contract": {
+              "constraints": [
+                "rst_n is deasserted",
+                "valid is high",
+                "{'sustained_beats_per_cycle': 1}"
+              ],
+              "required_fields": [
+                "kind",
+                "bin_in",
+                "gray_in"
+              ],
+              "transaction_id": "FM_PRIMARY",
+              "transaction_type": "primary_behavior"
+            },
+            "title": "Functional coverage bin cycle_perf_throughput: {'sustained_beats_per_cycle': 1}",
+            "unverified": false
+          },
+          "ssot_refs": [
+            "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+          ],
+          "todo_completion": {
+            "criteria_total": 3,
+            "evidence_basis": [
+              "tb/tb_todo_plan.json",
+              "verify.equivalence_goals.EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+              "tb/cocotb/tb_manifest.json"
+            ],
+            "phase": "authoring",
+            "reason": "TB authoring artifacts are present and structurally mapped.",
+            "required": true,
+            "status": "pass"
+          }
+        }
+      ],
+      "todo_completion": {
+        "all_required_todos_pass": false,
+        "audit_evidence": false,
+        "audit_tb": true,
+        "authoring_open_tasks": 0,
+        "authoring_required_tasks": 43,
+        "authoring_todos_pass": true,
+        "open_authoring": [],
+        "open_validation": [
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.scoreboard_events",
+            "task_id": "TB-0005"
+          },
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.coverage_closure",
+            "task_id": "TB-0006"
+          },
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.contract_validation_closure",
+            "task_id": "TB-0007"
+          },
+          {
+            "category": "tb_gate.tb_gen",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "quality_gates.tb_gen.dynamic_todo_closure",
+            "task_id": "TB-0008"
+          },
+          {
+            "category": "contract.behavioral.coverage",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "contract.behavioral.BC_GC_DECODE.coverage",
+            "task_id": "TB-0019"
+          },
+          {
+            "category": "contract.behavioral.coverage",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "contract.behavioral.BC_GC_ENCODE.coverage",
+            "task_id": "TB-0022"
+          },
+          {
+            "category": "contract.behavioral.coverage",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "contract.behavioral.BC_GC_LINT.coverage",
+            "task_id": "TB-0025"
+          },
+          {
+            "category": "contract.behavioral.coverage",
+            "phase": "evidence",
+            "reason": "Simulation/coverage evidence audit has not run yet.",
+            "source_ref": "contract.behavioral.BC_GC_RESET.coverage",
+            "task_id": "TB-0028"
+          }
+        ],
+        "rule": "tb-gen may claim authoring PASS after authoring rows close; contract validation PASS requires --audit-evidence after sim/coverage.",
+        "validation_open_tasks": 8,
+        "validation_required_tasks": 51
+      },
+      "top": "gray_code_cx1",
+      "type": "ssot_derived_tb_todo_plan"
+    }
+  },
+  "returncode": 0,
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/check_contract_bundle.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "contract_authority_gate",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_contract_bundle] PASS gray_code_cx1: mode=locked requirements=1 obligations=4 contract_refs=4 structural_contracts=1 behavioral_contracts=4 evidence=9 closed_contracts=9"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "derive_tb_todos",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[derive_tb_todos] gray_code_cx1: tasks=51 blockers=0 authoring_open=43 validation_open=51 gate=planned"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_goal_scoreboard_cocotb] wrote 8 Python files for gray_code_cx1\n[emit_goal_scoreboard_cocotb] goals=11 rtl_sources=1\n[emit_goal_scoreboard_cocotb] runner=gray_code_cx1/tb/cocotb/test_runner.py"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py gray_code_cx1",
+      "label": "check_pyuvm_structure",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_scoreboard_events] PASS: goals=11 required=11 scoreboard_rows=0 goals_with_rows=0\n[check_pyuvm_structure] PASS: layered pyuvm/cocotb structure exists for gray_code_cx1"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check",
+      "label": "equivalence_scoreboard_self_check",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\n  \"checked\": 11,\n  \"contract_gaps\": [],\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/gray_code_cx1/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-06-10T14:50:03Z\",\n  \"goals\": 11,\n  \"ip\": \"gray_code_cx1\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 11,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 2,\n        \"gray_out\": 3,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PERF_THROUGHPUT\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 2,\n        \"gray_out\": 3,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_MODULE_GRAY_CODE_CX1\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 2,\n        \"gray_out\": 3,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_PROTOCOL_VALID_SAMPLE\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC01\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC02\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC03\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_STATE_CONTROL_S0_SAMPLE_TO_S1_OUT_0\",\n      \"kind\": \"FM_PRIMARY\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"bin_out\": 7,\n        \"gray_out\": 2,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"transaction_id\": \"FM_PRIMARY\",\n        \"transaction_name\": \"primary_behavior\"\n      }\n    }\n  ],\n  \"ssot_questions\": 0,\n  \"unsupported_transactions\": 0\n}"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py gray_code_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-tb",
+      "label": "audit_tb_todos",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[derive_tb_todos] gray_code_cx1: tasks=51 blockers=0 authoring_open=0 validation_open=8 gate=pass"
+    }
+  ],
+  "stage": "ssot-tb-cocotb",
+  "status": "pass",
+  "workflow": "tb-gen"
+}

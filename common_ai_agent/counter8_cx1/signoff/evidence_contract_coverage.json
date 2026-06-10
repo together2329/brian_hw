@@ -1,0 +1,106 @@
+{
+  "generated_at": "2026-06-10T14:38:22Z",
+  "ip": "counter8_cx1",
+  "issues": [],
+  "obligations": [
+    {
+      "condition_results": {
+        "reset_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_CNT8_RESET",
+          "scenario_id": "SC_RESET"
+        }
+      ],
+      "obligation_id": "OBL_CNT8_RESET_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "count_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_0"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_1"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_2"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_3"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_4"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_5"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_6"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_7"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_8"
+        },
+        {
+          "goal_id": "EQ_CNT8_COUNT",
+          "scenario_id": "SC_COUNT_9"
+        },
+        {
+          "goal_id": "EQ_CNT8_WRAP",
+          "scenario_id": "SC_WRAP"
+        }
+      ],
+      "obligation_id": "OBL_CNT8_COUNT_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "hold_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_CNT8_HOLD",
+          "scenario_id": "SC_HOLD_0"
+        },
+        {
+          "goal_id": "EQ_CNT8_HOLD",
+          "scenario_id": "SC_HOLD_1"
+        },
+        {
+          "goal_id": "EQ_CNT8_HOLD",
+          "scenario_id": "SC_HOLD_2"
+        }
+      ],
+      "obligation_id": "OBL_CNT8_HOLD_001",
+      "status": "pass"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "failed": 0,
+    "index_issues": 0,
+    "passed": 3,
+    "total": 3
+  },
+  "type": "evidence_contract_coverage"
+}

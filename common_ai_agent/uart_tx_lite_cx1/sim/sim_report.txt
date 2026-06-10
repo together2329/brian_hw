@@ -1,0 +1,6 @@
+TESTS=1 PASS=1 FAIL=0
+results=uart_tx_lite_cx1/sim/results.xml
+scoreboard=uart_tx_lite_cx1/sim/scoreboard_events.jsonl
+coverage_functional=uart_tx_lite_cx1/cov/coverage_functional.json
+waveforms=uart_tx_lite_cx1/sim/uart_tx_lite_cx1.vcd
+0 errors, 0 warnings

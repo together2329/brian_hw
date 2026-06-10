@@ -1,0 +1,17 @@
+{
+  "description": "Auto-generated gen-tb TodoTracker: one visible TODO wraps the full TB contract/evidence ledger in tb/tb_todo_plan.json.",
+  "lock_additions": false,
+  "name": "edge_det_cx1-tb",
+  "source_plan": "tb/tb_todo_plan.json",
+  "source_task_count": 57,
+  "tasks": [
+    {
+      "activeForm": "Generating TB from SSOT contract ledger for edge_det_cx1",
+      "content": "[gen-tb] Generate TB from SSOT contract ledger for edge_det_cx1",
+      "criteria": "Read yaml/<ip>.ssot.yaml, req/*contracts.json when present, verify/equivalence_goals.json, rtl/rtl_contract.json, and tb/tb_todo_plan.json.\nGenerated pyuvm/cocotb TB maps structural IO timing/synchronization and behavioral contracts to drivers, monitors, scoreboard, and coverage.\nRun workflow/tb-gen/scripts/derive_tb_todos.py <ip> --root <project-root> --audit-tb after TB generation.\nRun workflow/tb-gen/scripts/derive_tb_todos.py <ip> --root <project-root> --audit-evidence after sim/coverage evidence exists.\ntb/tb_todo_plan.json gate.status is pass for the requested audit mode.\nAny failed contract/gate row routes back into this same gen-tb repair loop or emits tb_blocked.json.",
+      "detail": "Single visible UI TODO for 57 SSOT/contract-derived TB ledger item(s).\nInternal ledger: tb/tb_todo_plan.json.\nVisible tracker source: tb/tb_todo_tracker.json and todo/tb_todo_tracker.json.\nGenerate or repair TB only; SSOT, req contracts, FL/CL model, and RTL expected behavior remain locked.\nCurrent audit snapshot: gate=planned, authoring_open=52, validation_open=57.",
+      "priority": "high",
+      "status": "pending"
+    }
+  ]
+}

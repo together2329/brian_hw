@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_manifest",
+  "ip": "pwm_gen_cx1",
+  "top": "pwm_gen_cx1",
+  "generated_at": "2026-06-10T14:19:19Z",
+  "common_ai_agent_root": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+  "runtime_dir": "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime",
+  "ssot": "pwm_gen_cx1/yaml/pwm_gen_cx1.ssot.yaml",
+  "equivalence_goals": "pwm_gen_cx1/verify/equivalence_goals.json",
+  "rtl_contract": "pwm_gen_cx1/rtl/rtl_contract.json",
+  "rtl_contract_source": "ssot_fallback",
+  "clock": "clk",
+  "reset": "rst_n",
+  "reset_active": "low",
+  "latency_cycles": 1,
+  "parameters": {
+    "WIDTH": 8
+  },
+  "registers": {
+    "config": {
+      "register_width": 8,
+      "addr_width": 1,
+      "byte_addressable": false
+    },
+    "register_list": [
+      {
+        "name": "DUTY",
+        "offset": 0,
+        "access": "rw",
+        "index": 0
+      }
+    ]
+  },
+  "state_observables": [
+    "fl_duty",
+    "fl_ctr"
+  ],
+  "state_observable_aliases": {},
+  "rtl_signal_names": [
+    "clk",
+    "counter_q",
+    "duty_reg"
+  ],
+  "ports": [
+    {
+      "name": "clk",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "rst_n",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "duty_in",
+      "direction": "input",
+      "width": 8
+    },
+    {
+      "name": "wr_en",
+      "direction": "input",
+      "width": 1
+    },
+    {
+      "name": "pwm_out",
+      "direction": "output",
+      "width": 1
+    }
+  ],
+  "port_widths": {
+    "clk": 1,
+    "rst_n": 1,
+    "duty_in": 8,
+    "wr_en": 1,
+    "pwm_out": 1
+  },
+  "input_ports": [
+    "clk",
+    "duty_in",
+    "rst_n",
+    "wr_en"
+  ],
+  "output_ports": [
+    "pwm_out"
+  ],
+  "inout_ports": [],
+  "input_map": {
+    "duty_in": "duty_in",
+    "wr_en": "wr_en"
+  },
+  "sample_condition": "rst_n == 1",
+  "sample_inputs": [],
+  "outputs": [
+    {
+      "name": "pwm_out_rule",
+      "port": "pwm_out",
+      "width": 1
+    },
+    {
+      "name": "pwm_out",
+      "port": "pwm_out",
+      "width": 1
+    }
+  ],
+  "special_outputs": {},
+  "transaction_kind": "FM_WRITE",
+  "per_goal_reset": true,
+  "cl_cosim": true,
+  "rtl_sources": [
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/pwm_gen_cx1/rtl/pwm_gen_cx1.sv"
+  ],
+  "goal_count": 18,
+  "module_goal_count": 1,
+  "module_goals": [
+    {
+      "goal_id": "EQ_MODULE_PWM_GEN_CX1",
+      "rtl_module": "pwm_gen_cx1",
+      "rtl_file": "rtl/pwm_gen_cx1.sv"
+    }
+  ]
+}

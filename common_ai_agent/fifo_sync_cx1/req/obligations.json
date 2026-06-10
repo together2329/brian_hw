@@ -1,0 +1,130 @@
+{
+  "ip": "fifo_sync_cx1",
+  "obligations": [
+    {
+      "behavioral_contract_refs": [
+        "BC_FIFO_FLAGS"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_FIFO_FLAGS"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "count",
+      "obligation_id": "OBL_FIFO_FLAGS_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_FIFO_FUNC_001"
+      ],
+      "statement": "full asserts when count reaches 8; empty asserts when count is 0.",
+      "structural_contract_refs": [
+        "SC_FIFO_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_FIFO_LINT"
+      ],
+      "closure_stage": "lint",
+      "contract_refs": [
+        "C_FIFO_LINT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "structural",
+      "obligation_id": "OBL_FIFO_LINT_001",
+      "owned_by_stage": "lint",
+      "required_stages": [
+        "lint"
+      ],
+      "requirement_refs": [
+        "REQ_FIFO_FUNC_001"
+      ],
+      "statement": "No inferred latches; all state is registered.",
+      "structural_contract_refs": [
+        "SC_FIFO_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_FIFO_READ"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_FIFO_READ"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_FIFO_READ_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_FIFO_FUNC_001"
+      ],
+      "statement": "When rd_en is high and empty is low, rd_data presents the head entry and count decrements on the rising clock edge.",
+      "structural_contract_refs": [
+        "SC_FIFO_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_FIFO_RESET"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_FIFO_RESET"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_FIFO_RESET_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_FIFO_FUNC_001"
+      ],
+      "statement": "All FIFO state clears to reset values synchronously when rst_n is low.",
+      "structural_contract_refs": [
+        "SC_FIFO_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_FIFO_WRITE"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_FIFO_WRITE"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_FIFO_WRITE_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_FIFO_FUNC_001"
+      ],
+      "statement": "When wr_en is high and full is low, wr_data is stored and count increments on the rising clock edge.",
+      "structural_contract_refs": [
+        "SC_FIFO_PORTS"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "obligations"
+}

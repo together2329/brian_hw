@@ -1,0 +1,199 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_GC_DECODE",
+      "evidence_refs": [
+        "E_GC_BC_DECODE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_GC_DECODE_001"
+      ],
+      "pass_conditions": [
+        "decode sequence matches BC_GC_DECODE expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_GC_ENCODE",
+      "evidence_refs": [
+        "E_GC_BC_ENCODE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_GC_ENCODE_001"
+      ],
+      "pass_conditions": [
+        "encode sequence matches BC_GC_ENCODE expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_GC_LINT",
+      "evidence_refs": [
+        "E_GC_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_GC_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch findings per BC_GC_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_GC_RESET",
+      "evidence_refs": [
+        "E_GC_BC_RESET"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_GC_RESET_001"
+      ],
+      "pass_conditions": [
+        "outputs==0 one cycle after rst_n asserts per BC_GC_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_GC_DECODE",
+      "evidence_refs": [
+        "E_GC_DECODE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_GC_DECODE_001"
+      ],
+      "pass_conditions": [
+        "bin_out matches cascaded XOR of gray_in for all 16 values"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_GC_ENCODE",
+      "evidence_refs": [
+        "E_GC_ENCODE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_GC_ENCODE_001"
+      ],
+      "pass_conditions": [
+        "gray_out matches XOR formula for all 16 bin_in values"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_GC_LINT",
+      "evidence_refs": [
+        "E_GC_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_GC_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_GC_RESET",
+      "evidence_refs": [
+        "E_GC_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_GC_RESET_001"
+      ],
+      "pass_conditions": [
+        "outputs==0 during reset"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/gray_code_cx1.sv"
+      ],
+      "contract_ref": "SC_GC_PORTS",
+      "evidence_refs": [
+        "E_GC_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_GC_DECODE_001",
+        "OBL_GC_ENCODE_001",
+        "OBL_GC_LINT_001",
+        "OBL_GC_RESET_001"
+      ],
+      "pass_conditions": [
+        "ports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "gray_code_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 9,
+    "contracts": 9,
+    "required_closed": 9,
+    "required_contracts": 9
+  },
+  "type": "contract_authority_closure"
+}
