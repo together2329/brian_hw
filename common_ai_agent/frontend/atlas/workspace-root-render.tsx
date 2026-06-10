@@ -51,8 +51,20 @@ const Kbd: any = (window as any).Kbd
 // stutter on large sessions.
 const PARENT_INPUT_SYNC_DELAY_MS = 60;
 const PARENT_INPUT_SYNC_IDLE_DELAY_MS = 240;
-const parentInputSyncDelayFor = (next: string): number => (
-  /^\/\S*$/.test(next) || /(^|\s)@\S*$/.test(next)
+// Hard cap on how far the parent may lag the textarea. The sync is a trailing
+// debounce that restarts on every keystroke, so without this cap a continuous
+// prose burst would starve the parent (and everything derived from it —
+// popups, held-input guards) for the whole burst, not just one delay window.
+const PARENT_INPUT_SYNC_MAX_WAIT_MS = 400;
+// Popup-shaped drafts (the strings that OPEN the slash/@ completion popups —
+// same shapes the data hook tests on the parent input) must sync fast in BOTH
+// directions: the keystroke that opens a popup and the keystroke that closes
+// one. The close transition matters most — a stale-open popup hijacks Enter.
+const isPopupishDraft = (s: string): boolean => (
+  /^\/\S*$/.test(s) || /(^|\s)@\S*$/.test(s)
+);
+const parentInputSyncDelayFor = (next: string, prevVisible: string): number => (
+  isPopupishDraft(next) || isPopupishDraft(prevVisible)
     ? PARENT_INPUT_SYNC_DELAY_MS
     : PARENT_INPUT_SYNC_IDLE_DELAY_MS
 );
@@ -202,6 +214,22 @@ export interface RenderWorkspaceWorkerProgressProps {
   workerProgress: any;
 }
 
+// Self-ticking elapsed display: workerProgress is reference-stable across
+// identical poll payloads (samePolledState bail-out), so the strip itself no
+// longer re-renders every 1.5s — the clock must tick on its own.
+const WorkerElapsedClock = ({ startedAt, running }: { startedAt: number; running: boolean }) => {
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    if (!running || !(startedAt > 0)) return;
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [running, startedAt]);
+  if (!(startedAt > 0)) return null;
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - startedAt));
+  const elapsed = s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${String(s % 60).padStart(2, '0')}s`;
+  return <span className="mute" style={{ color: 'var(--fg-mute)' }}>· {elapsed}</span>;
+};
+
 export const renderWorkspaceWorkerProgress = ({
   workflow,
   workerProgress,
@@ -213,11 +241,6 @@ export const renderWorkspaceWorkerProgress = ({
   const failed = ['failed', 'error', 'cancelled', 'blocked'].includes(status);
   const running = !done && !failed;
   const col = running ? 'var(--accent)' : done ? 'var(--ok, #76c893)' : 'var(--err, #e85d5d)';
-  let elapsed = '';
-  if (wp.startedAt > 0) {
-    const s = Math.max(0, Math.floor(Date.now() / 1000 - wp.startedAt));
-    elapsed = s < 60 ? `${s}s` : `${Math.floor(s / 60)}m${String(s % 60).padStart(2, '0')}s`;
-  }
   return (
     <div style={{
       display: 'flex', alignItems: 'center', gap: 8,
@@ -228,7 +251,7 @@ export const renderWorkspaceWorkerProgress = ({
       <span style={{ color: col }}>{running ? '▶' : done ? '✓' : '✗'}</span>
       <b>{wp.workflow}</b>
       <span style={{ color: col }}>{status || 'running'}</span>
-      {elapsed ? <span className="mute" style={{ color: 'var(--fg-mute)' }}>· {elapsed}</span> : null}
+      <WorkerElapsedClock startedAt={Number(wp.startedAt || 0)} running={running} />
       {wp.iterations > 0 ? <span className="mute" style={{ color: 'var(--fg-mute)' }}>· iter {wp.iterations}</span> : null}
       <span className="mute" style={{ color: 'var(--fg-dim)', marginLeft: 'auto' }}>
         {running ? 'live worker' : done ? 'worker done' : 'worker stopped'}
@@ -514,15 +537,28 @@ const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
     draftInputRef.current = next;
     setDraftInput(next);
   }, []);
+  const parentSyncPendingSinceRef = useRef<number>(0);
   const scheduleParentInputSync = useCallback((next: string) => {
     clearParentInputSync();
+    // Date.now (not performance.now): ms precision is plenty for the 400ms
+    // cap, and vitest fake timers advance Date but not performance.
+    const now = Date.now();
+    if (parentSyncPendingSinceRef.current === 0) parentSyncPendingSinceRef.current = now;
+    const prevVisible = lastLocalParentSyncRef.current ?? input;
+    const tierDelay = parentInputSyncDelayFor(next, prevVisible);
+    // Max-wait: never let the reschedule-on-every-keystroke debounce defer the
+    // parent more than PARENT_INPUT_SYNC_MAX_WAIT_MS past the burst's first
+    // unsynced keystroke.
+    const elapsed = now - parentSyncPendingSinceRef.current;
+    const delay = Math.max(0, Math.min(tierDelay, PARENT_INPUT_SYNC_MAX_WAIT_MS - elapsed));
     parentSyncTimerRef.current = setTimeout(() => {
       parentSyncTimerRef.current = null;
+      parentSyncPendingSinceRef.current = 0;
       lastLocalParentSyncRef.current = next;
       if (ATLAS_INPUT_PERF.enabled) ATLAS_INPUT_PERF.parentSyncs += 1;
       setInput(next);
-    }, parentInputSyncDelayFor(next));
-  }, [clearParentInputSync, setInput]);
+    }, delay);
+  }, [clearParentInputSync, input, setInput]);
   const updateDraftFromUser = useCallback((next: string, el: HTMLTextAreaElement) => {
     localDraftDirtyRef.current = true;
     if (ATLAS_INPUT_PERF.enabled) {
@@ -542,6 +578,7 @@ const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
   }, [applyDraftInput, inputHistoryDraftRef, inputHistoryIndexRef, resizeInput, scheduleParentInputSync]);
   const clearDraftAfterSubmittedKey = useCallback((el: HTMLTextAreaElement) => {
     clearParentInputSync();
+    parentSyncPendingSinceRef.current = 0;
     localDraftDirtyRef.current = false;
     lastLocalParentSyncRef.current = null;
     applyDraftInput('');
@@ -552,6 +589,7 @@ const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
     if (resetTokenRef.current === inputResetToken) return;
     resetTokenRef.current = inputResetToken;
     clearParentInputSync();
+    parentSyncPendingSinceRef.current = 0;
     localDraftDirtyRef.current = false;
     lastLocalParentSyncRef.current = null;
     applyDraftInput(input);
@@ -564,6 +602,7 @@ const WorkspacePromptComposer = memo(function WorkspacePromptComposer({
     }
     if (localDraftDirtyRef.current && input === lastLocalParentSyncRef.current) return;
     clearParentInputSync();
+    parentSyncPendingSinceRef.current = 0;
     localDraftDirtyRef.current = false;
     lastLocalParentSyncRef.current = null;
     applyDraftInput(input);
