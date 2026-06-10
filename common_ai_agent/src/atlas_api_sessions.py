@@ -542,7 +542,12 @@ def register_sessions_routes(
         # IP the user just picked. Process workers get a private env at
         # spawn time, so mutating the shared backend env there would be a
         # cross-user last-writer-wins race.
-        if not process_mode:
+        # MULTI-USER guard: skip ALL global os.environ mutations when multi-user
+        # mode is active.  In that mode each user's session env travels via the
+        # per-request AtlasContext / contextvars (atlas_active_session_cv /
+        # atlas_active_ip_cv) or the per-process worker spawn env, never via a
+        # shared global that concurrent requests from different users would clobber.
+        if not process_mode and not multi_user_on:
             os.environ.update(context.export_env())
             if setup_session is not None:
                 try:
@@ -602,7 +607,7 @@ def register_sessions_routes(
                     _emit_to_canonical("flush", source="api/session/activate", control=True)
                 except Exception:
                     pass
-            else:
+            elif not multi_user_on:
                 try:
                     setup_workspace(wf)
                     os.environ["ACTIVE_WORKSPACE"] = wf
@@ -1345,6 +1350,15 @@ def register_sessions_routes(
                 existing = db.find_session(session)
                 if existing is not None and existing.get("user_id") != user_id:
                     return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+                if existing is None:
+                    # No DB row at all: this is a read endpoint and no session has
+                    # been persisted for this namespace yet.  Namespace-prefix
+                    # matching alone is not sufficient proof of ownership — deny
+                    # rather than let the window between create and first DB write
+                    # serve as a fail-open path.  Session creation/activation goes
+                    # through POST /api/session/activate which does NOT call this
+                    # function, so legitimate flows are unaffected.
+                    return JSONResponse({"error": "session not found"}, status_code=403)
         except Exception:
             # Authz lookup failed -> we cannot prove ownership -> deny.
             return JSONResponse({"error": "authorization unavailable"}, status_code=403)

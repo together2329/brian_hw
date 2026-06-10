@@ -108,7 +108,10 @@ class ProceduralMemory:
         Args:
             memory_dir: Directory for storing trajectories
         """
-        self.memory_dir = Path.home() / memory_dir
+        base = Path(memory_dir).expanduser()
+        if not base.is_absolute():
+            base = Path.home() / memory_dir
+        self.memory_dir = base
         self.trajectories_file = self.memory_dir / "procedural_trajectories.json"
         self.trajectories: Dict[str, Trajectory] = {}
 

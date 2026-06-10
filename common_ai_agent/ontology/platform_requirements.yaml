@@ -26,25 +26,25 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_api_sessions_content.py::test_get_session_cross_user_returns_404"
-            observed_at: a515c974
+            observed_at: "78685249"
       - id: OBL_SESS_WRITE_CROSS_USER_404
         owned_by: api.sessions
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_api_sessions_content.py::test_update_session_cross_user_returns_404"
-            observed_at: a515c974
+            observed_at: "78685249"
           - test: "tests/test_api_sessions_content.py::test_delete_session_cross_user_returns_404"
-            observed_at: a515c974
+            observed_at: "78685249"
       - id: OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED
         owned_by: api.sessions
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_api_sessions_content.py::test_session_history_cross_user_denied"
-            observed_at: a515c974
+            observed_at: "78685249"
           - test: "tests/test_api_sessions_content.py::test_session_state_cross_user_denied"
-            observed_at: a515c974
+            observed_at: "78685249"
       - id: OBL_FS_AUTHZ_FAIL_CLOSED
         owned_by: runtime.authz
         granularity: behavior
@@ -62,21 +62,25 @@ requirements:
           - test: "tests/test_fs_authz.py::test_traversal_denied"
             observed_at: a515c974
           - test: "tests/test_api_sessions_content.py::test_session_history_path_traversal_rejected"
-            observed_at: a515c974
+            observed_at: "78685249"
       - id: OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
         owned_by: api.sessions
         granularity: concurrent
-        status: refuted
-        refuted_by: >-
-          신규 세션이 DB row 없이 namespace-owner 매치만으로 allow —
-          create↔authorize 사이 race 가능 (_authorize_session_request fail-open 분기)
+        status: closed   # 78685249 에서 수정: no-DB-row read 는 403 (fail-closed)
+        evidence:
+          - test: "tests/test_api_sessions_content.py::test_authorize_no_db_row_denied_on_read"
+            observed_at: "78685249"
+          - test: "tests/test_api_sessions_content.py::test_authorize_no_db_row_denied_state_endpoint"
+            observed_at: "78685249"
       - id: OBL_ACTIVATE_ENV_NO_CROSS_LEAK
         owned_by: api.sessions
         granularity: behavior
-        status: refuted
-        refuted_by: >-
-          비프로세스 모드 activate 가 os.environ.update(context.export_env()) 로
-          전역 env 를 오염 — 멀티테넌트에서 사용자 간 누수 가능
+        status: closed   # 78685249 에서 수정: multi-user 는 os.environ 변이 금지
+        evidence:
+          - test: "tests/test_api_sessions_content.py::test_activate_multi_user_does_not_mutate_os_environ"
+            observed_at: "78685249"
+          - test: "tests/test_api_sessions_content.py::test_activate_single_user_preserves_os_environ_update"
+            observed_at: "78685249"
 
   - id: REQ_PLAT_MEMORY_DURABILITY_001
     claim: "에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다"
@@ -88,37 +92,39 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryPreferences::test_persistence_across_instances"
-            observed_at: a515c974
+            observed_at: d8924d51
       - id: OBL_MEM_CORRUPT_STORE_RECOVERY
         owned_by: agent.memory
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryRules::test_corrupt_rules_file_falls_back_to_empty"
-            observed_at: a515c974
+            observed_at: d8924d51
           - test: "tests/test_agent_memory_content.py::TestProceduralMemoryPersistence::test_corrupt_trajectories_file_loads_empty"
-            observed_at: a515c974
+            observed_at: d8924d51
       - id: OBL_MEM_USER_ISOLATION
         owned_by: agent.memory
         granularity: content
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryUserNormalization::test_user_isolation_separate_files"
-            observed_at: a515c974
+            observed_at: d8924d51
       - id: OBL_MEM_EXPORT_IMPORT_ROUNDTRIP
         owned_by: agent.memory
         granularity: content
         status: closed
         evidence:
           - test: "tests/test_agent_memory_content.py::TestMemoryExportImport::test_export_import_round_trip"
-            observed_at: a515c974
+            observed_at: d8924d51
       - id: OBL_MEM_ABS_PATH_RESPECTED
         owned_by: agent.memory
         granularity: structural
-        status: refuted
-        refuted_by: >-
-          ProceduralMemory.__init__ 이 절대경로 memory_dir 도 무조건
-          Path.home() 밑에 prepend (MemorySystem 과 불일치) — 저장 위치 제어 불가
+        status: closed   # d8924d51 에서 수정: 절대경로 그대로 사용
+        evidence:
+          - test: "tests/test_agent_memory_content.py::TestProceduralMemoryAbsolutePath::test_absolute_memory_dir_used_as_is"
+            observed_at: d8924d51
+          - test: "tests/test_agent_memory_content.py::TestProceduralMemoryAbsolutePath::test_relative_path_still_goes_under_home"
+            observed_at: d8924d51
 
   - id: REQ_PLAT_LLM_FAILURE_VISIBILITY_001
     claim: "LLM 호출 실패는 절대 정상 결과로 둔갑하지 않는다 (green-while-broken 금지)"
@@ -127,16 +133,21 @@ requirements:
       - id: OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE
         owned_by: agent.memory
         granularity: behavior
-        status: refuted
-        refuted_by: >-
-          auto_extract_and_update 가 LLM 불가 시 {"extracted": 0} 을 반환 —
-          호출자가 'LLM 미상담'과 '추출할 것 없음'을 구분할 수 없음
+        status: closed   # d8924d51 에서 수정: 실패 시 llm_error 키로 표면화
+        evidence:
+          - test: "tests/test_agent_memory_content.py::TestAutoExtractLLMErrorMarker::test_llm_raises_produces_llm_error_key"
+            observed_at: d8924d51
+          - test: "tests/test_agent_memory_content.py::TestAutoExtractLLMErrorMarker::test_llm_returns_empty_list_no_llm_error_key"
+            observed_at: d8924d51
       - id: OBL_COMPRESS_LLM_FAIL_SURFACED
         owned_by: agent.compression
         granularity: behavior
-        status: refuted
-        refuted_by: >-
-          compressor 가 LLM 실패를 조용히 truncation dump 로 대체 (silent swallow)
+        status: closed   # 픽스는 브랜치 선재, c319da37 에서 증거 테스트 20개 확보
+        evidence:
+          - test: "tests/test_compressor_llm_failure.py::TestLLMFailureSurfacedInContent::test_failure_marker_present_in_result"
+            observed_at: c319da37
+          - test: "tests/test_compressor_llm_failure.py::TestRaiseOnLLMFailureFlag::test_raises_compression_llm_error"
+            observed_at: c319da37
         repro: scripts/verify_compression_llm.py
 
   - id: REQ_PLAT_DEV_TRACEABILITY_001

@@ -720,3 +720,182 @@ def test_worker_status_returns_policy_fields(tmp_path: Path, monkeypatch) -> Non
     # Must include the standard policy fields.
     assert "active_count" in body
     assert isinstance(body["active_count"], int)
+
+
+# ---------------------------------------------------------------------------
+# Tests: Defect A — no-DB-row fail-open hardening
+# ---------------------------------------------------------------------------
+
+def test_authorize_no_db_row_denied_on_read(tmp_path: Path, monkeypatch) -> None:
+    """Defect A: in multi-user mode, a GET on a session with no DB row must be
+    denied (403) even when the namespace owner matches the requesting user.
+    Previously the check fell through to return None (allow) when both
+    get_session_for_user and find_session returned None."""
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    db_path = str(tmp_path / "atlas.db")
+    # Use a real empty DB — no session rows exist for alice/no-db-row/wf.
+    alice_client = _build_app(db_path, tmp_path, username="alice", user_id="uid-alice")
+
+    resp = alice_client.get(
+        "/api/session/history",
+        params={"session": "alice/no-db-row/wf"},
+    )
+
+    assert resp.status_code == 403, (
+        f"Expected 403 for no-DB-row session read, got {resp.status_code}: {resp.text}"
+    )
+    body = resp.json()
+    assert "error" in body
+
+
+def test_authorize_no_db_row_denied_state_endpoint(tmp_path: Path, monkeypatch) -> None:
+    """Defect A: same hardening applies to /api/session/state."""
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    db_path = str(tmp_path / "atlas.db")
+    alice_client = _build_app(db_path, tmp_path, username="alice", user_id="uid-alice")
+
+    resp = alice_client.get(
+        "/api/session/state",
+        params={"session": "alice/no-db-row/wf"},
+    )
+
+    assert resp.status_code == 403, (
+        f"Expected 403 for no-DB-row session read, got {resp.status_code}: {resp.text}"
+    )
+    body = resp.json()
+    assert "error" in body
+
+
+def test_authorize_db_row_owner_allowed(tmp_path: Path, monkeypatch) -> None:
+    """Defect A: legitimate flow — a session that has a DB row IS accessible.
+    Activate creates the DB row; subsequent history read must succeed (200)."""
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    db_path = str(tmp_path / "atlas.db")
+    alice_client = _build_app(db_path, tmp_path, username="alice", user_id="uid-alice")
+
+    # Seed a conversation.json so history has something to return.
+    import json
+    session_dir = tmp_path / ".session" / "alice" / "myip" / "rtl-gen"
+    session_dir.mkdir(parents=True, exist_ok=True)
+    (session_dir / "conversation.json").write_text(
+        json.dumps([{"role": "user", "content": "hello"}]),
+        encoding="utf-8",
+    )
+
+    # Insert a DB row so ownership is established.
+    from core.atlas_db import AtlasDB
+    with AtlasDB(db_path) as db:
+        db.upsert_runtime_session(
+            "alice/myip/rtl-gen",
+            "uid-alice",
+            owner="alice",
+            ip="myip",
+            workflow="rtl-gen",
+        )
+
+    resp = alice_client.get(
+        "/api/session/history",
+        params={"session": "alice/myip/rtl-gen"},
+    )
+
+    assert resp.status_code == 200, (
+        f"Expected 200 for owned session with DB row, got {resp.status_code}: {resp.text}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Tests: Defect B — global os.environ.update not executed in multi-user mode
+# ---------------------------------------------------------------------------
+
+def _build_activate_app(
+    db_path: str,
+    project_root: Path,
+    *,
+    username: str = "alice",
+    user_id: str = "uid-alice",
+) -> TestClient:
+    """Build a minimal app that supports /api/session/activate for Defect B tests."""
+    app = FastAPI()
+
+    _username = username
+    _user_id = user_id
+
+    class _InjectUser(BaseHTTPMiddleware):
+        async def dispatch(self, request, call_next):  # type: ignore[override]
+            request.scope["user"] = {
+                "id": _user_id,
+                "username": _username,
+            }
+            return await call_next(request)
+
+    app.add_middleware(_InjectUser)
+    cv: contextvars.ContextVar[str] = contextvars.ContextVar("test_cv_act", default="")
+
+    register_sessions_routes(
+        app,
+        project_root=lambda: project_root,
+        normalize_session_name=_norm,
+        active_session_value=lambda: "",
+        atlas_active_session_cv=cv,
+        atlas_active_ip_cv=cv,
+        bridge=_MockBridge(),
+        get_jobs_state=lambda: ({}, threading.Lock()),
+        atlas_db_factory=_make_db_factory(db_path),
+    )
+    return TestClient(app)
+
+
+def test_activate_multi_user_does_not_mutate_os_environ(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Defect B: in ATLAS_MULTI_USER=1 mode, /api/session/activate must NOT
+    call os.environ.update(context.export_env()).  A user-A activation must not
+    bleed ATLAS_ACTIVE_SESSION / ATLAS_USER_NAME / etc. into the shared process
+    env that user-B's concurrent request would then observe."""
+    monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+    db_path = str(tmp_path / "atlas.db")
+    alice_client = _build_activate_app(
+        db_path, tmp_path, username="alice", user_id="uid-alice"
+    )
+
+    import os
+    sentinel_key = "ATLAS_ACTIVE_SESSION"
+    before = os.environ.get(sentinel_key)
+
+    resp = alice_client.post(
+        "/api/session/activate",
+        json={"owner": "alice", "ip": "myip", "workflow": "rtl-gen"},
+    )
+    assert resp.status_code == 200, resp.text
+
+    after = os.environ.get(sentinel_key)
+    assert after == before, (
+        f"Defect B: os.environ[{sentinel_key!r}] was mutated in multi-user mode: "
+        f"{before!r} -> {after!r}"
+    )
+
+
+def test_activate_single_user_preserves_os_environ_update(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Defect B single-user leg: in ATLAS_MULTI_USER=0, the legacy chat_loop path
+    still receives env via os.environ.update so the thread-based worker can see
+    ATLAS_ACTIVE_SESSION without contextvars."""
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    db_path = str(tmp_path / "atlas.db")
+    alice_client = _build_activate_app(
+        db_path, tmp_path, username="alice", user_id="uid-alice"
+    )
+
+    import os
+    resp = alice_client.post(
+        "/api/session/activate",
+        json={"owner": "alice", "ip": "myip", "workflow": "rtl-gen"},
+    )
+    assert resp.status_code == 200, resp.text
+
+    # In single-user non-process mode, ATLAS_ACTIVE_SESSION must have been set.
+    active = os.environ.get("ATLAS_ACTIVE_SESSION", "")
+    assert "alice" in active, (
+        f"Expected ATLAS_ACTIVE_SESSION to contain 'alice' in single-user mode, got {active!r}"
+    )

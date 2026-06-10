@@ -2,6 +2,14 @@
 
 ## 2026-06-10
 
+- **refuted 5건 전량 수정 — backlog 0, spine 17/17 closed** (commits `d8924d51`
+  memory, `c319da37` compression-evidence, `78685249` sessions): ProceduralMemory
+  절대경로 존중, auto_extract `llm_error` 표면화, compressor silent-swallow는
+  픽스 선재 확인+증거 20 tests, `_authorize_session_request` no-DB-row read 403
+  (fail-closed), activate 멀티유저 os.environ 변이 금지(contextvar+worker spawn
+  env로 전달). 수정 커밋이 기존 증거를 11건 stale 강등 → 129+54 재검증 후
+  attestation 갱신 (freshness 3번째 실전 사이클). 온톨로지-first 루프의 첫
+  완주: 선언(refuted)→수정→증거→closed. [[platform-ontology]]
 - **Platform Ontology v2 — ROCEV 척추** (commit `45f92857`+flip): Requirement→
   Obligation→Evidence→Validation 을 플랫폼 개발에 인스턴스화. 선언
   `ontology/platform_requirements.yaml` (4 req / 17 obl: closed 12, refuted 5) +
