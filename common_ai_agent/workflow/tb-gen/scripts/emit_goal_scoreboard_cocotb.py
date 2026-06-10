@@ -2069,12 +2069,51 @@ async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) 
     if p_write: _set_signal(dut, p_write, 0)
 
 
+async def _apb_read_one(dut, manifest: dict[str, Any], offset: int) -> None:
+    """APB read (setup -> access -> idle) for machine_spec timeline `csr_read`.
+
+    Performs the read so the DUT's read-data output reflects the addressed
+    register at the goal's sample point (read-back verification). Port names
+    resolve case-insensitively, like _apb_write_one."""
+    clock = manifest["clock"]
+    clk = getattr(dut, clock)
+    input_ports = set(manifest.get("input_ports") or [])
+    def _apb_port(name: str):
+        for cand in input_ports:
+            if str(cand).lower() == name:
+                return str(cand)
+        return None
+    p_sel = _apb_port("psel")
+    p_enable = _apb_port("penable")
+    p_addr = _apb_port("paddr")
+    p_write = _apb_port("pwrite")
+    p_ready = next((sig for sig in ("PREADY", "pready") if _has_signal(dut, sig)), None)
+    await RisingEdge(clk)
+    if p_sel: _set_signal(dut, p_sel, 0)
+    if p_enable: _set_signal(dut, p_enable, 0)
+    await RisingEdge(clk)
+    if p_addr: _set_signal(dut, p_addr, offset)
+    if p_write: _set_signal(dut, p_write, 0)
+    if p_sel: _set_signal(dut, p_sel, 1)
+    if p_enable: _set_signal(dut, p_enable, 0)
+    await RisingEdge(clk)
+    if p_enable: _set_signal(dut, p_enable, 1)
+    for _ in range(16):
+        await ReadOnly()
+        ready = (p_ready is None) or int(_get_signal(dut, p_ready) or 0) == 1
+        await RisingEdge(clk)
+        if ready:
+            break
+    if p_sel: _set_signal(dut, p_sel, 0)
+    if p_enable: _set_signal(dut, p_enable, 0)
+
+
 async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[str, Any]) -> None:
     """SSOT-aware machine_spec executor.
 
     Reads goal.stimulus_contract.machine_spec from SSOT.scenarios and drives
     DUT accordingly:
-      - timeline[]: ordered list of { csr_write | assign | wait_cycles | wait_until }
+      - timeline[]: ordered list of { csr_write | csr_read | assign | wait_cycles | wait_until }
       - assign{}: one-shot field->value drive (no timeline)
       - csr_writes[]: sequence of APB writes (no timeline)
     """
@@ -2100,6 +2139,9 @@ async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[
         if "csr_write" in step:
             cw = step["csr_write"]
             await _apb_write_one(dut, manifest, int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
+        elif "csr_read" in step:
+            cr = step["csr_read"]
+            await _apb_read_one(dut, manifest, int(cr.get("offset", cr.get("addr", 0))))
         elif "assign" in step:
             await RisingEdge(clk)
             for field, value in (step["assign"] or {}).items():
@@ -2137,6 +2179,19 @@ async def fl_rtl_equivalence_goals(dut):
     goals = _goals(ip_dir)
     assert goals, "equivalence_goals.json must contain unblocked goals"
 
+    # Donor specs for runtime stimulus inheritance (CAND-06): authored
+    # (non-inherited) machine_specs keyed by FM transaction id/name. A goal
+    # without its own spec runs the spec of the transaction the FL oracle
+    # resolves for it — exact by construction, no kind heuristics.
+    _tx_donor_specs: dict[str, dict[str, Any]] = {}
+    for _g in goals:
+        _gsc = _g.get("stimulus_contract") if isinstance(_g.get("stimulus_contract"), dict) else {}
+        _gms = _gsc.get("machine_spec")
+        if isinstance(_gms, dict) and _gms and not _gsc.get("machine_spec_inherited_from"):
+            for _k in (_gsc.get("transaction_id"), _gsc.get("transaction_type")):
+                if _k:
+                    _tx_donor_specs.setdefault(str(_k).strip().lower(), _gms)
+
     # Opt-in: cycle-accurate CL co-simulation via FunctionalModel.step().
     # SSOT.cycle_model.cosim: true -> manifest['cl_cosim']=True.
     # The CL is stepped in lock-step with cocotb drive cycles; when CL agrees
@@ -2172,6 +2227,24 @@ async def fl_rtl_equivalence_goals(dut):
             if isinstance(goal.get("stimulus_contract"), dict)
             else None
         )
+        if not (isinstance(machine_spec, dict) and (
+            machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
+        )):
+            # Runtime inheritance: mirror the FL oracle's own transaction
+            # resolution. transaction_for_goal is a pure builder (no state
+            # change); its `kind` is the FM transaction the FL will apply, so
+            # driving that transaction's spec keeps stimulus and expected
+            # computed from the SAME transaction.
+            try:
+                _resolved = scoreboard.adapter.transaction_for_goal(
+                    goal_id, dict(stimulus), str(stimulus.get("scenario_id") or "")
+                )
+                _resolved_kind = str(_resolved.get("kind") or "").strip().lower()
+            except Exception:
+                _resolved_kind = ""
+            _donor = _tx_donor_specs.get(_resolved_kind)
+            if _donor:
+                machine_spec = dict(_donor)
         _cl_result = None
         _machine_spec_ran = False
         def _reset_fl_oracle():

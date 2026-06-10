@@ -37,6 +37,11 @@ fi
 if [ -z "$BIN" ]; then
     BIN=$(find "$IP" -path "*/sim_build/*.vvp" -type f 2>/dev/null | head -1)
 fi
+if [ -z "$BIN" ]; then
+    # cocotb_test-based generated runners (emit_goal_scoreboard_cocotb) build
+    # into sim/cocotb_build/<ip>.vvp rather than sim_build/sim.vvp.
+    BIN=$(find "$IP" -path "*/cocotb_build/*.vvp" -type f 2>/dev/null | head -1)
+fi
 
 MIN_BIN="${MIN_BIN:-1000}"
 MIN_RPT="${MIN_RPT:-100}"
@@ -45,7 +50,7 @@ MIN_XML="${MIN_XML:-100}"
 _size() { [ -f "$1" ] && wc -c < "$1" | tr -d ' ' || echo 0; }
 
 if [ -z "$BIN" ]; then
-    echo "[check_sim_disk] FAIL: no compiled binary at $BIN_IV, $BIN_VCS, or */sim_build/sim.vvp"
+    echo "[check_sim_disk] FAIL: no compiled binary at $BIN_IV, $BIN_VCS, */sim_build/*.vvp, or */cocotb_build/*.vvp"
     exit 1
 fi
 BIN_SZ=$(_size "$BIN")

@@ -695,7 +695,53 @@ def _generic_rule_contract(
     if questions:
         return {}, questions
 
-    output_rules = _rule_items(contract.get("output_rules")) or _rule_items(tx.get("output_rules"))
+    # Collect output rules from EVERY function_model transaction, not just the
+    # primary one: the FL oracle emits a result key per rule NAME, and the TB
+    # observes per manifest output entry — a rule declared only on a secondary
+    # transaction (e.g. a clear-readback rule) otherwise never reaches the
+    # manifest and its scoreboard row can never carry the observable.
+    output_rules = _rule_items(contract.get("output_rules"))
+    seen_rule_names = {
+        str(rule.get("name") or "").strip()
+        for rule in output_rules
+        if str(rule.get("name") or "").strip()
+    }
+    fm_doc = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    mergeable_output_ports = {
+        str(p.get("name") or "")
+        for p in ports
+        if str(p.get("direction") or "").lower() in {"output", "inout"}
+    }
+    for fm_tx in [tx] + [
+        t for t in (fm_doc.get("transactions") or [])
+        if isinstance(t, dict) and t is not tx
+    ]:
+        for rule in _rule_items(fm_tx.get("output_rules")):
+            rule_name = str(rule.get("name") or "").strip()
+            if fm_tx is tx:
+                # The resolved rule transaction keeps its legacy pass-through:
+                # its rules count even unnamed (downstream validation names
+                # them); only rules merged from OTHER transactions need a name
+                # for de-duplication.
+                if rule_name:
+                    if rule_name in seen_rule_names:
+                        continue
+                    seen_rule_names.add(rule_name)
+                output_rules.append(rule)
+                continue
+            # Rules from OTHER transactions are opportunistic observables:
+            # merge only those landing on a real DUT output port so the union
+            # never introduces NEW blocking port-map questions the resolved
+            # transaction's own validation would not have raised.
+            rule_port = str(rule.get("port") or "").strip()
+            if (
+                not rule_name
+                or rule_name in seen_rule_names
+                or rule_port not in mergeable_output_ports
+            ):
+                continue
+            seen_rule_names.add(rule_name)
+            output_rules.append(rule)
     state_updates = _rule_items(contract.get("state_updates")) or _rule_items(tx.get("state_updates"))
     if not output_rules:
         return {}, [_question(
@@ -3565,8 +3611,12 @@ def generate(ip: str, root: Path, mode: str = "signoff") -> None:
         for q in merged_questions:
             print(f"- {q['id']}: {q['decision_needed']}")
         raise SystemExit(2)
-    if not generic_questions:
-        _write_generic_rule_contract_artifact(ip_dir, ip, top, _generic_contract)
+    # Always refresh the contract projection on a passing preflight. The
+    # previous guard skipped the write whenever soft (non-blocking) questions
+    # existed, so an SSOT edit after first RTL authoring (e.g. renaming an
+    # output_rule) never reached rtl_contract.json — downstream TB manifests
+    # then observed stale rule names forever.
+    _write_generic_rule_contract_artifact(ip_dir, ip, top, _generic_contract)
 
     expected = _expected_rtl_files(doc, top)
     if _generic_rule_seed_allowed(ip_dir, top, _generic_contract, expected):

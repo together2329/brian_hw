@@ -430,6 +430,23 @@ def _scenario_transaction_contract(ssot: dict[str, Any], sc: dict[str, Any], sid
             "error_policy": "",
             "blocked": True,
         }
+    # An explicit transaction reference on the scenario is authoritative:
+    # text matching below is a heuristic and routinely binds a scenario like
+    # "edges ignored while disabled" to the wrong transaction, which makes
+    # the FL oracle apply the wrong state updates.
+    explicit = str(
+        sc.get("transaction")
+        or sc.get("transaction_id")
+        or sc.get("fm_transaction")
+        or ""
+    ).strip().lower()
+    if explicit:
+        for tx in txs:
+            if explicit in (
+                str(tx.get("id") or "").strip().lower(),
+                str(tx.get("name") or "").strip().lower(),
+            ):
+                return _transaction_contract_from_tx(tx)
     scenario_text = " ".join(
         str(sc.get(key) or "")
         for key in ("id", "name", "stimulus", "expected", "checker")
@@ -978,6 +995,60 @@ def emit(ip: str, root: Path) -> dict[str, Any]:
         + _module_equivalence_goals(ssot, decomp, fcov)
     )
     goals = _dedupe(base_goals + _coverage_closure_goals(ssot, decomp, fcov, base_goals))
+    # CAND-06 inheritance: a goal without its own stimulus_machine_spec
+    # inherits one from the function_model transaction it resolves to
+    # (stimulus_contract.transaction_type == tx id/name). Property-kind goals
+    # (timing/protocol/register/...) whose FL expected is computed from the
+    # primary transaction inherit the primary transaction's spec — without a
+    # stimulus the DUT never leaves reset state and every stateful property
+    # expected (count==1 etc.) fails vacuously against an idle DUT.
+    _fm_doc = ssot.get("function_model") if isinstance(ssot.get("function_model"), dict) else {}
+    _fm_txs = [tx for tx in _as_list(_fm_doc.get("transactions")) if isinstance(tx, dict)]
+    _tx_specs: dict[str, dict[str, Any]] = {}
+    _tx_name_to_id: dict[str, str] = {}
+    for _tx in _fm_txs:
+        _tx_id = str(_tx.get("id") or "").strip()
+        _tx_name = str(_tx.get("name") or "").strip()
+        if _tx_name and _tx_id:
+            _tx_name_to_id[_tx_name.lower()] = _tx_id
+        _ms = _tx.get("stimulus_machine_spec")
+        if not (isinstance(_ms, dict) and _ms):
+            continue
+        for _key in (_tx_id, _tx_name):
+            if _key:
+                _tx_specs[str(_key).strip().lower()] = _ms
+    # Publish the FL-resolvable transaction id on every goal whose
+    # transaction_type names an FM transaction — the runtime runner keys its
+    # donor-spec lookup by the kind the FL oracle resolves (the tx id).
+    for _goal in goals:
+        _contract = _goal.get("stimulus_contract")
+        if not isinstance(_contract, dict):
+            continue
+        _tx_type = str(_contract.get("transaction_type") or "").strip().lower()
+        if _tx_type in _tx_name_to_id:
+            _contract.setdefault("transaction_id", _tx_name_to_id[_tx_type])
+        elif _tx_type.upper() in {str(t.get("id") or "").strip().upper() for t in _fm_txs}:
+            _contract.setdefault("transaction_id", _tx_type.upper())
+    # Exact-name inheritance only: transaction_type literally names an FM
+    # transaction that declared a spec. Kind-based fallbacks were tried and
+    # are WRONG in both directions (the FL oracle resolves each goal to a
+    # transaction at runtime; register/error goals may resolve to the primary
+    # transaction or to a CSR op depending on the goal). The runtime runner
+    # performs the authoritative inheritance by asking the scoreboard which
+    # transaction the FL will apply; tx ids are published on the transaction
+    # goals via stimulus_contract.transaction_id for that lookup.
+    if _tx_specs:
+        for _goal in goals:
+            _contract = _goal.get("stimulus_contract")
+            if not isinstance(_contract, dict):
+                continue
+            if isinstance(_contract.get("machine_spec"), dict) and _contract["machine_spec"]:
+                continue
+            _tx_type = str(_contract.get("transaction_type") or "").strip().lower()
+            _inherited = _tx_specs.get(_tx_type)
+            if _inherited:
+                _contract["machine_spec"] = dict(_inherited)
+                _contract["machine_spec_inherited_from"] = _tx_type
     # Tag each goal with a `sample_cycle` derived from cycle_model.pipeline.
     # Opt-in via SSOT.cycle_model.use_per_cycle_expected: true. This keeps
     # auto-tagging off for IPs whose cycle_model.pipeline.output_rules

@@ -321,6 +321,13 @@ req→sim with every gate executed). Same parking-lot rules apply.
 
 ## CAND-06 — Transaction-Goal Stimulus Channel (machine_spec)
 
+**Status 2026-06-10: implemented.** Transaction goals carry
+`stimulus_machine_spec`; the runner inherits donor specs at runtime by the FL
+oracle's own transaction resolution; timeline gained `csr_read`;
+fl_apply_count + per-goal FL reset align FL state with per-goal DUT resets.
+pulse_counter_v1 closed 31/31 goals end to end. Residual design questions
+below remain open for harder IPs.
+
 ### Problem
 
 `test_requirements.scenarios[].stimulus_machine_spec` is the only SSOT-driven

@@ -81,3 +81,35 @@ question to resolve first (transaction-goal stimulus channel).
 
 Related: [[contract-reflection-workflow]], [[locked-truth-design-spec-workflow]],
 [[atlas-worker-workflow-ui-sync-20260610]].
+
+
+## 2026-06-10 follow-up — FULL closure achieved
+
+After the CAND-06/08 machinery batch (commit 8688bbcb) plus a second round,
+pulse_counter_v1 reached an honest full pipeline PASS: scoreboard 31/31 goals,
+check_scoreboard_events / check_tb_sim_evidence / check_sim_disk all exit 0,
+and the complete stage battery (req bundle, ssot, fl/cl trace, rtl audit,
+register contract, lint, tb structure/magic) green. mctp register-gate verdict
+unchanged (4 honest findings).
+
+Second-round general fixes (all machinery, validated on pc1 + mctp no-change):
+- scenario `transaction:` field is authoritative over alias text-matching
+  (emit_equivalence_goals).
+- runtime stimulus inheritance: a goal without machine_spec runs the spec of
+  the FM transaction the FL oracle resolves (donor map keyed by
+  stimulus_contract.transaction_id; exact, replaces kind heuristics that were
+  wrong in both directions).
+- timeline `csr_read` step (APB read-back; case-insensitive ports).
+- ssot_to_rtl preflight now ALWAYS refreshes rtl_contract.json (soft-question
+  runs used to skip the write — SSOT rule renames never propagated), and
+  collects output_rules from EVERY function_model transaction (union by name;
+  primary-only collection dropped secondary-transaction observables).
+- check_sim_disk accepts the generated runner layout (sim/cocotb_build/*.vvp).
+
+Authoring contract learned: FL output_rules evaluate against PRE-transaction
+state — "read-back shows the post-edge count" is authored as `count + 1`, and
+timelines end with `csr_read` so the DUT's read-data is fresh at sampling.
+
+Invocation gotchas (CAND-11 additions): check_sim_pass.sh ignores positional
+args (IP_NAME env or TOOL_OUTPUT only) and check_sim_disk.sh resolves its
+sibling script relative to the repo root.
