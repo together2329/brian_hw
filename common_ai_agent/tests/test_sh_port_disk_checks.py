@@ -1,43 +1,36 @@
-"""Differential equivalence tests for the bash→python disk-check port.
+"""Pinned regression tests for the bash→python disk-check port.
 
 A family of `check_*_disk.sh` (and a couple of converge-loop validators) were
 ported to same-named `.py` files beside them for native-Windows portability.
-This suite proves the ports are behaviorally equivalent to the originals by
-running BOTH the old `.sh` (via `bash`) and the new `.py` (via the running
-interpreter) against a good fixture plus >=2 degraded fixtures each, and
-asserting:
+The original `.sh` scripts have since been removed; this suite runs the `.py`
+ports against a good fixture plus >=2 degraded fixtures each and asserts the
+PINNED expectation that the differential parity run established:
 
-  * exit-code parity on every fixture, and
-  * the `.py` fail-output names the same defect (a stable substring of the
+  * the exit code for every fixture, and
+  * the `.py` fail-output names the expected defect (a stable substring of the
     failure line / verdict tag).
 
-The `.sh` side is skipped when no POSIX `bash` is on PATH (e.g. clean Windows).
-The `.py` side always runs, so the port keeps its own coverage on every host.
+The `.py` side always runs, so the port keeps its coverage on every host.
 
-KNOWN PORTABILITY DIVERGENCE (flagged, exit codes still match):
-  check_lint_pass.sh greps with `grep -oiP '\\d+(?= error)'`. `-P` (PCRE) is a
-  GNU-grep feature; on a BSD/macOS `/usr/bin/grep` the option errors out and the
-  numeric counts come back empty, so the FAIL line reads "? errors, ? warnings".
-  The Python port reproduces the *intended* GNU behavior and prints the real
-  counts. Exit codes are identical (0 on pass, 1 on fail) so rc-parity holds;
-  only the cosmetic count text differs on BSD-grep hosts. Tests therefore assert
-  rc-parity + the greppable verdict tag, not the exact count text.
+KNOWN PORTABILITY NOTE (flagged historically):
+  check_lint_pass.sh greped with `grep -oiP '\\d+(?= error)'`. `-P` (PCRE) is a
+  GNU-grep feature; the Python port reproduces the *intended* GNU behavior and
+  prints the real counts. Exit codes are 0 on pass / 1 on fail. Tests assert the
+  exit code + the greppable verdict tag, not the exact count text.
 """
 
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
-import pytest
 
 _WORKFLOW = Path(__file__).resolve().parents[1] / "workflow"
 
-# (script_id, sh_path, py_path)
+# (script_id, base_path) — the .py port lives at <base>.py
 _SCRIPTS = {
     "ssot_disk": _WORKFLOW / "ssot-gen" / "scripts" / "check_ssot_disk",
     "rtl_disk": _WORKFLOW / "rtl-gen" / "scripts" / "check_rtl_disk",
@@ -49,25 +42,10 @@ _SCRIPTS = {
     "unmapped": _WORKFLOW / "syn" / "scripts" / "check_unmapped",
 }
 
-_BASH = shutil.which("bash")
-_needs_bash = pytest.mark.skipif(_BASH is None, reason="POSIX bash not on PATH")
-
 
 # ──────────────────────────────────────────────────────────────────────────
-# Runners
+# Runner
 # ──────────────────────────────────────────────────────────────────────────
-def _run_sh(stem: str, args, cwd: str, env: dict[str, str]):
-    sh = f"{_SCRIPTS[stem]}.sh"
-    return subprocess.run(
-        [_BASH, sh, *args],
-        cwd=cwd,
-        env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-    )
-
-
 def _run_py(stem: str, args, cwd: str, env: dict[str, str]):
     py = f"{_SCRIPTS[stem]}.py"
     return subprocess.run(
@@ -96,9 +74,10 @@ def _clean_env(**overrides) -> dict[str, str]:
 
 
 def _assert_parity(stem, args, cwd, env, *, expect_rc=None, py_names: str = ""):
-    """Run sh (when bash present) and py; assert rc-parity + defect naming.
+    """Run the .py port; assert the pinned exit code + defect naming.
 
-    Returns (sh_rc, py_rc) so callers can build the report matrix manually.
+    ``expect_rc`` and ``py_names`` are the expectations the differential parity
+    run pinned for each fixture. Returns the observed rc for callers.
     """
     py = _run_py(stem, args, cwd, env)
     if expect_rc is not None:
@@ -106,15 +85,7 @@ def _assert_parity(stem, args, cwd, env, *, expect_rc=None, py_names: str = ""):
     if py_names:
         combined = py.stdout + py.stderr
         assert py_names in combined, f"py output missing '{py_names}': {combined!r}"
-    sh_rc = None
-    if _BASH is not None:
-        sh = _run_sh(stem, args, cwd, env)
-        sh_rc = sh.returncode
-        assert sh.returncode == py.returncode, (
-            f"[{stem}] rc mismatch sh={sh.returncode} py={py.returncode}\n"
-            f"sh.out={sh.stdout}{sh.stderr}\npy.out={py.stdout}{py.stderr}"
-        )
-    return sh_rc, py.returncode
+    return py.returncode
 
 
 # ──────────────────────────────────────────────────────────────────────────
