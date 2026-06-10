@@ -117,6 +117,6 @@ def test_unknown_tool_and_method_errors():
 
 def test_mcp_json_registers_server():
     doc = json.loads((REPO / ".cursor" / "mcp.json").read_text(encoding="utf-8"))
-    atlas = doc["mcpServers"]["atlas"]
-    script = atlas["args"][0]
+    server = doc["mcpServers"]["rtl-db"]
+    script = server["args"][0]
     assert (REPO / script).is_file(), f"mcp.json references missing server: {script}"

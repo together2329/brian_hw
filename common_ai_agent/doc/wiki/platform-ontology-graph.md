@@ -2,7 +2,7 @@
 title: Platform Ontology Graph (auto-generated)
 category: architecture
 tags: [ontology, traceability, generated]
-status: spine 17/17 closed — 재생성: python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md
+status: spine 1/29 closed — 재생성: python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md
 ---
 
 # Platform Ontology Graph
@@ -20,54 +20,87 @@ flowchart LR
   classDef ev fill:#f8f9fa,stroke:#adb5bd,color:#495057
   subgraph SG_REQ_PLAT_TENANT_ISOLATION_001["REQ_PLAT_TENANT_ISOLATION_001"]
     REQ_PLAT_TENANT_ISOLATION_001["한 사용자는 다른 사용자의 세션/파일/이력을 읽거나 쓸 수 없다 (fail-clos…"]:::req
-    OBL_SESS_READ_CROSS_USER_404["✅ OBL_SESS_READ_CROSS_USER_404<br/>(behavior)"]:::closed
+    OBL_SESS_READ_CROSS_USER_404["⚠ OBL_SESS_READ_CROSS_USER_404<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SESS_READ_CROSS_USER_404
-    OBL_SESS_WRITE_CROSS_USER_404["✅ OBL_SESS_WRITE_CROSS_USER_404<br/>(behavior)"]:::closed
+    OBL_SESS_WRITE_CROSS_USER_404["⚠ OBL_SESS_WRITE_CROSS_USER_404<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SESS_WRITE_CROSS_USER_404
-    OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED["✅ OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED<br/>(behavior)"]:::closed
+    OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED["⚠ OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED
     OBL_FS_AUTHZ_FAIL_CLOSED["✅ OBL_FS_AUTHZ_FAIL_CLOSED<br/>(behavior)"]:::closed
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_FS_AUTHZ_FAIL_CLOSED
-    OBL_PATH_TRAVERSAL_DENIED["✅ OBL_PATH_TRAVERSAL_DENIED<br/>(behavior)"]:::closed
+    OBL_PATH_TRAVERSAL_DENIED["⚠ OBL_PATH_TRAVERSAL_DENIED<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_PATH_TRAVERSAL_DENIED
-    OBL_SESS_AUTHORIZE_NO_FAIL_OPEN["✅ OBL_SESS_AUTHORIZE_NO_FAIL_OPEN<br/>(concurrent)"]:::closed
+    OBL_SESS_AUTHORIZE_NO_FAIL_OPEN["❌ OBL_SESS_AUTHORIZE_NO_FAIL_OPEN<br/>(concurrent)"]:::refuted
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
-    OBL_ACTIVATE_ENV_NO_CROSS_LEAK["✅ OBL_ACTIVATE_ENV_NO_CROSS_LEAK<br/>(behavior)"]:::closed
+    OBL_ACTIVATE_ENV_NO_CROSS_LEAK["❌ OBL_ACTIVATE_ENV_NO_CROSS_LEAK<br/>(behavior)"]:::refuted
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_ACTIVATE_ENV_NO_CROSS_LEAK
   end
   subgraph SG_REQ_PLAT_MEMORY_DURABILITY_001["REQ_PLAT_MEMORY_DURABILITY_001"]
     REQ_PLAT_MEMORY_DURABILITY_001["에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다…"]:::req
-    OBL_MEM_PREF_PERSIST_RELOAD["✅ OBL_MEM_PREF_PERSIST_RELOAD<br/>(content)"]:::closed
+    OBL_MEM_PREF_PERSIST_RELOAD["⚠ OBL_MEM_PREF_PERSIST_RELOAD<br/>(content)"]:::stale
     REQ_PLAT_MEMORY_DURABILITY_001 --> OBL_MEM_PREF_PERSIST_RELOAD
-    OBL_MEM_CORRUPT_STORE_RECOVERY["✅ OBL_MEM_CORRUPT_STORE_RECOVERY<br/>(behavior)"]:::closed
+    OBL_MEM_CORRUPT_STORE_RECOVERY["⚠ OBL_MEM_CORRUPT_STORE_RECOVERY<br/>(behavior)"]:::stale
     REQ_PLAT_MEMORY_DURABILITY_001 --> OBL_MEM_CORRUPT_STORE_RECOVERY
-    OBL_MEM_USER_ISOLATION["✅ OBL_MEM_USER_ISOLATION<br/>(content)"]:::closed
+    OBL_MEM_USER_ISOLATION["⚠ OBL_MEM_USER_ISOLATION<br/>(content)"]:::stale
     REQ_PLAT_MEMORY_DURABILITY_001 --> OBL_MEM_USER_ISOLATION
-    OBL_MEM_EXPORT_IMPORT_ROUNDTRIP["✅ OBL_MEM_EXPORT_IMPORT_ROUNDTRIP<br/>(content)"]:::closed
+    OBL_MEM_EXPORT_IMPORT_ROUNDTRIP["⚠ OBL_MEM_EXPORT_IMPORT_ROUNDTRIP<br/>(content)"]:::stale
     REQ_PLAT_MEMORY_DURABILITY_001 --> OBL_MEM_EXPORT_IMPORT_ROUNDTRIP
-    OBL_MEM_ABS_PATH_RESPECTED["✅ OBL_MEM_ABS_PATH_RESPECTED<br/>(structural)"]:::closed
+    OBL_MEM_ABS_PATH_RESPECTED["❌ OBL_MEM_ABS_PATH_RESPECTED<br/>(structural)"]:::refuted
     REQ_PLAT_MEMORY_DURABILITY_001 --> OBL_MEM_ABS_PATH_RESPECTED
   end
   subgraph SG_REQ_PLAT_LLM_FAILURE_VISIBILITY_001["REQ_PLAT_LLM_FAILURE_VISIBILITY_001"]
     REQ_PLAT_LLM_FAILURE_VISIBILITY_001["LLM 호출 실패는 절대 정상 결과로 둔갑하지 않는다 (green-while-bro…"]:::req
-    OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE["✅ OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE<br/>(behavior)"]:::closed
+    OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE["❌ OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE<br/>(behavior)"]:::refuted
     REQ_PLAT_LLM_FAILURE_VISIBILITY_001 --> OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE
-    OBL_COMPRESS_LLM_FAIL_SURFACED["✅ OBL_COMPRESS_LLM_FAIL_SURFACED<br/>(behavior)"]:::closed
+    OBL_COMPRESS_LLM_FAIL_SURFACED["❌ OBL_COMPRESS_LLM_FAIL_SURFACED<br/>(behavior)"]:::refuted
     REQ_PLAT_LLM_FAILURE_VISIBILITY_001 --> OBL_COMPRESS_LLM_FAIL_SURFACED
   end
   subgraph SG_REQ_PLAT_DEV_TRACEABILITY_001["REQ_PLAT_DEV_TRACEABILITY_001"]
     REQ_PLAT_DEV_TRACEABILITY_001["플랫폼의 모든 개발 약속은 기계 추적 가능하다 (선언→증거→판정)…"]:::req
-    OBL_ONTOLOGY_DECLARED_PATHS_REAL["✅ OBL_ONTOLOGY_DECLARED_PATHS_REAL<br/>(structural)"]:::closed
+    OBL_ONTOLOGY_DECLARED_PATHS_REAL["⚠ OBL_ONTOLOGY_DECLARED_PATHS_REAL<br/>(structural)"]:::stale
     REQ_PLAT_DEV_TRACEABILITY_001 --> OBL_ONTOLOGY_DECLARED_PATHS_REAL
-    OBL_NEW_MODULE_REGISTERED["✅ OBL_NEW_MODULE_REGISTERED<br/>(structural)"]:::closed
+    OBL_NEW_MODULE_REGISTERED["⚠ OBL_NEW_MODULE_REGISTERED<br/>(structural)"]:::stale
     REQ_PLAT_DEV_TRACEABILITY_001 --> OBL_NEW_MODULE_REGISTERED
-    OBL_SPINE_INTEGRITY_ENFORCED["✅ OBL_SPINE_INTEGRITY_ENFORCED<br/>(structural)"]:::closed
+    OBL_SPINE_INTEGRITY_ENFORCED["⚠ OBL_SPINE_INTEGRITY_ENFORCED<br/>(structural)"]:::stale
     REQ_PLAT_DEV_TRACEABILITY_001 --> OBL_SPINE_INTEGRITY_ENFORCED
+  end
+  subgraph SG_REQ_PLAT_SCM_PERFORCE_SYNC_001["REQ_PLAT_SCM_PERFORCE_SYNC_001"]
+    REQ_PLAT_SCM_PERFORCE_SYNC_001["Perforce Sync 탭의 checkout→edit→submit은 기존 depo…"]:::req
+    OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT["⚠ OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT<br/>(behavior)"]:::stale
+    REQ_PLAT_SCM_PERFORCE_SYNC_001 --> OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT
+    OBL_P4_EDIT_FAILURE_NOT_SOFTENED["⚠ OBL_P4_EDIT_FAILURE_NOT_SOFTENED<br/>(behavior)"]:::stale
+    REQ_PLAT_SCM_PERFORCE_SYNC_001 --> OBL_P4_EDIT_FAILURE_NOT_SOFTENED
+    OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL["⚠ OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL<br/>(behavior)"]:::stale
+    REQ_PLAT_SCM_PERFORCE_SYNC_001 --> OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL
+    OBL_P4_STREAM_ROOT_TARGET_MAPS_IP["⚠ OBL_P4_STREAM_ROOT_TARGET_MAPS_IP<br/>(behavior)"]:::stale
+    REQ_PLAT_SCM_PERFORCE_SYNC_001 --> OBL_P4_STREAM_ROOT_TARGET_MAPS_IP
+    OBL_P4_PENDING_CL_DELETABLE["⚠ OBL_P4_PENDING_CL_DELETABLE<br/>(behavior)"]:::stale
+    REQ_PLAT_SCM_PERFORCE_SYNC_001 --> OBL_P4_PENDING_CL_DELETABLE
+  end
+  subgraph SG_REQ_PLAT_CURSOR_PARITY_001["REQ_PLAT_CURSOR_PARITY_001"]
+    REQ_PLAT_CURSOR_PARITY_001["Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skil…"]:::req
+    OBL_CURSOR_TODO_LOOP_HOOK["⚠ OBL_CURSOR_TODO_LOOP_HOOK<br/>(behavior)"]:::stale
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_TODO_LOOP_HOOK
+    OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY["⚠ OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY<br/>(structural)"]:::stale
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY
+    OBL_CURSOR_ROCEV_CHAIN_SKILL["⚠ OBL_CURSOR_ROCEV_CHAIN_SKILL<br/>(structural)"]:::stale
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_ROCEV_CHAIN_SKILL
+    OBL_IP_WIKI_HELPER["○ OBL_IP_WIKI_HELPER<br/>(behavior)"]:::open
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_IP_WIKI_HELPER
+    OBL_IP_WIKI_CHECK_KILLPROOF["○ OBL_IP_WIKI_CHECK_KILLPROOF<br/>(behavior)"]:::open
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_IP_WIKI_CHECK_KILLPROOF
+    OBL_ATLAS_MCP_SERVER["○ OBL_ATLAS_MCP_SERVER<br/>(behavior)"]:::open
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_ATLAS_MCP_SERVER
+    OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK["○ OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK<br/>(behavior)"]:::open
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK
   end
   U_agent_compression["agent.compression<br/>L3 E2E"]:::unit
   U_agent_memory["agent.memory<br/>L2 내용검증"]:::unit
   U_api_sessions["api.sessions<br/>L2 내용검증"]:::unit
+  U_platform_cursor_pack["platform.cursor-pack<br/>L2 내용검증"]:::unit
+  U_platform_ip_wiki["platform.ip-wiki<br/>L2 내용검증"]:::unit
   U_platform_ontology["platform.ontology<br/>L2 내용검증"]:::unit
+  U_platform_scm["platform.scm<br/>L2 내용검증"]:::unit
   U_runtime_authz["runtime.authz<br/>L2 내용검증"]:::unit
   OBL_SESS_READ_CROSS_USER_404 --> U_api_sessions
   OBL_SESS_READ_CROSS_USER_404 -.-> E_0
@@ -84,11 +117,7 @@ flowchart LR
   OBL_PATH_TRAVERSAL_DENIED -.-> E_1
   OBL_PATH_TRAVERSAL_DENIED -.-> E_0
   OBL_SESS_AUTHORIZE_NO_FAIL_OPEN --> U_api_sessions
-  OBL_SESS_AUTHORIZE_NO_FAIL_OPEN -.-> E_0
-  OBL_SESS_AUTHORIZE_NO_FAIL_OPEN -.-> E_0
   OBL_ACTIVATE_ENV_NO_CROSS_LEAK --> U_api_sessions
-  OBL_ACTIVATE_ENV_NO_CROSS_LEAK -.-> E_0
-  OBL_ACTIVATE_ENV_NO_CROSS_LEAK -.-> E_0
   OBL_MEM_PREF_PERSIST_RELOAD --> U_agent_memory
   OBL_MEM_PREF_PERSIST_RELOAD -.-> E_2
   OBL_MEM_CORRUPT_STORE_RECOVERY --> U_agent_memory
@@ -99,26 +128,47 @@ flowchart LR
   OBL_MEM_EXPORT_IMPORT_ROUNDTRIP --> U_agent_memory
   OBL_MEM_EXPORT_IMPORT_ROUNDTRIP -.-> E_2
   OBL_MEM_ABS_PATH_RESPECTED --> U_agent_memory
-  OBL_MEM_ABS_PATH_RESPECTED -.-> E_2
-  OBL_MEM_ABS_PATH_RESPECTED -.-> E_2
   OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE --> U_agent_memory
-  OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE -.-> E_2
-  OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE -.-> E_2
   OBL_COMPRESS_LLM_FAIL_SURFACED --> U_agent_compression
-  OBL_COMPRESS_LLM_FAIL_SURFACED -.-> E_3
-  OBL_COMPRESS_LLM_FAIL_SURFACED -.-> E_3
   OBL_ONTOLOGY_DECLARED_PATHS_REAL --> U_platform_ontology
-  OBL_ONTOLOGY_DECLARED_PATHS_REAL -.-> E_4
+  OBL_ONTOLOGY_DECLARED_PATHS_REAL -.-> E_3
   OBL_NEW_MODULE_REGISTERED --> U_platform_ontology
-  OBL_NEW_MODULE_REGISTERED -.-> E_4
+  OBL_NEW_MODULE_REGISTERED -.-> E_3
   OBL_SPINE_INTEGRITY_ENFORCED --> U_platform_ontology
-  OBL_SPINE_INTEGRITY_ENFORCED -.-> E_4
-  OBL_SPINE_INTEGRITY_ENFORCED -.-> E_4
+  OBL_SPINE_INTEGRITY_ENFORCED -.-> E_3
+  OBL_SPINE_INTEGRITY_ENFORCED -.-> E_3
+  OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT --> U_platform_scm
+  OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT -.-> E_4
+  OBL_P4_EDIT_FAILURE_NOT_SOFTENED --> U_platform_scm
+  OBL_P4_EDIT_FAILURE_NOT_SOFTENED -.-> E_4
+  OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL --> U_platform_scm
+  OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL -.-> E_4
+  OBL_P4_STREAM_ROOT_TARGET_MAPS_IP --> U_platform_scm
+  OBL_P4_STREAM_ROOT_TARGET_MAPS_IP -.-> E_4
+  OBL_P4_PENDING_CL_DELETABLE --> U_platform_scm
+  OBL_P4_PENDING_CL_DELETABLE -.-> E_4
+  OBL_P4_PENDING_CL_DELETABLE -.-> E_4
+  OBL_P4_PENDING_CL_DELETABLE -.-> E_5
+  OBL_CURSOR_TODO_LOOP_HOOK --> U_platform_cursor_pack
+  OBL_CURSOR_TODO_LOOP_HOOK -.-> E_6
+  OBL_CURSOR_TODO_LOOP_HOOK -.-> E_6
+  OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY --> U_platform_cursor_pack
+  OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY -.-> E_6
+  OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY -.-> E_6
+  OBL_CURSOR_ROCEV_CHAIN_SKILL --> U_platform_cursor_pack
+  OBL_CURSOR_ROCEV_CHAIN_SKILL -.-> E_6
+  OBL_CURSOR_ROCEV_CHAIN_SKILL -.-> E_6
+  OBL_IP_WIKI_HELPER --> U_platform_ip_wiki
+  OBL_IP_WIKI_CHECK_KILLPROOF --> U_platform_ip_wiki
+  OBL_ATLAS_MCP_SERVER --> U_platform_cursor_pack
+  OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK --> U_platform_cursor_pack
   E_0["test_api_sessions_content.py"]:::ev
   E_1["test_fs_authz.py"]:::ev
   E_2["test_agent_memory_content.py"]:::ev
-  E_3["test_compressor_llm_failure.py"]:::ev
-  E_4["test_platform_ontology.py"]:::ev
+  E_3["test_platform_ontology.py"]:::ev
+  E_4["test_scm_perforce_adapter.py"]:::ev
+  E_5["test_atlas_git_api.py"]:::ev
+  E_6["test_cursor_pack.py"]:::ev
 ```
 
 ## DevUnit 성숙도 (전체 19 units)
@@ -129,12 +179,15 @@ flowchart TB
     M_agent_compression["agent.compression"]
     M_engine_stage["engine.stage"]
   end
-  subgraph L2["L2 내용검증 (6)"]
+  subgraph L2["L2 내용검증 (9)"]
     M_agent_tools["agent.tools"]
     M_runtime_authz["runtime.authz"]
     M_api_sessions["api.sessions"]
     M_task_todo_tracker["task.todo-tracker"]
     M_agent_memory["agent.memory"]
+    M_platform_scm["platform.scm"]
+    M_platform_cursor_pack["platform.cursor-pack"]
+    M_platform_ip_wiki["platform.ip-wiki"]
     M_platform_ontology["platform.ontology"]
   end
   subgraph L1["L1 단위테스트 (10)"]

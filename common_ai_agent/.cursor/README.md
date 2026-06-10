@@ -31,7 +31,7 @@ python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py <ip> --root . --
 
 - `hooks/stop-todo-loop.py` (stop, loop_limit 20): open todo가 남아 있으면 자동 재투입 — todo-list 기반 작업 루프.
 - `hooks/subagent-evidence-check.py` (subagentStop): atlas-* 오너가 증거 없이 "완료"로 멈추면 verdict 라인 인용을 요구.
-- `skills/rocev-chain` + `agents/atlas-req-gen`·`atlas-rocev-chain`: req → rtl → tb → sim을 ROCEV(Req→Obligation→Contract→Evidence→Validation)로 구동.
-- `skills/atlas-ip-wiki` + `scripts/ip_wiki.py`: IP 폴더 내장 wiki(`<ip>/wiki`)에 개발 히스토리 축적 (init/log/page/check).
+- `skills/rocev-chain` + `agents/req-gen`·`rocev-chain`: req → rtl → tb → sim을 ROCEV(Req→Obligation→Contract→Evidence→Validation)로 구동.
+- `skills/ip-wiki` + `scripts/ip_wiki.py`: IP 폴더 내장 wiki(`<ip>/wiki`)에 개발 히스토리 축적 (init/log/page/check).
 - `mcp.json` + `scripts/atlas_mcp_server.py`: RTL DB query MCP (`rtl_db_query`/`rtl_db_wiki` 주 툴 + `ontology_query`/`wiki_search`).
 - 검증: `tests/test_cursor_pack.py` + `tests/test_ip_wiki.py` + `tests/test_atlas_mcp_server.py` (팩 무결성 ratchet 포함).

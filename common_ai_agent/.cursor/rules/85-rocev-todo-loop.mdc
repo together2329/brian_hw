@@ -16,8 +16,8 @@ req           (VCM todos)   SSOT/goals  artifacts   stage gates
 ```
 
 - Full chain runs: use the `rocev-chain` skill (req → rtl → tb → sim) or the
-  `/atlas-rocev-chain` subagent. Single stages: `/atlas-req-gen`, `/atlas-rtl-gen`,
-  `/atlas-tb-gen`, `/atlas-sim`.
+  `/rocev-chain` subagent. Single stages: `/req-gen`, `/rtl-gen`,
+  `/tb-gen`, `/sim`.
 - The `stop` hook (`stop-todo-loop.py`) re-prompts while open todos remain in
   `current_todos.json`. The loop ends by CLOSING todos with evidence, never by
   marking them complete without it.

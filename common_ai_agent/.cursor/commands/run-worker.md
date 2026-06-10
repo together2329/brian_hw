@@ -6,4 +6,4 @@ Start one all-workflows worker for orchestrator dispatch:
 python3 src/main.py --serve --all-workflows --port 5601
 ```
 
-Use with `atlas-orchestrator-dispatch` when validating pipeline worker behavior.
+Use with `orchestrator-dispatch` when validating pipeline worker behavior.

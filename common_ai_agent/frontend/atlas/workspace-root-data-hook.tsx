@@ -3159,7 +3159,17 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const workspaceSession = activeWorkspaceSession();
         if (workspaceSession) params.set('workspace_session', workspaceSession);
         const r = await fetch(`/api/job/${encodeURIComponent(jid)}/log?${params.toString()}`, { credentials: 'include', cache: 'no-store' });
-        if (!r.ok) { if (r.status === 404) workerLogJobRef.current = ''; return; }
+        if (!r.ok) {
+          if (r.status === 404) {
+            // Job gone → drop it AND reset the since/seen cursor so the next
+            // resolved job starts from index 0 (its log indices are a fresh
+            // scale; carrying the old `since` silently drops its entries).
+            workerLogJobRef.current = '';
+            workerLogSinceRef.current = 0;
+            workerLogSeenRef.current = new Set();
+          }
+          return;
+        }
         const d = await r.json();
         const jb = d.job || {};
         const progress = {
@@ -3205,9 +3215,16 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
             ) ? 'chat' : prev);
           }
         }
-        // job finished → stop chasing it (next active job, if any, re-resolves)
-        if (d.status && ['passed', 'failed', 'error', 'done', 'completed', 'cancelled'].includes(String(d.status))) {
+        // job finished → stop chasing it (next active job, if any, re-resolves).
+        // 'blocked' is terminal too — a re-dispatched stage's worker is a new
+        // job id, so without releasing here the poller chases the blocked job
+        // forever and the new worker's live transcript never appears. Reset the
+        // cursor so the next resolved job starts from index 0 (its indices are a
+        // fresh scale; carrying `since`/`seen` drops its early entries).
+        if (d.status && ['passed', 'failed', 'error', 'done', 'completed', 'cancelled', 'blocked'].includes(String(d.status))) {
           workerLogJobRef.current = '';
+          workerLogSinceRef.current = 0;
+          workerLogSeenRef.current = new Set();
         }
       } catch (_) {}
     };
