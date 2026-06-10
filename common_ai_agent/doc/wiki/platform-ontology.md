@@ -71,10 +71,25 @@ Requirement → Obligation → (Contract=reflection) → Evidence → Validation
 - 현재: **closed 12 / refuted 5 / open 0** (refuted 5 = memory LLM swallow, 절대경로 무시,
   activate env 누수, authorize fail-open, compressor swallow — 이게 곧 수정 백로그)
 
+## 개발 루프 (필수 — 모든 기능 작업은 이 레이어를 거친다)
+
+2026-06-10 Brian 지시로 제도화. 루트 `CLAUDE.md`에 박혀 있어 모든 세션이 따른다:
+
+```
+① 선언  코드 전에 obligation(status: open) 추가 — 새 모듈이면 unit owns 등록
+② 구현  owned 경계 안에서 작성
+③ 증거  content test 작성 → pytest 노드 + observed_at(커밋) 을 evidence 로
+④ 닫기  status: closed → check PASS 확인 후에만 merge
+```
+
+- 발견한 결함 = 즉시 `status: refuted` obligation (채팅 메모 금지)
+- 작업 큐 = `backlog` 커맨드 (refuted > stale > open 순으로 출력)
+
 ## 사용법
 
 ```bash
-python3 scripts/platform_ontology.py report   # 표 + 히스토그램 + orphan top
+python3 scripts/platform_ontology.py report   # 표 + 히스토그램 + 추적표 + orphan top
+python3 scripts/platform_ontology.py backlog  # 작업 큐 (refuted/stale/open)
 python3 scripts/platform_ontology.py scan     # DB에 스냅샷 적재 (이력 누적)
 python3 scripts/platform_ontology.py check    # 게이트 (rc 0/1) — CI/훅용
 ```

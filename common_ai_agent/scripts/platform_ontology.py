@@ -424,6 +424,25 @@ def report():
     return r
 
 
+def backlog() -> int:
+    """작업 큐: open(미착수 약속) + refuted(반증된 약속 = 결함) 목록."""
+    r = scan(write_db=False)
+    items = [o for o in r["spine_resolved"]
+             if o["effective_status"] in ("open", "refuted", "stale")]
+    if not items:
+        print("[ontology] backlog empty — all obligations closed & fresh")
+        return 0
+    order = {"refuted": 0, "stale": 1, "open": 2}
+    items.sort(key=lambda o: (order[o["effective_status"]], o["owned_by"]))
+    print(f"=== backlog ({len(items)}) — refuted(결함) > stale(재검증) > open(미착수) ===")
+    for ob in items:
+        tag = ob["effective_status"].upper()
+        print(f"[{tag:7}] {ob['obligation_id']}  ({ob['owned_by']}, {ob['granularity']})")
+        if ob["refuted_by"]:
+            print(f"          {ob['refuted_by'].strip()}")
+    return 0
+
+
 def check() -> int:
     r = scan(write_db=False)
     rc = 0
@@ -468,6 +487,8 @@ def main(argv: list) -> int:
         return 0
     if cmd == "check":
         return check()
+    if cmd == "backlog":
+        return backlog()
     print(__doc__)
     return 2
 

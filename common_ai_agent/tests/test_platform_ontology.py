@@ -52,6 +52,17 @@ def test_check_passes_on_real_repo():
     assert po.check() == 0
 
 
+def test_backlog_lists_refuted_obligations(capsys):
+    """backlog 는 refuted 약속(=결함)을 사유와 함께 노출해야 한다."""
+    rc = po.backlog()
+    out = capsys.readouterr().out
+    assert rc == 0
+    _, resolved = po.validate_spine(po.load_spine(), po.load_ontology())
+    for ob in resolved:
+        if ob["status"] == "refuted":
+            assert ob["obligation_id"] in out, f"{ob['obligation_id']} missing from backlog"
+
+
 # ---------- 스캐너 로직 kill-proof (조작된 입력으로 검증) ----------
 
 def _doc(units, scope=("pkg/*.py",), baseline=None):
