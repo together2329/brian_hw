@@ -12,6 +12,7 @@
 // owners migrate, we reach them through a locally-declared `AtlasGlue` view of
 // `window` so the access type-checks without editing the shared ambient .d.ts.
 import { useMemo, useState, useEffect, useRef, useCallback, type MouseEvent, type CSSProperties } from 'react';
+import { PipelineFlowGraph } from './workspace-pipeline-flow';
 
 // ── Local typed view of the legacy window-glue surface this file touches ──
 // (cross-file deps owned by other not-yet-migrated .jsx files). This is a
@@ -811,20 +812,23 @@ export function AtlasPipeline() {
             onSelectStage={setSelectedStage} />
           <PendingQABanner ip={ip} />
           <OrchestratorAskUserBanner ip={ip} />
-          <w.PipelineFlowMap
+          {/* Pipeline view — React Flow (replaces the hardcoded-coordinate
+              PipelineFlowMap SVG). The flow-control strip above carries the flow
+              picker + phase chips, so this graph hides its own orchestrator head. */}
+          <PipelineFlowGraph
             ip={ip}
-            state={pipelineState}
-            selectedFlowId={selectedFlowId}
-            selectedStage={selectedStage}
-            onSelectFlow={setSelectedFlowId}
-            onSelectStage={setSelectedStage} />
-          <EnhancedFlowCanvas
             pipelineState={pipelineState}
-            ip={ip}
-            onSelectStage={setSelectedStage}
             selectedStage={selectedStage}
-            selectedFlowId={selectedFlowId}
-            onChain={addToChain} />
+            onSelectStage={setSelectedStage}
+            showOrchestratorHead={false} />
+          {/* ORCHESTRATOR canvas — React Flow (replaces the EnhancedFlowCanvas
+              SVG + its hand-placed ENH_* coordinate table). Keeps the 🎯 header. */}
+          <PipelineFlowGraph
+            ip={ip}
+            pipelineState={pipelineState}
+            selectedStage={selectedStage}
+            onSelectStage={setSelectedStage}
+            showOrchestratorHead />
           <EnhancedDetailCards
             pipelineState={pipelineState}
             ip={ip}
