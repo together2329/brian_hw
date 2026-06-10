@@ -5,6 +5,17 @@ deterministically compiled; honesty moves to contract validation.** The
 deterministic emitters stop absorbing ever-richer hardware semantics and
 demote to baseline/cross-check oracles.
 
+Generalized principle (user, same day): **delegate generation to the LLM
+broadly; the system's load-bearing job is EVIDENCE VALIDATION.** Wherever a
+deterministic generator exists mainly to keep the LLM honest, prefer
+LLM-authored artifacts gated by machine-checkable evidence (contracts,
+mutation, cross-oracles, provenance, disk/sim evidence batteries). Determinism
+is for VALIDATORS — gates must stay deterministic, reproducible, and
+content-semantic; generators need not be. This matches where the system was
+already strongest: the phase-1/phase-2 walks showed the gates are real
+([[stage-validation-reflections-20260610]] "the gates are the work queue"),
+so the gates — not the generators — are the trust anchor.
+
 ## Why (the motivating failure)
 
 Third headless IP `apb_watchdog_v1` ([[headless-stage-validation-phase2-20260610]])
