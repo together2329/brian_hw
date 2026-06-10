@@ -198,6 +198,7 @@ describe('PerforceSyncTab pane navigation', () => {
     render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
     fireEvent.change(await screen.findByLabelText('Pending changelist'), { target: { value: '12' } });
     fireEvent.click(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv'));
+    fireEvent.click(screen.getByTitle('Show diff for the selected pending file'));
 
     expect(await screen.findByText(/\+module changed;/)).toBeVisible();
     expect(diffUrls.some(url => url.includes('path=%2F%2FGOOD_SOC%2FGOOD_IP%2Frtl%2Fopened.sv'))).toBe(true);
@@ -216,6 +217,7 @@ describe('PerforceSyncTab pane navigation', () => {
     fireEvent.click(screen.getByRole('button', { name: /checkout/i }));
     const pendingTarget = await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv');
     fireEvent.click(pendingTarget);
+    fireEvent.click(screen.getByTitle('Show diff for the selected pending file'));
 
     expect(await screen.findByText(/\+module changed;/)).toBeVisible();
     fireEvent.change(screen.getByPlaceholderText('changelist description…'), {

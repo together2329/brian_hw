@@ -1056,19 +1056,67 @@ def main() -> int:
                 "Fix the verifier runtime issue, then rerun verify_ssot.",
             ))
 
+    # Build-first guardrails: outside an explicit signoff run mode, findings
+    # do not stop the flow. Only "nothing to build on" stays a blocker
+    # (missing IP / missing or unparseable YAML); everything else demotes to
+    # guardrail todos the LLM repairs through the normal validation loop.
+    # Signoff keeps every blocker hard.
+    relaxed = (os.environ.get("ATLAS_RUN_MODE") or "").strip().lower() != "signoff"
+    guardrails: list[dict[str, str]] = []
+    if relaxed and blockers:
+        hard_ids = {"ssot.ip_missing", "ssot.file_missing", "ssot.yaml_parse_failed"}
+        hard = [item for item in blockers if str(item.get("id") or "") in hard_ids]
+        guardrails = [item for item in blockers if str(item.get("id") or "") not in hard_ids]
+        blockers = hard
+
     report_path = root / ip / "req" / "ssot_validation.json" if ip else None
     report = {
         "schema_version": "ssot_validation.v2",
         "ip": ip,
         "mode": mode,
+        "run_mode_relaxed": relaxed,
         "ssot": _rel(ssot, root),
         "ok": not blockers,
         "blockers": blockers,
         "warnings": warnings,
+        "guardrails": guardrails,
         "check_ssot_disk": check_result,
         "preview_contract": ns.preview,
         "locked_truth_projection": locked_truth_projection,
     }
+    if ip and guardrails:
+        guardrail_todo = {
+            "schema_version": 1,
+            "type": "ssot_guardrails",
+            "ip": ip,
+            "status": "advisory",
+            "reason": (
+                "verify_ssot findings recorded as guardrail todos: SSOT work proceeds, "
+                "signoff still requires closure."
+            ),
+            "tasks": [
+                {
+                    "content": f"[GUARDRAIL] {item.get('id')}",
+                    "detail": item.get("message") or "",
+                    "criteria": item.get("fix") or "",
+                    "owner": "ssot-gen",
+                    "source_ref": item.get("path") or "",
+                }
+                for item in guardrails
+            ],
+        }
+        guardrail_path = root / ip / "req" / "ssot_guardrails.json"
+        guardrail_path.parent.mkdir(parents=True, exist_ok=True)
+        guardrail_path.write_text(
+            json.dumps(guardrail_todo, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+    elif ip:
+        leftover = root / ip / "req" / "ssot_guardrails.json"
+        if leftover.is_file():
+            try:
+                leftover.unlink()
+            except OSError:
+                pass
     if report_path is not None:
         report_path.parent.mkdir(parents=True, exist_ok=True)
         report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")

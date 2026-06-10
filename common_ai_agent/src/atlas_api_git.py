@@ -10,6 +10,7 @@ this module never reaches into the host's mutable globals.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import re
 from pathlib import Path
@@ -572,6 +573,58 @@ def register_git_routes(
                 **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
+
+    def _scm_ui_prefs_path() -> Path:
+        override = os.environ.get("ATLAS_SCM_UI_PREFS_PATH", "").strip()
+        if override:
+            return Path(override).expanduser()
+        return Path.home() / ".common_ai_agent" / "perforce_ui_state.json"
+
+    def _scm_ui_prefs_key(ip: str, session_id: str) -> str:
+        owner = ""
+        session = normalize_session_name(str(session_id or ""))
+        if session:
+            owner = session.split("/", 1)[0]
+        return f"{owner or 'default'}::{str(ip or '').strip() or 'default'}"
+
+    def _scm_ui_prefs_load() -> dict[str, Any]:
+        path = _scm_ui_prefs_path()
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            return data if isinstance(data, dict) else {}
+        except (OSError, ValueError):
+            return {}
+
+    @app.get("/api/scm/uiprefs")
+    async def api_scm_ui_prefs_get(ip: str = "", session_id: str = ""):
+        # Last-visited pane locations for the Perforce Sync tab, persisted in
+        # the home directory so the user does not re-navigate on every visit.
+        prefs = _scm_ui_prefs_load().get(_scm_ui_prefs_key(ip, session_id), {})
+        if not isinstance(prefs, dict):
+            prefs = {}
+        return JSONResponse({"ok": True, "prefs": prefs})
+
+    @app.post("/api/scm/uiprefs")
+    async def api_scm_ui_prefs_set(payload: dict[str, Any]):
+        body = payload or {}
+        ip = str(body.get("ip") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or "")
+        prefs = {
+            key: str(body.get(key) or "")
+            for key in ("localDir", "depotDir", "stream", "scmRoot")
+            if str(body.get(key) or "")
+        }
+        data = _scm_ui_prefs_load()
+        data[_scm_ui_prefs_key(ip, session_id)] = prefs
+        path = _scm_ui_prefs_path()
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+            tmp.replace(path)
+        except OSError as exc:
+            return JSONResponse({"ok": False, "error": str(exc)}, status_code=200)
+        return JSONResponse({"ok": True, "prefs": prefs})
 
     @app.post("/api/scm/change/delete")
     async def api_scm_change_delete(payload: dict[str, Any]):
