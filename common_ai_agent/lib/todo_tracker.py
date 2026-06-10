@@ -72,9 +72,59 @@ def _is_windows() -> bool:
 
 
 def _windows_bash() -> Optional[str]:
-    """git-bash/WSL-bash location on Windows, if any (None elsewhere/absent)."""
+    """Auto-discover git-bash (MSYS bash.exe) on Windows.
+
+    Order: PATH `bash` (EXCLUDING C:\\Windows\\System32\\bash.exe — that is the
+    WSL launcher, see _windows_wsl), then derived from PATH `git`
+    (<GitRoot>\\bin|usr\\bin\\bash.exe), then standard install locations.
+    git-bash is preferred over WSL because it understands Windows paths and
+    runs Windows executables (e.g. the rewritten sys.executable) natively.
+    """
+    import os
     import shutil
-    return shutil.which("bash")
+    found = shutil.which("bash")
+    if found and "system32" not in found.lower():
+        return found
+    candidates = []
+    git = shutil.which("git")
+    if git:
+        git_root = os.path.dirname(os.path.dirname(git))  # ...\Git\cmd\git.exe -> ...\Git
+        candidates.append(os.path.join(git_root, "bin", "bash.exe"))
+        candidates.append(os.path.join(git_root, "usr", "bin", "bash.exe"))
+    for env_var, rel in (
+        ("ProgramFiles", os.path.join("Git", "bin", "bash.exe")),
+        ("ProgramFiles(x86)", os.path.join("Git", "bin", "bash.exe")),
+        ("LOCALAPPDATA", os.path.join("Programs", "Git", "bin", "bash.exe")),
+    ):
+        base = os.environ.get(env_var)
+        if base:
+            candidates.append(os.path.join(base, rel))
+    for cand in candidates:
+        if os.path.isfile(cand):
+            return cand
+    return None
+
+
+def _windows_wsl() -> Optional[list]:
+    """WSL bash invocation prefix on Windows (fallback when git-bash is absent).
+
+    Returns e.g. ["C:\\...\\wsl.exe", "-e", "bash", "-c"] or the System32 bash
+    launcher as ["...\\bash.exe", "-c"]; None when WSL is unavailable. Commands
+    routed here run on the LINUX side, so callers must NOT inject Windows
+    executable paths into the payload (python3 stays python3).
+    """
+    import os
+    import shutil
+    wsl = shutil.which("wsl") or shutil.which("wsl.exe")
+    if wsl:
+        return [wsl, "-e", "bash", "-c"]
+    sys_bash = shutil.which("bash")
+    if sys_bash and "system32" in sys_bash.lower():
+        return [sys_bash, "-c"]
+    sys32 = os.path.join(os.environ.get("SystemRoot", r"C:\Windows"), "System32", "bash.exe")
+    if os.path.isfile(sys32):
+        return [sys32, "-c"]
+    return None
 
 
 def is_todo_status_open(status: Any) -> bool:
@@ -262,12 +312,16 @@ class TodoItem:
         Windows + git-bash: ["...bash.exe", "-c", cmd] — todo templates use
         POSIX syntax (`test -f ... || (...)`, $VAR) that cmd.exe cannot run,
         but git-bash can.
-        Windows without bash: cmd.exe fallback (string, shell=True).
+        Windows without git-bash but with WSL: [..."wsl.exe","-e","bash","-c", cmd].
+        Windows with neither: cmd.exe fallback (string, shell=True).
         """
         if _is_windows():
             bash = _windows_bash()
             if bash:
                 return [bash, "-c", cmd], False
+            wsl = _windows_wsl()
+            if wsl:
+                return [*wsl, cmd], False
         return cmd, True
 
     @staticmethod
@@ -286,6 +340,10 @@ class TodoItem:
         if not exe:
             return cmd
         if _is_windows() and not _windows_bash():
+            if _windows_wsl():
+                # Command will run on the LINUX side of WSL: python3 is correct
+                # there, and a Windows C:\...python.exe path would not resolve.
+                return cmd
             quoted = f'"{exe}"'  # cmd.exe fallback quoting
         else:
             quoted = _shlex.quote(exe)  # POSIX shell or git-bash -c payload

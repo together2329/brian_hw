@@ -87,12 +87,13 @@ def test_run_command_rewrites_python3(monkeypatch, tmp_path: Path):
 _GIT_BASH = r"C:\Program Files\Git\bin\bash.exe"
 
 
-def _fake_windows(monkeypatch, bash_path):
+def _fake_windows(monkeypatch, bash_path, wsl_prefix=None):
     # Patch the module seams (NOT os.name globally — pathlib would try to
     # instantiate WindowsPath on POSIX and explode).
     import lib.todo_tracker as tt
     monkeypatch.setattr(tt, "_is_windows", lambda: True, raising=False)
     monkeypatch.setattr(tt, "_windows_bash", lambda: bash_path, raising=False)
+    monkeypatch.setattr(tt, "_windows_wsl", lambda: wsl_prefix, raising=False)
 
 
 def test_windows_routes_validator_through_git_bash(monkeypatch):
@@ -142,3 +143,52 @@ def test_windows_run_command_routes_through_git_bash(monkeypatch, tmp_path: Path
     cmd = captured["cmd"]
     assert isinstance(cmd, list) and cmd[0] == _GIT_BASH and cmd[1] == "-c", cmd
     assert captured["shell"] is False
+
+
+# ---------------------------------------------------------------------------
+# WSL fallback: when git-bash is absent but WSL exists, route through
+# `wsl.exe -e bash -c`. Inside WSL the command runs in Linux, so the python3
+# token must be LEFT AS-IS (Linux has python3; an injected Windows
+# C:\...python.exe path would not resolve there).
+# ---------------------------------------------------------------------------
+
+_WSL_PREFIX = [r"C:\Windows\System32\wsl.exe", "-e", "bash", "-c"]
+
+
+def test_windows_falls_back_to_wsl_when_no_git_bash(monkeypatch):
+    captured: dict = {}
+    monkeypatch.setattr(subprocess, "run", _capture_run(captured))
+    _fake_windows(monkeypatch, None, wsl_prefix=_WSL_PREFIX)
+
+    item = TodoItem(
+        content="x", active_form="x",
+        validator='python3 check.py && (test -f out.json || echo missing)',
+    )
+    item.run_validator()
+
+    cmd = captured["cmd"]
+    assert isinstance(cmd, list) and cmd[:4] == _WSL_PREFIX, cmd
+    assert captured["shell"] is False
+    # python3 must stay untouched for the Linux side.
+    assert "python3 check.py" in cmd[4], cmd[4]
+    assert sys.executable not in cmd[4], cmd[4]
+
+
+def test_windows_bash_discovery_derives_from_git_and_skips_system32(monkeypatch):
+    import os
+    import shutil
+    import lib.todo_tracker as tt
+
+    # Forward-slash Windows paths: valid on Windows, and they keep this test
+    # runnable on POSIX (posixpath.dirname cannot split backslash paths — the
+    # production code on real Windows uses ntpath, which handles both).
+    which_map = {
+        # PATH bash is the System32 WSL launcher — must NOT be treated as git-bash.
+        "bash": "C:/Windows/System32/bash.exe",
+        "git": "C:/Program Files/Git/cmd/git.exe",
+    }
+    derived = os.path.join("C:/Program Files/Git", "bin", "bash.exe")
+    monkeypatch.setattr(shutil, "which", lambda name: which_map.get(name))
+    monkeypatch.setattr(os.path, "isfile", lambda p: p == derived)
+
+    assert tt._windows_bash() == derived

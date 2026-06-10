@@ -613,9 +613,16 @@ const w = window as any;
         if (!eventMatchesActiveSession(m, { requireSession: true })) return;
         let changed = false;
         if (typeof m.used === 'number') {
-          w.CONTEXT.tokens = m.used;
-          w.CONTEXT.maxTokens = m.max || w.CONTEXT.maxTokens;
-          changed = true;
+          const used = Number(m.used);
+          const maxTokens = Number(m.max || 0);
+          if (Number.isFinite(used) && (used > 0 || m.reset === true || m.clear === true)) {
+            w.CONTEXT.tokens = Math.max(0, used);
+            changed = true;
+          }
+          if (Number.isFinite(maxTokens) && maxTokens > 0) {
+            w.CONTEXT.maxTokens = maxTokens;
+            changed = true;
+          }
         }
         const reasoningEffort = m.reasoning_effort || m.reasoningEffort || m.effort;
         const model = m.model || m.active_model || m.activeModel || m.runtime_model;
