@@ -73,7 +73,8 @@ Requirement → Obligation → (Contract=reflection) → Evidence → Validation
 
 ## 개발 루프 (필수 — 모든 기능 작업은 이 레이어를 거친다)
 
-2026-06-10 Brian 지시로 제도화. 루트 `CLAUDE.md`에 박혀 있어 모든 세션이 따른다:
+2026-06-10 Brian 지시로 제도화. 루트 `AGENTS.md`(도구 중립 표준 — Codex/Cursor 공유)에
+박혀 있고, `CLAUDE.md`는 `@AGENTS.md` import 포인터라 Claude Code도 같은 규약을 본다:
 
 ```
 ① 선언  코드 전에 obligation(status: open) 추가 — 새 모듈이면 unit owns 등록
