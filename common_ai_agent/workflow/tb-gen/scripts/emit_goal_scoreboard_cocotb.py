@@ -2292,6 +2292,60 @@ async def fl_rtl_equivalence_goals(dut):
             ):
                 await _apply_machine_spec(dut, manifest, machine_spec)
                 _machine_spec_ran = True
+                # The FL oracle computes expected from `stimulus`, but when a
+                # machine_spec ran the timeline IS the stimulus contract: the
+                # index-derived vector no longer describes what was driven.
+                # Mirror the timeline's last CSR access and final input
+                # assigns into the stimulus so FL applies the same transaction
+                # the DUT just saw (index data like pwdata=14 vs driven data=1
+                # silently desyncs expected from driven otherwise).
+                _final_access = None
+                _final_assigns = {}
+                _event_assigns = {}
+                _ms_input_map = manifest.get("input_map") or {}
+                _spec_steps = list(machine_spec.get("timeline") or [])
+                if not _spec_steps and isinstance(machine_spec.get("assign"), dict):
+                    _spec_steps = [{"assign": machine_spec["assign"]}]
+                for _entry in (machine_spec.get("csr_writes") or []):
+                    if isinstance(_entry, dict):
+                        _spec_steps.append({"csr_write": _entry})
+                for _step in _spec_steps:
+                    if not isinstance(_step, dict):
+                        continue
+                    if isinstance(_step.get("csr_write"), dict):
+                        _final_access = ("write", _step["csr_write"])
+                    elif isinstance(_step.get("csr_read"), dict):
+                        _final_access = ("read", _step["csr_read"])
+                    if isinstance(_step.get("assign"), dict):
+                        for _f, _v in _step["assign"].items():
+                            _final_assigns[str(_f)] = _v
+                            # FL applies the transaction EVENT, not the resting
+                            # drive: a pulse timeline assigns 1 then parks 0,
+                            # and FL's edge condition needs the 1. Track the
+                            # last non-idle assigned value separately from the
+                            # final (resting) value the park logic uses.
+                            _evport = str(_ms_input_map.get(str(_f), _f))
+                            try:
+                                if int(_v) != int(_idle_input_value(manifest, _evport)):
+                                    _event_assigns[str(_f)] = _v
+                            except (TypeError, ValueError):
+                                pass
+                # Mirror only the written DATA, never op/addr: the FL resolves
+                # its transaction kind from the stimulus, and overriding
+                # op/addr re-resolves a different transaction than the donor
+                # the timeline was inherited from (a trailing csr_read for
+                # read-back sampling must not turn the goal into a read tx).
+                if _final_access is not None and _final_access[0] == "write":
+                    _acc = _final_access[1]
+                    _adata = int(_acc.get("data", _acc.get("value", 0)) or 0)
+                    for _k in ("data", "value", "pwdata", "wdata"):
+                        stimulus[_k] = _adata
+                for _f, _v in _final_assigns.items():
+                    _ev = _event_assigns.get(_f, _v)
+                    try:
+                        stimulus[_f] = int(_ev)
+                    except (TypeError, ValueError):
+                        stimulus[_f] = _ev
                 # When machine_spec drives csr_writes, mirror them into the CL.
                 if _cl is not None and isinstance(machine_spec, dict):
                     for entry in (machine_spec.get("csr_writes") or []):
@@ -2313,9 +2367,20 @@ async def fl_rtl_equivalence_goals(dut):
                 # with index-derived garbage (side-writing CSRs like CLEAR) and
                 # injects extra event edges, desynchronizing the FL expected
                 # from what the timeline just set up. Park every input at its
-                # idle value and give the DUT a short settle window instead.
+                # idle value and give the DUT a short settle window instead —
+                # except inputs the timeline explicitly left assigned: their
+                # final assign is the contract's resting drive (a level-hold
+                # like pulse_in=1 must survive to the sample, or every
+                # synchronizer-state expected fails by construction).
                 for _field, _port in (manifest.get("input_map") or {}).items():
                     if _port in (clock, manifest["reset"]):
+                        continue
+                    if _field in _final_assigns or str(_port) in _final_assigns:
+                        _hold = _final_assigns.get(_field, _final_assigns.get(str(_port)))
+                        try:
+                            _set_signal(dut, _port, int(_hold))
+                        except (TypeError, ValueError):
+                            _set_signal(dut, _port, _idle_input_value(manifest, str(_port)))
                         continue
                     _set_signal(dut, _port, _idle_input_value(manifest, str(_port)))
                 for _ in range(2):

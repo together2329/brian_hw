@@ -1793,8 +1793,18 @@ class HeadlessWorkflowRunner:
             (req_dir / name).write_text(text, encoding="utf-8")
         source_rel = f"{ip}/req/requirements.md"
         target_rel = f"{ip}/req/{ip}_requirements.md"
+        manifest_path = req_dir / "approval_manifest.json"
+        if manifest_path.is_file():
+            try:
+                existing = json.loads(manifest_path.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                existing = {}
+            if isinstance(existing, dict) and existing.get("status") == "requirements_locked":
+                # lock_requirement_set owns this manifest; clobbering it breaks the
+                # contract authority gate downstream. Record the copy separately.
+                manifest_path = req_dir / "headless_req_copy_manifest.json"
         _write_json(
-            req_dir / "approval_manifest.json",
+            manifest_path,
             {
                 "schema_version": 1,
                 "type": "requirement_approval_manifest",

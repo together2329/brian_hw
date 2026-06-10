@@ -4150,7 +4150,10 @@ _DRAFT_BLOCKING_GATE_KINDS = {
     "ssot_required_sections",
     "ssot_workflow_todo_format",
     "owner_traceability",
-    "locked_truth_contract_implementation",
+    # locked_truth_contract_implementation is intentionally NOT draft-blocking:
+    # it is closable only by authoring RTL, so blocking drafts on it deadlocks
+    # fresh IPs that carry a locked req bundle. It stays in
+    # _LOCKED_TRUTH_GATE_KINDS, so it still forbids rtl-gen PASS/signoff.
 }
 
 _LOCKED_TRUTH_GATE_KINDS = {
@@ -6347,6 +6350,40 @@ def _normalize_expr(value: Any) -> str:
     return re.sub(r"\s+", "", str(value or ""))
 
 
+_CONTINUOUS_ASSIGN_RE = re.compile(r"\bassign\s+([A-Za-z_][A-Za-z0-9_]*)\s*(?:\[[^\]]*\])?\s*=\s*([^;]+);")
+
+
+def _assign_chain_links(body: str, expected_terms: set[str], expr_terms: set[str], max_depth: int = 2) -> bool:
+    """True when a continuous-assign chain inside the parent module links a
+    port-map expression term to an SSOT-expected signal term, in either
+    direction (e.g. ``.irq(irq_q)`` with ``assign irq = irq_q;`` or via one
+    intermediate net). Wrong wiring still fails: an unrelated net never
+    reaches the expected term through the assign graph."""
+    if not body or not expected_terms or not expr_terms:
+        return False
+    edges: dict[str, set[str]] = {}
+    for match in _CONTINUOUS_ASSIGN_RE.finditer(body):
+        edges.setdefault(match.group(1), set()).update(_signal_terms(match.group(2)))
+
+    def _reaches(starts: set[str], targets: set[str]) -> bool:
+        seen = set(starts)
+        frontier = set(starts)
+        for _ in range(max_depth):
+            nxt: set[str] = set()
+            for name in frontier:
+                nxt |= edges.get(name, set())
+            if nxt & targets:
+                return True
+            nxt -= seen
+            if not nxt:
+                return False
+            seen |= nxt
+            frontier = nxt
+        return False
+
+    return _reaches(expected_terms, expr_terms) or _reaches(expr_terms, expected_terms)
+
+
 def _connection_contract_from_entry(
     raw: Any,
     *,
@@ -7982,11 +8019,13 @@ def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, A
     tokens_by_module: dict[str, set[str]] = {}
     graph: dict[str, set[str]] = {}
     instances_by_parent: dict[str, list[dict[str, Any]]] = {}
+    bodies_by_module: dict[str, str] = {}
     for rel, text in sources.items():
         for module_name, body in _sv_module_bodies(text).items():
             declarations[module_name] = rel
             ports_by_module[module_name] = _sv_declared_ports_from_module_body(body)
             tokens_by_module[module_name] = _rtl_token_set(body)
+            bodies_by_module[module_name] = body
             instances = _sv_instance_named_port_maps(body)
             instances_by_parent[module_name] = instances
             graph[module_name] = {str(instance.get("module") or "") for instance in instances if instance.get("module")}
@@ -8021,7 +8060,7 @@ def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, A
     port_issues: list[dict[str, Any]] = []
     connection_contract_issues: list[dict[str, Any]] = []
     reachable_instances = [
-        instance
+        {**instance, "_parent": parent}
         for parent in reachable
         for instance in instances_by_parent.get(parent, [])
         if isinstance(instance, dict)
@@ -8188,6 +8227,21 @@ def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, A
                 if _normalize_expr(expr) == _normalize_expr(expected_signal) or (expected_terms and expected_terms & expr_terms):
                     matched = True
                     break
+            if not matched:
+                expected_all = _signal_terms(expected_signal) | expected_terms
+                parent_names = {
+                    str(instance.get("_parent") or "")
+                    for instance in matching_instances
+                }
+                for expr in non_empty_exprs:
+                    expr_terms = _signal_terms(expr)
+                    if any(
+                        _assign_chain_links(bodies_by_module.get(parent, ""), expected_all, expr_terms)
+                        for parent in parent_names
+                        if parent
+                    ):
+                        matched = True
+                        break
             if not matched:
                 connection_contract_issues.append({
                     "source_ref": contract.get("source_ref"),
