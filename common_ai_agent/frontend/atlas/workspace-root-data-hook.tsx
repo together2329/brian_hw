@@ -31,6 +31,8 @@ import { type SetStateAction, useState, useEffect, useRef, useCallback, useMemo,
 import {
   refreshChatSession,
   trimAtlasFeedState,
+  coalesceAtlasFeedEntries,
+  cleanAtlasTerminalText,
   atlasBootScmProvider,
   atlasResolveScmTab,
   atlasScmTabLabel,
@@ -152,6 +154,69 @@ const askText = (value: any, fallback = ''): string => {
 const askNumber = (value: any, fallback: number): number => {
   const n = Number(value);
   return Number.isFinite(n) ? n : fallback;
+};
+
+// Orchestrator-mode chat hydration. In orchestrator mode the per-IP
+// orchestrator transcript (assistant / thought / tool / tool_result rows:
+// dispatch_workflow, read_pipeline_state, classify_failure, ask_user, …) is
+// stored as trace `chat_message` rows surfaced by
+// `GET /api/orchestrator/chat/messages`, NOT in the per-workflow worker
+// conversation the normal hydrate path reads. The pipeline screen's
+// PipelineOrchestratorChatPanel already renders this feed; we map each row the
+// SAME way here (via the canonical window.AtlasOrchestratorChatLogic mapper,
+// the one conversationFeedFromMessages also reaches) so the WORKSPACE CHAT tab
+// shows the orchestrator's rich activity instead of an empty placeholder.
+type OrchestratorChatRow = {
+  id?: string | number;
+  created_at?: number;
+  role?: string;
+  content?: string;
+  payload?: { role?: string; content?: string; display_name?: string; [k: string]: any };
+  [k: string]: any;
+};
+
+const ORCH_CHAT_TS_TO_MS_CEILING = 1e12;
+const orchChatToEpochMs = (value: any, fallback = 0): number => {
+  const n = Number(value);
+  if (!Number.isFinite(n) || n <= 0) return fallback;
+  return n < ORCH_CHAT_TS_TO_MS_CEILING ? n * 1000 : n;
+};
+const orchChatSinceFromMs = (ms: number): number => (
+  ms > 0 && ms >= ORCH_CHAT_TS_TO_MS_CEILING ? ms / 1000 : ms
+);
+
+// Map one orchestrator chat row into a workspace chat feed entry
+// ({ kind, text, tool?, args?, createdAt?, id }). Prefers the shared mapper
+// (window.AtlasOrchestratorChatLogic.feedEntryFromChatMessage) and stamps a
+// stable `id` for cross-poll dedup; falls back to a minimal inline mapping when
+// the global logic bundle has not loaded yet.
+const orchestratorChatRowToFeedEntry = (row: OrchestratorChatRow): any => {
+  if (!row || typeof row !== 'object') return null;
+  const payload = row.payload || {};
+  const createdAtMs = orchChatToEpochMs(row.created_at, 0);
+  const rawId = row.id != null
+    ? String(row.id)
+    : `${String(payload.role || row.role || '')}:${createdAtMs}`;
+  const logic = (w.AtlasOrchestratorChatLogic && typeof w.AtlasOrchestratorChatLogic.feedEntryFromChatMessage === 'function')
+    ? w.AtlasOrchestratorChatLogic.feedEntryFromChatMessage
+    : null;
+  if (logic) {
+    const mapped = logic(row);
+    if (!mapped || typeof mapped !== 'object') return null;
+    return { ...mapped, id: rawId, createdAt: mapped.createdAt || createdAtMs };
+  }
+  // Fallback: replicate the minimal role→kind mapping inline.
+  const role = String(payload.role || row.role || '').toLowerCase();
+  const content = cleanAtlasTerminalText(payload.content != null ? payload.content : (row.content || '')).trim();
+  if (!content) return null;
+  if (role === 'user') return { id: rawId, kind: 'user', text: content, createdAt: createdAtMs };
+  if (role === 'assistant') return { id: rawId, kind: 'agent', text: content, createdAt: createdAtMs };
+  if (role === 'thought' || role === 'reasoning') return { id: rawId, kind: 'thought', text: content, createdAt: createdAtMs };
+  if (role === 'tool') return { id: rawId, kind: 'action', text: content, tool: String(payload.display_name || payload.tool || '').trim(), createdAt: createdAtMs };
+  if (role === 'tool_result' || role === 'observation' || role === 'obs') {
+    return { id: rawId, kind: 'obs', text: content, tool: String(payload.display_name || payload.tool || '').trim(), createdAt: createdAtMs };
+  }
+  return { id: rawId, kind: 'agent', text: content, createdAt: createdAtMs };
 };
 
 type LiveLlmRuntime = {
@@ -1515,6 +1580,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       if (streamingRef.current || (streamBufferRef.current || '').trim()) {
         return;
       }
+      // Orchestrator mode: the chat feed is owned by the dedicated orchestrator
+      // chat poll below (it pulls /api/orchestrator/chat/messages). Skip the
+      // per-workflow worker-transcript hydration here so we neither clobber the
+      // live orchestrator feed with a stale worker conversation nor drop the
+      // "No <workflow> worker transcript yet." dead-end into it.
+      if (atlasUiOrchestratorMode()) return;
       const newFeed = conversationFeedFromMessages(msgs, session);
       setFeed((prev: any) => {
         const prevSession = normalizeUiSession(hydratedConversationSessionRef.current || '');
@@ -1552,6 +1623,110 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     }
     return () => window.removeEventListener('atlas-conversation-loaded', onConvLoaded);
   }, []);
+
+  // ── Orchestrator-mode CHAT feed ─────────────────────────────────────
+  // When the workspace is in orchestrator mode for a real IP, the per-workflow
+  // worker-transcript hydration above is suppressed and the chat feed is driven
+  // here instead: poll /api/orchestrator/chat/messages?ip=<ip>&since=<cursor>
+  // and fold the rows into the same chat feed using the SAME mapper the
+  // pipeline-rail ORCHESTRATOR CHAT panel uses. Polling is unconditional (the
+  // backend has no orchestrator_chat WS emitter), matching pipeline-rail.tsx.
+  const orchChatCursorRef = useRef(0);          // epoch-seconds cursor for ?since=
+  const orchChatSeenIdsRef = useRef<Set<string>>(new Set());
+  const orchChatScopeRef = useRef('');          // ip the seen-set + feed belong to
+  useEffect(() => {
+    const ip = String(activeIp || '').trim();
+    if (!atlasUiOrchestratorMode() || !ip || ip === 'default') return undefined;
+
+    // New IP (or first entry into orchestrator mode for this IP): reset the
+    // cursor + dedup set and clear the feed so a stale worker transcript does
+    // not linger under the incoming orchestrator rows.
+    if (orchChatScopeRef.current !== ip) {
+      orchChatScopeRef.current = ip;
+      orchChatCursorRef.current = 0;
+      orchChatSeenIdsRef.current = new Set();
+      setFeed([]);
+    }
+
+    let dead = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const POLL_ACTIVE_MS = 2000;
+    const POLL_ERROR_MS = 8000;
+
+    const schedule = (delayMs: number) => {
+      if (dead) return;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { void fetchOnce(); }, Math.max(500, delayMs));
+    };
+
+    const fetchOnce = async () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+        schedule(POLL_ERROR_MS);
+        return;
+      }
+      // Don't fight the live stream / a worker dispatch echo mid-render.
+      if (streamingRef.current || (streamBufferRef.current || '').trim()) {
+        schedule(POLL_ACTIVE_MS);
+        return;
+      }
+      try {
+        const params = new URLSearchParams({ ip, since: String(orchChatCursorRef.current) });
+        const workspaceSession = activeWorkspaceSession();
+        if (workspaceSession) params.set('workspace_session', workspaceSession);
+        const r = await fetch(`/api/orchestrator/chat/messages?${params.toString()}`, { credentials: 'include' });
+        if (!r.ok) { schedule(POLL_ERROR_MS); return; }
+        const j = await r.json().catch(() => ({}));
+        if (dead) return;
+        const rows: OrchestratorChatRow[] = (j && j.ok && Array.isArray(j.messages)) ? j.messages : [];
+        const seen = orchChatSeenIdsRef.current;
+        const fresh: any[] = [];
+        for (const row of rows) {
+          const entry = orchestratorChatRowToFeedEntry(row);
+          if (!entry || !entry.id) continue;
+          if (seen.has(entry.id)) continue;
+          seen.add(entry.id);
+          fresh.push(entry);
+        }
+        if (fresh.length) {
+          setFeed((prev: any) => trimAtlasFeedState(
+            coalesceAtlasFeedEntries(Array.isArray(prev) ? prev : [], fresh),
+          ));
+          // Advance the cursor to the newest row so the next poll is incremental.
+          const newestMs = fresh.reduce((acc, e) => Math.max(acc, Number(e.createdAt || 0)), 0);
+          const newestSince = orchChatSinceFromMs(newestMs);
+          if (newestSince > orchChatCursorRef.current) orchChatCursorRef.current = newestSince;
+        }
+        const nextSince = Number((j && j.next_since) || 0);
+        if (Number.isFinite(nextSince) && nextSince > orchChatCursorRef.current) {
+          orchChatCursorRef.current = nextSince;
+        }
+        schedule(POLL_ACTIVE_MS);
+      } catch (_) {
+        schedule(POLL_ERROR_MS);
+      }
+    };
+
+    const onVisibility = () => {
+      if (dead) return;
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        if (timer) clearTimeout(timer);
+        void fetchOnce();
+      }
+    };
+    if (typeof document !== 'undefined') document.addEventListener('visibilitychange', onVisibility);
+
+    void fetchOnce();
+    return () => {
+      dead = true;
+      if (timer) clearTimeout(timer);
+      if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', onVisibility);
+    };
+    // activeIp is the only input that should re-arm the poll; the mode read is
+    // re-checked on every tick. (workflow is included so a switch INTO/out of
+    // orchestrator mode re-evaluates the guard.)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIp, workflow]);
 
   // Derived: the latest unsubmitted qcard.
   const pendingQcard = useMemo(
