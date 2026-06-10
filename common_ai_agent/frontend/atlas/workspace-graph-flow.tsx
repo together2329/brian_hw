@@ -19,8 +19,8 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-export const GRAPH_NODE_W = 188;
-export const GRAPH_NODE_H = 48;
+export const GRAPH_NODE_W = 158;
+export const GRAPH_NODE_H = 42;
 
 export type FlowCardData = {
   readonly title: string;
@@ -43,12 +43,14 @@ function GraphCardNode({ data, selected }: NodeProps): ReactNode {
         height: GRAPH_NODE_H,
         boxSizing: 'border-box',
         borderRadius: 4,
-        padding: '5px 9px',
+        padding: '4px 8px 4px 12px',
         overflow: 'hidden',
         fontFamily: 'var(--mono, monospace)',
         background: `color-mix(in oklch, ${d.color} ${selected ? 26 : 12}%, var(--bg-2, #181818))`,
         border: `1px solid ${selected ? d.color : 'var(--line, #333)'}`,
         borderStyle: d.dashed ? 'dashed' : 'solid',
+        // status color as a left stripe so state reads at a glance even when zoomed out
+        boxShadow: `inset 4px 0 0 ${d.color}`,
         opacity: d.dim ? 0.28 : 1,
         cursor: 'pointer',
         display: 'flex',
@@ -106,6 +108,28 @@ export function layoutDagre(
   });
 }
 
+// Compact snake (boustrophedon) grid: a long mostly-linear chain wraps into
+// rows that read left→right, right→left, … so the whole thing fits one screen
+// instead of a single hair-thin row. Columns auto-pick a wide-ish aspect.
+export function layoutGridSnake(
+  nodes: readonly Node[],
+  opts: { readonly nodeW?: number; readonly nodeH?: number; readonly gapX?: number; readonly gapY?: number; readonly cols?: number; readonly snake?: boolean } = {},
+): Node[] {
+  const nodeW = opts.nodeW ?? GRAPH_NODE_W;
+  const nodeH = opts.nodeH ?? GRAPH_NODE_H;
+  const gapX = opts.gapX ?? 36;
+  const gapY = opts.gapY ?? 64;
+  const snake = opts.snake ?? false; // row-major by default → forward always reads left→right
+  const n = nodes.length;
+  const cols = opts.cols ?? Math.min(12, Math.max(4, Math.ceil(Math.sqrt(n * 3))));
+  return nodes.map((node, i) => {
+    const row = Math.floor(i / cols);
+    const colInRow = i % cols;
+    const col = snake && row % 2 === 1 ? (cols - 1 - colInRow) : colInRow;
+    return { ...node, position: { x: col * (nodeW + gapX), y: row * (nodeH + gapY) } };
+  });
+}
+
 // Themed React Flow canvas. onSelect is called with a node id (or null when the
 // pane is clicked) so callers keep their own selection state.
 export function GraphCanvas({
@@ -127,8 +151,8 @@ export function GraphCanvas({
       onNodeClick={(_, n) => onSelect?.(n.id)}
       onPaneClick={() => onSelect?.(null)}
       fitView
-      fitViewOptions={{ padding: 0.2 }}
-      minZoom={0.2}
+      fitViewOptions={{ padding: 0.08, maxZoom: 1.1 }}
+      minZoom={0.15}
       maxZoom={1.75}
       nodesDraggable
       nodesConnectable={false}

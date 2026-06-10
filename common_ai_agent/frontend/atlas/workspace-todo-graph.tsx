@@ -16,7 +16,7 @@ import {
 } from './workspace-todo-model';
 import {
   GraphCanvas,
-  layoutDagre,
+  layoutGridSnake,
   flowArrow,
   type FlowNode,
   type FlowEdge,
@@ -107,6 +107,7 @@ export function buildTodoFlow(todos: readonly TodoRecord[]): { nodes: FlowNode[]
     source: e.from,
     target: e.to,
     label: e.label,
+    type: 'smoothstep',
     markerEnd: flowArrow,
     animated: e.kind === 'reject',
     style: { stroke: EDGE_COLOR[e.kind], strokeWidth: 1.25 },
@@ -114,7 +115,10 @@ export function buildTodoFlow(todos: readonly TodoRecord[]): { nodes: FlowNode[]
     labelBgStyle: { fill: 'var(--bg-2, #181818)' },
   }));
 
-  return { nodes: layoutDagre(rfNodes, rfEdges, { direction: 'LR' }), edges: rfEdges, nodeIds: items.map((n) => n.id) };
+  // A todo chain is mostly linear → a dagre LR layout becomes one hair-thin
+  // row. Wrap it row-major (every row reads left→right, so forward arrows are
+  // consistently rightward) into a compact grid that fits a single screen.
+  return { nodes: layoutGridSnake(rfNodes), edges: rfEdges, nodeIds: items.map((n) => n.id) };
 }
 
 export const TodoGraph = ({ todos, openId, setOpenId }: TodoGraphProps): ReactNode => {
