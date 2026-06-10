@@ -120,3 +120,25 @@ Runtime facts established:
   (the real-LLM TDD guard, available_reason) — both wired into the driver.
 
 (per-IP results table appended as the batch completes)
+
+### Finding 11 — headless CLI path has stricter gates than the orchestrator
+Driving fresh IPs through the headless CLI (`python -m src.headless_workflow
+--stages ssot-gen`) hits gates the orchestrator dispatch path does NOT:
+- the `req` stage gates `human_gate: requirements are incomplete` on a brief
+  requirements.md (mux4_v1), even with a locked req/ pack — the headless req
+  completeness check is stricter than the dispatch `_locked_truth` gate;
+- `ATLAS_RUN_REAL_LLM_TDD=1` real-LLM guard (available_reason) must be set, and
+  a subprocess-env (`subprocess.run(env=...)`) launch of the campaign driver
+  did not reliably propagate it (shell-env launch did).
+=> The ORCHESTRATOR path (chat → dispatch_workflow → IPC ssot-gen worker) is the
+working one: it dispatches ssot-gen directly, skipping the req-completeness gate,
+and the IPC worker inherits the server env. All clean fresh-IP SSOT authoring in
+this campaign went through the orchestrator, not the headless CLI.
+
+### Direct-intervention mitigation ("응답 없으면 직접") applied
+Every orchestrator stall in this campaign was unblocked by direct human/agent
+action, not by waiting: truth packs authored+locked by hand (orch_campaign_truth.py),
+the session-scoped truth path corrected (finding 7), resume re-driven via the
+chat API when a run sat paused, and ssot-gen dispatched directly per IP when the
+orchestrator needed a nudge. The machinery bugs surfaced this way (findings 3,6,7,
+8,9,11) were each fixed in code.
