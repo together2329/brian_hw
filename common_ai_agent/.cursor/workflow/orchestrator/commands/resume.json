@@ -1,0 +1,8 @@
+{
+  "name": "resume",
+  "description": "Unfreeze the orchestrator loop. Re-evaluate the next dispatch based on current pipeline state.",
+  "aliases": ["go", "continue"],
+  "usage": "/resume",
+  "side_effects": ["orchestrator_state.paused = false"],
+  "post_action": "decide_next_dispatch"
+}

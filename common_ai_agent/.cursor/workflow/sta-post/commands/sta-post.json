@@ -1,0 +1,7 @@
+{
+  "name": "sta-post",
+  "description": "Full sign-off STA — agent walks handoff → SDC + SPEF + routed.v → OpenSTA → report w/ pre-post delta",
+  "aliases": ["signoff"],
+  "handler": "todo:template:sta-post-default",
+  "usage": "/sta-post <ip>"
+}

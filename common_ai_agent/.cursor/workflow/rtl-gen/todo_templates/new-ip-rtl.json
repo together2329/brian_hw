@@ -1,0 +1,47 @@
+{
+  "name": "new-ip-rtl",
+  "description": "Legacy MAS checklist for new IP RTL. SSOT flows must use the dynamic rtl_todo_plan, not this fixed checklist.",
+  "tasks": [
+    {
+      "content": "[FROM MAS] Read MAS handoff + extract all RTL requirements",
+      "detail": "This task is initiated from a [MAS HANDOFF] from mas-gen.\n\nSTEP 1 — Find the MAS file. Look for: <ip_name>/mas/<ip_name>_mas.md. If ip_name is not known yet, scan the current directory for */mas/*_mas.md. Confirm exactly one MAS file exists and is complete (has §1–§9).\n\nSTEP 2 — Extract and note all RTL requirements from each section:\n- §2: port list (name / width / direction / clock-domain), parameters\n- §3: FSM states + transitions + outputs, datapath operations per feature\n- §4: register map (offset / name / width / access-type / reset-value)\n- §5: interrupt sources + enable + status + W1C clear logic\n- §6: memory instances (type / depth / width / latency)\n- §7: timing constraints, CDC crossings\n- §8: RTL coding style (reset polarity, nonblocking rules, lint waivers)\n\nSTEP 3 — Create RTL file skeleton: <ip_name>/rtl/<ip_name>.sv (empty module stub only). Do NOT implement anything yet.\n\nGate: MAS is fully read, all sections extracted, RTL file created.",
+      "priority": "high"
+    },
+    {
+      "content": "Write module header: parameters and input/output logic port declarations",
+      "detail": "First lines: module <name> #(parameters) (ports); Match §2 port table exactly — every port with explicit direction+type+width. Parameterize user-tunable input/output shape from MAS/SSOT, such as data width, address width, input/output channel count, lane count, and depth. Use SystemVerilog ANSI port types by default: input logic, output logic, and inout wire for bidirectional nets. Add inline comments for clock domains on each port and short comments for user-facing parameters.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement control FSM (MAS §3 FSM table)",
+      "detail": "Implement the conventional explicit FSM style by default: localparam state encodings, logic state/next_state signals, one always @(posedge clk or negedge rst_n) state-register block, and one always @(*) next-state/output-decode block with defaults at the top. If MAS/SSOT or the user specifies another synthesizable FSM style, follow that explicit style. Every state/transition from MAS §3 FSM table must be present. No unreachable states.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement datapath sequential blocks (MAS §3 Feature Operation)",
+      "detail": "For each feature in MAS §3: implement the data registers with always @(posedge clk ...) blocks. Nonblocking (<=). Active reset (rst_n or rst — per §8). Group by pipeline stage if §7 specifies pipeline depth. Derive datapath widths, masks, counters, and slices from named parameters/localparams tied to the in/out interface. Prefer exact shift-based arithmetic for multiply/divide: powers of two use << / >>, exact constant scaling may use shift-add/subtract, and general * or / requires explicit MAS/SSOT justification. Add concise comments for non-obvious datapath, parameter, and arithmetic choices so reviewers can understand the hardware intent.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement register map / CSR decode (MAS §4 FAM)",
+      "detail": "APB/AXI address decode in always @(*). Per-register always @(posedge clk ...): RW → written on write strobe; RO → driven by internal signal; RW1C → cleared by write-1. Read mux: always @(*) with address select. Match MAS §4 offsets exactly.",
+      "priority": "high"
+    },
+    {
+      "content": "Implement interrupt logic (MAS §5)",
+      "detail": "For each interrupt source in MAS §5: implement level detection or edge capture. irq output = OR of (INT_STATUS[i] & INT_ENABLE[i]). W1C clear: INT_STATUS[i] <= INT_STATUS[i] & ~wdata[i] on write. Verify irq deasserts within 1 cycle of W1C clear.",
+      "priority": "high"
+    },
+    {
+      "content": "Instantiate memory macros / FIFOs (MAS §6)",
+      "detail": "Instantiate each memory from MAS §6. Match: depth, width, port count, latency. Add read-enable, write-enable, address, data ports per §2 interface. Verify timing matches §7 (read latency cycles).",
+      "priority": "high"
+    },
+    {
+      "content": "Write filelist and lint check: 0 errors, 0 warnings",
+      "detail": "Write <ip_name>/list/<ip_name>.f — one line per RTL file path (e.g. <ip_name>/rtl/<ip_name>.sv). Run /lint <ip_name>/rtl/<ip_name>.sv. Fix all errors. Width mismatch warnings: fix or add //lint_waive with comment. Undriven output warnings: add explicit '0 assignment. Write <ip_name>/lint/lint_report.txt. Report to mas-gen: [MAS RESULT] rtl-gen DONE.",
+      "validator": "python3 workflow/rtl-gen/scripts/check_rtl_disk.py",
+      "priority": "high"
+    }
+  ]
+}

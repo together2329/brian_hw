@@ -20,8 +20,23 @@ own self-check. It independently:
                               divergence is a finding. This is the primary
                               correlated-error defense for LLM-authored FLs.
 
-  gate 2 (mutation) and gate 4 (provenance) are reported as
-  status="not_implemented" — visible debt, never a silent pass.
+  gate 2 (mutation)         — AST-mutate the model source (constant flips,
+                              comparison inversions) and rerun the
+                              conformance gate per mutant AGAINST THE
+                              ORIGINAL SSOT. A mutant is killed when
+                              conformance catches it; survivors are visible
+                              findings; the GATE criterion is unknown == 0
+                              (a mutant that errors out instead of being
+                              judged means the check itself is fragile) —
+                              kill rate is reported, not gated, per the
+                              contract_check.py precedent.
+  gate 4 (provenance)       — when model/fl_authoring_provenance.json exists
+                              (written by the LLM authoring path), the
+                              current file sha must match it (operator-edit
+                              detection, like rtl_authoring_provenance).
+                              Absent provenance = not_applicable (the
+                              deterministic emitter FL is regenerable from
+                              SSOT).
 
 Exit 0 only when every implemented gate passes. Report:
 <ip>/model/fl_contract_check.json
@@ -30,14 +45,18 @@ from __future__ import annotations
 
 import argparse
 import ast
+import copy
+import hashlib
 import importlib.util
 import json
 import sys
 import time
+import types
 from pathlib import Path
 from typing import Any
 
 RESP_OKAY = 0
+MUTANT_CAP = 8
 
 
 def _load_module(path: Path, name: str):
@@ -258,6 +277,185 @@ def _dual_oracle_gate(module, baseline_module, ssot_model: dict[str, Any], failu
     }
 
 
+class _MutationVisitor(ast.NodeTransformer):
+    """Apply exactly one mutation at site index `target` (sites enumerated in
+    visit order: integer constants and single-op comparisons)."""
+
+    _CMP_SWAPS = {
+        ast.Eq: ast.NotEq, ast.NotEq: ast.Eq,
+        ast.Lt: ast.GtE, ast.GtE: ast.Lt,
+        ast.Gt: ast.LtE, ast.LtE: ast.Gt,
+    }
+
+    def __init__(self, target: int) -> None:
+        self.target = target
+        self.site = -1
+        self.applied: str | None = None
+
+    def _hit(self) -> bool:
+        self.site += 1
+        return self.site == self.target
+
+    def visit_Constant(self, node: ast.Constant):
+        if isinstance(node.value, int) and not isinstance(node.value, bool):
+            if self._hit():
+                new = 1 if node.value == 0 else (0 if node.value == 1 else node.value + 1)
+                self.applied = f"const {node.value}->{new} @L{getattr(node, 'lineno', '?')}"
+                return ast.copy_location(ast.Constant(value=new), node)
+        return node
+
+    def visit_Compare(self, node: ast.Compare):
+        self.generic_visit(node)
+        if len(node.ops) == 1 and type(node.ops[0]) in self._CMP_SWAPS:
+            if self._hit():
+                old = type(node.ops[0]).__name__
+                node.ops = [self._CMP_SWAPS[type(node.ops[0])]()]
+                self.applied = f"cmp {old} inverted @L{getattr(node, 'lineno', '?')}"
+        return node
+
+
+def _find_model_class(tree: ast.Module) -> ast.ClassDef | None:
+    for node in tree.body:
+        if isinstance(node, ast.ClassDef) and node.name == "FunctionalModel":
+            return node
+    return None
+
+
+def _exec_tree(tree: ast.Module, file_path: Path, name: str):
+    module = types.ModuleType(name)
+    module.__file__ = str(file_path)
+    exec(compile(tree, str(file_path), "exec"), module.__dict__)
+    return module
+
+
+def _mutation_gate(model_path: Path, ssot_model: dict[str, Any], failures: list[str]) -> dict[str, Any]:
+    """Mutants are judged by the SAME conformance gate, against the ORIGINAL
+    SSOT (never the mutant's own copy). Gate criterion: unknown == 0 and at
+    least one mutant judged; survivors are reported findings, not gate fails
+    (kill RATE is evidence, unknowns mean the check itself is fragile)."""
+    source = model_path.read_text(encoding="utf-8", errors="replace")
+    try:
+        probe = ast.parse(source)
+    except SyntaxError as exc:
+        failures.append(f"mutation: model source unparseable: {exc}")
+        return {"status": "fail", "error": str(exc)[:120]}
+    cls = _find_model_class(probe)
+    if cls is None:
+        failures.append("mutation: FunctionalModel class not found")
+        return {"status": "fail", "error": "FunctionalModel class not found"}
+    # Bias mutant sites toward the SEMANTIC core: a generic interpreter FL is
+    # full of battery-insensitive fallback constants (get(key, 0) defaults);
+    # mutating those survives trivially. Methods on the apply/rule-eval/
+    # csr_write path are where a wrong constant changes observable behavior.
+    priority_names = ("_apply_structured_rules", "apply", "_apply_register_access",
+                      "csr_write", "_eval", "step", "_rule_env")
+    methods: list[tuple[int, str, int]] = []  # (priority, name, sites)
+    for node in cls.body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        counter = _MutationVisitor(target=-1)
+        counter.visit(node)
+        sites = counter.site + 1
+        if sites <= 0:
+            continue
+        prio = next((i for i, p in enumerate(priority_names) if node.name.startswith(p)), len(priority_names))
+        methods.append((prio, node.name, sites))
+    methods.sort()
+    total_sites = sum(s for _, _, s in methods)
+    if total_sites <= 0:
+        failures.append("mutation: no mutable sites found in FunctionalModel")
+        return {"status": "fail", "sites": 0}
+    chosen: list[tuple[str, int]] = []
+    for _, name, sites in methods:
+        step = max(1, sites // max(1, (MUTANT_CAP - len(chosen)) or 1))
+        for local in range(0, sites, step):
+            if len(chosen) >= MUTANT_CAP:
+                break
+            chosen.append((name, local))
+        if len(chosen) >= MUTANT_CAP:
+            break
+    killed: list[dict[str, Any]] = []
+    survived: list[dict[str, Any]] = []
+    unknown: list[dict[str, Any]] = []
+    for mutant_no, (method_name, local_idx) in enumerate(chosen):
+        tree = ast.parse(source)
+        target_cls = _find_model_class(tree)
+        target_method = next(
+            (n for n in target_cls.body
+             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == method_name),
+            None,
+        )
+        if target_method is None:
+            continue
+        visitor = _MutationVisitor(target=local_idx)
+        visitor.visit(target_method)
+        ast.fix_missing_locations(tree)
+        if visitor.applied is None:
+            continue
+        record = {"method": method_name, "site": local_idx, "mutation": visitor.applied}
+        try:
+            mutant = _exec_tree(tree, model_path, f"fl_mutant_{mutant_no}")
+        except Exception as exc:
+            killed.append({**record, "by": f"import_error: {str(exc)[:80]}"})
+            continue
+        mutant_failures: list[str] = []
+        try:
+            iface = _interface_gate(mutant, mutant_failures)
+            if iface["status"] != "pass":
+                killed.append({**record, "by": "interface_gate"})
+                continue
+            _conformance_gate(mutant, ssot_model, mutant_failures)
+        except Exception as exc:
+            unknown.append({**record, "error": str(exc)[:120]})
+            continue
+        if mutant_failures:
+            killed.append({**record, "by": mutant_failures[0][:100]})
+        else:
+            survived.append(record)
+    judged = len(killed) + len(survived)
+    if unknown:
+        failures.append(
+            "mutation: " + str(len(unknown)) + " mutant(s) errored instead of being judged: "
+            + "; ".join(str(u.get("mutation")) for u in unknown[:4])
+        )
+    if judged == 0:
+        failures.append("mutation: no mutants could be judged")
+    return {
+        "status": "pass" if not unknown and judged > 0 else "fail",
+        "sites": total_sites,
+        "mutants": judged + len(unknown),
+        "killed": len(killed),
+        "survived": len(survived),
+        "unknown": len(unknown),
+        "kill_rate": round(len(killed) / judged, 3) if judged else 0.0,
+        "survivors": survived[:8],
+        "unknown_detail": unknown[:8],
+    }
+
+
+def _provenance_gate(ip_dir: Path, model_path: Path, failures: list[str]) -> dict[str, Any]:
+    prov_path = ip_dir / "model" / "fl_authoring_provenance.json"
+    if not prov_path.is_file():
+        return {
+            "status": "not_applicable",
+            "reason": "no authoring provenance (deterministic emitter FL is regenerable from SSOT)",
+        }
+    try:
+        doc = json.loads(prov_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        failures.append(f"provenance: unreadable fl_authoring_provenance.json: {exc}")
+        return {"status": "fail", "error": str(exc)[:120]}
+    expected = str(doc.get("sha256") or "")
+    actual = hashlib.sha256(model_path.read_bytes()).hexdigest()
+    if expected != actual:
+        failures.append(
+            "provenance: functional_model.py sha mismatch with fl_authoring_provenance.json — "
+            "the file changed after LLM authoring (operator edit?); re-run fl-model-gen or restore"
+        )
+        return {"status": "fail", "expected_sha": expected[:16], "actual_sha": actual[:16]}
+    return {"status": "pass", "sha256": actual, "authored_by": doc.get("authored_by")}
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="FL contract gate (interface + SSOT conformance + dual oracle).")
     parser.add_argument("ip")
@@ -300,8 +498,8 @@ def main() -> int:
                 report["gates"]["dual_oracle"] = {"status": "fail", "error": str(exc)[:160]}
         else:
             report["gates"]["dual_oracle"] = {"status": "skipped", "reason": "no baseline file"}
-    report["gates"]["mutation"] = {"status": "not_implemented"}
-    report["gates"]["provenance"] = {"status": "not_implemented"}
+        report["gates"]["mutation"] = _mutation_gate(model_path, copy.deepcopy(ssot_model), failures)
+    report["gates"]["provenance"] = _provenance_gate(ip_dir, model_path, failures)
     passed = not failures
     report["passed"] = passed
     report["failures"] = failures

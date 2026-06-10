@@ -1,0 +1,8 @@
+{
+  "name": "ssot-loop-map",
+  "description": "Render the Human-LLM authority diagram from <ip>/governance/authority.json into Mermaid (.mmd) and optional SVG (when mmdc is available)",
+  "aliases": ["slm", "loop-map"],
+  "handler": "stage:ssot-loop-map",
+  "usage": "/ssot-loop-map <module_name>",
+  "area": "governance"
+}

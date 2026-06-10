@@ -1,0 +1,9 @@
+{
+  "name": "wave",
+  "description": "Show VCD waveform signal list (requires simulation to have run with $dumpvars)",
+  "aliases": [
+    "w"
+  ],
+  "handler": "bash:wave_info.sh",
+  "usage": "/wave [file.vcd]"
+}

@@ -1,0 +1,30 @@
+{
+  "name": "contract-reflection",
+  "description": "Generate, link, and validate the semantic contract layer (VCM) for an IP after simulation passes.",
+  "tasks": [
+    {
+      "content": "[CONTRACT] Emit semantic contracts from SSOT + sim evidence",
+      "detail": "Run python3 workflow/contract-reflection/scripts/emit_semantic_contracts.py <ip> --root <ip-parent>. Requires a passing simulation: sim/scoreboard_events.jsonl rows and a sim/*.vcd wave must exist. The generator derives verify/semantic_contracts.json from the SSOT function_model + test_requirements, grounding every obligation in a real passing scoreboard row; it hard-fails if a payload-bearing transaction yields no content obligation. Do not hand-edit the generated file to force a pass.",
+      "criteria": "emit_semantic_contracts.py exits 0 and writes verify/semantic_contracts.json with at least one granularity:content obligation when a payload transaction exists.",
+      "priority": "high"
+    },
+    {
+      "content": "[CONTRACT] Annotate scoreboard-to-obligation links",
+      "detail": "Run python3 workflow/contract-reflection/scripts/annotate_scoreboard_obligations.py <ip> --root <ip-parent> AFTER verify/evidence_contract.json exists (overlay step). Writes the additive sidecar sim/scoreboard_obligation_links.json; never mutate the append-only sim/scoreboard_events.jsonl.",
+      "criteria": "Sidecar sim/scoreboard_obligation_links.json exists and maps evidence rows to obligation_ids/contract_refs.",
+      "priority": "medium"
+    },
+    {
+      "content": "[CONTRACT] Run strict contract check",
+      "detail": "Run python3 workflow/contract-reflection/scripts/run_contract_check.py <ip> --root <ip-parent> --require-contract-closure. Do not claim contract closure from prose or stale signoff/contract_check.json.",
+      "criteria": "run_contract_check.py exits 0 in strict mode: reflection and evidence cells all pass, signoff/contract_check.json status=pass.",
+      "priority": "high"
+    },
+    {
+      "content": "[CONTRACT] Resolve failures at the owning stage",
+      "detail": "If the strict check fails or blocks: a stale fingerprint means rerun the owning stage (sim freshness re-stamps only on a genuine full pass); a failing obligation means fix FL/RTL/TB at the failure_owner stage. Never edit locked truth, generated contracts, or evidence artifacts to force a pass.",
+      "criteria": "Re-running the strict contract check passes, or each remaining blocker is escalated with artifact path, reason, and required decision.",
+      "priority": "high"
+    }
+  ]
+}

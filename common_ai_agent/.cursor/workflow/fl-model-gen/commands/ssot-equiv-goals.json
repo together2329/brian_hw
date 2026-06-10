@@ -1,0 +1,7 @@
+{
+  "name": "ssot-equiv-goals",
+  "description": "Derive SSOT-traced FL-vs-RTL equivalence goals for TB scoreboards and sim_debug",
+  "aliases": ["seg", "equiv-goals"],
+  "handler": "stage:ssot-equiv-goals",
+  "usage": "/ssot-equiv-goals <module_name>"
+}

@@ -1,0 +1,24 @@
+{
+  "name": "derive-ip-contract",
+  "description": "Generate a per-IP evidence contract without selecting a static IP profile.",
+  "tasks": [
+    {
+      "content": "[CONTRACT] Read IP-local truth artifacts",
+      "detail": "Read <ip>/yaml/<ip>.ssot.yaml and, when available, <ip>/verify/equivalence_goals.json. Do not pick a static profile.",
+      "criteria": "The derivation input is the IP's own SSOT/IO/transaction/state/timing/debug information.",
+      "priority": "high"
+    },
+    {
+      "content": "[CONTRACT] Derive capabilities and obligations",
+      "detail": "Infer capabilities, required monitors, required mutations, observables, and required evidence from the IP artifacts.",
+      "criteria": "<ip>/verify/ip_contract.json records generation=derived_from_ip_artifacts_not_static_profile.",
+      "priority": "high"
+    },
+    {
+      "content": "[CONTRACT] Feed downstream stages",
+      "detail": "Use ip_contract.json as the obligation source for signoff, mutation, monitor generation, and future TB generation.",
+      "criteria": "Downstream gates refer to contract obligations rather than APB/CSR assumptions.",
+      "priority": "medium"
+    }
+  ]
+}

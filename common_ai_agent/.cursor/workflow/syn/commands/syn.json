@@ -1,0 +1,7 @@
+{
+  "name": "syn",
+  "description": "Full synthesis flow — agent walks SSOT → run.ys → yosys → sanity gate → area → report",
+  "aliases": ["synth"],
+  "handler": "todo:template:syn-default",
+  "usage": "/syn"
+}

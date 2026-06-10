@@ -31,6 +31,10 @@ def _init_repo(path: Path, branch: str = "main") -> None:
 def _create_app(tmp_path: Path, monkeypatch):
     monkeypatch.setenv("ATLAS_COOKIE_SECRET", "test-secret")
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    # These exercise SCM ADAPTER routing (git vs perforce), not tenant authz —
+    # run single-user so the per-IP authz gate (covered separately in
+    # test_atlas_authz_e2e) allows the test IPs the registered user doesn't own.
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
     from src import atlas_ui
 
     atlas_ui.PROJECT_ROOT = tmp_path

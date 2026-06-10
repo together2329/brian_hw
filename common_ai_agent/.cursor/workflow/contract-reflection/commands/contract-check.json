@@ -1,0 +1,7 @@
+{
+  "name": "contract-check",
+  "description": "Run contract overlay, reflection, evidence, and owner routing checks for one IP",
+  "aliases": ["contract"],
+  "handler": "stage:contract-check",
+  "usage": "/contract-check <module_name>"
+}

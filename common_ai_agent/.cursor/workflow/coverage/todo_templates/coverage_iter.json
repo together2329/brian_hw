@@ -1,0 +1,57 @@
+{
+  "name": "coverage_iter",
+  "description": "One verilator coverage iteration — build, run, merge, report, gaps, close, re-verify",
+  "tasks": [
+    {
+      "content": "Build DUT with verilator + coverage flags",
+      "activeForm": "Running /coverage-build for {dut}",
+      "detail": "Run /coverage-build {dut}. Confirms verilator is installed, filelist exists, and the DUT compiles cleanly with --coverage-line --coverage-toggle. Output: build_{dut}_cov/ with C++ sources. If RTL has verilator-incompatible constructs (inline #delays, force/release, cross-module refs), report them as TODO escalation items rather than silently skipping.",
+      "priority": "high",
+      "validator": "python3 workflow/coverage/scripts/coverage_build.py {dut}"
+    },
+    {
+      "content": "Run all existing testcases under verilator backend",
+      "activeForm": "Running cocotb regression under SIM=verilator",
+      "detail": "Run the existing cocotb regression with SIM=verilator (e.g. cd {dut}/cocotb && make SIM=verilator MODULE=tests.tb). Capture coverage.dat per test if running multiple modules. Confirm regression PASSES (results.xml has no <failure>) — coverage on a failed run is meaningless and must be flagged immediately.",
+      "priority": "high"
+    },
+    {
+      "content": "Merge per-test coverage.dat files",
+      "activeForm": "Running /coverage-merge",
+      "detail": "Run /coverage-merge {dut}. Verifies all generated .dat files are found and merges them into {dut}/cov/merged.dat. If 0 .dat files found, the regression step did not actually instrument — debug the build/run flow before continuing.",
+      "priority": "high"
+    },
+    {
+      "content": "Generate annotated source + LCOV info report",
+      "activeForm": "Running /coverage-report",
+      "detail": "Run /coverage-report {dut}. Produces {dut}/cov/annotated/ (per-source-file .cov annotations with hit counts), {dut}/cov/coverage.info (LCOV format), {dut}/cov/coverage.json (SSOT-aligned summary), and {dut}/sim/coverage_report.md. Records the line% summary printed at the end. Compare to the previous iteration's metrics if available — log the delta via todo_note. If SSOT branch/FSM metrics cannot be measured by the generic flow, keep them as limitations/escalations instead of adding an IP-specific workaround script.",
+      "priority": "high"
+    },
+    {
+      "content": "Identify top 10 uncovered regions",
+      "activeForm": "Running /coverage-gaps",
+      "detail": "Run /coverage-gaps {dut} 10. Read the top hits AND open the relevant {dut}/cov/annotated/<file>.cov files to see context around each unhit line. Group by module and decide which gaps are: (a) reachable but missing test, (b) unreachable / dead code → waiver, (c) configuration-dependent (parameterized off in this build).",
+      "priority": "high"
+    },
+    {
+      "content": "Add directed test for highest-priority gap",
+      "activeForm": "Writing directed test",
+      "detail": "Pick the gap with the highest impact (most lines covered per added test) from the previous step. Write a new cocotb test (or extend tb.py) that exercises the missing path. Quote the file:line evidence from annotated/ in the implementation comment so the next reviewer can verify the targeting was correct.",
+      "priority": "high"
+    },
+    {
+      "content": "Re-run regression to confirm coverage delta",
+      "activeForm": "Re-running with new test {loop_count}/{max_loop_iterations}",
+      "detail": "Re-run the full regression under SIM=verilator including the new test. Run /coverage-merge + /coverage-report. Compare new line% / toggle% to baseline. ACCEPT only if: (1) regression still passes (no <failure>), (2) coverage actually increased, (3) the previously-uncovered lines now show non-zero hits in annotated/.",
+      "priority": "high",
+      "loop": true,
+      "max_loop_iterations": 5,
+      "exit_condition": "coverage delta >= 0.5% AND regression passes"
+    },
+    {
+      "content": "Decide: continue iterating or write waivers for unreachable gaps",
+      "detail": "If line% < 95% or toggle% < 80% AND there are reachable gaps remaining → start another iter. If only unreachable / configuration-locked code remains → write {dut}/cov/.cov_waiver entries with file:line + reason for each, then exit. Waiver decisions must cite specific evidence from the RTL (e.g. 'gpio_core.sv:142 — TIE_LOW parameter forces this branch dead').",
+      "priority": "normal"
+    }
+  ]
+}

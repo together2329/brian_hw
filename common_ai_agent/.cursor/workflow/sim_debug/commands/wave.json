@@ -1,0 +1,7 @@
+{
+  "name": "wave",
+  "description": "List VCD signals + time range. Auto-detect or pass file.",
+  "aliases": ["w"],
+  "handler": "bash:wave_info.sh",
+  "usage": "/wave [file.vcd]"
+}

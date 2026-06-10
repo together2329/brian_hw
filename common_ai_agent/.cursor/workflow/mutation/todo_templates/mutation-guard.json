@@ -1,0 +1,24 @@
+{
+  "name": "mutation-guard",
+  "description": "Advisory mutation kill-rate check for one IP's FL-vs-RTL harness.",
+  "tasks": [
+    {
+      "content": "[MUTATION] Enumerate deterministic RTL mutants",
+      "detail": "List signal-safe, deterministic mutations from LLM-editable RTL only. Read verify/ip_contract.json when present to record required mutation categories, but do not select a static IP profile. Do not mutate FL, SSOT, coverage targets, or source RTL in place.",
+      "criteria": "mutation/mutation_report.json records candidates with file, line, rule, before/after fields, and contract_mutation_obligations.",
+      "priority": "high"
+    },
+    {
+      "content": "[MUTATION] Run copied-IP mutant simulations",
+      "detail": "For each selected mutant, copy the IP to a temporary workspace, rewrite the copied TB manifest to copied RTL, run the existing cocotb test_runner.py, and classify killed/survived/invalid.",
+      "criteria": "mutation/mutation_report.json records executed mutants, kill-rate, survived mutants, and invalid mutants.",
+      "priority": "high"
+    },
+    {
+      "content": "[MUTATION] Feed survivors back to TB/goal work",
+      "detail": "Treat survived mutants as evidence of weak observation or weak stimulus. Add tests or observables; do not edit locked truth just to improve kill-rate.",
+      "criteria": "Survivors are converted to concrete TB, coverage, or observable TODOs before production signoff enforcement.",
+      "priority": "medium"
+    }
+  ]
+}

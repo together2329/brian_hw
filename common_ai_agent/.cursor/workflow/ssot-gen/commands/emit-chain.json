@@ -1,0 +1,7 @@
+{
+  "name": "emit-chain",
+  "description": "After /to-ssot, run the proven 4-step emit chain: FL model -> equivalence goals -> cocotb scoreboard -> simulation. Exits 0 only when cocotb hits TESTS=1 PASS=1 FAIL=0 with CL co-sim 100% match.",
+  "aliases": ["ec", "emit"],
+  "handler": "bash:new_ip_emit_chain.sh",
+  "usage": "/emit-chain <ip_name>"
+}

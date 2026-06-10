@@ -1,0 +1,7 @@
+{
+  "name": "sim",
+  "description": "Run the SSOT/TB/RTL simulation evidence gate",
+  "aliases": ["s"],
+  "handler": "stage:sim",
+  "usage": "/sim <module_name>"
+}

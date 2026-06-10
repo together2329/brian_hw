@@ -1,0 +1,7 @@
+{
+  "name": "ssot-sim",
+  "description": "Run the SSOT-scoped simulation stage using the generated TB runner and coverage evidence checks",
+  "aliases": ["ssim"],
+  "handler": "stage:sim",
+  "usage": "/ssot-sim <ip_name>"
+}

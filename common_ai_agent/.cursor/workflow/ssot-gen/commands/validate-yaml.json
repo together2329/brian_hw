@@ -1,0 +1,7 @@
+{
+  "name": "validate-yaml",
+  "description": "Validate all YAML SSOT files against Cerberus schema",
+  "aliases": ["vy"],
+  "handler": "bash:validate_yaml.sh",
+  "usage": "/validate-yaml"
+}

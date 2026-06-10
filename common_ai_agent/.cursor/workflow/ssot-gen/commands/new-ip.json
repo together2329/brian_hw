@@ -1,0 +1,7 @@
+{
+  "name": "new-ip",
+  "description": "Start a new active leaf IP context and scaffold ssot-gen state; use /import and /grill-me before approval",
+  "aliases": ["ni"],
+  "handler": "todo:template:new-ip",
+  "usage": "/new-ip <ip_name> [kind]"
+}

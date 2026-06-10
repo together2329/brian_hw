@@ -1,0 +1,489 @@
+{
+  "schema_version": "wiki_graph.v1",
+  "generated_at": "2026-05-26T06:46:15Z",
+  "root": "wiki/ip_knowledge",
+  "node_count": 12,
+  "edge_count": 75,
+  "tags": {
+    "coverage": [
+      "coverage"
+    ],
+    "fl-model-gen": [
+      "fl-model-gen"
+    ],
+    "index": [
+      "workflow-stages"
+    ],
+    "lint": [
+      "lint",
+      "lint"
+    ],
+    "pnr": [
+      "pnr"
+    ],
+    "rtl": [
+      "rtl-gen"
+    ],
+    "rtl-gen": [
+      "rtl-gen"
+    ],
+    "signoff": [
+      "pnr",
+      "sta",
+      "sta-post",
+      "syn"
+    ],
+    "sim": [
+      "coverage",
+      "sim",
+      "sim"
+    ],
+    "ssot": [
+      "fl-model-gen",
+      "ssot-gen",
+      "workflow-stages"
+    ],
+    "ssot-gen": [
+      "ssot-gen"
+    ],
+    "sta": [
+      "sta"
+    ],
+    "sta-post": [
+      "sta-post"
+    ],
+    "syn": [
+      "syn"
+    ],
+    "tb": [
+      "tb-gen"
+    ],
+    "tb-gen": [
+      "tb-gen"
+    ],
+    "workflow": [
+      "coverage",
+      "fl-model-gen",
+      "lint",
+      "pnr",
+      "rtl-gen",
+      "sim",
+      "ssot-gen",
+      "sta",
+      "sta-post",
+      "syn",
+      "tb-gen",
+      "workflow-stages"
+    ]
+  },
+  "types": {
+    "index": [
+      "workflow-stages"
+    ],
+    "reference": [
+      "coverage",
+      "fl-model-gen",
+      "lint",
+      "pnr",
+      "rtl-gen",
+      "sim",
+      "ssot-gen",
+      "sta",
+      "sta-post",
+      "syn",
+      "tb-gen"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "coverage",
+      "title": "Coverage",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "coverage",
+        "sim"
+      ],
+      "related": [],
+      "outgoing": [
+        "tb-gen",
+        "workflow-stages",
+        "sim",
+        "fl-model-gen",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "fl-model-gen",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`coverage` instruments the DUT with Verilator coverage flags, re-runs the [[tb-gen]] testbench, analyzes line/toggle/user coverage against SSOT goals, and iteratively closes gaps with directed tests until SSOT targets are met or precisely escalated. SSOT is the only acceptance source; it never silently lowers a threshold. See [[workflow-stages]] for the…",
+      "path": "wiki/ip_knowledge/coverage.md",
+      "size_bytes": 4301
+    },
+    {
+      "id": "fl-model-gen",
+      "title": "Functional Model Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "fl-model-gen",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [
+        "tb-gen",
+        "ssot-gen",
+        "workflow-stages",
+        "sim",
+        "rtl-gen",
+        "coverage"
+      ],
+      "incoming": [
+        "coverage",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`fl-model-gen` authors the executable FunctionalModel, decomposition, functional-coverage plan, and FL-vs-RTL equivalence goals directly from the validated SSOT. The FunctionalModel is the behavioral oracle that [[tb-gen]]'s scoreboard compares RTL observations against; equivalence goals define what the LLM repair loop may prove versus what stays…",
+      "path": "wiki/ip_knowledge/fl-model-gen.md",
+      "size_bytes": 6338
+    },
+    {
+      "id": "lint",
+      "title": "Lint",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "lint",
+        "lint"
+      ],
+      "related": [],
+      "outgoing": [
+        "rtl-gen",
+        "workflow-stages",
+        "tb-gen",
+        "syn"
+      ],
+      "incoming": [
+        "rtl-gen",
+        "syn",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`lint` drives the DUT RTL files to 0 lint errors, 0 warnings and writes `<ip>/lint/dut_lint.json` + `dut_lint.log`. It is the DUT-only quality gate for [[rtl-gen]] — sim/TB logs are not lint approval, and warnings are fixed at the root cause, never suppressed. See [[workflow-stages]] for the pipeline.",
+      "path": "wiki/ip_knowledge/lint.md",
+      "size_bytes": 3754
+    },
+    {
+      "id": "pnr",
+      "title": "Place & Route",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "pnr",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "sta-post",
+        "workflow-stages",
+        "syn",
+        "sta",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "ssot-gen",
+        "sta-post",
+        "sta",
+        "syn",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`pnr` drives the post-synth netlist through OpenROAD's full physical pipeline (floorplan → place → CTS → route) and extracts a parasitic SPEF for sign-off timing. The triple `(routed.v, routed.spef, <ip>.sdc)` is the handoff to [[sta-post]]. See [[workflow-stages]] for the pipeline.",
+      "path": "wiki/ip_knowledge/pnr.md",
+      "size_bytes": 4014
+    },
+    {
+      "id": "rtl-gen",
+      "title": "RTL Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "rtl-gen",
+        "rtl"
+      ],
+      "related": [],
+      "outgoing": [
+        "ssot-gen",
+        "workflow-stages",
+        "tb-gen",
+        "sim",
+        "lint",
+        "fl-model-gen",
+        "coverage",
+        "syn"
+      ],
+      "incoming": [
+        "fl-model-gen",
+        "lint",
+        "sim",
+        "ssot-gen",
+        "syn",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`rtl-gen` translates the validated SSOT into synthesizable SystemVerilog, driving every SSOT-derived TODO and quality gate to `pass` with fresh compile/lint evidence. It is a contract-first SSOT→RTL translation workflow: existing RTL is reuse evidence only, and any disagreement with SSOT ports/names/hierarchy is repaired, not accepted. See [[ssot-gen]] for…",
+      "path": "wiki/ip_knowledge/rtl-gen.md",
+      "size_bytes": 7021
+    },
+    {
+      "id": "sim",
+      "title": "Simulation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "sim",
+        "sim"
+      ],
+      "related": [],
+      "outgoing": [
+        "tb-gen",
+        "rtl-gen",
+        "workflow-stages",
+        "coverage",
+        "ssot-gen",
+        "fl-model-gen"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "rtl-gen",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`sim` compiles and runs the [[tb-gen]] testbench against the [[rtl-gen]] DUT until it reaches 0 errors, 0 warnings with all checks PASS, then writes `sim/sim_report.txt`. It accepts handoffs from tb-gen (SSOT or legacy MAS) and is the executable verification step where FL-vs-RTL equivalence is exercised. See [[workflow-stages]] for the pipeline.",
+      "path": "wiki/ip_knowledge/sim.md",
+      "size_bytes": 3868
+    },
+    {
+      "id": "ssot-gen",
+      "title": "SSOT Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "ssot-gen",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [
+        "workflow-stages",
+        "fl-model-gen",
+        "rtl-gen",
+        "tb-gen",
+        "coverage",
+        "syn",
+        "sta",
+        "pnr",
+        "sta-post"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "pnr",
+        "rtl-gen",
+        "sim",
+        "sta-post",
+        "sta",
+        "syn",
+        "tb-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`ssot-gen` authors and validates `<ip>/yaml/<ip>.ssot.yaml`, the Single Source of Truth that every downstream stage treats as binding contract. It owns the SSOT contract only — it writes no RTL, TB, sim, firmware, or docs — and finishes with a `[SSOT HANDOFF] -> rtl-gen` block once validation passes. See [[workflow-stages]] for the full pipeline.",
+      "path": "wiki/ip_knowledge/ssot-gen.md",
+      "size_bytes": 8461
+    },
+    {
+      "id": "sta",
+      "title": "Static Timing Analysis (Pre-Route)",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "sta",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "syn",
+        "sta-post",
+        "workflow-stages",
+        "pnr",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "pnr",
+        "ssot-gen",
+        "sta-post",
+        "syn",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`sta` runs OpenSTA on the [[syn]] gate netlist and produces setup/hold WNS+TNS for every SSOT-declared clock, writing `<ip>/sta/out/wns.json` and the generated `<ip>.sdc`. This is the optimistic, zero-net-delay timing view — the silicon-accurate truth comes later from [[sta-post]]. See [[workflow-stages]] for the pipeline.",
+      "path": "wiki/ip_knowledge/sta.md",
+      "size_bytes": 3752
+    },
+    {
+      "id": "sta-post",
+      "title": "Post-Route Sign-Off STA",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "sta-post",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "pnr",
+        "sta",
+        "workflow-stages",
+        "ssot-gen"
+      ],
+      "incoming": [
+        "pnr",
+        "ssot-gen",
+        "sta",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`sta-post` runs OpenSTA on the [[pnr]] post-route netlist with extracted parasitics (SPEF) to produce silicon-accurate, sign-off-grade setup/hold + clock-skew timing. Unlike the optimistic zero-net-delay [[sta]], this view includes real interconnect R/C — it is the timing truth. See [[workflow-stages]] for the pipeline.",
+      "path": "wiki/ip_knowledge/sta-post.md",
+      "size_bytes": 3839
+    },
+    {
+      "id": "syn",
+      "title": "Synthesis",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "syn",
+        "signoff"
+      ],
+      "related": [],
+      "outgoing": [
+        "sta",
+        "workflow-stages",
+        "rtl-gen",
+        "lint",
+        "ssot-gen",
+        "pnr"
+      ],
+      "incoming": [
+        "lint",
+        "pnr",
+        "rtl-gen",
+        "ssot-gen",
+        "sta",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`syn` drives RTL → gate-level netlist with yosys against the sky130_fd_sc_hd Liberty (SS corner), producing `<ip>/syn/out/synth.v` plus area stats and a report. The mapped netlist is the canonical handoff to [[sta]]; an ungated or unmapped netlist makes timing silently lie. See [[workflow-stages]] for the pipeline.",
+      "path": "wiki/ip_knowledge/syn.md",
+      "size_bytes": 4025
+    },
+    {
+      "id": "tb-gen",
+      "title": "Testbench Generation",
+      "type": "reference",
+      "tags": [
+        "workflow",
+        "tb-gen",
+        "tb"
+      ],
+      "related": [],
+      "outgoing": [
+        "fl-model-gen",
+        "workflow-stages",
+        "sim",
+        "coverage",
+        "ssot-gen",
+        "rtl-gen"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "lint",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "workflow-stages"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`tb-gen` builds the SSOT-driven verification environment — a layered pyuvm/cocotb testbench whose scoreboard compares RTL observations against the [[fl-model-gen]] FunctionalModel for every equivalence goal. It owns SSOT-derived tests, scoreboards, functional bins, results XML, and waveform setup, but never invents expected behavior. See…",
+      "path": "wiki/ip_knowledge/tb-gen.md",
+      "size_bytes": 6348
+    },
+    {
+      "id": "workflow-stages",
+      "title": "ATLAS IP Workflow — Knowledge Graph",
+      "type": "index",
+      "tags": [
+        "workflow",
+        "index",
+        "ssot"
+      ],
+      "related": [],
+      "outgoing": [
+        "lint",
+        "coverage",
+        "ssot-gen",
+        "fl-model-gen",
+        "rtl-gen",
+        "tb-gen",
+        "sim",
+        "syn",
+        "sta",
+        "pnr",
+        "sta-post"
+      ],
+      "incoming": [
+        "coverage",
+        "fl-model-gen",
+        "lint",
+        "pnr",
+        "rtl-gen",
+        "sim",
+        "ssot-gen",
+        "sta-post",
+        "sta",
+        "syn",
+        "tb-gen"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Entry point for the 11-stage ATLAS hardware-IP generation pipeline: every stage takes the human-approved SSOT YAML as authority and emits traceable, validator-gated artifacts under `<ip>/`. This wiki has one page per stage, distilled from each `workflow/<stage>/system_prompt.md` and `scripts/`.",
+      "path": "wiki/ip_knowledge/workflow-stages.md",
+      "size_bytes": 2976
+    }
+  ]
+}

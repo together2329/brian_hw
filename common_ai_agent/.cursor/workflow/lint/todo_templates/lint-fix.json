@@ -1,0 +1,37 @@
+{
+  "name": "lint-fix",
+  "description": "Lint check: read RTL+filelist → run canonical DUT lint (pyslang + Verilator) → fix errors → fix warnings → report",
+  "tasks": [
+    {
+      "content": "[LINT] Read inputs: <ip>/rtl/<ip>.sv + <ip>/list/<ip>.f",
+      "detail": "Before running lint, verify all input files exist:\n- [ ] <ip>/rtl/<ip>.sv — RTL source (written by rtl-gen)\n- [ ] <ip>/list/<ip>.f — Filelist (written by rtl-gen); contains all RTL file paths for this IP\nRead <ip>.f and confirm every file listed in it actually exists on disk.\nIf any file is missing: report which file and stop.\nGate: <ip>.sv and <ip>.f both confirmed present, all files in filelist exist.",
+      "priority": "high"
+    },
+    {
+      "content": "[LINT] Run lint — get full error and warning list",
+      "detail": "Run the canonical lint command using <ip>/list/<ip>.f filelist for source file resolution:\n  python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\nThe report runs both pyslang compile diagnostics and Verilator --lint-only against all files listed in <ip>/list/<ip>.f.\nCreate <ip>/lint/ folder if it does not exist.\nRecord:\n- [ ] Total errors\n- [ ] Total warnings\n- [ ] Per-tool breakdown\nDo not fix anything yet — get the complete picture first.\nGate: Lint output captured.",
+      "priority": "high"
+    },
+    {
+      "content": "[LINT] Fix all lint errors (0 errors target)",
+      "detail": "Fix each error in <ip>/rtl/<ip>.sv:\n- [ ] Undeclared signal → add logic/wire declaration\n- [ ] Multiple drivers → remove duplicate drivers\n- [ ] Implicit net → add `default_nettype none at top; declare all signals\n- [ ] Port width mismatch → fix port connection width\n- [ ] Syntax error → fix in the relevant file\nRe-run the same platform canonical lint command after each fix group. Repeat until 0 errors.\nGate: canonical lint reports 0 errors before fixing warnings.",
+      "priority": "high"
+    },
+    {
+      "content": "[LINT] Fix lint warnings (latch, width mismatch, unused)",
+      "detail": "Fix each warning in <ip>/rtl/<ip>.sv by priority:\n- [ ] Latch inferred → add default assignment in all always_comb branches\n- [ ] Width mismatch → add explicit bit-select or cast\n- [ ] Unused signal → remove it, connect it to real logic, or intentionally consume it with a named internal sink only when architecturally required\n- [ ] Undriven signal → add driver or tie off\n- [ ] DECLFILENAME → rename/split modules so filename and module name match\nDo not add `verilator lint_off`, `lint_on`, `-Wno-*`, or generic waiver comments during normal cleanup. A waiver is valid only when the SSOT contains a precise coding_rules.lint_waivers entry naming the warning code, file, signal, and rationale.\nGate: 0 warnings.",
+      "priority": "high"
+    },
+    {
+      "content": "[LINT] Confirm lint clean: 0 errors, 0 warnings",
+      "detail": "Run final DUT-only lint report from the project root:\n  python3 ../brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py <ip> --top <top_module>\n- [ ] Confirm 0 errors\n- [ ] Confirm 0 warnings\n- [ ] Confirm <ip>/lint/dut_lint.json has tool=pyslang+verilator, dut_only=true, scope=dut, passed=true\nGate: Clean canonical lint run before writing report.",
+      "priority": "high"
+    },
+    {
+      "content": "[LINT] Write lint_report.txt",
+      "detail": "Write <ip>/lint/lint_report.txt with:\n- [ ] Date and lint tool/version (Windows should show iverilog)\n- [ ] Input files from <ip>/list/<ip>.f\n- [ ] Result: CLEAN only when dut_lint.json passed=true\n- [ ] Total errors fixed: N\n- [ ] Total warnings fixed: N\n- [ ] Remaining SSOT waivers: list only entries present in coding_rules.lint_waivers\nGate: File written to <ip>/lint/lint_report.txt — verified by check_lint_disk.py or dut_lint.json (0 errors / 0 warnings / passed=true).",
+      "validator": "python3 workflow/lint/scripts/check_lint_disk.py",
+      "priority": "normal"
+    }
+  ]
+}

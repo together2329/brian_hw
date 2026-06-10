@@ -1,0 +1,7 @@
+{
+  "name": "lint-ip",
+  "description": "Run the SSOT-scoped DUT lint stage for one IP and write lint/dut_lint.json",
+  "aliases": ["li"],
+  "handler": "stage:lint",
+  "usage": "/lint-ip <ip_name>"
+}

@@ -21,12 +21,12 @@ implementation lives in the repo — execute it, do not reimplement it.
 ## Stage 1 — req (Requirement & Obligation 생성)
 
 ```bash
-python3 workflow/req-gen/scripts/emit_requirements_from_ssot.py <ip> --root .
-python3 workflow/req-gen/scripts/promote_requirement_review.py <ip> --root .
-python3 workflow/req-gen/scripts/lock_requirement_set.py <ip> --root .
-python3 workflow/req-gen/scripts/stage_contract_todos.py <ip> --root .   # VCM projector → per-stage todos
-python3 workflow/req-gen/scripts/check_locked_truth_bundle.py <ip> --root .
-python3 workflow/req-gen/scripts/stage_gate.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/emit_requirements_from_ssot.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/promote_requirement_review.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/lock_requirement_set.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/stage_contract_todos.py <ip> --root .   # VCM projector → per-stage todos
+python3 .cursor/workflow/req-gen/scripts/check_locked_truth_bundle.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/stage_gate.py <ip> --root .
 ```
 
 Gate FAIL → fix the requirement set, do not bypass. `/req-gen` subagent owns this stage.
@@ -52,8 +52,8 @@ missing observable is a contract violation, not a TB style choice. `/tb-gen` own
 
 ```bash
 python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py <ip> --root . --profile dv --execute --from-stage sim --until goal-audit
-python3 workflow/sim/scripts/check_sim_disk.py <ip>
-python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root .
+python3 .cursor/workflow/sim/scripts/check_sim_disk.py <ip>
+python3 .cursor/workflow/reqcov/scripts/check_truth_coverage.py <ip> --root .
 ```
 
 PASS = real artifacts + ≥1 passing scoreboard event + zero failure markers.
@@ -66,8 +66,8 @@ After each stage's Validation verdict (PASS or final FAIL), append the outcome
 to the IP's own wiki so history accumulates next to the artifacts:
 
 ```bash
-python3 scripts/ip_wiki.py log <ip> --stage <req|rtl|tb|sim> --title "<verdict>" --body "<gate output line>"
-python3 scripts/ip_wiki.py check <ip>
+python3 .cursor/scripts/ip_wiki.py log <ip> --stage <req|rtl|tb|sim> --title "<verdict>" --body "<gate output line>"
+python3 .cursor/scripts/ip_wiki.py check <ip>
 ```
 
 See the `ip-wiki` skill for page creation and rules.

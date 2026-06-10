@@ -16,7 +16,7 @@ import re
 from pathlib import Path
 from typing import Any, Callable, Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from core.atlas_context_paths import AtlasContext
@@ -34,6 +34,7 @@ def register_git_routes(
     project_root: Callable[[], Path],
     active_ip_value: Callable[[], str],
     valid_ip_name: Callable[[str], bool],
+    fs_authz=None,
 ) -> None:
     """Mount the Git-compatible SCM API onto *app*.
 
@@ -76,6 +77,15 @@ def register_git_routes(
         if not candidate.is_absolute():
             candidate = project_root() / candidate
         resolved = candidate.resolve()
+        # SECURITY: a request-supplied scmRoot must not escape PROJECT_ROOT
+        # (absolute-path / traversal escape). resolve()+relative_to is OS-neutral
+        # — it handles Windows drive letters, UNC paths, and backslashes too.
+        # Perforce workspaces that legitimately live elsewhere are configured via
+        # env (ATLAS_SCM_ROOT_PERFORCE / _default_scm_root), not this param.
+        try:
+            resolved.relative_to(project_root().resolve())
+        except ValueError:
+            return None, JSONResponse({"error": f"{label} escapes project root"}, status_code=400)
         if not resolved.is_dir():
             return None, JSONResponse({"error": f"{label} not found", label: str(resolved)}, status_code=404)
         return resolved, None
@@ -174,26 +184,42 @@ def register_git_routes(
         return str(candidate), str(scm_root), None, clean
 
     def _route_roots(
+        request: Request,
         ip: str,
         provider: str = "",
         scm_root_value: str = "",
         session_id: str = "",
+        permission: str = "view",
     ) -> tuple[str | None, str | None, JSONResponse | None, str]:
-        return _scm_roots_for_ip(
+        local_root, scm_root, error, resolved_ip = _scm_roots_for_ip(
             ip or active_ip_value(),
             provider=provider,
             scm_root_value=scm_root_value,
             session_id=session_id,
         )
+        # SECURITY: per-IP tenant authz at the single chokepoint every SCM route
+        # passes through. A non-empty resolved IP must be owned/granted to the
+        # caller (view to read, write to mutate). The authz verdict takes
+        # PRECEDENCE over _scm_roots_for_ip's own existence/'.git' errors — a
+        # cross-tenant probe must get 403, never a 404/409 that would leak the
+        # target IP's existence or repo status. resolved_ip is populated even on
+        # those errors (it is the cleaned/ session-resolved ip name), so this
+        # also closes the session_id-spoof vector. Empty IP = legacy project-root
+        # SCM view, left ungated. Denials surface via the `error` slot.
+        if resolved_ip and fs_authz is not None:
+            denied = fs_authz.ip(request, resolved_ip, permission)
+            if denied is not None:
+                return None, None, denied, resolved_ip
+        return local_root, scm_root, error, resolved_ip
 
     def _root_fields(local_root: str | None, scm_root: str | None) -> dict[str, str | None]:
         return {"cwd": local_root, "localRoot": local_root, "scmRoot": scm_root}
 
     @app.get("/api/scm/status")
     @app.get("/api/git/status")
-    async def api_git_status(ip: str = "", provider: str = "", scm_root: str = "", session_id: str = ""):
+    async def api_git_status(request: Request, ip: str = "", provider: str = "", scm_root: str = "", session_id: str = ""):
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+            request, ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
         )
         if error is not None:
             return error
@@ -218,6 +244,7 @@ def register_git_routes(
     @app.get("/api/scm/log")
     @app.get("/api/git/log")
     async def api_git_log(
+        request: Request,
         ip: str = "",
         limit: int = 60,
         provider: str = "",
@@ -226,7 +253,7 @@ def register_git_routes(
         session_id: str = "",
     ):
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+            request, ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
         )
         if error is not None:
             return error
@@ -251,6 +278,7 @@ def register_git_routes(
     @app.get("/api/scm/show")
     @app.get("/api/git/show")
     async def api_git_show(
+        request: Request,
         sha: str = "",
         revision: str = "",
         ip: str = "",
@@ -260,7 +288,7 @@ def register_git_routes(
         session_id: str = "",
     ):
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+            request, ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
         )
         if error is not None:
             return error
@@ -293,6 +321,7 @@ def register_git_routes(
     @app.get("/api/scm/diff")
     @app.get("/api/git/diff")
     async def api_git_diff(
+        request: Request,
         path: str = "",
         staged: int = 0,
         ip: str = "",
@@ -302,7 +331,7 @@ def register_git_routes(
         session_id: str = "",
     ):
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+            request, ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
         )
         if error is not None:
             return error
@@ -327,7 +356,7 @@ def register_git_routes(
 
     @app.post("/api/scm/submit")
     @app.post("/api/git/commit")
-    async def api_git_commit(payload: dict[str, Any]):
+    async def api_git_commit(request: Request, payload: dict[str, Any]):
         body = payload or {}
         message = str(body.get("message", "")).strip()
         add_all = bool((payload or {}).get("add_all", True))
@@ -340,7 +369,7 @@ def register_git_routes(
             return JSONResponse({"error": "commit message required"},
                                  status_code=400)
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error
@@ -361,13 +390,13 @@ def register_git_routes(
 
     @app.post("/api/scm/push")
     @app.post("/api/git/push")
-    async def api_git_push(payload: Optional[dict[str, Any]] = None):
+    async def api_git_push(request: Request, payload: Optional[dict[str, Any]] = None):
         body = payload or {}
         provider = str(body.get("provider") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error
@@ -415,7 +444,7 @@ def register_git_routes(
 
     @app.post("/api/scm/sync")
     @app.post("/api/git/sync")
-    async def api_scm_sync(payload: Optional[dict[str, Any]] = None):
+    async def api_scm_sync(request: Request, payload: Optional[dict[str, Any]] = None):
         # Pull from the server, overwriting local (force). Optional `paths` for a
         # selective sync; `revision` to pin a changelist. sync() is part of the
         # base SCM contract, so this works for any provider.
@@ -427,7 +456,7 @@ def register_git_routes(
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         target_paths = body.get("targetPaths") or body.get("target_paths") or []
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error
@@ -456,6 +485,7 @@ def register_git_routes(
 
     @app.get("/api/scm/pane")
     async def api_scm_pane(
+        request: Request,
         ip: str = "",
         provider: str = "",
         stream: str = "",
@@ -466,7 +496,7 @@ def register_git_routes(
     ):
         # Two-pane Perforce Sync view: local / depot / pending. Provider-specific.
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
+            request, ip, provider=provider, scm_root_value=scm_root, session_id=session_id,
         )
         if error is not None:
             return error
@@ -492,7 +522,7 @@ def register_git_routes(
         return JSONResponse(state, status_code=200)
 
     @app.post("/api/scm/add")
-    async def api_scm_add(payload: dict[str, Any]):
+    async def api_scm_add(request: Request, payload: dict[str, Any]):
         # Open selected local paths for add/edit/delete (p4 reconcile) into the
         # pending changelist. Provider-specific (Perforce).
         body = payload or {}
@@ -504,7 +534,7 @@ def register_git_routes(
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error
@@ -521,7 +551,7 @@ def register_git_routes(
         return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
 
     @app.post("/api/scm/revert")
-    async def api_scm_revert(payload: dict[str, Any]):
+    async def api_scm_revert(request: Request, payload: dict[str, Any]):
         # Revert selected pending paths (p4 revert). Provider-specific (Perforce).
         body = payload or {}
         provider = str(body.get("provider") or "")
@@ -530,7 +560,7 @@ def register_git_routes(
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error
@@ -545,7 +575,7 @@ def register_git_routes(
         return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
 
     @app.post("/api/scm/edit")
-    async def api_scm_edit(payload: dict[str, Any]):
+    async def api_scm_edit(request: Request, payload: dict[str, Any]):
         body = payload or {}
         provider = str(body.get("provider") or "")
         stream = str(body.get("stream") or "")
@@ -556,7 +586,7 @@ def register_git_routes(
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error
@@ -643,7 +673,7 @@ def register_git_routes(
         return JSONResponse({"ok": True, "prefs": prefs})
 
     @app.post("/api/scm/change/delete")
-    async def api_scm_change_delete(payload: dict[str, Any]):
+    async def api_scm_change_delete(request: Request, payload: dict[str, Any]):
         # Delete a numbered pending changelist (revert -k its files, then
         # p4 change -d). Provider-specific (Perforce).
         body = payload or {}
@@ -653,7 +683,7 @@ def register_git_routes(
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
-            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+            request, str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id, permission="write",
         )
         if error is not None:
             return error

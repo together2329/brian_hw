@@ -1,0 +1,23 @@
+{
+  "name": "orchestrator",
+  "description": "Pipeline orchestrator agent — primary LLM that reads stage state, decides the next workflow to dispatch, and routes owner-classified mismatches across workflow boundaries. Powers the ATLAS Pipeline screen's right-side chat.",
+  "role": "primary",
+  "env": {
+    "MAX_ITERATIONS": "120",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user",
+    "_disabled_tools_comment": "orchestrator never blocks on ask_user — it must surface decisions to the Pipeline chat instead; record_ssot_qa remains available so the orchestrator can read/inspect QA cards written by interactive workers",
+    "ATLAS_ORCHESTRATOR_MODE": "1"
+  },
+  "skills": {
+    "force_activate": [],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace",
+  "chat_routing": {
+    "_comment": "ATLAS UI views routed to this workflow. Pipeline screen chat panel binds here.",
+    "views": ["pipeline"]
+  }
+}

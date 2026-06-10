@@ -3073,6 +3073,20 @@ class HeadlessWorkflowRunner:
             if response.status in {"blocked", "human_gate"}:
                 return self._append_llm_gate(ip, "fl-model-gen", response, topic=f"fl_author_{attempt}")
             self._apply_artifacts(ip, response.parsed_artifacts)
+            if model_path.is_file():
+                _write_json(
+                    model_dir / "fl_authoring_provenance.json",
+                    {
+                        "schema_version": 1,
+                        "type": "fl_authoring_provenance",
+                        "ip": ip,
+                        "sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
+                        "authored_by": self.model,
+                        "stage": "fl-model-gen",
+                        "attempt": attempt,
+                        "timestamp": _utc(),
+                    },
+                )
             gate = subprocess.run(
                 [sys.executable, str(gate_script), ip, "--root", str(self.root)],
                 cwd=str(self.root), text=True, encoding="utf-8", errors="replace",

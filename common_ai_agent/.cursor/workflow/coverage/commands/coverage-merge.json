@@ -1,0 +1,7 @@
+{
+  "name": "coverage-merge",
+  "description": "Merge per-test coverage.dat files into one merged.dat",
+  "aliases": ["cov-merge"],
+  "handler": "bash:coverage_merge.sh",
+  "usage": "/coverage-merge [<dut_name>]"
+}
