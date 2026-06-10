@@ -166,3 +166,45 @@ requirements:
             observed_at: 45f92857
           - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
             observed_at: 45f92857
+
+  - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
+    claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
+    design_anchor: doc/wiki/perforce-integration-20260530.md
+    obligations:
+      - id: OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT
+        owned_by: platform.scm
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          UI 기본 checkout(targetPaths=[depotDir/] folder target)에서 depot에
+          이미 있는 파일이 client have=0 이면 _stage_local_sources 가 reconcile
+          경로로 빠져 add 로 열림 → submit "add of added file; must revert"
+          실패, depot 미갱신 (repro R2)
+        repro: scripts/repro_perforce_pending.py
+      - id: OBL_P4_EDIT_FAILURE_NOT_SOFTENED
+        owned_by: platform.scm
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          _soften 의 _BENIGN 목록("file(s) not on client" 등)이 write-intent
+          p4 edit 실패까지 ok 로 둔갑 — checkout 이 아무것도 열지 않고
+          성공 메시지 표시 (silent no-op, repro R1/R5)
+        repro: scripts/repro_perforce_pending.py
+      - id: OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL
+        owned_by: platform.scm
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          default changelist 의 filespec submit 실패 시 p4 가 자동 생성한
+          numbered CL 에 파일이 갇히는데 어댑터가 복구(reopen -c default +
+          change -d)하지 않아 실패할 때마다 pending CL 누적 (repro R2/R3)
+        repro: scripts/repro_perforce_pending.py
+      - id: OBL_P4_PENDING_CL_DELETABLE
+        owned_by: platform.scm
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          revert 가 비워 둔 numbered pending CL 을 삭제하는 경로가 없음
+          (p4 change -d 미배선) + UI 는 빈 CL 선택 시 삭제 수단 자체가 없음
+          (repro R4)
+        repro: scripts/repro_perforce_pending.py
