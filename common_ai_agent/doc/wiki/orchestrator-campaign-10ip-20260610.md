@@ -96,3 +96,27 @@ Open follow-ons:
 - still untested: web-UI E2E entry, headless entry, remaining 9 IPs.
 
 (continued as the campaign progresses)
+
+---
+
+## 06-11 headless multi-IP campaign (10 IPs, gpt-5.4)
+
+Scaled to **10 human-locked specimen IPs** (orch_campaign_truth.py CAMPAIGN_SPECS):
+cnt8_en_v1, shift8_lr_v1, pwm8_duty_v1, gray8_enc_v1, rr_arb4_v1, add8_cin_v1,
+mux4_v1, parity8_v1, updown8_v1, onehot4_v1 — all truth-locked at the
+session-scoped root `<root>/admin/default/<ip>/req` (finding 7 path contract).
+Driver: `scripts/orch_campaign_run.py` runs headless ssot-gen (+fl-model-gen)
+per IP with real gpt-5.4 (ATLAS_RUN_REAL_LLM_TDD=1), records per-IP status +
+SSOT quality (feature_N placeholder count) to scripts/_campaign/results.json.
+
+Runtime facts established:
+- gpt-5.4 real LLM works fast in the headless provider (~9.8s/call smoke test);
+  available_reason('gpt-5.4')='' (not blocked).
+- ssot-gen does NOT regenerate an SSOT that already exists: cnt8_en_v1 (had a
+  prior orchestrator-authored SSOT) ran ~200s but kept the old 05:05 file
+  (feature_N=4 unchanged) → **cnt8 is INCONCLUSIVE for the fix**; the clean
+  test is the fresh IPs (no prior SSOT).
+- Headless ssot-gen requires `--req <markdown>` + `ATLAS_RUN_REAL_LLM_TDD=1`
+  (the real-LLM TDD guard, available_reason) — both wired into the driver.
+
+(per-IP results table appended as the batch completes)
