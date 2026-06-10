@@ -1,0 +1,16 @@
+{
+  "cnt8_en_v1": {
+    "stages": [
+      {
+        "stage": "ssot-gen",
+        "status": "unknown",
+        "secs": 200
+      }
+    ],
+    "ssot_quality": {
+      "ssot_lines": 1260,
+      "feature_N_placeholders": 4,
+      "has_transactions": true
+    }
+  }
+}

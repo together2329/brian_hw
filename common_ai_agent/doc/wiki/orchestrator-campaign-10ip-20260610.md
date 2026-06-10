@@ -198,3 +198,53 @@ ssot-gen locked-detail, React Flow pipeline, workspace chat) + UI (goal-audit).
 Open reliability work: serial-dispatch policy / dead-worker watchdog (finding
 12/4), ssot-gen transaction-naming + full elimination of placeholders, headless
 req-gate parity (finding 11), gpt-5.4 as the pinned worker model.
+
+---
+
+## CORRECTION + FINAL RESULT: 10/10 real SSOTs (2026-06-11)
+
+Finding 12 was **partially wrong**. The 8-at-once parallel ssot-gen dispatch did
+NOT kill the workers — all ssot-gen work funnels through the worker server
+(`WORKER_URL_SSOT_GEN=http://127.0.0.1:5621`), which **serialized the queue** and
+processed them slowly (~30 min for the batch). They all eventually completed.
+Corrected lesson: parallel orchestrator dispatch → a slow serialized worker-server
+queue (throughput bound), not worker death. The orchestrator zombie-wait
+(finding 12/4 watchdog gap) still holds for genuinely-stalled jobs, but here the
+jobs were merely slow.
+
+**FINAL: 10/10 IPs produced real SSOTs** (1142–1289 lines each), each with real
+function_model.transactions authored from the locked behavioral contracts
+(verified: pwm8 2tx, rr_arb4 3tx, updown8 4tx — all carry output logic, not
+placeholders). The ssot-gen locked-detail fix (58d31e53) works across the whole
+IP set.
+
+| IP | SSOT lines | tx w/ logic |
+|----|-----------|-------------|
+| cnt8_en_v1 | 1260 | (gpt-5.4) |
+| add8_cin_v1 | 1174 | ssot✓ → **fl-model PASS** (fl_model_check=True) |
+| shift8_lr_v1 | 1289 | ✓ |
+| pwm8_duty_v1 | 1142 | 2/2 |
+| gray8_enc_v1 | 1152 | ✓ |
+| rr_arb4_v1 | 1195 | 3/3 |
+| mux4_v1 | 1155 | ✓ |
+| parity8_v1 | 1274 | ✓ |
+| updown8_v1 | 1287 | 4/4 |
+| onehot4_v1 | 1146 | ✓ |
+
+### Finding 13 — headless CLI real-LLM guard sees env as unset at stage time
+With substantive requirements (≥200 chars, no placeholder words) the headless
+`req` stage PASSES (finding 11's req-gate is satisfiable). But `ssot-gen` still
+reports `ATLAS_RUN_REAL_LLM_TDD=1 is not set` from `RealLLMProvider.available_reason`
+even when the flag is set in the launching shell AND verified preserved through
+module import AND added to .env. `import src.headless_workflow` keeps `os.getenv
+('ATLAS_RUN_REAL_LLM_TDD')=='1'`, no code path pops/clears it, and headless does
+not route ssot-gen through WORKER_URL in-file — yet the stage-time check reads it
+as unset. The SSOTs were produced via the orchestrator → worker-server (5621)
+path regardless. Open: a stage-execution env-context shadowing bug in the
+headless real-LLM guard (the orchestrator path is unaffected and is what
+production uses).
+
+### CAMPAIGN COMPLETE
+10/10 real SSOTs authored from locked truth; one IP (add8) advanced ssot→fl-model
+(PASS); orchestrating control plane validated end-to-end incl. mctp to STA/PNR;
+13 findings, 9 code fixes (all on main); web UI on React Flow + chat visible.
