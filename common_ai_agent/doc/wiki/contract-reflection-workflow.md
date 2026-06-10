@@ -1887,3 +1887,41 @@ CDC/PPA/DFT/STA/formal/production signoff is complete.
 ```
 
 Those remain human/spec authority or separate production gates.
+
+## Workflow Linkage (Generator, 2026-06-10)
+
+How the semantic-contract generator plugs into the existing stage chain
+(see [[verification-contract-model]] "Generator" for E2E proof):
+
+```text
+ssot -> fl/cl -> rtl -> tb -> sim (PASS: scoreboard_events.jsonl + *.vcd)
+   -> emit_semantic_contracts.py        # writes verify/semantic_contracts.json
+   -> semantic overlay                  # merges into evidence/reflection/requirements
+   -> annotate_scoreboard_obligations.py # sidecar: rows -> obligation_ids
+   -> run_contract_check --require-contract-closure
+   -> check_ip_signoff (contract_content_coverage / contract_sim_freshness)
+```
+
+Position rule: the generator REQUIRES a passing simulation (it grounds every
+obligation in a real passing scoreboard row and the sampled wave), so it can only
+run after `sim` and must run before `contract-check`. Regeneration is safe and
+deterministic — identical inputs produce byte-identical output, and any SSOT/sim
+change shows up as a fingerprint/freshness failure downstream, not a silent drift.
+
+Integration surfaces today:
+
+- **Agent-driven (active):** the `contract-reflection` UI workflow loads
+  `todo_templates/contract-reflection.json` (emit -> annotate -> strict check ->
+  resolve-at-owning-stage) and `system_prompt.md` teaches VCM authoring. This was the
+  todo-template review verdict: the generator itself is a deterministic tool, so the
+  todos are "run the tool + resolve failures at the owning stage" (mirroring the
+  signoff template), NOT judgment tasks re-deriving contracts by hand.
+- **Engine stage (deferred):** `workflow_stage_engine.py` has no
+  `emit-semantic-contracts` dispatch entry yet. The feat/vcm-generator branch carried
+  one, but against a pre-hardening engine/manifest base — wire it fresh against
+  current main when wanted (insert between `scoreboard_schema` and `contract-check`
+  in STAGE_MANIFEST + the engine dispatch map). Until then the generator is
+  CLI/todo-driven only.
+- Legacy IPs without `semantic_contracts.json` stay not-applicable for the VCM signoff
+  gates (opt-in unchanged); hand-authored contracts keep working — the generator only
+  replaces the authoring step, not the validation chain.
