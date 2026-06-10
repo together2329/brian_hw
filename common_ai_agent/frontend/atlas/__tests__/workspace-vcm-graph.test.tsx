@@ -66,9 +66,10 @@ describe('VcmGraphTab', () => {
     expect(await screen.findByText(/VCM SPINE · demo_ip · locked · 6 nodes/)).toBeTruthy();
   });
 
-  it('shows the guidance message when the graph json is missing', async () => {
+  it('offers a Generate button when the graph json is missing', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => ({ ok: false })) as unknown as typeof fetch);
     render(<VcmGraphTab activeIp="demo_ip" />);
-    expect(await screen.findByText(/emit_vcm_graph\.py/)).toBeTruthy();
+    expect(await screen.findByText(/no vcm_graph.json for demo_ip/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Generate graph/i })).toBeTruthy();
   });
 });
