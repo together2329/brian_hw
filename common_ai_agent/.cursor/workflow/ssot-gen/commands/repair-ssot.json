@@ -1,0 +1,7 @@
+{
+  "name": "repair-ssot",
+  "description": "Repair an existing SSOT to the canonical production schema from current SSOT facts; no fixed IP RTL templates",
+  "aliases": ["rs"],
+  "handler": "bash:repair_ssot_schema.py",
+  "usage": "/repair-ssot <ip_name>"
+}

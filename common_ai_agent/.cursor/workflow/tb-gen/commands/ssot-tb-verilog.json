@@ -1,0 +1,7 @@
+{
+  "name": "ssot-tb-verilog",
+  "description": "Run SSOT-driven plain Verilog/SystemVerilog TB workflow",
+  "aliases": ["stb-verilog", "ssot-tb-sv", "stb-sv"],
+  "handler": "todo:template:ssot-tb-verilog",
+  "usage": "/ssot-tb-verilog <module_name>"
+}

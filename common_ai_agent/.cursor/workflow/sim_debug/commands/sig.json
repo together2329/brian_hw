@@ -1,0 +1,7 @@
+{
+  "name": "sig",
+  "description": "Search a signal across all VCDs in cwd (case-insensitive substring).",
+  "aliases": [],
+  "handler": "bash:sig_search.sh",
+  "usage": "/sig <name>"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "sta-run",
+  "description": "Run OpenSTA on existing run.tcl (no SDC regeneration)",
+  "aliases": [],
+  "handler": "bash:run_opensta.sh",
+  "timeout_sec": 300,
+  "usage": "/sta-run"
+}

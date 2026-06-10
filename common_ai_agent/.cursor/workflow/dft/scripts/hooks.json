@@ -1,0 +1,9 @@
+{
+  "hooks": [
+    {
+      "script": "auto_dft.sh",
+      "trigger": "manual",
+      "conditions": {}
+    }
+  ]
+}

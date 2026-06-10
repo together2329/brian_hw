@@ -1,0 +1,41 @@
+{
+  "name": "ssot-tb-verilog",
+  "description": "SSOT->TB Verilog/SystemVerilog: derive a plain HDL testbench from YAML and RTL, run iverilog/vvp, emit reports, or escalate precise failures",
+  "tasks": [
+    {
+      "content": "[SSOT->VerilogTB] Parse SSOT, RTL, and build verification ledger",
+      "detail": "Read SSOT YAML, <ip>/verify/equivalence_goals.json when present, RTL filelist, and all referenced RTL files. Derive plain HDL testbench tasks from SSOT top_module, parameters, io_list, function_model, cycle_model, registers, features, dataflow, interrupts, memory, fsm, test_requirements.scenarios, and equivalence goals. Use this backend only when the project/SSOT requests SV-only or cocotb/UVM is unavailable.",
+      "criteria": "SSOT, equivalence goals, and RTL were read\npython3 workflow/tb-gen/runtime/equivalence_scoreboard.py <ip> --root . --self-check passes when FunctionalModel is present\nEvery DUT top port has a declaration/drive/monitor plan\nEvery SSOT scenario maps to a Verilog/SV task and checker\nEvery non-blocked equivalence goal maps to a scoreboard event row or precise blocker\nCoverage/report bins are planned from SSOT\nNo fixed IP-specific generator was added",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->VerilogTB] Write plain HDL TB artifacts",
+      "detail": "Write <ip>/tb/tb_<ip>.sv and optional <ip>/tb/tc_<ip>.sv / model files. Include clock/reset, DUT instantiation, protocol tasks derived from io_list, expected-value model_adapter/reference_model from SSOT/FunctionalModel, scenario tasks for every SSOT scenario, scoreboard_events.jsonl writer, $dumpfile/$dumpvars VCD setup, PASS/FAIL counters, and fatal assertion behavior. The expected-value path may be a generated plain-HDL adapter or a Python precomputed stimulus/expected bridge, but it must preserve FunctionalModel/SSOT expected behavior and must not copy observed RTL behavior. Any [FAIL] must call $fatal or make the simulator exit non-zero.",
+      "criteria": "tb_<ip>.sv exists and is non-empty\nOptional tc/model files are listed or included correctly\nDUT instantiation matches RTL top\nEvery SSOT scenario has executable stimulus and checker\nscoreboard_events.jsonl rows include goal_id, scenario_id, cycle, stimulus, fl_expected, rtl_observed, passed, mismatch, and coverage_refs\nVCD dump is configured\nNo RTL files were modified",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->VerilogTB] Run iverilog/vvp simulation and repair TB-only issues",
+      "activeForm": "Running plain HDL simulation from SSOT - attempt {loop_count}/{max_loop_iterations}",
+      "detail": "Run: iverilog -g2012 -I <ip>/rtl -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. Fix TB-only compile, port mapping, task, and checker issues then rerun. If DUT behavior violates SSOT, stop TB edits and emit [SIM ESCALATE] -> rtl-gen with exact test, expected, got, and suspected RTL signal/file.",
+      "criteria": "Simulation command was run after final TB edit\nCompile/elaboration exits 0\nAll SSOT scenarios pass or failures are escalated precisely\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nNo [FAIL] markers remain on DONE path\nsim_report.txt or equivalent exists\nTB does not modify RTL files",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_sim_evidence.py",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "PASS_OR_ESCALATE",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->VerilogTB] Emit sim_debug artifacts",
+      "detail": "Ensure <ip>/sim/<ip>.vcd, <ip>/sim/scoreboard_events.jsonl, <ip>/sim/sim_report.txt, <ip>/cov/coverage_functional.json when functional bins are tracked, and <ip>/sim/coverage_report.md exist on PASS path. Final <ip>/cov/coverage.json is produced by the common coverage stage. Label static/code coverage gaps honestly.",
+      "criteria": "VCD exists and is non-empty\nscoreboard_events.jsonl exists and references equivalence goal IDs\nsim_report.txt exists\nraw functional coverage exists or evidence gap is escalated\nCoverage source is labeled accurately\nNo IP-specific coverage workaround script was added",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->VerilogTB] Emit tb-gen result or escalation",
+      "detail": "PASS branch: emit [SSOT RESULT] tb-gen DONE with TB files, exact iverilog/vvp command, pass count, coverage path, VCD path, and next workflow sim_debug. FAIL branch: emit [SIM ESCALATE] -> rtl-gen blocks with exact expected/got evidence.",
+      "criteria": "DONE path includes fresh simulation evidence\nFailure path includes precise SIM ESCALATE blocks\nNo simulation or coverage result is fabricated",
+      "priority": "normal"
+    }
+  ]
+}

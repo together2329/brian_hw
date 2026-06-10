@@ -1,0 +1,19 @@
+{
+  "name": "sim_debug",
+  "description": "VCD waveform debug + signal trace + instance hierarchy + FSM viewer",
+  "env": {
+    "MAX_ITERATIONS": "100",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
+  },
+  "skills": {
+    "force_activate": [
+      "verilog-expert",
+      "testbench-expert"
+    ],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "refine-req",
+  "description": "Refine and fill gaps in existing requirements file",
+  "aliases": ["rr"],
+  "handler": "todo:template:refine-req",
+  "usage": "/refine-req"
+}

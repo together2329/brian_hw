@@ -1,0 +1,8 @@
+{
+  "name": "ssot-golden-todos",
+  "description": "Aggregate per-IP TodoTracker JSON from SSOT signals, equivalence_goals, and fl_model_check; loads one todo per equivalence goal plus self-check failures and SSOT-TBD escalations",
+  "aliases": ["sgt", "golden-todos"],
+  "handler": "stage:ssot-golden-todos",
+  "usage": "/ssot-golden-todos <module_name>",
+  "area": "golden"
+}

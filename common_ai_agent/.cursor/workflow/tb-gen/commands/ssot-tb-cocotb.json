@@ -1,0 +1,7 @@
+{
+  "name": "ssot-tb-cocotb",
+  "description": "Run SSOT-driven pyuvm/cocotb TB workflow",
+  "aliases": ["stb-cocotb"],
+  "handler": "stage:ssot-tb-cocotb",
+  "usage": "/ssot-tb-cocotb <module_name>"
+}

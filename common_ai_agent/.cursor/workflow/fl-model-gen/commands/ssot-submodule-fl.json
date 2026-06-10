@@ -1,0 +1,8 @@
+{
+  "name": "ssot-submodule-fl",
+  "description": "L2 — Emit per-sub_module FL stubs that delegate to the top FunctionalModel filtered by implements: refs",
+  "aliases": ["ssfl"],
+  "handler": "stage:ssot-submodule-fl",
+  "usage": "/ssot-submodule-fl <module_name>",
+  "area": "model"
+}

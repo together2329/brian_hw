@@ -1,0 +1,23 @@
+{
+  "name": "golden-all",
+  "description": "Composite stage: ssot-fl-model -> ssot-cycle-model -> ssot-dual-fcov -> ssot-equiv-goals -> ssot-verification-rtl -> ssot-golden-todos",
+  "aliases": [
+    "ga"
+  ],
+  "handler": "stage:golden-all",
+  "usage": "/golden-all <module_name>",
+  "area": "golden",
+  "chain": [
+    "ssot-fl-model",
+    "ssot-cycle-model",
+    "ssot-dual-fcov",
+    "ssot-equiv-goals",
+    "ssot-verification-rtl",
+    "ssot-golden-todos",
+    "ssot-protocol-assertions",
+    "ssot-authority",
+    "ssot-loop-map",
+    "ssot-submodule-fl",
+    "ssot-module-harness"
+  ]
+}

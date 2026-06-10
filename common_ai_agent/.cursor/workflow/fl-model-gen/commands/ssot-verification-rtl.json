@@ -1,0 +1,8 @@
+{
+  "name": "ssot-verification-rtl",
+  "description": "Emit cocotb harness, optional SV scoreboard bindings, and Makefile.sim that runs FL/CL as the golden scoreboard",
+  "aliases": ["svr"],
+  "handler": "stage:ssot-verification-rtl",
+  "usage": "/ssot-verification-rtl <module_name>",
+  "area": "verify"
+}

@@ -1,0 +1,8 @@
+{
+  "name": "sta-post-preflight",
+  "description": "Validate OpenSTA, bundled Liberty, routed netlist, SPEF, SDC, and freshness before post-route STA",
+  "aliases": ["sta-post-pf"],
+  "handler": "bash:preflight.sh",
+  "usage": "/sta-post-preflight <ip>",
+  "timeout_sec": 120
+}

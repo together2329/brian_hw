@@ -1,0 +1,7 @@
+{
+  "name": "goal-audit",
+  "description": "Audit FL-vs-RTL equivalence goal evidence against SSOT signoff criteria",
+  "aliases": ["audit", "ga"],
+  "handler": "stage:goal-audit",
+  "usage": "/goal-audit <module_name>"
+}

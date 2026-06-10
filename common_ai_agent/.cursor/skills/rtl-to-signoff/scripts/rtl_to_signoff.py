@@ -22,7 +22,14 @@ from typing import Any
 
 SCRIPT = Path(__file__).resolve()
 SKILL_ROOT = SCRIPT.parents[1]
-SOURCE_ROOT = SCRIPT.parents[4]
+PACK_ROOT = SCRIPT.parents[3]      # .cursor — vendored 엔진/워크플로 (자가포함 전달본)
+_repo_root = SCRIPT.parents[4]
+# 풀 repo 안에서는 정본 src/workflow 를, .cursor 단독 전달본에서는 vendored 사본을 쓴다.
+SOURCE_ROOT = (
+    _repo_root
+    if (_repo_root / "src" / "workflow_stage_engine.py").is_file()
+    else PACK_ROOT
+)
 MANIFEST_PATH = SKILL_ROOT / "STAGE_MANIFEST.json"
 
 if str(SOURCE_ROOT) not in sys.path:

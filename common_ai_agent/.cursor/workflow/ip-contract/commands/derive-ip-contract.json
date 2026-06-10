@@ -1,0 +1,7 @@
+{
+  "name": "derive-ip-contract",
+  "description": "Derive <ip>/verify/ip_contract.json from that IP's SSOT, IO, timing, state, and equivalence goals",
+  "aliases": ["ip-contract"],
+  "handler": "bash:run_derive_ip_contract.sh",
+  "usage": "/derive-ip-contract <ip_name>"
+}

@@ -1,0 +1,9 @@
+{
+  "name": "coverage",
+  "description": "Run the SSOT-scoped pre-synthesis coverage summary after fresh simulation evidence",
+  "aliases": [
+    "cov"
+  ],
+  "handler": "stage:coverage",
+  "usage": "/coverage <ip_name>"
+}

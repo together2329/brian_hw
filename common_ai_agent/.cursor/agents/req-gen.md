@@ -20,12 +20,12 @@ Read before acting:
 Commands (execute, never reimplement):
 
 ```bash
-python3 workflow/req-gen/scripts/emit_requirements_from_ssot.py <ip> --root .
-python3 workflow/req-gen/scripts/promote_requirement_review.py <ip> --root .
-python3 workflow/req-gen/scripts/lock_requirement_set.py <ip> --root .
-python3 workflow/req-gen/scripts/stage_contract_todos.py <ip> --root .
-python3 workflow/req-gen/scripts/check_locked_truth_bundle.py <ip> --root .
-python3 workflow/req-gen/scripts/stage_gate.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/emit_requirements_from_ssot.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/promote_requirement_review.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/lock_requirement_set.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/stage_contract_todos.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/check_locked_truth_bundle.py <ip> --root .
+python3 .cursor/workflow/req-gen/scripts/stage_gate.py <ip> --root .
 ```
 
 Rules:

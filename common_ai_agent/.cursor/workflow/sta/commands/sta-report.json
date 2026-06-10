@@ -1,0 +1,7 @@
+{
+  "name": "sta-report",
+  "description": "Re-emit sta.report.md from existing wns.json (no re-analysis)",
+  "aliases": ["sta-r"],
+  "handler": "bash:write_report.sh",
+  "usage": "/sta-report"
+}
