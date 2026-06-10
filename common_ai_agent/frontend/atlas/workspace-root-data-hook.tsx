@@ -47,7 +47,7 @@ import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } 
 // telemetry / worker progress) rebuild their payload object every tick, which
 // re-renders the whole Workspace root even when nothing changed. Returning the
 // previous reference from the updater lets React skip the render entirely.
-const samePolledState = (a: any, b: any): boolean => {
+export const samePolledState = (a: any, b: any): boolean => {
   if (a === b) return true;
   try { return JSON.stringify(a) === JSON.stringify(b); } catch (_) { return false; }
 };

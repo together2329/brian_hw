@@ -244,6 +244,86 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     vi.useRealTimers();
   });
 
+  it('poller bail-outs keep the Workspace root render-stable on identical poll payloads', async () => {
+    vi.useFakeTimers();
+    // The worker-status endpoint answers with the SAME payload every poll,
+    // except idle_age_sec which advances every tick like the real server — the
+    // bail-out must treat that as unchanged. Everything else answers {}.
+    // Plain microtask-resolving response objects (NOT new Response()): real
+    // Response.json() reads a stream on macrotasks, which under fake timers
+    // defers every poll's setState to the END of the act() window — batching
+    // all cycles into one render and blinding this test. With pure-microtask
+    // json(), each poll cycle's state update (and any wrongful re-render)
+    // lands inside its own cycle.
+    let idleAge = 100;
+    const jsonOk = (payload: any) => ({ ok: true, status: 200, json: async () => payload });
+    global.fetch = vi.fn(async (url: RequestInfo | URL) => {
+      const u = String(url);
+      if (u.includes('/api/session/worker/status')) {
+        idleAge += 3;
+        return jsonOk({
+          policy: 'single_active',
+          active_count: 1,
+          worker: { state: 'running', alive: true, running: true, pid: 7, idle_age_sec: idleAge },
+        });
+      }
+      return jsonOk({});
+    }) as unknown as typeof fetch;
+
+    const { Workspace } = await import('../workspace.tsx');
+    const { ATLAS_INPUT_PERF } = await import('../workspace-root-render.tsx');
+    render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+
+    // First window: mount renders, every poller's first setState, and any
+    // one-shot mount timers settle here.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3100);
+    });
+
+    const baseline = ATLAS_INPUT_PERF.rootRenders;
+    // Second window covers THREE cycles of every poller (1.5s/2.5s/3s) with
+    // identical payloads (modulo the volatile idle_age_sec). Each updater
+    // returns the previous reference, so the subtree must not re-render.
+    // Tolerance of 1: React may run the component body once before bailing
+    // out of an identical-reference update (render-once-then-bail), and the
+    // counter counts body executions. A broken bail-out re-renders on EVERY
+    // poll cycle instead — >= 3 extra renders in this window.
+    const deltas: number[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      const before = ATLAS_INPUT_PERF.rootRenders;
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3100);
+      });
+      deltas.push(ATLAS_INPUT_PERF.rootRenders - before);
+    }
+    // Kill-proof (verified by mutation): with the volatile-field exclusion
+    // removed from the worker-status comparison, deltas become [1,1,1] (a
+    // re-render every poll cycle). Healthy bail-outs give [1,0,0] — the single
+    // leading 1 is React's render-once-then-bail body execution, which the
+    // counter counts but whose subtree render is skipped.
+    expect(deltas.reduce((a, b) => a + b, 0)).toBeLessThanOrEqual(1);
+    vi.useRealTimers();
+  });
+
+  it('samePolledState: JSON-equality contract for the poller bail-outs', async () => {
+    const { samePolledState } = await import('../workspace-root-data-hook.tsx');
+    expect(samePolledState(null, null)).toBe(true);
+    expect(samePolledState({ a: 1, b: [1, 2] }, { a: 1, b: [1, 2] })).toBe(true);
+    expect(samePolledState({ a: 1 }, { a: 2 })).toBe(false);
+    expect(samePolledState({ a: 1 }, null)).toBe(false);
+    // Documented limitation: comparison is key-insertion-order dependent.
+    // Pollers rebuild payloads with the same code each tick, so order is
+    // stable — if a producer ever reorders keys, the bail-out goes inert
+    // (extra renders), it does NOT serve stale state.
+    expect(samePolledState({ a: 1, b: 2 }, { b: 2, a: 1 })).toBe(false);
+    // undefined-valued keys are dropped by JSON.stringify — this is what the
+    // worker-status comparison relies on to exclude volatile idle_age_sec.
+    expect(samePolledState({ a: 1, v: undefined }, { a: 1 })).toBe(true);
+    // Cycles must not throw (fail-open to "changed").
+    const cyc: any = { a: 1 }; cyc.self = cyc;
+    expect(samePolledState(cyc, { a: 1 })).toBe(false);
+  });
+
   it('force-syncs a continuous prose burst via the max-wait cap', async () => {
     vi.useFakeTimers();
     const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');
