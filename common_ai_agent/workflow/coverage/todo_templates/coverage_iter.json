@@ -7,7 +7,7 @@
       "activeForm": "Running /coverage-build for {dut}",
       "detail": "Run /coverage-build {dut}. Confirms verilator is installed, filelist exists, and the DUT compiles cleanly with --coverage-line --coverage-toggle. Output: build_{dut}_cov/ with C++ sources. If RTL has verilator-incompatible constructs (inline #delays, force/release, cross-module refs), report them as TODO escalation items rather than silently skipping.",
       "priority": "high",
-      "validator": "bash workflow/coverage/scripts/coverage_build.sh {dut}"
+      "validator": "python3 workflow/coverage/scripts/coverage_build.py {dut}"
     },
     {
       "content": "Run all existing testcases under verilator backend",

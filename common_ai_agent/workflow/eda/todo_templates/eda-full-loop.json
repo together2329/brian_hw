@@ -22,7 +22,7 @@
       "loop": true,
       "max_loop_iterations": 10,
       "exit_condition": "0 errors, 0 warnings",
-      "validator": "bash workflow/eda/scripts/check_lint_pass.sh"
+      "validator": "python3 workflow/eda/scripts/check_lint_pass.py"
     },
     {
       "content": "Generate testbench + filelist from MAS DV Plan",
@@ -38,7 +38,7 @@
       "loop": true,
       "max_loop_iterations": 20,
       "exit_condition": "0 errors, 0 warnings, all [PASS]",
-      "validator": "bash workflow/eda/scripts/check_sim_pass.sh"
+      "validator": "python3 workflow/eda/scripts/check_sim_pass.py"
     },
     {
       "content": "Converge loop verification and report",

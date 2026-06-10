@@ -4,11 +4,10 @@
 These two helpers each replace a bash idiom repeated verbatim across the owned
 scripts:
 
-* ``load_pdk_env`` reproduces ``source ../../scripts/pdk_env.sh`` — it runs the
-  canonical bash resolver in a subshell and imports the exported PDK vars into
-  ``os.environ`` exactly as the bash ``source`` would. Reusing the real shell
-  script (rather than re-porting 100 lines of path logic) guarantees identical
-  SKY130_LIB resolution and keeps the .sh as the single source of truth.
+* ``load_pdk_env`` reproduces ``source ../../scripts/pdk_env.sh`` by delegating
+  to the Python port ``workflow/scripts/pdk_env.py`` (``apply_pdk_env``), which
+  implements the same dotenv + default resolution. This keeps the PDK-path logic
+  in one place and removes the bash dependency.
 
 * ``resolve_top`` reproduces the inlined ``TOP=$(python3 - ... <<PY)`` heredoc
   that write_sta_tcl.sh and write_sta_post_tcl.sh share byte-for-byte.
@@ -16,17 +15,16 @@ scripts:
 
 from __future__ import annotations
 
+import importlib.util
 import os
-import subprocess
 from pathlib import Path
 
-# pdk_env.sh lives at common_ai_agent/workflow/scripts/pdk_env.sh. Each owning
-# script sits at workflow/<stage>/scripts/<name>.sh and resolves it as
-# "$(cd "$(dirname "$0")/../.." && pwd -P)/scripts/pdk_env.sh", i.e.
-# workflow/scripts/pdk_env.sh.
-_PDK_ENV = Path(__file__).resolve().parent.parent.parent / "scripts" / "pdk_env.sh"
+# pdk_env.py lives at common_ai_agent/workflow/scripts/pdk_env.py. Each owning
+# script sits at workflow/<stage>/scripts/<name>.py and resolves it relative to
+# workflow/scripts/.
+_PDK_ENV_PY = Path(__file__).resolve().parent.parent.parent / "scripts" / "pdk_env.py"
 
-# Vars exported by pdk_env.sh (see its trailing ``export`` lines).
+# Vars exported by pdk_env.py (its ``_EXPORT_KEYS``).
 _PDK_VARS = (
     "PDK_ROOT",
     "SKY130_PDK_ROOT",
@@ -39,49 +37,39 @@ _PDK_VARS = (
 )
 
 
-def load_pdk_env() -> dict[str, str]:
-    """Source pdk_env.sh and import its exported vars into os.environ.
+def _load_pdk_env_module():
+    """Import workflow/scripts/pdk_env.py by file path (no package install)."""
+    spec = importlib.util.spec_from_file_location("_pdk_env_port", _PDK_ENV_PY)
+    if spec is None or spec.loader is None:  # pragma: no cover - defensive
+        return None
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
-    Bash form: ``[ -f "$PDK_ENV" ] && source "$PDK_ENV"``. Returns the resolved
-    var map for convenience. If the script is missing this is a no-op, matching
-    the guarded ``[ -f ]`` source in every owning .sh.
+
+def load_pdk_env() -> dict[str, str]:
+    """Resolve PDK vars via pdk_env.py and import them into os.environ.
+
+    Mirrors ``[ -f "$PDK_ENV" ] && source "$PDK_ENV"``: pdk_env.py only fills
+    unset/empty vars, so an explicit pre-existing export wins. Returns the
+    resolved var map. A missing pdk_env.py is a no-op, matching the guarded
+    ``[ -f ]`` source in every owning .sh.
     """
     resolved: dict[str, str] = {}
-    if not _PDK_ENV.is_file():
+    if not _PDK_ENV_PY.is_file():
         return resolved
 
-    # Run the real resolver, then print each exported var NUL-delimited so values
-    # containing spaces/newlines survive. ``source`` keeps already-set vars
-    # (pdk_env.sh only sets when empty), so the current environment is inherited.
-    printf_chain = " ".join(
-        f'printf "{name}=%s\\0" "${{{name}:-}}";' for name in _PDK_VARS
-    )
-    script = f'source "{_PDK_ENV}"; {printf_chain}'
-    try:
-        out = subprocess.run(
-            ["bash", "-c", script],
-            capture_output=True,
-            check=False,
-        ).stdout
-    except OSError:
+    mod = _load_pdk_env_module()
+    if mod is None:  # pragma: no cover - defensive
         return resolved
 
-    for field in out.split(b"\0"):
-        if not field:
-            continue
-        try:
-            text = field.decode("utf-8", errors="replace")
-        except Exception:
-            continue
-        key, _, val = text.partition("=")
-        if key in _PDK_VARS:
-            resolved[key] = val
-            # Mirror ``source`` semantics: pdk_env.sh only fills empty vars, so an
-            # explicit pre-existing export must win. Only set when currently unset
-            # or empty.
-            if not os.environ.get(key):
-                if val:
-                    os.environ[key] = val
+    # resolve_pdk_env(base_env) honours already-set vars (only fills empties),
+    # exactly like ``source pdk_env.sh``.
+    resolved = mod.resolve_pdk_env(dict(os.environ))
+    for key in _PDK_VARS:
+        val = resolved.get(key, "")
+        if not os.environ.get(key) and val:
+            os.environ[key] = val
     return resolved
 
 

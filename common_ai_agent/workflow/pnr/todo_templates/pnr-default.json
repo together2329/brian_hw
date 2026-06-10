@@ -4,32 +4,32 @@
   "tasks": [
     {
       "content": "[PNR HANDOFF] Verify input netlist + SDC + LEFs",
-      "detail": "Run scripts/preflight.sh <ip> first.\nDetermine input netlist:\n- [ ] If <ip>/dft/out/scan.v exists → use it (DFT-inserted)\n- [ ] Else <ip>/syn/out/synth.v\n- [ ] Else STOP with `[PNR HANDOFF MISSING] run /syn first`\nVerify SDC: <ip>/sta/out/<ip>.sdc must exist (run /sta-sdc if not).\nVerify bundled/source-tree PDK: $SKY130_TLEF, $SKY130_LEF, $SKY130_LIB, $SKY130_TRACKS, and $SKY130_RCX_RULES all readable.\nVerify sky130 IO layer directions: horizontal=met3, vertical=met2 unless SSOT intentionally overrides to matching layer directions.\nGate: input + SDC + tech + physical constraints all present.",
+      "detail": "Run scripts/preflight.py <ip> first.\nDetermine input netlist:\n- [ ] If <ip>/dft/out/scan.v exists → use it (DFT-inserted)\n- [ ] Else <ip>/syn/out/synth.v\n- [ ] Else STOP with `[PNR HANDOFF MISSING] run /syn first`\nVerify SDC: <ip>/sta/out/<ip>.sdc must exist (run /sta-sdc if not).\nVerify bundled/source-tree PDK: $SKY130_TLEF, $SKY130_LEF, $SKY130_LIB, $SKY130_TRACKS, and $SKY130_RCX_RULES all readable.\nVerify sky130 IO layer directions: horizontal=met3, vertical=met2 unless SSOT intentionally overrides to matching layer directions.\nGate: input + SDC + tech + physical constraints all present.",
       "priority": "high"
     },
     {
       "content": "[PNR-FP] Floorplan → <ip>/pnr/out/floorplan.def",
-      "detail": "Run scripts/run_fp.sh <ip>. Reads SSOT pnr: section for utilization_pct, aspect_ratio, core_space_um, io_layers. Writes <ip>/pnr/tcl/floorplan.tcl + executes openroad.\nDFT-aware: scan_en tied low via set_case_analysis.\nGate: floorplan.def non-empty, design area > 0.",
+      "detail": "Run scripts/run_fp.py <ip>. Reads SSOT pnr: section for utilization_pct, aspect_ratio, core_space_um, io_layers. Writes <ip>/pnr/tcl/floorplan.tcl + executes openroad.\nDFT-aware: scan_en tied low via set_case_analysis.\nGate: floorplan.def non-empty, design area > 0.",
       "priority": "high"
     },
     {
       "content": "[PNR-PLACE] Placement → <ip>/pnr/out/placed.def",
-      "detail": "Run scripts/run_place.sh <ip>. Pipeline: global_placement (density target from SSOT) → detailed_placement → check_placement.\nIf check_placement reports overlaps: STOP with `[PNR PLACE OVERLAPS]` — usually utilization too high.\nGate: placed.def non-empty, density.json written.",
+      "detail": "Run scripts/run_place.py <ip>. Pipeline: global_placement (density target from SSOT) → detailed_placement → check_placement.\nIf check_placement reports overlaps: STOP with `[PNR PLACE OVERLAPS]` — usually utilization too high.\nGate: placed.def non-empty, density.json written.",
       "priority": "high"
     },
     {
       "content": "[PNR-CTS] Clock tree synthesis → <ip>/pnr/out/cts.def + cts.v",
-      "detail": "Run scripts/run_cts.sh <ip>. Pipeline: clock_tree_synthesis with SSOT cts_buf_list → detailed_placement → write_def + write_verilog.\ncts.v has CTS buffers inserted on the clock; this is the netlist /pnr-route consumes.\nGate: cts.def + cts.v non-empty, clock_skew reported.",
+      "detail": "Run scripts/run_cts.py <ip>. Pipeline: clock_tree_synthesis with SSOT cts_buf_list → detailed_placement → write_def + write_verilog.\ncts.v has CTS buffers inserted on the clock; this is the netlist /pnr-route consumes.\nGate: cts.def + cts.v non-empty, clock_skew reported.",
       "priority": "high"
     },
     {
       "content": "[PNR-ROUTE] Route + SPEF → <ip>/pnr/out/routed.{def,v,spef}",
-      "detail": "Run scripts/run_route.sh <ip>. Pipeline: global_route → detailed_route → extract_parasitics → write_spef.\nDRC count and first 10 violations recorded in drc.json. Do NOT auto-fix DRC — surface and stop.\nIf SPEF write fails (0 bytes): STOP with `[PNR SPEF FAILED]` — sign-off STA blocked.\nGate: routed.spef non-empty.",
+      "detail": "Run scripts/run_route.py <ip>. Pipeline: global_route → detailed_route → extract_parasitics → write_spef.\nDRC count and first 10 violations recorded in drc.json. Do NOT auto-fix DRC — surface and stop.\nIf SPEF write fails (0 bytes): STOP with `[PNR SPEF FAILED]` — sign-off STA blocked.\nGate: routed.spef non-empty.",
       "priority": "high"
     },
     {
       "content": "[PNR] Write pnr.report.md (aggregate)",
-      "detail": "Run scripts/write_report.sh <ip>. Aggregates artifact presence + density + DRC count + handoff status.\nGate: pnr.report.md written.",
+      "detail": "Run scripts/write_report.py <ip>. Aggregates artifact presence + density + DRC count + handoff status.\nGate: pnr.report.md written.",
       "priority": "normal"
     },
     {

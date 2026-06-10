@@ -709,7 +709,7 @@ class TestTbGenNewIpTemplate(unittest.TestCase):
     def test_sim_has_validator(self):
         sim_task = next(t for t in self.tasks if t.get("loop"))
         self.assertIn("validator", sim_task)
-        self.assertIn("check_sim_pass.sh", sim_task["validator"])
+        self.assertIn("check_sim_pass.py", sim_task["validator"])
 
     def test_coverage_task_is_last(self):
         last = self.tasks[-1]
@@ -873,7 +873,7 @@ class TestNewVsLegacyContrast(unittest.TestCase):
                 tasks = _load(ws, stem)["tasks"]
                 loop_task = next((t for t in tasks if t.get("loop")), None)
                 if loop_task:
-                    self.assertIn("check_sim_pass.sh", loop_task.get("validator", ""))
+                    self.assertIn("check_sim_pass.py", loop_task.get("validator", ""))
 
 
 if __name__ == "__main__":

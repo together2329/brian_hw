@@ -6,7 +6,7 @@
   "entrypoints": {
     "new_ip_emit_chain": {
       "description": "Deterministic FL/equivalence/TB/sim bootstrap chain after SSOT and RTL exist.",
-      "command": "bash workflow/ssot-gen/scripts/new_ip_emit_chain.sh <ip> --root <ip-parent>"
+      "command": "python3 workflow/ssot-gen/scripts/new_ip_emit_chain.py <ip> --root <ip-parent>"
     },
     "signoff": {
       "description": "Final local evidence gate against IP_SIGNOFF.md.",

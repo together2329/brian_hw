@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """check_pyuvm_structure.py — verify cocotb backend is layered UVM-style TB.
 
-Python port of check_pyuvm_structure.sh (an ENFORCED engine gate, label
+Python port of check_pyuvm_structure.py (an ENFORCED engine gate, label
 ``check_pyuvm_structure``).  This validator intentionally rejects partial
 support-file drops and flat cocotb tests for SSOT TB work.  The default
 /ssot-tb backend is pyuvm/cocotb, so the agent must produce executable

@@ -1,21 +1,24 @@
-"""Differential equivalence tests for the syn-stage .sh → .py ports.
+"""Pinned regression tests for the syn-stage python ports.
 
-Each shell script under ``workflow/syn/scripts/`` (except ``check_unmapped.sh``,
-owned elsewhere) has a same-named ``.py`` port. These tests assert *invocation
-parity*: identical CLI surface, exit codes, and semantically identical
-output/artifacts.
+Each ``*.py`` under ``workflow/syn/scripts/`` (plus ``workflow/scripts/pdk_env.py``)
+is exercised over a fixture; we assert the PINNED exit code plus the key output /
+artifact markers captured from the (formerly green) sh-vs-py differential parity
+run. The bash originals are being removed, so these tests run ONLY the ``.py``
+side.
 
-The real EDA tools (yosys / openroad / sta) are absent on CI. The differential
-technique here is a PATH-stub fake tool: a tiny executable named ``yosys`` (etc.)
-that appends its argv to a log and emits the minimal canned stdout/files each
-wrapper expects. We prepend the stub dir to PATH, run OLD ``.sh`` vs NEW ``.py``
-on the same fixture, then compare recorded argv sequences, exit codes, and
-produced artifacts. We also test the tool-missing path (no stub on PATH).
-
-For the pure writers/parsers (write_*.sh, parse_*.sh) we compare the generated
-file bytes / parsed values directly — no tool needed.
-
-Run: ``pytest tests/test_sh_port_syn.py -q``
+Technique
+---------
+  * PATH-stub fake tools (``yosys`` / ``openroad`` / ``sta``) are tiny *python*
+    executables that record their argv to a log and emit the minimal canned
+    outputs/files each wrapper parses, so artifacts are deterministic without the
+    real EDA tools — and we exercise the tool-missing path too.
+  * For the pure writers/parsers (``write_yosys_script`` / ``parse_area`` /
+    ``write_report``) we feed a canned fixture and pin the generated file content
+    / parsed JSON the script produces.
+  * Volatile values (absolute liberty / HOME / temp-root paths, embedded
+    timestamps) are masked or asserted as substring markers rather than compared
+    byte-for-byte. On macOS the wrappers resolve the temp root through the
+    ``/private`` symlink, so we pin structural markers instead of full paths.
 """
 
 from __future__ import annotations
@@ -36,18 +39,15 @@ SYN = REPO / "workflow" / "syn" / "scripts"
 SCRIPTS = REPO / "workflow" / "scripts"
 
 # Bundled liberty the pdk_env default resolves to (asserted present so the
-# differential is meaningful rather than both-fail-on-missing-PDK).
+# artifact check is meaningful rather than vacuous-on-missing-PDK).
 BUNDLED_LIB = REPO / "pdk" / "sky130" / "lib" / "sky130_fd_sc_hd__ss_100C_1v40.lib"
-
-bash = shutil.which("bash")
-pytestmark = pytest.mark.skipif(bash is None, reason="bash not available")
 
 
 # --------------------------------------------------------------------------- #
 # Fixture helpers
 # --------------------------------------------------------------------------- #
 def _make_ip(root: Path, ip: str = "demo_ip", top: str = "demo_top") -> Path:
-    """Create a minimal IP tree: yaml/ssot, list/filelist, rtl source."""
+    """Create a minimal IP tree: yaml/ssot, list/filelist, rtl source, sdc."""
     ip_dir = root / ip
     (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
     (ip_dir / "list").mkdir(parents=True, exist_ok=True)
@@ -67,16 +67,23 @@ def _make_ip(root: Path, ip: str = "demo_ip", top: str = "demo_top") -> Path:
 
 
 def _make_stub(stub_dir: Path, name: str, argv_log: Path, body: str = "") -> None:
-    """Write an executable PATH-stub that logs its argv then runs ``body``."""
+    """Write an executable *python* PATH-stub that logs its argv then runs ``body``.
+
+    ``body`` is python source executed after the argv-record preamble; it has
+    ``argv`` (the tool's args, ``sys.argv[1:]``) and the stdlib in scope. These
+    stubs replace the former bash-shebang stubs so the suite needs no shell.
+    """
     stub_dir.mkdir(parents=True, exist_ok=True)
     script = stub_dir / name
-    script.write_text(
-        "#!/usr/bin/env bash\n"
-        f'printf "%s\\n" "$*" >> {json.dumps(str(argv_log))}\n'
-        f"{body}\n"
-        "exit 0\n",
-        encoding="utf-8",
+    preamble = (
+        "#!/usr/bin/env python3\n"
+        "import os, sys, re\n"
+        "from pathlib import Path\n"
+        "argv = sys.argv[1:]\n"
+        f"open({json.dumps(str(argv_log))}, 'a', encoding='utf-8')"
+        ".write(' '.join(argv) + '\\n')\n"
     )
+    script.write_text(preamble + textwrap.dedent(body) + "\nsys.exit(0)\n", encoding="utf-8")
     script.chmod(0o755)
 
 
@@ -94,8 +101,7 @@ def _run(
         env["PATH"] = override_path
     elif extra_path is not None:
         env["PATH"] = extra_path + os.pathsep + env.get("PATH", "")
-    # Strip any pre-set PDK vars so both sh and py exercise pdk_env default
-    # resolution identically.
+    # Strip any pre-set PDK vars so the port exercises pdk_env default resolution.
     for key in (
         "PDK_ROOT",
         "SKY130_PDK_ROOT",
@@ -113,44 +119,47 @@ def _run(
     )
 
 
-def _norm(text: str) -> str:
-    """Drop a trailing-newline difference for stdout comparison."""
-    return text.rstrip("\n")
+# --------------------------------------------------------------------------- #
+# pdk_env: CLI + importable module
+# --------------------------------------------------------------------------- #
+_PDK_KEYS = [
+    "PDK_ROOT",
+    "SKY130_PDK_ROOT",
+    "PDK_LIB_PATH",
+    "SKY130_LIB",
+    "SKY130_TLEF",
+    "SKY130_LEF",
+    "SKY130_TRACKS",
+    "SKY130_RCX_RULES",
+]
 
 
-# --------------------------------------------------------------------------- #
-# pdk_env: module + CLI parity vs source pdk_env.sh
-# --------------------------------------------------------------------------- #
-def test_pdk_env_cli_matches_sourced_sh(tmp_path: pytest.TempPathFactory) -> None:
-    keys = [
-        "PDK_ROOT",
-        "SKY130_PDK_ROOT",
-        "PDK_LIB_PATH",
-        "SKY130_LIB",
-        "SKY130_TLEF",
-        "SKY130_LEF",
-        "SKY130_TRACKS",
-        "SKY130_RCX_RULES",
-    ]
-    sh_snippet = (
-        f"source {json.dumps(str(SCRIPTS / 'pdk_env.sh'))}\n"
-        + "\n".join(f'printf "%s=%s\\n" {k} "${k}"' for k in keys)
-    )
+def test_pdk_env_cli_emits_resolved_keys() -> None:
+    """pdk_env.py prints ``KEY=VALUE`` for all 8 PDK keys (default resolution)."""
     env = dict(os.environ)
-    for k in keys:
+    for k in _PDK_KEYS:
         env.pop(k, None)
-    sh = subprocess.run(
-        [bash, "-c", sh_snippet], capture_output=True, text=True, env=env
-    )
     py = subprocess.run(
         [sys.executable, str(SCRIPTS / "pdk_env.py")],
         capture_output=True,
         text=True,
         env=env,
     )
-    assert sh.returncode == 0, sh.stderr
     assert py.returncode == 0, py.stderr
-    assert _norm(sh.stdout) == _norm(py.stdout)
+    out = py.stdout.replace(str(REPO), "<REPO>")
+    # Pinned resolved values from the bundled PDK (repo path normalised).
+    assert "PDK_ROOT=<REPO>/pdk\n" in out
+    assert "SKY130_PDK_ROOT=<REPO>/pdk/sky130\n" in out
+    assert "PDK_LIB_PATH=<REPO>/pdk/sky130/lib\n" in out
+    assert "SKY130_LIB=<REPO>/pdk/sky130/lib/sky130_fd_sc_hd__ss_100C_1v40.lib\n" in out
+    assert "SKY130_TLEF=<REPO>/pdk/sky130/lef/sky130_fd_sc_hd.tlef\n" in out
+    assert "SKY130_LEF=<REPO>/pdk/sky130/lef/sky130_fd_sc_hd_merged.lef\n" in out
+    assert "SKY130_TRACKS=<REPO>/pdk/sky130/make_tracks.tcl\n" in out
+    assert "SKY130_RCX_RULES=<REPO>/pdk/sky130/rcx_patterns.rules\n" in out
+    # Every key appears exactly once (line-anchored so PDK_ROOT doesn't also
+    # match SKY130_PDK_ROOT).
+    for k in _PDK_KEYS:
+        assert len(re.findall(rf"(?m)^{re.escape(k)}=", out)) == 1
 
 
 def test_pdk_env_importable_module() -> None:
@@ -167,51 +176,39 @@ def test_pdk_env_importable_module() -> None:
 
 
 # --------------------------------------------------------------------------- #
-# Pure writer: write_yosys_script — byte-identical run.ys
+# Pure writer: write_yosys_script — generated run.ys content
 # --------------------------------------------------------------------------- #
 def test_write_yosys_script_artifact_parity(tmp_path: Path) -> None:
-    assert BUNDLED_LIB.is_file(), "bundled liberty missing — differential is vacuous"
+    assert BUNDLED_LIB.is_file(), "bundled liberty missing — artifact check is vacuous"
 
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
 
-    sh = _run([bash, str(SYN / "write_yosys_script.sh"), "demo_ip"], sh_root)
     py = _run([sys.executable, str(SYN / "write_yosys_script.py"), "demo_ip"], py_root)
 
-    assert sh.returncode == py.returncode == 0, (sh.stderr, py.stderr)
-    sh_ys = (sh_root / "demo_ip" / "syn" / "run.ys").read_text()
+    assert py.returncode == 0, py.stderr
     py_ys = (py_root / "demo_ip" / "syn" / "run.ys").read_text()
-    # Paths embedded are absolute under each root; normalise the root prefix.
-    assert sh_ys.replace(str(sh_root), "") == py_ys.replace(str(py_root), "")
+    # Pinned structural content of the generated yosys script.
+    assert "hierarchy -check -top demo_top" in py_ys
+    assert "synth -top demo_top" in py_ys
+    assert f'read_liberty -lib "{BUNDLED_LIB}"' in py_ys
+    assert 'write_verilog -noattr "' in py_ys and "/syn/out/synth.v" in py_ys
 
 
 def test_write_yosys_script_usage_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "write_yosys_script.sh")], tmp_path)
     py = _run([sys.executable, str(SYN / "write_yosys_script.py")], tmp_path)
-    assert sh.returncode == py.returncode == 2
-    assert "usage:" in sh.stderr.lower()
+    assert py.returncode == 2
     assert "usage:" in py.stderr.lower()
 
 
 def test_write_yosys_script_hook_cmd_args(tmp_path: Path) -> None:
-    """No positional arg → both fall back to HOOK_CMD_ARGS."""
-    sh_root = tmp_path / "sh"
+    """No positional arg → falls back to HOOK_CMD_ARGS."""
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
     env = dict(os.environ)
     env["HOOK_CMD_ARGS"] = "demo_ip"
     for k in ("SKY130_LIB", "PDK_ROOT"):
         env.pop(k, None)
-    sh = subprocess.run(
-        [bash, str(SYN / "write_yosys_script.sh")],
-        cwd=str(sh_root),
-        env=env,
-        capture_output=True,
-        text=True,
-    )
     py = subprocess.run(
         [sys.executable, str(SYN / "write_yosys_script.py")],
         cwd=str(py_root),
@@ -219,13 +216,12 @@ def test_write_yosys_script_hook_cmd_args(tmp_path: Path) -> None:
         capture_output=True,
         text=True,
     )
-    assert sh.returncode == py.returncode == 0, (sh.stderr, py.stderr)
-    assert (sh_root / "demo_ip" / "syn" / "run.ys").is_file()
+    assert py.returncode == 0, py.stderr
     assert (py_root / "demo_ip" / "syn" / "run.ys").is_file()
 
 
 # --------------------------------------------------------------------------- #
-# Pure parser: parse_area — byte-identical area.json
+# Pure parser: parse_area — parsed area.json
 # --------------------------------------------------------------------------- #
 SAMPLE_SYN_LOG = textwrap.dedent(
     """\
@@ -252,46 +248,35 @@ def _seed_area_inputs(ip_dir: Path) -> None:
 
 
 def test_parse_area_artifact_parity(tmp_path: Path) -> None:
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    sh_ip = _make_ip(sh_root)
     py_ip = _make_ip(py_root)
-    _seed_area_inputs(sh_ip)
     _seed_area_inputs(py_ip)
 
-    sh = _run([bash, str(SYN / "parse_area.sh"), "demo_ip"], sh_root)
     py = _run([sys.executable, str(SYN / "parse_area.py"), "demo_ip"], py_root)
 
-    assert sh.returncode == py.returncode == 0, (sh.stderr, py.stderr)
-    sh_json = json.loads((sh_ip / "syn" / "out" / "area.json").read_text())
+    assert py.returncode == 0, py.stderr
     py_json = json.loads((py_ip / "syn" / "out" / "area.json").read_text())
-    assert sh_json == py_json
-    # And the parsed values are the ones we seeded.
-    assert sh_json["total_cells"] == 23
-    assert sh_json["by_kind"]["sequential"]["cells"] == 10  # dfrtp
+    # The parsed values are the ones we seeded.
+    assert py_json["total_cells"] == 23
+    assert py_json["by_kind"]["sequential"]["cells"] == 10  # dfrtp
 
 
 def test_parse_area_missing_log_rc(tmp_path: Path) -> None:
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
-    sh = _run([bash, str(SYN / "parse_area.sh"), "demo_ip"], sh_root)
     py = _run([sys.executable, str(SYN / "parse_area.py"), "demo_ip"], py_root)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 # --------------------------------------------------------------------------- #
-# Pure writer: write_report — markdown parity (minus the embedded timestamp)
+# Pure writer: write_report — markdown (minus the embedded timestamp)
 # --------------------------------------------------------------------------- #
 def _strip_date(md: str) -> str:
     return re.sub(r"^- date    :.*$", "- date    : <DATE>", md, flags=re.M)
 
 
 def test_write_report_artifact_parity(tmp_path: Path) -> None:
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    sh_ip = _make_ip(sh_root)
     py_ip = _make_ip(py_root)
     area = {
         "top": "demo_top",
@@ -304,258 +289,215 @@ def test_write_report_artifact_parity(tmp_path: Path) -> None:
         },
         "by_cell": {"sky130_fd_sc_hd__inv_1": 5, "sky130_fd_sc_hd__dfrtp_1": 10},
     }
-    for ip_dir in (sh_ip, py_ip):
-        out = ip_dir / "syn" / "out"
-        out.mkdir(parents=True, exist_ok=True)
-        (out / "area.json").write_text(json.dumps(area), encoding="utf-8")
-        (out / "syn.log").write_text("Warning: something\n", encoding="utf-8")
-        (out / "synth.v").write_text("module demo_top(); endmodule\n", encoding="utf-8")
+    out = py_ip / "syn" / "out"
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "area.json").write_text(json.dumps(area), encoding="utf-8")
+    (out / "syn.log").write_text("Warning: something\n", encoding="utf-8")
+    (out / "synth.v").write_text("module demo_top(); endmodule\n", encoding="utf-8")
 
-    sh = _run([bash, str(SYN / "write_report.sh"), "demo_ip"], sh_root)
     py = _run([sys.executable, str(SYN / "write_report.py"), "demo_ip"], py_root)
 
-    assert sh.returncode == py.returncode == 0, (sh.stderr, py.stderr)
-    sh_md = (sh_ip / "syn" / "out" / "syn.report.md").read_text()
-    py_md = (py_ip / "syn" / "out" / "syn.report.md").read_text()
-    assert _strip_date(sh_md) == _strip_date(py_md)
+    assert py.returncode == 0, py.stderr
+    py_md = _strip_date((py_ip / "syn" / "out" / "syn.report.md").read_text())
+    # Pinned report content reflects the seeded area.json (date masked).
+    assert "demo_top" in py_md
+    assert "23" in py_md  # total cells
+    assert "- date    : <DATE>" in py_md
 
 
 # --------------------------------------------------------------------------- #
-# preflight — stdout/stderr + rc parity (tools absent → required yosys missing)
+# preflight — diagnostics + rc (tools may/may not be present → rc 0/3/4)
 # --------------------------------------------------------------------------- #
-def _norm_preflight(text: str, root: Path) -> str:
-    """Normalise volatile lines: cwd/scripts path and root prefix."""
-    out = text.replace(str(root), "<ROOT>")
-    out = re.sub(r"^\[SYN PREFLIGHT\] cwd=.*$", "[SYN PREFLIGHT] cwd=<CWD>", out, flags=re.M)
-    out = re.sub(
-        r"^\[SYN PREFLIGHT\] scripts=.*$", "[SYN PREFLIGHT] scripts=<DIR>", out, flags=re.M
-    )
-    return out
-
-
-def test_preflight_no_ip_parity(tmp_path: Path) -> None:
-    """No IP arg: env + tool diagnostics; rc 3 when required yosys is absent."""
-    # Ensure yosys is not resolvable: run with a PATH that has no yosys.
-    clean_path = str(Path(sys.executable).parent)
-    sh = _run([bash, str(SYN / "preflight.sh")], tmp_path, extra_path=None)
+def test_preflight_no_ip(tmp_path: Path) -> None:
+    """No IP arg: env + tool diagnostics; rc depends on yosys presence."""
     py = _run([sys.executable, str(SYN / "preflight.py")], tmp_path, extra_path=None)
-    # rc parity is the load-bearing assertion (3 if yosys missing, 0/4 if present).
-    assert sh.returncode == py.returncode
-    assert _norm_preflight(sh.stdout, tmp_path) == _norm_preflight(py.stdout, tmp_path)
+    # rc 3 if required yosys missing, 0/4 if present.
+    assert py.returncode in (0, 3, 4)
+    assert "[SYN PREFLIGHT]" in py.stdout
 
 
-def test_preflight_with_ip_parity(tmp_path: Path) -> None:
-    sh_root = tmp_path / "sh"
+def test_preflight_with_ip(tmp_path: Path) -> None:
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
-    sh = _run([bash, str(SYN / "preflight.sh"), "demo_ip"], sh_root)
     py = _run([sys.executable, str(SYN / "preflight.py"), "demo_ip"], py_root)
-    assert sh.returncode == py.returncode
-    assert _norm_preflight(sh.stdout, sh_root) == _norm_preflight(py.stdout, py_root)
+    assert py.returncode in (0, 3, 4)
+    assert "[SYN PREFLIGHT]" in py.stdout
+    assert "IP dir: OK demo_ip" in py.stdout
 
 
 def test_preflight_missing_ip_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "preflight.sh"), "nope_ip"], tmp_path)
     py = _run([sys.executable, str(SYN / "preflight.py"), "nope_ip"], tmp_path)
-    assert sh.returncode == py.returncode  # 2 (IP dir missing)
-    assert sh.returncode == 2
+    assert py.returncode == 2  # IP dir missing
 
 
 # --------------------------------------------------------------------------- #
-# run_yosys — PATH-stub differential (argv log + artifacts + rc)
+# run_yosys — PATH-stub (argv log + artifacts + rc) and tool-missing
 # --------------------------------------------------------------------------- #
 def _run_yosys_stub_body(net_rel: str) -> str:
     """Stub yosys: honour ``-l <log>`` by writing a canned log, plus synth.v."""
     return textwrap.dedent(
         f"""\
-        log=""
-        prev=""
-        for a in "$@"; do
-          if [ "$prev" = "-l" ]; then log="$a"; fi
-          prev="$a"
-        done
-        if [ -n "$log" ]; then printf 'canned yosys log\\n' > "$log"; fi
-        # emit the mapped netlist the wrapper's downstream expects
-        mkdir -p "$(dirname "{net_rel}")"
-        printf 'module demo_top(); endmodule\\n' > "{net_rel}"
-        echo "stub yosys stdout"
+        log = ""
+        prev = ""
+        for a in argv:
+            if prev == "-l":
+                log = a
+            prev = a
+        if log:
+            Path(log).write_text("canned yosys log\\n", encoding="utf-8")
+        net = {net_rel!r}
+        Path(net).parent.mkdir(parents=True, exist_ok=True)
+        Path(net).write_text("module demo_top(); endmodule\\n", encoding="utf-8")
+        print("stub yosys stdout")
         """
     )
 
 
-def test_run_yosys_stub_argv_and_rc_parity(tmp_path: Path) -> None:
-    sh_root = tmp_path / "sh"
+def test_run_yosys_stub_argv_and_rc(tmp_path: Path) -> None:
     py_root = tmp_path / "py"
-    sh_ip = _make_ip(sh_root)
     py_ip = _make_ip(py_root)
     # run.ys must exist for run_yosys
-    for ip_dir in (sh_ip, py_ip):
-        (ip_dir / "syn" / "out").mkdir(parents=True, exist_ok=True)
-        (ip_dir / "syn" / "run.ys").write_text("stat\n", encoding="utf-8")
+    (py_ip / "syn" / "out").mkdir(parents=True, exist_ok=True)
+    (py_ip / "syn" / "run.ys").write_text("stat\n", encoding="utf-8")
 
-    sh_argv = tmp_path / "sh_argv.log"
     py_argv = tmp_path / "py_argv.log"
-    sh_stub = tmp_path / "sh_bin"
     py_stub = tmp_path / "py_bin"
     net_rel = "demo_ip/syn/out/synth.v"
-    _make_stub(sh_stub, "yosys", sh_argv, _run_yosys_stub_body(net_rel))
     _make_stub(py_stub, "yosys", py_argv, _run_yosys_stub_body(net_rel))
 
-    sh = _run([bash, str(SYN / "run_yosys.sh"), "demo_ip"], sh_root, extra_path=str(sh_stub))
     py = _run([sys.executable, str(SYN / "run_yosys.py"), "demo_ip"], py_root, extra_path=str(py_stub))
 
-    assert sh.returncode == py.returncode == 0, (sh.stderr, py.stderr)
-    # argv parity: the stub records "yosys -l <log> <script>". Normalise roots.
-    sh_args = sh_argv.read_text().replace(str(sh_root), "<ROOT>")
+    assert py.returncode == 0, py.stderr
+    # argv: the stub records "yosys -l <log> <run.ys>".
     py_args = py_argv.read_text().replace(str(py_root), "<ROOT>")
-    assert sh_args == py_args
-    # both wrote a syn.log
-    assert (sh_ip / "syn" / "out" / "syn.log").is_file()
+    assert "-l " in py_args
+    assert "/syn/run.ys" in py_args
+    # wrote a syn.log
     assert (py_ip / "syn" / "out" / "syn.log").is_file()
 
 
 def test_run_yosys_tool_missing_rc(tmp_path: Path) -> None:
-    """No yosys on PATH → rc 3 for both (tool-missing path parity)."""
-    sh_root = tmp_path / "sh"
+    """No yosys on PATH → rc 3 (tool-missing path)."""
     py_root = tmp_path / "py"
-    sh_ip = _make_ip(sh_root)
     py_ip = _make_ip(py_root)
-    for ip_dir in (sh_ip, py_ip):
-        (ip_dir / "syn").mkdir(parents=True, exist_ok=True)
-        (ip_dir / "syn" / "run.ys").write_text("stat\n", encoding="utf-8")
+    (py_ip / "syn").mkdir(parents=True, exist_ok=True)
+    (py_ip / "syn" / "run.ys").write_text("stat\n", encoding="utf-8")
 
-    # Build a minimal PATH that contains bash + python but deliberately NO
-    # yosys, so the tool-missing branch is exercised deterministically even
-    # when the host has yosys installed.
+    # Build a minimal PATH that contains python but deliberately NO yosys, so the
+    # tool-missing branch is exercised deterministically even when the host has
+    # yosys installed.
     minimal = tmp_path / "minbin"
     minimal.mkdir()
-    for tool in (bash, sys.executable, shutil.which("python3"), shutil.which("env")):
+    for tool in (sys.executable, shutil.which("python3"), shutil.which("env")):
         if tool and Path(tool).exists():
             link = minimal / Path(tool).name
             if not link.exists():
                 os.symlink(tool, link)
     min_path = str(minimal)
 
-    sh = _run([bash, str(SYN / "run_yosys.sh"), "demo_ip"], sh_root, override_path=min_path)
     py = _run(
         [sys.executable, str(SYN / "run_yosys.py"), "demo_ip"],
         py_root,
         override_path=min_path,
     )
-    assert sh.returncode == py.returncode == 3, (sh.stderr, py.stderr)
-    assert "yosys not on PATH" in sh.stderr
+    assert py.returncode == 3, py.stderr
     assert "yosys not on PATH" in py.stderr
 
 
 # --------------------------------------------------------------------------- #
-# run_synth — PATH-stub differential (yosys -p script, argv, artifacts, rc)
+# run_synth — PATH-stub (yosys -p script, argv, artifacts, rc)
 # --------------------------------------------------------------------------- #
+_RUN_SYNTH_STUB = r'''
+script = ""
+prev = ""
+for a in argv:
+    if prev == "-p":
+        script = a
+    prev = a
+print("Printing statistics")
+print("   Number of cells: 1")
+# Pull write_verilog / write_json targets out of the script & touch them.
+m_net = re.search(r'write_verilog -noattr -noexpr "([^"]*)"', script)
+m_js = re.search(r'write_json "([^"]*)"', script)
+if m_net:
+    p = Path(m_net.group(1)); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("module demo_top(); endmodule\n", encoding="utf-8")
+if m_js:
+    p = Path(m_js.group(1)); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("{}\n", encoding="utf-8")
+'''
+
+
 def test_run_synth_stub_parity(tmp_path: Path) -> None:
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
 
-    sh_argv = tmp_path / "sh_argv.log"
     py_argv = tmp_path / "py_argv.log"
-    sh_stub = tmp_path / "sh_bin"
     py_stub = tmp_path / "py_bin"
-    # Stub yosys -p: parse "-p <script>", create the netlist/json the script names.
-    stub_body = textwrap.dedent(
-        """\
-        script=""
-        prev=""
-        for a in "$@"; do
-          if [ "$prev" = "-p" ]; then script="$a"; fi
-          prev="$a"
-        done
-        echo "Printing statistics"
-        echo "   Number of cells: 1"
-        # Pull write_verilog / write_json targets out of the script & touch them.
-        net=$(printf '%s\\n' "$script" | sed -n 's/.*write_verilog -noattr -noexpr "\\([^"]*\\)".*/\\1/p')
-        js=$(printf '%s\\n'  "$script" | sed -n 's/.*write_json "\\([^"]*\\)".*/\\1/p')
-        [ -n "$net" ] && { mkdir -p "$(dirname "$net")"; echo "module demo_top(); endmodule" > "$net"; }
-        [ -n "$js" ]  && { mkdir -p "$(dirname "$js")"; echo "{}" > "$js"; }
-        """
-    )
-    _make_stub(sh_stub, "yosys", sh_argv, stub_body)
-    _make_stub(py_stub, "yosys", py_argv, stub_body)
+    _make_stub(py_stub, "yosys", py_argv, _RUN_SYNTH_STUB)
 
-    sh = _run([bash, str(SYN / "run_synth.sh"), "demo_ip"], sh_root, extra_path=str(sh_stub))
     py = _run([sys.executable, str(SYN / "run_synth.py"), "demo_ip"], py_root, extra_path=str(py_stub))
 
-    assert sh.returncode == py.returncode == 0, (sh.stderr, py.stderr)
-    # The full yosys -p script text recorded by the stub must match (root-normalised).
-    sh_args = sh_argv.read_text().replace(str(sh_root), "<ROOT>")
+    assert py.returncode == 0, py.stderr
+    # The yosys -p script text recorded by the stub names the artifact targets.
     py_args = py_argv.read_text().replace(str(py_root), "<ROOT>")
-    assert sh_args == py_args
+    assert "write_verilog" in py_args and "write_json" in py_args
     # Artifacts created.
-    for root in (sh_root, py_root):
-        assert (root / "demo_ip" / "syn" / "demo_ip.netlist.v").is_file()
-        assert (root / "demo_ip" / "syn" / "demo_ip.synth.json").is_file()
-        assert (root / "demo_ip" / "syn" / "synth.log").is_file()
+    assert (py_root / "demo_ip" / "syn" / "demo_ip.netlist.v").is_file()
+    assert (py_root / "demo_ip" / "syn" / "demo_ip.synth.json").is_file()
+    assert (py_root / "demo_ip" / "syn" / "synth.log").is_file()
 
 
 def test_run_synth_unknown_flag_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "run_synth.sh"), "demo_ip", "--bogus"], tmp_path)
     py = _run([sys.executable, str(SYN / "run_synth.py"), "demo_ip", "--bogus"], tmp_path)
-    assert sh.returncode == py.returncode == 2
-    assert "unknown flag" in sh.stderr
+    assert py.returncode == 2
     assert "unknown flag" in py.stderr
 
 
 def test_run_synth_no_ip_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "run_synth.sh")], tmp_path)
     py = _run([sys.executable, str(SYN / "run_synth.py")], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 # --------------------------------------------------------------------------- #
-# run_openroad — PATH-stub differential (TCL gen, argv, artifacts, rc)
+# run_openroad — PATH-stub (TCL gen, argv, artifacts, rc) and error paths
 # --------------------------------------------------------------------------- #
 def test_run_openroad_missing_pdk_rc(tmp_path: Path) -> None:
-    """Empty $HOME → ~/src/OpenROAD PDK absent → rc 1 for both.
+    """Empty $HOME → ~/src/OpenROAD PDK absent → rc 1.
 
     We override HOME at an empty temp dir so the missing-PDK branch is
     exercised deterministically regardless of the host's real ~/src/OpenROAD.
     """
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
     empty_home = tmp_path / "empty_home"
     empty_home.mkdir()
-    home_env = {"HOME": str(empty_home)}
-    sh = _run([bash, str(SYN / "run_openroad.sh"), "demo_ip"], sh_root, env_extra=home_env)
     py = _run(
         [sys.executable, str(SYN / "run_openroad.py"), "demo_ip"],
         py_root,
-        env_extra=home_env,
+        env_extra={"HOME": str(empty_home)},
     )
-    assert sh.returncode == py.returncode == 1, (sh.stderr, py.stderr)
-    assert "missing PDK file" in sh.stderr
+    assert py.returncode == 1, py.stderr
     assert "missing PDK file" in py.stderr
 
 
 def test_run_openroad_stub_tcl_and_argv_parity(tmp_path: Path) -> None:
-    """Stub PDK (fake HOME) + stub openroad → byte-identical TCL, argv, rc.
+    """Stub PDK (fake HOME) + stub openroad → pinned TCL markers, argv, rc.
 
     HOME points at a temp tree holding the three PDK files plus
     ``sky130hd.tracks``; a PATH-stub ``openroad`` logs its argv and creates the
-    DEF its TCL names. We compare the generated openroad_run.tcl, the recorded
-    argv, and the produced artifacts between .sh and .py.
+    DEF its TCL names. We pin the generated openroad_run.tcl structural markers,
+    the recorded argv, and the produced artifacts.  The wrappers resolve the
+    temp root through ``/private`` on macOS, so absolute paths are asserted as
+    substring markers, never byte-for-byte.
     """
-    sh_root = tmp_path / "sh"
     py_root = tmp_path / "py"
-    sh_ip = _make_ip(sh_root)
     py_ip = _make_ip(py_root)
     # Seed the synth netlist run_openroad requires.
-    for ip_dir in (sh_ip, py_ip):
-        (ip_dir / "syn").mkdir(parents=True, exist_ok=True)
-        (ip_dir / "syn" / "demo_ip.netlist.v").write_text(
-            "module demo_top(); endmodule\n", encoding="utf-8"
-        )
+    (py_ip / "syn").mkdir(parents=True, exist_ok=True)
+    (py_ip / "syn" / "demo_ip.netlist.v").write_text(
+        "module demo_top(); endmodule\n", encoding="utf-8"
+    )
 
     fake_home = tmp_path / "fake_home"
     pdk = fake_home / "src" / "OpenROAD" / "test" / "sky130hd"
@@ -569,228 +511,183 @@ def test_run_openroad_stub_tcl_and_argv_parity(tmp_path: Path) -> None:
         (pdk / name).write_text("# stub pdk\n", encoding="utf-8")
     home_env = {"HOME": str(fake_home)}
 
-    sh_argv = tmp_path / "sh_or.log"
     py_argv = tmp_path / "py_or.log"
-    sh_stub = tmp_path / "sh_orbin"
     py_stub = tmp_path / "py_orbin"
     # Stub openroad: log argv, create the DEF named by ``write_def`` in the TCL.
-    stub_body = textwrap.dedent(
-        """\
-        tcl="${@: -1}"
-        def=$(sed -n 's/^write_def \\(.*\\)$/\\1/p' "$tcl" | head -1)
-        [ -n "$def" ] && { mkdir -p "$(dirname "$def")"; echo "stub def" > "$def"; }
-        echo "Design area 1 um^2 1% utilization"
-        echo "stub openroad ok"
-        """
-    )
-    _make_stub(sh_stub, "openroad", sh_argv, stub_body)
+    stub_body = r'''
+tcl = argv[-1]
+text = Path(tcl).read_text(encoding="utf-8")
+m = re.search(r'^write_def (.*)$', text, re.M)
+if m:
+    p = Path(m.group(1).strip()); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("stub def\n", encoding="utf-8")
+print("Design area 1 um^2 1% utilization")
+print("stub openroad ok")
+'''
     _make_stub(py_stub, "openroad", py_argv, stub_body)
 
-    sh = _run(
-        [bash, str(SYN / "run_openroad.sh"), "demo_ip"],
-        sh_root,
-        extra_path=str(sh_stub),
-        env_extra=home_env,
-    )
     py = _run(
         [sys.executable, str(SYN / "run_openroad.py"), "demo_ip"],
         py_root,
         extra_path=str(py_stub),
         env_extra=home_env,
     )
-    assert sh.returncode == py.returncode == 0, (sh.stdout, sh.stderr, py.stdout, py.stderr)
+    assert py.returncode == 0, (py.stdout, py.stderr)
 
-    # Generated TCL parity (root-normalised; HOME identical between runs).
-    sh_tcl = (sh_ip / "pnr" / "openroad_run.tcl").read_text().replace(str(sh_root), "<ROOT>")
-    py_tcl = (py_ip / "pnr" / "openroad_run.tcl").read_text().replace(str(py_root), "<ROOT>")
-    assert sh_tcl == py_tcl
+    # Pinned structural content of the generated TCL (absolute paths → markers).
+    tcl = (py_ip / "pnr" / "openroad_run.tcl").read_text()
+    assert "read_liberty " in tcl and "sky130_fd_sc_hd__tt_025C_1v80.lib" in tcl
+    assert "link_design demo_ip_wrapper" in tcl
+    assert "read_verilog " in tcl and "demo_ip/syn/demo_ip.netlist.v" in tcl
+    assert "read_sdc " in tcl and "demo_ip/sdc/demo_ip.sdc" in tcl
+    assert "initialize_floorplan" in tcl
+    assert "global_placement" in tcl and "detailed_placement" in tcl
+    assert "write_def " in tcl and "demo_ip/pnr/demo_ip.def" in tcl
     # argv parity (openroad -no_init -exit <tcl>).
-    sh_args = sh_argv.read_text().replace(str(sh_root), "<ROOT>")
-    py_args = py_argv.read_text().replace(str(py_root), "<ROOT>")
-    assert sh_args == py_args
+    py_args = py_argv.read_text()
+    assert py_args.startswith("-no_init -exit ")
+    assert "demo_ip/pnr/openroad_run.tcl" in py_args
     # DEF + log + report artifacts.
-    for root in (sh_root, py_root):
-        assert (root / "demo_ip" / "pnr" / "demo_ip.def").is_file()
-        assert (root / "demo_ip" / "pnr" / "openroad.log").is_file()
-        assert (root / "demo_ip" / "pnr" / "pnr_report.txt").is_file()
+    assert (py_root / "demo_ip" / "pnr" / "demo_ip.def").is_file()
+    assert (py_root / "demo_ip" / "pnr" / "openroad.log").is_file()
+    assert (py_root / "demo_ip" / "pnr" / "pnr_report.txt").is_file()
 
 
 def test_run_openroad_unknown_flag_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "run_openroad.sh"), "--bogus"], tmp_path)
     py = _run([sys.executable, str(SYN / "run_openroad.py"), "--bogus"], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 def test_run_openroad_no_ip_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "run_openroad.sh")], tmp_path)
     py = _run([sys.executable, str(SYN / "run_openroad.py")], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 # --------------------------------------------------------------------------- #
-# run_sta — usage/flag/rc parity (tool-stub path covered via run_synth delegate)
+# run_sta — usage/flag/rc + stub-path (TCL + argv)
 # --------------------------------------------------------------------------- #
 def test_run_sta_no_liberty_rc(tmp_path: Path) -> None:
-    """No liberty candidate found → rc 1 for both."""
-    sh_root = tmp_path / "sh"
+    """No liberty candidate found → rc 1."""
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
     # Point at an explicit non-existent liberty so the default search is skipped
-    # and both immediately hit the "no liberty file" branch.
-    sh = _run(
-        [bash, str(SYN / "run_sta.sh"), "demo_ip", "--liberty", str(tmp_path / "nope.lib")],
-        sh_root,
-    )
+    # and the run immediately hits the "no liberty file" branch.
     py = _run(
         [sys.executable, str(SYN / "run_sta.py"), "demo_ip", "--liberty", str(tmp_path / "nope.lib")],
         py_root,
     )
-    assert sh.returncode == py.returncode == 1
-    assert "no liberty file" in sh.stderr
+    assert py.returncode == 1
     assert "no liberty file" in py.stderr
 
 
 def test_run_sta_stub_tcl_and_argv_parity(tmp_path: Path) -> None:
-    """Stub yosys (run_synth delegate) + stub sta → sta_run.tcl + argv parity."""
-    sh_root = tmp_path / "sh"
+    """Stub yosys (run_synth delegate) + stub sta → sta_run.tcl + argv markers."""
     py_root = tmp_path / "py"
-    sh_ip = _make_ip(sh_root)
     py_ip = _make_ip(py_root)
 
     # Explicit liberty so the default candidate search is bypassed.
     liberty = tmp_path / "stub.lib"
     liberty.write_text("/* stub liberty */\n", encoding="utf-8")
 
-    sh_argv = tmp_path / "sh_sta.log"
     py_argv = tmp_path / "py_sta.log"
-    sh_stub = tmp_path / "sh_stabin"
     py_stub = tmp_path / "py_stabin"
 
     # Stub yosys -p (for run_synth delegate): create the netlist its script names.
-    yosys_body = textwrap.dedent(
-        """\
-        script=""
-        prev=""
-        for a in "$@"; do
-          if [ "$prev" = "-p" ]; then script="$a"; fi
-          prev="$a"
-        done
-        echo "Printing statistics"
-        net=$(printf '%s\\n' "$script" | sed -n 's/.*write_verilog -noattr -noexpr "\\([^"]*\\)".*/\\1/p')
-        js=$(printf '%s\\n'  "$script" | sed -n 's/.*write_json "\\([^"]*\\)".*/\\1/p')
-        [ -n "$net" ] && { mkdir -p "$(dirname "$net")"; echo "module demo_top(); endmodule" > "$net"; }
-        [ -n "$js" ]  && { mkdir -p "$(dirname "$js")"; echo "{}" > "$js"; }
-        """
-    )
-    sta_body = 'echo "stub sta report"'
-    for stub, log in ((sh_stub, sh_argv), (py_stub, py_argv)):
-        _make_stub(stub, "yosys", log, yosys_body)
-        _make_stub(stub, "sta", log, sta_body)
+    _make_stub(py_stub, "yosys", py_argv, _RUN_SYNTH_STUB)
+    _make_stub(py_stub, "sta", py_argv, 'print("stub sta report")')
 
-    sh = _run(
-        [bash, str(SYN / "run_sta.sh"), "demo_ip", "--liberty", str(liberty)],
-        sh_root,
-        extra_path=str(sh_stub),
-    )
     py = _run(
         [sys.executable, str(SYN / "run_sta.py"), "demo_ip", "--liberty", str(liberty)],
         py_root,
         extra_path=str(py_stub),
     )
-    assert sh.returncode == py.returncode == 0, (sh.stdout, sh.stderr, py.stdout, py.stderr)
+    assert py.returncode == 0, (py.stdout, py.stderr)
 
-    sh_tcl = (sh_ip / "syn" / "sta_run.tcl").read_text().replace(str(sh_root), "<ROOT>")
-    py_tcl = (py_ip / "syn" / "sta_run.tcl").read_text().replace(str(py_root), "<ROOT>")
-    assert sh_tcl == py_tcl
+    # Pinned structural content of the generated OpenSTA TCL (paths → markers).
+    tcl = (py_ip / "syn" / "sta_run.tcl").read_text().replace(str(liberty), "<LIB>")
+    assert "read_liberty <LIB>" in tcl
+    assert "link_design demo_top" in tcl
+    assert "read_verilog " in tcl and "demo_ip/syn/demo_ip.netlist.v" in tcl
+    assert "report_checks -path_delay max" in tcl
+    assert "report_checks -path_delay min" in tcl
+    assert "report_tns" in tcl and "report_wns" in tcl
     # The stub log holds both yosys -p ... and sta -no_init -exit ... argv lines.
-    sh_args = sh_argv.read_text().replace(str(sh_root), "<ROOT>")
-    py_args = py_argv.read_text().replace(str(py_root), "<ROOT>")
-    assert sh_args == py_args
-    for root in (sh_root, py_root):
-        assert (root / "demo_ip" / "syn" / "sta_report.txt").is_file()
+    py_args = py_argv.read_text()
+    assert "write_verilog" in py_args and "write_json" in py_args
+    assert "-no_init -exit " in py_args and "demo_ip/syn/sta_run.tcl" in py_args
+    assert (py_root / "demo_ip" / "syn" / "sta_report.txt").is_file()
 
 
 def test_run_sta_unknown_flag_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "run_sta.sh"), "demo_ip", "--bogus"], tmp_path)
     py = _run([sys.executable, str(SYN / "run_sta.py"), "demo_ip", "--bogus"], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
+    assert "unknown flag" in py.stderr
 
 
 def test_run_sta_no_ip_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "run_sta.sh")], tmp_path)
     py = _run([sys.executable, str(SYN / "run_sta.py")], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 # --------------------------------------------------------------------------- #
-# auto_syn — orchestrator: usage + missing-IP rc parity
+# auto_syn — orchestrator: usage + missing-IP rc + full pipeline
 # --------------------------------------------------------------------------- #
 def test_auto_syn_no_ip_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "auto_syn.sh")], tmp_path)
     py = _run([sys.executable, str(SYN / "auto_syn.py")], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 def test_auto_syn_missing_ip_dir_rc(tmp_path: Path) -> None:
-    sh = _run([bash, str(SYN / "auto_syn.sh"), "nope_ip"], tmp_path)
     py = _run([sys.executable, str(SYN / "auto_syn.py"), "nope_ip"], tmp_path)
-    assert sh.returncode == py.returncode == 2
+    assert py.returncode == 2
 
 
 def test_auto_syn_full_pipeline_stub_parity(tmp_path: Path) -> None:
-    """End-to-end pipeline with a stub yosys: same final HANDOFF + artifacts."""
-    sh_root = tmp_path / "sh"
+    """End-to-end pipeline with a stub yosys: pinned HANDOFF + artifacts."""
     py_root = tmp_path / "py"
-    _make_ip(sh_root)
     _make_ip(py_root)
 
-    sh_argv = tmp_path / "sh_argv.log"
     py_argv = tmp_path / "py_argv.log"
-    sh_stub = tmp_path / "sh_bin"
     py_stub = tmp_path / "py_bin"
     # Stub yosys for the auto_syn pipeline: honour -l <log>, write a stat block
     # into the log AND the synth.v the write_yosys_script run.ys names.
-    stub_body = textwrap.dedent(
-        """\
-        log=""
-        prev=""
-        for a in "$@"; do
-          if [ "$prev" = "-l" ]; then log="$a"; fi
-          prev="$a"
-        done
-        if [ -n "$log" ]; then
-          {
-            echo "=== demo_top ==="
-            echo ""
-            echo "      1    5.005   cells"
-            echo "      1    5.005   sky130_fd_sc_hd__inv_1"
-          } > "$log"
-        fi
-        # The run.ys names an absolute write_verilog target; recover & create it.
-        script="${@: -1}"
-        net=$(sed -n 's/.*write_verilog -noattr "\\([^"]*\\)".*/\\1/p' "$script")
-        [ -n "$net" ] && { mkdir -p "$(dirname "$net")"; echo "module demo_top(); endmodule" > "$net"; }
-        echo "stub yosys ok"
-        """
+    stub_body = r'''
+log = ""
+prev = ""
+for a in argv:
+    if prev == "-l":
+        log = a
+    prev = a
+if log:
+    Path(log).write_text(
+        "=== demo_top ===\n\n"
+        "      1    5.005   cells\n"
+        "      1    5.005   sky130_fd_sc_hd__inv_1\n",
+        encoding="utf-8",
     )
-    _make_stub(sh_stub, "yosys", sh_argv, stub_body)
+# The run.ys names an absolute write_verilog target; recover & create it.
+script = argv[-1]
+text = Path(script).read_text(encoding="utf-8")
+m = re.search(r'write_verilog -noattr "([^"]*)"', text)
+if m:
+    p = Path(m.group(1)); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text("module demo_top(); endmodule\n", encoding="utf-8")
+print("stub yosys ok")
+'''
     _make_stub(py_stub, "yosys", py_argv, stub_body)
 
     # The stub dir is prepended to PATH, so it deterministically shadows any
-    # real yosys on the host — the differential runs unconditionally.
-    sh = _run([bash, str(SYN / "auto_syn.sh"), "demo_ip"], sh_root, extra_path=str(sh_stub))
+    # real yosys on the host — the pipeline runs unconditionally.
     py = _run([sys.executable, str(SYN / "auto_syn.py"), "demo_ip"], py_root, extra_path=str(py_stub))
 
-    assert sh.returncode == py.returncode == 0, (sh.stdout, sh.stderr, py.stdout, py.stderr)
-    # Final HANDOFF line parity (root-normalised).
-    sh_handoff = [ln for ln in sh.stdout.splitlines() if "SYN HANDOFF" in ln]
+    assert py.returncode == 0, (py.stdout, py.stderr)
+    # Final HANDOFF line (root-normalised → pinned marker content).
     py_handoff = [ln for ln in py.stdout.splitlines() if "SYN HANDOFF" in ln]
-    assert sh_handoff and py_handoff
-    assert sh_handoff[0].replace(str(sh_root), "<ROOT>") == py_handoff[0].replace(
-        str(py_root), "<ROOT>"
+    assert py_handoff, py.stdout
+    assert py_handoff[0].replace(str(py_root), "<ROOT>") == (
+        "[SYN HANDOFF] demo_ip/syn/out/synth.v ready "
+        "(cells=1, FFs=0, area=5.005 μm²) — run /sta"
     )
-    # area.json + report produced in both.
-    for root in (sh_root, py_root):
-        assert (root / "demo_ip" / "syn" / "out" / "area.json").is_file()
-        assert (root / "demo_ip" / "syn" / "out" / "syn.report.md").is_file()
+    # area.json + report produced.
+    assert (py_root / "demo_ip" / "syn" / "out" / "area.json").is_file()
+    assert (py_root / "demo_ip" / "syn" / "out" / "syn.report.md").is_file()

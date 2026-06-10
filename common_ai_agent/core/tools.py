@@ -215,7 +215,7 @@ def _reject_unsafe_hdl_sim_command(command: str, timeout: int):
             "runs through head/tail/grep because that can hide hangs and leave "
             "child simulators alive. Run the simulator directly with the "
             "run_command timeout parameter and capture stdout/stderr, or use "
-            "workflow/tb-gen/scripts/sim.sh."
+            "workflow/tb-gen/scripts/sim.py."
         )
 
     is_cocotb_run = bool(python_runner or make_sim)
@@ -6125,16 +6125,16 @@ def _render_ip_workflow_runbook(name: str) -> str:
         )
     stages = [
         ("ssot-gen", "SSOT", "Single Source of Truth from spec/import evidence.",
-         f"python3 workflow/ssot-gen/scripts/check_ssot_disk.sh {name}",
+         f"python3 workflow/ssot-gen/scripts/check_ssot_disk.py {name}",
          f"yaml/{name}.ssot.yaml"),
         ("fl-model-gen", "FL-Model", "Functional/reference model + equivalence goals from SSOT.",
          f'python3 workflow/fl-model-gen/scripts/check_fl_model_artifacts.py {name} --root .',
          f"model/, equivalence goals"),
         ("rtl-gen", "RTL", "Synthesizable RTL authored from SSOT (+ FL equivalence).",
-         f"python3 workflow/rtl-gen/scripts/check_rtl_disk.sh {name}",
+         f"python3 workflow/rtl-gen/scripts/check_rtl_disk.py {name}",
          f"rtl/{name}.sv, list/{name}.f, rtl/rtl_authoring_provenance.json"),
         ("tb-gen", "TB", "cocotb/pyuvm testbench from SSOT test_requirements.",
-         f"python3 workflow/tb-gen/scripts/sim.sh {name}",
+         f"python3 workflow/tb-gen/scripts/sim.py {name}",
          f"tb/cocotb/test_{name}.py, tb_manifest.json"),
         ("sim", "SIM", "Compile + run simulation, scoreboard, report.",
          f"python3 workflow/sim/scripts/run_sim.py {name} --root .",
@@ -8169,7 +8169,7 @@ def verify_ssot(ip: str = "", mode: str = "engineering", root: str = "", preview
     """Run the script-backed SSOT validator used by ssot-gen.
 
     The verifier checks canonical top-level YAML shape, ATLAS SSOT Preview
-    fields, and check_ssot_disk.sh. It writes <ip>/req/ssot_validation.json.
+    fields, and check_ssot_disk.py. It writes <ip>/req/ssot_validation.json.
     """
     from pathlib import Path as _Path
 

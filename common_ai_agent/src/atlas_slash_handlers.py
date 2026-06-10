@@ -1276,8 +1276,8 @@ def make_slash_handlers(
             return True
         if alias == "sim":
             session = f"{ip}/sim"
-            script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "sim.sh"
-            validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
+            script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "sim.py"
+            validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_tb_sim_evidence.py"
             coverage_script = WORKFLOW_ROOT / "coverage" / "scripts" / "ssot_coverage_summary.py"
             runner_candidates = [
                 ip_dir / "tb" / "cocotb" / "test_runner.py",
@@ -1313,7 +1313,7 @@ def make_slash_handlers(
                     runner_rel = runner.relative_to(PROJECT_ROOT).as_posix()
 
                 sim_run = subprocess.run(
-                    ["bash", str(script), runner_rel],
+                    [sys.executable, str(script), runner_rel],
                     cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
@@ -1322,7 +1322,7 @@ def make_slash_handlers(
                     timeout=180,
                 )
                 validate_run = subprocess.run(
-                    ["bash", str(validator), ip],
+                    [sys.executable, str(validator), ip],
                     cwd=str(stage_root),
                     text=True,
                     encoding="utf-8",
@@ -1670,7 +1670,7 @@ def make_slash_handlers(
             session = f"{ip}/tb-gen"
             script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
             todo_script = WORKFLOW_ROOT / "tb-gen" / "scripts" / "derive_tb_todos.py"
-            validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
+            validator = WORKFLOW_ROOT / "tb-gen" / "scripts" / "check_pyuvm_structure.py"
             scoreboard = WORKFLOW_ROOT / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
             _append_session_message(session, "user", text)
             _append_active_history("user", text)
@@ -1715,7 +1715,7 @@ def make_slash_handlers(
             if derive_rc != 2:
                 gen_rc = _run_tb_tool("emit_goal_scoreboard_cocotb", [_python_cmd(), str(script), ip, "--root", str(stage_root)])
             if gen_rc == 0:
-                structure_rc = _run_tb_tool("check_pyuvm_structure", ["bash", str(validator), ip])
+                structure_rc = _run_tb_tool("check_pyuvm_structure", [sys.executable, str(validator), ip])
                 self_check_rc = _run_tb_tool(
                     "equivalence_scoreboard_self_check",
                     [_python_cmd(), str(scoreboard), ip, "--root", str(stage_root), "--self-check"],

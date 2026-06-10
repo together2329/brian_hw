@@ -1,27 +1,28 @@
-"""Differential equivalence tests for the STA / STA-post / lint .sh→.py ports.
+"""Pinned regression tests for the STA / STA-post / lint python ports.
 
-Each owned bash script under workflow/{sta,sta-post,lint}/scripts/ has a same-named
-.py beside it. These tests prove the port is behaviourally identical to the bash
-original by running BOTH on the same fixtures and comparing stdout, stderr, exit
-codes, and generated artifacts.
+Each ``*.py`` under ``workflow/{sta,sta-post,lint}/scripts/`` is exercised over a
+fixture; we assert the PINNED exit code plus the key output / artifact markers
+captured from the (formerly green) sh-vs-py differential parity run. The bash
+originals are being removed, so these tests run only the ``.py`` side.
 
-Technique:
-  * PATH-stub fake tools (``sta``, ``verilator``) that record argv and emit canned
-    output, so we can diff argv/rc/artifacts deterministically without the real
-    EDA tools — and we exercise the tool-missing path too.
-  * For the parse_*/write_report scripts we feed canned report files and compare
-    the parsed JSON / markdown byte-for-byte.
+Technique
+---------
+  * PATH-stub fake tools (``sta``) are tiny *python* executables that record argv
+    and emit the canned reports the wrappers parse, so artifacts are
+    deterministic without the real OpenSTA — and we exercise the tool-missing
+    path too.
+  * For the parse_*/write_report scripts we feed canned report files and pin the
+    parsed JSON / markdown content the script produces.
   * Real ``verilator`` is used when present (it is installed on the dev machine);
-    its non-deterministic "Walltime …" telemetry line is the only thing masked.
+    its non-deterministic banner / "Walltime …" telemetry is masked and only the
+    deterministic summary tail is pinned.
 
-Documented, intentional divergences (asserted, not failures):
-  * Usage strings echo the script's own basename, so ``foo.sh`` vs ``foo.py`` is
-    expected; we compare with the basename normalised.
-  * ``auto_lint.sh`` and ``write_report.sh`` use GNU-only ``grep -oP``. On a BSD
-    grep host (macOS) the .sh silently degrades (empty match / "?" counts); the
-    .py implements the *intended* GNU semantics (matching the house-style
-    precedent of check_lint_disk.py). A bundled GNU-grep emulation stub proves the
-    .sh == .py under GNU semantics.
+The ``grep -oP`` scripts (``auto_lint.py``, ``lint/write_report.py``) implement
+GNU semantics natively in python, so the former GNU-grep emulation stub is no
+longer needed; their pinned output reflects those GNU semantics directly.
+
+Volatile lines (absolute liberty/temp paths, cwd, embedded timestamps) are
+normalised before pinning rather than compared byte-for-byte.
 """
 
 from __future__ import annotations
@@ -41,9 +42,6 @@ REPO = Path(__file__).resolve().parent.parent
 STA = REPO / "workflow" / "sta" / "scripts"
 POST = REPO / "workflow" / "sta-post" / "scripts"
 LINT = REPO / "workflow" / "lint" / "scripts"
-
-BASH = shutil.which("bash")
-pytestmark = pytest.mark.skipif(BASH is None, reason="bash not available")
 
 _WALLTIME = re.compile(r"Walltime.*$", re.M)
 _DATE = re.compile(r"^- date    :.*$", re.M)
@@ -67,16 +65,6 @@ def _make_exec(path: Path, body: str) -> Path:
     return path
 
 
-def _run_sh(script: Path, args, cwd, env=None):
-    return subprocess.run(
-        [BASH, str(script), *args],
-        cwd=str(cwd),
-        env=env,
-        capture_output=True,
-        text=True,
-    )
-
-
 def _run_py(script: Path, args, cwd, env=None):
     return subprocess.run(
         [sys.executable, str(script), *args],
@@ -97,65 +85,42 @@ def _base_env(extra=None):
     return env
 
 
-def _norm_usage(text: str, sh_name: str) -> str:
-    """Collapse the script basename so foo.sh / foo.py usage lines compare equal."""
-    return text.replace(sh_name, sh_name.rsplit(".", 1)[0])
+# Fake OpenSTA (python, portable) that records argv and emits canned reports
+# parsed from run.tcl. Mirrors the canned content the wrappers expect.
+_FAKE_STA = r"""#!/usr/bin/env python3
+import os, re, sys
 
+argv = sys.argv[1:]
+argv_file = os.environ.get("STA_ARGV_FILE")
+if argv_file:
+    with open(argv_file, "a", encoding="utf-8") as fh:
+        fh.write("ARGV: " + " ".join(argv) + "\n")
 
-def _gnu_grep_stub(bindir: Path) -> None:
-    """A `grep` shim that emulates GNU `grep -oP` (incl. \\K + lookbehind) via
-    Python, delegating everything else to the real grep. Lets us prove the
-    grep -oP scripts match under GNU semantics on a BSD host."""
-    real = shutil.which("grep") or "/usr/bin/grep"
-    body = (
-        "#!/usr/bin/env python3\n"
-        "import sys, re, subprocess\n"
-        "args = sys.argv[1:]\n"
-        "flags = [a for a in args if a.startswith('-') and a != '--']\n"
-        "def has(f): return any(f in fl for fl in flags)\n"
-        "if has('o') and has('P'):\n"
-        "    nonflag = [a for a in args if not a.startswith('-')]\n"
-        "    pat = nonflag[0]\n"
-        "    data = sys.stdin.read()\n"
-        "    out, rc = [], 1\n"
-        "    if r'\\K' in pat:\n"
-        "        pre, post = pat.split(r'\\K', 1)\n"
-        "        rx = re.compile(pre + '(' + post + ')')\n"
-        "        for line in data.split('\\n'):\n"
-        "            for m in rx.finditer(line):\n"
-        "                out.append(m.group(1)); rc = 0\n"
-        "    else:\n"
-        "        rx = re.compile(pat)\n"
-        "        for line in data.split('\\n'):\n"
-        "            for m in rx.finditer(line):\n"
-        "                out.append(m.group(0)); rc = 0\n"
-        "    sys.stdout.write('\\n'.join(out) + ('\\n' if out else ''))\n"
-        "    sys.exit(rc)\n"
-        f"p = subprocess.run(['{real}'] + args, stdin=sys.stdin)\n"
-        "sys.exit(p.returncode)\n"
-    )
-    _make_exec(bindir / "grep", body)
+tcl = argv[-1]
+text = open(tcl, encoding="utf-8").read()
+m = re.search(r"^.*setup\.rpt.*$", text, re.M)
+target = m.group(0).split("> ", 1)[1].strip()
+outdir = os.path.dirname(target)
 
+slack = os.environ.get("FAKE_SETUP_SLACK", "0.500")
+with open(os.path.join(outdir, "setup.rpt"), "w", encoding="utf-8") as fh:
+    fh.write("Startpoint: ra\nEndpoint: rb\nPath Group: clk\n   %s   slack (MET)\n" % slack)
+with open(os.path.join(outdir, "hold.rpt"), "w", encoding="utf-8") as fh:
+    fh.write("Startpoint: rc\nEndpoint: rd\nPath Group: clk\n   0.100   slack (MET)\n")
+with open(os.path.join(outdir, "timing.rpt"), "w", encoding="utf-8") as fh:
+    fh.write("timing\n")
+if "skew.rpt" in text:
+    with open(os.path.join(outdir, "skew.rpt"), "w", encoding="utf-8") as fh:
+        fh.write("clock clk\n  max skew = 0.020 ns\n")
 
-# Fake OpenSTA that records argv and emits canned reports parsed from run.tcl.
-_FAKE_STA = r"""#!/usr/bin/env bash
-echo "ARGV: $*" >> "${STA_ARGV_FILE:-/dev/null}"
-TCL="${@: -1}"
-OUTDIR=$(dirname "$(grep -m1 'setup.rpt' "$TCL" | sed 's/.*> //')")
-printf 'Startpoint: ra\nEndpoint: rb\nPath Group: clk\n   %s   slack (MET)\n' "${FAKE_SETUP_SLACK:-0.500}" > "$OUTDIR/setup.rpt"
-printf 'Startpoint: rc\nEndpoint: rd\nPath Group: clk\n   0.100   slack (MET)\n' > "$OUTDIR/hold.rpt"
-printf 'timing\n' > "$OUTDIR/timing.rpt"
-if grep -q skew.rpt "$TCL"; then
-  printf 'clock clk\n  max skew = 0.020 ns\n' > "$OUTDIR/skew.rpt"
-fi
-echo "wns ${FAKE_SETUP_SLACK:-0.500}"
-echo "tns 0.0"
-exit "${FAKE_STA_RC:-0}"
+print("wns %s" % slack)
+print("tns 0.0")
+sys.exit(int(os.environ.get("FAKE_STA_RC", "0")))
 """
 
 
 # --------------------------------------------------------------------------- #
-# sanity: every owned .sh has a same-named .py
+# sanity: every owned .py exists and compiles
 # --------------------------------------------------------------------------- #
 OWNED = {
     STA: ["auto_sta", "run_opensta", "parse_wns", "write_report", "write_sdc", "write_sta_tcl"],
@@ -169,9 +134,7 @@ OWNED = {
     [(d, n) for d, names in OWNED.items() for n in names],
 )
 def test_py_port_exists_and_compiles(d, name):
-    sh = d / f"{name}.sh"
     py = d / f"{name}.py"
-    assert sh.is_file(), f"missing source {sh}"
     assert py.is_file(), f"missing port {py}"
     r = subprocess.run([sys.executable, "-m", "py_compile", str(py)], capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
@@ -190,37 +153,36 @@ def _sta_ip(tmp_path: Path, ip="myip") -> Path:
 
 def test_write_sta_tcl_identical(tmp_path):
     root = _sta_ip(tmp_path)
-    env = _base_env({"SKY130_LIB": str(tmp_path / "fake.lib")})
-    _write(tmp_path / "fake.lib", "lib\n")
+    lib = _write(tmp_path / "fake.lib", "lib\n")
+    env = _base_env({"SKY130_LIB": str(lib)})
 
-    sh = _run_sh(STA / "write_sta_tcl.sh", ["myip"], root, env)
-    sh_tcl = (root / "myip" / "sta" / "run.tcl").read_text()
-    (root / "myip" / "sta" / "run.tcl").unlink()
     py = _run_py(STA / "write_sta_tcl.py", ["myip"], root, env)
-    py_tcl = (root / "myip" / "sta" / "run.tcl").read_text()
+    tcl = (root / "myip" / "sta" / "run.tcl").read_text().replace(str(lib), "<LIB>")
 
-    assert sh.returncode == py.returncode == 0
-    assert sh_tcl == py_tcl
-    assert sh.stdout == py.stdout
-    assert sh.stderr == py.stderr
+    assert py.returncode == 0
+    assert py.stdout == "[STA] wrote myip/sta/run.tcl (top=my_top)\n"
+    # Pinned structural content of the generated TCL (liberty path normalised).
+    assert "# IP: myip   top: my_top" in tcl
+    assert "read_liberty <LIB>" in tcl
+    assert "read_verilog myip/syn/out/synth.v" in tcl
+    assert "link_design my_top" in tcl
+    assert "read_sdc myip/sta/out/myip.sdc" in tcl
+    assert "> myip/sta/out/setup.rpt" in tcl
+    assert "> myip/sta/out/hold.rpt" in tcl
+    assert "report_wns" in tcl and "report_tns" in tcl
 
 
 def test_write_sta_tcl_usage(tmp_path):
-    sh = _run_sh(STA / "write_sta_tcl.sh", [], tmp_path, _base_env())
     py = _run_py(STA / "write_sta_tcl.py", [], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 2
-    assert _norm_usage(sh.stderr, "write_sta_tcl.sh") == _norm_usage(py.stderr, "write_sta_tcl.py")
+    assert py.returncode == 2
+    assert py.stderr == "[STA] usage: write_sta_tcl.py <ip_name>\n"
 
 
 def test_write_sta_tcl_missing_netlist(tmp_path):
     _write(tmp_path / "myip" / "sta" / "out" / "myip.sdc", "# sdc\n")
-    sh = _run_sh(STA / "write_sta_tcl.sh", ["myip"], tmp_path, _base_env())
-    sh2 = tmp_path / "myip" / "sta" / "run.tcl"
-    if sh2.exists():
-        sh2.unlink()
     py = _run_py(STA / "write_sta_tcl.py", ["myip"], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 5
-    assert sh.stderr == py.stderr
+    assert py.returncode == 5
+    assert py.stderr == "[STA] missing myip/syn/out/synth.v\n"
 
 
 # --------------------------------------------------------------------------- #
@@ -236,22 +198,24 @@ def test_write_sdc_identical(tmp_path):
         "io_delay:\n  input_pct: 0.15\n  output_pct: 0.25\n"
     )
     _write(tmp_path / "myip" / "yaml" / "myip.ssot.yaml", ssot)
-    sh = _run_sh(STA / "write_sdc.sh", ["myip"], tmp_path, _base_env())
-    sdc_sh = (tmp_path / "myip" / "sta" / "out" / "myip.sdc").read_text()
-    (tmp_path / "myip" / "sta" / "out" / "myip.sdc").unlink()
     py = _run_py(STA / "write_sdc.py", ["myip"], tmp_path, _base_env())
-    sdc_py = (tmp_path / "myip" / "sta" / "out" / "myip.sdc").read_text()
-    assert sh.returncode == py.returncode == 0
-    assert sdc_sh == sdc_py
-    assert sh.stdout == py.stdout
+    sdc = (tmp_path / "myip" / "sta" / "out" / "myip.sdc").read_text()
+    assert py.returncode == 0
+    assert py.stdout == "[STA] wrote myip/sta/out/myip.sdc (1 clocks)\n"
+    # Pinned SDC content reflecting the seeded SSOT.
+    assert "create_clock -name clk -period 5.0 [get_ports clk]" in sdc
+    assert "set_input_delay  -clock clk 0.750 [all_inputs -no_clocks]" in sdc
+    assert "set_output_delay -clock clk 1.250 [all_outputs]" in sdc
+    assert "set_false_path -from [get_ports rst_n]" in sdc
+    assert "set_false_path -from [get_ports a] -to [get_ports b]" in sdc
+    assert "set_multicycle_path 3 -setup -from [get_ports x] -to [get_ports y]" in sdc
 
 
 def test_write_sdc_empty_clocks_aborts(tmp_path):
     _write(tmp_path / "myip" / "yaml" / "myip.ssot.yaml", "top_module:\n  name: my_top\n")
-    sh = _run_sh(STA / "write_sdc.sh", ["myip"], tmp_path, _base_env())
     py = _run_py(STA / "write_sdc.py", ["myip"], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 7
-    assert sh.stderr == py.stderr
+    assert py.returncode == 7
+    assert py.stderr == "[STA] SSOT clocks[] is empty — STA will be meaningless. Aborting.\n"
 
 
 # --------------------------------------------------------------------------- #
@@ -269,29 +233,41 @@ def _seed_sta_reports(tmp_path, ip="myip"):
 def test_sta_parse_wns_identical(tmp_path):
     out = _seed_sta_reports(tmp_path)
     env = _base_env({"SKY130_LIB": "fake.lib"})
-    sh = _run_sh(STA / "parse_wns.sh", ["myip"], tmp_path, env)
-    js_sh = (out / "wns.json").read_text()
-    (out / "wns.json").unlink()
     py = _run_py(STA / "parse_wns.py", ["myip"], tmp_path, env)
-    js_py = (out / "wns.json").read_text()
-    assert sh.returncode == py.returncode == 0
-    assert json.loads(js_sh) == json.loads(js_py)
-    assert js_sh == js_py
-    assert sh.stdout == py.stdout
+    data = json.loads((out / "wns.json").read_text())
+    assert py.returncode == 0
+    assert py.stdout == (
+        "[STA] wrote myip/sta/out/wns.json\n"
+        "  clk@5.0ns: setup_wns=1.234 hold_wns=-0.05 setup_viol=0\n"
+    )
+    # Pinned parsed values from the seeded reports.
+    assert data["top"] == "myip"
+    assert data["corner"] == "fake.lib"
+    clk = data["clocks"][0]
+    assert clk["name"] == "clk" and clk["period_ns"] == 5.0
+    assert clk["setup_wns_ns"] == 1.234
+    assert clk["hold_wns_ns"] == -0.05
+    assert clk["hold_violations"] == 1
+    assert data["summary"]["all_setup_met"] is True
+    assert data["summary"]["all_hold_met"] is False
+    assert data["summary"]["worst_setup_path"] == "ra → rb (slack 1.234)"
 
 
 def test_sta_write_report_identical(tmp_path):
     out = _seed_sta_reports(tmp_path)
     env = _base_env({"SKY130_LIB": "fake.lib"})
-    _run_sh(STA / "parse_wns.sh", ["myip"], tmp_path, env)
-    sh = _run_sh(STA / "write_report.sh", ["myip"], tmp_path, env)
-    rpt_sh = _DATE.sub("- date    : X", (out / "sta.report.md").read_text())
-    (out / "sta.report.md").unlink()
+    _run_py(STA / "parse_wns.py", ["myip"], tmp_path, env)
     py = _run_py(STA / "write_report.py", ["myip"], tmp_path, env)
-    rpt_py = _DATE.sub("- date    : X", (out / "sta.report.md").read_text())
-    assert sh.returncode == py.returncode == 0
-    assert rpt_sh == rpt_py
-    assert sh.stdout == py.stdout
+    rpt = _DATE.sub("- date    : X", (out / "sta.report.md").read_text())
+    assert py.returncode == 0
+    assert py.stdout == "[STA] wrote myip/sta/out/sta.report.md\n"
+    # Pinned report content reflecting the seeded wns.json.
+    assert "# STA Report — myip" in rpt
+    assert "- date    : X" in rpt
+    assert "- result  : **HOLD FAIL**" in rpt
+    assert "| `clk` | 5.0 | 1.234 | 0.000 | 0 | -0.050 | 1 |" in rpt
+    assert "- setup: ra → rb (slack 1.234)" in rpt
+    assert "- **Error: e**" in rpt
 
 
 # --------------------------------------------------------------------------- #
@@ -302,34 +278,41 @@ def test_run_opensta_fake_tool(tmp_path):
     bindir = tmp_path / "bin"
     _make_exec(
         bindir / "sta",
-        '#!/usr/bin/env bash\necho "ARGV: $*" >> "$STA_ARGV_FILE"\n'
-        'for i in $(seq 1 200); do echo "line $i"; done\nexit 7\n',
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        'f = os.environ["STA_ARGV_FILE"]\n'
+        'open(f, "a").write("ARGV: " + " ".join(sys.argv[1:]) + "\\n")\n'
+        'for i in range(1, 201):\n    print("line %d" % i)\n'
+        "sys.exit(7)\n",
     )
     lib = _write(tmp_path / "fake.lib", "lib\n")
 
-    env_sh = _base_env({"PATH": f"{bindir}:{os.environ['PATH']}", "SKY130_LIB": str(lib), "STA_ARGV_FILE": str(tmp_path / "argv_sh")})
-    sh = _run_sh(STA / "run_opensta.sh", ["myip"], tmp_path, env_sh)
-    log_sh = (tmp_path / "myip" / "sta" / "out" / "sta.log").read_text()
+    env = _base_env({
+        "PATH": f"{bindir}:{os.environ['PATH']}",
+        "SKY130_LIB": str(lib),
+        "STA_ARGV_FILE": str(tmp_path / "argv_py"),
+    })
+    py = _run_py(STA / "run_opensta.py", ["myip"], tmp_path, env)
+    log = (tmp_path / "myip" / "sta" / "out" / "sta.log").read_text()
 
-    env_py = dict(env_sh, STA_ARGV_FILE=str(tmp_path / "argv_py"))
-    py = _run_py(STA / "run_opensta.py", ["myip"], tmp_path, env_py)
-    log_py = (tmp_path / "myip" / "sta" / "out" / "sta.log").read_text()
-
-    assert sh.returncode == py.returncode == 7
-    assert (tmp_path / "argv_sh").read_text() == (tmp_path / "argv_py").read_text()
-    assert log_sh == log_py
-    assert sh.stdout == py.stdout  # tail -120 + rc line
-    assert sh.stderr == py.stderr
+    assert py.returncode == 7
+    # Argv: the wrapper invokes sta with the OpenSTA flags + the run.tcl.
+    assert (tmp_path / "argv_py").read_text() == "ARGV: -no_init -no_splash -exit myip/sta/run.tcl\n"
+    # Full log captured (200 lines); stdout tails the log + the rc line.
+    assert len(log.splitlines()) == 200
+    assert log.splitlines()[-1] == "line 200"
+    assert py.stdout.startswith("line 81\n")  # tail -120 of 200
+    assert py.stdout.endswith("[STA] sta rc=7 log=myip/sta/out/sta.log\n")
+    assert py.stderr == ""
 
 
 def test_run_opensta_tool_missing(tmp_path):
     _write(tmp_path / "myip" / "sta" / "run.tcl", "# tcl\n")
     lib = _write(tmp_path / "fake.lib", "lib\n")
     env = _base_env({"PATH": "/usr/bin:/bin", "SKY130_LIB": str(lib)})
-    sh = _run_sh(STA / "run_opensta.sh", ["myip"], tmp_path, env)
     py = _run_py(STA / "run_opensta.py", ["myip"], tmp_path, env)
-    assert sh.returncode == py.returncode == 3
-    assert sh.stderr == py.stderr
+    assert py.returncode == 3
+    assert py.stderr == "[STA TOOL MISSING] OpenSTA 'sta' not on PATH\n"
 
 
 # --------------------------------------------------------------------------- #
@@ -346,22 +329,20 @@ def test_auto_sta_pipeline(tmp_path):
     lib = _write(root / "fake.lib", "lib\n")
     env = _base_env({"PATH": f"{bindir}:{os.environ['PATH']}", "SKY130_LIB": str(lib)})
 
-    sh = _run_sh(STA / "auto_sta.sh", ["myip"], root, env)
-    arts_sh = {p.name: p.read_text() for p in (root / "myip" / "sta" / "out").iterdir()}
-    arts_sh["run.tcl"] = (root / "myip" / "sta" / "run.tcl").read_text()
-    shutil.rmtree(root / "myip" / "sta")
-
     py = _run_py(STA / "auto_sta.py", ["myip"], root, env)
-    arts_py = {p.name: p.read_text() for p in (root / "myip" / "sta" / "out").iterdir()}
-    arts_py["run.tcl"] = (root / "myip" / "sta" / "run.tcl").read_text()
+    out = root / "myip" / "sta" / "out"
+    arts = {p.name for p in out.iterdir()}
 
-    assert sh.returncode == py.returncode == 0
-    assert sh.stdout == py.stdout
-    assert sh.stderr == py.stderr
-    for name in arts_sh:
-        a = _DATE.sub("- date    : X", arts_sh[name])
-        b = _DATE.sub("- date    : X", arts_py[name])
-        assert a == b, f"artifact {name} differs"
+    assert py.returncode == 0
+    assert py.stderr == ""
+    # Pinned pipeline stdout markers (absolute liberty path is volatile → marker).
+    assert "[STA] wrote myip/sta/run.tcl (top=my_top)" in py.stdout
+    assert "[STA] sta rc=0 log=myip/sta/out/sta.log" in py.stdout
+    assert "[STA] wrote myip/sta/out/wns.json" in py.stdout
+    assert "[STA RESULT] PASS — clk@5.0ns: setup_wns=0.500 hold_wns=0.100" in py.stdout
+    # Pipeline materialises the full artifact set.
+    assert {"setup.rpt", "hold.rpt", "timing.rpt", "sta.log", "wns.json", "sta.report.md"} <= arts
+    assert (root / "myip" / "sta" / "run.tcl").is_file()
 
 
 # --------------------------------------------------------------------------- #
@@ -379,43 +360,51 @@ def test_write_sta_post_tcl_identical(tmp_path):
     _post_ip(tmp_path)
     lib = _write(tmp_path / "fake.lib", "lib\n")
     env = _base_env({"SKY130_LIB": str(lib)})
-    sh = _run_sh(POST / "write_sta_post_tcl.sh", ["myip"], tmp_path, env)
-    tcl_sh = (tmp_path / "myip" / "sta-post" / "run.tcl").read_text()
-    (tmp_path / "myip" / "sta-post" / "run.tcl").unlink()
     py = _run_py(POST / "write_sta_post_tcl.py", ["myip"], tmp_path, env)
-    tcl_py = (tmp_path / "myip" / "sta-post" / "run.tcl").read_text()
-    assert sh.returncode == py.returncode == 0
-    assert tcl_sh == tcl_py
-    assert "$scan_en_ports" in tcl_py  # literal Tcl var preserved
-    assert sh.stdout == py.stdout
+    tcl = (tmp_path / "myip" / "sta-post" / "run.tcl").read_text().replace(str(lib), "<LIB>")
+    assert py.returncode == 0
+    assert py.stdout == "[STA-POST] wrote myip/sta-post/run.tcl (top=my_top)\n"
+    # Pinned post-route TCL content (liberty path normalised).
+    assert "mode: post_route (parasitic-aware)" in tcl
+    assert "read_liberty <LIB>" in tcl
+    assert "read_verilog myip/pnr/out/routed.v" in tcl
+    assert "read_spef myip/pnr/out/routed.spef" in tcl
+    assert "$scan_en_ports" in tcl  # literal Tcl var preserved
+    assert "set_case_analysis 0 $scan_en_ports" in tcl
+    assert "> myip/sta-post/out/skew.rpt" in tcl
 
 
 def test_preflight_ok_and_errors(tmp_path):
     _post_ip(tmp_path)
     bindir = tmp_path / "bin"
-    _make_exec(bindir / "sta", "#!/usr/bin/env bash\nexit 0\n")
+    _make_exec(bindir / "sta", "#!/usr/bin/env python3\nimport sys\nsys.exit(0)\n")
     lib = _write(tmp_path / "fake.lib", "lib\n")
     good_path = f"{bindir}:{os.environ['PATH']}"
 
     env = _base_env({"PATH": good_path, "SKY130_LIB": str(lib)})
-    sh = _run_sh(POST / "preflight.sh", ["myip"], tmp_path, env)
     py = _run_py(POST / "preflight.py", ["myip"], tmp_path, env)
-    assert sh.returncode == py.returncode == 0
-    assert sh.stdout == py.stdout  # incl. wc -c padded size + cwd
-    assert sh.stderr == py.stderr
+    assert py.returncode == 0
+    # Pinned preflight markers (cwd / absolute paths are volatile → markers).
+    assert "[STA-POST PREFLIGHT] routed_v=myip/pnr/out/routed.v" in py.stdout
+    assert "[STA-POST PREFLIGHT] routed_spef=myip/pnr/out/routed.spef size=" in py.stdout
+    assert "[STA-POST PREFLIGHT] sdc=myip/sta/out/myip.sdc" in py.stdout
+    assert py.stdout.rstrip().endswith("[STA-POST PREFLIGHT] OK")
+    assert py.stderr == ""
 
-    # error-path exit codes
+    # error-path exit codes + pinned stderr markers
     cases = {
-        2: _base_env({"PATH": good_path, "SKY130_LIB": str(lib)}),  # bad ip arg
-        3: _base_env({"PATH": "/usr/bin:/bin", "SKY130_LIB": str(lib)}),  # tool missing
-        4: _base_env({"PATH": good_path, "SKY130_LIB": "/nope.lib"}),  # pdk missing
+        2: (_base_env({"PATH": good_path, "SKY130_LIB": str(lib)}),
+            "[STA-POST PREFLIGHT] IP dir missing: ghost\n"),
+        3: (_base_env({"PATH": "/usr/bin:/bin", "SKY130_LIB": str(lib)}),
+            "[STA-POST TOOL MISSING] OpenSTA 'sta' not on PATH\n"),
+        4: (_base_env({"PATH": good_path, "SKY130_LIB": "/nope.lib"}),
+            "[STA-POST MISSING PDK] $SKY130_LIB unreadable: /nope.lib\n"),
     }
-    for rc, e in cases.items():
+    for rc, (e, expect_err) in cases.items():
         arg = "ghost" if rc == 2 else "myip"
-        s = _run_sh(POST / "preflight.sh", [arg], tmp_path, e)
         p = _run_py(POST / "preflight.py", [arg], tmp_path, e)
-        assert s.returncode == p.returncode == rc
-        assert s.stderr == p.stderr
+        assert p.returncode == rc
+        assert p.stderr == expect_err
 
 
 def _seed_post_reports(tmp_path, ip="myip", with_pre=True):
@@ -441,30 +430,34 @@ def _seed_post_reports(tmp_path, ip="myip", with_pre=True):
 def test_post_parse_wns_identical(tmp_path):
     out = _seed_post_reports(tmp_path)
     env = _base_env({"SKY130_LIB": "fake.lib"})
-    sh = _run_sh(POST / "parse_wns.sh", ["myip"], tmp_path, env)
-    js_sh = (out / "wns.json").read_text()
-    (out / "wns.json").unlink()
     py = _run_py(POST / "parse_wns.py", ["myip"], tmp_path, env)
-    js_py = (out / "wns.json").read_text()
-    assert sh.returncode == py.returncode == 0
-    assert js_sh == js_py
-    assert json.loads(js_sh)["mode"] == "post_route"
-    assert sh.stdout == py.stdout
+    data = json.loads((out / "wns.json").read_text())
+    assert py.returncode == 0
+    assert py.stdout == (
+        "[STA-POST] wrote myip/sta-post/out/wns.json\n"
+        "  clk@5.0ns: setup_wns=-0.25 hold_wns=0.1 skew=30.0ps\n"
+    )
+    assert data["mode"] == "post_route"
+    clk = data["clocks"][0]
+    assert clk["setup_wns_ns"] == -0.25
+    assert clk["hold_wns_ns"] == 0.1
 
 
 def test_post_write_report_with_delta(tmp_path):
     out = _seed_post_reports(tmp_path)
     env = _base_env({"SKY130_LIB": "fake.lib"})
-    _run_sh(POST / "parse_wns.sh", ["myip"], tmp_path, env)
-    sh = _run_sh(POST / "write_report.sh", ["myip"], tmp_path, env)
-    rpt_sh = _DATE.sub("- date    : X", (out / "sta.report.md").read_text())
-    (out / "sta.report.md").unlink()
+    _run_py(POST / "parse_wns.py", ["myip"], tmp_path, env)
     py = _run_py(POST / "write_report.py", ["myip"], tmp_path, env)
-    rpt_py = _DATE.sub("- date    : X", (out / "sta.report.md").read_text())
-    assert sh.returncode == py.returncode == 0
-    assert rpt_sh == rpt_py
-    assert "Pre-route /sta vs sign-off" in rpt_py
-    assert sh.stdout == py.stdout
+    rpt = _DATE.sub("- date    : X", (out / "sta.report.md").read_text())
+    assert py.returncode == 0
+    assert py.stdout == "[STA-POST] wrote myip/sta-post/out/sta.report.md\n"
+    # Pinned post-route report content incl. the pre-vs-post delta table.
+    assert "# Post-Route STA Report — myip" in rpt
+    assert "- mode    : **post_route** (parasitic-aware sign-off)" in rpt
+    assert "- result  : **SETUP FAIL**" in rpt
+    assert "| `clk` | 5.0 | -0.250 | -0.250 | 1 | 0.100 | 0 | 30.0 |" in rpt
+    assert "## Pre-route /sta vs sign-off /sta-post" in rpt
+    assert "| `clk` | -0.100 | -0.250 | -0.150 | 0.100 | 0.100 | 0.000 |" in rpt
 
 
 def test_auto_sta_post_pipeline(tmp_path):
@@ -474,23 +467,20 @@ def test_auto_sta_post_pipeline(tmp_path):
     lib = _write(tmp_path / "fake.lib", "lib\n")
     env = _base_env({"PATH": f"{bindir}:{os.environ['PATH']}", "SKY130_LIB": str(lib)})
 
-    sh = _run_sh(POST / "auto_sta_post.sh", ["myip"], tmp_path, env)
-    arts_sh = {p.name: p.read_text() for p in (tmp_path / "myip" / "sta-post" / "out").iterdir()}
-    arts_sh["run.tcl"] = (tmp_path / "myip" / "sta-post" / "run.tcl").read_text()
-    shutil.rmtree(tmp_path / "myip" / "sta-post")
-
     py = _run_py(POST / "auto_sta_post.py", ["myip"], tmp_path, env)
-    arts_py = {p.name: p.read_text() for p in (tmp_path / "myip" / "sta-post" / "out").iterdir()}
-    arts_py["run.tcl"] = (tmp_path / "myip" / "sta-post" / "run.tcl").read_text()
+    out = tmp_path / "myip" / "sta-post" / "out"
+    arts = {p.name for p in out.iterdir()}
 
-    assert sh.returncode == py.returncode == 0
-    # preflight cwd line + wc size + parse + report all in order
-    assert sh.stdout == py.stdout
-    assert sh.stderr == py.stderr
-    for name in arts_sh:
-        a = _DATE.sub("- date    : X", arts_sh[name])
-        b = _DATE.sub("- date    : X", arts_py[name])
-        assert a == b, f"artifact {name} differs"
+    assert py.returncode == 0
+    assert py.stderr == ""
+    # Pinned pipeline markers: preflight → tcl → sta → parse → report → result.
+    assert "[STA-POST PREFLIGHT] OK" in py.stdout
+    assert "[STA-POST] wrote myip/sta-post/run.tcl (top=my_top)" in py.stdout
+    assert "[STA-POST] sta rc=0 log=myip/sta-post/out/sta.log" in py.stdout
+    assert "[STA-POST] wrote myip/sta-post/out/wns.json" in py.stdout
+    assert "[STA-POST RESULT] PASS (sign-off, parasitic-aware)" in py.stdout
+    assert {"setup.rpt", "hold.rpt", "skew.rpt", "sta.log", "wns.json", "sta.report.md"} <= arts
+    assert (tmp_path / "myip" / "sta-post" / "run.tcl").is_file()
 
 
 # --------------------------------------------------------------------------- #
@@ -507,29 +497,28 @@ def _mask_walltime(text: str) -> str:
 def test_lint_file_clean_and_warn(tmp_path):
     clean = _write(tmp_path / "clean.sv", "module clean (input logic a, output logic b);\n  assign b = a;\nendmodule\n")
     warn = _write(tmp_path / "warn.sv", "module warn (input logic [3:0] a, output logic b);\n  assign b = a;\nendmodule\n")
-    for f, expect_rc in [(clean, 0), (warn, 1)]:
-        env_sh = _base_env({"BENCHMARK_LOG": str(tmp_path / "bm_sh")})
-        env_py = _base_env({"BENCHMARK_LOG": str(tmp_path / "bm_py")})
-        sh = _run_sh(LINT / "lint_file.sh", [f.name], tmp_path, env_sh)
-        py = _run_py(LINT / "lint_file.py", [f.name], tmp_path, env_py)
-        assert sh.returncode == py.returncode == expect_rc
-        assert _mask_walltime(sh.stdout) == _mask_walltime(py.stdout)
-        b_sh = _TS.sub("TS", (tmp_path / "bm_sh").read_text())
-        b_py = _TS.sub("TS", (tmp_path / "bm_py").read_text())
-        assert b_sh == b_py
-        (tmp_path / "bm_sh").unlink()
-        (tmp_path / "bm_py").unlink()
+    # (file, expected rc, expected benchmark tail, expected stdout summary tail).
+    cases = [
+        (clean, 0, "lint_file=clean.sv errors=0 warnings=0\n", "clean.sv: 0 errors, 0 warnings\n"),
+        (warn, 1, "lint_file=warn.sv errors=1 warnings=5\n", "warn.sv: 1 errors, 5 warnings\n"),
+    ]
+    for f, expect_rc, bench_tail, out_tail in cases:
+        env = _base_env({"BENCHMARK_LOG": str(tmp_path / ("bm_" + f.stem))})
+        py = _run_py(LINT / "lint_file.py", [f.name], tmp_path, env)
+        assert py.returncode == expect_rc
+        # Deterministic summary tail (verilator banner/Walltime telemetry masked).
+        assert py.stdout.endswith(out_tail)
+        bench = _TS.sub("TS", (tmp_path / ("bm_" + f.stem)).read_text())
+        assert bench == "TS " + bench_tail
 
 
 def test_lint_file_missing_and_usage(tmp_path):
-    sh = _run_sh(LINT / "lint_file.sh", ["nope.sv"], tmp_path, _base_env())
     py = _run_py(LINT / "lint_file.py", ["nope.sv"], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 1
-    assert sh.stdout == py.stdout
-    sh = _run_sh(LINT / "lint_file.sh", [], tmp_path, _base_env())
+    assert py.returncode == 1
+    assert py.stdout == "File not found: nope.sv\n"
     py = _run_py(LINT / "lint_file.py", [], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 1
-    assert sh.stdout == py.stdout
+    assert py.returncode == 1
+    assert py.stdout == "Usage: /lint-file <file.sv>\n"
 
 
 @pytest.mark.skipif(not HAVE_VERILATOR, reason="verilator not installed")
@@ -537,76 +526,54 @@ def test_lint_all(tmp_path):
     _write(tmp_path / "clean.sv", "module clean (input logic a, output logic b);\n  assign b = a;\nendmodule\n")
     _write(tmp_path / "warn.v", "module warn2 (input logic [3:0] a, output logic b);\n  assign b = a;\nendmodule\n")
     _write(tmp_path / "tb_foo.sv", "module tb_foo; endmodule\n")  # excluded
-    env_sh = _base_env({"BENCHMARK_LOG": str(tmp_path / "bm_sh")})
-    env_py = _base_env({"BENCHMARK_LOG": str(tmp_path / "bm_py")})
-    sh = _run_sh(LINT / "lint_all.sh", [], tmp_path, env_sh)
-    py = _run_py(LINT / "lint_all.py", [], tmp_path, env_py)
-    assert sh.returncode == py.returncode
-    assert _mask_walltime(sh.stdout) == _mask_walltime(py.stdout)
-    b_sh = _TS.sub("TS", (tmp_path / "bm_sh").read_text())
-    b_py = _TS.sub("TS", (tmp_path / "bm_py").read_text())
-    assert b_sh == b_py
+    env = _base_env({"BENCHMARK_LOG": str(tmp_path / "bm_py")})
+    py = _run_py(LINT / "lint_all.py", [], tmp_path, env)
+    # warn.v lints non-clean → non-zero rc; tb_foo.sv is excluded.
+    assert py.returncode == 1
+    bench = _TS.sub("TS", (tmp_path / "bm_py").read_text())
+    assert bench == "TS lint_all errors=1 warnings=7\n"
 
 
 def test_error_log(tmp_path):
     out = "line ok\n%Warning-FOO: bar\nsome Error here\nplain line"
-    env_sh = _base_env({"BENCHMARK_LOG": str(tmp_path / "eb_sh"), "HOOK_TOOL_OUTPUT": out})
-    env_py = _base_env({"BENCHMARK_LOG": str(tmp_path / "eb_py"), "HOOK_TOOL_OUTPUT": out})
-    sh = _run_sh(LINT / "error_log.sh", [], tmp_path, env_sh)
-    py = _run_py(LINT / "error_log.py", [], tmp_path, env_py)
-    assert sh.returncode == py.returncode == 0
-    b_sh = _TS.sub("TS", (tmp_path / "eb_sh").read_text())
-    b_py = _TS.sub("TS", (tmp_path / "eb_py").read_text())
-    assert b_sh == b_py
+    env = _base_env({"BENCHMARK_LOG": str(tmp_path / "eb_py"), "HOOK_TOOL_OUTPUT": out})
+    py = _run_py(LINT / "error_log.py", [], tmp_path, env)
+    assert py.returncode == 0
+    bench = _TS.sub("TS", (tmp_path / "eb_py").read_text())
+    # Only the Warning/Error lines are extracted into the issues log.
+    assert bench == "TS lint_issues:\n  %Warning-FOO: bar\n  some Error here\n"
 
-    # empty output → neither writes a file
-    env_sh = _base_env({"BENCHMARK_LOG": str(tmp_path / "n_sh"), "HOOK_TOOL_OUTPUT": "nothing"})
-    env_py = _base_env({"BENCHMARK_LOG": str(tmp_path / "n_py"), "HOOK_TOOL_OUTPUT": "nothing"})
-    _run_sh(LINT / "error_log.sh", [], tmp_path, env_sh)
-    _run_py(LINT / "error_log.py", [], tmp_path, env_py)
-    assert not (tmp_path / "n_sh").exists()
+    # no issues in output → no file written
+    env = _base_env({"BENCHMARK_LOG": str(tmp_path / "n_py"), "HOOK_TOOL_OUTPUT": "nothing"})
+    _run_py(LINT / "error_log.py", [], tmp_path, env)
     assert not (tmp_path / "n_py").exists()
 
 
+@pytest.mark.skipif(not HAVE_VERILATOR, reason="verilator not installed")
 def test_auto_lint_gnu_grep_parity(tmp_path):
-    """auto_lint.sh uses grep -oP (GNU-only). Under a GNU-grep stub the .sh and
-    .py produce identical benchmark lines; the .py matches the intended semantics."""
+    """auto_lint.py implements the grep -oP (GNU) extraction natively. Pin the
+    benchmark line it emits for a clean file from a HOOK_TOOL_ARGS path."""
     _write(tmp_path / "clean.sv", "module clean (input logic a, output logic b);\n  assign b = a;\nendmodule\n")
-    if not HAVE_VERILATOR:
-        pytest.skip("verilator not installed")
-    bindir = tmp_path / "gnu"
-    _gnu_grep_stub(bindir)
-    env_sh = _base_env({
-        "PATH": f"{bindir}:{os.environ['PATH']}",
-        "BENCHMARK_LOG": str(tmp_path / "abm_sh"),
-        "HOOK_TOOL_ARGS": 'path="clean.sv"',
-    })
-    env_py = _base_env({
+    env = _base_env({
         "BENCHMARK_LOG": str(tmp_path / "abm_py"),
         "HOOK_TOOL_ARGS": 'path="clean.sv"',
     })
-    sh = _run_sh(LINT / "auto_lint.sh", [], tmp_path, env_sh)
-    py = _run_py(LINT / "auto_lint.py", [], tmp_path, env_py)
-    assert sh.returncode == py.returncode == 0
-    b_sh = _TS.sub("TS", (tmp_path / "abm_sh").read_text())
-    b_py = _TS.sub("TS", (tmp_path / "abm_py").read_text())
-    assert b_sh == b_py
-    assert "file=clean.sv" in b_py
+    py = _run_py(LINT / "auto_lint.py", [], tmp_path, env)
+    assert py.returncode == 0
+    bench = _TS.sub("TS", (tmp_path / "abm_py").read_text())
+    assert bench == "TS auto_lint file=clean.sv errors=0 warnings=0\n"
 
 
 def test_auto_lint_no_file_no_log(tmp_path):
-    env_sh = _base_env({"BENCHMARK_LOG": str(tmp_path / "n_sh"), "HOOK_TOOL_ARGS": "nothing"})
-    env_py = _base_env({"BENCHMARK_LOG": str(tmp_path / "n_py"), "HOOK_TOOL_ARGS": "nothing"})
-    sh = _run_sh(LINT / "auto_lint.sh", [], tmp_path, env_sh)
-    py = _run_py(LINT / "auto_lint.py", [], tmp_path, env_py)
-    assert sh.returncode == py.returncode == 0
-    assert not (tmp_path / "n_sh").exists()
+    env = _base_env({"BENCHMARK_LOG": str(tmp_path / "n_py"), "HOOK_TOOL_ARGS": "nothing"})
+    py = _run_py(LINT / "auto_lint.py", [], tmp_path, env)
+    assert py.returncode == 0
     assert not (tmp_path / "n_py").exists()
 
 
 def test_write_report_gnu_grep_parity(tmp_path):
-    """write_report.sh uses grep -oP for errors=/warnings= extraction (GNU-only).
-    Prove .sh == .py under GNU semantics."""
+    """write_report.py extracts errors=/warnings= via grep -oP (GNU) semantics,
+    implemented natively. Pin the generated report content + stdout echo."""
     log = _write(
         tmp_path / ".benchmark",
         "2026-01-01T00:00:00 lint_all errors=3 warnings=7\n"
@@ -615,42 +582,40 @@ def test_write_report_gnu_grep_parity(tmp_path):
         "2026-01-01T00:00:02 lint_file=x.sv errors=3 warnings=7\n",
     )
     _write(tmp_path / "clean.sv", "module clean(input a, output b); assign b=a; endmodule\n")
-    bindir = tmp_path / "gnu"
-    _gnu_grep_stub(bindir)
-    env_sh = _base_env({"PATH": f"{bindir}:{os.environ['PATH']}", "BENCHMARK_LOG": str(log)})
-    env_py = _base_env({"BENCHMARK_LOG": str(log)})
-    sh = _run_sh(LINT / "write_report.sh", [], tmp_path, env_sh)
-    rpt_sh = _RPT_DATE.sub("Date  : X", (tmp_path / "lint_report.txt").read_text())
-    (tmp_path / "lint_report.txt").unlink()
-    py = _run_py(LINT / "write_report.py", [], tmp_path, env_py)
-    rpt_py = _RPT_DATE.sub("Date  : X", (tmp_path / "lint_report.txt").read_text())
-    assert sh.returncode == py.returncode == 0
-    assert rpt_sh == rpt_py
-    assert "3 errors, 7 warnings" in rpt_py
-    so = _RPT_DATE.sub("Date  : X", sh.stdout)
-    po = _RPT_DATE.sub("Date  : X", py.stdout)
-    assert so == po
+    env = _base_env({"BENCHMARK_LOG": str(log)})
+    py = _run_py(LINT / "write_report.py", [], tmp_path, env)
+    rpt = _RPT_DATE.sub("Date  : X", (tmp_path / "lint_report.txt").read_text())
+    assert py.returncode == 0
+    # Pinned report content (date masked).
+    assert "=== Lint Report ===" in rpt
+    assert "Result: 3 errors, 7 warnings" in rpt
+    assert "2026-01-01T00:00:00 lint_all errors=3 warnings=7" in rpt
+    assert "2026-01-01T00:00:02 lint_file=x.sv errors=3 warnings=7" in rpt
+    assert "[Issues Log]" in rpt
+    # stdout echoes the written report.
+    out = _RPT_DATE.sub("Date  : X", py.stdout)
+    assert out.startswith("Written: lint_report.txt\n")
+    assert "Result: 3 errors, 7 warnings" in out
 
 
 def test_run_full_lint_errors(tmp_path):
     # usage (no ip)
-    sh = _run_sh(LINT / "run_full_lint.sh", [], tmp_path, _base_env())
     py = _run_py(LINT / "run_full_lint.py", [], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 2
-    assert _norm_usage(sh.stderr, "run_full_lint.sh") == _norm_usage(py.stderr, "run_full_lint.py")
+    assert py.returncode == 2
+    assert py.stderr == "usage: run_full_lint.py <ip> [--root .]\n"
 
     # unknown flag
-    sh = _run_sh(LINT / "run_full_lint.sh", ["--bogus"], tmp_path, _base_env())
     py = _run_py(LINT / "run_full_lint.py", ["--bogus"], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 2
-    assert sh.stderr == py.stderr
+    assert py.returncode == 2
+    assert py.stderr == "[run_full_lint] unknown flag: --bogus\n"
 
-    # missing waiver
+    # missing waiver (absolute path is volatile → marker)
     (tmp_path / "spi" / "rtl").mkdir(parents=True)
-    sh = _run_sh(LINT / "run_full_lint.sh", ["spi"], tmp_path, _base_env())
     py = _run_py(LINT / "run_full_lint.py", ["spi"], tmp_path, _base_env())
-    assert sh.returncode == py.returncode == 1
-    assert sh.stderr == py.stderr  # logical-pwd path must match (not /private/tmp)
+    assert py.returncode == 1
+    assert py.stderr.startswith("[run_full_lint] missing waiver: ")
+    assert py.stderr.rstrip().endswith("spi/rtl/spi_lint.vlt for template.")
+    assert "spi/rtl/spi_lint.vlt" in py.stderr
 
 
 @pytest.mark.skipif(not HAVE_VERILATOR, reason="verilator not installed")
@@ -659,11 +624,11 @@ def test_run_full_lint_real(tmp_path):
            "module spi_top (input logic clk, input logic a, output logic b);\n  always_comb b = a;\nendmodule\n")
     _write(tmp_path / "spi" / "rtl" / "spi_lint.vlt", "`verilator_config\n")
     _write(tmp_path / "spi" / "yaml" / "spi.ssot.yaml", "top_module:\n  name: spi_top\n")
-    sh = _run_sh(LINT / "run_full_lint.sh", ["spi"], tmp_path, _base_env())
-    log_sh = (tmp_path / "spi" / "lint" / "verilator_lint.log").read_text()
-    (tmp_path / "spi" / "lint" / "verilator_lint.log").unlink()
     py = _run_py(LINT / "run_full_lint.py", ["spi"], tmp_path, _base_env())
-    log_py = (tmp_path / "spi" / "lint" / "verilator_lint.log").read_text()
-    assert sh.returncode == py.returncode
-    assert _mask_walltime(sh.stdout) == _mask_walltime(py.stdout)
-    assert _mask_walltime(log_sh) == _mask_walltime(log_py)
+    log = _mask_walltime((tmp_path / "spi" / "lint" / "verilator_lint.log").read_text())
+    out = _mask_walltime(py.stdout)
+    # spi.sv has an unused signal → lint is not clean.
+    assert py.returncode == 1
+    # Deterministic verilator verdict markers (banner/Walltime masked).
+    assert "%Error: Exiting due to 2 warning(s)" in log
+    assert "[run_full_lint] G_LINT_CLEAN: FAIL — 3 warning(s)/error(s)" in out

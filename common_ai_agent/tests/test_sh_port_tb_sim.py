@@ -1,13 +1,10 @@
-"""Differential equivalence tests: tb/sim .sh checkers vs their .py ports.
+"""Pinned regression tests: tb/sim .py checkers.
 
 For each ported script we build a good fixture plus >=2 degraded fixtures, run
-the OLD .sh (via bash) and the NEW .py (via sys.executable), and assert exit-code
-parity.  Where the verdict output is deterministic we also assert stdout parity.
-
-The .sh side is skipped when bash is unavailable.  Cases that depend on external
-EDA tools (verilator/iverilog) are gated on tool presence; the verilator build
-success path asserts exit-code parity only because verilator emits
-non-deterministic timing/memory lines that differ between any two runs.
+the .py port (via sys.executable), and assert the PINNED exit code plus the
+load-bearing verdict markers. The bash originals have since been removed, so the
+expectations are pinned constants. Cases that depend on external EDA tools
+(verilator/iverilog) are gated on tool presence.
 """
 
 from __future__ import annotations
@@ -24,24 +21,7 @@ import pytest
 REPO = Path(__file__).resolve().parents[1]
 WF = REPO / "workflow"
 
-HAVE_BASH = shutil.which("bash") is not None
 HAVE_VERILATOR = shutil.which("verilator") is not None
-
-skip_no_bash = pytest.mark.skipif(not HAVE_BASH, reason="bash not available for .sh side")
-
-
-def _run_sh(script: Path, args: list[str], *, cwd: Path, env: dict[str, str] | None = None):
-    full_env = dict(os.environ)
-    if env:
-        full_env.update(env)
-    return subprocess.run(
-        ["bash", str(script), *args],
-        cwd=str(cwd),
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=full_env,
-    )
 
 
 def _run_py(script: Path, args: list[str], *, cwd: Path, env: dict[str, str] | None = None):
@@ -58,23 +38,10 @@ def _run_py(script: Path, args: list[str], *, cwd: Path, env: dict[str, str] | N
     )
 
 
-def _assert_parity(sh, py, *, check_stdout: bool = True) -> None:
-    assert sh.returncode == py.returncode, (
-        f"rc mismatch: sh={sh.returncode} py={py.returncode}\n"
-        f"--- sh ---\n{sh.stdout}\n--- py ---\n{py.stdout}"
-    )
-    if check_stdout:
-        assert sh.stdout == py.stdout, (
-            f"stdout mismatch:\n--- sh ---\n{sh.stdout!r}\n--- py ---\n{py.stdout!r}"
-        )
-
-
 # --------------------------------------------------------------------------- #
 # check_sim_pass (canonical sim/ variant + tb-gen delegator)
 # --------------------------------------------------------------------------- #
-SIM_PASS_SH = WF / "sim" / "scripts" / "check_sim_pass.sh"
 SIM_PASS_PY = WF / "sim" / "scripts" / "check_sim_pass.py"
-TBGEN_SIM_PASS_SH = WF / "tb-gen" / "scripts" / "check_sim_pass.sh"
 TBGEN_SIM_PASS_PY = WF / "tb-gen" / "scripts" / "check_sim_pass.py"
 
 _SIM_PASS_CASES = [
@@ -89,26 +56,20 @@ _SIM_PASS_CASES = [
 ]
 
 
-@skip_no_bash
 @pytest.mark.parametrize("name,tool_output,expected_rc", _SIM_PASS_CASES)
 def test_check_sim_pass_sim_variant_parity(tmp_path, name, tool_output, expected_rc):
     env = {"TOOL_OUTPUT": tool_output}
     # Ensure IP_NAME does not accidentally select the disk branch.
     env["IP_NAME"] = ""
-    sh = _run_sh(SIM_PASS_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_PASS_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == expected_rc, (name, sh.stdout)
+    assert py.returncode == expected_rc, (name, py.stdout)
 
 
-@skip_no_bash
 @pytest.mark.parametrize("name,tool_output,expected_rc", _SIM_PASS_CASES)
 def test_check_sim_pass_tbgen_variant_parity(tmp_path, name, tool_output, expected_rc):
     env = {"TOOL_OUTPUT": tool_output, "IP_NAME": ""}
-    sh = _run_sh(TBGEN_SIM_PASS_SH, [], cwd=tmp_path, env=env)
     py = _run_py(TBGEN_SIM_PASS_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == expected_rc, (name, sh.stdout)
+    assert py.returncode == expected_rc, (name, py.stdout)
 
 
 def test_tbgen_check_sim_pass_delegates_to_canonical():
@@ -121,37 +82,29 @@ def test_tbgen_check_sim_pass_delegates_to_canonical():
 # --------------------------------------------------------------------------- #
 # coverage_build
 # --------------------------------------------------------------------------- #
-COV_BUILD_SH = WF / "coverage" / "scripts" / "coverage_build.sh"
 COV_BUILD_PY = WF / "coverage" / "scripts" / "coverage_build.py"
 
 
-@skip_no_bash
 def test_coverage_build_missing_filelist_parity(tmp_path):
     # Default DUT gpio_pad, no filelist on disk -> ERROR exit 1 (both tools).
-    sh = _run_sh(COV_BUILD_SH, [], cwd=tmp_path)
     py = _run_py(COV_BUILD_PY, [], cwd=tmp_path)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_coverage_build_dut_whitespace_strip_parity(tmp_path):
-    sh = _run_sh(COV_BUILD_SH, ["my dut"], cwd=tmp_path)
     py = _run_py(COV_BUILD_PY, ["my dut"], cwd=tmp_path)
-    _assert_parity(sh, py)
     # whitespace stripped -> filelist mydut/list/mydut.f
-    assert "mydut/list/mydut.f" in sh.stdout
+    assert "mydut/list/mydut.f" in py.stdout
 
 
-@skip_no_bash
 def test_coverage_build_hook_cmd_args_parity(tmp_path):
     env = {"HOOK_CMD_ARGS": "widget"}
-    sh = _run_sh(COV_BUILD_SH, [], cwd=tmp_path, env=env)
     py = _run_py(COV_BUILD_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
+    # DUT comes from HOOK_CMD_ARGS -> filelist widget/list/widget.f (missing -> rc 1).
+    assert py.returncode == 1
+    assert "widget/list/widget.f" in py.stdout
 
 
-@skip_no_bash
 @pytest.mark.skipif(not HAVE_VERILATOR, reason="verilator not available")
 def test_coverage_build_success_rc_parity(tmp_path):
     """Good fixture: real verilator coverage build.
@@ -170,22 +123,19 @@ def test_coverage_build_success_rc_parity(tmp_path):
     )
     (tmp_path / dut / "list" / f"{dut}.f").write_text(f"{dut}/rtl/{dut}.sv\n", encoding="utf-8")
 
-    sh = _run_sh(COV_BUILD_SH, [dut], cwd=tmp_path)
     # clean build artifacts so the py rebuild starts comparable
     shutil.rmtree(tmp_path / f"build_{dut}_cov", ignore_errors=True)
     (tmp_path / f"build_{dut}_cov.verilator.log").unlink(missing_ok=True)
     py = _run_py(COV_BUILD_PY, [dut], cwd=tmp_path)
-    _assert_parity(sh, py, check_stdout=False)
-    assert sh.returncode == 0, sh.stdout
-    # deterministic structural lines should match
+    assert py.returncode == 0, py.stdout
+    # deterministic structural lines should be present
     for marker in ("=== Verilator coverage build ===", "BUILD OK", "C++ source files:"):
-        assert marker in sh.stdout and marker in py.stdout
+        assert marker in py.stdout
 
 
 # --------------------------------------------------------------------------- #
 # check_pyuvm_structure  (ENFORCED gate)
 # --------------------------------------------------------------------------- #
-PYUVM_SH = WF / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
 PYUVM_PY = WF / "tb-gen" / "scripts" / "check_pyuvm_structure.py"
 
 _GOOD_TEST_PY = """\
@@ -252,29 +202,22 @@ def _make_pyuvm_ip(root: Path, ip: str = "widget") -> Path:
     return root / ip
 
 
-@skip_no_bash
 def test_check_pyuvm_structure_good_parity(tmp_path):
     _make_pyuvm_ip(tmp_path)
     env = {"IP_NAME": "widget"}
-    sh = _run_sh(PYUVM_SH, [], cwd=tmp_path, env=env)
     py = _run_py(PYUVM_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 0, sh.stdout
+    assert py.returncode == 0, py.stdout
 
 
-@skip_no_bash
 def test_check_pyuvm_structure_empty_test_parity(tmp_path):
     """Degraded: empty test file -> missing structure FAILs, identical messages."""
     _make_pyuvm_ip(tmp_path)
     (tmp_path / "widget" / "tb" / "cocotb" / "test_widget.py").write_text("", encoding="utf-8")
     env = {"IP_NAME": "widget"}
-    sh = _run_sh(PYUVM_SH, [], cwd=tmp_path, env=env)
     py = _run_py(PYUVM_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_check_pyuvm_structure_comment_only_keyword_parity(tmp_path):
     """Degraded: structural keyword present only in a comment must still FAIL.
 
@@ -297,24 +240,21 @@ def test_check_pyuvm_structure_comment_only_keyword_parity(tmp_path):
     )
     test_path.write_text(text, encoding="utf-8")
     env = {"IP_NAME": "widget"}
-    sh = _run_sh(PYUVM_SH, [], cwd=tmp_path, env=env)
     py = _run_py(PYUVM_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
+    # Comment-stripping hardening: the comment-only 'scoreboard' mention does not
+    # satisfy the structural check, so the gate FAILs.
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_check_pyuvm_structure_missing_ip_parity(tmp_path):
     env = {"IP_NAME": "does_not_exist"}
-    sh = _run_sh(PYUVM_SH, [], cwd=tmp_path, env=env)
     py = _run_py(PYUVM_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
 # --------------------------------------------------------------------------- #
 # check_tb_sim_evidence  (ENFORCED gate)
 # --------------------------------------------------------------------------- #
-SIM_EVID_SH = WF / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
 SIM_EVID_PY = WF / "tb-gen" / "scripts" / "check_tb_sim_evidence.py"
 
 _EVID_TEST_PY = """\
@@ -364,7 +304,6 @@ def _touch_newer(paths: list[Path], base: float) -> None:
         os.utime(p, (stamp, stamp))
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_good_pass_parity(tmp_path):
     ip = _make_evid_ip(tmp_path)
     sim = ip / "sim"
@@ -376,13 +315,10 @@ def test_check_tb_sim_evidence_good_pass_parity(tmp_path):
     now = time.time() + 5
     _touch_newer([sim / "results.xml", sim / "sim_report.txt"], now)
     env = {"IP_NAME": "gizmo"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 0, sh.stdout
+    assert py.returncode == 0, py.stdout
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_failures_no_escalation_parity(tmp_path):
     ip = _make_evid_ip(tmp_path)
     sim = ip / "sim"
@@ -393,13 +329,10 @@ def test_check_tb_sim_evidence_failures_no_escalation_parity(tmp_path):
     now = time.time() + 5
     _touch_newer([sim / "results.xml", sim / "sim_report.txt"], now)
     env = {"IP_NAME": "gizmo"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_failures_with_escalation_parity(tmp_path):
     ip = _make_evid_ip(tmp_path)
     sim = ip / "sim"
@@ -412,13 +345,10 @@ def test_check_tb_sim_evidence_failures_with_escalation_parity(tmp_path):
     now = time.time() + 5
     _touch_newer([sim / "results.xml", sim / "sim_report.txt"], now)
     env = {"IP_NAME": "gizmo"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 0, sh.stdout
+    assert py.returncode == 0, py.stdout
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_zero_tests_parity(tmp_path):
     ip = _make_evid_ip(tmp_path)
     sim = ip / "sim"
@@ -429,13 +359,10 @@ def test_check_tb_sim_evidence_zero_tests_parity(tmp_path):
     now = time.time() + 5
     _touch_newer([sim / "results.xml", sim / "sim_report.txt"], now)
     env = {"IP_NAME": "gizmo"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_stale_failure_text_parity(tmp_path):
     """Degraded: XML reports 0 failures but report still carries FAIL=3 text."""
     ip = _make_evid_ip(tmp_path)
@@ -449,13 +376,10 @@ def test_check_tb_sim_evidence_stale_failure_text_parity(tmp_path):
     now = time.time() + 5
     _touch_newer([sim / "results.xml", sim / "sim_report.txt"], now)
     env = {"IP_NAME": "gizmo"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_stale_evidence_parity(tmp_path):
     """Degraded: TB file is newer than the simulation evidence (freshness fail)."""
     ip = _make_evid_ip(tmp_path)
@@ -469,38 +393,31 @@ def test_check_tb_sim_evidence_stale_evidence_parity(tmp_path):
     _touch_newer([sim / "results.xml", sim / "sim_report.txt"], base)
     _touch_newer([ip / "tb" / "cocotb" / "test_gizmo.py"], base + 10)
     env = {"IP_NAME": "gizmo"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_check_tb_sim_evidence_missing_ip_parity(tmp_path):
     env = {"IP_NAME": "ghost"}
-    sh = _run_sh(SIM_EVID_SH, [], cwd=tmp_path, env=env)
     py = _run_py(SIM_EVID_PY, [], cwd=tmp_path, env=env)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    assert py.returncode == 1
 
 
 # --------------------------------------------------------------------------- #
 # sim  (heavy runner)
 # --------------------------------------------------------------------------- #
-SIM_SH = WF / "tb-gen" / "scripts" / "sim.sh"
 SIM_PY = WF / "tb-gen" / "scripts" / "sim.py"
 
 
-def _run_sim(script, args, cwd, runner: str, *, py: bool):
+def _run_sim(script, args, cwd, *, log_name: str = ".bench_py"):
     env = dict(os.environ)
-    env["BENCHMARK_LOG"] = ".bench_py" if py else ".bench_sh"
-    cmd = [sys.executable, str(script), *args] if py else ["bash", str(script), *args]
+    env["BENCHMARK_LOG"] = log_name
     return subprocess.run(
-        cmd, cwd=str(cwd), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env
+        [sys.executable, str(script), *args],
+        cwd=str(cwd), text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=env
     )
 
 
-@skip_no_bash
 def test_sim_cocotb_pass_parity(tmp_path):
     runner = tmp_path / "g" / "tb" / "cocotb" / "test_runner.py"
     runner.parent.mkdir(parents=True)
@@ -513,13 +430,10 @@ def test_sim_cocotb_pass_parity(tmp_path):
         encoding="utf-8",
     )
     rel = "g/tb/cocotb/test_runner.py"
-    sh = _run_sim(SIM_SH, [rel], tmp_path, rel, py=False)
-    py = _run_sim(SIM_PY, [rel], tmp_path, rel, py=True)
-    _assert_parity(sh, py)
-    assert sh.returncode == 0, sh.stdout
+    py = _run_sim(SIM_PY, [rel], tmp_path)
+    assert py.returncode == 0, py.stdout
 
 
-@skip_no_bash
 def test_sim_cocotb_fail_parity(tmp_path):
     runner = tmp_path / "g" / "tb" / "cocotb" / "test_runner.py"
     runner.parent.mkdir(parents=True)
@@ -532,23 +446,17 @@ def test_sim_cocotb_fail_parity(tmp_path):
         encoding="utf-8",
     )
     rel = "g/tb/cocotb/test_runner.py"
-    sh = _run_sim(SIM_SH, [rel], tmp_path, rel, py=False)
-    py = _run_sim(SIM_PY, [rel], tmp_path, rel, py=True)
-    _assert_parity(sh, py)
-    assert sh.returncode != 0
+    py = _run_sim(SIM_PY, [rel], tmp_path)
+    assert py.returncode != 0
 
 
-@skip_no_bash
 def test_sim_no_testbench_parity(tmp_path):
-    sh = _run_sim(SIM_SH, [], tmp_path, "", py=False)
-    py = _run_sim(SIM_PY, [], tmp_path, "", py=True)
-    _assert_parity(sh, py)
-    assert sh.returncode == 1
+    py = _run_sim(SIM_PY, [], tmp_path)
+    assert py.returncode == 1
 
 
-@skip_no_bash
 def test_sim_benchmark_log_content_parity(tmp_path):
-    """The appended benchmark line (minus timestamp) must match byte-for-byte."""
+    """The appended benchmark line (minus timestamp) has the pinned content."""
     runner = tmp_path / "g" / "tb" / "cocotb" / "test_runner.py"
     runner.parent.mkdir(parents=True)
     runner.write_text(
@@ -560,11 +468,12 @@ def test_sim_benchmark_log_content_parity(tmp_path):
         encoding="utf-8",
     )
     rel = "g/tb/cocotb/test_runner.py"
-    _run_sim(SIM_SH, [rel], tmp_path, rel, py=False)
-    _run_sim(SIM_PY, [rel], tmp_path, rel, py=True)
+    _run_sim(SIM_PY, [rel], tmp_path, log_name=".bench_py")
 
     def _strip_ts(path: Path) -> str:
         line = path.read_text(encoding="utf-8").strip()
         return line.split(" ", 1)[1] if " " in line else line
 
-    assert _strip_ts(tmp_path / ".bench_sh") == _strip_ts(tmp_path / ".bench_py")
+    assert _strip_ts(tmp_path / ".bench_py") == (
+        "sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=g/tb/cocotb/test_runner.py"
+    )

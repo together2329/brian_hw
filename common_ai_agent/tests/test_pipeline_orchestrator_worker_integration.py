@@ -155,7 +155,7 @@ def _write_minimal_valid_ssot_rtl_fixture(ip_dir: Path, ip: str) -> None:
     IMPORTANT (verified against the production gate): the strict gate in
     ``_enforce_completion_evidence_gate`` calls ``_refresh_completed_stage_evidence``
     which re-runs the REAL ``WorkflowStageEngine.run_stage("ssot-rtl")`` and the
-    real ``check_rtl_disk.sh`` disk validator against this fixture. With only a
+    real ``check_rtl_disk.py`` disk validator against this fixture. With only a
     minimal SSOT (no function_model/cycle_model) the engine rewrites
     ``rtl/rtl_todo_plan.json`` to a blocked gate and the disk validator rejects a
     trivial module. So positive green tests MUST pair this fixture with the
@@ -332,7 +332,7 @@ def _write_mock_stage_artifact(payload: dict) -> None:
         # Write the full minimal-valid RTL evidence set (Task 2) so the strict
         # completion-evidence gate accepts it. Paired with
         # _patch_rtl_gate_for_fixture in positive tests, since the gate's engine
-        # re-run + check_rtl_disk.sh would otherwise clobber/reject a cheap fixture.
+        # re-run + check_rtl_disk.py would otherwise clobber/reject a cheap fixture.
         _write_minimal_valid_ssot_rtl_fixture(ip_dir, ip)
     elif stage == "lint" or workflow == "lint":
         write("lint/dut_lint.json", '{"errors":0,"warnings":0,"pyslang":[],"verilator":[]}\n')
@@ -3001,7 +3001,7 @@ def test_full_ip_pipeline_can_complete_all_stages_across_two_workers(
 ) -> None:
     import atlas_api_jobs as jobs
 
-    # _job_artifact_recovery for ssot calls workflow/ssot-gen/scripts/check_ssot_disk.sh
+    # _job_artifact_recovery for ssot calls workflow/ssot-gen/scripts/check_ssot_disk.py
     # against project_root. Symlink the real workflow dir so the validator script
     # is reachable in the test sandbox.
     (tmp_path / "workflow").symlink_to(PROJECT_ROOT / "workflow", target_is_directory=True)

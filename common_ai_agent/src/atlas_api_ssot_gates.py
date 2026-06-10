@@ -155,7 +155,7 @@ def register_ssot_gates_routes(
                 if ssot_path.is_file() else "ssot file not found"
             ),
             [_rel(ssot_path)] if ssot_path.is_file() else [],
-            "workflow/ssot-gen/scripts/check_ssot_disk.sh",
+            "workflow/ssot-gen/scripts/check_ssot_disk.py",
         )
         _add_q(
             "downstream_readiness",
@@ -358,7 +358,7 @@ def register_ssot_gates_routes(
             ssot_gen_status,
             f"sections={present_sections}/{len(REQUIRED_SECTIONS)} downstream_blockers={len(downstream_blockers)}",
             [_rel(ssot_path)],
-            ["workflow/ssot-gen/scripts/repair_ssot_schema.py", "workflow/ssot-gen/scripts/check_ssot_disk.sh"],
+            ["workflow/ssot-gen/scripts/repair_ssot_schema.py", "workflow/ssot-gen/scripts/check_ssot_disk.py"],
         )
 
         # fl-model-gen

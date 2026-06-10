@@ -99,7 +99,7 @@ def test_ssot_qa_workbench_has_first_class_actions_and_no_history_panel():
     assert "fullHeight={true}" in src
     assert "/api/ssot/import/upload" in combined
     assert "/api/ssot/validate" in combined
-    assert "check_ssot_disk.sh" in combined
+    assert "check_ssot_disk.py" in combined
     assert "verify_ssot.py" in combined
     assert "runSsotCommand(`/grill-me ${data.ip}`)" in combined
     assert "runSsotCommand(`/to-ssot ${data.ip}`)" in combined
