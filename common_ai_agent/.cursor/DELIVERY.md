@@ -23,6 +23,8 @@ Cursor IDE로 `<your-project>`를 열면 끝. rules가 자동 주입되고
 | `iverilog` + `cocotb` | 실제 시뮬레이션 |
 | (선택) LLM provider 키 | ssot→fl 자동 **저작** 스테이지. 없어도 결정론적 게이트/시뮬은 동작 |
 
+도구 설치법(macOS/Linux/Windows)은 **`SETUP.md`** 참조.
+
 ## 3. 1분 동작 확인 (스모크)
 
 프로젝트 루트에서:
