@@ -182,7 +182,7 @@ sections:
 {chr(10).join(f"  - name: section_{idx}" for idx in range(34))}
 """.strip() + "\n"
     (yaml_dir / f"{ip}.ssot.yaml").write_text(ssot_text, encoding="utf-8")
-    checker = tmp_path / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+    checker = tmp_path / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.py"
     checker.parent.mkdir(parents=True)
     checker.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
     checker.chmod(0o755)

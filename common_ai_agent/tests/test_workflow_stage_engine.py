@@ -23,7 +23,7 @@ PROFILE_RTL_REFERENCE = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "prof
 PREPARE_RTL_HUMAN_REVIEW = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "prepare_rtl_human_review.py"
 REFRESH_RTL_PROVENANCE = SOURCE_ROOT / "workflow" / "rtl-gen" / "scripts" / "refresh_rtl_provenance.py"
 REPAIR_SSOT = SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "repair_ssot_schema.py"
-WRITE_STA_SDC = SOURCE_ROOT / "workflow" / "sta" / "scripts" / "write_sdc.sh"
+WRITE_STA_SDC = SOURCE_ROOT / "workflow" / "sta" / "scripts" / "write_sdc.py"
 EMIT_FL_MODEL = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_fl_model.py"
 EMIT_AUTHORITY_MANIFEST = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_authority_manifest.py"
 EMIT_MODEL_SIGNATURE = SOURCE_ROOT / "workflow" / "fl-model-gen" / "scripts" / "emit_model_signature.py"
@@ -3567,7 +3567,7 @@ def test_repair_ssot_schema_preserves_general_ip_and_defers_connection_contracts
     assert "axi4-lite" not in serialized
 
     check = subprocess.run(
-        ["bash", str(SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"), ip],
+        [sys.executable, str(SOURCE_ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.py"), ip],
         cwd=str(tmp_path),
         text=True,
         capture_output=True,
@@ -3623,7 +3623,7 @@ def test_sta_sdc_uses_canonical_timing_target_clocks(tmp_path: Path):
     )
 
     result = subprocess.run(
-        ["bash", str(WRITE_STA_SDC), ip],
+        [sys.executable, str(WRITE_STA_SDC), ip],
         cwd=str(tmp_path),
         text=True,
         capture_output=True,

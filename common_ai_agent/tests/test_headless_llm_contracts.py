@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import importlib.util
 import subprocess
+import sys
 from pathlib import Path
 
 import yaml
@@ -76,12 +77,12 @@ def _base_ssot_doc(ip: str) -> dict:
 
 
 def _run_check_ssot(root: Path, ip: str, extra_args: list[str] | None = None) -> subprocess.CompletedProcess[str]:
-    script = Path(__file__).resolve().parents[1] / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+    script = Path(__file__).resolve().parents[1] / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.py"
     args = list(extra_args or [])
     if "--mode" not in args and not any(arg.startswith("--mode=") for arg in args):
         args = ["--mode", "signoff", *args]
     return subprocess.run(
-        ["bash", str(script), ip, *args],
+        [sys.executable, str(script), ip, *args],
         cwd=str(root),
         text=True,
         capture_output=True,

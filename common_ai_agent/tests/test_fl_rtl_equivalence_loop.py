@@ -29,8 +29,8 @@ DERIVE_RTL_TODOS_PATH = REPO / "workflow" / "rtl-gen" / "scripts" / "derive_rtl_
 RTL_COMPILE_PATH = REPO / "workflow" / "rtl-gen" / "scripts" / "rtl_compile_report.py"
 DUT_LINT_PATH = REPO / "workflow" / "lint" / "scripts" / "dut_lint_report.py"
 TB_GEN_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
-CHECK_PYUVM_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
-SIM_SCRIPT_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "sim.sh"
+CHECK_PYUVM_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "check_pyuvm_structure.py"
+SIM_SCRIPT_PATH = REPO / "workflow" / "tb-gen" / "scripts" / "sim.py"
 
 
 def _load_module(path: Path, name: str):

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -294,7 +295,7 @@ def test_sim_script_stamps_freshness_after_successful_python_runner(tmp_path: Pa
     env["BENCHMARK_LOG"] = str(tmp_path / "benchmark.log")
 
     sim = subprocess.run(
-        ["bash", str(REPO / "workflow" / "tb-gen" / "scripts" / "sim.sh"), str(runner)],
+        [sys.executable, str(REPO / "workflow" / "tb-gen" / "scripts" / "sim.py"), str(runner)],
         cwd=REPO,
         env=env,
         text=True,
