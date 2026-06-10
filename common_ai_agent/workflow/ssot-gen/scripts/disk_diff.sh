@@ -1,1 +1,0 @@
-../../tb-gen/scripts/disk_diff.sh
