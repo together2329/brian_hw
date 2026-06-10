@@ -449,6 +449,71 @@ def test_scm_sync_route_rejects_empty_perforce_selection_with_target_folder(tmp_
     assert "sync_called" not in seen
 
 
+def test_scm_change_delete_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def delete_pending_changelist(self, changelist: str, stream: str = ""):
+            seen["changelist"] = changelist
+            seen["stream"] = stream
+            return SCMCommandResult(
+                ok=True,
+                provider=self.provider,
+                root=self.root,
+                stdout=f"Change {changelist} deleted.",
+                returncode=0,
+                command=("p4", "change", "-d", changelist),
+            )
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/change/delete",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "changelist": "12",
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["stdout"] == "Change 12 deleted."
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "changelist": "12",
+        "stream": "//GOOD_SOC/GOOD_IP",
+    }
+
+
+def test_scm_change_delete_route_reports_unsupported_provider(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/change/delete",
+        json={"ip": "alpha", "changelist": "12"},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is False
+    assert "not supported" in payload["error"]
+
+
 def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)

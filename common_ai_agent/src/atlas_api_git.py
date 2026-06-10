@@ -572,3 +572,30 @@ def register_git_routes(
                 **_root_fields(local_root, scm_root_path),
             }, status_code=200)
         return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
+
+    @app.post("/api/scm/change/delete")
+    async def api_scm_change_delete(payload: dict[str, Any]):
+        # Delete a numbered pending changelist (revert -k its files, then
+        # p4 change -d). Provider-specific (Perforce).
+        body = payload or {}
+        provider = str(body.get("provider") or "")
+        stream = str(body.get("stream") or "")
+        changelist = str(body.get("changelist") or body.get("change") or "")
+        scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
+        session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
+        local_root, scm_root_path, error, resolved_ip = _route_roots(
+            str(body.get("ip") or ""), provider=provider, scm_root_value=scm_root_value, session_id=session_id,
+        )
+        if error is not None:
+            return error
+        kwargs = {"stream": stream} if stream else {}
+        result, prov, supported = await _scm_optional(
+            scm_root_path, "delete_pending_changelist", changelist, provider=provider, **kwargs,
+        )
+        if not supported:
+            return JSONResponse({
+                "ok": False, "provider": prov, "ip": resolved_ip,
+                "error": f"changelist delete is not supported for provider '{prov}'",
+                **_root_fields(local_root, scm_root_path),
+            }, status_code=200)
+        return _scm_result_json(result, resolved_ip, local_root, scm_root_path)
