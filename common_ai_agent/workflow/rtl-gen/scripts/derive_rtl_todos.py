@@ -8250,6 +8250,12 @@ def _audit_manifest_hierarchy(ip_dir: Path, plan: dict[str, Any]) -> dict[str, A
                     "expected_signal": expected_signal,
                     "rtl_exprs": non_empty_exprs,
                     "issue": "RTL named port-map expression does not match SSOT connection signal terms",
+                    "fix": (
+                        "Change executable RTL, not comments: rewire the instance port to the "
+                        "SSOT signal term, rename the local net, or route it through a "
+                        "continuous assign so the term appears in live wiring (assign chains up "
+                        "to depth 2 are accepted)."
+                    ),
                 })
 
     return {

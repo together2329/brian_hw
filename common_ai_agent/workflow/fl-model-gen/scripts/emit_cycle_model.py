@@ -1203,6 +1203,13 @@ def main() -> int:
             "[emit_cycle_model] symbol contract blocked: "
             + ", ".join(symbol_contract.get("unknown_symbols") or [])
         )
+        print(
+            "[emit_cycle_model] fix: every handshake/rule signal and expr symbol must be a "
+            "declared io port, parameter, register field, function_model.state_variables[] name, "
+            "or function_model.derived_signals[] name. Declare new helper symbols in "
+            "function_model.derived_signals with an expr (e.g. {name, expr, width}); do not "
+            "invent undeclared names or rename rules to dodge the check."
+        )
 
     # 10. Exit
     return 0 if passed else 1
