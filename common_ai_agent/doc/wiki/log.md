@@ -2,6 +2,21 @@
 
 ## 2026-06-10
 
+- **bash-free workflow cutover complete** (merge `17ba28a9`): all 91 wired workflow
+  `.sh` scripts ported to same-named `.py` (7 parallel families, differential
+  sh-vs-py parity proven then converted to py-only pinned regression, ~300 tests),
+  references switched everywhere (STAGE_MANIFEST, todo templates, engine
+  `[sys.executable,...]`, handlers, verify_ssot, stage_gate), and the ported `.sh`
+  deleted (93 files; mas-gen 7 kept as deprecated). Windows execution covered by
+  three layers: `python3`->`sys.executable` rewrite + git-bash/WSL auto-discovery
+  routing in todo validators, and engine argv built on `sys.executable`. main's
+  concurrent `check_sim_disk.sh` cocotb_build fallback was ported into the `.py`
+  before resolving the modify/delete conflict as deletion. Caveats: ports
+  delegating to coreutils pipelines need git-bash on PATH; sim/EDA stages remain
+  WSL-recommended; the `run_command` agent tool is still cmd.exe on Windows.
+
+## 2026-06-10
+
 - VCM semantic-contract GENERATOR integrated (extracted from `feat/vcm-generator`
   `4d866ca4`, 3 new files only — its engine/manifest/signoff edits predate the
   silent-pass hardening and were deliberately NOT taken):
