@@ -179,9 +179,10 @@ describe('BUG A — dropped-prompt replay reuses the ORIGINAL msg_id (no double 
     // realistic trigger by which the replay later re-fires the held prompt.
     await act(async () => {
       fireEvent.change(textarea, { target: { value: 'implement the FIFO ' } });
-      // The replay fires on an 80ms timer; wait past it, then let the replay
+      // The nudged box syncs to the parent on the 240ms prose tier, THEN the
+      // replay fires on an 80ms timer; wait past both, then let the replay
       // send's own ack settle.
-      await flush(160);
+      await flush(420);
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -216,7 +217,7 @@ describe('BUG A — dropped-prompt replay reuses the ORIGINAL msg_id (no double 
 
     await act(async () => {
       fireEvent.change(textarea, { target: { value: 'implement the FIFO ' } });
-      await flush(160);
+      await flush(420);
       await Promise.resolve();
       await Promise.resolve();
     });
@@ -227,7 +228,7 @@ describe('BUG A — dropped-prompt replay reuses the ORIGINAL msg_id (no double 
 
     await act(async () => {
       fireEvent.change(textarea, { target: { value: 'implement the FIFO  ' } });
-      await flush(160);
+      await flush(420);
       await Promise.resolve();
       await Promise.resolve();
     });

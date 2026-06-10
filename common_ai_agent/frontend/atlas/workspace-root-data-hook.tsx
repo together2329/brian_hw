@@ -490,7 +490,15 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const status = interactiveWorkerStatusFromPayload(await r.json());
         if (!status) return;
         if (!cancelled) {
-          setInteractiveWorkerStatus((prev: any) => (samePolledState(prev, status) ? prev : status));
+          // idle_age_sec advances on every poll by construction, which would
+          // make the bail-out never fire; nothing renders it per-tick, so
+          // exclude it from the comparison (JSON.stringify drops undefined).
+          const comparable = (s: any) => (
+            s && typeof s === 'object' ? { ...s, idle_age_sec: undefined } : s
+          );
+          setInteractiveWorkerStatus((prev: any) => (
+            samePolledState(comparable(prev), comparable(status)) ? prev : status
+          ));
           setInteractiveWorkerStatusError('');
         }
       } catch (e) {
@@ -1835,12 +1843,18 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return () => window.removeEventListener('atlas-data-changed', onDataChanged);
   }, []);
 
-  const acceptAtCompletion = (entry: any) => {
-    if (!atQuery) return;
-    const before = input.slice(0, atQuery.pos);
-    const after = input.slice(atQuery.pos + atQuery.token.length);
-    const parent = atQuery.parentRel ? atQuery.parentRel + '/' : '';
-    const rootPrefix = atQuery.absoluteEscape ? '/' : '';
+  // liveText/liveQuery: onPromptKey passes the textarea's CURRENT value (and a
+  // query parsed from it) because `input`/`atQuery` are debounced parent state
+  // and can be a sync-window behind — splicing into the stale text would
+  // clobber the user's newest keystrokes.
+  const acceptAtCompletion = (entry: any, liveText?: string, liveQuery?: any) => {
+    const text = typeof liveText === 'string' ? liveText : input;
+    const q = liveQuery !== undefined ? liveQuery : atQuery;
+    if (!q) return;
+    const before = text.slice(0, q.pos);
+    const after = text.slice(q.pos + q.token.length);
+    const parent = q.parentRel ? q.parentRel + '/' : '';
+    const rootPrefix = q.absoluteEscape ? '/' : '';
     if (entry.type === 'dir') {
       replaceInput(before + '@' + rootPrefix + parent + entry.name + '/' + after);
     } else {
@@ -2973,6 +2987,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         ))
       )
     );
+    // Drop guard: compare the PARENT input on purpose. This effect can run in
+    // the same commit that mirrors the hold into the box, before the
+    // composer's echo reaches the textarea DOM — a live read here would see
+    // the pre-mirror value and wrongly drop the hold. The actual replay below
+    // re-checks the LIVE box at fire time, which is the guard that protects
+    // fresh edits.
+    const liveBoxValue = () => String(inputRef.current?.value ?? input ?? '');
     if (held && (
       String(input || '').trim() !== held.raw
       || !heldImagesMatchCurrent(held.images || [])
@@ -2996,7 +3017,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         latest
         && latest.autoReplay !== false
         && !fifo.length
-        && String(input || '').trim() === latest.raw
+        && liveBoxValue().trim() === latest.raw
         && heldImagesMatchCurrent(latest.images || [])
       ) {
         // Carry the ack-miss hold's ORIGINAL msg_id so the re-fire below re-sends
@@ -3226,30 +3247,43 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   };
 
   const onPromptKey = (e: any): WorkspacePromptKeyResult => {
+    // showSlash/showAt (and filtered/atQuery) derive from the DEBOUNCED parent
+    // input — the textarea can be a sync-window ahead (fast typing + Enter
+    // before the deferred sync lands). Re-validate the popup shape against the
+    // LIVE DOM value so a stale-open popup cannot hijack Enter/Tab/arrows and
+    // submit the highlighted completion instead of the typed text. Escape
+    // stays gated on the stale flag on purpose: closing a lingering popup is
+    // always safe.
+    const liveValue = String(e.currentTarget?.value ?? input);
     if (showSlash) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel((s: number) => Math.min(s + 1, filtered.length - 1)); return 'handled'; }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); setSlashSel((s: number) => Math.max(s - 1, 0)); return 'handled'; }
-      if (e.key === 'Tab' || e.key === 'Enter') {
-        if (filtered[slashSel]) {
-          e.preventDefault();
-          if (e.key === 'Enter') return submitMsgKeyResult(filtered[slashSel].cmd, { clearCurrentInput: true });
-          replaceInput(filtered[slashSel].cmd + ' ');
-          return 'handled';
+      if (e.key === 'Escape') { e.preventDefault(); setShowSlash(false); return 'handled'; }
+      if (/^\/[^\s]*$/.test(liveValue)) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); setSlashSel((s: number) => Math.min(s + 1, filtered.length - 1)); return 'handled'; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); setSlashSel((s: number) => Math.max(s - 1, 0)); return 'handled'; }
+        if (e.key === 'Tab' || e.key === 'Enter') {
+          if (filtered[slashSel]) {
+            e.preventDefault();
+            if (e.key === 'Enter') return submitMsgKeyResult(filtered[slashSel].cmd, { clearCurrentInput: true });
+            replaceInput(filtered[slashSel].cmd + ' ');
+            return 'handled';
+          }
         }
       }
-      if (e.key === 'Escape') { e.preventDefault(); setShowSlash(false); return 'handled'; }
     }
     if (showAt) {
-      if (e.key === 'ArrowDown') { e.preventDefault(); setAtSel((s: number) => Math.min(s + 1, fileMatches.length - 1)); return 'handled'; }
-      if (e.key === 'ArrowUp')   { e.preventDefault(); setAtSel((s: number) => Math.max(s - 1, 0)); return 'handled'; }
-      if (e.key === 'Tab' || e.key === 'Enter') {
-        if (fileMatches[atSel]) {
-          e.preventDefault();
-          acceptAtCompletion(fileMatches[atSel]);
-          return 'handled';
+      if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return 'handled'; }
+      const liveAtQuery = parseAtQuery(liveValue);
+      if (liveAtQuery) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); setAtSel((s: number) => Math.min(s + 1, fileMatches.length - 1)); return 'handled'; }
+        if (e.key === 'ArrowUp')   { e.preventDefault(); setAtSel((s: number) => Math.max(s - 1, 0)); return 'handled'; }
+        if (e.key === 'Tab' || e.key === 'Enter') {
+          if (fileMatches[atSel]) {
+            e.preventDefault();
+            acceptAtCompletion(fileMatches[atSel], liveValue, liveAtQuery);
+            return 'handled';
+          }
         }
       }
-      if (e.key === 'Escape') { e.preventDefault(); setShowAt(false); return 'handled'; }
     }
     if (e.key === 'ArrowUp') {
       if (navigateInputHistory(-1)) {

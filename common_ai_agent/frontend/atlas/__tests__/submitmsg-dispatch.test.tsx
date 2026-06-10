@@ -433,7 +433,9 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(textarea.value).toBe('');
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(120);
+      // Past the slowest sync tier (240ms prose): a deferred sync surviving
+      // the submit would resurrect the cleared box by now.
+      await vi.advanceTimersByTimeAsync(260);
       await Promise.resolve();
     });
 
@@ -453,7 +455,9 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
 
     await act(async () => {
       fireEvent.change(textarea, { target: { value: 'synced prefix' } });
-      await vi.advanceTimersByTimeAsync(80);
+      // Prose syncs on the slow 240ms tier — advance past it so the parent
+      // really holds the stale prefix this test is about.
+      await vi.advanceTimersByTimeAsync(260);
       await Promise.resolve();
     });
     expect(textarea.value).toBe('synced prefix');
@@ -472,7 +476,7 @@ describe('submitMsg dispatch routing (the missing TDD gate)', () => {
     expect(textarea.value).toBe('');
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(120);
+      await vi.advanceTimersByTimeAsync(260);
       await Promise.resolve();
     });
     expect(textarea.value).toBe('');

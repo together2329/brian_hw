@@ -232,6 +232,61 @@ describe('Workspace render smoke (the behavioral gate)', () => {
       vi.advanceTimersByTime(60);
     });
     expect(setInput).toHaveBeenLastCalledWith('/sc');
+
+    // The popup-CLOSING transition must also be fast: the last parent-visible
+    // value ('/sc') is popup-shaped, so the prose continuation syncs at 60ms —
+    // otherwise the stale-open popup would hijack Enter for 240ms.
+    fireEvent.change(textarea, { target: { value: '/sc deploy now' } });
+    await act(async () => {
+      vi.advanceTimersByTime(60);
+    });
+    expect(setInput).toHaveBeenLastCalledWith('/sc deploy now');
+    vi.useRealTimers();
+  });
+
+  it('force-syncs a continuous prose burst via the max-wait cap', async () => {
+    vi.useFakeTimers();
+    const { WorkspacePromptRow } = await import('../workspace-root-render.tsx');
+    const setInput = vi.fn();
+    const inputRef = createRef<HTMLTextAreaElement>();
+    const { getByRole } = render(
+      <WorkspacePromptRow
+        workflow="default"
+        activeIp="demo"
+        feed={[]}
+        orchWorkers={[]}
+        workerProgress={null}
+        input=""
+        setInput={setInput}
+        inputRef={inputRef}
+        inputRouteState={null}
+        inputRouteRef={{ current: {} }}
+        inputHistoryIndexRef={{ current: null }}
+        inputHistoryDraftRef={{ current: '' }}
+        onKey={vi.fn()}
+        pendingQcard={null}
+        workflowReady={null}
+        atlasUiOrchestratorMode={() => false}
+        workflowForExecMode={(wf: unknown) => String(wf || 'default')}
+        defaultWorkflowForExecMode={() => 'default'}
+      />,
+    );
+    const textarea = getByRole('textbox') as HTMLTextAreaElement;
+
+    // Keystrokes at t=0/130/260/390ms — a pure trailing debounce would defer
+    // the parent sync to t=390+240=630ms; the 400ms max-wait forces a flush.
+    fireEvent.change(textarea, { target: { value: 'p1' } });
+    for (const value of ['p1 p2', 'p1 p2 p3', 'p1 p2 p3 p4']) {
+      await act(async () => {
+        vi.advanceTimersByTime(130);
+      });
+      fireEvent.change(textarea, { target: { value } });
+    }
+    expect(setInput).not.toHaveBeenCalled();
+    await act(async () => {
+      vi.advanceTimersByTime(20); // t=410 > 400ms max-wait
+    });
+    expect(setInput).toHaveBeenLastCalledWith('p1 p2 p3 p4');
     vi.useRealTimers();
   });
 
@@ -313,7 +368,9 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(textarea.value).toBe('');
 
     await act(async () => {
-      vi.advanceTimersByTime(80);
+      // Past BOTH sync tiers (60/240ms) and the 400ms max-wait — the reset
+      // must have cancelled the pending sync outright, not just outrun it.
+      vi.advanceTimersByTime(450);
     });
     expect(setInput).not.toHaveBeenCalled();
     vi.useRealTimers();
