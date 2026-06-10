@@ -510,21 +510,38 @@ def reload_env() -> bool:
             _ENV_MTIME_CACHE[str(env_path)] = mtime
             changed = True
     if changed:
-        load_env_file(force_reload=True)
-        _resolve_pdk_env_defaults()
-        _refresh_runtime_globals()
-        # Re-apply the active profile after refreshing globals so an edit
-        # to PROFILE_<active>_* in .env is picked up live. Guarded against
-        # the first call during module bootstrap, where _apply_profile is
-        # defined later in the file.
-        try:
-            active = os.getenv("LLM_PROFILE", "").strip()
-            if active and _should_apply_env_profile():
-                _apply_profile(active)  # type: ignore[name-defined]
-            _apply_model_dropdown_selection()
-        except NameError:
-            pass
+        # Serialize the whole refresh+apply so a concurrent reload/profile
+        # switch can't interleave the provider trio. The mtime check above is
+        # lock-free, so the hot path (nothing changed) pays nothing. (review [32])
+        with _CONFIG_LOCK:
+            load_env_file(force_reload=True)
+            _resolve_pdk_env_defaults()
+            _refresh_runtime_globals()
+            # Re-apply the active profile after refreshing globals so an edit
+            # to PROFILE_<active>_* in .env is picked up live. Guarded against
+            # the first call during module bootstrap, where _apply_profile is
+            # defined later in the file.
+            try:
+                active = os.getenv("LLM_PROFILE", "").strip()
+                if active and _should_apply_env_profile():
+                    _apply_profile(active)  # type: ignore[name-defined]
+                _apply_model_dropdown_selection()
+            except NameError:
+                pass
     return changed
+
+
+def active_provider() -> tuple:
+    """Atomic snapshot of the (base_url, api_key, model) provider trio.
+
+    A dispatch that reads all three for one request should use this instead of
+    three separate config.BASE_URL / config.API_KEY / config.MODEL_NAME reads:
+    under the lock the trio is internally consistent, so a concurrent
+    reload/profile-switch cannot hand back provider A's URL with provider B's
+    key. (review [32])
+    """
+    with _CONFIG_LOCK:
+        return (BASE_URL, API_KEY, MODEL_NAME)
 
 
 # Prime the mtime cache + load files for the first time.
@@ -545,6 +562,21 @@ _resolve_pdk_env_defaults()
 BASE_URL = os.getenv("LLM_BASE_URL", "https://api.openai.com/v1")
 API_KEY = os.getenv("LLM_API_KEY", "your-openai-api-key-here")
 MODEL_NAME = os.getenv("LLM_MODEL_NAME", "gpt-4o-mini")
+
+# Snapshot the ORIGINAL top-level LLM_* BEFORE any profile application mutates
+# os.environ (the boot-time _apply_profile below, and runtime profile switches,
+# both overwrite os.environ['LLM_BASE_URL'/'LLM_API_KEY']). get_profile() falls
+# through to THIS snapshot for profiles that omit base_url/api_key — otherwise
+# switching profile A -> B (B omitting base_url) would inherit A's poisoned
+# os.environ value and send B's calls to A's endpoint/key. (review [31])
+_ORIGINAL_LLM_BASE_URL = (os.getenv("LLM_BASE_URL", "") or "").strip()
+_ORIGINAL_LLM_API_KEY = (os.getenv("LLM_API_KEY", "") or "").strip()
+
+# Serializes the config-mutation block (reload_env refresh + profile apply) so
+# two concurrent writers can't interleave the BASE_URL/API_KEY/MODEL_NAME trio
+# into a mixed-provider state. Reads stay lock-free; callers needing an atomic
+# read of all three use active_provider(). (review [32])
+_CONFIG_LOCK = threading.Lock()
 SSL_VERIFY = os.getenv("SSL_VERIFY", "true").lower() != "false"  # set false for corporate proxy
 CUSTOM_PRICE = os.getenv("CUSTOM_PRICE", "false").lower() == "true"  # GLM flat $1/$0/$1 per 1M when true
 PRIMARY_MODEL = os.getenv("PRIMARY_MODEL", MODEL_NAME)
@@ -631,10 +663,12 @@ def get_profile(name: str) -> dict:
         return {}
     return {
         "name": name,
+        # Fall through to the ORIGINAL top-level snapshot, NOT the live
+        # os.environ (which a prior profile-apply may have poisoned). (review [31])
         "base_url": os.getenv(pfx + "BASE_URL", "").strip()
-                    or os.getenv("LLM_BASE_URL", "").strip(),
+                    or _ORIGINAL_LLM_BASE_URL,
         "api_key": os.getenv(pfx + "API_KEY", "").strip()
-                   or os.getenv("LLM_API_KEY", "").strip(),
+                   or _ORIGINAL_LLM_API_KEY,
         "model": model,
     }
 
@@ -677,15 +711,16 @@ def set_active_profile(name: str) -> bool:
     """
     if not get_profile(name):
         return False
-    _deact = globals().get("deactivate_opencode_oauth")
-    if callable(_deact) and globals().get("USE_OPENCODE_OAUTH"):
-        _deact()
-    ok = _apply_profile(name)
-    if ok:
-        mark_runtime_model_override()
-        _deact_cli = globals().get("deactivate_cli_backends")
-        if callable(_deact_cli):
-            _deact_cli()
+    with _CONFIG_LOCK:
+        _deact = globals().get("deactivate_opencode_oauth")
+        if callable(_deact) and globals().get("USE_OPENCODE_OAUTH"):
+            _deact()
+        ok = _apply_profile(name)
+        if ok:
+            mark_runtime_model_override()
+            _deact_cli = globals().get("deactivate_cli_backends")
+            if callable(_deact_cli):
+                _deact_cli()
     return ok
 
 
