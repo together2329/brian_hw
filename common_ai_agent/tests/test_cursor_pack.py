@@ -97,14 +97,15 @@ def _run_subagent_hook(stdin_obj):
     proc = subprocess.run(
         [sys.executable, str(SUBAGENT_HOOK)],
         input=json.dumps(stdin_obj, ensure_ascii=False), capture_output=True,
-        text=True, env={"PATH": "/usr/bin:/bin"}, timeout=15)
+        text=True, env={"PATH": "/usr/bin:/bin", "CURSOR_PROJECT_DIR": str(REPO)},
+        timeout=15)
     assert proc.returncode == 0, proc.stderr
     return json.loads(proc.stdout)
 
 
 def test_subagent_hook_blocks_claim_without_evidence():
     out = _run_subagent_hook({
-        "subagent_type": "atlas-sim", "status": "completed",
+        "subagent_type": "sim", "status": "completed",
         "summary": "시뮬레이션을 잘 마쳤고 모든 것이 정상으로 보입니다.", "loop_count": 0})
     assert "증거" in out.get("followup_message", "")
 
@@ -113,16 +114,19 @@ def test_subagent_hook_passes_with_evidence():
     for summary in ("sim gate PASS: 28/28 scoreboard, results.xml fresh",
                     "pytest: 11 passed; check_sim_disk rc=0"):
         out = _run_subagent_hook({
-            "subagent_type": "atlas-sim", "status": "completed",
+            "subagent_type": "sim", "status": "completed",
             "summary": summary, "loop_count": 0})
         assert out == {}, summary
 
 
-def test_subagent_hook_ignores_non_owner_and_aborts():
+def test_subagent_hook_ignores_readonly_unknown_and_aborts():
+    # readonly 관찰자(explorer)와 미정의 subagent 는 면제, abort 에도 침묵
     assert _run_subagent_hook({
         "subagent_type": "explorer", "status": "completed", "summary": "둘러봄"}) == {}
     assert _run_subagent_hook({
-        "subagent_type": "atlas-sim", "status": "aborted", "summary": ""}) == {}
+        "subagent_type": "ghost-agent", "status": "completed", "summary": "?"}) == {}
+    assert _run_subagent_hook({
+        "subagent_type": "sim", "status": "aborted", "summary": ""}) == {}
 
 
 # ---------- 루프 시뮬레이션: hook이 todo를 닫아가며 종료까지 가는가 ----------
@@ -220,8 +224,8 @@ def test_skills_name_matches_folder():
 def test_rocev_chain_references_existing_scripts():
     referenced = set()
     for doc in (CURSOR / "skills" / "rocev-chain" / "SKILL.md",
-                CURSOR / "agents" / "atlas-req-gen.md",
-                CURSOR / "agents" / "atlas-rocev-chain.md"):
+                CURSOR / "agents" / "req-gen.md",
+                CURSOR / "agents" / "rocev-chain.md"):
         text = doc.read_text(encoding="utf-8")
         referenced |= set(re.findall(r"python3 (\S+\.py)", text))
     assert referenced, "rocev-chain references no scripts"
@@ -230,6 +234,14 @@ def test_rocev_chain_references_existing_scripts():
 
 
 def test_rocev_chain_subagent_owners_exist():
-    text = (CURSOR / "agents" / "atlas-rocev-chain.md").read_text(encoding="utf-8")
-    for owner in re.findall(r"`/(atlas-[a-z0-9-]+)`", text):
+    text = (CURSOR / "agents" / "rocev-chain.md").read_text(encoding="utf-8")
+    owners = re.findall(r"`/([a-z0-9-]+)`", text)
+    assert owners, "rocev-chain declares no stage owners"
+    for owner in owners:
         assert (CURSOR / "agents" / f"{owner}.md").is_file(), f"owner subagent missing: {owner}"
+
+
+def test_no_atlas_prefixed_names_under_cursor():
+    """ratchet: .cursor 밑 식별자(파일/폴더명)에 atlas- 접두어 금지 (2026-06-10 지시)."""
+    offenders = [p for p in CURSOR.rglob("atlas-*") if "atlas-" in p.name]
+    assert offenders == [], f"atlas-prefixed names remain: {offenders}"

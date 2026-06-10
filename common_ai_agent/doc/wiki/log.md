@@ -2,6 +2,19 @@
 
 ## 2026-06-10
 
+- **Cursor Agent Pack v2** (commits `c6b0daf2`+`c23195dd`): Cursor 공식 스펙
+  (hooks/subagents/skills 가이드 fetch)대로 — ① `stop-todo-loop.py` (open todo
+  잔존 시 followup 자동 재투입, loop_limit 20) ② `subagent-evidence-check.py`
+  (subagentStop: atlas-* 오너의 증거 없는 완료 차단) ③ `rocev-chain` skill +
+  `req-gen`/`rocev-chain` subagents (req→rtl→tb→sim, 스테이지별
+  ROCEV) ④ `scripts/ip_wiki.py` + `ip-wiki` skill (<ip>/wiki 히스토리,
+  frontmatter/[[link]] 게이트) ⑤ `scripts/atlas_mcp_server.py` + `mcp.json`
+  (RTL DB query MCP: rtl_db_query/rtl_db_wiki 주 툴 + ontology_query/wiki_search).
+  검증 30 tests + cursor-agent 실런(rule 주입·hooks 인식 확인). 한계 실측:
+  stop hook 루프는 `-p` print 모드 미발화 (IDE 대화 모드 전용) → known_gap.
+  온톨로지: REQ_PLAT_CURSOR_PARITY_001 7/7 closed + platform.{cursor-pack,ip-wiki}.
+  [[cursor-agent-pack]]
+
 - **refuted 5건 전량 수정 — backlog 0, spine 17/17 closed** (commits `d8924d51`
   memory, `c319da37` compression-evidence, `78685249` sessions): ProceduralMemory
   절대경로 존중, auto_extract `llm_error` 표면화, compressor silent-swallow는

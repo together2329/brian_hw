@@ -29,7 +29,7 @@ python3 workflow/req-gen/scripts/check_locked_truth_bundle.py <ip> --root .
 python3 workflow/req-gen/scripts/stage_gate.py <ip> --root .
 ```
 
-Gate FAIL → fix the requirement set, do not bypass. `/atlas-req-gen` subagent owns this stage.
+Gate FAIL → fix the requirement set, do not bypass. `/req-gen` subagent owns this stage.
 
 ## Stage 2 — rtl
 
@@ -37,7 +37,7 @@ Gate FAIL → fix the requirement set, do not bypass. `/atlas-req-gen` subagent 
 python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py <ip> --root . --profile dv --execute --from-stage ssot-rtl --until lint
 ```
 
-Evidence: `rtl/rtl_compile.json` fresh, lint gate PASS. `/atlas-rtl-gen` owns repairs.
+Evidence: `rtl/rtl_compile.json` fresh, lint gate PASS. `/rtl-gen` owns repairs.
 
 ## Stage 3 — tb
 
@@ -46,7 +46,7 @@ python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py <ip> --root . --
 ```
 
 TB must observe every scoreboard observable in the SSOT expected_contract — a
-missing observable is a contract violation, not a TB style choice. `/atlas-tb-gen` owns.
+missing observable is a contract violation, not a TB style choice. `/tb-gen` owns.
 
 ## Stage 4 — sim (Evidence & Validation 닫기)
 
@@ -57,8 +57,8 @@ python3 workflow/reqcov/scripts/check_truth_coverage.py <ip> --root .
 ```
 
 PASS = real artifacts + ≥1 passing scoreboard event + zero failure markers.
-A timeout/empty-XML run is NOT evidence. `/atlas-sim` owns; escalate DUT bugs
-to `/atlas-rtl-gen` instead of weakening the TB.
+A timeout/empty-XML run is NOT evidence. `/sim` owns; escalate DUT bugs
+to `/rtl-gen` instead of weakening the TB.
 
 ## IP wiki history (every stage)
 
@@ -70,7 +70,7 @@ python3 scripts/ip_wiki.py log <ip> --stage <req|rtl|tb|sim> --title "<verdict>"
 python3 scripts/ip_wiki.py check <ip>
 ```
 
-See the `atlas-ip-wiki` skill for page creation and rules.
+See the `ip-wiki` skill for page creation and rules.
 
 ## Loop discipline
 

@@ -209,6 +209,8 @@ units:
       - scripts/atlas_mcp_server.py
     content_tests:
       - tests/test_cursor_pack.py
+    known_gaps:
+      - stop hook 루프는 IDE 대화 모드 전용 — cursor-agent -p(print)에서 미발화 실측 (2026-06-10); Cursor 문서상 cloud/headless는 stop 미지원
 
   - id: platform.ip-wiki
     kind: tooling
