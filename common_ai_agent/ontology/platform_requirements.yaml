@@ -195,6 +195,14 @@ requirements:
           - test: "tests/test_scm_perforce_adapter.py::test_live_failed_default_submit_strands_no_numbered_changelist"
             observed_at: 8098c181
         repro: scripts/repro_perforce_pending.py
+      - id: OBL_P4_STREAM_ROOT_TARGET_MAPS_IP
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_open_paths_stream_root_folder_target_mirrors_ip_subpath"
+            observed_at: b3df2164
+        repro: scripts/e2e_perforce_ui_flow.py
       - id: OBL_P4_PENDING_CL_DELETABLE
         owned_by: platform.scm
         granularity: behavior
