@@ -759,7 +759,7 @@ export interface PipelineOrchestratorChatPanelProps {
 interface OrchestratorChatComposerProps {
   hasIp: boolean;
   ip?: string;
-  onSubmit: (text: string) => Promise<void>;
+  onSubmit: (text: string) => Promise<boolean>;
   scrollToBottom: () => void;
 }
 
@@ -778,8 +778,11 @@ const OrchestratorChatComposer = memo(function OrchestratorChatComposer({
     setSending(true);
     scrollToBottom();
     try {
-      await onSubmit(text);
-      setDraft('');
+      // Keep the draft on failure so the user can retry without retyping —
+      // submitMessage reports failure (and renders the feed notice) instead
+      // of throwing.
+      const delivered = await onSubmit(text);
+      if (delivered !== false) setDraft('');
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
       console.warn(`orchestrator chat send failed: ${detail}`);
@@ -881,7 +884,13 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     const appendEntries = (incoming: OrchestratorFeedEntry[]) => {
       if (!incoming.length) return;
       setMessages(prev => {
-        const merged = coalesceAtlasFeedEntries(prev, incoming as any[]) as OrchestratorFeedEntry[];
+        // coalesceAtlasFeedEntries does NOT dedup by id — without this guard
+        // the same message arriving via both WS and the unconditional poll
+        // would render twice.
+        const seen = new Set(prev.map((item) => item.id));
+        const fresh = incoming.filter((entry) => !seen.has(entry.id));
+        if (!fresh.length) return prev;
+        const merged = coalesceAtlasFeedEntries(prev, fresh as any[]) as OrchestratorFeedEntry[];
         return trimAtlasFeedState(merged, ORCH_CHAT_FEED_MAX_ENTRIES);
       });
       const latest = incoming.reduce((acc, item) => {
@@ -913,7 +922,9 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     const fetchOnce = async () => {
       if (dead) return;
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
-        schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+        // Hidden tab: only an active orchestrator keeps a slow heartbeat;
+        // idle panels go quiet and resume via the visibilitychange handler.
+        if (isActive) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
         return;
       }
       try {
@@ -1034,13 +1045,15 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
           if (reason) detail = `HTTP ${r.status}: ${String(reason)}`;
         } catch (_) { /* non-JSON error body */ }
         notifySendFailure(detail);
-        return;
+        return false;
       }
       // The server persists the user message (and ack) before replying —
       // pull them into the feed now instead of waiting for the next poll.
       void fetchOnceRef.current?.();
+      return true;
     } catch (e) {
       notifySendFailure(e instanceof Error ? e.message : String(e));
+      return false;
     }
   }, [ip]);
 

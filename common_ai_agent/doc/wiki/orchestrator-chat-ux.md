@@ -314,10 +314,14 @@ gpt-5.5 응답, tool step/최종 요약까지 전부 `GET /api/orchestrator/chat
 2. **전송 무음**: `submitMessage` 가 POST 응답을 무시 — 401/403 거부도, 성공도
    화면에 아무 표시 없음 (optimistic echo 없음, 전송 후 재조회 없음).
 
-**Fix (`44d345db`)**: 폴링 상시화 (WS는 latency 개선용으로 유지, id 중복은
-기존 dedup 이 처리) + `submitMessage` 가 `r.ok` 검사 → 실패 시
-`⚠ message not delivered — HTTP nnn: reason` 피드 엔트리 표시, 성공 시 즉시
-`fetchOnce` 재조회 (서버가 응답 전에 user 메시지를 persist 하므로 바로 보임).
+**Fix (`44d345db` + review follow-up)**: 폴링 상시화 (WS는 latency 개선용으로
+유지) + `submitMessage` 가 `r.ok` 검사 → 실패 시
+`⚠ message not delivered — HTTP nnn: reason` 피드 엔트리 표시 + draft 보존,
+성공 시 즉시 `fetchOnce` 재조회 (서버가 응답 전에 user 메시지를 persist 하므로
+바로 보임). 리뷰 반영: `coalesceAtlasFeedEntries` 는 id dedup 을 **하지
+않으므로** WS 경로(`appendEntries`)에 id-기반 dedup 추가 (서버 emitter 가
+생기면 WS+폴링 중복 수신이 실제 발생함); hidden 탭 heartbeat 는 active 런일
+때만.
 
 **Evidence**: vitest 3종
 (`__tests__/pipeline-rail-orchestrator-chat-visibility.test.tsx`) + pytest 소스
