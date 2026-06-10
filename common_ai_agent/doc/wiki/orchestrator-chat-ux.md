@@ -295,3 +295,35 @@ workflow_runs WHERE ip_id=18161...
     스크린샷: `.omc/ui-shots/handoff_card_render.png`.
 - 포맷 선택지(labeled / compact / title card)는 사용자가 **labeled card** 채택.
   fan-out 결과는 per-stage `lint ● running · tb ● running · syn ● queued` 로 표시.
+
+---
+
+## 2026-06-10 — Silent-output defect: panel could never display updates
+
+**Symptom**: orchestrator chat 창에 입력을 쳐도 아무 출력이 없음 (본인 메시지조차
+표시 안 됨). 백엔드는 정상이었다 — admin/일반 유저 모두 API로 직접 보내면 run 생성,
+gpt-5.5 응답, tool step/최종 요약까지 전부 `GET /api/orchestrator/chat/messages` 로
+조회 가능함을 실증.
+
+**Root cause (2건, 둘 다 `pipeline-rail.tsx`)**:
+1. **폴링이 WS 채널에 의해 꺼짐**: `hasLiveBackend` 이면 `schedulePoll` 호출이
+   전부 스킵되고 `backend.subscribe('orchestrator_chat', …)` 이벤트만 기다림.
+   그런데 서버에는 `orchestrator_chat` WS 이벤트를 **발행하는 코드가 없다**
+   (전부 read-side). 마운트 1회 fetch 이후 패널은 영원히 갱신 안 됨 (탭
+   visibility 변경 시에만 1회 재조회).
+2. **전송 무음**: `submitMessage` 가 POST 응답을 무시 — 401/403 거부도, 성공도
+   화면에 아무 표시 없음 (optimistic echo 없음, 전송 후 재조회 없음).
+
+**Fix (`44d345db`)**: 폴링 상시화 (WS는 latency 개선용으로 유지, id 중복은
+기존 dedup 이 처리) + `submitMessage` 가 `r.ok` 검사 → 실패 시
+`⚠ message not delivered — HTTP nnn: reason` 피드 엔트리 표시, 성공 시 즉시
+`fetchOnce` 재조회 (서버가 응답 전에 user 메시지를 persist 하므로 바로 보임).
+
+**Evidence**: vitest 3종
+(`__tests__/pipeline-rail-orchestrator-chat-visibility.test.tsx`) + pytest 소스
+불변식 (`tests/test_orchestrator_chat_visibility_frontend.py`). Ontology:
+`OBL_ORCH_CHAT_OUTPUT_VISIBLE` (REQ_PLAT_ORCH_CHAT_UX_001, closed).
+
+**남은 설계 선택지**: 서버측 `orchestrator_chat` WS emitter 를 실제로 구현하든지
+(`_record_orchestrator_chat` / `_ChatPersister` write 지점), 죽은 구독 경로를
+제거하든지 — 현재는 폴링이 바닥을 보장하므로 P2.

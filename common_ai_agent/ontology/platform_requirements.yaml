@@ -318,7 +318,7 @@ requirements:
     design_anchor: doc/wiki/orchestrator-chat-ux.md
     obligations:
       - id: OBL_ORCH_CHAT_OUTPUT_VISIBLE
-        owned_by: ui.web
+        owned_by: ui.workspace
         granularity: behavior
         status: closed   # 44d345db: WS-only 업데이트 경로(서버에 orchestrator_chat emitter 없음)로 패널 영구 무출력 + 전송 실패 무음 → 폴링 상시화 + 실패 피드 가시화
         evidence:
