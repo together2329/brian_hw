@@ -443,6 +443,87 @@ def backlog() -> int:
     return 0
 
 
+def _mmid(s: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_]", "_", s)
+
+
+def graph() -> int:
+    """현재 온톨로지를 Mermaid 그래프 markdown 문서로 출력 (wiki에 redirect용).
+
+    usage: python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md
+    """
+    r = scan(write_db=False)
+    levels, doc = r["levels"], r["doc"]
+    by_req = {}
+    for ob in r["spine_resolved"]:
+        by_req.setdefault(ob["requirement_id"], []).append(ob)
+    units_in_spine = {ob["owned_by"] for ob in r["spine_resolved"]}
+    closed = sum(1 for o in r["spine_resolved"] if o["effective_status"] == "closed")
+
+    out = []
+    out.append("---")
+    out.append("title: Platform Ontology Graph (auto-generated)")
+    out.append("category: architecture")
+    out.append("tags: [ontology, traceability, generated]")
+    out.append(f"status: spine {closed}/{len(r['spine_resolved'])} closed — "
+               "재생성: python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md")
+    out.append("---")
+    out.append("")
+    out.append("# Platform Ontology Graph")
+    out.append("")
+    out.append("`ontology/platform_*.yaml` 실데이터에서 자동 생성. 손으로 고치지 말 것.")
+    out.append("")
+    out.append("```mermaid")
+    out.append("flowchart LR")
+    out.append("  classDef closed fill:#d4edda,stroke:#28a745,color:#155724")
+    out.append("  classDef refuted fill:#f8d7da,stroke:#dc3545,color:#721c24")
+    out.append("  classDef stale fill:#fff3cd,stroke:#ffc107,color:#856404")
+    out.append("  classDef open fill:#e2e3e5,stroke:#6c757d,color:#383d41")
+    out.append("  classDef unit fill:#cce5ff,stroke:#004085,color:#004085")
+    out.append("  classDef req fill:#ffffff,stroke:#333,color:#111")
+    out.append("  classDef ev fill:#f8f9fa,stroke:#adb5bd,color:#495057")
+    ev_files = {}
+    for req in r["spine"].get("requirements", []):
+        rid = req["id"]
+        out.append(f"  subgraph SG_{_mmid(rid)}[\"{rid}\"]")
+        out.append(f"    {_mmid(rid)}[\"{req.get('claim', '')[:46]}…\"]:::req")
+        for ob in by_req.get(rid, []):
+            oid = ob["obligation_id"]
+            eff = ob["effective_status"]
+            mark = {"closed": "✅", "refuted": "❌", "stale": "⚠", "open": "○"}[eff]
+            out.append(f"    {_mmid(oid)}[\"{mark} {oid}<br/>({ob['granularity']})\"]:::{eff}")
+            out.append(f"    {_mmid(rid)} --> {_mmid(oid)}")
+        out.append("  end")
+    for uid in sorted(units_in_spine):
+        out.append(f"  U_{_mmid(uid)}[\"{uid}<br/>{LEVEL_NAMES.get(levels.get(uid, 0), '?')}\"]:::unit")
+    for ob in r["spine_resolved"]:
+        out.append(f"  {_mmid(ob['obligation_id'])} --> U_{_mmid(ob['owned_by'])}")
+        for ev in ob["evidence"]:
+            f = ev.get("test", "").split("::")[0]
+            if f:
+                ev_files.setdefault(f, f"E_{len(ev_files)}")
+                out.append(f"  {_mmid(ob['obligation_id'])} -.-> {ev_files[f]}")
+    for f, nid in ev_files.items():
+        out.append(f"  {nid}[\"{f.replace('tests/', '')}\"]:::ev")
+    out.append("```")
+    out.append("")
+    out.append("## DevUnit 성숙도 (전체 19 units)")
+    out.append("")
+    out.append("```mermaid")
+    out.append("flowchart TB")
+    for lv in range(4, -1, -1):
+        members = [u["id"] for u in doc["units"] if levels.get(u["id"]) == lv]
+        if not members:
+            continue
+        out.append(f"  subgraph L{lv}[\"{LEVEL_NAMES[lv]} ({len(members)})\"]")
+        for uid in members:
+            out.append(f"    M_{_mmid(uid)}[\"{uid}\"]")
+        out.append("  end")
+    out.append("```")
+    print("\n".join(out))
+    return 0
+
+
 def check() -> int:
     r = scan(write_db=False)
     rc = 0
@@ -489,6 +570,8 @@ def main(argv: list) -> int:
         return check()
     if cmd == "backlog":
         return backlog()
+    if cmd == "graph":
+        return graph()
     print(__doc__)
     return 2
 

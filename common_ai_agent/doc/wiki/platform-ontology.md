@@ -93,7 +93,10 @@ python3 scripts/platform_ontology.py report   # 표 + 히스토그램 + 추적�
 python3 scripts/platform_ontology.py backlog  # 작업 큐 (refuted/stale/open)
 python3 scripts/platform_ontology.py scan     # DB에 스냅샷 적재 (이력 누적)
 python3 scripts/platform_ontology.py check    # 게이트 (rc 0/1) — CI/훅용
+python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md  # 그래프 재생성
 ```
+
+시각화: [[platform-ontology-graph]] (Mermaid, 실데이터 자동 생성 — 손으로 고치지 말 것)
 
 ## 남은 일
 
