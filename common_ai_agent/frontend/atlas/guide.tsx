@@ -97,8 +97,8 @@ const ATLAS_GUIDE_HTML = `
     <tr><th style="width:4%">#</th><th style="width:23%">단계 / 명령</th><th>하는 일</th><th style="width:30%">산출물 · 게이트</th></tr>
     <tr>
       <td>1</td>
-      <td><b>요구사항 · 계약 포착</b><div class="ag-cmds"><code>/req-gen</code> <code>/import</code></div></td>
-      <td>요구사항을 기계검증 가능한 <b>obligation/계약</b>으로 정규화(req → obligation → contract). 사람이 의도·미정의동작·프로토콜·waiver·수용기준을 소유.</td>
+      <td><b>요구사항 · 계약 포착</b><div class="ag-cmds"><code>/draft-req</code> → <code>/finalize-req</code> → <code>/lock-req</code> <code>/import</code></div></td>
+      <td>요구사항을 기계검증 가능한 <b>obligation/계약</b>으로 정규화(req → obligation → contract). <code>/draft-req</code>(초안) → <code>/finalize-req</code>(사람 리뷰 준비) → <code>/lock-req</code>(사람 승인 후 잠금)의 라이프사이클. 사람이 의도·미정의동작·프로토콜·waiver·수용기준을 소유.</td>
       <td><code>req/requirements_index.json</code>, <code>obligations.json</code>, <code>structural/behavioral_contracts.json</code>, <code>approval_manifest.json</code><br/><span class="ag-gate">게이트: <code>check_contract_bundle.py</code> → <code>contract_authority_report.json</code> · <code>contract_closure.json</code></span></td>
     </tr>
     <tr>
@@ -121,13 +121,13 @@ const ATLAS_GUIDE_HTML = `
     </tr>
     <tr>
       <td>5</td>
-      <td><b>RTL 생성 · DUT 승인</b> <span class="ag-tag2">CORE</span><div class="ag-cmds"><code>/ssot-rtl</code></div></td>
+      <td><b>RTL 생성 · DUT 승인</b> <span class="ag-tag2">CORE</span><div class="ag-cmds"><code>/gen-rtl</code></div></td>
       <td>SSOT를 <b>구속 계약</b>으로 RTL 생성. SSOT-derived TODO가 전부 <code>pass</code>될 때까지 생성·수리. 기존 RTL은 재사용 증거일 뿐.</td>
       <td><code>rtl/*.sv</code>, <code>list/&lt;ip&gt;.f</code>, <code>rtl/rtl_contract.json</code>, <code>rtl/rtl_traceability.json</code>, <code>rtl/rtl_compile.json</code>, <code>lint/dut_lint.json</code><br/><span class="ag-gate">게이트: DUT-only 컴파일/lint 무오류 (sim 로그는 lint 승인 아님)</span></td>
     </tr>
     <tr>
       <td>6</td>
-      <td><b>테스트벤치 생성</b><div class="ag-cmds"><code>/ssot-tb</code> <code>/ssot-tb-cocotb</code></div></td>
+      <td><b>테스트벤치 생성</b><div class="ag-cmds"><code>/gen-tb</code></div></td>
       <td>goal-driven 스코어보드를 가진 cocotb/pyuvm 검증 환경 생성.</td>
       <td><code>tb/cocotb/*</code>, TB manifest · 생성 리포트</td>
     </tr>
@@ -145,12 +145,13 @@ const ATLAS_GUIDE_HTML = `
     </tr>
     <tr>
       <td>9</td>
-      <td><b>목표 감사 · 사인오프</b><div class="ag-cmds"><code>/goal-audit</code> <code>/signoff</code></div></td>
+      <td><b>목표 감사 · 사인오프</b><div class="ag-cmds"><code>/goal-audit</code> <code>/ip-signoff</code></div></td>
       <td>SSOT 목표 마감 확인. 사인오프는 SSOT·FL·사이클·RTL·TB·sim·coverage·sim-debug·goal-audit 증거가 모두 있어야 성립.</td>
       <td><code>sim/fl_rtl_goal_audit.json</code> + 사인오프 묶음</td>
     </tr>
   </table>
   <p class="ag-muted">합성·타이밍·물리 품질이 필요하면 <code>syn → sta → pnr → sta-post</code>를 이어서 돌립니다(아래 부수 워크플로우).</p>
+  <p class="ag-muted">▸ 사용자 명령 ↔ 엔진 스테이지: <code>/gen-rtl</code> = <code>ssot-rtl</code>, <code>/gen-tb</code> = <code>ssot-tb</code>. req는 <code>/draft-req</code>(초안) → <code>/finalize-req</code>(리뷰 준비) → <code>/lock-req</code>(승인 잠금). 한 줄 상태는 <code>scripts/flow_status.py</code>가 단계별로 보여줍니다.</p>
 
   <h2>사람 게이트 vs LLM 루프 — 누가 무엇을 소유하나</h2>
   <p class="ag-muted">LLM은 <b>객관 증거</b>(PASS/FAIL/DIFF, coverage gap, lint/compile 진단, 프로토콜 assertion, traceability gap, stale 증거, 파형 gap, 성능 gap)가 있는 곳에서만 루프합니다. "RTL이 FL과 다르면 → RTL을 수리하거나 사람 게이트를 연다"가 하드룰입니다.</p>
@@ -178,7 +179,7 @@ const ATLAS_GUIDE_HTML = `
   <h2>전환 방법</h2>
   <p>채팅에서 <code>/wf &lt;workflow&gt;</code> 를 입력하거나 상단 워크플로우 셀렉터로 바꿉니다. 어떤 단계를 돌릴지 정하지 않았다면 <code>default</code> 에서 자연어로 시작하세요.</p>
 
-  <div class="ag-foot">출처: <code>workflow/COMMON_ENGINE_FLOW.md</code> (캐노니컬 flow) · <code>doc/wiki/default-agent-ip-flow.md</code> · <code>doc/wiki/workflow-ownership-and-boundaries.md</code> · <code>workflow/wiki/ip_knowledge/*.md</code></div>
+  <div class="ag-foot">출처: <code>workflow/COMMON_ENGINE_FLOW.md</code> (캐노니컬 flow) · <code>scripts/flow_status.py</code> (단계별 사용자 명령) · <code>doc/wiki/default-agent-ip-flow.md</code> · <code>doc/wiki/workflow-ownership-and-boundaries.md</code></div>
 
 </div>
 `;
