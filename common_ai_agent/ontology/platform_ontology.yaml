@@ -1,0 +1,195 @@
+# Platform Ontology — common_ai_agent 개발 단위 선언부 (source of truth)
+#
+# 목적: Brian과 실제 구현 사이의 공용 언어층.
+#   - DevUnit = 책임 하나 (파일 경계가 아니라 책임 경계)
+#   - 완성도는 자기신고가 아니라 scripts/platform_ontology.py 스캔이 기계 판정
+#   - 성숙도 사다리: L0 존재 < L1 단위테스트 < L2 내용검증 < L3 E2E증명 < L4 래칫
+#
+# 규칙:
+#   - owns 글롭에 잡히지 않는 scope 내 파일 = orphan (ratchet: orphan_baseline 초과 시 check 실패)
+#   - content_tests / e2e_evidence / ratchet_tests 는 사람이 선언하되,
+#     스캐너가 "파일 실재"를 검증한다 (없는 경로 선언 = check 실패; silent-PASS 금지)
+#   - 측정 결과(DB)는 ontology/platform.db (derived, git-ignored)
+version: 1
+
+scope:
+  - "core/*.py"
+  - "src/*.py"
+  - "lib/*.py"
+
+# 첫 스캔 측정값(2026-06-10, scope 156 중 124 미등록)으로 고정.
+# check 모드에서 orphan 수가 이를 초과하면 실패 — 새 모듈은 반드시 단위에 등록.
+# 줄어들면 이 값을 따라 내려서 후퇴를 막는다 (ratchet).
+orphan_baseline: 124
+
+units:
+  - id: agent.react-loop
+    kind: engine
+    summary: 추론·도구 호출 ReAct 루프와 액션 파싱
+    owns:
+      - core/react_loop.py
+      - core/action_parser.py
+      - core/chat_loop.py
+
+  - id: agent.tools
+    kind: registry
+    summary: 도구 레지스트리·스키마·실행 (tmux/cmux opt-in 포함)
+    owns:
+      - core/tools.py
+      - core/tool_schema.py
+    content_tests:
+      - tests/test_tmux_cmux_default_disabled.py
+    known_gaps:
+      - run_command 도구가 Windows에서 cmd.exe 고정 (git-bash/WSL 라우팅 미적용)
+
+  - id: agent.llm
+    kind: adapter
+    summary: LLM provider 추상화 (OpenAI/Codex/glm/deepseek/kimi)
+    owns:
+      - src/llm_client.py
+    known_gaps:
+      - glm/deepseek/kimi 경로에서 image 블록 flatten (이미지 입력 미전달)
+
+  - id: agent.compression
+    kind: engine
+    summary: 컨텍스트 압축 (/compact)
+    owns:
+      - core/compressor.py
+    content_tests:
+      - tests/test_compression_fix.py
+    e2e_evidence:
+      - scripts/verify_compression_llm.py
+    known_gaps:
+      - 웹 /compact 세션 모델 미스코프 (atlas_compactor 전역 config)
+
+  - id: agent.slash
+    kind: adapter
+    summary: 슬래시 커맨드 정의·핸들러
+    owns:
+      - core/slash_commands.py
+      - src/atlas_slash_handlers.py
+
+  - id: runtime.session-worker
+    kind: runtime
+    summary: 세션 워커 프로세스 생명주기 (single-active 정책)
+    owns:
+      - core/session_worker.py
+      - core/session_process_manager.py
+
+  - id: runtime.multiuser
+    kind: runtime
+    summary: 동시 사용자 격리·브리지
+    owns:
+      - core/atlas_multiuser.py
+    e2e_evidence:
+      - scripts/atlas_ws_nusers.mjs
+
+  - id: runtime.authz
+    kind: guard
+    summary: 테넌트 파일시스템 경계 (B1, fail-closed)
+    owns:
+      - core/atlas_fs_authz.py
+    content_tests:
+      - tests/test_fs_authz.py
+    known_gaps:
+      - 미게이트 엔드포인트 잔존 (B1 메모 REMAINING 목록)
+
+  - id: runtime.server
+    kind: runtime
+    summary: 에이전트 서버 엔트리·수명주기
+    owns:
+      - core/agent_server.py
+      - src/main.py
+
+  - id: data.db
+    kind: store
+    summary: SQLite 영속화 + RAG 스토어
+    owns:
+      - core/atlas_db.py
+      - core/rag_db.py
+
+  - id: api.jobs
+    kind: api
+    summary: 잡/SoC HTTP 표면 (hot-path 1위)
+    owns:
+      - src/atlas_api_jobs.py
+      - src/atlas_api_soc.py
+
+  - id: api.sessions
+    kind: api
+    summary: 세션/런타임 HTTP 표면
+    owns:
+      - src/atlas_api_sessions.py
+      - src/atlas_runtime_run.py
+    content_tests:
+      - tests/test_api_sessions_content.py
+    known_gaps:
+      - activate 계열 endpoint 미테스트 (full bridge+warmup 기계 필요, 통합테스트 의존)
+      - activate 비프로세스 모드 os.environ.update 전역 누수 (설계 caveat)
+      - 신규 세션 namespace-owner 매치 시 authorize fail-open (create 흐름 의도, race 가능)
+
+  - id: ui.workspace
+    kind: ui
+    summary: 웹 프론트엔드 워크스페이스 (tsx)
+    owns: []          # frontend는 scope 밖 — e2e 증거로만 추적 (1차)
+    e2e_evidence:
+      - frontend/atlas/__tests__/workspace-render-smoke.test.tsx
+      - scripts/atlas_jsx_integration_test.js
+
+  - id: ui.tui
+    kind: ui
+    summary: 터미널 UI (textual) + 레거시 atlas_ui
+    owns:
+      - lib/textual_ui.py
+      - lib/display.py
+      - src/atlas_ui.py
+
+  - id: task.todo-tracker
+    kind: engine
+    summary: todo 항목·검증 실행 (Windows 라우팅 포함)
+    owns:
+      - lib/todo_tracker.py
+      - lib/todo_transition.py
+    content_tests:
+      - tests/test_todo_validator_portable.py
+
+  - id: engine.stage
+    kind: engine
+    summary: 워크플로 스테이지 실행기 + 헤드리스 체인
+    owns:
+      - src/workflow_stage_engine.py
+      - src/headless_workflow.py
+    content_tests:
+      - tests/test_gate_self_test.py
+    e2e_evidence:
+      - scripts/timer_headless_e2e.py
+
+  - id: agent.memory
+    kind: store
+    summary: 에이전트 메모리 (절차·큐레이션)
+    owns:
+      - lib/memory.py
+      - lib/procedural_memory.py
+      - lib/curator.py
+    content_tests:
+      - tests/test_agent_memory_content.py
+    known_gaps:
+      - auto_extract_and_update가 LLM 불가 시 "추출 0건"과 구분 불가 (silent swallow)
+      - ProceduralMemory가 절대경로 memory_dir 무시 (Path.home() 무조건 prepend)
+      - _db_rules_* 경로 미테스트 (live AtlasDB 필요)
+
+  - id: platform.config
+    kind: config
+    summary: 전역 설정 로딩·env 계약
+    owns:
+      - src/config.py
+
+  - id: platform.ontology
+    kind: meta
+    summary: 이 온톨로지 자체 (선언+스캐너+래칫)
+    owns:
+      - scripts/platform_ontology.py   # scope 밖이지만 명시 소유 (스캐너 본체)
+    content_tests:
+      - tests/test_platform_ontology.py
+    ratchet_tests:
+      - tests/test_platform_ontology.py

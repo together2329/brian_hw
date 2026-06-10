@@ -2,6 +2,19 @@
 
 ## 2026-06-10
 
+- **Platform Ontology L2 캠페인 1차**: 1순위 구멍 2개 메꿈 — `agent.memory`
+  (테스트 0 → `tests/test_agent_memory_content.py` 56 tests, L0→L2) +
+  `api.sessions` (3 → `tests/test_api_sessions_content.py` 28 tests, L1→L2).
+  히스토그램 L2 4→6. 작성 중 발견한 결함은 단위 known_gaps로 등재: memory의
+  LLM-불가 silent swallow + ProceduralMemory 절대경로 무시, sessions의 activate
+  os.environ 전역 누수 + 신규세션 authorize fail-open race. [[platform-ontology]]
+- **Platform Ontology v1**: common_ai_agent 자체 개발용 단위/테스트/완성도 온톨로지를
+  DB화. 선언부 `ontology/platform_ontology.yaml`(19 DevUnits) + 스캐너
+  `scripts/platform_ontology.py`(scan/report/check) + 스냅샷 SQLite
+  `ontology/platform.db`(git-ignored) + 래칫/kill-proof `tests/test_platform_ontology.py`
+  (10 tests). 성숙도 사다리 L0~L4 기계 판정, 선언경로 실재 강제(silent-PASS 금지),
+  orphan ratchet @124. 첫 측정: L3×2 / L2×4 / L1×11 / L0×2. [[platform-ontology]]
+
 - **bash-free workflow cutover complete** (merge `17ba28a9`): all 91 wired workflow
   `.sh` scripts ported to same-named `.py` (7 parallel families, differential
   sh-vs-py parity proven then converted to py-only pinned regression, ~300 tests),
