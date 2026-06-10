@@ -38,6 +38,8 @@ Related: [[orchestrator-chat-ux]], [[verification-contract-model]],
 | 3 | ask_user pause race: a user reply landing while the asking oneshot is still finishing is appended as a step but never consumed → zombie run that no message can resume ("appended" forever) | machinery P0 | FIXED (react_bridge paused-branch consumes raced replies; tests/test_orchestrator_ask_user_resume.py) |
 | 4 | Same incident: loop thread stayed alive (blocked in a cond_wait) for >10min after its last LLM call — Python-level stack unobtainable without sudo py-spy; thread leak class unproven | machinery P1 (watchdog gap) | OPEN — obligation OBL_ORCH_RUN_STUCK_WATCHDOG_001 |
 | 5 | gpt-5.4 orchestrator asked the user instead of attempting requirement-truth creation, despite "keep going autonomously" — correct given gate #2, but it asked AFTER two failed dispatches rather than reading the gate error's remediation hint on the first failure | efficiency observation | logged for prompt tuning |
+| 6 | IPC live resume gap: in `--exec o`, `submit_or_attach` treated `paused` as active and only appended a wake — but ask_user-paused means the supervisor subprocess EXITED, so the wake had no reader. Reply returned "appended", run stayed paused forever (the runtime half of finding 3/4). | machinery P0 | FIXED 1a3a91d1 (`_attach_or_resume` re-spawns on paused; test_paused_run_respawns_supervisor_on_user_reply) |
+| 7 | Truth path-scope mismatch: the dispatch gate resolves the IP under the **session-scoped** root `<root>/<owner>/<workspace>/<ip>` (multi-user), but a human locking truth at the top-level `<root>/<ip>` is invisible to it → perpetual `truth_not_locked` despite a valid `requirements_locked` manifest. Same class as [[project_import_session_scope_fix]]. | operator footgun / scoping | RESOLVED for campaign by locking at `<root>/admin/default/<ip>`; gate-vs-author path contract still worth hardening |
 
 ## Per-IP log
 
@@ -47,6 +49,16 @@ Related: [[orchestrator-chat-ux]], [[verification-contract-model]],
   correct escalation (finding 5: 1 redundant dispatch).
 - 22:55 human: truth pack authored + locked (lock_requirement_set.py exit 0).
 - 22:55-23:0x two resume replies → both "appended", run stuck paused (findings 3+4).
-- → server restart + fixed code; fresh kick planned.
+- 06-11: fixed react_bridge reconciler (thread) + IPC `_attach_or_resume` (finding 6);
+  resume now returns "resumed" and re-spawns the supervisor. Live: subprocess
+  came back, consumed the reply, re-attempted ssot-gen → still `truth_not_locked`
+  (finding 7) because truth was locked at top-level not session-scoped path.
+- 06-11: locked truth at `<root>/admin/default/cnt8_en_v1` → **`dispatch_workflow:ok`,
+  ssot-gen dispatched as an IPC worker (gpt-5.4)**. First full chat→orchestrator→worker
+  traversal of the campaign. Pipeline progress tracked from here.
+
+### End-to-end chain status (after 06-11 fixes)
+chat input visible ✓ · orchestrator reads state ✓ · ask_user/resume round-trip ✓ ·
+IPC supervisor respawn ✓ · dispatch past the truth gate ✓ · worker execution → (in progress)
 
 (continued as the campaign progresses)
