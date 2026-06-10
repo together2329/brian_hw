@@ -149,23 +149,23 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_declared_paths_all_exist"
-            observed_at: 8098c181
+            observed_at: b3df2164
       - id: OBL_NEW_MODULE_REGISTERED
         owned_by: platform.ontology
         granularity: structural
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_no_ownership_overlap_and_orphan_ratchet"
-            observed_at: 8098c181
+            observed_at: b3df2164
       - id: OBL_SPINE_INTEGRITY_ENFORCED
         owned_by: platform.ontology
         granularity: structural
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_spine_integrity_on_real_repo"
-            observed_at: 8098c181
+            observed_at: b3df2164
           - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
-            observed_at: 8098c181
+            observed_at: b3df2164
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
@@ -177,7 +177,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_checkout_folder_target_unsynced_opens_edit_and_submits"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_EDIT_FAILURE_NOT_SOFTENED
         owned_by: platform.scm
@@ -185,7 +185,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_depot_selection_checkout_unsynced_opens_for_edit"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL
         owned_by: platform.scm
@@ -193,7 +193,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_failed_default_submit_strands_no_numbered_changelist"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_STREAM_ROOT_TARGET_MAPS_IP
         owned_by: platform.scm
@@ -209,9 +209,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_delete_pending_changelist_keeps_workspace_content"
-            observed_at: 8098c181
+            observed_at: b3df2164
           - test: "tests/test_scm_perforce_adapter.py::test_live_revert_paths_deletes_emptied_numbered_changelist"
-            observed_at: 8098c181
+            observed_at: b3df2164
           - test: "tests/test_atlas_git_api.py::test_scm_change_delete_route_uses_perforce_adapter"
-            observed_at: 8098c181
+            observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
