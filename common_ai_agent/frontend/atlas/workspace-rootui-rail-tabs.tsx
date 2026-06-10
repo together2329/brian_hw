@@ -719,6 +719,10 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
         <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
           TODO list · detail · edit
         </span>
+      ) : mainTab === 'vcm' ? (
+        <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}>
+          VCM spine · req → obligation → contract → evidence → validation
+        </span>
       ) : (
         <span className="mute trunc" style={{ fontSize: 'var(--ui-control-font-size)', fontFamily: 'var(--mono)', maxWidth: 380 }}
               title={previewPath || ''}>

@@ -39,6 +39,7 @@ import {
   FileViewer,
 } from './workspace-git-diff';
 import { TodoEditorPane } from './workspace-todo';
+import { VcmGraphTab } from './workspace-vcm-graph';
 import { useWorkspaceSession, type UseWorkspaceSessionDeps } from './workspace-root-session-hook';
 import { useWorkspaceData, type WorkspaceDataDeps } from './workspace-root-data-hook';
 import { ATLAS_INPUT_PERF } from './workspace-root-render';
@@ -599,6 +600,10 @@ export const Workspace = ({
           ) : mainTab === 'todo' ? (
             <ErrorBoundary label="TodoEditor">
               <TodoEditorPane intent={intent} />
+            </ErrorBoundary>
+          ) : mainTab === 'vcm' ? (
+            <ErrorBoundary label="VcmGraph">
+              <VcmGraphTab activeIp={activeIp} />
             </ErrorBoundary>
             ) : (
             /* mainTab === 'qa' — SSOT-GEN QA board or active ask_user */
