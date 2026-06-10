@@ -824,6 +824,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
   const pollingRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sinceRef = useRef(0);
   const subscriptionRef = useRef<(() => void) | void>();
+  const fetchOnceRef = useRef<(() => Promise<void>) | null>(null);
   const {
     scrollRef: bodyRef,
     onScroll: onBodyScroll,
@@ -912,7 +913,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     const fetchOnce = async () => {
       if (dead) return;
       if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
-        if (!hasLiveBackend) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+        schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
         return;
       }
       try {
@@ -925,7 +926,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
         const url = `/api/orchestrator/chat/messages?${params.toString()}`;
         const r = await fetch(url);
         if (!r.ok) {
-          if (!hasLiveBackend) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+          schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
           return;
         }
         const j = await r.json();
@@ -946,14 +947,16 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
             setSince(nextSince);
           }
         }
-        if (!hasLiveBackend) {
-          schedulePoll(isActive ? ORCH_CHAT_POLL_INTERVAL_ACTIVE_MS : ORCH_CHAT_POLL_INTERVAL_IDLE_MS);
-        }
+        // Poll unconditionally: the backend has no orchestrator_chat WS
+        // emitter, so a connected backend.subscribe channel must not turn
+        // polling off — it only lowers latency when events do arrive.
+        schedulePoll(isActive ? ORCH_CHAT_POLL_INTERVAL_ACTIVE_MS : ORCH_CHAT_POLL_INTERVAL_IDLE_MS);
         return;
       } catch (_) {
-        if (!hasLiveBackend) schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
+        schedulePoll(ORCH_CHAT_POLL_INTERVAL_ERROR_MS);
       }
     };
+    fetchOnceRef.current = fetchOnce;
 
     const onVisibility = () => {
       if (dead) return;
@@ -979,6 +982,7 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
     return () => {
       dead = true;
       clearPoll();
+      fetchOnceRef.current = null;
       const unsub = subscriptionRef.current;
       subscriptionRef.current = undefined;
       if (typeof unsub === 'function') unsub();
@@ -999,16 +1003,45 @@ function PipelineOrchestratorChatPanelImpl({ ip, pipelineState }: PipelineOrches
   const submitMessage = useCallback(async (text: string) => {
     const workspaceSession = activeRailWorkspaceSession();
     const session = activeOrchestratorRailSession(ip);
-    await fetch('/api/pipeline/orchestrator/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: text,
-        ip,
-        ...(session ? { session } : {}),
-        ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
-      }),
-    });
+    const notifySendFailure = (detail: string) => {
+      const entry: OrchestratorFeedEntry = {
+        id: `local-send-error:${Date.now()}:${Math.random().toString(36).slice(2)}`,
+        kind: 'agent',
+        text: `⚠ message not delivered${detail ? ` — ${detail}` : ''}`,
+        createdAt: Date.now(),
+      };
+      setMessages(prev => trimAtlasFeedState(
+        coalesceAtlasFeedEntries(prev, [entry] as any[]) as OrchestratorFeedEntry[],
+        ORCH_CHAT_FEED_MAX_ENTRIES,
+      ));
+    };
+    try {
+      const r = await fetch('/api/pipeline/orchestrator/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: text,
+          ip,
+          ...(session ? { session } : {}),
+          ...(workspaceSession ? { workspace_session: workspaceSession } : {}),
+        }),
+      });
+      if (!r.ok) {
+        let detail = `HTTP ${r.status}`;
+        try {
+          const j = await r.json();
+          const reason = j && (j.error || j.detail);
+          if (reason) detail = `HTTP ${r.status}: ${String(reason)}`;
+        } catch (_) { /* non-JSON error body */ }
+        notifySendFailure(detail);
+        return;
+      }
+      // The server persists the user message (and ack) before replying —
+      // pull them into the feed now instead of waiting for the next poll.
+      void fetchOnceRef.current?.();
+    } catch (e) {
+      notifySendFailure(e instanceof Error ? e.message : String(e));
+    }
   }, [ip]);
 
   const roleClass = (role?: string): string => {

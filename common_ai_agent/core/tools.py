@@ -999,6 +999,76 @@ def commit_ip(message: str = None, path: str = None) -> str:
         return "⚠ commit_ip error: " + str(exc)
 
 
+def _ssot_yaml_write_unwrap(path: str, content: str, append: bool) -> str:
+    """Auto-correct (do NOT reject) the one .ssot.yaml mistake this repo keeps
+    hitting: an LLM writing the headless artifact JSON envelope
+    ({"files":[{"path":...,"content":"<yaml>"}]}) verbatim instead of raw YAML.
+
+    Rather than reject and force a retry loop, transparently unwrap the inner
+    YAML and write THAT, so the file lands correct on the first try. Anything
+    that is not this exact envelope passes through untouched — scalars, drafts,
+    section content, normal YAML all write as-is. Appends are never touched.
+    """
+    base = os.path.basename(str(path or "")).lower()
+    if append or not (base.endswith(".ssot.yaml") or base.endswith(".ssot.yml")):
+        return content
+    stripped = (content or "").lstrip()
+    if not (stripped.startswith("{") and '"content"' in stripped and '"files"' in stripped[:200]):
+        return content
+    # Well-formed envelope: structurally extract the ssot file's content.
+    try:
+        import json as _json_uw
+        obj = _json_uw.loads(stripped)
+    except Exception:
+        obj = None
+    if isinstance(obj, dict) and isinstance(obj.get("files"), list):
+        ssot_entry = first_entry = None
+        for item in obj["files"]:
+            if not isinstance(item, dict) or not isinstance(item.get("content"), str):
+                continue
+            if first_entry is None:
+                first_entry = item
+            kind = str(item.get("kind") or "").lower()
+            p = str(item.get("path") or "")
+            if kind == "ssot" or p.endswith((".ssot.yaml", ".ssot.yml", "_ssot.yaml")):
+                ssot_entry = item
+                break
+        chosen = ssot_entry or first_entry
+        if chosen is not None:
+            return chosen["content"]
+    # Truncated/invalid envelope (clipped stream): best-effort decode the first
+    # "content":"..." JSON string prefix so the parseable YAML head survives.
+    import re as _re_uw
+    marker = _re_uw.search(r'"content"\s*:\s*"', stripped)
+    if marker:
+        s = stripped[marker.end():]
+        out = []
+        i, n = 0, len(s)
+        simple = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\", "/": "/", "b": "\b", "f": "\f"}
+        while i < n:
+            c = s[i]
+            if c == "\\" and i + 1 < n:
+                esc = s[i + 1]
+                if esc == "u" and i + 5 < n:
+                    try:
+                        out.append(chr(int(s[i + 2:i + 6], 16)))
+                        i += 6
+                        continue
+                    except ValueError:
+                        pass
+                out.append(simple.get(esc, esc))
+                i += 2
+            elif c == '"':
+                break
+            else:
+                out.append(c)
+                i += 1
+        recovered = "".join(out)
+        if recovered.strip():
+            return recovered
+    return content
+
+
 def write_file(path: str = None, content: str = None, append: bool = False) -> str:
     """
     Writes content to a file. Overwrites by default; set append=True to add to end.
@@ -1032,6 +1102,7 @@ def write_file(path: str = None, content: str = None, append: bool = False) -> s
         locked_truth_error = _locked_truth_tool_write_error(path)
         if locked_truth_error is not None:
             return locked_truth_error
+        content = _ssot_yaml_write_unwrap(path, content, append)
         dir_name = os.path.dirname(path)
         if dir_name:
             os.makedirs(dir_name, exist_ok=True)
