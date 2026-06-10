@@ -838,15 +838,16 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
 
 
 def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
-    checker = Path(__file__).with_name("check_ssot_disk.py")
-    bash = shutil.which("bash")
-    if not checker.is_file() or not bash:
-        reason = []
-        if not checker.is_file():
-            reason.append(f"checker not found: {checker}")
-        if not bash:
-            reason.append("bash not found on PATH")
-        return _run_native_disk_check(root, ip, mode, "; ".join(reason))
+    # check_ssot_disk is a Python script since the bash-free cutover: run it
+    # with sys.executable (Windows needs no git-bash). The previous code
+    # launched it via `bash check_ssot_disk.py`, which parsed Python as shell,
+    # failed on every call, and silently degraded validation to the native
+    # fallback on every platform.
+    # resolve(): the subprocess runs with cwd=checker_root, so a relative
+    # __file__ would otherwise be re-rooted under the IP tree.
+    checker = Path(__file__).resolve().with_name("check_ssot_disk.py")
+    if not checker.is_file():
+        return _run_native_disk_check(root, ip, mode, f"checker not found: {checker}")
     checker_root = root
     if not (checker_root / ip).is_dir() and root.name == ip and (root / "yaml").is_dir():
         checker_root = root.parent
@@ -858,7 +859,7 @@ def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
             f"check_ssot_disk.py expects <root>/<ip>; got root={root}",
         )
     proc = subprocess.run(
-        [bash, str(checker), ip, "--root", str(checker_root), "--mode", mode],
+        [sys.executable, str(checker), ip, "--root", str(checker_root), "--mode", mode],
         cwd=str(checker_root),
         text=True,
         encoding="utf-8",
@@ -866,24 +867,17 @@ def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
         capture_output=True,
         timeout=90,
     )
-    if proc.returncode != 0:
-        # The .sh helper writes its python stderr to /tmp; on Windows the bash
-        # (git-bash) /tmp is not Python's temp dir, so probe both locations.
-        import tempfile as _tempfile
-        checker_py_err = ""
-        for _cand in (Path("/tmp/_ssot_yaml.err"), Path(_tempfile.gettempdir()) / "_ssot_yaml.err"):
-            try:
-                checker_py_err = _cand.read_text(encoding="utf-8", errors="replace")
-                break
-            except Exception:
-                continue
-        if "ModuleNotFoundError" in checker_py_err and "yaml" in checker_py_err:
-            return _run_native_disk_check(
-                root,
-                ip,
-                mode,
-                "check_ssot_disk.py helper python cannot import PyYAML",
-            )
+    if (
+        proc.returncode != 0
+        and "ModuleNotFoundError" in (proc.stderr or "")
+        and "yaml" in (proc.stderr or "")
+    ):
+        return _run_native_disk_check(
+            root,
+            ip,
+            mode,
+            "check_ssot_disk.py helper python cannot import PyYAML",
+        )
     return {
         "ok": proc.returncode == 0,
         "returncode": proc.returncode,
