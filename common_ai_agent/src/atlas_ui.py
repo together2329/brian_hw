@@ -9273,14 +9273,96 @@ def create_app():
             params["session_id"] = session_name
         return f"/api/ssot/export?{urlencode(params)}"
 
+    def _unwrap_ssot_artifact_envelope(text: str) -> str:
+        """Recover the raw SSOT YAML when an LLM wrote the headless artifact
+        envelope verbatim into the .ssot.yaml file.
+
+        The interactive /to-ssot write_file path has no unwrap guard (unlike
+        the headless parse_llm_artifacts), so a model that pattern-matches on
+        the ssot-gen contract sometimes writes
+        ``{"files":[{"path":...,"kind":"ssot","content":"<yaml>"}]}`` as the
+        file body instead of raw YAML. Detect that JSON envelope and return the
+        inner YAML ``content`` so the DOC view parses instead of throwing
+        "invalid yaml". A normal YAML body (or plain JSON that is already valid
+        YAML) is returned unchanged.
+        """
+        stripped = text.lstrip()
+        if not stripped.startswith("{"):
+            return text
+        # Clean envelope: well-formed JSON we can unwrap structurally.
+        try:
+            obj = json.loads(stripped)
+        except Exception:
+            obj = None
+        if isinstance(obj, dict):
+            files = obj.get("files")
+            if isinstance(files, list):
+                ssot_entry = None
+                first_entry = None
+                for item in files:
+                    if not isinstance(item, dict) or not isinstance(item.get("content"), str):
+                        continue
+                    if first_entry is None:
+                        first_entry = item
+                    kind = str(item.get("kind") or "").lower()
+                    path_str = str(item.get("path") or "")
+                    if kind == "ssot" or path_str.endswith((".ssot.yaml", ".ssot.yml", "_ssot.yaml")):
+                        ssot_entry = item
+                        break
+                chosen = ssot_entry or first_entry
+                if chosen is not None:
+                    return chosen["content"]
+            if isinstance(obj.get("content"), str):
+                return obj["content"]
+            return text
+        # Truncated/invalid envelope: the LLM artifact was cut off mid-stream,
+        # so json.loads can't parse it. Best-effort: locate the first
+        # `"content":"..."` value and manually JSON-unescape its prefix to
+        # recover the parseable YAML head (better a partial doc than a cryptic
+        # "while scanning a quoted scalar" error).
+        marker = re.search(r'"content"\s*:\s*"', stripped)
+        if not marker:
+            return text
+        recovered = _json_string_prefix_unescape(stripped[marker.end():])
+        return recovered if recovered.strip() else text
+
+    def _json_string_prefix_unescape(s: str) -> str:
+        """Decode a JSON-string body up to its first unescaped closing quote.
+        Tolerant of truncation (no closing quote) — returns what decoded."""
+        out: list[str] = []
+        i = 0
+        n = len(s)
+        simple = {"n": "\n", "t": "\t", "r": "\r", '"': '"', "\\": "\\",
+                  "/": "/", "b": "\b", "f": "\f"}
+        while i < n:
+            c = s[i]
+            if c == "\\" and i + 1 < n:
+                esc = s[i + 1]
+                if esc == "u" and i + 5 < n:
+                    try:
+                        out.append(chr(int(s[i + 2:i + 6], 16)))
+                        i += 6
+                        continue
+                    except ValueError:
+                        pass
+                out.append(simple.get(esc, esc))
+                i += 2
+            elif c == '"':
+                break
+            else:
+                out.append(c)
+                i += 1
+        return "".join(out)
+
     def _load_ssot_yaml_for_export(ip: str, base_root: Path | None = None) -> dict[str, Any]:
         import yaml as _yaml  # type: ignore
 
         path = _ssot_yaml_path(ip, base_root=base_root)
         if not path.is_file():
             raise FileNotFoundError(str(path))
+        text = _unwrap_ssot_artifact_envelope(path.read_text(encoding="utf-8"))
         try:
-            data = _yaml.safe_load(path.read_text(encoding="utf-8"))
+            data = _yaml.safe_load(text)
         except Exception as exc:
             raise ValueError(f"invalid yaml: {exc}") from exc
         if data is None:

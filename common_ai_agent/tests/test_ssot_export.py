@@ -454,6 +454,66 @@ def test_export_endpoint_404_when_yaml_missing(tmp_path, monkeypatch):
     assert resp.status_code == 404, resp.text
 
 
+_SSOT_YAML_BODY = (
+    "top_module:\n"
+    "  name: envwrap_ip\n"
+    "  description: APB timer\n"
+    "parameters:\n"
+    "  - name: WIDTH\n"
+    "    value: 32\n"
+    "io_list: []\n"
+)
+
+
+def _write_corrupt_envelope(tmp_path: Path, ip: str, body: str, *, truncate: bool = False) -> Path:
+    """Write a .ssot.yaml whose content is the headless artifact JSON envelope
+    (the interactive /to-ssot LLM-format mistake) instead of raw YAML."""
+    import json
+
+    envelope = json.dumps({
+        "files": [{
+            "path": f"{ip}/yaml/{ip}.ssot.yaml",
+            "kind": "ssot",
+            "content": body,
+        }],
+    })
+    if truncate:
+        # Cut mid-content, exactly the way a streamed LLM response gets clipped.
+        envelope = envelope[: envelope.index('"content":"') + len('"content":"') + 40]
+    dest_dir = tmp_path / ip / "yaml"
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / f"{ip}.ssot.yaml"
+    dest.write_text(envelope, encoding="utf-8")
+    return dest
+
+
+def test_export_recovers_json_envelope_written_as_yaml(tmp_path, monkeypatch):
+    # Regression: interactive /to-ssot sometimes writes the headless artifact
+    # envelope {"files":[{"content":"<yaml>"}]} verbatim into the .ssot.yaml.
+    # The DOC view must unwrap+recover it instead of returning
+    # 400 "invalid yaml: while scanning a quoted scalar".
+    client = _make_client(tmp_path, monkeypatch)
+    _write_corrupt_envelope(tmp_path, "envwrap_ip", _SSOT_YAML_BODY)
+    resp = client.get("/api/ssot/export?ip=envwrap_ip&format=md")
+    assert resp.status_code == 200, resp.text
+    assert "envwrap_ip" in resp.text
+
+
+def test_export_recovers_truncated_json_envelope(tmp_path, monkeypatch):
+    # A streamed LLM response clipped mid-content can't json.loads — the
+    # read-side recovery must still extract the parseable YAML head.
+    client = _make_client(tmp_path, monkeypatch)
+    body = _SSOT_YAML_BODY + "\nerror_handling:\n  error_sources:\n    - id: ILLEGAL\n      condition: addr_ba"
+    _write_corrupt_envelope(tmp_path, "envtrunc_ip", body, truncate=False)
+    # Use a long body and truncate the FILE to simulate a clipped stream.
+    dest = tmp_path / "envtrunc_ip" / "yaml" / "envtrunc_ip.ssot.yaml"
+    raw = dest.read_text(encoding="utf-8")
+    dest.write_text(raw[: len(raw) - 30], encoding="utf-8")  # drop the closing envelope
+    resp = client.get("/api/ssot/export?ip=envtrunc_ip&format=md")
+    assert resp.status_code == 200, resp.text
+    assert "envtrunc_ip" in resp.text
+
+
 def test_export_endpoint_default_format_is_md(tmp_path, monkeypatch):
     client = _make_client(tmp_path, monkeypatch)
     _copy_sample_ssot("qa_timer_pure", tmp_path)
