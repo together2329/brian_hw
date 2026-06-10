@@ -413,7 +413,7 @@ export const Workspace = ({
             </button>
           </div>
         )}
-        <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
+        <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, minWidth: 0 }}>
           {renderWorkspaceCenterTabStrip(ws)}
           {mainTab === 'coverage' ? (
             typeof w.Coverage === 'function' ? (

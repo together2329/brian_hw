@@ -898,6 +898,13 @@ html[data-platform="windows"] .app {
   line-height: 1.15;
   overflow: hidden;
   flex-shrink: 0;
+  /* Constrain to the parent column's flex share so the tab chips WRAP to a
+     second row instead of overflowing off-screen (clipped) when the strip is
+     crowded — e.g. the REQ tab caption after all the main tabs. Without
+     min-width:0 the flex column defaults to min-width:auto (= content width)
+     and grows past its share. */
+  min-width: 0;
+  max-width: 100%;
 }
 .titlebar,
 .statusbar,
