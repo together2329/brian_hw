@@ -2,7 +2,7 @@
 title: Platform Ontology Graph (auto-generated)
 category: architecture
 tags: [ontology, traceability, generated]
-status: spine 20/37 closed — 재생성: python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md
+status: spine 23/40 closed — 재생성: python3 scripts/platform_ontology.py graph > doc/wiki/platform-ontology-graph.md
 ---
 
 # Platform Ontology Graph
@@ -34,15 +34,15 @@ flowchart LR
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
     OBL_ACTIVATE_ENV_NO_CROSS_LEAK["❌ OBL_ACTIVATE_ENV_NO_CROSS_LEAK<br/>(behavior)"]:::refuted
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_ACTIVATE_ENV_NO_CROSS_LEAK
-    OBL_GIT_REST_CROSS_TENANT_GATED["✅ OBL_GIT_REST_CROSS_TENANT_GATED<br/>(behavior)"]:::closed
+    OBL_GIT_REST_CROSS_TENANT_GATED["⚠ OBL_GIT_REST_CROSS_TENANT_GATED<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_GIT_REST_CROSS_TENANT_GATED
-    OBL_IP_REPORTS_CROSS_TENANT_GATED["✅ OBL_IP_REPORTS_CROSS_TENANT_GATED<br/>(behavior)"]:::closed
+    OBL_IP_REPORTS_CROSS_TENANT_GATED["⚠ OBL_IP_REPORTS_CROSS_TENANT_GATED<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_IP_REPORTS_CROSS_TENANT_GATED
-    OBL_WORKSPACE_DOWNLOAD_GATED["✅ OBL_WORKSPACE_DOWNLOAD_GATED<br/>(behavior)"]:::closed
+    OBL_WORKSPACE_DOWNLOAD_GATED["⚠ OBL_WORKSPACE_DOWNLOAD_GATED<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_WORKSPACE_DOWNLOAD_GATED
-    OBL_SETTINGS_ADMIN_ONLY_MULTIUSER["✅ OBL_SETTINGS_ADMIN_ONLY_MULTIUSER<br/>(behavior)"]:::closed
+    OBL_SETTINGS_ADMIN_ONLY_MULTIUSER["⚠ OBL_SETTINGS_ADMIN_ONLY_MULTIUSER<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SETTINGS_ADMIN_ONLY_MULTIUSER
-    OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER["✅ OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER<br/>(behavior)"]:::closed
+    OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER["⚠ OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER<br/>(behavior)"]:::stale
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER
     OBL_SCM_JSON_API_CROSS_TENANT_GATED["○ OBL_SCM_JSON_API_CROSS_TENANT_GATED<br/>(behavior)"]:::open
     REQ_PLAT_TENANT_ISOLATION_001 --> OBL_SCM_JSON_API_CROSS_TENANT_GATED
@@ -99,18 +99,24 @@ flowchart LR
     REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY
     OBL_CURSOR_ROCEV_CHAIN_SKILL["✅ OBL_CURSOR_ROCEV_CHAIN_SKILL<br/>(structural)"]:::closed
     REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_ROCEV_CHAIN_SKILL
-    OBL_IP_WIKI_HELPER["○ OBL_IP_WIKI_HELPER<br/>(behavior)"]:::open
+    OBL_IP_WIKI_HELPER["✅ OBL_IP_WIKI_HELPER<br/>(behavior)"]:::closed
     REQ_PLAT_CURSOR_PARITY_001 --> OBL_IP_WIKI_HELPER
-    OBL_IP_WIKI_CHECK_KILLPROOF["○ OBL_IP_WIKI_CHECK_KILLPROOF<br/>(behavior)"]:::open
+    OBL_IP_WIKI_CHECK_KILLPROOF["✅ OBL_IP_WIKI_CHECK_KILLPROOF<br/>(behavior)"]:::closed
     REQ_PLAT_CURSOR_PARITY_001 --> OBL_IP_WIKI_CHECK_KILLPROOF
-    OBL_ATLAS_MCP_SERVER["○ OBL_ATLAS_MCP_SERVER<br/>(behavior)"]:::open
+    OBL_ATLAS_MCP_SERVER["✅ OBL_ATLAS_MCP_SERVER<br/>(behavior)"]:::closed
     REQ_PLAT_CURSOR_PARITY_001 --> OBL_ATLAS_MCP_SERVER
-    OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK["○ OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK<br/>(behavior)"]:::open
+    OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK["✅ OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK<br/>(behavior)"]:::closed
     REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK
+    OBL_CURSOR_PACK_SELF_CONTAINED["✅ OBL_CURSOR_PACK_SELF_CONTAINED<br/>(behavior)"]:::closed
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_PACK_SELF_CONTAINED
+    OBL_CURSOR_VENDOR_NO_DRIFT["✅ OBL_CURSOR_VENDOR_NO_DRIFT<br/>(structural)"]:::closed
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_VENDOR_NO_DRIFT
+    OBL_CURSOR_AGENT_FULL_COVERAGE["✅ OBL_CURSOR_AGENT_FULL_COVERAGE<br/>(structural)"]:::closed
+    REQ_PLAT_CURSOR_PARITY_001 --> OBL_CURSOR_AGENT_FULL_COVERAGE
   end
   subgraph SG_REQ_PLAT_ORCH_CHAT_UX_001["REQ_PLAT_ORCH_CHAT_UX_001"]
     REQ_PLAT_ORCH_CHAT_UX_001["Orchestrator chat 패널은 백엔드가 산출한 모든 출력(유저 메시지/ac…"]:::req
-    OBL_ORCH_CHAT_OUTPUT_VISIBLE["⚠ OBL_ORCH_CHAT_OUTPUT_VISIBLE<br/>(behavior)"]:::stale
+    OBL_ORCH_CHAT_OUTPUT_VISIBLE["✅ OBL_ORCH_CHAT_OUTPUT_VISIBLE<br/>(behavior)"]:::closed
     REQ_PLAT_ORCH_CHAT_UX_001 --> OBL_ORCH_CHAT_OUTPUT_VISIBLE
   end
   U_agent_compression["agent.compression<br/>L3 E2E"]:::unit
@@ -121,7 +127,7 @@ flowchart LR
   U_platform_ontology["platform.ontology<br/>L2 내용검증"]:::unit
   U_platform_scm["platform.scm<br/>L2 내용검증"]:::unit
   U_runtime_authz["runtime.authz<br/>L2 내용검증"]:::unit
-  U_ui_web["ui.web<br/>L0 존재"]:::unit
+  U_ui_workspace["ui.workspace<br/>L0 존재"]:::unit
   OBL_SESS_READ_CROSS_USER_404 --> U_api_sessions
   OBL_SESS_READ_CROSS_USER_404 -.-> E_0
   OBL_SESS_WRITE_CROSS_USER_404 --> U_api_sessions
@@ -191,13 +197,28 @@ flowchart LR
   OBL_CURSOR_ROCEV_CHAIN_SKILL -.-> E_7
   OBL_CURSOR_ROCEV_CHAIN_SKILL -.-> E_7
   OBL_IP_WIKI_HELPER --> U_platform_ip_wiki
+  OBL_IP_WIKI_HELPER -.-> E_8
+  OBL_IP_WIKI_HELPER -.-> E_8
   OBL_IP_WIKI_CHECK_KILLPROOF --> U_platform_ip_wiki
+  OBL_IP_WIKI_CHECK_KILLPROOF -.-> E_8
+  OBL_IP_WIKI_CHECK_KILLPROOF -.-> E_8
   OBL_ATLAS_MCP_SERVER --> U_platform_cursor_pack
+  OBL_ATLAS_MCP_SERVER -.-> E_9
+  OBL_ATLAS_MCP_SERVER -.-> E_9
   OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK --> U_platform_cursor_pack
-  OBL_ORCH_CHAT_OUTPUT_VISIBLE --> U_ui_web
-  OBL_ORCH_CHAT_OUTPUT_VISIBLE -.-> E_8
-  OBL_ORCH_CHAT_OUTPUT_VISIBLE -.-> E_8
-  OBL_ORCH_CHAT_OUTPUT_VISIBLE -.-> E_8
+  OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK -.-> E_7
+  OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK -.-> E_7
+  OBL_CURSOR_PACK_SELF_CONTAINED --> U_platform_cursor_pack
+  OBL_CURSOR_PACK_SELF_CONTAINED -.-> E_7
+  OBL_CURSOR_VENDOR_NO_DRIFT --> U_platform_cursor_pack
+  OBL_CURSOR_VENDOR_NO_DRIFT -.-> E_7
+  OBL_CURSOR_AGENT_FULL_COVERAGE --> U_platform_cursor_pack
+  OBL_CURSOR_AGENT_FULL_COVERAGE -.-> E_7
+  OBL_CURSOR_AGENT_FULL_COVERAGE -.-> E_7
+  OBL_ORCH_CHAT_OUTPUT_VISIBLE --> U_ui_workspace
+  OBL_ORCH_CHAT_OUTPUT_VISIBLE -.-> E_10
+  OBL_ORCH_CHAT_OUTPUT_VISIBLE -.-> E_10
+  OBL_ORCH_CHAT_OUTPUT_VISIBLE -.-> E_10
   E_0["test_api_sessions_content.py"]:::ev
   E_1["test_fs_authz.py"]:::ev
   E_2["test_atlas_authz_e2e.py"]:::ev
@@ -206,7 +227,9 @@ flowchart LR
   E_5["test_scm_perforce_adapter.py"]:::ev
   E_6["test_atlas_git_api.py"]:::ev
   E_7["test_cursor_pack.py"]:::ev
-  E_8["test_orchestrator_chat_visibility_frontend.py"]:::ev
+  E_8["test_ip_wiki.py"]:::ev
+  E_9["test_atlas_mcp_server.py"]:::ev
+  E_10["test_orchestrator_chat_visibility_frontend.py"]:::ev
 ```
 
 ## DevUnit 성숙도 (전체 19 units)
