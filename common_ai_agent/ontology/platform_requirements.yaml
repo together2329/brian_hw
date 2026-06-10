@@ -81,6 +81,54 @@ requirements:
             observed_at: "78685249"
           - test: "tests/test_api_sessions_content.py::test_activate_single_user_preserves_os_environ_update"
             observed_at: "78685249"
+      # ── ATLAS-wide adversarial review (61-agent) cross-tenant authz holes ──
+      # 196b4b53 닫음: 미게이트 엔드포인트 잔존(runtime.authz known_gap)을 구체화.
+      - id: OBL_GIT_REST_CROSS_TENANT_GATED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # 196b4b53: per-IP git REST(commit/log/graph/revert) _fs_authz 게이트
+        evidence:
+          - test: "tests/test_atlas_authz_e2e.py::test_ip_git_rest_endpoints_cross_user_denied"
+            observed_at: "196b4b53"
+      - id: OBL_IP_REPORTS_CROSS_TENANT_GATED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # 196b4b53: lint/coverage/ssot-gates per-IP authz
+        evidence:
+          - test: "tests/test_atlas_authz_e2e.py::test_ip_report_endpoints_cross_user_denied"
+            observed_at: "196b4b53"
+      - id: OBL_WORKSPACE_DOWNLOAD_GATED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # 196b4b53: /api/workspace/download.zip subpath authz + whole-tree 거부
+        evidence:
+          - test: "tests/test_atlas_authz_e2e.py::test_workspace_download_blocks_cross_tenant_and_whole_tree"
+            observed_at: "196b4b53"
+      - id: OBL_SETTINGS_ADMIN_ONLY_MULTIUSER
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # 196b4b53: /api/settings/* 글로벌 .env 변조 → 멀티유저 admin-only
+        evidence:
+          - test: "tests/test_atlas_authz_e2e.py::test_settings_endpoints_admin_only_in_multiuser"
+            observed_at: "196b4b53"
+      - id: OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # 196b4b53: 익명 git fetch/clone 멀티유저 기본 OFF
+        evidence:
+          - test: "tests/test_atlas_authz_e2e.py::test_git_default_blocks_anon_clone_in_multiuser"
+            observed_at: "196b4b53"
+      # ── DEFERRED (리뷰 confirmed, 별도 Perforce-aware 패스 필요) ──
+      - id: OBL_SCM_JSON_API_CROSS_TENANT_GATED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: open   # /api/scm/*·/api/git/* tenant authz 미적용 + scm_root PROJECT_ROOT 탈출
+                       # (src/atlas_api_git.py) — Perforce 절대경로 정당성 때문에 신중 수정 보류
+      - id: OBL_CONVERSATION_SSOT_IMPORT_OWNER_SCOPED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: open   # 196b4b53 에서 fix는 반영(/api/conversation own-session, ssot-import
+                       # owner gate)되었으나 전용 cross-tenant 테스트 미작성 → 테스트 추가 후 closed 승급
 
   - id: REQ_PLAT_MEMORY_DURABILITY_001
     claim: "에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다"
