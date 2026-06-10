@@ -2,6 +2,13 @@
 
 ## 2026-06-10
 
+- **Platform Ontology v2 — ROCEV 척추** (commit `45f92857`+flip): Requirement→
+  Obligation→Evidence→Validation 을 플랫폼 개발에 인스턴스화. 선언
+  `ontology/platform_requirements.yaml` (4 req / 17 obl: closed 12, refuted 5) +
+  `validate_spine()` (anchor/owner/pytest노드 ast/commit 실재 강제, git-diff
+  freshness→stale 강등) + kill-proof 5종. known_gaps→`status:refuted` 승격으로
+  결함이 "반증된 약속"이 됨. freshness 도입 당일 실전 작동 (자기 커밋이 증거
+  테스트를 바꾸자 obligation 2개 자동 stale). [[platform-ontology]]
 - **Platform Ontology L2 캠페인 1차**: 1순위 구멍 2개 메꿈 — `agent.memory`
   (테스트 0 → `tests/test_agent_memory_content.py` 56 tests, L0→L2) +
   `api.sessions` (3 → `tests/test_api_sessions_content.py` 28 tests, L1→L2).

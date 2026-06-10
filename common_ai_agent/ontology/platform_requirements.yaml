@@ -149,15 +149,20 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_declared_paths_all_exist"
-            observed_at: a515c974
+            observed_at: 45f92857
       - id: OBL_NEW_MODULE_REGISTERED
         owned_by: platform.ontology
         granularity: structural
         status: closed
         evidence:
           - test: "tests/test_platform_ontology.py::test_no_ownership_overlap_and_orphan_ratchet"
-            observed_at: a515c974
+            observed_at: 45f92857
       - id: OBL_SPINE_INTEGRITY_ENFORCED
         owned_by: platform.ontology
         granularity: structural
-        status: open   # 이번 라운드에서 스캐너+테스트가 생기면 closed 로 전환
+        status: closed
+        evidence:
+          - test: "tests/test_platform_ontology.py::test_spine_integrity_on_real_repo"
+            observed_at: 45f92857
+          - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
+            observed_at: 45f92857

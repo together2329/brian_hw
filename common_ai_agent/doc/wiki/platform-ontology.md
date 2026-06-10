@@ -49,6 +49,28 @@ L4 래칫   0
 이런 게 "다음에 뭘 할지"의 좌표다. known_gaps 필드(run_command Windows, llm 이미지
 flatten, /compact 모델 미스코프 등)는 단위에 붙은 백로그다.
 
+## v2: ROCEV 척추 — 전면 추적성 (2026-06-10)
+
+VCM과 같은 메타패턴을 플랫폼 도메인에 인스턴스화:
+
+```
+Requirement → Obligation → (Contract=reflection) → Evidence → Validation
+  설계 결정      기계검증 가능한      코드의 어디가         pytest 노드 +      validate_spine()
+  (wiki anchor)  약속 (owned_by      구현/관측하나        observed_at 커밋    + check 게이트
+                 DevUnit)
+```
+
+- 선언부: `ontology/platform_requirements.yaml` (4 requirements / 17 obligations)
+- **status**: `closed`(evidence 필수) | `open` | `refuted`(refuted_by 필수 — known_gaps의
+  정식 승격: 결함 = 반증된 약속, 수정 완료 = closed로 뒤집는 evidence 제시)
+- **기계 강제**: anchor/owner/pytest 노드(ast)/commit 전부 실재 검증 — 유령 선언 = check 실패
+- **freshness**: observed_at 이후 owner의 owns/테스트 파일이 git상 바뀌면 `stale` 강등
+  (VCM의 PASS = correctness && freshness 그대로). 도입 당일 실전 작동: 스캐너 커밋이
+  테스트 파일을 바꾸자 그걸 증거로 쓰던 obligation 2개가 자동 stale → 재검증 후
+  observed_at 갱신으로 복귀.
+- 현재: **closed 12 / refuted 5 / open 0** (refuted 5 = memory LLM swallow, 절대경로 무시,
+  activate env 누수, authorize fail-open, compressor swallow — 이게 곧 수정 백로그)
+
 ## 사용법
 
 ```bash
