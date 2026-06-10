@@ -158,8 +158,6 @@ const PIPE_RIGHT_MIN = w.PIPE_RIGHT_MIN;
 
 // Function deps (lambda forward-ref):
 const EnhancedDetailCards = (...a: any[]) => w.EnhancedDetailCards(...a);
-const EnhancedFlowCanvas = (...a: any[]) => w.EnhancedFlowCanvas(...a);
-const HierarchyList = (...a: any[]) => w.HierarchyList(...a);
 const OrchestratorAskUserBanner = (...a: any[]) => w.OrchestratorAskUserBanner(...a);
 const OrchestratorTraceStrip = (...a: any[]) => w.OrchestratorTraceStrip(...a);
 const PendingQABanner = (...a: any[]) => w.PendingQABanner(...a);
@@ -812,17 +810,10 @@ export function AtlasPipeline() {
             onSelectStage={setSelectedStage} />
           <PendingQABanner ip={ip} />
           <OrchestratorAskUserBanner ip={ip} />
-          {/* Pipeline view — React Flow (replaces the hardcoded-coordinate
-              PipelineFlowMap SVG). The flow-control strip above carries the flow
-              picker + phase chips, so this graph hides its own orchestrator head. */}
-          <PipelineFlowGraph
-            ip={ip}
-            pipelineState={pipelineState}
-            selectedStage={selectedStage}
-            onSelectStage={setSelectedStage}
-            showOrchestratorHead={false} />
-          {/* ORCHESTRATOR canvas — React Flow (replaces the EnhancedFlowCanvas
-              SVG + its hand-placed ENH_* coordinate table). Keeps the 🎯 header. */}
+          {/* Single React Flow pipeline map (replaces BOTH the old SVG
+              PipelineFlowMap and EnhancedFlowCanvas — they rendered the same DAG,
+              so showing two PipelineFlowGraphs here was a visible duplicate).
+              Keeps the 🎯 orchestrator header. */}
           <PipelineFlowGraph
             ip={ip}
             pipelineState={pipelineState}

@@ -13,12 +13,46 @@ import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   GraphCanvas,
-  layoutDagre,
   flowArrow,
+  GRAPH_NODE_W,
+  GRAPH_NODE_H,
   type FlowNode,
   type FlowEdge,
   type FlowCardData,
 } from './workspace-graph-flow';
+
+// The 6 pipeline phases (columns), each listing its stages top→bottom. This is
+// the "lane" reading the old SVG canvas had — but as a derived layout, so a
+// missing entry can't drop a node to (0,0) the way the hand-kept ENH_ROW_Y
+// table did (goal-audit bug). Laying out by phase keeps the whole 16-stage DAG
+// to 6 columns / ≤4 rows so it reads at a glance without zooming, instead of
+// dagre LR's ~10-rank-wide hair-thin row.
+const PIPELINE_PHASES: readonly (readonly string[])[] = [
+  ['ssot'],                                                   // SSOT
+  ['fl-model', 'cl-model', 'equivalence'],                   // MODELS
+  ['rtl'],                                                    // RTL
+  ['lint', 'tb', 'syn'],                                      // BRANCH
+  ['sim-debug', 'sim', 'sta', 'pnr'],                        // VERIFY · EDA
+  ['coverage', 'contract-check', 'goal-audit', 'sta-post'],  // SIGNOFF
+];
+
+// Position each node by its phase column + row, vertically centering shorter
+// columns. Pure; nodes not in the phase map fall back to a trailing column.
+function layoutPhaseColumns(nodes: readonly FlowNode[]): FlowNode[] {
+  const pos = new Map<string, { col: number; row: number }>();
+  const maxRows = Math.max(...PIPELINE_PHASES.map((p) => p.length));
+  PIPELINE_PHASES.forEach((stages, col) => {
+    const offset = (maxRows - stages.length) / 2; // center the column
+    stages.forEach((id, row) => pos.set(id, { col, row: row + offset }));
+  });
+  const pitchX = GRAPH_NODE_W + 56;
+  const pitchY = GRAPH_NODE_H + 26;
+  let trailing = PIPELINE_PHASES.length;
+  return nodes.map((n) => {
+    const p = pos.get(n.id) ?? { col: trailing++, row: 0 };
+    return { ...n, position: { x: p.col * pitchX, y: p.row * pitchY } };
+  });
+}
 
 // ── Window surface: stage DAG + label/state helpers owned by pipe-width.tsx /
 // pipeline-cards.tsx (registered on window before this component renders). ──
@@ -137,7 +171,7 @@ export function buildPipelineElements(state: PipelineState | null | undefined): 
       });
     }
   }
-  return { nodes: layoutDagre(baseNodes, edges, { direction: 'LR' }), edges };
+  return { nodes: layoutPhaseColumns(baseNodes), edges };
 }
 
 export interface PipelineFlowGraphProps {
