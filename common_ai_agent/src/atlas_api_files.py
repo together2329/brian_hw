@@ -306,8 +306,14 @@ def register_file_routes(
                 return denied
             if not clean_ip or clean_ip == "default":
                 clean_ip = context.ip_name
-            if context.ip_name and context.ip_name != "default" and clean_ip != context.ip_name:
-                return JSONResponse({"error": "session ip mismatch"}, status_code=400)
+            # NOTE: deliberately do NOT require clean_ip == context.ip_name.
+            # _deny_context_request above already proves the caller owns the
+            # session (= their workspace), _target_for_session resolves the
+            # file under that workspace_root, and the ip_root containment check
+            # below confirms it sits in <workspace>/<clean_ip>. Requiring the
+            # file's IP to match the active chat session's IP only blocked
+            # legitimate deletes when the file tree shows a different IP than
+            # the active session (the file is visible in the tree but undeletable).
             if not clean_ip or not clean_path:
                 return JSONResponse({"error": "ip and path are required"}, status_code=400)
             parts = [part for part in clean_path.split("/") if part]

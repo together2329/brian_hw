@@ -43,7 +43,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
     filePanelIp, filePanelStatus,
     fileSort, setFileSort,
     fileExpand, setFileExpand,
-    collapsedFileDirs, setCollapsedFileDirs,
+    expandedFileDirs, setExpandedFileDirs,
     visibleFileTree,
     previewPath, setPreviewPath,
     setMainTab,
@@ -263,7 +263,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
               onClick={() => {
                 if (!filePanelIp) return;
                 setFileExpand((v: string) => v === 'deep' ? 'shallow' : 'deep');
-                setCollapsedFileDirs(new Set());
+                setExpandedFileDirs(new Set());
               }}
               style={{
                 cursor: 'pointer',
@@ -303,12 +303,14 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
             ).filter((n: any) => {
               const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
               if (!relName) return false;
-              if (fileExpand !== 'deep' && (n.depth || 0) > 0) return false;
+              if (fileExpand === 'deep') return true;  // 'all' override: show everything
               const root = filePanelIp;
               const parts = relName.split('/').filter(Boolean);
+              // Expand-on-demand: a node shows only when EVERY ancestor
+              // directory has been explicitly expanded (default = collapsed).
               for (let idx = 1; idx < parts.length; idx += 1) {
                 const ancestor = [root, ...parts.slice(0, idx)].filter(Boolean).join('/');
-                if (collapsedFileDirs.has(ancestor)) return false;
+                if (!expandedFileDirs.has(ancestor)) return false;
               }
               return true;
             }).map((n: any, i: number) => {
@@ -316,7 +318,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
               const relName = String(n.name || '').replace(/^\/+|\/+$/g, '');
               const fullPath = (baseScope ? `${baseScope}/` : '') + relName;
               const displayName = relName.split('/').filter(Boolean).pop() || relName;
-              const dirCollapsed = n.type === 'dir' && (fileExpand !== 'deep' || collapsedFileDirs.has(fullPath));
+              const dirCollapsed = n.type === 'dir' && fileExpand !== 'deep' && !expandedFileDirs.has(fullPath);
               const isSelected = n.type === 'file' && previewPath === fullPath;
               return (
                 <div key={i}
@@ -329,11 +331,13 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
                       ws.persistAtlasPreviewPath?.(fullPath);
                       setMainTab('split');
                     } else {
-                      const wasDeep = fileExpand === 'deep';
-                      if (!wasDeep) setFileExpand('deep');
-                      setCollapsedFileDirs((prev: Set<string>) => {
+                      // Expand-on-demand: toggle ONLY this folder. (The old
+                      // code flipped the whole tree to 'deep' on any folder
+                      // click — and persisted it — so one click expanded
+                      // everything forever.)
+                      setExpandedFileDirs((prev: Set<string>) => {
                         const next = new Set(prev);
-                        if (!wasDeep || next.has(fullPath)) next.delete(fullPath);
+                        if (next.has(fullPath)) next.delete(fullPath);
                         else next.add(fullPath);
                         return next;
                       });

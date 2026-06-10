@@ -259,7 +259,7 @@ export const Workspace = ({
     filePanelStatus,
     fileSort, setFileSort,
     fileExpand, setFileExpand,
-    collapsedFileDirs, setCollapsedFileDirs,
+    expandedFileDirs, setExpandedFileDirs,
     visibleFileTree,
     fileContextMenu, setFileContextMenu,
     deleteIpTreeFile,

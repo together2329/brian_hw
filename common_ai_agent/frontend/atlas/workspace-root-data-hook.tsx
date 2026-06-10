@@ -633,7 +633,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }
     }
   }, [fileExpand]);
-  const [collapsedFileDirs, setCollapsedFileDirs] = useState<Set<string>>(() => new Set());
+  // Directories the user has explicitly EXPANDED (shallow mode). Default empty
+  // = everything collapsed; clicking a folder toggles just that folder, so a
+  // node shows only when every ancestor dir is in this set. (The legacy 'deep'
+  // fileExpand mode force-shows everything regardless.)
+  const [expandedFileDirs, setExpandedFileDirs] = useState<Set<string>>(() => new Set());
 
   const [rightTab, setRightTab] = useState<string>('todo'); // todo | progress | git
   // mainTab is composer-owned now (destructured from deps above).
@@ -3428,7 +3432,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // file-tree sort / expand / collapse
     fileSort, setFileSort,
     fileExpand, setFileExpand,
-    collapsedFileDirs, setCollapsedFileDirs,
+    expandedFileDirs, setExpandedFileDirs,
     // q&a
     qaState, setQaState, qaStateRef,
     qaHistory, setQaHistory,
