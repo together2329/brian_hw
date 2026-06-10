@@ -107,16 +107,22 @@ class OrchestratorSupervisorRuntime:
         reasoning_effort: str = "",
     ) -> SubmitOutcome:
         key = (str(user_id), str(ip_id))
+        spawn_data = dict(
+            user_id=user_id, ip_id=ip_id, ip_name=ip_name,
+            workspace_id=workspace_id, session_id=session_id,
+            chat_message_id=chat_message_id, message_text=message_text,
+            model=model, reasoning_effort=reasoning_effort,
+        )
         with self._lock:
             run_id = self._active_by_key.get(key)
             if run_id and self._run_is_active(run_id):
-                return self._append_user_reply(run_id, message_text, chat_message_id)
+                return self._attach_or_resume(run_id, spawn_data)
 
             existing = self._db.find_active_run_for(user_id=user_id, ip_id=ip_id)
             if existing is not None:
                 run_id = str(existing["id"])
                 self._active_by_key[key] = run_id
-                return self._append_user_reply(run_id, message_text, chat_message_id)
+                return self._attach_or_resume(run_id, spawn_data, run=existing)
 
             run = self._db.create_orchestrator_run(
                 user_id=user_id,
@@ -148,6 +154,39 @@ class OrchestratorSupervisorRuntime:
         run = self._db.get_orchestrator_run(run_id)
         status = str((run or {}).get("status") or "")
         return status in {"running", "paused", "yielded"}
+
+    def _attach_or_resume(
+        self, run_id: str, spawn_data: dict, *, run: dict | None = None
+    ) -> SubmitOutcome:
+        """Append the user reply, then re-spawn the supervisor if the run's
+        subprocess is gone.
+
+        ``yielded``/``running`` runs have a live subprocess polling
+        ``wake.jsonl`` — appending the reply (which writes a user-message
+        wake) is enough; the running supervisor consumes it. A ``paused`` run,
+        however, came from ``ask_user``: the loop returned and the subprocess
+        EXITED, so there is nobody to read the wake. Pre-fix the reply was
+        appended into the void and the run could never resume (campaign zombie,
+        run 0b5b68d3). Re-spawn a fresh supervisor so the loop runs again and
+        its reconciler consumes the reply.
+        """
+        if run is None:
+            run = self._db.get_orchestrator_run(run_id)
+        status = str((run or {}).get("status") or "")
+        # Persist the reply on the ledger first (both paths need it visible).
+        self._append_user_reply(
+            run_id,
+            str(spawn_data.get("message_text") or ""),
+            str(spawn_data.get("chat_message_id") or ""),
+        )
+        if status == "paused":
+            # Subprocess has exited — bring the run back to life.
+            self._db.update_orchestrator_run(run_id, status="running")
+            resume_data = dict(spawn_data)
+            resume_data["run_id"] = run_id
+            self._spawn_supervisor(**resume_data)
+            return SubmitOutcome(run_id=run_id, status="resumed")
+        return SubmitOutcome(run_id=run_id, status="appended")
 
     def _append_user_reply(
         self, run_id: str, message_text: str, chat_message_id: str

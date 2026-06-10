@@ -557,6 +557,53 @@ def test_second_submit_appends_user_reply_and_writes_wake_event(
     assert events[-1]["chat_message_id"] == "chat-2"
 
 
+def test_paused_run_respawns_supervisor_on_user_reply(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """ask_user leaves the run 'paused' and the subprocess EXITS — a later
+    user reply must re-spawn the supervisor, not append a wake into the void
+    (campaign zombie, run 0b5b68d3)."""
+    runtime, db, spawned, _jobs, _processes = _runtime(tmp_path)
+    first = runtime.submit_or_attach(
+        user_id="user-1",
+        ip_id="ip-1",
+        ip_name="ipA",
+        workspace_id="workspace-1",
+        session_id="user/default/ipA/orchestrator",
+        chat_message_id="chat-1",
+        message_text="build ipA",
+    )
+    assert first.status == "started"
+    assert len(spawned) == 1
+
+    # Simulate ask_user: the supervisor subprocess ran, paused the run, exited.
+    db.update_orchestrator_run(first.run_id, status="paused")
+
+    second = runtime.submit_or_attach(
+        user_id="user-1",
+        ip_id="ip-1",
+        ip_name="ipA",
+        workspace_id="workspace-1",
+        session_id="user/default/ipA/orchestrator",
+        chat_message_id="chat-2",
+        message_text="truth locked, resume",
+    )
+
+    assert second.run_id == first.run_id
+    assert second.status == "resumed"
+    # A fresh supervisor process was spawned for the same run.
+    assert len(spawned) == 2
+    # The reply is on the ledger and the run is running again.
+    steps = db.list_orchestrator_steps(first.run_id)
+    assert steps[-1]["tool_name"] == "user_reply"
+    assert steps[-1]["user_reply"] == "truth locked, resume"
+    assert db.get_orchestrator_run(first.run_id)["status"] == "running"
+    # The re-spawn carried the resume message as the new initial message.
+    control_dir = tmp_path / ".session" / "orchestrators-ipc" / first.run_id
+    request = json.loads((control_dir / "request.json").read_text(encoding="utf-8"))
+    assert request["initial_user_message"] == "truth locked, resume"
+
+
 def test_different_ip_gets_independent_supervisor(
     tmp_path: Path, monkeypatch
 ) -> None:
