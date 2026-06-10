@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "type": "starter_llm_rtl_handoff",
+  "ip": "debounce_cx1",
+  "top": "debounce_cx1",
+  "mode": "starter",
+  "target_rtl": "rtl/debounce_cx1.sv",
+  "target_filelist": "list/debounce_cx1.f",
+  "authoring_surface": "llm_worker",
+  "instructions": [
+    "Author RTL directly from rtl/rtl_contract.json and the SSOT.",
+    "Do not use rule-to-RTL generation for Starter IP.",
+    "Write rtl_authoring_provenance.json after authoring.",
+    "Run rtl_compile_report.py and starter_preview_sim.py before promoting the result."
+  ],
+  "source_refs": [
+    "top_module",
+    "io_list",
+    "rtl_contract",
+    "function_model.state_variables",
+    "function_model.transactions[].state_updates",
+    "function_model.transactions[].output_rules"
+  ],
+  "generated_at": "2026-06-10T14:32:53Z"
+}

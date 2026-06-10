@@ -1,0 +1,80 @@
+{
+  "ip": "shift_reg_cx1",
+  "obligations": [
+    {
+      "behavioral_contract_refs": [
+        "BC_SR8_LINT"
+      ],
+      "closure_stage": "lint",
+      "contract_refs": [
+        "C_SR8_LINT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "structural",
+      "obligation_id": "OBL_SR8_LINT_001",
+      "owned_by_stage": "lint",
+      "required_stages": [
+        "lint"
+      ],
+      "requirement_refs": [
+        "REQ_SR8_FUNC_001"
+      ],
+      "statement": "No inferred latches; po is a single-driver registered output.",
+      "structural_contract_refs": [
+        "SC_SR8_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_SR8_RESET"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_SR8_RESET"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_SR8_RESET_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_SR8_FUNC_001"
+      ],
+      "statement": "po clears to 0 synchronously when rst_n==0.",
+      "structural_contract_refs": [
+        "SC_SR8_PORTS"
+      ]
+    },
+    {
+      "behavioral_contract_refs": [
+        "BC_SR8_SHIFT"
+      ],
+      "closure_stage": "sim",
+      "contract_refs": [
+        "C_SR8_SHIFT"
+      ],
+      "failure_owner": "rtl-gen",
+      "granularity": "temporal",
+      "obligation_id": "OBL_SR8_SHIFT_001",
+      "owned_by_stage": "sim",
+      "required_stages": [
+        "rtl",
+        "tb",
+        "sim"
+      ],
+      "requirement_refs": [
+        "REQ_SR8_FUNC_001"
+      ],
+      "statement": "po shifts left each cycle with si entering at bit 0.",
+      "structural_contract_refs": [
+        "SC_SR8_PORTS"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "type": "obligations"
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "type": "rtl_compile",
+  "scope": "dut",
+  "dut_only": true,
+  "tool": "iverilog",
+  "command": "iverilog -g2012 -f list/counter8_cx1.f -s counter8_cx1 -o /tmp/counter8_cx1_rtl_check.vvp",
+  "cwd": "counter8_cx1",
+  "top": "counter8_cx1",
+  "filelist": "list/counter8_cx1.f",
+  "rtl_files": [
+    "rtl/counter8_cx1.sv"
+  ],
+  "timestamp": "2026-06-10T13:58:00Z",
+  "returncode": 0,
+  "errors": 0,
+  "diagnostics": 0,
+  "style_violations": 0,
+  "style_violation_details": [],
+  "passed": true,
+  "policy": "returncode==0, no error/fatal/warning/sorry diagnostics"
+}

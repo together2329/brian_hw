@@ -1,0 +1,20 @@
+{
+  "errors": [],
+  "files": [
+    "edge_det_cx1/tb/cocotb/__init__.py",
+    "edge_det_cx1/tb/cocotb/agents.py",
+    "edge_det_cx1/tb/cocotb/scoreboard.py",
+    "edge_det_cx1/tb/cocotb/sequences.py",
+    "edge_det_cx1/tb/cocotb/tb_coverage.py",
+    "edge_det_cx1/tb/cocotb/test_edge_det_cx1.py",
+    "edge_det_cx1/tb/cocotb/test_runner.py",
+    "edge_det_cx1/tb/cocotb/transactions.py",
+    "edge_det_cx1/tb/cocotb/uvm_env.py"
+  ],
+  "generated_at": "2026-06-10T14:19:31Z",
+  "ip": "edge_det_cx1",
+  "passed": true,
+  "schema_version": 1,
+  "tb_dir": "edge_det_cx1/tb/cocotb",
+  "type": "tb_python_compile"
+}

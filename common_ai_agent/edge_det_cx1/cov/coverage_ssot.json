@@ -1,0 +1,1053 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml",
+  "module": "edge_det_cx1",
+  "dv_plan": {
+    "scenarios": 4,
+    "scoreboard_checks": [
+      "rise_out = sync2 & ~prev_sync (after 2 FF delay)",
+      "fall_out = ~sync2 & prev_sync (after 2 FF delay)",
+      "rise_out and fall_out never simultaneously 1"
+    ],
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model"
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model"
+      }
+    }
+  },
+  "functional": {
+    "hit": 4,
+    "total": 20,
+    "pct": 20.0
+  },
+  "function_coverage": {
+    "hit": 4,
+    "total": 10,
+    "pct": 40.0,
+    "target_pct": 100.0,
+    "meets_target": false,
+    "bins": {
+      "SC1_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC1_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC1",
+          "description": "Reset \u2014 all outputs 0"
+        },
+        "class": "scenario",
+        "description": "Reset \u2014 all outputs 0",
+        "coverage_domain": "function"
+      },
+      "SC2_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC2_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC2",
+          "description": "Rising edge \u2014 rise_out pulses"
+        },
+        "class": "scenario",
+        "description": "Rising edge \u2014 rise_out pulses",
+        "coverage_domain": "function"
+      },
+      "SC3_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC3_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC3",
+          "description": "Falling edge \u2014 fall_out pulses"
+        },
+        "class": "scenario",
+        "description": "Falling edge \u2014 fall_out pulses",
+        "coverage_domain": "function"
+      },
+      "SC4_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC4",
+        "rtl_observed_keys": [
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "sync1",
+          "sync2"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC4_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC4",
+          "description": "Stable signal \u2014 no pulse"
+        },
+        "class": "scenario",
+        "description": "Stable signal \u2014 no pulse",
+        "coverage_domain": "function"
+      },
+      "function_rising_edge": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "function_rising_edge",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[0]",
+          "source_ref": "function_model.transactions.fm_rise",
+          "description": "FM_RISE rising_edge"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_RISE rising_edge",
+        "source_ref": "function_model.transactions.fm_rise"
+      },
+      "function_falling_edge": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "function_falling_edge",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[1]",
+          "source_ref": "function_model.transactions.fm_fall",
+          "description": "FM_FALL falling_edge"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_FALL falling_edge",
+        "source_ref": "function_model.transactions.fm_fall"
+      },
+      "function_stable": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_STABLE",
+        "scenario_id": "SC_003_EQ_TRANSACTION_FM_STABLE",
+        "rtl_observed_keys": [
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "sync1",
+          "sync2"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_stable",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[2]",
+          "source_ref": "function_model.transactions.fm_stable",
+          "description": "FM_STABLE stable"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_STABLE stable",
+        "source_ref": "function_model.transactions.fm_stable"
+      },
+      "error_error_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "fcov_fm_stable": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC4",
+        "rtl_observed_keys": [
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "sync1",
+          "sync2"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "fcov_stable": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC4",
+        "rtl_observed_keys": [
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "sync1",
+          "sync2"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 0,
+    "total": 10,
+    "pct": 0.0,
+    "target_pct": 100.0,
+    "meets_target": false,
+    "bins": {
+      "cycle_handshake_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_handshake_0",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "{'signal': 'rise_out', 'rule': 'Pulses 1 cycle 3 clocks after input rising edge'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'rise_out', 'rule': 'Pulses 1 cycle 3 clocks after input rising edge'}",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_handshake_1": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_handshake_1",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "{'signal': 'fall_out', 'rule': 'Pulses 1 cycle 3 clocks after input falling edge'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'fall_out', 'rule': 'Pulses 1 cycle 3 clocks after input falling edge'}",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_latency_edge_detect": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_latency_edge_detect",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.edge_detect",
+          "source_ref": "cycle_model.latency.edge_detect",
+          "description": "{'min_cycles': 3, 'max_cycles': 3}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 3, 'max_cycles': 3}",
+        "source_ref": "cycle_model.latency.edge_detect"
+      },
+      "cycle_pipeline_s0_sync1": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_pipeline_s0_sync1",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "sig_in sampled into sync1"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "sig_in sampled into sync1",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_sync2": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_pipeline_s1_sync2",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "sync1 sampled into sync2"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "sync1 sampled into sync2",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_pipeline_s2_edge": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_pipeline_s2_edge",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[2]",
+          "source_ref": "cycle_model.pipeline[2]",
+          "description": "Edge detect: rise_out/fall_out combinational from sync2/prev_sync"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Edge detect: rise_out/fall_out combinational from sync2/prev_sync",
+        "source_ref": "cycle_model.pipeline[2]"
+      },
+      "cycle_ordering_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "prev_sync updated same cycle as sync2 output; edge outputs are combinational."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "prev_sync updated same cycle as sync2 output; edge outputs are combinational.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_backpressure_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "No backpressure."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "No backpressure.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "50"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "50",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'detections_per_cycle': 1}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'detections_per_cycle': 1}",
+        "source_ref": "cycle_model.performance.throughput"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 4,
+      "total": 10,
+      "pct": 40.0,
+      "meets_target": false
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 0,
+      "total": 10,
+      "pct": 0.0,
+      "meets_target": false
+    }
+  },
+  "planned_bins": [
+    "SC1_executed",
+    "SC2_executed",
+    "SC3_executed",
+    "SC4_executed",
+    "function_rising_edge",
+    "function_falling_edge",
+    "function_stable",
+    "cycle_handshake_0",
+    "cycle_handshake_1",
+    "cycle_latency_edge_detect",
+    "cycle_pipeline_s0_sync1",
+    "cycle_pipeline_s1_sync2",
+    "cycle_pipeline_s2_edge",
+    "cycle_ordering_0",
+    "cycle_backpressure_0",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "error_error_0"
+  ],
+  "functional_bins": {
+    "SC1_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC1_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC1",
+        "description": "Reset \u2014 all outputs 0"
+      },
+      "class": "scenario",
+      "description": "Reset \u2014 all outputs 0",
+      "coverage_domain": "function"
+    },
+    "SC2_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC2_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC2",
+        "description": "Rising edge \u2014 rise_out pulses"
+      },
+      "class": "scenario",
+      "description": "Rising edge \u2014 rise_out pulses",
+      "coverage_domain": "function"
+    },
+    "SC3_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC3_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC3",
+        "description": "Falling edge \u2014 fall_out pulses"
+      },
+      "class": "scenario",
+      "description": "Falling edge \u2014 fall_out pulses",
+      "coverage_domain": "function"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC4",
+      "rtl_observed_keys": [
+        "fall_out",
+        "fall_rule",
+        "prev_sync",
+        "rise_out",
+        "rise_rule",
+        "sync1",
+        "sync2"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC4_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC4",
+        "description": "Stable signal \u2014 no pulse"
+      },
+      "class": "scenario",
+      "description": "Stable signal \u2014 no pulse",
+      "coverage_domain": "function"
+    },
+    "function_rising_edge": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "function_rising_edge",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[0]",
+        "source_ref": "function_model.transactions.fm_rise",
+        "description": "FM_RISE rising_edge"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_RISE rising_edge",
+      "source_ref": "function_model.transactions.fm_rise"
+    },
+    "function_falling_edge": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "function_falling_edge",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[1]",
+        "source_ref": "function_model.transactions.fm_fall",
+        "description": "FM_FALL falling_edge"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_FALL falling_edge",
+      "source_ref": "function_model.transactions.fm_fall"
+    },
+    "function_stable": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_STABLE",
+      "scenario_id": "SC_003_EQ_TRANSACTION_FM_STABLE",
+      "rtl_observed_keys": [
+        "fall_out",
+        "fall_rule",
+        "prev_sync",
+        "rise_out",
+        "rise_rule",
+        "sync1",
+        "sync2"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_stable",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[2]",
+        "source_ref": "function_model.transactions.fm_stable",
+        "description": "FM_STABLE stable"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_STABLE stable",
+      "source_ref": "function_model.transactions.fm_stable"
+    },
+    "cycle_handshake_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_handshake_0",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "{'signal': 'rise_out', 'rule': 'Pulses 1 cycle 3 clocks after input rising edge'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'rise_out', 'rule': 'Pulses 1 cycle 3 clocks after input rising edge'}",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_handshake_1": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_handshake_1",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "{'signal': 'fall_out', 'rule': 'Pulses 1 cycle 3 clocks after input falling edge'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'fall_out', 'rule': 'Pulses 1 cycle 3 clocks after input falling edge'}",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_latency_edge_detect": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_latency_edge_detect",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.edge_detect",
+        "source_ref": "cycle_model.latency.edge_detect",
+        "description": "{'min_cycles': 3, 'max_cycles': 3}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 3, 'max_cycles': 3}",
+      "source_ref": "cycle_model.latency.edge_detect"
+    },
+    "cycle_pipeline_s0_sync1": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_pipeline_s0_sync1",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "sig_in sampled into sync1"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "sig_in sampled into sync1",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_sync2": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_pipeline_s1_sync2",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "sync1 sampled into sync2"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "sync1 sampled into sync2",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_pipeline_s2_edge": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_pipeline_s2_edge",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[2]",
+        "source_ref": "cycle_model.pipeline[2]",
+        "description": "Edge detect: rise_out/fall_out combinational from sync2/prev_sync"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Edge detect: rise_out/fall_out combinational from sync2/prev_sync",
+      "source_ref": "cycle_model.pipeline[2]"
+    },
+    "cycle_ordering_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "prev_sync updated same cycle as sync2 output; edge outputs are combinational."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "prev_sync updated same cycle as sync2 output; edge outputs are combinational.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_backpressure_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "No backpressure."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "No backpressure.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "50"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "50",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'detections_per_cycle': 1}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'detections_per_cycle': 1}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "error_error_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "fcov_fm_stable": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC4",
+      "rtl_observed_keys": [
+        "fall_out",
+        "fall_rule",
+        "prev_sync",
+        "rise_out",
+        "rise_rule",
+        "sync1",
+        "sync2"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "fcov_stable": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC4",
+      "rtl_observed_keys": [
+        "fall_out",
+        "fall_rule",
+        "prev_sync",
+        "rise_out",
+        "rise_rule",
+        "sync1",
+        "sync2"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 2,
+    "total": 2,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "SC4_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_007_EQ_SCENARIO_SC4"
+    },
+    "function_stable": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_FM_STABLE",
+      "scenario_id": "SC_003_EQ_TRANSACTION_FM_STABLE"
+    }
+  },
+  "rtl_observed": {
+    "status": "blocked",
+    "scoreboard_events": 19,
+    "scoreboard_passed_events_with_refs": 2,
+    "goal_refs": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "cycle_latency_edge_detect",
+      "cycle_ordering_0",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_sync1",
+      "cycle_pipeline_s1_sync2",
+      "cycle_pipeline_s2_edge",
+      "error_error_0",
+      "function_falling_edge",
+      "function_rising_edge",
+      "function_stable"
+    ],
+    "missing_bins": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "cycle_latency_edge_detect",
+      "cycle_ordering_0",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_sync1",
+      "cycle_pipeline_s1_sync2",
+      "cycle_pipeline_s2_edge",
+      "error_error_0",
+      "function_falling_edge",
+      "function_rising_edge"
+    ],
+    "invalid_rows": []
+  },
+  "owner_routes": {
+    "status": "absent",
+    "source": "",
+    "routes_by_bin": {},
+    "routed_missing_bins": [],
+    "unrouted_missing_bins": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "cycle_latency_edge_detect",
+      "cycle_ordering_0",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_sync1",
+      "cycle_pipeline_s1_sync2",
+      "cycle_pipeline_s2_edge",
+      "error_error_0",
+      "function_falling_edge",
+      "function_rising_edge"
+    ],
+    "invalid_routes": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "meets_target": true,
+    "source": "not automatically measured by generic LCOV parser"
+  },
+  "files": {},
+  "limitations": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC1_executed, SC2_executed, SC3_executed, cycle_backpressure_0, cycle_handshake_0, cycle_handshake_1, cycle_latency_edge_detect, cycle_ordering_0, cycle_perf_frequency_mhz, cycle_perf_throughput, cycle_pipeline_s0_sync1, cycle_pipeline_s1_sync2, ... +4"
+  },
+  "owner_routed_limitations": {},
+  "waived_limitations": {},
+  "static_universe_not_instrumented": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC1_executed, SC2_executed, SC3_executed, cycle_backpressure_0, cycle_handshake_0, cycle_handshake_1, cycle_latency_edge_detect, cycle_ordering_0, cycle_perf_frequency_mhz, cycle_perf_throughput, cycle_pipeline_s0_sync1, cycle_pipeline_s1_sync2, ... +4"
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

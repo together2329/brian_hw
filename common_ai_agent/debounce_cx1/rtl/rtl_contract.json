@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "type": "generic_ssot_rule_rtl_contract",
+  "ip": "debounce_cx1",
+  "top": "debounce_cx1",
+  "generated_at": "2026-06-10T14:34:12Z",
+  "contract": {
+    "top": "debounce_cx1",
+    "transaction": "FM_STABLE",
+    "clock": "clk",
+    "reset": "rst_n",
+    "reset_active": "low",
+    "sample_condition": "((((((rst_n) != 0) == 1'b1)) != 0))",
+    "outputs": [
+      {
+        "name": "db_out_rule",
+        "port": "db_out",
+        "expr": "((fl_db) != 0)",
+        "width": 1,
+        "source": {
+          "name": "db_out_rule",
+          "port": "db_out",
+          "expr": "fl_db",
+          "width": 1,
+          "description": "db_out follows fl_db (updates when threshold reached)"
+        }
+      }
+    ],
+    "state_vars": {
+      "fl_ctr": {
+        "width": 32,
+        "reset": 0
+      },
+      "fl_last": {
+        "width": 32,
+        "reset": 0
+      },
+      "fl_db": {
+        "width": 32,
+        "reset": 0
+      }
+    },
+    "state_updates": [
+      {
+        "name": "fl_ctr",
+        "expr": "((((((((fl_ctr) < (255))) != 0))) != 0) ? ((fl_ctr + 1)) : (255))",
+        "source": {
+          "name": "fl_ctr",
+          "expr": "(fl_ctr + 1) if fl_ctr < 255 else 255",
+          "width": 8
+        }
+      },
+      {
+        "name": "fl_last",
+        "expr": "((btn_in) & (1))",
+        "source": {
+          "name": "fl_last",
+          "expr": "btn_in & 1",
+          "width": 1
+        }
+      },
+      {
+        "name": "fl_db",
+        "expr": "(((((((((fl_ctr + 1)) >= (4))) != 0))) != 0) ? (btn_in) : (fl_db))",
+        "source": {
+          "name": "fl_db",
+          "expr": "btn_in if (fl_ctr + 1) >= 4 else fl_db",
+          "width": 1
+        }
+      }
+    ],
+    "special_outputs": {},
+    "pipeline_stages": [
+      "S0_SAMPLE",
+      "S1_COUNT"
+    ],
+    "fsm_states": [],
+    "fsm_transitions": [],
+    "input_map": {
+      "btn_in": "btn_in"
+    },
+    "apb_registers": {},
+    "source": "rtl_contract + function_model.output_rules"
+  }
+}

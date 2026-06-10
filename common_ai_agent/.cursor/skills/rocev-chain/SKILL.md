@@ -9,6 +9,9 @@ Run one IP through four stages, closing the spine at each stage before moving on
 Never claim a stage done without its Validation gate output. The canonical
 implementation lives in the repo — execute it, do not reimplement it.
 
+**필독: 같은 폴더의 `KNOWN_TRAPS.md`** — 10-IP 실전에서 수확한 함정 전부
+(올바른 게이트 명령, req 번들 수동 저작법, SSOT/TB 생성기 버그 워크어라운드).
+
 ## Spine mapping
 
 | Stage | Requirement/Obligation | Contract | Evidence | Validation |
@@ -51,7 +54,8 @@ missing observable is a contract violation, not a TB style choice. `/tb-gen` own
 ## Stage 4 — sim (Evidence & Validation 닫기)
 
 ```bash
-python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py <ip> --root . --profile dv --execute --from-stage sim --until goal-audit
+python3 <ip>/tb/cocotb/test_runner.py                       # 안정 폴백 (LLM 불필요)
+ATLAS_COV_BLOCK_IS_FAIL=0 python3 .cursor/workflow/req-gen/scripts/stage_gate.py sim <ip> --root .
 python3 .cursor/workflow/sim/scripts/check_sim_disk.py <ip>
 python3 .cursor/workflow/reqcov/scripts/check_truth_coverage.py <ip> --root .
 ```

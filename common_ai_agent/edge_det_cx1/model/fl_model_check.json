@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "edge_det_cx1",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 4,
+    "failed": 0,
+    "transactions": 3,
+    "transaction_results": [
+      {
+        "id": "FM_RISE",
+        "name": "rising_edge",
+        "kind": "FM_RISE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_RISE",
+          "transaction_name": "rising_edge",
+          "sample_accepted": 1,
+          "rise_rule": 1,
+          "rise_out": 1,
+          "fall_rule": 0,
+          "fall_out": 0,
+          "state_updates": {
+            "sync1": 3,
+            "sync2": 3,
+            "prev_sync": 3
+          }
+        }
+      },
+      {
+        "id": "FM_FALL",
+        "name": "falling_edge",
+        "kind": "FM_FALL",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_FALL",
+          "transaction_name": "falling_edge",
+          "sample_accepted": 1,
+          "rise_rule": 0,
+          "rise_out": 0,
+          "fall_rule": 1,
+          "fall_out": 1,
+          "state_updates": {
+            "sync1": 4,
+            "sync2": 4,
+            "prev_sync": 4
+          }
+        }
+      },
+      {
+        "id": "FM_STABLE",
+        "name": "stable",
+        "kind": "FM_STABLE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_STABLE",
+          "transaction_name": "stable",
+          "sample_accepted": 1,
+          "rise_rule": 0,
+          "rise_out": 0,
+          "fall_rule": 0,
+          "fall_out": 0,
+          "state_updates": {
+            "sync1": 5,
+            "sync2": 5,
+            "prev_sync": 5
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 4,
+    "coverage_bins": 18,
+    "invariants_total": 3,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "rise_out = sync2 & ~prev_sync (combinati",
+        "expr": "rise_out = sync2 & ~prev_sync (combinational)",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "fall_out = ~sync2 & prev_sync (combinati",
+        "expr": "fall_out = ~sync2 & prev_sync (combinational)",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "sync2 is always 2-cycle delayed version ",
+        "expr": "sync2 is always 2-cycle delayed version of sig_in",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 6,
+  "fcov_bins": 18,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "edge_det_cx1/req/",
+      "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml",
+      "edge_det_cx1/model/functional_model.py",
+      "edge_det_cx1/cov/fcov_plan.json",
+      "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml#io_list",
+      "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "edge_det_cx1/rtl/",
+      "edge_det_cx1/tb/",
+      "edge_det_cx1/sim/",
+      "edge_det_cx1/vectors/",
+      "edge_det_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

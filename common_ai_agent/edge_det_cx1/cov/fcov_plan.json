@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "edge_det_cx1",
+  "source": "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "edge_det_cx1/req/",
+      "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml",
+      "edge_det_cx1/model/functional_model.py",
+      "edge_det_cx1/cov/fcov_plan.json",
+      "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml#io_list",
+      "edge_det_cx1/yaml/edge_det_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "edge_det_cx1/rtl/",
+      "edge_det_cx1/tb/",
+      "edge_det_cx1/sim/",
+      "edge_det_cx1/vectors/",
+      "edge_det_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "Reset \u2014 all outputs 0"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "Rising edge \u2014 rise_out pulses"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "Falling edge \u2014 fall_out pulses"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "Stable signal \u2014 no pulse"
+    },
+    {
+      "id": "function_rising_edge",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_rise",
+      "description": "FM_RISE rising_edge"
+    },
+    {
+      "id": "function_falling_edge",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_fall",
+      "description": "FM_FALL falling_edge"
+    },
+    {
+      "id": "function_stable",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[2]",
+      "source_ref": "function_model.transactions.fm_stable",
+      "description": "FM_STABLE stable"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'rise_out', 'rule': 'Pulses 1 cycle 3 clocks after input rising edge'}"
+    },
+    {
+      "id": "cycle_handshake_1",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'signal': 'fall_out', 'rule': 'Pulses 1 cycle 3 clocks after input falling edge'}"
+    },
+    {
+      "id": "cycle_latency_edge_detect",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.edge_detect",
+      "source_ref": "cycle_model.latency.edge_detect",
+      "description": "{'min_cycles': 3, 'max_cycles': 3}"
+    },
+    {
+      "id": "cycle_pipeline_s0_sync1",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "sig_in sampled into sync1"
+    },
+    {
+      "id": "cycle_pipeline_s1_sync2",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "sync1 sampled into sync2"
+    },
+    {
+      "id": "cycle_pipeline_s2_edge",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Edge detect: rise_out/fall_out combinational from sync2/prev_sync"
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "prev_sync updated same cycle as sync2 output; edge outputs are combinational."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No backpressure."
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'detections_per_cycle': 1}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 18,
+    "scenario_bins": 4,
+    "transaction_bins": 3,
+    "protocol_bins": 2,
+    "state_transition_bins": 0,
+    "error_bins": 1
+  }
+}

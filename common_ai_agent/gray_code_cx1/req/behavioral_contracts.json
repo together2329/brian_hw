@@ -1,0 +1,157 @@
+{
+  "contracts": [
+    {
+      "id": "BC_GC_DECODE",
+      "latency": {
+        "decode_update": "1 clock cycle: bin_out registered one rising clk after valid sampled"
+      },
+      "obligations": [
+        "OBL_GC_DECODE_001"
+      ],
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_gray_code_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "bin_out matches cascaded XOR of gray_in",
+          "stage": "sim"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "FM_PRIMARY_DECODE",
+          "outputs": [
+            {
+              "expr": "gray_to_bin(gray_in)",
+              "name": "bin_out"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1",
+            "valid == 1"
+          ],
+          "state_updates": []
+        }
+      ]
+    },
+    {
+      "id": "BC_GC_ENCODE",
+      "latency": {
+        "encode_update": "1 clock cycle: gray_out registered one rising clk after valid sampled"
+      },
+      "obligations": [
+        "OBL_GC_ENCODE_001"
+      ],
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "stage": "rtl",
+          "timing": "synchronous reset, 1-cycle latency"
+        },
+        {
+          "artifact": "tb/cocotb/test_gray_code_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "gray_out matches bin_in XOR (bin_in>>1) for all 16 inputs",
+          "stage": "sim"
+        }
+      ],
+      "timing": "gray_out registered on rising clk; valid sampled every cycle when rst_n==1",
+      "transactions": [
+        {
+          "id": "FM_PRIMARY_ENCODE",
+          "outputs": [
+            {
+              "expr": "(bin_in ^ (bin_in >> 1)) & 0xF",
+              "name": "gray_out"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1",
+            "valid == 1"
+          ],
+          "state_updates": []
+        }
+      ]
+    },
+    {
+      "cycle_model_waiver": "lint-only obligation; no cycle model required \u2014 latch-free structure is a static synthesis property",
+      "id": "BC_GC_LINT",
+      "invariants": [
+        "No inferred latches in gray_code_cx1 RTL",
+        "gray_out and bin_out are registered; single driver each"
+      ],
+      "obligations": [
+        "OBL_GC_LINT_001"
+      ],
+      "ssot_section": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "pass_condition": "RTL compiles and maps declared ports",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "lint/dut_lint.json",
+          "pass_condition": "no latch findings",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "id": "BC_GC_RESET",
+      "obligations": [
+        "OBL_GC_RESET_001"
+      ],
+      "reset": "synchronous active-low; outputs clear to 0 on rising clk when rst_n==0",
+      "ssot_section": "cycle_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_gray_code_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "gray_out==0 and bin_out==0 during reset",
+          "stage": "sim"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "TR_RESET",
+          "outputs": [
+            {
+              "expr": "0",
+              "name": "gray_out"
+            },
+            {
+              "expr": "0",
+              "name": "bin_out"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 0"
+          ],
+          "state_updates": []
+        }
+      ]
+    }
+  ],
+  "ip": "gray_code_cx1",
+  "schema_version": 1,
+  "type": "behavioral_contracts"
+}

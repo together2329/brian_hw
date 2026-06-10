@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "requirements_index",
+  "ip": "debounce_cx1",
+  "status": "requirements_locked",
+  "requirements": [
+    {
+      "requirement_id": "REQ_DEB_STABLE_001",
+      "title": "Stability counter increments on stable input",
+      "statement": "An internal stability counter shall increment by 1 on every rising clk edge where btn_in equals the last sampled value, when rst_n is deasserted.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_DEB_STABLE_001", "OBL_DEB_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_DEB_BOUNCE_001",
+      "title": "Counter resets on input change",
+      "statement": "The stability counter shall reset to 0 on any rising clk edge where btn_in differs from the last sampled value.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_DEB_BOUNCE_001", "OBL_DEB_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_DEB_OUTPUT_001",
+      "title": "db_out updates after THRESH stable cycles",
+      "statement": "db_out shall update to match btn_in when the stability counter reaches THRESH consecutive stable cycles.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_DEB_OUTPUT_001", "OBL_DEB_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_DEB_RESET_001",
+      "title": "Reset clears all state",
+      "statement": "On active-low reset (rst_n=0), the stability counter, last-sample register, and db_out shall clear to 0.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_DEB_RESET_001", "OBL_DEB_LINT_001"]
+    }
+  ]
+}

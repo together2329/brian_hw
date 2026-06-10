@@ -1,0 +1,1258 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 18,
+      "enabled": true,
+      "index": 6,
+      "key": "function_model",
+      "module_task_count": 67,
+      "rule": "Owner module pwm_gen_cx1 is split into 18 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/pwm_gen_cx1.sv",
+      "name": "pwm_gen_cx1",
+      "refs": [
+        "function_model",
+        "function_model.transactions",
+        "function_model.transactions.FM_TICK",
+        "function_model.transactions.FM_WRITE",
+        "io_list",
+        "io_list.interfaces",
+        "registers",
+        "registers.register_list"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/pwm_gen_cx1.sv",
+        "name": "pwm_gen_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "duty_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "duty_in_wr_en",
+          "wr_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "duty_in_pwm_out",
+          "pwm_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "pwm_out",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "pwm_gen_cx1",
+  "kind": "module",
+  "owner_file": "rtl/pwm_gen_cx1.sv",
+  "owner_module": "pwm_gen_cx1",
+  "packet_id": "module__pwm_gen_cx1__function_model",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "function_model.input": 1,
+      "function_model.invariant": 3,
+      "function_model.output": 2,
+      "function_model.output_rule": 2,
+      "function_model.precondition": 2,
+      "function_model.side_effect": 1,
+      "function_model.state_update": 3,
+      "function_model.state_variable": 2,
+      "function_model.transaction": 2
+    },
+    "module_slice": {
+      "count": 18,
+      "enabled": true,
+      "index": 6,
+      "key": "function_model",
+      "module_task_count": 67,
+      "rule": "Owner module pwm_gen_cx1 is split into 18 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "function_model",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 18,
+    "source_refs": [
+      "function_model.state_variables.duty_reg",
+      "function_model.state_variables.counter",
+      "function_model.transactions.FM_WRITE",
+      "function_model.transactions.FM_WRITE.preconditions.precondition_0",
+      "function_model.transactions.FM_WRITE.inputs.input_0",
+      "function_model.transactions.FM_WRITE.outputs.output_0",
+      "function_model.transactions.FM_WRITE.output_rules.pwm_out_rule",
+      "function_model.transactions.FM_WRITE.state_updates.duty_reg",
+      "function_model.transactions.FM_WRITE.state_updates.counter",
+      "function_model.transactions.FM_WRITE.side_effects.side_effect_0",
+      "function_model.transactions.FM_TICK",
+      "function_model.transactions.FM_TICK.preconditions.precondition_0",
+      "function_model.transactions.FM_TICK.outputs.output_0",
+      "function_model.transactions.FM_TICK.output_rules.pwm_out_rule",
+      "function_model.transactions.FM_TICK.state_updates.counter",
+      "function_model.invariants.invariant_0",
+      "function_model.invariants.invariant_1",
+      "function_model.invariants.invariant_2"
+    ],
+    "status_counts": {
+      "pass": 18
+    },
+    "task_count": 18
+  },
+  "tasks": [
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state duty_reg",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.duty_reg",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "duty_reg reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.duty_reg.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.\nSSOT item context: name=duty_reg; reset=0.",
+      "evidence_terms": [
+        "duty",
+        "duty_reg",
+        "reg"
+      ],
+      "id": "RTL-0033",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.duty_reg",
+      "ssot_context": {
+        "name": "duty_reg",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.duty_reg"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "duty",
+          "duty_reg",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_reg",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_variable",
+      "content": "Implement RTL state owner for FL state counter",
+      "criteria": [
+        "State has a flop/register/memory owner in RTL",
+        "Reset value matches SSOT",
+        "Every transaction update occurs at the SSOT-defined acceptance/cycle point",
+        "Traceability keeps source_ref function_model.state_variables.counter",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "counter reset behavior matches SSOT value 0"
+      ],
+      "detail": "Every FunctionalModel state variable that is architecturally visible or affects outputs needs RTL storage, reset, and update behavior.\nSSOT ref: function_model.state_variables.counter.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.\nSSOT item context: name=counter; reset=0.",
+      "evidence_terms": [],
+      "id": "RTL-0034",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.state_variables.counter",
+      "ssot_context": {
+        "name": "counter",
+        "reset": "0"
+      },
+      "ssot_refs": [
+        "function_model.state_variables.counter"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_WRITE",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_WRITE.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: id=FM_WRITE; name=duty_write.",
+      "evidence_terms": [],
+      "id": "RTL-0035",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE",
+      "ssot_context": {
+        "id": "FM_WRITE",
+        "name": "duty_write"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_WRITE: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.preconditions.precondition_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: value=wr_en == 1.",
+      "evidence_terms": [
+        "en",
+        "wr",
+        "wr_en"
+      ],
+      "id": "RTL-0036",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "wr_en == 1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "en",
+          "wr",
+          "wr_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "en",
+          "wr",
+          "wr_en"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.input",
+      "content": "Implement input for FM_WRITE: input_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.inputs.input_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for duty_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.inputs.input_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: id=FM_WRITE; name=duty_write; port=[\"pwm_out\"]; signal=[\"duty_in\"]; state=[\"duty_reg\", \"counter\"].",
+      "evidence_terms": [
+        "duty",
+        "duty_in",
+        "duty_reg",
+        "in",
+        "out",
+        "pwm",
+        "pwm_out",
+        "reg"
+      ],
+      "id": "RTL-0037",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.inputs.input_0",
+      "ssot_context": {
+        "id": "FM_WRITE",
+        "name": "duty_write",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"duty_in\"]",
+        "state": "[\"duty_reg\", \"counter\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.inputs.input_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 8,
+        "matched_terms": [
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_WRITE: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.outputs.output_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.outputs.output_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: value=duty_reg updated to duty_in; pwm_out reflects new duty vs current counter.",
+      "evidence_terms": [
+        "duty",
+        "duty_in",
+        "duty_reg",
+        "in",
+        "out",
+        "pwm",
+        "pwm_out",
+        "reg"
+      ],
+      "id": "RTL-0038",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.outputs.output_0",
+      "ssot_context": {
+        "value": "duty_reg updated to duty_in; pwm_out reflects new duty vs current counter"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 8,
+        "matched_terms": [
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_WRITE: pwm_out_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.output_rules.pwm_out_rule",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "pwm_out_rule width matches SSOT value 1",
+        "pwm_out_rule RTL expression implements SSOT expression 1 if counter < duty_in else 0",
+        "DUT port pwm_out is the implementation/observation point for pwm_out_rule",
+        "pwm_out_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.output_rules.pwm_out_rule.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: name=pwm_out_rule; port=pwm_out; expr=1 if counter < duty_in else 0; width=1.",
+      "evidence_terms": [
+        "duty",
+        "duty_in",
+        "in",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_rule"
+      ],
+      "id": "RTL-0039",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.output_rules.pwm_out_rule",
+      "ssot_context": {
+        "expr": "1 if counter < duty_in else 0",
+        "name": "pwm_out_rule",
+        "port": "pwm_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.output_rules.pwm_out_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "duty",
+          "duty_in",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_in",
+          "in",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_rule"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_WRITE: duty_reg",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.state_updates.duty_reg",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "duty_reg width matches SSOT value 8",
+        "duty_reg RTL expression implements SSOT expression duty_in & 0xff",
+        "duty_reg updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.state_updates.duty_reg.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: name=duty_reg; expr=duty_in & 0xff; width=8.",
+      "evidence_terms": [
+        "duty",
+        "duty_in",
+        "duty_reg",
+        "in",
+        "reg"
+      ],
+      "id": "RTL-0040",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.state_updates.duty_reg",
+      "ssot_context": {
+        "expr": "duty_in & 0xff",
+        "name": "duty_reg",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.state_updates.duty_reg"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 5,
+        "matched_terms": [
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_in",
+          "duty_reg",
+          "in",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_WRITE: counter",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.state_updates.counter",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "counter width matches SSOT value 8",
+        "counter RTL expression implements SSOT expression (counter + 1) & 0xff",
+        "counter updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.state_updates.counter.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: name=counter; expr=(counter + 1) & 0xff; width=8.",
+      "evidence_terms": [],
+      "id": "RTL-0041",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.state_updates.counter",
+      "ssot_context": {
+        "expr": "(counter + 1) & 0xff",
+        "name": "counter",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.state_updates.counter"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.side_effect",
+      "content": "Implement side effect for FM_WRITE: side_effect_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_WRITE.side_effects.side_effect_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "DUT port [\"pwm_out\"] is the implementation/observation point for duty_write"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_WRITE.side_effects.side_effect_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_WRITE.\nSSOT item context: id=FM_WRITE; name=duty_write; port=[\"pwm_out\"]; signal=[\"duty_reg updated\"]; state=[\"duty_reg\", \"counter\"].",
+      "evidence_terms": [
+        "duty",
+        "duty_reg",
+        "out",
+        "pwm",
+        "pwm_out",
+        "reg"
+      ],
+      "id": "RTL-0042",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_WRITE.side_effects.side_effect_0",
+      "ssot_context": {
+        "id": "FM_WRITE",
+        "name": "duty_write",
+        "port": "[\"pwm_out\"]",
+        "signal": "[\"duty_reg updated\"]",
+        "state": "[\"duty_reg\", \"counter\"]"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_WRITE.side_effects.side_effect_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.transaction",
+      "content": "Implement transaction FM_TICK",
+      "criteria": [
+        "Acceptance/precondition logic is explicit in RTL",
+        "All outputs and side effects occur exactly once per accepted transaction",
+        "The transaction is covered by equivalence goals and scoreboard observations downstream",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "Transaction acceptance, outputs, side effects, error cases, and observable state updates must be implemented in RTL.\nSSOT ref: function_model.transactions.FM_TICK.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_TICK.\nSSOT item context: id=FM_TICK; name=counter_tick.",
+      "evidence_terms": [],
+      "id": "RTL-0043",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK",
+      "ssot_context": {
+        "id": "FM_TICK",
+        "name": "counter_tick"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.precondition",
+      "content": "Implement precondition for FM_TICK: precondition_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.preconditions.precondition_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.preconditions.precondition_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_TICK.\nSSOT item context: value=wr_en == 0.",
+      "evidence_terms": [
+        "en",
+        "wr",
+        "wr_en"
+      ],
+      "id": "RTL-0044",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.preconditions.precondition_0",
+      "ssot_context": {
+        "value": "wr_en == 0"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.preconditions.precondition_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 3,
+        "matched_terms": [
+          "en",
+          "wr",
+          "wr_en"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "en",
+          "wr",
+          "wr_en"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output",
+      "content": "Implement output for FM_TICK: output_0",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.outputs.output_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.outputs.output_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_TICK.\nSSOT item context: value=counter increments; pwm_out = (counter < duty_reg).",
+      "evidence_terms": [
+        "duty",
+        "duty_reg",
+        "out",
+        "pwm",
+        "pwm_out",
+        "reg"
+      ],
+      "id": "RTL-0045",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.outputs.output_0",
+      "ssot_context": {
+        "value": "counter increments; pwm_out = (counter < duty_reg)"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.outputs.output_0"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 1,
+        "required_terms": [
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.output_rule",
+      "content": "Implement output rule for FM_TICK: pwm_out_rule",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.output_rules.pwm_out_rule",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "pwm_out_rule width matches SSOT value 1",
+        "pwm_out_rule RTL expression implements SSOT expression 1 if counter < duty_reg else 0",
+        "DUT port pwm_out is the implementation/observation point for pwm_out_rule",
+        "pwm_out_rule is not implemented only in FunctionalModel or scoreboard code"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.output_rules.pwm_out_rule.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_TICK.\nSSOT item context: name=pwm_out_rule; port=pwm_out; expr=1 if counter < duty_reg else 0; width=1.",
+      "evidence_terms": [
+        "duty",
+        "duty_reg",
+        "out",
+        "pwm",
+        "pwm_out",
+        "pwm_out_rule",
+        "reg"
+      ],
+      "id": "RTL-0046",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.output_rules.pwm_out_rule",
+      "ssot_context": {
+        "expr": "1 if counter < duty_reg else 0",
+        "name": "pwm_out_rule",
+        "port": "pwm_out",
+        "width": "1"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.output_rules.pwm_out_rule"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 6,
+        "matched_terms": [
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_out",
+          "reg"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "duty",
+          "duty_reg",
+          "out",
+          "pwm",
+          "pwm_out",
+          "pwm_out_rule",
+          "reg"
+        ],
+        "source_scope": "rtl/pwm_gen_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 9,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.state_update",
+      "content": "Implement state update for FM_TICK: counter",
+      "criteria": [
+        "RTL owner logic is identifiable for this SSOT leaf",
+        "Reset/enable/error behavior is consistent with the parent transaction",
+        "Downstream equivalence/coverage can observe this behavior",
+        "Traceability keeps source_ref function_model.transactions.FM_TICK.state_updates.counter",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "counter width matches SSOT value 8",
+        "counter RTL expression implements SSOT expression (counter + 1) & 0xff",
+        "counter updates exactly once at the SSOT-defined transaction acceptance point"
+      ],
+      "detail": "This is a required leaf item from the FunctionalModel contract and must not be satisfied only in TB or comments.\nSSOT ref: function_model.transactions.FM_TICK.state_updates.counter.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.transactions.FM_TICK.\nSSOT item context: name=counter; expr=(counter + 1) & 0xff; width=8.",
+      "evidence_terms": [],
+      "id": "RTL-0047",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.transactions.FM_TICK.state_updates.counter",
+      "ssot_context": {
+        "expr": "(counter + 1) & 0xff",
+        "name": "counter",
+        "width": "8"
+      },
+      "ssot_refs": [
+        "function_model.transactions.FM_TICK.state_updates.counter"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 8,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_0",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_0",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_0.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.\nSSOT item context: signal=counter wraps from 255 to 0..",
+      "evidence_terms": [],
+      "id": "RTL-0048",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_0",
+      "ssot_context": {
+        "signal": "counter wraps from 255 to 0."
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_0"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_1",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_1",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "DUT port [\"pwm_out\", \"pwm_out\"] is the implementation/observation point for [\"pwm_out\", \"pwm_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_1.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.\nSSOT item context: port=[\"pwm_out\", \"pwm_out\"]; signal=pwm_out = (counter_q < duty_reg) combinationally.; state=[\"duty_reg\"].",
+      "evidence_terms": [],
+      "id": "RTL-0049",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_1",
+      "ssot_context": {
+        "port": "[\"pwm_out\", \"pwm_out\"]",
+        "signal": "pwm_out = (counter_q < duty_reg) combinationally.",
+        "state": "[\"duty_reg\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_1"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "function_model.invariant",
+      "content": "Preserve FL invariant invariant_2",
+      "criteria": [
+        "RTL behavior cannot violate the invariant in normal operation",
+        "If the invariant is verification-only, the SSOT names that evidence owner",
+        "Coverage/equivalence references this invariant when observable",
+        "Traceability keeps source_ref function_model.invariants.invariant_2",
+        "Primary implementation evidence is in rtl/pwm_gen_cx1.sv",
+        "DUT port [\"pwm_out\", \"pwm_out\"] is the implementation/observation point for [\"pwm_out\", \"pwm_out\"]"
+      ],
+      "detail": "Invariants constrain legal RTL behavior and must be reflected in state, gating, error handling, assertions, or downstream checks.\nSSOT ref: function_model.invariants.invariant_2.\nOwner: pwm_gen_cx1 in rtl/pwm_gen_cx1.sv via function_model.\nSSOT item context: port=[\"pwm_out\", \"pwm_out\"]; signal=duty_reg resets to 0 on rst_n low.; state=[\"duty_reg\"].",
+      "evidence_terms": [],
+      "id": "RTL-0050",
+      "owner_file": "rtl/pwm_gen_cx1.sv",
+      "owner_module": "pwm_gen_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "function_model.invariants.invariant_2",
+      "ssot_context": {
+        "port": "[\"pwm_out\", \"pwm_out\"]",
+        "signal": "duty_reg resets to 0 on rst_n low.",
+        "state": "[\"duty_reg\"]"
+      },
+      "ssot_refs": [
+        "function_model.invariants.invariant_2"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "2443e02841856f2c0d51ef267e23d10eb485682306d888b42c959dcf7c3ff98f",
+  "top": "pwm_gen_cx1",
+  "type": "rtl_authoring_packet"
+}

@@ -1,0 +1,494 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 2,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 7,
+      "key": "features",
+      "module_task_count": 79,
+      "rule": "Owner module fifo_sync_cx1 is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/fifo_sync_cx1.sv",
+      "name": "fifo_sync_cx1",
+      "refs": [
+        "cycle_model",
+        "cycle_model.pipeline",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "features",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.transactions.FM_READ",
+        "function_model.transactions.FM_WRITE",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/fifo_sync_cx1.sv",
+        "name": "fifo_sync_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_cx1",
+        "port": "clk",
+        "signal": "clk",
+        "signal_terms": [
+          "clk"
+        ],
+        "source_ref": "integration.connections[0]"
+      },
+      {
+        "instance": "",
+        "machine_readable": true,
+        "module": "fifo_sync_cx1",
+        "port": "rst_n",
+        "signal": "rst_n",
+        "signal_terms": [
+          "rst_n"
+        ],
+        "source_ref": "integration.connections[1]"
+      }
+    ],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_io_wr_en",
+          "wr_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_en",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_io_wr_data",
+          "wr_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "wr_data",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "fifo_io_rd_en",
+          "rd_en"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rd_en",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fifo_io_rd_data",
+          "rd_data"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rd_data",
+        "source_ref": "io_list.interfaces[0].ports[3]",
+        "width": "8"
+      },
+      {
+        "aliases": [
+          "fifo_io_full",
+          "full"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "full",
+        "source_ref": "io_list.interfaces[0].ports[4]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "empty",
+          "fifo_io_empty"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "empty",
+        "source_ref": "io_list.interfaces[0].ports[5]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "fifo_sync_cx1",
+  "kind": "module",
+  "owner_file": "rtl/fifo_sync_cx1.sv",
+  "owner_module": "fifo_sync_cx1",
+  "packet_id": "module__fifo_sync_cx1__features",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "features.item": 6
+    },
+    "module_slice": {
+      "count": 11,
+      "enabled": true,
+      "index": 7,
+      "key": "features",
+      "module_task_count": 79,
+      "rule": "Owner module fifo_sync_cx1 is split into 11 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "features",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 6,
+    "source_refs": [
+      "features.fifo_write",
+      "features.fifo_read",
+      "features.full_flag",
+      "features.empty_flag",
+      "features.reset_behavior",
+      "features.lint_clean"
+    ],
+    "status_counts": {
+      "pass": 6
+    },
+    "task_count": 6
+  },
+  "tasks": [
+    {
+      "category": "features.item",
+      "content": "Implement feature fifo_write",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.fifo_write",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.fifo_write.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via features.\nSSOT item context: name=fifo_write.",
+      "evidence_terms": [],
+      "id": "RTL-0076",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.fifo_write",
+      "ssot_context": {
+        "name": "fifo_write"
+      },
+      "ssot_refs": [
+        "features.fifo_write"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature fifo_read",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.fifo_read",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.fifo_read.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via features.\nSSOT item context: name=fifo_read.",
+      "evidence_terms": [],
+      "id": "RTL-0077",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.fifo_read",
+      "ssot_context": {
+        "name": "fifo_read"
+      },
+      "ssot_refs": [
+        "features.fifo_read"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature full_flag",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.full_flag",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.full_flag.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via features.\nSSOT item context: name=full_flag.",
+      "evidence_terms": [],
+      "id": "RTL-0078",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.full_flag",
+      "ssot_context": {
+        "name": "full_flag"
+      },
+      "ssot_refs": [
+        "features.full_flag"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature empty_flag",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.empty_flag",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.empty_flag.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via features.\nSSOT item context: name=empty_flag.",
+      "evidence_terms": [],
+      "id": "RTL-0079",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.empty_flag",
+      "ssot_context": {
+        "name": "empty_flag"
+      },
+      "ssot_refs": [
+        "features.empty_flag"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature reset_behavior",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.reset_behavior",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.reset_behavior.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via features.\nSSOT item context: name=reset_behavior.",
+      "evidence_terms": [],
+      "id": "RTL-0080",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.reset_behavior",
+      "ssot_context": {
+        "name": "reset_behavior"
+      },
+      "ssot_refs": [
+        "features.reset_behavior"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "features.item",
+      "content": "Implement feature lint_clean",
+      "criteria": [
+        "Feature trigger/control/data behavior has RTL owner logic",
+        "Feature observability and error behavior match SSOT",
+        "Feature is covered by function/cycle/coverage tasks or explicitly blocked",
+        "Traceability keeps source_ref features.lint_clean",
+        "Primary implementation evidence is in rtl/fifo_sync_cx1.sv"
+      ],
+      "detail": "Features are user-visible behavior and must be decomposed into RTL control/datapath/status logic.\nSSOT ref: features.lint_clean.\nOwner: fifo_sync_cx1 in rtl/fifo_sync_cx1.sv via features.\nSSOT item context: name=lint_clean.",
+      "evidence_terms": [],
+      "id": "RTL-0081",
+      "owner_file": "rtl/fifo_sync_cx1.sv",
+      "owner_module": "fifo_sync_cx1",
+      "priority": "high",
+      "required": true,
+      "source_ref": "features.lint_clean",
+      "ssot_context": {
+        "name": "lint_clean"
+      },
+      "ssot_refs": [
+        "features.lint_clean"
+      ],
+      "static_evidence": {
+        "required": false,
+        "status": "not_required"
+      },
+      "todo_completion": {
+        "criteria_total": 5,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "f60a21ce95a3bb1d9b8f9064274b58761f11fac9e77f49b03ad55bd518d76b86",
+  "top": "fifo_sync_cx1",
+  "type": "rtl_authoring_packet"
+}

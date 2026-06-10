@@ -1,0 +1,61 @@
+{
+  "evidence": "tb/tb_todo_plan.json",
+  "ip": "pwm_gen_cx1",
+  "next_action": "Repair req/SSOT/RTL authority artifacts and rerun /gen-tb.",
+  "questions": [
+    {
+      "decision_needed": "behavioral contract BC_PWM_COUNT is not projected into a function_model row with behavioral contract_refs",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_0",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    },
+    {
+      "decision_needed": "behavioral contract BC_PWM_COUNT is not projected into a cycle_model row with behavioral contract_refs; add timing/protocol rows or an explicit cycle_model_waiver",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_1",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    },
+    {
+      "decision_needed": "behavioral contract BC_PWM_DUTY is not projected into a function_model row with behavioral contract_refs",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_2",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    },
+    {
+      "decision_needed": "behavioral contract BC_PWM_DUTY is not projected into a cycle_model row with behavioral contract_refs; add timing/protocol rows or an explicit cycle_model_waiver",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_3",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    },
+    {
+      "decision_needed": "behavioral contract BC_PWM_LINT is not projected into a function_model row with behavioral contract_refs",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_4",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    },
+    {
+      "decision_needed": "behavioral contract BC_PWM_RESET is not projected into a function_model row with behavioral contract_refs",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_5",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    },
+    {
+      "decision_needed": "behavioral contract BC_PWM_RESET is not projected into a cycle_model row with behavioral contract_refs; add timing/protocol rows or an explicit cycle_model_waiver",
+      "evidence": "req/behavioral_contracts.json",
+      "id": "BEHAVIORAL_CONTRACT_PROJECTION_6",
+      "owner": "ssot-gen",
+      "recommended_default": "Repair the locked req/SSOT/RTL contract source and rerun /gen-tb."
+    }
+  ],
+  "reason": "SSOT findings recorded as advisories: TB generation proceeds, signoff still requires closure.",
+  "schema_version": 1,
+  "status": "advisory",
+  "timestamp": "2026-06-10T14:12:14Z",
+  "type": "ssot_derived_tb_todo_advisory"
+}

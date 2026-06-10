@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1781102852" />
+    <testcase name="test_watchdog_cx1" classname="test_watchdog_cx1" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/watchdog_cx1/tb/cocotb/test_watchdog_cx1.py" lineno="369" time="0.003960847854614258" sim_time_ns="175.001" ratio_time="44182.71199085054" />
+  </testsuite>
+</testsuites>

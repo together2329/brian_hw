@@ -1,0 +1,126 @@
+{
+  "ip": "gray_code_cx1",
+  "next_action": "Answer these questions inline so SSOT-gen records them, update SSOT, regenerate FL/equivalence goals, then rerun /ssot-rtl.",
+  "owner": "ssot-gen",
+  "questions": [
+    {
+      "blocking_items": [
+        {
+          "id": "LOCKED_TRUTH_CONTRACT_NOT_PROJECTED_BC_GC_DECODE",
+          "owner": "ssot-gen",
+          "reason": "Behavioral contract has no SSOT behavior projection ref for rtl-gen owner/evidence routing.",
+          "source_ref": "req/behavioral_contracts.json:BC_GC_DECODE"
+        },
+        {
+          "id": "LOCKED_TRUTH_CONTRACT_NOT_PROJECTED_BC_GC_ENCODE",
+          "owner": "ssot-gen",
+          "reason": "Behavioral contract has no SSOT behavior projection ref for rtl-gen owner/evidence routing.",
+          "source_ref": "req/behavioral_contracts.json:BC_GC_ENCODE"
+        },
+        {
+          "id": "LOCKED_TRUTH_CONTRACT_NOT_PROJECTED_BC_GC_LINT",
+          "owner": "ssot-gen",
+          "reason": "Behavioral contract has no SSOT behavior projection ref for rtl-gen owner/evidence routing.",
+          "source_ref": "req/behavioral_contracts.json:BC_GC_LINT"
+        },
+        {
+          "id": "LOCKED_TRUTH_CONTRACT_NO_RTL_STAGE_BC_GC_LINT",
+          "owner": "req-gen",
+          "reason": "Behavioral contract must declare an rtl/rtl-gen stage_contract before RTL evidence can close it.",
+          "source_ref": "req/behavioral_contracts.json:BC_GC_LINT.stage_contracts"
+        },
+        {
+          "id": "LOCKED_TRUTH_CONTRACT_NOT_PROJECTED_BC_GC_RESET",
+          "owner": "ssot-gen",
+          "reason": "Behavioral contract has no SSOT behavior projection ref for rtl-gen owner/evidence routing.",
+          "source_ref": "req/behavioral_contracts.json:BC_GC_RESET"
+        }
+      ],
+      "decision_needed": "Repair the SSOT so rtl-gen has mandatory source sections and well-formed SSOT-defined workflow todos.",
+      "evidence": "rtl/rtl_todo_plan.json blockers",
+      "id": "RTL_DYNAMIC_TODO_SSOT_REQUIRED_SECTIONS",
+      "options": [
+        "Update SSOT with structured function_model and cycle_model sections.",
+        "Update workflow_todos.rtl-gen[] entries so every item has content, detail, and criteria.",
+        "Move non-RTL intent out of RTL implementation sections and rerun /ssot-rtl."
+      ],
+      "recommended_default": "Use ssot-gen to fill function_model, cycle_model, workflow_todos.rtl-gen content/detail/criteria, decomposition, DV plan, and coverage from the requirement.",
+      "required_fields": [
+        "req/behavioral_contracts.json:BC_GC_DECODE",
+        "req/behavioral_contracts.json:BC_GC_ENCODE",
+        "req/behavioral_contracts.json:BC_GC_LINT",
+        "req/behavioral_contracts.json:BC_GC_LINT.stage_contracts",
+        "req/behavioral_contracts.json:BC_GC_RESET"
+      ]
+    },
+    {
+      "answer_schema": {
+        "format": "YAML or JSON",
+        "root_key": "module_contracts",
+        "rule": "Every orphan source_ref must be covered by an exact ref or a dotted parent ref in the owning sub_modules[] row."
+      },
+      "candidate_modules": [
+        {
+          "file": "rtl/gray_code_cx1.sv",
+          "name": "gray_code_cx1",
+          "refs": [
+            "cycle_model",
+            "cycle_model.pipeline",
+            "dataflow",
+            "dataflow.sequence",
+            "decomposition",
+            "features",
+            "function_model",
+            "function_model.state_variables",
+            "function_model.transactions.FM_PRIMARY",
+            "io_list",
+            "rtl_contract",
+            "test_requirements"
+          ]
+        }
+      ],
+      "decision_needed": "Assign every SSOT-derived function/cycle/register/dataflow/FSM task to an RTL module owner.",
+      "evidence": "rtl/rtl_todo_plan.json orphans",
+      "id": "RTL_DYNAMIC_TODO_OWNERSHIP",
+      "options": [
+        "Add exact sub_modules[].*_refs ownership for each orphan source_ref.",
+        "Split or refine SSOT decomposition until each behavior has one RTL owner.",
+        "Promote independently verified blocks to child_ssot with an explicit SSOT path."
+      ],
+      "orphan_groups": [
+        {
+          "category": "contract.behavioral.rtl",
+          "count": 4,
+          "required_field": "sub_modules[].ssot_refs",
+          "sample_refs": [
+            "req.behavioral_contracts.BC_GC_DECODE",
+            "req.behavioral_contracts.BC_GC_ENCODE",
+            "req.behavioral_contracts.BC_GC_LINT",
+            "req.behavioral_contracts.BC_GC_RESET"
+          ],
+          "section_id": "req"
+        }
+      ],
+      "orphan_refs": [
+        "req.behavioral_contracts.BC_GC_DECODE",
+        "req.behavioral_contracts.BC_GC_ENCODE",
+        "req.behavioral_contracts.BC_GC_LINT",
+        "req.behavioral_contracts.BC_GC_RESET"
+      ],
+      "recommended_default": "Patch sub_modules[] with function_model_refs, cycle_model_refs, register_refs, dataflow_refs, and fsm_refs.",
+      "required_fields": [
+        "sub_modules[].function_model_refs",
+        "sub_modules[].cycle_model_refs",
+        "sub_modules[].register_refs",
+        "sub_modules[].dataflow_refs",
+        "sub_modules[].fsm_refs"
+      ]
+    }
+  ],
+  "reason": "SSOT findings recorded as advisories (starter/engineering run mode): authoring proceeds, signoff still requires closure.",
+  "schema_version": 1,
+  "status": "advisory",
+  "timestamp": "2026-06-10T14:18:30Z",
+  "top": "gray_code_cx1",
+  "type": "rtl_advisory"
+}

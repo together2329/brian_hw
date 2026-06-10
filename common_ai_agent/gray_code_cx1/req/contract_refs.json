@@ -1,0 +1,83 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_GC_DECODE",
+      "obligation_refs": [
+        "OBL_GC_DECODE_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_PRIMARY",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_gray_code_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_GC_ENCODE",
+      "obligation_refs": [
+        "OBL_GC_ENCODE_001"
+      ],
+      "ssot_anchor": "function_model.transactions.FM_PRIMARY",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_gray_code_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_GC_LINT",
+      "obligation_refs": [
+        "OBL_GC_LINT_001"
+      ],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_GC_RESET",
+      "obligation_refs": [
+        "OBL_GC_RESET_001"
+      ],
+      "ssot_anchor": "cycle_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/gray_code_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_gray_code_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    }
+  ],
+  "ip": "gray_code_cx1",
+  "schema_version": 1,
+  "type": "contract_refs"
+}

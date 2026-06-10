@@ -1,0 +1,70 @@
+{
+  "evidence_plan": [
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_CNT8_COUNT",
+      "evidence_id": "E_CNT8_BC_COUNT",
+      "pass_condition": "count increments match behavioral contract TR_COUNT expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_CNT8_HOLD",
+      "evidence_id": "E_CNT8_BC_HOLD",
+      "pass_condition": "count stable when en==0 per BC_CNT8_HOLD",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "BC_CNT8_LINT",
+      "evidence_id": "E_CNT8_BC_LINT",
+      "pass_condition": "no latch findings per BC_CNT8_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_CNT8_RESET",
+      "evidence_id": "E_CNT8_BC_RESET",
+      "pass_condition": "count==0 one cycle after rst_n asserts per BC_CNT8_RESET",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_CNT8_COUNT",
+      "evidence_id": "E_CNT8_COUNT",
+      "pass_condition": "observed count sequence matches FL expected increment",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_CNT8_HOLD",
+      "evidence_id": "E_CNT8_HOLD",
+      "pass_condition": "count unchanged when en==0",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "C_CNT8_LINT",
+      "evidence_id": "E_CNT8_LINT",
+      "pass_condition": "no latch / no single-driver violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_CNT8_RESET",
+      "evidence_id": "E_CNT8_RESET",
+      "pass_condition": "count==0 observed one cycle after rst_n asserts",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "rtl/counter8_cx1.sv",
+      "contract_ref": "SC_CNT8_PORTS",
+      "evidence_id": "E_CNT8_SC_PORTS",
+      "pass_condition": "top ports clk rst_n en count present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    }
+  ],
+  "ip": "counter8_cx1",
+  "schema_version": 1,
+  "type": "evidence_plan"
+}

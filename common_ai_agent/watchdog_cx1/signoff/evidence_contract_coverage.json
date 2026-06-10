@@ -1,0 +1,92 @@
+{
+  "generated_at": "2026-06-10T14:49:09Z",
+  "ip": "watchdog_cx1",
+  "issues": [],
+  "obligations": [
+    {
+      "condition_results": {
+        "tick_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_WDT_TICK",
+          "scenario_id": "SC_TICK_0"
+        },
+        {
+          "goal_id": "EQ_WDT_TICK",
+          "scenario_id": "SC_TICK_1"
+        },
+        {
+          "goal_id": "EQ_WDT_TICK",
+          "scenario_id": "SC_TICK_2"
+        },
+        {
+          "goal_id": "EQ_WDT_TICK",
+          "scenario_id": "SC_TICK_3"
+        }
+      ],
+      "obligation_id": "OBL_WDT_TICK_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "timeout_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_WDT_TIMEOUT",
+          "scenario_id": "SC_TIMEOUT_2"
+        }
+      ],
+      "obligation_id": "OBL_WDT_TIMEOUT_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "idle_scoreboard_rows_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_WDT_IDLE",
+          "scenario_id": "SC_IDLE_0"
+        },
+        {
+          "goal_id": "EQ_WDT_IDLE",
+          "scenario_id": "SC_IDLE_1"
+        },
+        {
+          "goal_id": "EQ_WDT_IDLE",
+          "scenario_id": "SC_IDLE_2"
+        }
+      ],
+      "obligation_id": "OBL_WDT_IDLE_001",
+      "status": "pass"
+    },
+    {
+      "condition_results": {
+        "kick_scoreboard_row_passed": true
+      },
+      "issues": [],
+      "matched_rows": [
+        {
+          "goal_id": "EQ_WDT_KICK",
+          "scenario_id": "SC_KICK"
+        }
+      ],
+      "obligation_id": "OBL_WDT_KICK_001",
+      "status": "pass"
+    }
+  ],
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "failed": 0,
+    "index_issues": 0,
+    "passed": 4,
+    "total": 4
+  },
+  "type": "evidence_contract_coverage"
+}

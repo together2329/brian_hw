@@ -1,0 +1,275 @@
+{
+  "ip": "gray_code_cx1",
+  "requirements": [
+    {
+      "requirement_id": "REQ_GC_FUNC_001",
+      "title": "4-bit binary-to-Gray and Gray-to-binary converter (registered)",
+      "statement": "On each rising clock edge when valid is high, gray_out is registered as bin_in XOR (bin_in>>1) and bin_out is registered as the cascaded XOR reduction of gray_in. Both outputs clear to 0 synchronously when rst_n is low.",
+      "required": true,
+      "obligation_refs": ["OBL_GC_ENCODE_001", "OBL_GC_DECODE_001", "OBL_GC_RESET_001", "OBL_GC_LINT_001"]
+    }
+  ],
+  "obligations": [
+    {
+      "obligation_id": "OBL_GC_ENCODE_001",
+      "requirement_refs": ["REQ_GC_FUNC_001"],
+      "statement": "gray_out is registered as bin_in XOR (bin_in>>1) one cycle after valid is sampled.",
+      "contract_refs": ["C_GC_ENCODE"],
+      "structural_contract_refs": ["SC_GC_PORTS"],
+      "behavioral_contract_refs": ["BC_GC_ENCODE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_GC_DECODE_001",
+      "requirement_refs": ["REQ_GC_FUNC_001"],
+      "statement": "bin_out is registered as cascaded XOR reduction of gray_in one cycle after valid is sampled.",
+      "contract_refs": ["C_GC_DECODE"],
+      "structural_contract_refs": ["SC_GC_PORTS"],
+      "behavioral_contract_refs": ["BC_GC_DECODE"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_GC_RESET_001",
+      "requirement_refs": ["REQ_GC_FUNC_001"],
+      "statement": "gray_out and bin_out clear to 0 synchronously when rst_n is low.",
+      "contract_refs": ["C_GC_RESET"],
+      "structural_contract_refs": ["SC_GC_PORTS"],
+      "behavioral_contract_refs": ["BC_GC_RESET"],
+      "required_stages": ["rtl", "tb", "sim"],
+      "owned_by_stage": "sim",
+      "closure_stage": "sim",
+      "granularity": "temporal",
+      "failure_owner": "rtl-gen"
+    },
+    {
+      "obligation_id": "OBL_GC_LINT_001",
+      "requirement_refs": ["REQ_GC_FUNC_001"],
+      "statement": "No inferred latches; gray_out and bin_out are registered single-driver outputs.",
+      "contract_refs": ["C_GC_LINT"],
+      "structural_contract_refs": ["SC_GC_PORTS"],
+      "behavioral_contract_refs": ["BC_GC_LINT"],
+      "required_stages": ["lint"],
+      "owned_by_stage": "lint",
+      "closure_stage": "lint",
+      "granularity": "structural",
+      "failure_owner": "rtl-gen"
+    }
+  ],
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_GC_ENCODE",
+      "obligation_refs": ["OBL_GC_ENCODE_001"],
+      "ssot_anchor": "function_model.transactions.FM_PRIMARY",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/gray_code_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_gray_code_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_GC_DECODE",
+      "obligation_refs": ["OBL_GC_DECODE_001"],
+      "ssot_anchor": "function_model.transactions.FM_PRIMARY",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/gray_code_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_gray_code_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_GC_RESET",
+      "obligation_refs": ["OBL_GC_RESET_001"],
+      "ssot_anchor": "cycle_model",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/gray_code_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_gray_code_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_GC_LINT",
+      "obligation_refs": ["OBL_GC_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ],
+  "structural_contracts": {
+    "ip": "gray_code_cx1",
+    "contracts": [
+      {
+        "id": "SC_GC_PORTS",
+        "obligations": ["OBL_GC_ENCODE_001", "OBL_GC_DECODE_001", "OBL_GC_RESET_001", "OBL_GC_LINT_001"],
+        "signals": [
+          {"name": "clk",      "dir": "input",  "width": 1, "timing": {"kind": "clock"}},
+          {"name": "rst_n",    "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "valid",    "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "mode",     "dir": "input",  "width": 1, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "bin_in",   "dir": "input",  "width": 4, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "gray_in",  "dir": "input",  "width": 4, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "gray_out", "dir": "output", "width": 4, "timing": {"kind": "sync", "clock_domain": "main"}},
+          {"name": "bin_out",  "dir": "output", "width": 4, "timing": {"kind": "sync", "clock_domain": "main"}}
+        ],
+        "clock_domains": [
+          {"id": "main", "clock_signal": "clk"}
+        ],
+        "reset_domains": [
+          {"id": "sync_rst", "reset_signal": "rst_n", "clock_domain": "main"}
+        ],
+        "interfaces": [
+          {"id": "converter_io", "signals": ["valid", "mode", "bin_in", "gray_in", "gray_out", "bin_out"], "clock_domain": "main"}
+        ]
+      }
+    ]
+  },
+  "behavioral_contracts": {
+    "ip": "gray_code_cx1",
+    "contracts": [
+      {
+        "id": "BC_GC_ENCODE",
+        "obligation_refs": ["OBL_GC_ENCODE_001"],
+        "ssot_section": "function_model",
+        "transactions": [
+          {
+            "id": "FM_PRIMARY_ENCODE",
+            "preconditions": ["rst_n == 1", "valid == 1"],
+            "outputs": [{"name": "gray_out", "expr": "(bin_in ^ (bin_in >> 1)) & 0xF"}],
+            "state_updates": [{"name": "sample_count", "expr": "sample_count + 1"}]
+          }
+        ],
+        "latency": {"encode_update": "1 clock cycle: gray_out registered one rising clk after valid sampled"},
+        "timing": "gray_out registered on rising clk; valid sampled every cycle when rst_n==1",
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/gray_code_cx1.sv", "timing": "synchronous reset, 1-cycle latency"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_gray_code_cx1.py"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "gray_out matches bin_in XOR (bin_in>>1) for all 16 inputs"}
+        ]
+      },
+      {
+        "id": "BC_GC_DECODE",
+        "obligation_refs": ["OBL_GC_DECODE_001"],
+        "ssot_section": "function_model",
+        "transactions": [
+          {
+            "id": "FM_PRIMARY_DECODE",
+            "preconditions": ["rst_n == 1", "valid == 1"],
+            "outputs": [{"name": "bin_out", "expr": "gray_to_bin(gray_in)"}],
+            "state_updates": []
+          }
+        ],
+        "latency": {"decode_update": "1 clock cycle: bin_out registered one rising clk after valid sampled"},
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/gray_code_cx1.sv"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_gray_code_cx1.py"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "bin_out matches cascaded XOR of gray_in"}
+        ]
+      },
+      {
+        "id": "BC_GC_RESET",
+        "obligation_refs": ["OBL_GC_RESET_001"],
+        "ssot_section": "cycle_model",
+        "transactions": [
+          {
+            "id": "TR_RESET",
+            "preconditions": ["rst_n == 0"],
+            "outputs": [{"name": "gray_out", "expr": "0"}, {"name": "bin_out", "expr": "0"}],
+            "state_updates": [{"name": "sample_count", "expr": "0"}]
+          }
+        ],
+        "reset": "synchronous active-low; outputs clear to 0 on rising clk when rst_n==0",
+        "stage_contracts": [
+          {"stage": "rtl",  "artifact": "rtl/gray_code_cx1.sv"},
+          {"stage": "tb",   "artifact": "tb/cocotb/test_gray_code_cx1.py"},
+          {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "gray_out==0 and bin_out==0 during reset"}
+        ]
+      },
+      {
+        "id": "BC_GC_LINT",
+        "obligation_refs": ["OBL_GC_LINT_001"],
+        "ssot_section": "coding_rules",
+        "cycle_model_waiver": "lint-only obligation; no cycle model required — latch-free structure is a static synthesis property",
+        "invariants": [
+          "No inferred latches in gray_code_cx1 RTL",
+          "gray_out and bin_out are registered; single driver each"
+        ],
+        "stage_contracts": [
+          {"stage": "lint", "artifact": "lint/dut_lint.json", "pass_condition": "no latch findings"}
+        ]
+      }
+    ]
+  },
+  "evidence_plan": [
+    {
+      "evidence_id": "E_GC_ENCODE",
+      "contract_ref": "C_GC_ENCODE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "gray_out matches XOR formula for all 16 bin_in values"
+    },
+    {
+      "evidence_id": "E_GC_DECODE",
+      "contract_ref": "C_GC_DECODE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "bin_out matches cascaded XOR of gray_in for all 16 values"
+    },
+    {
+      "evidence_id": "E_GC_RESET",
+      "contract_ref": "C_GC_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "outputs==0 during reset"
+    },
+    {
+      "evidence_id": "E_GC_LINT",
+      "contract_ref": "C_GC_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch violations"
+    },
+    {
+      "evidence_id": "E_GC_SC_PORTS",
+      "contract_ref": "SC_GC_PORTS",
+      "artifact": "rtl/gray_code_cx1.sv",
+      "validator": "check_tb_python_compile.py",
+      "pass_condition": "ports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths"
+    },
+    {
+      "evidence_id": "E_GC_BC_ENCODE",
+      "contract_ref": "BC_GC_ENCODE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "encode sequence matches BC_GC_ENCODE expected"
+    },
+    {
+      "evidence_id": "E_GC_BC_DECODE",
+      "contract_ref": "BC_GC_DECODE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "decode sequence matches BC_GC_DECODE expected"
+    },
+    {
+      "evidence_id": "E_GC_BC_RESET",
+      "contract_ref": "BC_GC_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_evidence_contract.py",
+      "pass_condition": "outputs==0 one cycle after rst_n asserts per BC_GC_RESET"
+    },
+    {
+      "evidence_id": "E_GC_BC_LINT",
+      "contract_ref": "BC_GC_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch findings per BC_GC_LINT"
+    }
+  ]
+}

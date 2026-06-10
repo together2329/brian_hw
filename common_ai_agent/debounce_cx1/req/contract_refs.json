@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "type": "contract_refs",
+  "ip": "debounce_cx1",
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_DEB_STABLE",
+      "obligation_refs": ["OBL_DEB_STABLE_001"],
+      "ssot_anchor": "function_model.transactions.FM_STABLE",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/debounce_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_debounce_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_DEB_BOUNCE",
+      "obligation_refs": ["OBL_DEB_BOUNCE_001"],
+      "ssot_anchor": "function_model.transactions.FM_BOUNCE",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/debounce_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_debounce_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_DEB_OUTPUT",
+      "obligation_refs": ["OBL_DEB_OUTPUT_001"],
+      "ssot_anchor": "function_model.transactions.FM_STABLE",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/debounce_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_debounce_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_DEB_RESET",
+      "obligation_refs": ["OBL_DEB_RESET_001"],
+      "ssot_anchor": "cycle_model.reset",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/debounce_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_debounce_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_DEB_LINT",
+      "obligation_refs": ["OBL_DEB_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ]
+}

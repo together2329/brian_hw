@@ -1,0 +1,396 @@
+top_module:
+  name: gray_code_cx1
+  file: rtl/gray_code_cx1.sv
+  description: 4-bit binary-to-Gray and Gray-to-binary converter (registered outputs).
+  type: combinational_with_register
+  version: '1.0'
+  reference_spec: user-defined
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+
+sub_modules:
+- name: gray_code_cx1
+  file: rtl/gray_code_cx1.sv
+  ownership: manifest
+  wiring_only: false
+  implements:
+  - io_list
+  - function_model
+  - cycle_model
+  - rtl_contract
+  - decomposition
+  - features
+  - dataflow
+  description: Registered 4-bit binary-Gray converter.
+  ssot_gen: true
+  source_sections:
+  - io_list
+  - function_model
+  - cycle_model
+  - rtl_contract
+  - features
+  - dataflow
+  - decomposition
+  - test_requirements
+  function_model_refs:
+  - function_model.transactions.FM_PRIMARY
+  - function_model.state_variables
+  cycle_model_refs:
+  - cycle_model.pipeline
+  - cycle_model
+  dataflow_refs:
+  - dataflow.sequence
+  - dataflow
+  decomposition_refs:
+  - decomposition
+  feature_refs:
+  - features
+
+decomposition:
+  strategy: single_module
+  owners:
+  - module: gray_code_cx1
+    file: rtl/gray_code_cx1.sv
+    responsibility: Registered 4-bit binary-to-Gray and Gray-to-binary converter.
+    source_sections:
+    - io_list
+    - function_model
+    - cycle_model
+    - rtl_contract
+  integration_policy: Single module; all ports directly mapped.
+
+rtl_contract:
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  transaction: FM_PRIMARY
+  sample_condition: valid
+  input_map:
+    bin_in: bin_in
+    gray_in: gray_in
+    mode: mode
+  output_map:
+    gray_out: gray_out
+    bin_out: bin_out
+  output_rules:
+  - name: gray_out
+    port: gray_out
+    expr: bin_in ^ (bin_in >> 1)
+    width: 4
+    description: Binary to Gray encoding of bin_in.
+  - name: bin_out
+    port: bin_out
+    expr: gray_in ^ (gray_in >> 1) ^ (gray_in >> 2) ^ (gray_in >> 3)
+    width: 4
+    description: Gray to binary decoding via cascaded XOR (4-bit).
+  owner: ssot-gen
+  type: ssot_derived_rule_contract
+  contract_invariants:
+  - RTL gray_out matches binary-to-Gray formula applied to bin_in.
+  - RTL bin_out matches Gray-to-binary formula applied to gray_in.
+
+io_list:
+  clock_domains:
+  - name: main
+    ports:
+    - name: clk
+      direction: input
+      width: 1
+      timing:
+        kind: clock
+  resets:
+  - name: rst_n
+    active: low
+    ports:
+    - name: rst_n
+      direction: input
+      width: 1
+      timing:
+        kind: sync
+        clock_domain: main
+  interfaces:
+  - name: converter_io
+    type: custom
+    role: target
+    clock_domain: main
+    reset_domain: rst_n
+    protocol:
+      acceptance: Inputs are sampled on rising clk when valid is high.
+      response: Registered outputs available one cycle after sampled input.
+    ports:
+    - name: valid
+      direction: input
+      width: 1
+      description: Strobe to sample inputs on rising edge.
+    - name: mode
+      direction: input
+      width: 1
+      description: 0=bin-to-gray, 1=gray-to-bin (both computed every cycle).
+    - name: bin_in
+      direction: input
+      width: 4
+      description: 4-bit binary input for binary-to-Gray conversion.
+    - name: gray_in
+      direction: input
+      width: 4
+      description: 4-bit Gray code input for Gray-to-binary conversion.
+    - name: gray_out
+      direction: output
+      width: 4
+      description: Gray code output, registered, derived from bin_in.
+    - name: bin_out
+      direction: output
+      width: 4
+      description: Binary output, registered, derived from gray_in.
+
+features:
+- name: bin_to_gray
+  description: Compute gray_out = bin_in XOR (bin_in >> 1) registered on clk.
+  requirement_trace: 'Binary to Gray encoding is standard XOR reduction.'
+  behavioral_contract_refs:
+  - BC_GC_ENCODE
+- name: gray_to_bin
+  description: Compute bin_out = cascaded XOR reduction of gray_in, registered on clk.
+  requirement_trace: 'Gray to binary is iterative XOR reduction.'
+  behavioral_contract_refs:
+  - BC_GC_DECODE
+- name: reset_behavior
+  description: Sync active-low reset clears all registered outputs.
+  requirement_trace: 'Standard sync reset clears gray_out and bin_out to 0.'
+  behavioral_contract_refs:
+  - BC_GC_RESET
+- name: lint_clean
+  description: RTL passes verilator/iverilog lint with no errors.
+  requirement_trace: 'Clean RTL is required for signoff.'
+  behavioral_contract_refs:
+  - BC_GC_LINT
+
+dataflow:
+  sequence:
+  - Sample bin_in and gray_in when valid is high.
+  - Compute gray_out = bin_in XOR (bin_in >> 1).
+  - Compute bin_out by cascaded XOR reduction of gray_in.
+  - Register both outputs; available one cycle after input sampling.
+  ordering:
+  - Input sampling precedes registered output.
+
+function_model:
+  state_variables: []
+  transactions:
+  - id: FM_PRIMARY
+    name: primary_behavior
+    behavioral_contract_refs:
+    - BC_GC_ENCODE
+    - BC_GC_DECODE
+    - BC_GC_RESET
+    required_fields:
+    - bin_in
+    - gray_in
+    preconditions:
+    - rst_n is deasserted
+    - valid is high
+    outputs:
+    - gray_out
+    - bin_out
+    output_rules:
+    - name: gray_out
+      port: gray_out
+      expr: bin_in ^ (bin_in >> 1)
+      width: 4
+      behavioral_contract_refs:
+      - BC_GC_ENCODE
+    - name: bin_out
+      port: bin_out
+      expr: gray_in ^ (gray_in >> 1) ^ (gray_in >> 2) ^ (gray_in >> 3)
+      width: 4
+      behavioral_contract_refs:
+      - BC_GC_DECODE
+    side_effects: []
+    state_updates: []
+  invariants:
+  - gray_out is always the XOR-folded encoding of bin_in.
+  - bin_out is always the cascaded XOR decoding of gray_in.
+  rules:
+  - name: latch_free
+    condition: All outputs registered; no combinational loops; no inferred latches.
+    behavioral_contract_refs:
+    - BC_GC_LINT
+  reference_model_hint: >
+    gray_out = bin_in ^ (bin_in >> 1);
+    bin_out = gray_in ^ (gray_in >> 1) ^ (gray_in >> 2) ^ (gray_in >> 3) (4-bit cascaded XOR).
+
+cycle_model:
+  executable: python
+  clock: clk
+  reset: rst_n
+  latency: 1
+  handshake_rules:
+  - name: valid_bin_gray
+    signal: valid
+    condition: valid is high; bin_in and gray_in sampled on rising clk.
+    behavioral_contract_refs:
+    - BC_GC_ENCODE
+    - BC_GC_DECODE
+  - name: reset_clear
+    signal: rst_n
+    condition: rst_n low clears gray_out and bin_out to 0 synchronously.
+    behavioral_contract_refs:
+    - BC_GC_RESET
+  pipeline:
+  - stage: SAMPLE_BIN_GRAY
+    cycle: 0
+    action: Sample bin_in and gray_in when valid is high.
+    behavioral_contract_refs:
+    - BC_GC_ENCODE
+    - BC_GC_DECODE
+  - stage: DRIVE_GRAY_BIN
+    cycle: 1
+    action: Drive registered gray_out and bin_out.
+    behavioral_contract_refs:
+    - BC_GC_ENCODE
+    - BC_GC_DECODE
+  ordering:
+  - Outputs appear one cycle after the accepted input.
+  performance:
+    frequency_mhz: 100
+    throughput:
+      sustained_beats_per_cycle: 1
+
+clock_reset_domains:
+  domains:
+  - name: main
+    clock: clk
+    reset: rst_n
+    reset_active: low
+
+registers:
+  no_registers: true
+  register_list: []
+
+memory:
+  instances: []
+
+interrupts:
+  sources: []
+  outputs: []
+
+fsm:
+  control:
+    states: []
+    transitions: []
+    note: No explicit FSM; gray_code_cx1 uses registered combinational outputs gated by valid.
+
+timing:
+  target_clocks:
+  - name: clk
+    frequency_mhz: 100
+    period_ns: 10.0
+  latency_budget:
+    input_to_output:
+      min: 1
+      max: 1
+      unit: cycles
+
+synthesis:
+  dialect: systemverilog_2012
+  top_module: gray_code_cx1
+
+integration:
+  bus_attachment:
+    type: native_valid_ready
+  dependencies:
+    external_modules: []
+    external_clocks:
+    - clk
+    external_resets:
+    - rst_n
+  connections:
+  - module: gray_code_cx1
+    port: clk
+    signal: clk
+  - module: gray_code_cx1
+    port: rst_n
+    signal: rst_n
+
+test_requirements:
+  scenarios:
+  - id: SC01
+    name: reset contract
+    stimulus: Assert and release rst_n; all outputs zero during reset.
+    expected: gray_out and bin_out are 0 during reset.
+    checker: Reset checker.
+    coverage:
+    - function_model.reset
+  - id: SC02
+    name: binary to gray encoding
+    stimulus: Drive all 16 values of bin_in with valid=1.
+    expected: gray_out matches bin_in ^ (bin_in >> 1) one cycle later.
+    checker: FL-vs-RTL scoreboard checks every output.
+    coverage:
+    - function_model.transactions.FM_PRIMARY
+    - features.bin_to_gray
+  - id: SC03
+    name: gray to binary decoding
+    stimulus: Drive all 16 values of gray_in with valid=1.
+    expected: bin_out matches cascaded XOR decoding of gray_in.
+    checker: FL-vs-RTL scoreboard.
+    coverage:
+    - features.gray_to_bin
+  scoreboard_checks: 3
+
+quality_gates:
+  rtl:
+    pass: RTL compiles and maps every declared port.
+    evidence:
+    - rtl_compile.json
+  dv:
+    pass: All scenarios pass with scoreboard evidence.
+    evidence:
+    - sim/results.xml
+    - sim/scoreboard_events.jsonl
+
+traceability:
+  llm_stage: ssot-gen
+  yaml_to_output:
+  - yaml: io_list
+    output: RTL ports
+  - yaml: function_model
+    output: FunctionalModel and scoreboard expected values
+  - yaml: cycle_model
+    output: RTL latency checks
+
+workflow_todos:
+  rtl-gen:
+  - id: RTL_GRAY_ENCODE
+    content: Implement binary-to-Gray in registered RTL
+    detail: >
+      gray_out <= bin_in ^ (bin_in >> 1) on rising clk when valid.
+      bin_out <= cascaded XOR reduction of gray_in.
+    criteria:
+    - RTL compiles with no errors
+    - gray_out matches formula for all 16 inputs
+    - bin_out matches cascaded XOR formula for all 16 inputs
+    source_refs:
+    - function_model.transactions.FM_PRIMARY
+    - cycle_model.pipeline
+    owner_module: gray_code_cx1
+    owner_file: rtl/gray_code_cx1.sv
+    priority: high
+    required: true
+  tb-gen: []
+  sim_debug: []
+
+dir_structure:
+  yaml_dir: yaml/
+  rtl_dir: rtl/
+  tb_dir: tb/
+  sim_dir: sim/
+
+filelist:
+  rtl:
+  - rtl/gray_code_cx1.sv
+  tb:
+  - tb/cocotb/test_gray_code_cx1.py
+  sim:
+  - sim/results.xml

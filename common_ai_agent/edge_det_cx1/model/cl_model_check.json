@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "edge_det_cx1",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-06-10T14:19:00Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 3,
+    "results_observed": 3,
+    "coverage_bins": 6,
+    "coverage_hit": 6,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": 50,
+      "throughput": {
+        "detections_per_cycle": 1
+      },
+      "outstanding": null,
+      "pipeline_stages": null,
+      "queue_depth": null
+    }
+  },
+  "symbol_contract": {
+    "schema_version": 1,
+    "status": "pass",
+    "failure_owner": "",
+    "stage": "cl-model",
+    "reason": "",
+    "unknown_symbols": [],
+    "required_rerun": [],
+    "transactions": [
+      {
+        "id": "FM_RISE",
+        "declared_symbols": [
+          "busy",
+          "clk",
+          "clk_domain",
+          "error",
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "rst_n",
+          "sig_in",
+          "signal_input",
+          "sync1",
+          "sync2"
+        ],
+        "used_symbols": [
+          "sig_in",
+          "sync1",
+          "sync2"
+        ],
+        "missing_symbols": []
+      },
+      {
+        "id": "FM_FALL",
+        "declared_symbols": [
+          "busy",
+          "clk",
+          "clk_domain",
+          "error",
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "rst_n",
+          "sig_in",
+          "signal_input",
+          "sync1",
+          "sync2"
+        ],
+        "used_symbols": [
+          "sig_in",
+          "sync1",
+          "sync2"
+        ],
+        "missing_symbols": []
+      },
+      {
+        "id": "FM_STABLE",
+        "declared_symbols": [
+          "busy",
+          "clk",
+          "clk_domain",
+          "error",
+          "fall_out",
+          "fall_rule",
+          "prev_sync",
+          "rise_out",
+          "rise_rule",
+          "rst_n",
+          "sig_in",
+          "signal_input",
+          "sync1",
+          "sync2"
+        ],
+        "used_symbols": [
+          "sig_in",
+          "sync1",
+          "sync2"
+        ],
+        "missing_symbols": []
+      }
+    ],
+    "cycle_rules": [
+      {
+        "section": "handshake_rules",
+        "name": "rise_out",
+        "field": "signal",
+        "used_symbols": [
+          "rise_out"
+        ],
+        "missing_symbols": []
+      },
+      {
+        "section": "handshake_rules",
+        "name": "rise_out",
+        "field": "rule",
+        "used_symbols": [],
+        "missing_symbols": []
+      },
+      {
+        "section": "handshake_rules",
+        "name": "fall_out",
+        "field": "signal",
+        "used_symbols": [
+          "fall_out"
+        ],
+        "missing_symbols": []
+      },
+      {
+        "section": "handshake_rules",
+        "name": "fall_out",
+        "field": "rule",
+        "used_symbols": [],
+        "missing_symbols": []
+      }
+    ]
+  },
+  "performance_targets": {
+    "frequency_mhz": 50,
+    "throughput": {
+      "detections_per_cycle": 1
+    },
+    "outstanding": null,
+    "pipeline_stages": null,
+    "queue_depth": null
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 6
+}

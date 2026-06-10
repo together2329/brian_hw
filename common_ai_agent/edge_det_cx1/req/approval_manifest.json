@@ -1,0 +1,72 @@
+{
+  "approved_at_utc": "2026-06-10T14:00:00Z",
+  "approved_by": "cursor-agent",
+  "decision_note": "ROCEV chain exercise: deterministic-only run",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 2392,
+      "path": "edge_det_cx1/req/behavioral_contracts.json",
+      "sha256": "3cb9eb5ddd70da6d018e6daf108794b8092e9de823859c25d1ee7a8154bcd433"
+    },
+    "req/contract_refs.json": {
+      "bytes": 1909,
+      "path": "edge_det_cx1/req/contract_refs.json",
+      "sha256": "6774fe7d958f4d0ed28bbe38710a47fd9e6e5c1c6f15569ec11eeecd6d8323d2"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 1885,
+      "path": "edge_det_cx1/req/evidence_plan.json",
+      "sha256": "87d09851d7b6cc340f99ea64ba43e384c6eb56933143af47c6b5cf3102b55b8d"
+    },
+    "req/locked_truth.md": {
+      "bytes": 1571,
+      "path": "edge_det_cx1/req/locked_truth.md",
+      "sha256": "fe87042c21ee5d65e395e9ddfc94dcd6a63200da34dc52e4fa451aa2155c681c"
+    },
+    "req/obligations.json": {
+      "bytes": 2860,
+      "path": "edge_det_cx1/req/obligations.json",
+      "sha256": "a2ee6d0de8f0e7d3446f5dcf4d3036b29b19030939a8b072122a485dce4d1c45"
+    },
+    "req/requirements_index.json": {
+      "bytes": 1611,
+      "path": "edge_det_cx1/req/requirements_index.json",
+      "sha256": "cc377f6452c55a6512a94366f6c23ea87dbc54389feeab0fc940a663d21f7b63"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 942,
+      "path": "edge_det_cx1/req/structural_contracts.json",
+      "sha256": "68bcadd1eac7cdb7d19fa9d26e660c6979df45b0a0d5974eaf4f8f0cf8e0757e"
+    }
+  },
+  "ip": "edge_det_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_EDGE_SYNC_001",
+      "status": "locked"
+    },
+    {
+      "required": true,
+      "requirement_id": "REQ_EDGE_RISE_001",
+      "status": "locked"
+    },
+    {
+      "required": true,
+      "requirement_id": "REQ_EDGE_FALL_001",
+      "status": "locked"
+    },
+    {
+      "required": true,
+      "requirement_id": "REQ_EDGE_RESET_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "source": "edge_det_cx1/req/edge_det_cx1_requirements.md",
+  "source_sha256": "dd07da75f87ae8a002179cbcce287023ece81e5af5edd9c31c1cd774d6fd1a35",
+  "status": "requirements_locked",
+  "target": "edge_det_cx1/req/edge_det_cx1_requirements.md",
+  "target_sha256": "dd07da75f87ae8a002179cbcce287023ece81e5af5edd9c31c1cd774d6fd1a35",
+  "type": "requirement_approval_manifest"
+}

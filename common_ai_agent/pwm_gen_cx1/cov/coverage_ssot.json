@@ -1,0 +1,1183 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "pwm_gen_cx1/yaml/pwm_gen_cx1.ssot.yaml",
+  "module": "pwm_gen_cx1",
+  "dv_plan": {
+    "scenarios": 4,
+    "scoreboard_checks": [
+      "pwm_out = (counter_q < duty_reg) each cycle",
+      "duty_reg latches duty_in when wr_en=1",
+      "counter_q wraps 0-255"
+    ],
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model",
+        "bins": [
+          {
+            "id": "FCOV_FM_WRITE",
+            "source_ref": "function_model.transactions.FM_WRITE",
+            "class": "transaction",
+            "description": "Duty register write observed"
+          },
+          {
+            "id": "FCOV_FM_TICK",
+            "source_ref": "function_model.transactions.FM_TICK",
+            "class": "transaction",
+            "description": "Counter tick observed"
+          }
+        ]
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model",
+        "bins": [
+          {
+            "id": "CCOV_RESET",
+            "source_ref": "cycle_model.reset",
+            "class": "reset",
+            "description": "Reset observed"
+          },
+          {
+            "id": "CCOV_DUTY_UPDATE",
+            "source_ref": "cycle_model.latency.duty_update",
+            "class": "latency",
+            "description": "Duty update latency observed"
+          },
+          {
+            "id": "CCOV_PWM_HIGH",
+            "source_ref": "cycle_model.handshake_rules",
+            "class": "handshake",
+            "description": "pwm_out=1 observed"
+          }
+        ]
+      }
+    }
+  },
+  "functional": {
+    "hit": 2,
+    "total": 24,
+    "pct": 8.33
+  },
+  "function_coverage": {
+    "hit": 2,
+    "total": 11,
+    "pct": 18.18,
+    "target_pct": 100.0,
+    "meets_target": false,
+    "bins": {
+      "SC1_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC1_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC1",
+          "description": "Reset defaults"
+        },
+        "class": "scenario",
+        "description": "Reset defaults",
+        "coverage_domain": "function"
+      },
+      "SC2_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC2_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC2",
+          "description": "DUTY=0 gives pwm_out=0"
+        },
+        "class": "scenario",
+        "description": "DUTY=0 gives pwm_out=0",
+        "coverage_domain": "function"
+      },
+      "SC3_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC3_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC3",
+          "description": "DUTY=128 gives ~50% duty cycle"
+        },
+        "class": "scenario",
+        "description": "DUTY=128 gives ~50% duty cycle",
+        "coverage_domain": "function"
+      },
+      "SC4_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC4_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC4",
+          "description": "DUTY=255 gives pwm_out=1 almost always"
+        },
+        "class": "scenario",
+        "description": "DUTY=255 gives pwm_out=1 almost always",
+        "coverage_domain": "function"
+      },
+      "fcov_fm_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_DEBUG_OBSERVABILITY",
+        "scenario_id": "SC_013_EQ_DEBUG_OBSERVABILITY",
+        "rtl_observed_keys": [
+          "counter",
+          "counter_q",
+          "duty_reg",
+          "pwm_out",
+          "pwm_out_rule"
+        ],
+        "raw_hit": null,
+        "plan": {
+          "id": "fcov_fm_write",
+          "source_ref": "function_model.transactions.FM_WRITE",
+          "class": "transaction",
+          "description": "Duty register write observed",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_WRITE"
+        },
+        "class": "transaction",
+        "coverage_domain": "function",
+        "description": "Duty register write observed",
+        "source_ref": "function_model.transactions.FM_WRITE"
+      },
+      "fcov_fm_tick": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "fcov_fm_tick",
+          "source_ref": "function_model.transactions.FM_TICK",
+          "class": "transaction",
+          "description": "Counter tick observed",
+          "coverage_domain": "function",
+          "source": "function_model.transactions.FM_TICK"
+        },
+        "class": "transaction",
+        "coverage_domain": "function",
+        "description": "Counter tick observed",
+        "source_ref": "function_model.transactions.FM_TICK"
+      },
+      "error_error_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "fcov_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_DEBUG_OBSERVABILITY",
+        "scenario_id": "SC_013_EQ_DEBUG_OBSERVABILITY",
+        "rtl_observed_keys": [
+          "counter",
+          "counter_q",
+          "duty_reg",
+          "pwm_out",
+          "pwm_out_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "cycle_latency_duty_update": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "coverage_domain": "function"
+      },
+      "function_counter_tick": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "coverage_domain": "function"
+      },
+      "function_duty_write": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 0,
+    "total": 13,
+    "pct": 0.0,
+    "target_pct": 100.0,
+    "meets_target": false,
+    "bins": {
+      "ccov_reset": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "ccov_reset",
+          "source_ref": "cycle_model.reset",
+          "class": "reset",
+          "description": "Reset observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.reset"
+        },
+        "class": "reset",
+        "coverage_domain": "cycle",
+        "description": "Reset observed",
+        "source_ref": "cycle_model.reset"
+      },
+      "ccov_duty_update": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "ccov_duty_update",
+          "source_ref": "cycle_model.latency.duty_update",
+          "class": "latency",
+          "description": "Duty update latency observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.duty_update"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "Duty update latency observed",
+        "source_ref": "cycle_model.latency.duty_update"
+      },
+      "ccov_pwm_high": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "ccov_pwm_high",
+          "source_ref": "cycle_model.handshake_rules",
+          "class": "handshake",
+          "description": "pwm_out=1 observed",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules"
+        },
+        "class": "handshake",
+        "coverage_domain": "cycle",
+        "description": "pwm_out=1 observed",
+        "source_ref": "cycle_model.handshake_rules"
+      },
+      "cycle_handshake_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_handshake_0",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "{'signal': 'pwm_out', 'rule': 'Combinational compare of counter_q < duty_reg.'}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'pwm_out', 'rule': 'Combinational compare of counter_q < duty_reg.'}",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_latency_pwm_compare": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_latency_pwm_compare",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.pwm_compare",
+          "source_ref": "cycle_model.latency.pwm_compare",
+          "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'pwm_out is combinational from counter_q and duty_reg'}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'pwm_out is combinational from counter_q and duty_reg'}",
+        "source_ref": "cycle_model.latency.pwm_compare"
+      },
+      "cycle_pipeline_s0_compare": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_pipeline_s0_compare",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "counter_q compared to duty_reg; pwm_out drives."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "counter_q compared to duty_reg; pwm_out drives.",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_count": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_pipeline_s1_count",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "counter_q increments; duty_reg updates if wr_en."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "counter_q increments; duty_reg updates if wr_en.",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_ordering_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "counter_q increments every rising clock edge."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "counter_q increments every rising clock edge.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "duty_reg latches duty_in on rising edge when wr_en=1."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "duty_reg latches duty_in on rising edge when wr_en=1.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_ordering_2": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_ordering_2",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[2]",
+          "source_ref": "cycle_model.ordering[2]",
+          "description": "pwm_out tracks counter_q < duty_reg combinationally."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "pwm_out tracks counter_q < duty_reg combinationally.",
+        "source_ref": "cycle_model.ordering[2]"
+      },
+      "cycle_backpressure_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "No backpressure."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "No backpressure.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "50"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "50",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'writes_per_cycle': 1, 'condition': 'wr_en asserted'}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'writes_per_cycle': 1, 'condition': 'wr_en asserted'}",
+        "source_ref": "cycle_model.performance.throughput"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 2,
+      "total": 11,
+      "pct": 18.18,
+      "meets_target": false
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 0,
+      "total": 13,
+      "pct": 0.0,
+      "meets_target": false
+    }
+  },
+  "planned_bins": [
+    "SC1_executed",
+    "SC2_executed",
+    "SC3_executed",
+    "SC4_executed",
+    "fcov_fm_write",
+    "fcov_fm_tick",
+    "ccov_reset",
+    "ccov_duty_update",
+    "ccov_pwm_high",
+    "cycle_handshake_0",
+    "cycle_latency_pwm_compare",
+    "cycle_pipeline_s0_compare",
+    "cycle_pipeline_s1_count",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_ordering_2",
+    "cycle_backpressure_0",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "error_error_0"
+  ],
+  "functional_bins": {
+    "SC1_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC1_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC1",
+        "description": "Reset defaults"
+      },
+      "class": "scenario",
+      "description": "Reset defaults",
+      "coverage_domain": "function"
+    },
+    "SC2_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC2_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC2",
+        "description": "DUTY=0 gives pwm_out=0"
+      },
+      "class": "scenario",
+      "description": "DUTY=0 gives pwm_out=0",
+      "coverage_domain": "function"
+    },
+    "SC3_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC3_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC3",
+        "description": "DUTY=128 gives ~50% duty cycle"
+      },
+      "class": "scenario",
+      "description": "DUTY=128 gives ~50% duty cycle",
+      "coverage_domain": "function"
+    },
+    "SC4_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC4_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC4",
+        "description": "DUTY=255 gives pwm_out=1 almost always"
+      },
+      "class": "scenario",
+      "description": "DUTY=255 gives pwm_out=1 almost always",
+      "coverage_domain": "function"
+    },
+    "fcov_fm_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "scenario_id": "SC_013_EQ_DEBUG_OBSERVABILITY",
+      "rtl_observed_keys": [
+        "counter",
+        "counter_q",
+        "duty_reg",
+        "pwm_out",
+        "pwm_out_rule"
+      ],
+      "raw_hit": null,
+      "plan": {
+        "id": "fcov_fm_write",
+        "source_ref": "function_model.transactions.FM_WRITE",
+        "class": "transaction",
+        "description": "Duty register write observed",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_WRITE"
+      },
+      "class": "transaction",
+      "coverage_domain": "function",
+      "description": "Duty register write observed",
+      "source_ref": "function_model.transactions.FM_WRITE"
+    },
+    "fcov_fm_tick": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "fcov_fm_tick",
+        "source_ref": "function_model.transactions.FM_TICK",
+        "class": "transaction",
+        "description": "Counter tick observed",
+        "coverage_domain": "function",
+        "source": "function_model.transactions.FM_TICK"
+      },
+      "class": "transaction",
+      "coverage_domain": "function",
+      "description": "Counter tick observed",
+      "source_ref": "function_model.transactions.FM_TICK"
+    },
+    "ccov_reset": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "ccov_reset",
+        "source_ref": "cycle_model.reset",
+        "class": "reset",
+        "description": "Reset observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.reset"
+      },
+      "class": "reset",
+      "coverage_domain": "cycle",
+      "description": "Reset observed",
+      "source_ref": "cycle_model.reset"
+    },
+    "ccov_duty_update": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "ccov_duty_update",
+        "source_ref": "cycle_model.latency.duty_update",
+        "class": "latency",
+        "description": "Duty update latency observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.duty_update"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "Duty update latency observed",
+      "source_ref": "cycle_model.latency.duty_update"
+    },
+    "ccov_pwm_high": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "ccov_pwm_high",
+        "source_ref": "cycle_model.handshake_rules",
+        "class": "handshake",
+        "description": "pwm_out=1 observed",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules"
+      },
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "description": "pwm_out=1 observed",
+      "source_ref": "cycle_model.handshake_rules"
+    },
+    "cycle_handshake_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_handshake_0",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "{'signal': 'pwm_out', 'rule': 'Combinational compare of counter_q < duty_reg.'}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'pwm_out', 'rule': 'Combinational compare of counter_q < duty_reg.'}",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_latency_pwm_compare": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_latency_pwm_compare",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.pwm_compare",
+        "source_ref": "cycle_model.latency.pwm_compare",
+        "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'pwm_out is combinational from counter_q and duty_reg'}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'pwm_out is combinational from counter_q and duty_reg'}",
+      "source_ref": "cycle_model.latency.pwm_compare"
+    },
+    "cycle_pipeline_s0_compare": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_pipeline_s0_compare",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "counter_q compared to duty_reg; pwm_out drives."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "counter_q compared to duty_reg; pwm_out drives.",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_count": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_pipeline_s1_count",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "counter_q increments; duty_reg updates if wr_en."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "counter_q increments; duty_reg updates if wr_en.",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_ordering_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "counter_q increments every rising clock edge."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "counter_q increments every rising clock edge.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "duty_reg latches duty_in on rising edge when wr_en=1."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "duty_reg latches duty_in on rising edge when wr_en=1.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_ordering_2": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_ordering_2",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[2]",
+        "source_ref": "cycle_model.ordering[2]",
+        "description": "pwm_out tracks counter_q < duty_reg combinationally."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "pwm_out tracks counter_q < duty_reg combinationally.",
+      "source_ref": "cycle_model.ordering[2]"
+    },
+    "cycle_backpressure_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "No backpressure."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "No backpressure.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "50"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "50",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'writes_per_cycle': 1, 'condition': 'wr_en asserted'}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'writes_per_cycle': 1, 'condition': 'wr_en asserted'}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "error_error_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "fcov_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_DEBUG_OBSERVABILITY",
+      "scenario_id": "SC_013_EQ_DEBUG_OBSERVABILITY",
+      "rtl_observed_keys": [
+        "counter",
+        "counter_q",
+        "duty_reg",
+        "pwm_out",
+        "pwm_out_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "cycle_latency_duty_update": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "coverage_domain": "function"
+    },
+    "function_counter_tick": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "coverage_domain": "function"
+    },
+    "function_duty_write": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "raw_functional_bins": {},
+  "rtl_observed": {
+    "status": "blocked",
+    "scoreboard_events": 18,
+    "scoreboard_passed_events_with_refs": 1,
+    "goal_refs": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "ccov_duty_update",
+      "ccov_pwm_high",
+      "ccov_reset",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_latency_duty_update",
+      "cycle_latency_pwm_compare",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_ordering_2",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_compare",
+      "cycle_pipeline_s1_count",
+      "error_error_0",
+      "fcov_fm_tick",
+      "fcov_fm_write",
+      "function_counter_tick",
+      "function_duty_write"
+    ],
+    "missing_bins": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "ccov_duty_update",
+      "ccov_pwm_high",
+      "ccov_reset",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_latency_duty_update",
+      "cycle_latency_pwm_compare",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_ordering_2",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_compare",
+      "cycle_pipeline_s1_count",
+      "error_error_0",
+      "fcov_fm_tick",
+      "function_counter_tick",
+      "function_duty_write"
+    ],
+    "invalid_rows": []
+  },
+  "owner_routes": {
+    "status": "absent",
+    "source": "",
+    "routes_by_bin": {},
+    "routed_missing_bins": [],
+    "unrouted_missing_bins": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "ccov_duty_update",
+      "ccov_pwm_high",
+      "ccov_reset",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_latency_duty_update",
+      "cycle_latency_pwm_compare",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_ordering_2",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_compare",
+      "cycle_pipeline_s1_count",
+      "error_error_0",
+      "fcov_fm_tick",
+      "function_counter_tick",
+      "function_duty_write"
+    ],
+    "invalid_routes": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "meets_target": true,
+    "source": "not automatically measured by generic LCOV parser"
+  },
+  "files": {},
+  "limitations": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC1_executed, SC2_executed, SC3_executed, SC4_executed, ccov_duty_update, ccov_pwm_high, ccov_reset, cycle_backpressure_0, cycle_handshake_0, cycle_latency_duty_update, cycle_latency_pwm_compare, cycle_ordering_0, ... +10"
+  },
+  "owner_routed_limitations": {},
+  "waived_limitations": {},
+  "static_universe_not_instrumented": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC1_executed, SC2_executed, SC3_executed, SC4_executed, ccov_duty_update, ccov_pwm_high, ccov_reset, cycle_backpressure_0, cycle_handshake_0, cycle_latency_duty_update, cycle_latency_pwm_compare, cycle_ordering_0, ... +10"
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

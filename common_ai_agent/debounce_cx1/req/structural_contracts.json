@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "type": "structural_contracts",
+  "ip": "debounce_cx1",
+  "contracts": [
+    {
+      "id": "SC_DEB_PORTS",
+      "obligations": ["OBL_DEB_STABLE_001", "OBL_DEB_BOUNCE_001", "OBL_DEB_OUTPUT_001", "OBL_DEB_RESET_001", "OBL_DEB_LINT_001"],
+      "signals": [
+        {"name": "clk",    "dir": "input",  "width": 1},
+        {"name": "rst_n",  "dir": "input",  "width": 1},
+        {"name": "btn_in", "dir": "input",  "width": 1},
+        {"name": "db_out", "dir": "output", "width": 1}
+      ],
+      "clock_domains": [
+        {"id": "clk_domain", "clock_signal": "clk"}
+      ],
+      "reset_domains": [
+        {"id": "rst_n_domain", "reset_signal": "rst_n", "clock_domain": "clk_domain"}
+      ],
+      "interfaces": [
+        {"id": "btn_if",  "signals": ["btn_in"],  "clock_domain": "clk_domain"},
+        {"id": "db_out",  "signals": ["db_out"],  "clock_domain": "clk_domain"}
+      ]
+    }
+  ]
+}

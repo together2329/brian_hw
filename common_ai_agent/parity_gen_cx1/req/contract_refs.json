@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "type": "contract_refs",
+  "ip": "parity_gen_cx1",
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_PAR_EVEN",
+      "obligation_refs": ["OBL_PAR_EVEN_001"],
+      "ssot_anchor": "function_model.transactions.FM_PARITY",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv",               "stage": "rtl" },
+        { "artifact": "tb/cocotb/test_parity_gen_cx1.py",    "stage": "tb"  },
+        { "artifact": "sim/scoreboard_events.jsonl",          "stage": "sim" }
+      ]
+    },
+    {
+      "contract_ref_id": "C_PAR_ODD",
+      "obligation_refs": ["OBL_PAR_ODD_001"],
+      "ssot_anchor": "function_model.transactions.FM_PARITY",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv",               "stage": "rtl" },
+        { "artifact": "tb/cocotb/test_parity_gen_cx1.py",    "stage": "tb"  },
+        { "artifact": "sim/scoreboard_events.jsonl",          "stage": "sim" }
+      ]
+    },
+    {
+      "contract_ref_id": "C_PAR_REG",
+      "obligation_refs": ["OBL_PAR_REG_001"],
+      "ssot_anchor": "function_model.state_variables.par_reg_q",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv",               "stage": "rtl" },
+        { "artifact": "tb/cocotb/test_parity_gen_cx1.py",    "stage": "tb"  },
+        { "artifact": "sim/scoreboard_events.jsonl",          "stage": "sim" }
+      ]
+    },
+    {
+      "contract_ref_id": "C_PAR_RESET",
+      "obligation_refs": ["OBL_PAR_RESET_001"],
+      "ssot_anchor": "function_model.transactions.FM_RESET",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv",               "stage": "rtl" },
+        { "artifact": "tb/cocotb/test_parity_gen_cx1.py",    "stage": "tb"  },
+        { "artifact": "sim/scoreboard_events.jsonl",          "stage": "sim" }
+      ]
+    },
+    {
+      "contract_ref_id": "C_PAR_LINT",
+      "obligation_refs": ["OBL_PAR_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        { "artifact": "lint/dut_lint.json", "stage": "lint" }
+      ]
+    },
+    {
+      "contract_ref_id": "BC_PAR_FUNC",
+      "obligation_refs": ["OBL_PAR_EVEN_001", "OBL_PAR_ODD_001", "OBL_PAR_REG_001"],
+      "ssot_anchor": "function_model.transactions.FM_PARITY",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv",            "stage": "rtl" },
+        { "artifact": "tb/cocotb/test_parity_gen_cx1.py", "stage": "tb"  },
+        { "artifact": "sim/scoreboard_events.jsonl",       "stage": "sim" }
+      ]
+    },
+    {
+      "contract_ref_id": "BC_PAR_RESET",
+      "obligation_refs": ["OBL_PAR_RESET_001"],
+      "ssot_anchor": "function_model.transactions.FM_RESET",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv",            "stage": "rtl" },
+        { "artifact": "sim/scoreboard_events.jsonl",       "stage": "sim" }
+      ]
+    },
+    {
+      "contract_ref_id": "SC_PAR_PORTS",
+      "obligation_refs": ["OBL_PAR_EVEN_001", "OBL_PAR_ODD_001", "OBL_PAR_REG_001", "OBL_PAR_RESET_001", "OBL_PAR_LINT_001"],
+      "ssot_anchor": "io_list.interfaces.data_input",
+      "stage_contracts": [
+        { "artifact": "rtl/parity_gen_cx1.sv", "stage": "rtl" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,473 @@
+# =============================================================================
+# debounce_cx1.ssot.yaml — Button debouncer with configurable counter threshold
+# Samples btn_in; if stable for THRESH consecutive cycles, updates db_out.
+# =============================================================================
+top_module:
+  name: debounce_cx1
+  file: rtl/debounce_cx1.sv
+  version: "1.0"
+  type: peripheral
+  description: "Button debouncer. Samples btn_in; when btn_in is stable for THRESH consecutive cycles, db_out updates to match btn_in."
+  reference_spec: "user-defined"
+  target:
+    technology: generic
+    clock_freq_mhz: 50
+
+decomposition:
+  units:
+    - { id: stability_counter, kind: datapath, source_refs: [function_model.transactions], rtl_candidates: [debounce_cx1], verification_impact: [test_requirements.scenarios] }
+    - { id: output_latch, kind: control, source_refs: [function_model.transactions], rtl_candidates: [debounce_cx1], verification_impact: [test_requirements.scenarios] }
+
+sub_modules:
+  - name: debounce_cx1
+    file: rtl/debounce_cx1.sv
+    ownership: manifest
+    ssot_gen: true
+    wiring_only: false
+    source_sections: [io_list, registers, function_model]
+    implements: [io_list.interfaces, registers.register_list, function_model.transactions]
+    register_refs: [registers.register_list]
+    function_model_refs: [function_model.transactions.FM_STABLE, function_model.transactions.FM_BOUNCE, function_model.state_variables]
+    decomposition_refs: [decomposition.units.stability_counter, decomposition.units.output_latch]
+    description: "Stability counter increments when btn_in==fl_last; resets when btn_in changes. db_out updates when counter reaches THRESH."
+
+parameters:
+  - { name: THRESH, default: 4, type: int, description: "Number of stable cycles required before db_out updates" }
+
+io_list:
+  clock_domains:
+    - name: clk
+      frequency_mhz: 50
+      description: "System clock"
+      ports:
+        - { name: clk, width: 1, direction: input, description: "System clock" }
+  resets:
+    - name: rst_n
+      polarity: active_low
+      sync_async: async_assert_sync_deassert
+      description: "Active-low reset"
+      ports:
+        - { name: rst_n, width: 1, direction: input, description: "Active-low asynchronous reset" }
+  interfaces:
+    - name: btn_if
+      type: custom
+      clock_domain: clk
+      reset_domain: rst_n
+      description: "Button input and debounced output"
+      protocol:
+        stable_rule: "db_out updates to btn_in only after THRESH consecutive cycles where btn_in is stable."
+        timing_rule: "btn_in sampled on rising clock edge."
+      ports:
+        - { name: btn_in,  width: 1, direction: input,  description: "Raw button input" }
+        - { name: db_out,  width: 1, direction: output, description: "Debounced button output" }
+
+features:
+  - name: Stability detection
+    trigger: btn_in sampled every clock cycle.
+    datapath: "fl_ctr counts stable cycles; resets when btn_in != fl_last."
+    control: When fl_ctr reaches THRESH-1, fl_db updates to current btn_in.
+    output: db_out reflects debounced button state.
+  - name: Bounce rejection
+    trigger: btn_in changes before stability threshold.
+    datapath: fl_ctr resets to 0; fl_last tracks most recent btn_in.
+    control: Counter reset prevents premature db_out update.
+    output: db_out unchanged.
+
+registers:
+  config:
+    register_width: 8
+    addr_width: 0
+    byte_addressable: false
+  bit_order: lsb0
+  bits_format: "[msb, lsb]"
+  reserved_field_policy:
+    read_value: 0
+    write_effect: ignore
+    rtl_requirement: No register writes; THRESH is a parameter.
+  register_list: []
+
+memory:
+  instances: []
+  note: No internal SRAM.
+
+interrupts:
+  sources: []
+  output: null
+  note: No interrupts.
+
+fsm:
+  note: "No explicit FSM; stability counter increments or resets each cycle."
+
+rtl_contract:
+  top_module_file: "rtl/debounce_cx1.sv"
+  top_module: debounce_cx1
+  clock: clk
+  reset: rst_n
+  reset_active: low
+  reset_polarity: active_low
+  reset_type: async_assert_sync_deassert
+  clock_gating: false
+  sample_condition: "rst_n == 1"
+  observable_outputs: []
+  note: "db_out is a registered state output verified via scenario-level sequence checks, not cycle-by-cycle FL compare."
+  behavioral_contract_refs: [BC_DEB_STABLE, BC_DEB_BOUNCE, BC_DEB_RESET, BC_DEB_LINT]
+  structural_contract_refs: [SC_DEB_PORTS]
+  input_map:
+    btn_in: btn_in
+  output_map:
+    db_out: db_out
+  rules:
+    - { id: ASYNC_RESET, description: "rst_n=0 async-clears fl_ctr, fl_last, fl_db to 0" }
+    - { id: STABLE_COUNT, description: "fl_ctr increments each cycle btn_in == fl_last; resets when btn_in changes" }
+    - { id: DB_UPDATE, description: "db_out updates to btn_in when fl_ctr reaches THRESH-1" }
+    - { id: LAST_TRACK, description: "fl_last always tracks most recent btn_in" }
+
+function_model:
+  purpose: "Executable behavioral contract for FL/CL co-sim"
+  state_variables:
+    - { name: fl_ctr,  source: "internal stability counter", reset: 0, description: "FL internal: cycles btn_in has been stable" }
+    - { name: fl_last, source: "internal last btn sample",   reset: 0, description: "FL internal: last sampled btn_in value" }
+    - { name: fl_db, source: "internal debounced value", reset: 0, drives_output: db_out, description: "FL internal: debounced output value; drives db_out" }
+  transactions:
+    - id: FM_STABLE
+      name: stable_tick
+      preconditions: ["btn_in == fl_last"]
+      inputs: [btn_in]
+      outputs: ["fl_ctr increments; if fl_ctr+1 >= THRESH then fl_db = btn_in"]
+      output_rules: []
+      state_updates:
+        - { name: fl_ctr,  expr: "(fl_ctr + 1) if fl_ctr < 255 else 255", width: 8 }
+        - { name: fl_last, expr: "btn_in & 1", width: 1 }
+        - { name: fl_db,   expr: "btn_in if (fl_ctr + 1) >= 4 else fl_db", width: 1 }
+      side_effects: ["fl_db updates when threshold reached"]
+      error_cases: []
+    - id: FM_BOUNCE
+      name: bounce_tick
+      preconditions: ["btn_in != fl_last"]
+      inputs: [btn_in]
+      outputs: ["fl_ctr resets to 0; fl_last updates; fl_db unchanged"]
+      output_rules: []
+      state_updates:
+        - { name: fl_ctr,  expr: "0", width: 8 }
+        - { name: fl_last, expr: "btn_in & 1", width: 1 }
+        - { name: fl_db,   expr: "fl_db", width: 1 }
+      side_effects: []
+      error_cases: []
+  invariants:
+    - "fl_ctr resets to 0 whenever btn_in changes."
+    - "db_out updates only after THRESH stable cycles."
+    - "db_out resets to 0 on rst_n low."
+
+cycle_model:
+  purpose: "Cycle contract for debounce filter."
+  executable: python
+  cosim: true
+  clock: clk
+  reset:
+    assertion: "rst_n low clears fl_ctr, fl_last, fl_db to 0; db_out=0."
+    deassertion: "First rising clk after deassertion begins sampling btn_in."
+  latency:
+    debounce_latency: { min_cycles: 4, max_cycles: 4, description: "db_out updates after THRESH=4 stable cycles" }
+  handshake_rules:
+    - { signal: db_out, rule: "db_out updates to btn_in after THRESH=4 consecutive stable cycles." }
+  pipeline:
+    - { stage: S0_SAMPLE, cycle: 0, action: "btn_in sampled; stability check performed." }
+    - { stage: S1_COUNT,  cycle: 1, action: "fl_ctr increments or resets; fl_db updates if threshold reached." }
+  ordering:
+    - "fl_last always tracks most recent btn_in on every clock edge."
+    - "fl_ctr increments when btn_in == fl_last; resets when btn_in != fl_last."
+    - "db_out registers fl_db each cycle."
+  backpressure:
+    - "No backpressure."
+  performance:
+    frequency_mhz: 50
+    throughput: { stable_cycles: 4, condition: "btn_in held stable for THRESH cycles" }
+  observability:
+    - "db_out updates are observable after THRESH stable cycles."
+
+clock_reset_domains:
+  domains:
+    - { name: clk, frequency_mhz: 50, description: "System clock" }
+  reset_scheme:
+    signal: rst_n
+    polarity: active_low
+    type: async_assert_sync_deassert
+
+dataflow:
+  sequence:
+    - { id: sequence_0, source: btn_in, sink: db_out, path: "btn_in -> stability counter -> fl_db (registered) -> db_out (registered)" }
+
+power:
+  domains:
+    - { name: PD_MAIN, voltage: nominal, clock_domains: [clk], isolation: not_required_single_domain }
+  modes: ["ON"]
+  power_states:
+    - { name: ON, entry: "rst_n deasserted", exit: "rst_n asserted", guarantees: ["debounce filter active"] }
+  clock_gating:
+    required: false
+    rationale: "Simple debounce counter; no low-power mode."
+  reset_retention:
+    retention_required: false
+    reset_value_source: "reset state"
+  upf_required: false
+  note: Single domain, always on.
+
+security:
+  classification: non_secure_peripheral
+  classifications: []
+  assets:
+    - { name: db_out, protection: "External control; IP has no internal privilege." }
+  threat_model:
+    - { threat: "Noisy input", mitigation: "Stability counter absorbs glitches." }
+  privilege_model: "No privilege required."
+  safety_goals:
+    - "No hidden state; reset clears all registers."
+  note: No protected registers.
+
+error_handling:
+  error_sources:
+    - { id: ERR_NONE, condition: "No error sources in this minimal IP", architectural_effect: "N/A" }
+  propagation:
+    - "No errors are generated."
+  recovery:
+    - { action: reset, clears: [fl_ctr, fl_last, fl_db], preserves: [], description: "rst_n clears debounce state." }
+
+debug_observability:
+  waveform_must_probe:
+    - clk
+    - rst_n
+    - btn_in
+    - db_out
+  status_outputs:
+    - db_out
+  trace_events:
+    - { name: debounce_update, trigger: "fl_ctr reaches THRESH" }
+    - { name: bounce_detected, trigger: "btn_in != fl_last" }
+  debug_registers: []
+  signals:
+    - { name: fl_ctr,  source: function_model.state_variables.fl_ctr,  description: "Stability counter" }
+    - { name: fl_last, source: function_model.state_variables.fl_last, description: "Last btn sample" }
+
+dft:
+  scan: { enabled: false, note: "Simple IP — DFT not applied." }
+
+synthesis:
+  target: { technology: generic, frequency_mhz: 50 }
+  dialect: systemverilog_2012
+  top_module: debounce_cx1
+  technology:
+    pdk: generic
+    standard_cell_library: generic
+  constraints:
+    - "No inferred latches."
+    - "All architectural flops reset by rst_n."
+  ppa_targets:
+    area_um2_max: null
+    power_mw_max: null
+    frequency_mhz_min: 50
+  required_outputs:
+    - syn/out/debounce_cx1.v
+    - syn/out/area.rpt
+    - syn/out/timing_summary.rpt
+
+integration:
+  top_ports: [clk, rst_n, btn_in, db_out]
+  bus_attachment:
+    control: "No bus interface; standalone filter"
+    data: "db_out custom output"
+  connections: []
+  address_map_requirements:
+    alignment_bytes: 1
+    decode_owner: "N/A"
+    illegal_access_response: "N/A"
+  dependencies:
+    external_modules: []
+    external_clocks: [clk]
+    external_resets: [rst_n]
+  integration_notes:
+    - "Connect clk/rst_n to system clock/reset domain."
+    - "Drive btn_in from raw button; db_out is the clean output."
+
+quality_gates:
+  ssot:
+    pass: "All required engineering SSOT sections present and free of TBD."
+    evidence: ["verify_ssot engineering PASS"]
+  rtl:
+    pass: "RTL implements stability counter, last-sample tracking, and registered db_out."
+    evidence: ["rtl/debounce_cx1.sv", "rtl/rtl_compile.json"]
+  dv:
+    pass: "DV scenarios cover reset, stable input, and bounce rejection."
+    evidence: ["verify/equivalence_goals.json", "sim/scoreboard_events.jsonl"]
+  sim:
+    pass: "Simulation completes with TESTS>=1 PASS>=1 FAIL=0."
+    evidence: ["sim/results.xml", "sim/scoreboard_events.jsonl"]
+
+test_requirements:
+  scenarios:
+    - id: SC1
+      name: Reset defaults
+      stimulus: "Assert rst_n low; observe db_out=0."
+      stimulus_machine_spec:
+        timeline:
+          - { reset: true }
+      expected: "fl_ctr=0, fl_last=0, fl_db=0, db_out=0"
+      checker: "Scoreboard verifies reset values."
+      coverage: [reset]
+    - id: SC2
+      name: Stable high — debounce fires after THRESH cycles
+      stimulus: "Hold btn_in=1 for 5 cycles after reset; verify db_out=1 after cycle 4."
+      stimulus_machine_spec:
+        timeline:
+          - { btn_in: 1, cycles: 5 }
+      expected: "db_out=0 for cycles 0-3, db_out=1 at cycle 4"
+      checker: "Scoreboard checks db_out update timing."
+      coverage: [FM_STABLE]
+    - id: SC3
+      name: Bounce rejection — counter resets on change
+      stimulus: "Toggle btn_in before THRESH; verify db_out stays unchanged."
+      stimulus_machine_spec:
+        timeline:
+          - { btn_in: 1, cycles: 2 }
+          - { btn_in: 0, cycles: 2 }
+          - { btn_in: 1, cycles: 5 }
+      expected: "db_out=0 until stable 4-cycle run at end"
+      checker: "Scoreboard verifies no premature db_out update."
+      coverage: [FM_BOUNCE, FM_STABLE]
+    - id: SC4
+      name: Stable low — db_out returns to 0
+      stimulus: "After db_out=1, hold btn_in=0 for 5 cycles."
+      stimulus_machine_spec:
+        timeline:
+          - { btn_in: 1, cycles: 5 }
+          - { btn_in: 0, cycles: 5 }
+      expected: "db_out=1 then transitions to 0 after 4 stable-low cycles"
+      checker: "Scoreboard verifies db_out=0 after stable low."
+      coverage: [FM_STABLE]
+  scoreboard_checks:
+    - "db_out updates only after THRESH stable cycles"
+    - "fl_ctr resets on btn_in transition"
+    - "db_out=0 after reset"
+  coverage_goals:
+    function:
+      target_pct: 100
+      model: function_model
+      bins:
+        - { id: FCOV_FM_STABLE, source_ref: function_model.transactions.FM_STABLE, class: transaction, description: "Stable tick observed" }
+        - { id: FCOV_FM_BOUNCE, source_ref: function_model.transactions.FM_BOUNCE, class: transaction, description: "Bounce tick observed" }
+    cycle:
+      target_pct: 100
+      model: cycle_model
+      bins:
+        - { id: CCOV_RESET,     source_ref: cycle_model.reset,                       class: reset,   description: "Reset observed" }
+        - { id: CCOV_DEBOUNCE,  source_ref: cycle_model.latency.debounce_latency,     class: latency, description: "Debounce latency observed" }
+        - { id: CCOV_DB_UPDATE, source_ref: cycle_model.handshake_rules,              class: handshake, description: "db_out update observed" }
+
+workflow_todos:
+  fl-model-gen: []
+  rtl-gen:
+    - id: RTL_IMPLEMENT_DEBOUNCE
+      content: "Implement button debouncer with stability counter"
+      detail: "Implement debounce_cx1.sv: stability counter, last-sample register, db_out updates after THRESH stable cycles."
+      criteria:
+        - "RTL top ports match io_list."
+        - "fl_ctr increments when btn_in == ctr_last; resets when different."
+        - "db_out updates to btn_in when fl_ctr reaches THRESH-1."
+        - "Reset clears all state to 0."
+      source_refs: [io_list, function_model.transactions.FM_STABLE, function_model.transactions.FM_BOUNCE]
+      owner_module: debounce_cx1
+      owner_file: rtl/debounce_cx1.sv
+      priority: high
+      required: true
+  tb-gen:
+    - id: TB_COVER_DEBOUNCE_SCENARIOS
+      content: "Generate cocotb scoreboard for reset, stable, and bounce scenarios"
+      detail: "Drive SC1-SC4 and verify db_out against FunctionalModel each cycle."
+      criteria:
+        - "All declared scenarios exercised."
+        - "Scoreboard reports zero mismatches."
+      source_refs: [test_requirements.scenarios, function_model]
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC required."
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single active-low rst_n reset domain — no RDC required."
+
+timing:
+  target_clocks:
+    - { name: clk, frequency_mhz: 50, duty_cycle: 0.5, uncertainty_ns: 0.1 }
+  latency_budget:
+    debounce_cycles: { min: 4, max: 4, measured_from: "btn_in stable", measured_to: "db_out update" }
+  throughput:
+    period_cycles: 4
+    conditions: "THRESH=4 stable cycles required."
+  timing_exceptions: []
+  io_delays:
+    inputs:
+      - { ports: "btn_in", clock: clk, delay_ns: 0.2, source: "demo timing budget" }
+    outputs:
+      - { ports: "db_out", clock: clk, delay_ns: 0.2, source: "demo timing budget" }
+  false_paths:
+    - { from: rst_n, to: all_registers, reason: "async reset assertion" }
+  multicycle_paths: []
+
+coding_rules:
+  verilog_style: systemverilog_2012
+  file_extension: .sv
+  conventions:
+    - "Use ANSI SystemVerilog ports."
+    - "Use nonblocking assignments in sequential logic."
+    - "No inferred latches."
+    - "Reset architectural state from rst_n."
+  lint_waivers: []
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "THRESH=4 is a fixed parameter compile-time constant."
+    - "btn_in is synchronous to clk (external synchronizer not in scope)."
+  notes:
+    - "Cursor agent simulation exercise IP."
+
+dir_structure:
+  output_dirs:
+    req: req/
+    yaml: yaml/
+    rtl: rtl/
+    list: list/
+    model: model/
+    verify: verify/
+    tb: tb/
+    sim: sim/
+  yaml_dir: yaml/
+
+filelist:
+  headers: []
+  rtl:
+    - rtl/debounce_cx1.sv
+  sim:
+    - tb/cocotb/test_debounce_cx1.py
+  docs:
+    - req/debounce_cx1_requirements.md
+
+traceability:
+  yaml_to_output:
+    - { yaml: top_module.name, output: rtl/debounce_cx1.sv }
+    - { yaml: function_model.transactions.FM_STABLE, output: model/functional_model.py }
+    - { yaml: test_requirements.scenarios, output: tb/cocotb/test_debounce_cx1.py }
+  requirement_to_yaml:
+    - { requirement: REQ1_STABILITY, yaml: function_model.transactions.FM_STABLE }
+    - { requirement: REQ2_BOUNCE,    yaml: function_model.transactions.FM_BOUNCE }
+    - { requirement: REQ3_DB_OUT,    yaml: function_model.state_variables.fl_db }
+
+generation_flow:
+  steps:
+    - { name: emit_fl_model, command: "python3 workflow/fl-model-gen/scripts/emit_fl_model.py debounce_cx1 --root .", description: "Generate FunctionalModel." }
+    - { name: emit_equivalence_goals, command: "python3 workflow/fl-model-gen/scripts/emit_equivalence_goals.py debounce_cx1 --root .", description: "Generate equivalence goals." }
+    - { name: emit_tb, command: "python3 workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py debounce_cx1 --root .", description: "Generate goal-driven TB scoreboard." }
+    - { name: sim, command: "cd debounce_cx1/tb/cocotb && python3 test_runner.py", description: "Run simulation." }

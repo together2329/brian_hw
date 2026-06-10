@@ -1,0 +1,56 @@
+{
+  "evidence_plan": [
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "BC_SR8_LINT",
+      "evidence_id": "E_SR8_BC_LINT",
+      "pass_condition": "no latch findings per BC_SR8_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_SR8_RESET",
+      "evidence_id": "E_SR8_BC_RESET",
+      "pass_condition": "po==0 one cycle after rst_n asserts per BC_SR8_RESET",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_SR8_SHIFT",
+      "evidence_id": "E_SR8_BC_SHIFT",
+      "pass_condition": "shift sequence matches BC_SR8_SHIFT TR_SHIFT expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "C_SR8_LINT",
+      "evidence_id": "E_SR8_LINT",
+      "pass_condition": "no latch / no single-driver violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_SR8_RESET",
+      "evidence_id": "E_SR8_RESET",
+      "pass_condition": "po==0 observed one cycle after rst_n asserts",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "rtl/shift_reg_cx1.sv",
+      "contract_ref": "SC_SR8_PORTS",
+      "evidence_id": "E_SR8_SC_PORTS",
+      "pass_condition": "top ports clk rst_n si po present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_SR8_SHIFT",
+      "evidence_id": "E_SR8_SHIFT",
+      "pass_condition": "observed shift sequence matches FL expected",
+      "validator": "check_evidence_contract.py"
+    }
+  ],
+  "ip": "shift_reg_cx1",
+  "schema_version": 1,
+  "type": "evidence_plan"
+}

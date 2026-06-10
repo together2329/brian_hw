@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_check",
+  "ip": "debounce_cx1",
+  "source": "model/functional_model.py",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "checks": 3,
+    "failed": 0,
+    "transactions": 2,
+    "transaction_results": [
+      {
+        "id": "FM_STABLE",
+        "name": "stable_tick",
+        "kind": "FM_STABLE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_STABLE",
+          "transaction_name": "stable_tick",
+          "sample_accepted": 1,
+          "state_updates": {
+            "fl_ctr": 1,
+            "fl_last": 1,
+            "fl_db": 0
+          }
+        }
+      },
+      {
+        "id": "FM_BOUNCE",
+        "name": "bounce_tick",
+        "kind": "FM_BOUNCE",
+        "passed": true,
+        "result": {
+          "resp": 0,
+          "transaction_id": "FM_BOUNCE",
+          "transaction_name": "bounce_tick",
+          "sample_accepted": 1,
+          "state_updates": {
+            "fl_ctr": 0,
+            "fl_last": 0,
+            "fl_db": 0
+          }
+        }
+      }
+    ],
+    "unsupported_transaction_check": true,
+    "trace_entries": 3,
+    "coverage_bins": 22,
+    "invariants_total": 3,
+    "invariants_evaluated": 0,
+    "invariants_failed": [],
+    "invariants_skipped": [
+      {
+        "name": "fl_ctr resets to 0 whenever btn_in chang",
+        "expr": "fl_ctr resets to 0 whenever btn_in changes.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "db_out updates only after THRESH stable ",
+        "expr": "db_out updates only after THRESH stable cycles.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      },
+      {
+        "name": "db_out resets to 0 on rst_n low.",
+        "expr": "db_out resets to 0 on rst_n low.",
+        "reason": "invalid syntax (<unknown>, line 1)"
+      }
+    ],
+    "reset_consistency": true,
+    "reset_diff": {},
+    "error_cases_total": 0,
+    "error_cases_planned": 0
+  },
+  "decomposition_units": 6,
+  "fcov_bins": 22,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "debounce_cx1/req/",
+      "debounce_cx1/yaml/debounce_cx1.ssot.yaml",
+      "debounce_cx1/model/functional_model.py",
+      "debounce_cx1/cov/fcov_plan.json",
+      "debounce_cx1/yaml/debounce_cx1.ssot.yaml#io_list",
+      "debounce_cx1/yaml/debounce_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "debounce_cx1/rtl/",
+      "debounce_cx1/tb/",
+      "debounce_cx1/sim/",
+      "debounce_cx1/vectors/",
+      "debounce_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  }
+}

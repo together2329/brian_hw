@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "type": "structural_contracts",
+  "ip": "parity_gen_cx1",
+  "contracts": [
+    {
+      "id": "SC_PAR_PORTS",
+      "obligations": [
+        "OBL_PAR_EVEN_001",
+        "OBL_PAR_ODD_001",
+        "OBL_PAR_REG_001",
+        "OBL_PAR_RESET_001",
+        "OBL_PAR_LINT_001"
+      ],
+      "clock_domains": [
+        { "id": "clk_domain", "clock_signal": "clk" }
+      ],
+      "reset_domains": [
+        { "id": "async_rst", "reset_signal": "rst_n", "clock_domain": "clk_domain" }
+      ],
+      "interfaces": [
+        {
+          "id": "data_iface",
+          "clock_domain": "clk_domain",
+          "signals": ["data_in", "even_par", "odd_par", "par_reg"]
+        }
+      ],
+      "signals": [
+        { "name": "clk",      "dir": "input",  "width": 1, "timing": { "kind": "clock" } },
+        { "name": "rst_n",    "dir": "input",  "width": 1, "timing": { "kind": "sync", "clock_domain": "clk_domain" } },
+        { "name": "data_in",  "dir": "input",  "width": 8, "timing": { "kind": "sync", "clock_domain": "clk_domain" } },
+        { "name": "even_par", "dir": "output", "width": 1, "timing": { "kind": "sync", "clock_domain": "clk_domain" } },
+        { "name": "odd_par",  "dir": "output", "width": 1, "timing": { "kind": "sync", "clock_domain": "clk_domain" } },
+        { "name": "par_reg",  "dir": "output", "width": 1, "timing": { "kind": "sync", "clock_domain": "clk_domain" } }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,550 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "debounce_cx1",
+  "source": "debounce_cx1/yaml/debounce_cx1.ssot.yaml",
+  "units": [
+    {
+      "name": "debounce_cx1",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "decomposition",
+        "features",
+        "function_model",
+        "io_list",
+        "parameters",
+        "registers"
+      ],
+      "rtl_candidates": [
+        "debounce_cx1"
+      ],
+      "rtl_file": "rtl/debounce_cx1.sv",
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.db_out",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_count",
+        "cycle_model.reset",
+        "decomposition.units.output_latch",
+        "decomposition.units.stability_counter",
+        "features.bounce_rejection",
+        "features.stability_detection",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables",
+        "function_model.state_variables.fl_ctr",
+        "function_model.state_variables.fl_db",
+        "function_model.state_variables.fl_last",
+        "function_model.transactions",
+        "function_model.transactions.FM_BOUNCE",
+        "function_model.transactions.FM_STABLE",
+        "function_model.transactions.fm_bounce",
+        "function_model.transactions.fm_bounce.inputs.input_0",
+        "function_model.transactions.fm_bounce.outputs.output_0",
+        "function_model.transactions.fm_bounce.preconditions.precondition_0",
+        "function_model.transactions.fm_bounce.state_updates.fl_ctr",
+        "function_model.transactions.fm_bounce.state_updates.fl_db",
+        "function_model.transactions.fm_bounce.state_updates.fl_last",
+        "function_model.transactions.fm_stable",
+        "function_model.transactions.fm_stable.inputs.input_0",
+        "function_model.transactions.fm_stable.outputs.output_0",
+        "function_model.transactions.fm_stable.preconditions.precondition_0",
+        "function_model.transactions.fm_stable.side_effects.side_effect_0",
+        "function_model.transactions.fm_stable.state_updates.fl_ctr",
+        "function_model.transactions.fm_stable.state_updates.fl_db",
+        "function_model.transactions.fm_stable.state_updates.fl_last",
+        "io_list",
+        "io_list.interfaces",
+        "parameters.thresh",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.fl_ctr",
+        "function_model.state_variables.fl_db",
+        "function_model.state_variables.fl_last",
+        "function_model.transactions.fm_bounce",
+        "function_model.transactions.fm_bounce.inputs.input_0",
+        "function_model.transactions.fm_bounce.outputs.output_0",
+        "function_model.transactions.fm_bounce.preconditions.precondition_0",
+        "function_model.transactions.fm_bounce.state_updates.fl_ctr",
+        "function_model.transactions.fm_bounce.state_updates.fl_db",
+        "function_model.transactions.fm_bounce.state_updates.fl_last",
+        "function_model.transactions.fm_stable",
+        "function_model.transactions.fm_stable.inputs.input_0",
+        "function_model.transactions.fm_stable.outputs.output_0",
+        "function_model.transactions.fm_stable.preconditions.precondition_0",
+        "function_model.transactions.fm_stable.side_effects.side_effect_0",
+        "function_model.transactions.fm_stable.state_updates.fl_ctr",
+        "function_model.transactions.fm_stable.state_updates.fl_db",
+        "function_model.transactions.fm_stable.state_updates.fl_last"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.db_out",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_count",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.bounce_rejection",
+        "features.stability_detection",
+        "parameters.thresh",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "debounce_cx1_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "debounce_cx1_axi_slv",
+        "debounce_cx1_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "debounce_cx1_register_model",
+      "kind": "register",
+      "source_sections": [
+        "registers",
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "debounce_cx1_regs",
+        "debounce_cx1_apb_regs"
+      ],
+      "verification_impact": [
+        "register sequences",
+        "readback scoreboard"
+      ]
+    },
+    {
+      "name": "debounce_cx1_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "debounce_cx1_core",
+        "debounce_cx1_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    },
+    {
+      "name": "debounce_cx1_error_model",
+      "kind": "error",
+      "source_sections": [
+        "error_handling"
+      ],
+      "rtl_candidates": [
+        "debounce_cx1_core",
+        "debounce_cx1_error"
+      ],
+      "verification_impact": [
+        "negative tests",
+        "mismatch classification"
+      ]
+    },
+    {
+      "name": "debounce_cx1_security_model",
+      "kind": "security",
+      "source_sections": [
+        "security",
+        "debug_observability"
+      ],
+      "rtl_candidates": [
+        "debounce_cx1_security",
+        "debounce_cx1_core"
+      ],
+      "verification_impact": [
+        "security bins",
+        "debug observability checks"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "debounce_cx1",
+      "kind": "rtl_module",
+      "rtl_module": "debounce_cx1",
+      "rtl_file": "rtl/debounce_cx1.sv",
+      "source_sections": [
+        "cycle_model",
+        "decomposition",
+        "features",
+        "function_model",
+        "io_list",
+        "parameters",
+        "registers"
+      ],
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.db_out",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_count",
+        "cycle_model.reset",
+        "decomposition.units.output_latch",
+        "decomposition.units.stability_counter",
+        "features.bounce_rejection",
+        "features.stability_detection",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables",
+        "function_model.state_variables.fl_ctr",
+        "function_model.state_variables.fl_db",
+        "function_model.state_variables.fl_last",
+        "function_model.transactions",
+        "function_model.transactions.FM_BOUNCE",
+        "function_model.transactions.FM_STABLE",
+        "function_model.transactions.fm_bounce",
+        "function_model.transactions.fm_bounce.inputs.input_0",
+        "function_model.transactions.fm_bounce.outputs.output_0",
+        "function_model.transactions.fm_bounce.preconditions.precondition_0",
+        "function_model.transactions.fm_bounce.state_updates.fl_ctr",
+        "function_model.transactions.fm_bounce.state_updates.fl_db",
+        "function_model.transactions.fm_bounce.state_updates.fl_last",
+        "function_model.transactions.fm_stable",
+        "function_model.transactions.fm_stable.inputs.input_0",
+        "function_model.transactions.fm_stable.outputs.output_0",
+        "function_model.transactions.fm_stable.preconditions.precondition_0",
+        "function_model.transactions.fm_stable.side_effects.side_effect_0",
+        "function_model.transactions.fm_stable.state_updates.fl_ctr",
+        "function_model.transactions.fm_stable.state_updates.fl_db",
+        "function_model.transactions.fm_stable.state_updates.fl_last",
+        "io_list",
+        "io_list.interfaces",
+        "parameters.thresh",
+        "registers",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width",
+        "registers.register_list"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.fl_ctr",
+        "function_model.state_variables.fl_db",
+        "function_model.state_variables.fl_last",
+        "function_model.transactions.fm_bounce",
+        "function_model.transactions.fm_bounce.inputs.input_0",
+        "function_model.transactions.fm_bounce.outputs.output_0",
+        "function_model.transactions.fm_bounce.preconditions.precondition_0",
+        "function_model.transactions.fm_bounce.state_updates.fl_ctr",
+        "function_model.transactions.fm_bounce.state_updates.fl_db",
+        "function_model.transactions.fm_bounce.state_updates.fl_last",
+        "function_model.transactions.fm_stable",
+        "function_model.transactions.fm_stable.inputs.input_0",
+        "function_model.transactions.fm_stable.outputs.output_0",
+        "function_model.transactions.fm_stable.preconditions.precondition_0",
+        "function_model.transactions.fm_stable.side_effects.side_effect_0",
+        "function_model.transactions.fm_stable.state_updates.fl_ctr",
+        "function_model.transactions.fm_stable.state_updates.fl_db",
+        "function_model.transactions.fm_stable.state_updates.fl_last"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.db_out",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.ordering.ordering_2",
+        "cycle_model.pipeline.s0_sample",
+        "cycle_model.pipeline.s1_count",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.bounce_rejection",
+        "features.stability_detection",
+        "parameters.thresh",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.state_variables.fl_ctr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.fl_last",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.state_variables.fl_db",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.inputs.input_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.state_updates.fl_ctr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.state_updates.fl_last",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.state_updates.fl_db",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_stable.side_effects.side_effect_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce.inputs.input_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce.state_updates.fl_ctr",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce.state_updates.fl_last",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_bounce.state_updates.fl_db",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.db_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.s0_sample",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.s1_count",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_2",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.backpressure.backpressure_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.observability.observability_0",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "parameters.thresh",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.config.register_width",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.config.addr_width",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "registers.config.byte_addressable",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.stability_detection",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.bounce_rejection",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 32,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "debounce_cx1/req/",
+      "debounce_cx1/yaml/debounce_cx1.ssot.yaml",
+      "debounce_cx1/model/functional_model.py",
+      "debounce_cx1/cov/fcov_plan.json",
+      "debounce_cx1/yaml/debounce_cx1.ssot.yaml#io_list",
+      "debounce_cx1/yaml/debounce_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "debounce_cx1/rtl/",
+      "debounce_cx1/tb/",
+      "debounce_cx1/sim/",
+      "debounce_cx1/vectors/",
+      "debounce_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

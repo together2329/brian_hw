@@ -1,0 +1,76 @@
+{
+  "contracts": [
+    {
+      "clock_domains": [
+        {
+          "clock_signal": "clk",
+          "id": "main"
+        }
+      ],
+      "id": "SC_CNT8_PORTS",
+      "interfaces": [
+        {
+          "clock_domain": "main",
+          "id": "ctrl_iface",
+          "signals": [
+            "count",
+            "en"
+          ]
+        }
+      ],
+      "obligations": [
+        "OBL_CNT8_COUNT_001",
+        "OBL_CNT8_HOLD_001",
+        "OBL_CNT8_LINT_001",
+        "OBL_CNT8_RESET_001"
+      ],
+      "reset_domains": [
+        {
+          "clock_domain": "main",
+          "id": "sync_rst",
+          "reset_signal": "rst_n"
+        }
+      ],
+      "signals": [
+        {
+          "dir": "input",
+          "name": "clk",
+          "timing": {
+            "kind": "clock"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "rst_n",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "en",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "output",
+          "name": "count",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 8
+        }
+      ]
+    }
+  ],
+  "ip": "counter8_cx1",
+  "schema_version": 1,
+  "type": "structural_contracts"
+}

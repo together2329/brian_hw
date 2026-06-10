@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-06-10T14:47:40Z",
+  "ip": "watchdog_cx1",
+  "schema_version": 1,
+  "source_mode": "direct_ssot",
+  "status": "pass",
+  "summary": {
+    "covered": 13,
+    "evidence_tokens": 38,
+    "obligations": 13,
+    "uncovered_required": 0
+  },
+  "type": "truth_coverage",
+  "uncovered_required": []
+}

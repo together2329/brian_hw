@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "type": "contract_refs",
+  "ip": "pwm_gen_cx1",
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_PWM_COUNTER",
+      "obligation_refs": ["OBL_PWM_COUNTER_001"],
+      "ssot_anchor": "function_model.transactions.FM_TICK",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/pwm_gen_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_pwm_gen_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_PWM_DUTY",
+      "obligation_refs": ["OBL_PWM_DUTY_001"],
+      "ssot_anchor": "function_model.transactions.FM_WRITE",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/pwm_gen_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_pwm_gen_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_PWM_OUT",
+      "obligation_refs": ["OBL_PWM_OUT_001"],
+      "ssot_anchor": "function_model.transactions.FM_TICK",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/pwm_gen_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_pwm_gen_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_PWM_RESET",
+      "obligation_refs": ["OBL_PWM_RESET_001"],
+      "ssot_anchor": "cycle_model.reset",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/pwm_gen_cx1.sv"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_pwm_gen_cx1.py"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl"}
+      ]
+    },
+    {
+      "contract_ref_id": "C_PWM_LINT",
+      "obligation_refs": ["OBL_PWM_LINT_001"],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {"stage": "lint", "artifact": "lint/dut_lint.json"}
+      ]
+    }
+  ]
+}

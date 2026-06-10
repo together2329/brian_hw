@@ -1,0 +1,63 @@
+{
+  "ip": "parity_gen_cx1",
+  "schema_version": 1,
+  "type": "requirements_index",
+  "requirements": [
+    {
+      "requirement_id": "REQ_PAR_EVEN_001",
+      "title": "Even parity (combinational)",
+      "statement": "even_par = XOR reduction of all 8 data_in bits, computed combinationally.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_PAR_EVEN_001"],
+      "source_refs": [
+        "yaml/parity_gen_cx1.ssot.yaml:function_model.transactions.FM_PARITY",
+        "req/requirements_index.json:REQ_PAR_EVEN_001",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_PARITY",
+        "sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "requirement_id": "REQ_PAR_ODD_001",
+      "title": "Odd parity (combinational)",
+      "statement": "odd_par = ~even_par, computed combinationally.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_PAR_ODD_001"],
+      "source_refs": [
+        "yaml/parity_gen_cx1.ssot.yaml:function_model.transactions.FM_PARITY",
+        "req/requirements_index.json:REQ_PAR_ODD_001",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_PARITY",
+        "sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "requirement_id": "REQ_PAR_REG_001",
+      "title": "Registered parity",
+      "statement": "par_reg latches even_par on each rising clock edge (1-cycle registered output).",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_PAR_REG_001"],
+      "source_refs": [
+        "yaml/parity_gen_cx1.ssot.yaml:function_model.transactions.FM_PARITY",
+        "req/requirements_index.json:REQ_PAR_REG_001",
+        "verify/equivalence_goals.json:EQ_SCENARIO_SC5",
+        "sim/scoreboard_events.jsonl"
+      ]
+    },
+    {
+      "requirement_id": "REQ_PAR_RESET_001",
+      "title": "Reset clears registered parity",
+      "statement": "par_reg=0 while rst_n=0 and for 1 cycle after rst_n de-assertion.",
+      "status": "locked",
+      "required": true,
+      "obligation_ids": ["OBL_PAR_RESET_001"],
+      "source_refs": [
+        "yaml/parity_gen_cx1.ssot.yaml:function_model.transactions.FM_RESET",
+        "req/requirements_index.json:REQ_PAR_RESET_001",
+        "verify/equivalence_goals.json:EQ_TRANSACTION_FM_RESET",
+        "sim/scoreboard_events.jsonl"
+      ]
+    }
+  ]
+}

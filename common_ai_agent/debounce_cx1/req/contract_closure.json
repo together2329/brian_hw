@@ -1,0 +1,221 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_DEB_BOUNCE",
+      "evidence_refs": [
+        "E_DEB_BC_BOUNCE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_DEB_BOUNCE_001"
+      ],
+      "pass_conditions": [
+        "db_out unchanged on bounce; counter resets observed"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_DEB_LINT",
+      "evidence_refs": [
+        "E_DEB_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_DEB_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations per BC_DEB_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_DEB_RESET",
+      "evidence_refs": [
+        "E_DEB_BC_RESET"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_DEB_RESET_001"
+      ],
+      "pass_conditions": [
+        "db_out=0 observed during reset per BC_DEB_RESET"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_DEB_STABLE",
+      "evidence_refs": [
+        "E_DEB_BC_STABLE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_DEB_STABLE_001",
+        "OBL_DEB_OUTPUT_001"
+      ],
+      "pass_conditions": [
+        "db_out matches FL expected (updates after THRESH stable cycles) each cycle"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_DEB_BOUNCE",
+      "evidence_refs": [
+        "E_DEB_BOUNCE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_DEB_BOUNCE_001"
+      ],
+      "pass_conditions": [
+        "bounce reset observed in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_DEB_LINT",
+      "evidence_refs": [
+        "E_DEB_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_DEB_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_DEB_OUTPUT",
+      "evidence_refs": [
+        "E_DEB_OUTPUT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_DEB_OUTPUT_001"
+      ],
+      "pass_conditions": [
+        "db_out update after THRESH cycles observed in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_DEB_RESET",
+      "evidence_refs": [
+        "E_DEB_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_DEB_RESET_001"
+      ],
+      "pass_conditions": [
+        "db_out=0 observed during reset in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_DEB_STABLE",
+      "evidence_refs": [
+        "E_DEB_STABLE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_DEB_STABLE_001"
+      ],
+      "pass_conditions": [
+        "stability counter increment observed in scoreboard"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/debounce_cx1.sv"
+      ],
+      "contract_ref": "SC_DEB_PORTS",
+      "evidence_refs": [
+        "E_DEB_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_DEB_STABLE_001",
+        "OBL_DEB_BOUNCE_001",
+        "OBL_DEB_OUTPUT_001",
+        "OBL_DEB_RESET_001",
+        "OBL_DEB_LINT_001"
+      ],
+      "pass_conditions": [
+        "top ports clk rst_n btn_in db_out present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "debounce_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 10,
+    "contracts": 10,
+    "required_closed": 10,
+    "required_contracts": 10
+  },
+  "type": "contract_authority_closure"
+}

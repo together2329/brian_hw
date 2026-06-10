@@ -1,0 +1,349 @@
+ip: shift_reg_cx1
+version: "1.0"
+status: draft
+
+top_module:
+  name: shift_reg_cx1
+  file: rtl/shift_reg_cx1.sv
+  version: "1.0"
+  type: peripheral
+  description: "8-bit serial-in parallel-out shift register"
+  reference_spec: "user-defined"
+  target:
+    technology: generic
+    clock_freq_mhz: 100
+    area_um2: null
+    power_mw: null
+
+sub_modules: []
+
+decomposition:
+  units:
+    - id: shiftreg_datapath
+      kind: datapath
+      source_refs: ["function_model.transactions.TR_SHIFT", "function_model.transactions.TR_RESET"]
+      rtl_candidates: ["shift_reg_cx1"]
+      verification_impact: ["test_requirements.scenarios"]
+
+parameters:
+  - name: WIDTH
+    default: 8
+    type: int
+    description: "Shift register width in bits"
+    drives: ["rtl/shift_reg_cx1.sv"]
+
+io_list:
+  clock_domains:
+    - name: clk
+      frequency_mhz: 100
+      description: "Main clock"
+      ports:
+        - { name: clk, width: 1, direction: input, description: "Clock" }
+  resets:
+    - name: rst_n
+      polarity: active_low
+      sync_async: synchronous
+      description: "Synchronous active-low reset"
+      ports:
+        - { name: rst_n, width: 1, direction: input, description: "Synchronous active-low reset" }
+  interfaces:
+    - name: serial_in
+      type: custom
+      description: "Serial data input and parallel output"
+      ports:
+        - { name: si,   width: 1, direction: input,  description: "Serial input bit" }
+        - { name: po,   width: 8, direction: output, description: "Parallel output, 8 bits" }
+
+features:
+  - name: shift_in
+    trigger: "rising clk edge when rst_n==1"
+    datapath: "shift_reg shifts left; si enters at bit 0"
+    control: "always active when not in reset"
+    output: "po == shift_reg"
+  - name: sync_reset
+    trigger: "rst_n==0 on rising clk edge"
+    datapath: "shift_reg cleared to 0"
+    control: "synchronous, higher priority than shift"
+    output: "po == 0"
+
+dataflow:
+  sources:
+    - clk
+    - rst_n
+    - si
+  sinks:
+    - po
+  sequence:
+    - id: DF_SHIFT
+      from: "si and clk"
+      through: "8-bit shift register"
+      to: "po"
+
+function_model:
+  purpose: "Behavioral oracle for the 8-bit SIPO shift register."
+  state_variables:
+    - { name: shift_reg, source: "io_list.po", reset: 0, width: 8, description: "8-bit shift register state" }
+  transactions:
+    - id: TR_RESET
+      name: synchronous_reset
+      preconditions:
+        - "rst_n == 0"
+      inputs: [rst_n]
+      output_rules:
+        - { name: po_out, expr: 0, width: 8, port: po }
+      state_updates:
+        - { name: shift_next, expr: 0, width: 8 }
+      side_effects: []
+      error_cases: []
+    - id: TR_SHIFT
+      name: shift_in_serial_bit
+      preconditions:
+        - "rst_n == 1"
+      inputs: [si, shift_reg]
+      output_rules:
+        - { name: po_out, expr: "((shift_reg << 1) | (si & 1)) & 0xFF", width: 8, port: po }
+      state_updates:
+        - { name: shift_next, expr: "((shift_reg << 1) | (si & 1)) & 0xFF", width: 8 }
+      side_effects: []
+      error_cases: []
+  output_rules:
+    - { name: po, expr: "shift_reg", width: 8, port: po }
+  state_updates:
+    - { name: shift_reg, reset: 0, expr: "0 if rst_n==0 else ((shift_reg<<1)|(si&1))&0xFF" }
+  invariants:
+    - "po == shift_reg"
+    - "0 <= shift_reg <= 255"
+    - "rst_n==0 implies po==0 on next clock"
+  derived_signals:
+    - { name: po_out, expr: "shift_reg", width: 8, description: "Parallel output" }
+
+cycle_model:
+  purpose: "Cycle-accurate timing contract for the shift register."
+  clock: clk
+  reset: "rst_n low synchronously clears shift_reg to 0"
+  latency:
+    reset_latency: { min_cycles: 1, max_cycles: 1, description: "po=0 one cycle after rst_n asserts" }
+    shift_latency: { min_cycles: 1, max_cycles: 1, description: "po updates one cycle after si sampled" }
+  handshake_rules:
+    - { signal: si, rule: "si sampled on every rising clk edge when rst_n==1" }
+    - { signal: rst_n, rule: "rst_n sampled synchronously; overrides shift" }
+  pipeline:
+    - { stage: S0_SAMPLE, cycle: 0, action: "Sample rst_n and si on rising clk" }
+    - { stage: S1_UPDATE, cycle: 1, action: "Update shift_reg: reset if rst_n==0, else shift left with si at bit 0" }
+  ordering:
+    - "reset has higher priority than shift"
+  backpressure:
+    - "None — combinational output of shift_reg"
+  observability:
+    - "po is directly driven from shift_reg"
+
+clock_reset_domains:
+  domains:
+    - { name: clk, frequency_mhz: 100, description: "Single clock domain" }
+  reset_scheme:
+    signal: rst_n
+    polarity: active_low
+    type: synchronous
+
+cdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single clock domain — no CDC"
+
+rdc_requirements:
+  crossings: []
+  synchronizers: []
+  note: "Single reset domain — no RDC"
+
+registers:
+  config:
+    register_width: 8
+    addr_width: 0
+    byte_addressable: false
+  register_list: []
+  note: "No memory-mapped registers; po is a direct output"
+
+memory:
+  instances: []
+  note: "No SRAM or FIFO"
+
+interrupts:
+  sources: []
+  output: {}
+  note: "No interrupt"
+
+fsm:
+  note: "No explicit FSM; single-state shift register"
+
+rtl_contract:
+  top_module_file: "rtl/shift_reg_cx1.sv"
+  reset_polarity: "active_low"
+  reset_type: "synchronous"
+  clock_gating: false
+  top_module: shift_reg_cx1
+  clock: clk
+  reset: rst_n
+  observable_outputs:
+    - po
+  rules:
+    - id: SYNC_RESET
+      description: "rst_n==0 synchronously clears po to 0"
+    - id: SHIFT_LEFT
+      description: "po shifts left each cycle; si enters at bit 0"
+
+timing:
+  target_clocks:
+    - { name: clk, frequency_mhz: 100, description: "Single clock" }
+  latency_budget:
+    shift_update_cycles: 1
+  false_paths: []
+
+power:
+  domains:
+    - { name: clk, description: "Single power domain" }
+  clock_gating: false
+  retention: false
+
+security:
+  classification: non_secure_peripheral
+  assets: []
+  threat_model: []
+
+error_handling:
+  error_sources: []
+
+debug_observability:
+  waveform_must_probe:
+    - clk
+    - rst_n
+    - si
+    - po
+
+integration:
+  dependencies: []
+  connections: []
+
+dft:
+  scan_required: false
+
+synthesis:
+  dialect: "systemverilog_2012"
+  constraints: ""
+  required_outputs:
+    - rtl/shift_reg_cx1.sv
+
+coding_rules:
+  style: "Synthesizable SystemVerilog with explicit widths"
+  default_nettype: none
+  lint_rules:
+    - "No latches"
+    - "No undriven outputs"
+
+reuse_modules: []
+
+custom:
+  assumptions:
+    - "Reset is synchronous, active-low"
+    - "Shift direction: left-shift, si enters at bit 0 (LSB)"
+    - "Always shifts when not in reset; no enable signal"
+
+dir_structure:
+  rtl: shift_reg_cx1/rtl
+  list: shift_reg_cx1/list
+  tb: shift_reg_cx1/tb/cocotb
+  sim: shift_reg_cx1/sim
+  lint: shift_reg_cx1/lint
+  req: shift_reg_cx1/req
+
+filelist:
+  rtl:
+    - rtl/shift_reg_cx1.sv
+  list:
+    - list/shift_reg_cx1.f
+  tb:
+    - tb/cocotb/test_shift_reg_cx1.py
+    - tb/cocotb/test_runner.py
+  sim:
+    - sim/results.xml
+
+test_requirements:
+  scenarios:
+    - id: SC_RESET
+      name: Synchronous reset clears shift register
+      stimulus: "Assert rst_n=0 for 2 cycles"
+      expected: "po==0 one cycle after rst_n low"
+      checker: "scoreboard reset assertion"
+      coverage: "reset_behavior"
+    - id: SC_SHIFT_0
+      name: Shift in zeros
+      stimulus: "rst_n=1, si=0 for 8 cycles"
+      expected: "po==0 after 8 cycles"
+      checker: "scoreboard shift assertion"
+      coverage: "shift_zero"
+    - id: SC_SHIFT_1
+      name: Shift in ones
+      stimulus: "rst_n=1, si=1 for 8 cycles"
+      expected: "po==0xFF after 8 cycles"
+      checker: "scoreboard shift assertion"
+      coverage: "shift_one"
+    - id: SC_SHIFT_PATTERN
+      name: Shift in alternating pattern
+      stimulus: "rst_n=1, si alternates 1,0,1,0,1,0,1,0"
+      expected: "po==0xAA after 8 cycles"
+      checker: "scoreboard pattern assertion"
+      coverage: "shift_pattern"
+  scoreboard_checks: 4
+  coverage_goals:
+    function:
+      target_pct: 100
+      bins:
+        - { id: FCOV_RESET, source_ref: "function_model.transactions.TR_RESET", class: transaction, description: "Reset observed" }
+        - { id: FCOV_SHIFT, source_ref: "function_model.transactions.TR_SHIFT", class: transaction, description: "Shift observed" }
+
+quality_gates:
+  rtl:
+    pass: "RTL compiles with iverilog, no latch warnings"
+    evidence: ["rtl/rtl_compile.json"]
+  dv:
+    pass: "cocotb sim PASS with real results.xml"
+    evidence: ["sim/results.xml"]
+
+traceability:
+  yaml_to_output:
+    - source: io_list
+      outputs:
+        - rtl/shift_reg_cx1.sv
+    - source: function_model
+      outputs:
+        - rtl/shift_reg_cx1.sv
+        - tb/cocotb/test_shift_reg_cx1.py
+    - source: test_requirements.scenarios
+      outputs:
+        - tb/cocotb/test_shift_reg_cx1.py
+
+workflow_todos:
+  rtl-gen:
+    - id: RTL_SHIFTREG
+      content: "Implement 8-bit SIPO shift register with sync reset"
+      detail: "RTL must implement TR_RESET (sync clear) and TR_SHIFT (left-shift, si at bit 0). No enable needed."
+      criteria:
+        - "po shifts left each clock cycle when rst_n==1"
+        - "po clears to 0 when rst_n==0"
+        - "si enters at bit 0 (LSB)"
+      source_refs: ["function_model.transactions", "cycle_model.pipeline"]
+      owner_module: shift_reg_cx1
+      owner_file: rtl/shift_reg_cx1.sv
+      priority: high
+      required: true
+  tb-gen: []
+  sim_debug: []
+  coverage: []
+  syn: []
+  pnr: []
+
+generation_flow:
+  steps:
+    - { name: req,  command: "python3 workflow/req-gen/scripts/emit_requirements_from_ssot.py shift_reg_cx1 --root ." }
+    - { name: rtl,  command: "python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py shift_reg_cx1 --root . --profile dv --execute --from-stage ssot-rtl --until lint" }
+    - { name: tb,   command: "python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py shift_reg_cx1 --root . --profile dv --execute --from-stage ssot-tb-cocotb --until ssot-tb-cocotb" }
+    - { name: sim,  command: "python3 .cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py shift_reg_cx1 --root . --profile dv --execute --from-stage sim --until goal-audit" }

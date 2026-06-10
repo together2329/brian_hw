@@ -1,0 +1,273 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "fifo_sync_cx1/tb/cocotb/test_fifo_sync_cx1.py",
+    "fifo_sync_cx1/tb/cocotb/test_runner.py",
+    "fifo_sync_cx1/tb/cocotb/tb_manifest.json",
+    "fifo_sync_cx1/tb/cocotb/tb_generation.json",
+    "fifo_sync_cx1/tb/tb_todo_plan.json",
+    "fifo_sync_cx1/tb/tb_todo_tracker.json",
+    "fifo_sync_cx1/tb/tb_traceability.json",
+    "fifo_sync_cx1/sim/scoreboard_events.jsonl after /sim",
+    "fifo_sync_cx1/cov/coverage.json after /sim"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": true,
+    "approval_state": "approved",
+    "open_required_todos": 0,
+    "status": "pass"
+  },
+  "generated_at": "2026-06-10T14:58:49Z",
+  "headline": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+  "human_review_needed": [],
+  "ip": "fifo_sync_cx1",
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/check_contract_bundle.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "contract_authority_gate",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_contract_bundle] PASS fifo_sync_cx1: mode=locked requirements=1 obligations=5 contract_refs=5 structural_contracts=1 behavioral_contracts=5 evidence=11 closed_contracts=11"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "derive_tb_todos",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[derive_tb_todos] fifo_sync_cx1: tasks=66 blockers=0 authoring_open=57 validation_open=66 gate=planned"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/emit_goal_scoreboard_cocotb.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent",
+      "label": "emit_goal_scoreboard_cocotb",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[emit_goal_scoreboard_cocotb] wrote 8 Python files for fifo_sync_cx1\n[emit_goal_scoreboard_cocotb] goals=14 rtl_sources=1\n[emit_goal_scoreboard_cocotb] runner=fifo_sync_cx1/tb/cocotb/test_runner.py"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py fifo_sync_cx1",
+      "label": "check_pyuvm_structure",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[check_scoreboard_events] PASS: goals=14 required=14 scoreboard_rows=0 goals_with_rows=0\n[check_pyuvm_structure] PASS: layered pyuvm/cocotb structure exists for fifo_sync_cx1"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/runtime/equivalence_scoreboard.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --self-check",
+      "label": "equivalence_scoreboard_self_check",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "{\n  \"checked\": 14,\n  \"contract_gaps\": [],\n  \"events_path\": \"/Users/brian/Desktop/Project/brian_hw/common_ai_agent/fifo_sync_cx1/sim/scoreboard_events.jsonl\",\n  \"generated_at\": \"2026-06-10T14:58:48Z\",\n  \"goals\": 14,\n  \"ip\": \"fifo_sync_cx1\",\n  \"model_errors\": 0,\n  \"passed\": true,\n  \"required_goals\": 14,\n  \"sample\": [\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 1,\n          \"head_data\": 0,\n          \"wr_ptr\": 1\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 2,\n          \"head_data\": 0,\n          \"wr_ptr\": 2\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 3,\n          \"head_data\": 0,\n          \"wr_ptr\": 3\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_MODULE_FIFO_SYNC_CX1\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 4,\n          \"head_data\": 0,\n          \"wr_ptr\": 4\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_PROTOCOL_RD_EN_EMPTY\",\n      \"kind\": \"FM_READ\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"rd_data\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 3,\n          \"rd_ptr\": 1\n        },\n        \"transaction_id\": \"FM_READ\",\n        \"transaction_name\": \"read_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_PROTOCOL_RESET_CLEAR\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 4,\n          \"head_data\": 0,\n          \"wr_ptr\": 5\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_PROTOCOL_WR_EN_FULL\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 5,\n          \"head_data\": 0,\n          \"wr_ptr\": 6\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    },\n    {\n      \"goal_id\": \"EQ_SCENARIO_SC01\",\n      \"kind\": \"FM_WRITE\",\n      \"model_error\": \"\",\n      \"model_result\": {\n        \"empty\": 0,\n        \"full\": 0,\n        \"resp\": 0,\n        \"sample_accepted\": 1,\n        \"state_updates\": {\n          \"count\": 6,\n          \"head_data\": 0,\n          \"wr_ptr\": 7\n        },\n        \"transaction_id\": \"FM_WRITE\",\n        \"transaction_name\": \"write_behavior\"\n      }\n    }\n  ],\n  \"ssot_questions\": 0,\n  \"unsupported_transactions\": 0\n}"
+    },
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/tb-gen/scripts/derive_tb_todos.py fifo_sync_cx1 --root /Users/brian/Desktop/Project/brian_hw/common_ai_agent --audit-tb",
+      "label": "audit_tb_todos",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[derive_tb_todos] fifo_sync_cx1: tasks=66 blockers=0 authoring_open=0 validation_open=9 gate=pass"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "ssot-tb-cocotb",
+  "status": "pass",
+  "summary": {},
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_FIFO_FLAGS_001 for the tb stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-tb 1/4] full asserts when count reaches 8; empty asserts when count is 0.",
+      "criteria": "full asserts at depth 8; empty asserts at depth 0\nfull/empty flags match count==8 and count==0 per BC_FIFO_FLAGS\nports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths\ncheck_evidence_contract.py confirms OBL_FIFO_FLAGS_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_FIFO_FLAGS_001 (tb stage; granularity=count).\nRequirement(s): REQ_FIFO_FUNC_001\nContract(s): C_FIFO_FLAGS\nStructural contract(s): SC_FIFO_PORTS\nBehavioral contract(s): BC_FIFO_FLAGS\nSSOT anchor: function_model.transactions.FM_WRITE\nfull asserts when count reaches 8; empty asserts when count is 0.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_FIFO_FLAGS_001",
+      "owner_workflow": "tb-gen",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/fifo_sync_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_FIFO_FUNC_001",
+        "OBL_FIFO_FLAGS_001",
+        "C_FIFO_FLAGS",
+        "SC_FIFO_PORTS",
+        "BC_FIFO_FLAGS",
+        "function_model.transactions.FM_WRITE"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/fifo_sync_cx1.sv",
+          "contract_authority_gate",
+          "derive_tb_todos",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check",
+          "audit_tb_todos"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_FIFO_READ_001 for the tb stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-tb 2/4] When rd_en is high and empty is low, rd_data presents the head entry and count…",
+      "criteria": "rd_data matches written data; count decrements correctly\nread behavior matches BC_FIFO_READ\nports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths\ncheck_evidence_contract.py confirms OBL_FIFO_READ_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_FIFO_READ_001 (tb stage; granularity=temporal).\nRequirement(s): REQ_FIFO_FUNC_001\nContract(s): C_FIFO_READ\nStructural contract(s): SC_FIFO_PORTS\nBehavioral contract(s): BC_FIFO_READ\nSSOT anchor: function_model.transactions.FM_READ\nWhen rd_en is high and empty is low, rd_data presents the head entry and count decrements on the rising clock edge.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_FIFO_READ_001",
+      "owner_workflow": "tb-gen",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/fifo_sync_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_FIFO_FUNC_001",
+        "OBL_FIFO_READ_001",
+        "C_FIFO_READ",
+        "SC_FIFO_PORTS",
+        "BC_FIFO_READ",
+        "function_model.transactions.FM_READ"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/fifo_sync_cx1.sv",
+          "contract_authority_gate",
+          "derive_tb_todos",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check",
+          "audit_tb_todos"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_FIFO_RESET_001 for the tb stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-tb 3/4] All FIFO state clears to reset values synchronously when rst_n is low.",
+      "criteria": "empty==1 and full==0 after reset\nreset behavior matches BC_FIFO_RESET\nports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths\ncheck_evidence_contract.py confirms OBL_FIFO_RESET_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_FIFO_RESET_001 (tb stage; granularity=temporal).\nRequirement(s): REQ_FIFO_FUNC_001\nContract(s): C_FIFO_RESET\nStructural contract(s): SC_FIFO_PORTS\nBehavioral contract(s): BC_FIFO_RESET\nSSOT anchor: cycle_model\nAll FIFO state clears to reset values synchronously when rst_n is low.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_FIFO_RESET_001",
+      "owner_workflow": "tb-gen",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/fifo_sync_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_FIFO_FUNC_001",
+        "OBL_FIFO_RESET_001",
+        "C_FIFO_RESET",
+        "SC_FIFO_PORTS",
+        "BC_FIFO_RESET",
+        "cycle_model"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/fifo_sync_cx1.sv",
+          "contract_authority_gate",
+          "derive_tb_todos",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check",
+          "audit_tb_todos"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_FIFO_WRITE_001 for the tb stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-tb 4/4] When wr_en is high and full is low, wr_data is stored and count increments on t…",
+      "criteria": "count increments correctly on each accepted write\nwrite behavior matches BC_FIFO_WRITE\nports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths\ncheck_evidence_contract.py confirms OBL_FIFO_WRITE_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_FIFO_WRITE_001 (tb stage; granularity=temporal).\nRequirement(s): REQ_FIFO_FUNC_001\nContract(s): C_FIFO_WRITE\nStructural contract(s): SC_FIFO_PORTS\nBehavioral contract(s): BC_FIFO_WRITE\nSSOT anchor: function_model.transactions.FM_WRITE\nWhen wr_en is high and full is low, wr_data is stored and count increments on the rising clock edge.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_FIFO_WRITE_001",
+      "owner_workflow": "tb-gen",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/fifo_sync_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_FIFO_FUNC_001",
+        "OBL_FIFO_WRITE_001",
+        "C_FIFO_WRITE",
+        "SC_FIFO_PORTS",
+        "BC_FIFO_WRITE",
+        "function_model.transactions.FM_WRITE"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/fifo_sync_cx1.sv",
+          "contract_authority_gate",
+          "derive_tb_todos",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check",
+          "audit_tb_todos"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic tb gate",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "command": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.py tb \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-tb gate] Verify every tb obligation is closed",
+      "criteria": "stage_gate.py tb exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 4 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "GATE-TB",
+      "on_reject": 1,
+      "owner_workflow": "tb-gen",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "stage_gate.py tb returncode 0"
+      ],
+      "source_refs": [],
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.py tb returncode 0",
+          "contract_authority_gate",
+          "derive_tb_todos",
+          "emit_goal_scoreboard_cocotb",
+          "check_pyuvm_structure",
+          "equivalence_scoreboard_self_check",
+          "audit_tb_todos"
+        ],
+        "reason": "[ssot-tb-cocotb] PASS - generated goal-driven pyuvm/cocotb scoreboard",
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": true,
+    "open_required_tasks": 0,
+    "status_counts": {
+      "open": 0,
+      "pass": 5
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "tb-gen"
+}

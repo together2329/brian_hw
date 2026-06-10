@@ -1,0 +1,56 @@
+{
+  "approved_at_utc": "2026-06-10T14:36:29Z",
+  "approved_by": "cursor-agent",
+  "bundle_sha256": "14095fe151c84f48ab61ad9db2122297191310d4137c7effe1eb20094b9582bb",
+  "decision_note": "",
+  "draft": "fifo_sync_cx1/req",
+  "draft_sha256": "ce009e8632d2b791be02dffcefe4bda72d3d817fb46b18b91c4bd659e907a29b",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 5887,
+      "path": "fifo_sync_cx1/req/behavioral_contracts.json",
+      "sha256": "c11a7ef2d41c3d83a66a558d992a93c54857648fee56a4b03b10f1122d74d09d"
+    },
+    "req/contract_refs.json": {
+      "bytes": 2382,
+      "path": "fifo_sync_cx1/req/contract_refs.json",
+      "sha256": "401b41356c152d3d50871ec4f0e62a3eb81832ce0c67271046fe2cfe22704119"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 2910,
+      "path": "fifo_sync_cx1/req/evidence_plan.json",
+      "sha256": "65dbfa1a52d5ab7776a34b7b121627915bcd4b4a91da2676af3070637c91461b"
+    },
+    "req/locked_truth.md": {
+      "bytes": 18532,
+      "path": "fifo_sync_cx1/req/locked_truth.md",
+      "sha256": "f3688d44b4c892608645d8bb2dddf1ee313f3e20a247ac7c1b6f8f2278edca6b"
+    },
+    "req/obligations.json": {
+      "bytes": 3196,
+      "path": "fifo_sync_cx1/req/obligations.json",
+      "sha256": "a2851529571c34ed538c15892bab9ce2a260dcacabd2054a3f04c009e2cf4690"
+    },
+    "req/requirements_index.json": {
+      "bytes": 800,
+      "path": "fifo_sync_cx1/req/requirements_index.json",
+      "sha256": "fa90a860f61b26e1119f6bb3a6e167309367b80f8e48970258e88d8e8a102e70"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 2401,
+      "path": "fifo_sync_cx1/req/structural_contracts.json",
+      "sha256": "0f185db807ce0e1ce5d5e8209974a5a5f29d7ce77982668f0b28693dfd9adb41"
+    }
+  },
+  "ip": "fifo_sync_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_FIFO_FUNC_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "status": "requirements_locked",
+  "type": "locked_truth_approval_manifest"
+}

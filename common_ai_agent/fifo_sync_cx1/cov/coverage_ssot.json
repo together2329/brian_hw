@@ -1,0 +1,954 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml",
+  "module": "fifo_sync_cx1",
+  "dv_plan": {
+    "scenarios": 4,
+    "scoreboard_checks": 4,
+    "coverage_goals": {}
+  },
+  "functional": {
+    "hit": 13,
+    "total": 16,
+    "pct": 81.25
+  },
+  "function_coverage": {
+    "hit": 7,
+    "total": 9,
+    "pct": 77.78,
+    "target_pct": null,
+    "meets_target": true,
+    "bins": {
+      "SC01_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC01_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC01",
+          "description": "reset contract"
+        },
+        "class": "scenario",
+        "description": "reset contract",
+        "coverage_domain": "function"
+      },
+      "SC02_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC02",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC02",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC02_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC02",
+          "description": "single write then read"
+        },
+        "class": "scenario",
+        "description": "single write then read",
+        "coverage_domain": "function"
+      },
+      "SC03_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC03",
+        "scenario_id": "SC_005_EQ_SCENARIO_SC03",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC03_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC03",
+          "description": "fill to full"
+        },
+        "class": "scenario",
+        "description": "fill to full",
+        "coverage_domain": "function"
+      },
+      "SC04_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC04",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC04",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC04_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC04",
+          "description": "drain to empty"
+        },
+        "class": "scenario",
+        "description": "drain to empty",
+        "coverage_domain": "function"
+      },
+      "function_write_behavior": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_WRITE",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_write_behavior",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[0]",
+          "source_ref": "function_model.transactions.fm_write",
+          "description": "FM_WRITE write_behavior"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_WRITE write_behavior",
+        "source_ref": "function_model.transactions.fm_write"
+      },
+      "function_read_behavior": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "function_read_behavior",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[1]",
+          "source_ref": "function_model.transactions.fm_read",
+          "description": "FM_READ read_behavior"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_READ read_behavior",
+        "source_ref": "function_model.transactions.fm_read"
+      },
+      "fcov_fm_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+        "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "fcov_write": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+        "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "ccov_pipeline_order": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_MODULE_FIFO_SYNC_CX1",
+        "scenario_id": "SC_011_EQ_MODULE_FIFO_SYNC_CX1",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 6,
+    "total": 7,
+    "pct": 85.71,
+    "target_pct": null,
+    "meets_target": true,
+    "bins": {
+      "cycle_wr_en_full": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+        "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_wr_en_full",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "{'name': 'wr_en_full', 'signal': 'wr_en', 'condition': 'wr_data sampled when wr_en is high and full is low.', 'behavioral_contract_refs': ['BC_FIFO_WRITE']}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'name': 'wr_en_full', 'signal': 'wr_en', 'condition': 'wr_data sampled when wr_en is high and full is low.', 'behavioral_contract_refs': ['BC_FIFO_WRITE']}",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_rd_en_empty": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+        "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_rd_en_empty",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "{'name': 'rd_en_empty', 'signal': 'rd_en', 'condition': 'rd_ptr advanced when rd_en is high and empty is low.', 'behavioral_contract_refs': ['BC_FIFO_READ']}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'name': 'rd_en_empty', 'signal': 'rd_en', 'condition': 'rd_ptr advanced when rd_en is high and empty is low.', 'behavioral_contract_refs': ['BC_FIFO_READ']}",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_reset_clear": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+        "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_reset_clear",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[2]",
+          "source_ref": "cycle_model.handshake_rules[2]",
+          "description": "{'name': 'reset_clear', 'signal': 'rst_n', 'condition': 'rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.', 'behavioral_contract_refs': ['BC_FIFO_RESET']}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'name': 'reset_clear', 'signal': 'rst_n', 'condition': 'rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.', 'behavioral_contract_refs': ['BC_FIFO_RESET']}",
+        "source_ref": "cycle_model.handshake_rules[2]"
+      },
+      "cycle_pipeline_write_wr_en": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN",
+        "scenario_id": "SC_012_EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_write_wr_en",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "Accept wr_data when wr_en and not full."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Accept wr_data when wr_en and not full.",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_read_rd_en": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN",
+        "scenario_id": "SC_013_EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_read_rd_en",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "Advance rd_ptr when rd_en and not empty."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Advance rd_ptr when rd_en and not empty.",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_pipeline_count_full_empty": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+        "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+        "rtl_observed_keys": [
+          "count",
+          "empty",
+          "full",
+          "rd_data",
+          "rd_ptr",
+          "wr_ptr"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_count_full_empty",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[2]",
+          "source_ref": "cycle_model.pipeline[2]",
+          "description": "Update count, full and empty flags."
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "Update count, full and empty flags.",
+        "source_ref": "cycle_model.pipeline[2]"
+      },
+      "cycle_ordering_0": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "Simultaneous write and read (bypass) is allowed when !full && !empty."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "Simultaneous write and read (bypass) is allowed when !full && !empty.",
+        "source_ref": "cycle_model.ordering[0]"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": null,
+      "hit": 7,
+      "total": 9,
+      "pct": 77.78,
+      "meets_target": true
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": null,
+      "hit": 6,
+      "total": 7,
+      "pct": 85.71,
+      "meets_target": true
+    }
+  },
+  "planned_bins": [
+    "SC01_executed",
+    "SC02_executed",
+    "SC03_executed",
+    "SC04_executed",
+    "function_write_behavior",
+    "function_read_behavior",
+    "cycle_wr_en_full",
+    "cycle_rd_en_empty",
+    "cycle_reset_clear",
+    "cycle_pipeline_write_wr_en",
+    "cycle_pipeline_read_rd_en",
+    "cycle_pipeline_count_full_empty",
+    "cycle_ordering_0"
+  ],
+  "functional_bins": {
+    "SC01_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC01_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC01",
+        "description": "reset contract"
+      },
+      "class": "scenario",
+      "description": "reset contract",
+      "coverage_domain": "function"
+    },
+    "SC02_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC02",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC02",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC02_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC02",
+        "description": "single write then read"
+      },
+      "class": "scenario",
+      "description": "single write then read",
+      "coverage_domain": "function"
+    },
+    "SC03_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC03",
+      "scenario_id": "SC_005_EQ_SCENARIO_SC03",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC03_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC03",
+        "description": "fill to full"
+      },
+      "class": "scenario",
+      "description": "fill to full",
+      "coverage_domain": "function"
+    },
+    "SC04_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC04",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC04",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC04_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC04",
+        "description": "drain to empty"
+      },
+      "class": "scenario",
+      "description": "drain to empty",
+      "coverage_domain": "function"
+    },
+    "function_write_behavior": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_write_behavior",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[0]",
+        "source_ref": "function_model.transactions.fm_write",
+        "description": "FM_WRITE write_behavior"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_WRITE write_behavior",
+      "source_ref": "function_model.transactions.fm_write"
+    },
+    "function_read_behavior": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "function_read_behavior",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[1]",
+        "source_ref": "function_model.transactions.fm_read",
+        "description": "FM_READ read_behavior"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_READ read_behavior",
+      "source_ref": "function_model.transactions.fm_read"
+    },
+    "cycle_wr_en_full": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+      "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_wr_en_full",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "{'name': 'wr_en_full', 'signal': 'wr_en', 'condition': 'wr_data sampled when wr_en is high and full is low.', 'behavioral_contract_refs': ['BC_FIFO_WRITE']}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'name': 'wr_en_full', 'signal': 'wr_en', 'condition': 'wr_data sampled when wr_en is high and full is low.', 'behavioral_contract_refs': ['BC_FIFO_WRITE']}",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_rd_en_empty": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+      "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_rd_en_empty",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "{'name': 'rd_en_empty', 'signal': 'rd_en', 'condition': 'rd_ptr advanced when rd_en is high and empty is low.', 'behavioral_contract_refs': ['BC_FIFO_READ']}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'name': 'rd_en_empty', 'signal': 'rd_en', 'condition': 'rd_ptr advanced when rd_en is high and empty is low.', 'behavioral_contract_refs': ['BC_FIFO_READ']}",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_reset_clear": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+      "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_reset_clear",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[2]",
+        "source_ref": "cycle_model.handshake_rules[2]",
+        "description": "{'name': 'reset_clear', 'signal': 'rst_n', 'condition': 'rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.', 'behavioral_contract_refs': ['BC_FIFO_RESET']}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'name': 'reset_clear', 'signal': 'rst_n', 'condition': 'rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.', 'behavioral_contract_refs': ['BC_FIFO_RESET']}",
+      "source_ref": "cycle_model.handshake_rules[2]"
+    },
+    "cycle_pipeline_write_wr_en": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN",
+      "scenario_id": "SC_012_EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_write_wr_en",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "Accept wr_data when wr_en and not full."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Accept wr_data when wr_en and not full.",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_read_rd_en": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN",
+      "scenario_id": "SC_013_EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_read_rd_en",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "Advance rd_ptr when rd_en and not empty."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Advance rd_ptr when rd_en and not empty.",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_pipeline_count_full_empty": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_count_full_empty",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[2]",
+        "source_ref": "cycle_model.pipeline[2]",
+        "description": "Update count, full and empty flags."
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "Update count, full and empty flags.",
+      "source_ref": "cycle_model.pipeline[2]"
+    },
+    "cycle_ordering_0": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "Simultaneous write and read (bypass) is allowed when !full && !empty."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "Simultaneous write and read (bypass) is allowed when !full && !empty.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "fcov_fm_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "fcov_write": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "ccov_pipeline_order": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_MODULE_FIFO_SYNC_CX1",
+      "scenario_id": "SC_011_EQ_MODULE_FIFO_SYNC_CX1",
+      "rtl_observed_keys": [
+        "count",
+        "empty",
+        "full",
+        "rd_data",
+        "rd_ptr",
+        "wr_ptr"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 10,
+    "total": 10,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "function_write_behavior": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_FM_WRITE",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_WRITE"
+    },
+    "SC02_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC02",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC02"
+    },
+    "SC03_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC03",
+      "scenario_id": "SC_005_EQ_SCENARIO_SC03"
+    },
+    "SC04_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC04",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC04"
+    },
+    "cycle_wr_en_full": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+      "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL"
+    },
+    "cycle_rd_en_empty": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+      "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL"
+    },
+    "cycle_reset_clear": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_WR_EN_FULL",
+      "scenario_id": "SC_007_EQ_PROTOCOL_WR_EN_FULL"
+    },
+    "cycle_pipeline_write_wr_en": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN",
+      "scenario_id": "SC_012_EQ_COVERAGE_CYCLE_PIPELINE_WRITE_WR_EN"
+    },
+    "cycle_pipeline_read_rd_en": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN",
+      "scenario_id": "SC_013_EQ_COVERAGE_CYCLE_PIPELINE_READ_RD_EN"
+    },
+    "cycle_pipeline_count_full_empty": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY",
+      "scenario_id": "SC_014_EQ_COVERAGE_CYCLE_PIPELINE_COUNT_FULL_EMPTY"
+    }
+  },
+  "rtl_observed": {
+    "status": "blocked",
+    "scoreboard_events": 14,
+    "scoreboard_passed_events_with_refs": 9,
+    "goal_refs": [
+      "SC01_executed",
+      "SC02_executed",
+      "SC03_executed",
+      "SC04_executed",
+      "cycle_ordering_0",
+      "cycle_pipeline_count_full_empty",
+      "cycle_pipeline_read_rd_en",
+      "cycle_pipeline_write_wr_en",
+      "cycle_rd_en_empty",
+      "cycle_reset_clear",
+      "cycle_wr_en_full",
+      "function_read_behavior",
+      "function_write_behavior"
+    ],
+    "missing_bins": [
+      "SC01_executed",
+      "cycle_ordering_0",
+      "function_read_behavior"
+    ],
+    "invalid_rows": []
+  },
+  "owner_routes": {
+    "status": "absent",
+    "source": "",
+    "routes_by_bin": {},
+    "routed_missing_bins": [],
+    "unrouted_missing_bins": [
+      "SC01_executed",
+      "cycle_ordering_0",
+      "function_read_behavior"
+    ],
+    "invalid_routes": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "meets_target": true,
+    "source": "not automatically measured by generic LCOV parser"
+  },
+  "files": {},
+  "limitations": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC01_executed, cycle_ordering_0, function_read_behavior"
+  },
+  "owner_routed_limitations": {},
+  "waived_limitations": {},
+  "static_universe_not_instrumented": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC01_executed, cycle_ordering_0, function_read_behavior"
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

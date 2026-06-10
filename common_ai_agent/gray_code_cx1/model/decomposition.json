@@ -1,0 +1,371 @@
+{
+  "schema_version": 1,
+  "type": "fl_model_decomposition",
+  "ip": "gray_code_cx1",
+  "source": "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml",
+  "units": [
+    {
+      "name": "gray_code_cx1",
+      "kind": "rtl_module",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "function_model",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "rtl_candidates": [
+        "gray_code_cx1"
+      ],
+      "rtl_file": "rtl/gray_code_cx1.sv",
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.valid_bin_gray",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.drive_gray_bin",
+        "cycle_model.pipeline.sample_bin_gray",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "features",
+        "features.bin_to_gray",
+        "features.gray_to_bin",
+        "features.lint_clean",
+        "features.reset_behavior",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables",
+        "function_model.transactions.FM_PRIMARY",
+        "function_model.transactions.fm_primary",
+        "function_model.transactions.fm_primary.output_rules.bin_out",
+        "function_model.transactions.fm_primary.output_rules.gray_out",
+        "function_model.transactions.fm_primary.outputs.output_0",
+        "function_model.transactions.fm_primary.outputs.output_1",
+        "function_model.transactions.fm_primary.preconditions.precondition_0",
+        "function_model.transactions.fm_primary.preconditions.precondition_1",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.transactions.fm_primary",
+        "function_model.transactions.fm_primary.output_rules.bin_out",
+        "function_model.transactions.fm_primary.output_rules.gray_out",
+        "function_model.transactions.fm_primary.outputs.output_0",
+        "function_model.transactions.fm_primary.outputs.output_1",
+        "function_model.transactions.fm_primary.preconditions.precondition_0",
+        "function_model.transactions.fm_primary.preconditions.precondition_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.valid_bin_gray",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.drive_gray_bin",
+        "cycle_model.pipeline.sample_bin_gray",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.bin_to_gray",
+        "features.gray_to_bin",
+        "features.lint_clean",
+        "features.reset_behavior"
+      ],
+      "verification_impact": [
+        "module-level FL-vs-RTL scoreboard",
+        "module functional coverage"
+      ],
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    },
+    {
+      "name": "gray_code_cx1_protocol_model",
+      "kind": "protocol",
+      "source_sections": [
+        "io_list",
+        "cycle_model"
+      ],
+      "rtl_candidates": [
+        "gray_code_cx1_axi_slv",
+        "gray_code_cx1_protocol"
+      ],
+      "verification_impact": [
+        "driver",
+        "monitor",
+        "protocol coverage"
+      ]
+    },
+    {
+      "name": "gray_code_cx1_datapath_model",
+      "kind": "datapath",
+      "source_sections": [
+        "features",
+        "dataflow",
+        "function_model"
+      ],
+      "rtl_candidates": [
+        "gray_code_cx1_core",
+        "gray_code_cx1_datapath"
+      ],
+      "verification_impact": [
+        "functional scoreboard",
+        "transaction coverage"
+      ]
+    }
+  ],
+  "module_contracts": [
+    {
+      "name": "gray_code_cx1",
+      "kind": "rtl_module",
+      "rtl_module": "gray_code_cx1",
+      "rtl_file": "rtl/gray_code_cx1.sv",
+      "source_sections": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "features",
+        "function_model",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "ssot_refs": [
+        "cycle_model",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.valid_bin_gray",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline",
+        "cycle_model.pipeline.drive_gray_bin",
+        "cycle_model.pipeline.sample_bin_gray",
+        "cycle_model.reset",
+        "dataflow",
+        "dataflow.sequence",
+        "decomposition",
+        "features",
+        "features.bin_to_gray",
+        "features.gray_to_bin",
+        "features.lint_clean",
+        "features.reset_behavior",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.state_variables",
+        "function_model.transactions.FM_PRIMARY",
+        "function_model.transactions.fm_primary",
+        "function_model.transactions.fm_primary.output_rules.bin_out",
+        "function_model.transactions.fm_primary.output_rules.gray_out",
+        "function_model.transactions.fm_primary.outputs.output_0",
+        "function_model.transactions.fm_primary.outputs.output_1",
+        "function_model.transactions.fm_primary.preconditions.precondition_0",
+        "function_model.transactions.fm_primary.preconditions.precondition_1",
+        "io_list",
+        "rtl_contract",
+        "test_requirements"
+      ],
+      "function_model_refs": [
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.transactions.fm_primary",
+        "function_model.transactions.fm_primary.output_rules.bin_out",
+        "function_model.transactions.fm_primary.output_rules.gray_out",
+        "function_model.transactions.fm_primary.outputs.output_0",
+        "function_model.transactions.fm_primary.outputs.output_1",
+        "function_model.transactions.fm_primary.preconditions.precondition_0",
+        "function_model.transactions.fm_primary.preconditions.precondition_1"
+      ],
+      "cycle_model_refs": [
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.reset_clear",
+        "cycle_model.handshake_rules.valid_bin_gray",
+        "cycle_model.latency",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.pipeline.drive_gray_bin",
+        "cycle_model.pipeline.sample_bin_gray",
+        "cycle_model.reset"
+      ],
+      "structural_refs": [
+        "features.bin_to_gray",
+        "features.gray_to_bin",
+        "features.lint_clean",
+        "features.reset_behavior"
+      ],
+      "owner_matches": [
+        {
+          "ref": "function_model.transactions.fm_primary",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_primary.preconditions.precondition_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_primary.preconditions.precondition_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_primary.outputs.output_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_primary.outputs.output_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_primary.output_rules.gray_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.transactions.fm_primary.output_rules.bin_out",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_0",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "function_model.invariants.invariant_1",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.clock",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.reset",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.latency",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.valid_bin_gray",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.handshake_rules.reset_clear",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.sample_bin_gray",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.pipeline.drive_gray_bin",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "cycle_model.ordering.ordering_0",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "structural_owner_matches": [
+        {
+          "ref": "features.bin_to_gray",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.gray_to_bin",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.reset_behavior",
+          "matched_ref": "single_owner"
+        },
+        {
+          "ref": "features.lint_clean",
+          "matched_ref": "single_owner"
+        }
+      ],
+      "verification_scope": "module",
+      "requires_module_equivalence": true,
+      "blocked": false,
+      "blocker": ""
+    }
+  ],
+  "orphan_function_cycle_refs": [],
+  "function_cycle_ref_count": 17,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "gray_code_cx1/req/",
+      "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml",
+      "gray_code_cx1/model/functional_model.py",
+      "gray_code_cx1/cov/fcov_plan.json",
+      "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml#io_list",
+      "gray_code_cx1/yaml/gray_code_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "gray_code_cx1/rtl/",
+      "gray_code_cx1/tb/",
+      "gray_code_cx1/sim/",
+      "gray_code_cx1/vectors/",
+      "gray_code_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "drives": [
+    "rtl_module_plan",
+    "tb_environment_plan",
+    "functional_coverage_plan"
+  ],
+  "complete": true
+}

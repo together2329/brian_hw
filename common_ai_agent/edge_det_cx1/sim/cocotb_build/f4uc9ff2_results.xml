@@ -1,0 +1,6 @@
+<testsuites name="results">
+  <testsuite name="all" package="all">
+    <property name="random_seed" value="1781101941" />
+    <testcase name="fl_rtl_equivalence_goals" classname="test_edge_det_cx1" file="/Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_det_cx1/tb/cocotb/test_edge_det_cx1.py" lineno="1284" time="0.3347928524017334" sim_time_ns="2160.001" ratio_time="6451.753627667401" />
+  </testsuite>
+</testsuites>

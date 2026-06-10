@@ -1,0 +1,116 @@
+{
+  "contracts": [
+    {
+      "clock_domains": [
+        {
+          "clock_signal": "clk",
+          "id": "main"
+        }
+      ],
+      "id": "SC_GC_PORTS",
+      "interfaces": [
+        {
+          "clock_domain": "main",
+          "id": "converter_io",
+          "signals": [
+            "bin_in",
+            "bin_out",
+            "gray_in",
+            "gray_out",
+            "mode",
+            "valid"
+          ]
+        }
+      ],
+      "obligations": [
+        "OBL_GC_DECODE_001",
+        "OBL_GC_ENCODE_001",
+        "OBL_GC_LINT_001",
+        "OBL_GC_RESET_001"
+      ],
+      "reset_domains": [
+        {
+          "clock_domain": "main",
+          "id": "sync_rst",
+          "reset_signal": "rst_n"
+        }
+      ],
+      "signals": [
+        {
+          "dir": "input",
+          "name": "clk",
+          "timing": {
+            "kind": "clock"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "rst_n",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "valid",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "mode",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "bin_in",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 4
+        },
+        {
+          "dir": "input",
+          "name": "gray_in",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 4
+        },
+        {
+          "dir": "output",
+          "name": "gray_out",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 4
+        },
+        {
+          "dir": "output",
+          "name": "bin_out",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 4
+        }
+      ]
+    }
+  ],
+  "ip": "gray_code_cx1",
+  "schema_version": 1,
+  "type": "structural_contracts"
+}

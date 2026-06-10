@@ -1,0 +1,232 @@
+{
+  "contracts": [
+    {
+      "cycle_model_waiver": "flags are combinational state functions (count==8, count==0); no additional cycle model beyond write/read BCs",
+      "id": "BC_FIFO_FLAGS",
+      "obligations": [
+        "OBL_FIFO_FLAGS_001"
+      ],
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl",
+          "timing": "combinational decode of registered count"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "full asserts at count==8; empty asserts at count==0",
+          "stage": "sim"
+        }
+      ],
+      "timing": "full and empty update within the same clock cycle as count; combinational decode of registered count",
+      "transactions": [
+        {
+          "id": "FM_FLAGS",
+          "outputs": [
+            {
+              "expr": "count == 8",
+              "name": "full"
+            },
+            {
+              "expr": "count == 0",
+              "name": "empty"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1"
+          ],
+          "state_updates": []
+        }
+      ]
+    },
+    {
+      "cycle_model_waiver": "lint-only obligation; no cycle model required \u2014 latch-free structure is a static synthesis property",
+      "id": "BC_FIFO_LINT",
+      "invariants": [
+        "No inferred latches in fifo_sync_cx1 RTL",
+        "All state (count, wr_ptr, rd_ptr, fifo_memory) is registered"
+      ],
+      "obligations": [
+        "OBL_FIFO_LINT_001"
+      ],
+      "ssot_section": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "pass_condition": "RTL compiles and maps declared ports",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "lint/dut_lint.json",
+          "pass_condition": "no latch findings",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "id": "BC_FIFO_READ",
+      "latency": {
+        "read_update": "1 clock cycle: count and rd_ptr update one rising clk after rd_en sampled"
+      },
+      "obligations": [
+        "OBL_FIFO_READ_001"
+      ],
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_fifo_sync_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "rd_data matches written data; count decrements",
+          "stage": "sim"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "FM_READ",
+          "outputs": [
+            {
+              "expr": "head_data",
+              "name": "rd_data"
+            },
+            {
+              "expr": "(count - 1) == 0",
+              "name": "empty"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1",
+            "rd_en == 1",
+            "empty == 0"
+          ],
+          "state_updates": [
+            {
+              "expr": "count - 1",
+              "name": "count"
+            },
+            {
+              "expr": "(rd_ptr + 1) % 8",
+              "name": "rd_ptr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BC_FIFO_RESET",
+      "obligations": [
+        "OBL_FIFO_RESET_001"
+      ],
+      "reset": "synchronous active-low; count/ptrs clear to 0 on rising clk when rst_n==0",
+      "ssot_section": "cycle_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "empty==1 and full==0 after reset",
+          "stage": "sim"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "TR_RESET",
+          "outputs": [
+            {
+              "expr": "0",
+              "name": "full"
+            },
+            {
+              "expr": "1",
+              "name": "empty"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 0"
+          ],
+          "state_updates": [
+            {
+              "expr": "0",
+              "name": "count"
+            },
+            {
+              "expr": "0",
+              "name": "wr_ptr"
+            },
+            {
+              "expr": "0",
+              "name": "rd_ptr"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BC_FIFO_WRITE",
+      "latency": {
+        "write_update": "1 clock cycle: count and wr_ptr update one rising clk after wr_en sampled"
+      },
+      "obligations": [
+        "OBL_FIFO_WRITE_001"
+      ],
+      "ssot_section": "function_model",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/fifo_sync_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_fifo_sync_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "pass_condition": "count increments on each accepted write",
+          "stage": "sim"
+        }
+      ],
+      "transactions": [
+        {
+          "id": "FM_WRITE",
+          "outputs": [
+            {
+              "expr": "(count + 1) == 8",
+              "name": "full"
+            },
+            {
+              "expr": "0",
+              "name": "empty"
+            }
+          ],
+          "preconditions": [
+            "rst_n == 1",
+            "wr_en == 1",
+            "full == 0"
+          ],
+          "state_updates": [
+            {
+              "expr": "count + 1",
+              "name": "count"
+            },
+            {
+              "expr": "(wr_ptr + 1) % 8",
+              "name": "wr_ptr"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "ip": "fifo_sync_cx1",
+  "schema_version": 1,
+  "type": "behavioral_contracts"
+}

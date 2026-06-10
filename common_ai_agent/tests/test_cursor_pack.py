@@ -279,7 +279,8 @@ def test_rocev_chain_references_existing_scripts():
                 CURSOR / "agents" / "req-gen.md",
                 CURSOR / "agents" / "rocev-chain.md"):
         text = doc.read_text(encoding="utf-8")
-        referenced |= set(re.findall(r"python3 (\S+\.py)", text))
+        refs = re.findall(r"python3 (\S+\.py)", text)
+        referenced |= {r for r in refs if "<" not in r}  # <ip> 플레이스홀더 제외
     assert referenced, "rocev-chain references no scripts"
     for rel in sorted(referenced):
         assert (REPO / rel).is_file(), f"rocev-chain references missing script: {rel}"

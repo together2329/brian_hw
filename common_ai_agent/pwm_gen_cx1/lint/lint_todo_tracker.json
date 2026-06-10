@@ -1,0 +1,63 @@
+{
+  "description": "Dynamic lint todo list from lint/lint_todo_plan.json",
+  "name": "pwm_gen_cx1-lint",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "lint/lint_todo_plan.json",
+  "source_task_count": 2,
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_PWM_LINT_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-lint 1/1] RTL must have no inferred latches and a single driver per register.",
+      "criteria": "no latch / no single-driver violations\nno latch / no single-driver violations per BC_PWM_LINT\ntop ports clk rst_n duty_in wr_en pwm_out present with correct widths\ncheck_evidence_contract.py confirms OBL_PWM_LINT_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_PWM_LINT_001 (lint stage; granularity=structural).\nRequirement(s): REQ_PWM_COUNTER_001, REQ_PWM_DUTY_001, REQ_PWM_OUT_001, REQ_PWM_RESET_001\nContract(s): C_PWM_LINT\nStructural contract(s): SC_PWM_PORTS\nBehavioral contract(s): BC_PWM_LINT\nSSOT anchor: coding_rules\nRTL must have no inferred latches and a single driver per register.",
+      "priority": "high",
+      "required_evidence": [
+        "lint/dut_lint.json",
+        "rtl/pwm_gen_cx1.sv"
+      ],
+      "source_id": "OBL_PWM_LINT_001",
+      "source_plan": "lint/lint_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "lint/dut_lint.json",
+          "rtl/pwm_gen_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic lint gate",
+      "approval_policy": "evidence_required",
+      "command": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.py lint \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-lint gate] Verify every lint obligation is closed",
+      "criteria": "stage_gate.py lint exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 1 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "on_reject": 1,
+      "priority": "high",
+      "required_evidence": [
+        "stage_gate.py lint returncode 0"
+      ],
+      "source_id": "GATE-LINT",
+      "source_plan": "lint/lint_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.py lint returncode 0",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "ui_grouping": {
+    "actual_count": 2,
+    "internal_plan": "lint/lint_todo_plan.json",
+    "source_task_count": 2,
+    "strategy": "vcm_obligation_contract_gate"
+  }
+}

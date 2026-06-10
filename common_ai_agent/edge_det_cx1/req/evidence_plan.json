@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "type": "evidence_plan",
+  "ip": "edge_det_cx1",
+  "evidence_plan": [
+    {
+      "evidence_id": "E_EDGE_SYNC",
+      "contract_ref": "C_EDGE_SYNC",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "sync2 observed 2 cycles after sig_in transition"
+    },
+    {
+      "evidence_id": "E_EDGE_RISE",
+      "contract_ref": "C_EDGE_RISE",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "rise_out=1 observed exactly 1 cycle after sync2 rises"
+    },
+    {
+      "evidence_id": "E_EDGE_FALL",
+      "contract_ref": "C_EDGE_FALL",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "fall_out=1 observed exactly 1 cycle after sync2 falls"
+    },
+    {
+      "evidence_id": "E_EDGE_RESET",
+      "contract_ref": "C_EDGE_RESET",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "rise_out=0 fall_out=0 during and immediately after reset"
+    },
+    {
+      "evidence_id": "E_EDGE_LINT",
+      "contract_ref": "C_EDGE_LINT",
+      "artifact": "lint/dut_lint.json",
+      "validator": "dut_lint_report.py",
+      "pass_condition": "no latch / single-driver findings"
+    },
+    {
+      "evidence_id": "E_EDGE_SC_PORTS",
+      "contract_ref": "SC_EDGE_PORTS",
+      "artifact": "rtl/edge_det_cx1.sv",
+      "validator": "iverilog compile check",
+      "pass_condition": "all 5 ports present with correct directions and widths"
+    },
+    {
+      "evidence_id": "E_EDGE_BC_SYNC",
+      "contract_ref": "BC_EDGE_SYNC",
+      "artifact": "sim/scoreboard_events.jsonl",
+      "validator": "check_sim_disk.py",
+      "pass_condition": "all FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched"
+    }
+  ]
+}

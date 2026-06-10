@@ -1,0 +1,244 @@
+{
+  "approval_policy": "evidence_required",
+  "artifacts": [
+    "edge_det_cx1/lint/dut_lint.json"
+  ],
+  "fallback_if_no_evidence": "human_review_needed",
+  "gate": {
+    "all_required_todos_pass": true,
+    "approval_state": "approved",
+    "open_required_todos": 0,
+    "status": "pass"
+  },
+  "generated_at": "2026-06-10T14:19:02Z",
+  "headline": "[lint] PASS",
+  "human_review_needed": [],
+  "ip": "edge_det_cx1",
+  "runs": [
+    {
+      "cmd": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/lint/scripts/dut_lint_report.py edge_det_cx1 --top edge_det_cx1",
+      "label": "dut_lint",
+      "returncode": 0,
+      "stderr": "",
+      "stdout": "[dut_lint_report] wrote /Users/brian/Desktop/Project/brian_hw/common_ai_agent/edge_det_cx1/lint/dut_lint.json\n[dut_lint_report] pyslang+verilator: errors=0 warnings=0 suppression_violations=0 style_violations=0 returncode=0\n[dut_lint_report]   pyslang: errors=0 warnings=0 returncode=0\n[dut_lint_report]   verilator: errors=0 warnings=0 returncode=0"
+    }
+  ],
+  "schema_version": "golden_todo_stage.v1",
+  "stage": "lint",
+  "status": "pass",
+  "summary": {},
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_EDGE_FALL_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 1/5] fall_out is combinationally driven as ~sync2 & prev_sync and pulses for exactly…",
+      "criteria": "fall_out=1 observed exactly 1 cycle after sync2 falls\nall FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched\nall 5 ports present with correct directions and widths\ncheck_evidence_contract.py confirms OBL_EDGE_FALL_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_EDGE_FALL_001 (lint stage; granularity=temporal).\nRequirement(s): REQ_EDGE_FALL_001\nContract(s): C_EDGE_FALL\nStructural contract(s): SC_EDGE_PORTS\nBehavioral contract(s): BC_EDGE_SYNC\nSSOT anchor: function_model.transactions.FM_FALL\nfall_out is combinationally driven as ~sync2 & prev_sync and pulses for exactly one cycle on each falling edge.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_EDGE_FALL_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/edge_det_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_EDGE_FALL_001",
+        "OBL_EDGE_FALL_001",
+        "C_EDGE_FALL",
+        "SC_EDGE_PORTS",
+        "BC_EDGE_SYNC",
+        "function_model.transactions.FM_FALL"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/edge_det_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_EDGE_LINT_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 2/5] RTL must have no inferred latches and a single driver per register.",
+      "criteria": "no latch / single-driver findings\nall FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched\nall 5 ports present with correct directions and widths\ncheck_evidence_contract.py confirms OBL_EDGE_LINT_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_EDGE_LINT_001 (lint stage; granularity=structural).\nRequirement(s): REQ_EDGE_SYNC_001, REQ_EDGE_RISE_001, REQ_EDGE_FALL_001, REQ_EDGE_RESET_001\nContract(s): C_EDGE_LINT\nStructural contract(s): SC_EDGE_PORTS\nBehavioral contract(s): BC_EDGE_SYNC\nSSOT anchor: coding_rules\nRTL must have no inferred latches and a single driver per register.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_EDGE_LINT_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "lint/dut_lint.json",
+        "sim/scoreboard_events.jsonl",
+        "rtl/edge_det_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_EDGE_SYNC_001",
+        "REQ_EDGE_RISE_001",
+        "REQ_EDGE_FALL_001",
+        "REQ_EDGE_RESET_001",
+        "OBL_EDGE_LINT_001",
+        "C_EDGE_LINT",
+        "SC_EDGE_PORTS",
+        "BC_EDGE_SYNC",
+        "coding_rules"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "lint/dut_lint.json",
+          "sim/scoreboard_events.jsonl",
+          "rtl/edge_det_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_EDGE_RESET_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 3/5] All FFs clear to 0 on rst_n=0; rise_out and fall_out are both 0 during reset.",
+      "criteria": "rise_out=0 fall_out=0 during and immediately after reset\nall FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched\nall 5 ports present with correct directions and widths\ncheck_evidence_contract.py confirms OBL_EDGE_RESET_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_EDGE_RESET_001 (lint stage; granularity=structural).\nRequirement(s): REQ_EDGE_RESET_001\nContract(s): C_EDGE_RESET\nStructural contract(s): SC_EDGE_PORTS\nBehavioral contract(s): BC_EDGE_SYNC\nSSOT anchor: cycle_model.reset\nAll FFs clear to 0 on rst_n=0; rise_out and fall_out are both 0 during reset.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_EDGE_RESET_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/edge_det_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_EDGE_RESET_001",
+        "OBL_EDGE_RESET_001",
+        "C_EDGE_RESET",
+        "SC_EDGE_PORTS",
+        "BC_EDGE_SYNC",
+        "cycle_model.reset"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/edge_det_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_EDGE_RISE_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 4/5] rise_out is combinationally driven as sync2 & ~prev_sync and pulses for exactly…",
+      "criteria": "rise_out=1 observed exactly 1 cycle after sync2 rises\nall FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched\nall 5 ports present with correct directions and widths\ncheck_evidence_contract.py confirms OBL_EDGE_RISE_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_EDGE_RISE_001 (lint stage; granularity=temporal).\nRequirement(s): REQ_EDGE_RISE_001\nContract(s): C_EDGE_RISE\nStructural contract(s): SC_EDGE_PORTS\nBehavioral contract(s): BC_EDGE_SYNC\nSSOT anchor: function_model.transactions.FM_RISE\nrise_out is combinationally driven as sync2 & ~prev_sync and pulses for exactly one cycle on each rising edge.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_EDGE_RISE_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/edge_det_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_EDGE_RISE_001",
+        "OBL_EDGE_RISE_001",
+        "C_EDGE_RISE",
+        "SC_EDGE_PORTS",
+        "BC_EDGE_SYNC",
+        "function_model.transactions.FM_RISE"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/edge_det_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_EDGE_SYNC_001 for the lint stage",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "content": "[gen-lint 5/5] Two flip-flop synchronizer stages capture sig_in into sync1 then sync2 on every…",
+      "criteria": "sync2 observed 2 cycles after sig_in transition\nall FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched\nall 5 ports present with correct directions and widths\ncheck_evidence_contract.py confirms OBL_EDGE_SYNC_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_EDGE_SYNC_001 (lint stage; granularity=temporal).\nRequirement(s): REQ_EDGE_SYNC_001\nContract(s): C_EDGE_SYNC\nStructural contract(s): SC_EDGE_PORTS\nBehavioral contract(s): BC_EDGE_SYNC\nSSOT anchor: function_model.transactions.FM_STABLE\nTwo flip-flop synchronizer stages capture sig_in into sync1 then sync2 on every rising clk edge.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "OBL_EDGE_SYNC_001",
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/edge_det_cx1.sv"
+      ],
+      "source_refs": [
+        "REQ_EDGE_SYNC_001",
+        "OBL_EDGE_SYNC_001",
+        "C_EDGE_SYNC",
+        "SC_EDGE_PORTS",
+        "BC_EDGE_SYNC",
+        "function_model.transactions.FM_STABLE"
+      ],
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/edge_det_cx1.sv",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic lint gate",
+      "approval_policy": "evidence_required",
+      "approval_state": "approved",
+      "command": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.py lint \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-lint gate] Verify every lint obligation is closed",
+      "criteria": "stage_gate.py lint exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 5 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "fallback_if_no_evidence": "human_review_needed",
+      "id": "GATE-LINT",
+      "on_reject": 1,
+      "owner_workflow": "lint",
+      "priority": "high",
+      "required": true,
+      "required_evidence": [
+        "stage_gate.py lint returncode 0"
+      ],
+      "source_refs": [],
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.py lint returncode 0",
+          "dut_lint"
+        ],
+        "reason": "[lint] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_completion": {
+    "all_required_todos_pass": true,
+    "open_required_tasks": 0,
+    "status_counts": {
+      "open": 0,
+      "pass": 6
+    }
+  },
+  "type": "stage_todo_evidence_plan",
+  "workflow": "lint"
+}

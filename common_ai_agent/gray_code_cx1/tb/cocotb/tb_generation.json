@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "gray_code_cx1",
+  "generated_at": "2026-06-10T14:50:02Z",
+  "manifest": "gray_code_cx1/tb/cocotb/tb_manifest.json",
+  "test": "gray_code_cx1/tb/cocotb/test_gray_code_cx1.py",
+  "runner": "gray_code_cx1/tb/cocotb/test_runner.py",
+  "goals": 11,
+  "rtl_sources": 1
+}

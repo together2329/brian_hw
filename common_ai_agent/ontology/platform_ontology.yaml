@@ -161,6 +161,11 @@ units:
       - src/headless_workflow.py
     content_tests:
       - tests/test_gate_self_test.py
+    known_gaps:
+      - stage_gate sim의 sim_run이 IP명을 iverilog 소스로 전달 (전 IP FAIL; 폴백=test_runner.py 직접)
+      - FL 생성기가 FM_RESET/reset 트랜잭션의 output_rules 우회 (reset goal 비교 불가)
+      - TB 생성기 _idle_input_value가 미지 입력에 idx+1 주입 (synchronizer 워밍업 오염)
+      - tb_manifest latency_cycles=1 하드코딩 (cycle_model.latency 무시)
     e2e_evidence:
       - scripts/timer_headless_e2e.py
 

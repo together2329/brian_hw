@@ -1,0 +1,34 @@
+{
+  "generated_at": "2026-06-10T14:59:27Z",
+  "ip": "fifo_sync_cx1",
+  "schema_version": 1,
+  "source_mode": "direct_ssot",
+  "status": "fail",
+  "summary": {
+    "covered": 7,
+    "evidence_tokens": 103,
+    "obligations": 9,
+    "uncovered_required": 2
+  },
+  "type": "truth_coverage",
+  "uncovered_required": [
+    {
+      "aliases": [
+        "fm_read"
+      ],
+      "category": "function_transaction",
+      "id": "FM_READ",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "function_model_reset",
+        "reset",
+        "sc01"
+      ],
+      "category": "scenario",
+      "id": "SC01",
+      "source": "test_requirements.scenarios"
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_EDGE_SYNC",
+      "evidence_refs": [
+        "E_EDGE_BC_SYNC"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_EDGE_SYNC_001",
+        "OBL_EDGE_RISE_001",
+        "OBL_EDGE_FALL_001",
+        "OBL_EDGE_RESET_001"
+      ],
+      "pass_conditions": [
+        "all FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_EDGE_FALL",
+      "evidence_refs": [
+        "E_EDGE_FALL"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_EDGE_FALL_001"
+      ],
+      "pass_conditions": [
+        "fall_out=1 observed exactly 1 cycle after sync2 falls"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_EDGE_LINT",
+      "evidence_refs": [
+        "E_EDGE_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_EDGE_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / single-driver findings"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_EDGE_RESET",
+      "evidence_refs": [
+        "E_EDGE_RESET"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_EDGE_RESET_001"
+      ],
+      "pass_conditions": [
+        "rise_out=0 fall_out=0 during and immediately after reset"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_EDGE_RISE",
+      "evidence_refs": [
+        "E_EDGE_RISE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_EDGE_RISE_001"
+      ],
+      "pass_conditions": [
+        "rise_out=1 observed exactly 1 cycle after sync2 rises"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_EDGE_SYNC",
+      "evidence_refs": [
+        "E_EDGE_SYNC"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_EDGE_SYNC_001"
+      ],
+      "pass_conditions": [
+        "sync2 observed 2 cycles after sig_in transition"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_sim_disk.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/edge_det_cx1.sv"
+      ],
+      "contract_ref": "SC_EDGE_PORTS",
+      "evidence_refs": [
+        "E_EDGE_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_EDGE_SYNC_001",
+        "OBL_EDGE_RISE_001",
+        "OBL_EDGE_FALL_001",
+        "OBL_EDGE_RESET_001",
+        "OBL_EDGE_LINT_001"
+      ],
+      "pass_conditions": [
+        "all 5 ports present with correct directions and widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "iverilog compile check"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "edge_det_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 7,
+    "contracts": 7,
+    "required_closed": 7,
+    "required_contracts": 7
+  },
+  "type": "contract_authority_closure"
+}

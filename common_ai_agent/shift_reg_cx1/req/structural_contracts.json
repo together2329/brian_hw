@@ -1,0 +1,75 @@
+{
+  "contracts": [
+    {
+      "clock_domains": [
+        {
+          "clock_signal": "clk",
+          "id": "main"
+        }
+      ],
+      "id": "SC_SR8_PORTS",
+      "interfaces": [
+        {
+          "clock_domain": "main",
+          "id": "serial_iface",
+          "signals": [
+            "po",
+            "si"
+          ]
+        }
+      ],
+      "obligations": [
+        "OBL_SR8_LINT_001",
+        "OBL_SR8_RESET_001",
+        "OBL_SR8_SHIFT_001"
+      ],
+      "reset_domains": [
+        {
+          "clock_domain": "main",
+          "id": "sync_rst",
+          "reset_signal": "rst_n"
+        }
+      ],
+      "signals": [
+        {
+          "dir": "input",
+          "name": "clk",
+          "timing": {
+            "kind": "clock"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "rst_n",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "si",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "output",
+          "name": "po",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 8
+        }
+      ]
+    }
+  ],
+  "ip": "shift_reg_cx1",
+  "schema_version": 1,
+  "type": "structural_contracts"
+}

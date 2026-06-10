@@ -1,0 +1,70 @@
+{
+  "evidence_plan": [
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_GC_DECODE",
+      "evidence_id": "E_GC_BC_DECODE",
+      "pass_condition": "decode sequence matches BC_GC_DECODE expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_GC_ENCODE",
+      "evidence_id": "E_GC_BC_ENCODE",
+      "pass_condition": "encode sequence matches BC_GC_ENCODE expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "BC_GC_LINT",
+      "evidence_id": "E_GC_BC_LINT",
+      "pass_condition": "no latch findings per BC_GC_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_GC_RESET",
+      "evidence_id": "E_GC_BC_RESET",
+      "pass_condition": "outputs==0 one cycle after rst_n asserts per BC_GC_RESET",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_GC_DECODE",
+      "evidence_id": "E_GC_DECODE",
+      "pass_condition": "bin_out matches cascaded XOR of gray_in for all 16 values",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_GC_ENCODE",
+      "evidence_id": "E_GC_ENCODE",
+      "pass_condition": "gray_out matches XOR formula for all 16 bin_in values",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "C_GC_LINT",
+      "evidence_id": "E_GC_LINT",
+      "pass_condition": "no latch violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_GC_RESET",
+      "evidence_id": "E_GC_RESET",
+      "pass_condition": "outputs==0 during reset",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "rtl/gray_code_cx1.sv",
+      "contract_ref": "SC_GC_PORTS",
+      "evidence_id": "E_GC_SC_PORTS",
+      "pass_condition": "ports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    }
+  ],
+  "ip": "gray_code_cx1",
+  "schema_version": 1,
+  "type": "evidence_plan"
+}

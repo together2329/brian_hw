@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage",
+  "status": "pass",
+  "timestamp_iso": "2026-06-10T14:33:22Z",
+  "functional": {
+    "hit": 2,
+    "total": 2,
+    "pct": 100.0,
+    "bins": {
+      "SC4_executed": {
+        "hit": true,
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_007_EQ_SCENARIO_SC4"
+      },
+      "function_stable": {
+        "hit": true,
+        "goal_id": "EQ_TRANSACTION_FM_STABLE",
+        "scenario_id": "SC_003_EQ_TRANSACTION_FM_STABLE"
+      }
+    }
+  }
+}

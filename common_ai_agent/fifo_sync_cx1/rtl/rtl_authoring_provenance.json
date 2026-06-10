@@ -1,0 +1,18 @@
+{
+  "agent": "common_ai_agent",
+  "authoring_packets": [
+    "generic_ssot_rule_seed"
+  ],
+  "generated_at": "2026-06-10T00:00:00Z",
+  "generator": "generic_ssot_rule_seed",
+  "refresh_reason": "SSOT metadata gate update refreshed rtl_todo_plan hash without changing RTL files.",
+  "rtl_files": [
+    "rtl/fifo_sync_cx1.sv"
+  ],
+  "schema_version": 1,
+  "surface": "headless_common_engine",
+  "todo_plan_sha256": "f60a21ce95a3bb1d9b8f9064274b58761f11fac9e77f49b03ad55bd518d76b86",
+  "type": "rtl_authoring_provenance",
+  "updated_at": "2026-06-10T14:58:46Z",
+  "workflow": "rtl-gen"
+}

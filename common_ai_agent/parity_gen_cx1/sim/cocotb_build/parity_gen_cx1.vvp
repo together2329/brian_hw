@@ -1,0 +1,65 @@
+#! /opt/homebrew/Cellar/icarus-verilog/12.0/bin/vvp
+:ivl_version "12.0 (stable)";
+:ivl_delay_selection "TYPICAL";
+:vpi_time_precision - 12;
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/system.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_sys.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/vhdl_textio.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2005_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/va_math.vpi";
+:vpi_module "/opt/homebrew/Cellar/icarus-verilog/12.0/lib/ivl/v2009.vpi";
+S_0x125604d00 .scope package, "$unit" "$unit" 2 1;
+ .timescale -9 -12;
+S_0x125604e70 .scope module, "parity_gen_cx1" "parity_gen_cx1" 3 8;
+ .timescale -9 -12;
+    .port_info 0 /INPUT 1 "clk";
+    .port_info 1 /INPUT 1 "rst_n";
+    .port_info 2 /INPUT 8 "data_in";
+    .port_info 3 /OUTPUT 1 "even_par";
+    .port_info 4 /OUTPUT 1 "odd_par";
+    .port_info 5 /OUTPUT 1 "par_reg";
+L_0x6000038984d0 .functor NOT 1, L_0x600002298140, C4<0>, C4<0>, C4<0>;
+o0x118030010 .functor BUFZ 1, C4<z>; HiZ drive
+v0x600002198360_0 .net "clk", 0 0, o0x118030010;  0 drivers
+o0x118030040 .functor BUFZ 8, C4<zzzzzzzz>; HiZ drive
+v0x6000021983f0_0 .net "data_in", 7 0, o0x118030040;  0 drivers
+v0x600002198480_0 .net "even_par", 0 0, L_0x600002298140;  1 drivers
+v0x600002198510_0 .net "odd_par", 0 0, L_0x6000038984d0;  1 drivers
+v0x6000021985a0_0 .var "par_reg", 0 0;
+o0x118030100 .functor BUFZ 1, C4<z>; HiZ drive
+v0x600002198630_0 .net "rst_n", 0 0, o0x118030100;  0 drivers
+E_0x600000698940/0 .event negedge, v0x600002198630_0;
+E_0x600000698940/1 .event posedge, v0x600002198360_0;
+E_0x600000698940 .event/or E_0x600000698940/0, E_0x600000698940/1;
+L_0x600002298140 .reduce/xor o0x118030040;
+S_0x125605200 .scope module, "atlas_iverilog_vcd_dump" "atlas_iverilog_vcd_dump" 4 1;
+ .timescale -9 -12;
+    .scope S_0x125604e70;
+T_0 ;
+    %wait E_0x600000698940;
+    %load/vec4 v0x600002198630_0;
+    %nor/r;
+    %flag_set/vec4 8;
+    %jmp/0xz  T_0.0, 8;
+    %pushi/vec4 0, 0, 1;
+    %assign/vec4 v0x6000021985a0_0, 0;
+    %jmp T_0.1;
+T_0.0 ;
+    %load/vec4 v0x600002198480_0;
+    %assign/vec4 v0x6000021985a0_0, 0;
+T_0.1 ;
+    %jmp T_0;
+    .thread T_0;
+    .scope S_0x125605200;
+T_1 ;
+    %vpi_call/w 4 3 "$dumpfile", "parity_gen_cx1.vcd" {0 0 0};
+    %vpi_call/w 4 4 "$dumpvars", 32'sb00000000000000000000000000000000, S_0x125604e70 {0 0 0};
+    %end;
+    .thread T_1;
+# The file index is used to find the file name in the following table.
+:file_names 5;
+    "N/A";
+    "<interactive>";
+    "-";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/parity_gen_cx1/rtl/parity_gen_cx1.sv";
+    "/Users/brian/Desktop/Project/brian_hw/common_ai_agent/parity_gen_cx1/sim/cocotb_build/atlas_iverilog_vcd_dump.v";

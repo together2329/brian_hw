@@ -1,0 +1,117 @@
+{
+  "contracts": [
+    {
+      "clock_domains": [
+        {
+          "clock_signal": "clk",
+          "id": "main"
+        }
+      ],
+      "id": "SC_FIFO_PORTS",
+      "interfaces": [
+        {
+          "clock_domain": "main",
+          "id": "fifo_io",
+          "signals": [
+            "empty",
+            "full",
+            "rd_data",
+            "rd_en",
+            "wr_data",
+            "wr_en"
+          ]
+        }
+      ],
+      "obligations": [
+        "OBL_FIFO_FLAGS_001",
+        "OBL_FIFO_LINT_001",
+        "OBL_FIFO_READ_001",
+        "OBL_FIFO_RESET_001",
+        "OBL_FIFO_WRITE_001"
+      ],
+      "reset_domains": [
+        {
+          "clock_domain": "main",
+          "id": "sync_rst",
+          "reset_signal": "rst_n"
+        }
+      ],
+      "signals": [
+        {
+          "dir": "input",
+          "name": "clk",
+          "timing": {
+            "kind": "clock"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "rst_n",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "wr_en",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "input",
+          "name": "wr_data",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 8
+        },
+        {
+          "dir": "input",
+          "name": "rd_en",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "output",
+          "name": "rd_data",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 8
+        },
+        {
+          "dir": "output",
+          "name": "full",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        },
+        {
+          "dir": "output",
+          "name": "empty",
+          "timing": {
+            "clock_domain": "main",
+            "kind": "sync"
+          },
+          "width": 1
+        }
+      ]
+    }
+  ],
+  "ip": "fifo_sync_cx1",
+  "schema_version": 1,
+  "type": "structural_contracts"
+}

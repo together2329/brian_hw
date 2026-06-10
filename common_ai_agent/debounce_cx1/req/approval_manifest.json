@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "type": "locked_truth_approval_manifest",
+  "ip": "debounce_cx1",
+  "status": "requirements_locked",
+  "approved_at_utc": "2026-06-10T00:00:00Z",
+  "approved_by": "cursor-agent",
+  "bundle_sha256": "abd859fba585524a270fa4120eb8346c5de66fdedc30a0a9ca19ce08e309ec6c",
+  "decision_note": "ROCEV chain exercise: deterministic-only run",
+  "draft": "debounce_cx1/req/requirements_index.json",
+  "draft_sha256": "f305cb0e00a3a9bc5b45145b355f0975cb13947a34db7fa81bf0a2d21803a1e8",
+  "files": {
+    "req/requirements_index.json": {
+      "bytes": 1616,
+      "path": "debounce_cx1/req/requirements_index.json",
+      "sha256": "f305cb0e00a3a9bc5b45145b355f0975cb13947a34db7fa81bf0a2d21803a1e8"
+    },
+    "req/obligations.json": {
+      "bytes": 2812,
+      "path": "debounce_cx1/req/obligations.json",
+      "sha256": "b977bebcc10b06270672116ecbf71c3fc9c9fadea43a8545403ab3cecfc5056f"
+    },
+    "req/contract_refs.json": {
+      "bytes": 1927,
+      "path": "debounce_cx1/req/contract_refs.json",
+      "sha256": "29a860ba2b889db32dbf2fe3da6eccb153489799faa2cbcf8f1b44d2f7a5df22"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 928,
+      "path": "debounce_cx1/req/structural_contracts.json",
+      "sha256": "7533c826a84be2c3c87e907d08e69dd71abec267825bf4f4b7921abcaa6d0dfa"
+    },
+    "req/behavioral_contracts.json": {
+      "bytes": 4290,
+      "path": "debounce_cx1/req/behavioral_contracts.json",
+      "sha256": "42eb87e6bf5d48dd000c4cd61198a5c47aed798da097b0e8f724e347d51fed95"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 2706,
+      "path": "debounce_cx1/req/evidence_plan.json",
+      "sha256": "4a7ca5269766d43b54339870b2571581e80d090bb36f2c07f991f7627756130e"
+    },
+    "req/locked_truth.md": {
+      "bytes": 1023,
+      "path": "debounce_cx1/req/locked_truth.md",
+      "sha256": "9d5c6cc8963c288134ef8750dae979bdc198c2b1571bf13e2ccbb9970173766d"
+    }
+  },
+  "requirements": [
+    {
+      "requirement_id": "REQ_DEB_STABLE_001",
+      "required": true,
+      "status": "locked"
+    },
+    {
+      "requirement_id": "REQ_DEB_BOUNCE_001",
+      "required": true,
+      "status": "locked"
+    },
+    {
+      "requirement_id": "REQ_DEB_OUTPUT_001",
+      "required": true,
+      "status": "locked"
+    },
+    {
+      "requirement_id": "REQ_DEB_RESET_001",
+      "required": true,
+      "status": "locked"
+    }
+  ]
+}

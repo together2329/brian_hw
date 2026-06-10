@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "type": "locked_truth_approval_manifest",
+  "ip": "parity_gen_cx1",
+  "status": "requirements_locked",
+  "approved_by": "cursor-agent",
+  "approved_at_utc": "2026-06-10T14:00:00Z",
+  "decision_note": "",
+  "draft": "parity_gen_cx1/req/parity_gen_cx1_req_draft.json",
+  "draft_sha256": "cd4f939cbbd78c8411d4ef22982bb98afc44e3f78b97323318b8e968b945b20d",
+  "bundle_sha256": "8a5845bdd40c041dbf5d08d584d4cf48a49033f97928d1c3c7eb80436774f169",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "path": "parity_gen_cx1/req/behavioral_contracts.json",
+      "bytes": 3119,
+      "sha256": "cd5b28dfbc9bec20a1065015583fe992c753d3d37c4ad609b6837ca04cf6ec49"
+    },
+    "req/contract_refs.json": {
+      "path": "parity_gen_cx1/req/contract_refs.json",
+      "bytes": 3215,
+      "sha256": "048275b91d1b03da2b55d9d9774a7af70f731f23b084d29eeaa9bc1d2b896e14"
+    },
+    "req/evidence_plan.json": {
+      "path": "parity_gen_cx1/req/evidence_plan.json",
+      "bytes": 2090,
+      "sha256": "2c37284676617c11885c24b3d7c91f8498e8940d8b104c233bd39c00dc7b9a77"
+    },
+    "req/locked_truth.md": {
+      "path": "parity_gen_cx1/req/locked_truth.md",
+      "bytes": 1516,
+      "sha256": "d0de5f9b21be4109f494f85b27ccada3659b50888d887594052b5be693512f01"
+    },
+    "req/obligations.json": {
+      "path": "parity_gen_cx1/req/obligations.json",
+      "bytes": 2610,
+      "sha256": "83427f67c1af37eb4b35a49f3511d879d8f74697f0584ab4609506971e9879a9"
+    },
+    "req/requirements_index.json": {
+      "path": "parity_gen_cx1/req/requirements_index.json",
+      "bytes": 1161,
+      "sha256": "172ebd12f84a488143097bf6c78263dafc3d656467ac8e3accc19e11b9fb0c3c"
+    },
+    "req/structural_contracts.json": {
+      "path": "parity_gen_cx1/req/structural_contracts.json",
+      "bytes": 1436,
+      "sha256": "426056460896575ddca30a1b17a3b339475b30e583d695eae64247c245042ddc"
+    }
+  },
+  "requirements": [
+    {
+      "requirement_id": "REQ_PAR_EVEN_001",
+      "status": "locked",
+      "required": true
+    },
+    {
+      "requirement_id": "REQ_PAR_ODD_001",
+      "status": "locked",
+      "required": true
+    },
+    {
+      "requirement_id": "REQ_PAR_REG_001",
+      "status": "locked",
+      "required": true
+    },
+    {
+      "requirement_id": "REQ_PAR_RESET_001",
+      "status": "locked",
+      "required": true
+    }
+  ]
+}

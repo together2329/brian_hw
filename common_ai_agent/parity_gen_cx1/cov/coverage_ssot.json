@@ -1,0 +1,1436 @@
+{
+  "source": "ssot_coverage_summary",
+  "status": "blocked",
+  "ssot": "parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml",
+  "module": "parity_gen_cx1",
+  "dv_plan": {
+    "scenarios": 5,
+    "scoreboard_checks": [
+      "even_par = ^data_in (combinational)",
+      "odd_par = ~even_par (combinational)",
+      "par_reg equals even_par from the previous clock cycle"
+    ],
+    "coverage_goals": {
+      "function": {
+        "target_pct": 100,
+        "model": "function_model"
+      },
+      "cycle": {
+        "target_pct": 100,
+        "model": "cycle_model"
+      }
+    }
+  },
+  "functional": {
+    "hit": 19,
+    "total": 25,
+    "pct": 76.0
+  },
+  "function_coverage": {
+    "hit": 8,
+    "total": 12,
+    "pct": 66.67,
+    "target_pct": 100.0,
+    "meets_target": false,
+    "bins": {
+      "SC1_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC1_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[0]",
+          "scenario": "SC1",
+          "description": "Reset \u2014 par_reg=0"
+        },
+        "class": "scenario",
+        "description": "Reset \u2014 par_reg=0",
+        "coverage_domain": "function"
+      },
+      "SC2_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC2",
+        "scenario_id": "SC_004_EQ_SCENARIO_SC2",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC2_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[1]",
+          "scenario": "SC2",
+          "description": "All zeros \u2014 even parity 0"
+        },
+        "class": "scenario",
+        "description": "All zeros \u2014 even parity 0",
+        "coverage_domain": "function"
+      },
+      "SC3_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC3_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[2]",
+          "scenario": "SC3",
+          "description": "0x01 \u2014 even parity 1"
+        },
+        "class": "scenario",
+        "description": "0x01 \u2014 even parity 1",
+        "coverage_domain": "function"
+      },
+      "SC4_executed": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_SCENARIO_SC4",
+        "scenario_id": "SC_006_EQ_SCENARIO_SC4",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "SC4_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[3]",
+          "scenario": "SC4",
+          "description": "0xFF \u2014 even parity 0 (8 bits set)"
+        },
+        "class": "scenario",
+        "description": "0xFF \u2014 even parity 0 (8 bits set)",
+        "coverage_domain": "function"
+      },
+      "SC5_executed": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "SC5_executed",
+          "class": "scenario",
+          "source": "test_requirements.scenarios[4]",
+          "scenario": "SC5",
+          "description": "Registered parity latches after clock"
+        },
+        "class": "scenario",
+        "description": "Registered parity latches after clock",
+        "coverage_domain": "function"
+      },
+      "function_parity_compute": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TRANSACTION_FM_PARITY",
+        "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "function_parity_compute",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[0]",
+          "source_ref": "function_model.transactions.fm_parity",
+          "description": "FM_PARITY parity_compute"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_PARITY parity_compute",
+        "source_ref": "function_model.transactions.fm_parity"
+      },
+      "function_reset": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "function_reset",
+          "class": "transaction_type",
+          "coverage_domain": "function",
+          "source": "function_model.transactions[1]",
+          "source_ref": "function_model.transactions.fm_reset",
+          "description": "FM_RESET reset"
+        },
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "description": "FM_RESET reset",
+        "source_ref": "function_model.transactions.fm_reset"
+      },
+      "error_error_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_ERROR_NONE",
+        "scenario_id": "SC_013_EQ_ERROR_NONE",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "error_error_0",
+          "class": "error",
+          "coverage_domain": "function",
+          "source": "error_handling.error_sources[0]",
+          "source_ref": "error_handling.error_sources[0]",
+          "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+        },
+        "class": "error",
+        "coverage_domain": "function",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}",
+        "source_ref": "error_handling.error_sources[0]"
+      },
+      "fcov_fm_parity": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "fcov_parity": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "ccov_pipeline_order": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_MODULE_PARITY_GEN_CX1",
+        "scenario_id": "SC_014_EQ_MODULE_PARITY_GEN_CX1",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      },
+      "ccov_backpressure": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": null,
+        "coverage_domain": "function"
+      }
+    }
+  },
+  "cycle_coverage": {
+    "hit": 11,
+    "total": 13,
+    "pct": 84.62,
+    "target_pct": 100.0,
+    "meets_target": false,
+    "bins": {
+      "cycle_handshake_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_0",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[0]",
+          "source_ref": "cycle_model.handshake_rules[0]",
+          "description": "{'signal': 'even_par', 'rule': 'Combinational \u2014 reflects data_in immediately', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'even_par', 'rule': 'Combinational \u2014 reflects data_in immediately', 'behavioral_contract_refs': ['BC_PAR_FUNC']}",
+        "source_ref": "cycle_model.handshake_rules[0]"
+      },
+      "cycle_handshake_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+        "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_handshake_1",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[1]",
+          "source_ref": "cycle_model.handshake_rules[1]",
+          "description": "{'signal': 'par_reg', 'rule': 'Registered \u2014 reflects even_par from previous cycle', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'par_reg', 'rule': 'Registered \u2014 reflects even_par from previous cycle', 'behavioral_contract_refs': ['BC_PAR_FUNC']}",
+        "source_ref": "cycle_model.handshake_rules[1]"
+      },
+      "cycle_handshake_2": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_handshake_2",
+          "class": "protocol",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.handshake_rules[2]",
+          "source_ref": "cycle_model.handshake_rules[2]",
+          "description": "{'signal': 'par_reg', 'rule': 'Cleared to 0 when rst_n=0', 'behavioral_contract_refs': ['BC_PAR_RESET']}"
+        },
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "description": "{'signal': 'par_reg', 'rule': 'Cleared to 0 when rst_n=0', 'behavioral_contract_refs': ['BC_PAR_RESET']}",
+        "source_ref": "cycle_model.handshake_rules[2]"
+      },
+      "cycle_latency_even_odd_par": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+        "scenario_id": "SC_015_EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_even_odd_par",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.even_odd_par",
+          "source_ref": "cycle_model.latency.even_odd_par",
+          "description": "{'min_cycles': 0, 'max_cycles': 0}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 0, 'max_cycles': 0}",
+        "source_ref": "cycle_model.latency.even_odd_par"
+      },
+      "cycle_latency_par_reg": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+        "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_latency_par_reg",
+          "class": "latency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.latency.par_reg",
+          "source_ref": "cycle_model.latency.par_reg",
+          "description": "{'min_cycles': 1, 'max_cycles': 1}"
+        },
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "description": "{'min_cycles': 1, 'max_cycles': 1}",
+        "source_ref": "cycle_model.latency.par_reg"
+      },
+      "cycle_pipeline_s0_comb": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+        "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s0_comb",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[0]",
+          "source_ref": "cycle_model.pipeline[0]",
+          "description": "even_par = ^data_in, odd_par = ~even_par (combinational)"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "even_par = ^data_in, odd_par = ~even_par (combinational)",
+        "source_ref": "cycle_model.pipeline[0]"
+      },
+      "cycle_pipeline_s1_reg": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+        "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_pipeline_s1_reg",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[1]",
+          "source_ref": "cycle_model.pipeline[1]",
+          "description": "par_reg <= even_par on rising clk"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "par_reg <= even_par on rising clk",
+        "source_ref": "cycle_model.pipeline[1]"
+      },
+      "cycle_pipeline_s0_reset": {
+        "hit": false,
+        "raw_hit": false,
+        "source": "missing_rtl_observed_scoreboard_evidence",
+        "raw": {
+          "hit": false,
+          "source": "fcov_plan"
+        },
+        "plan": {
+          "id": "cycle_pipeline_s0_reset",
+          "class": "pipeline_stage",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.pipeline[2]",
+          "source_ref": "cycle_model.pipeline[2]",
+          "description": "par_reg <= 0 when rst_n=0 (async reset)"
+        },
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "description": "par_reg <= 0 when rst_n=0 (async reset)",
+        "source_ref": "cycle_model.pipeline[2]"
+      },
+      "cycle_ordering_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_0",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[0]",
+          "source_ref": "cycle_model.ordering[0]",
+          "description": "even_par/odd_par update combinationally when data_in changes."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "even_par/odd_par update combinationally when data_in changes.",
+        "source_ref": "cycle_model.ordering[0]"
+      },
+      "cycle_ordering_1": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_TIMING_ORDERING_1",
+        "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_ordering_1",
+          "class": "ordering",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.ordering[1]",
+          "source_ref": "cycle_model.ordering[1]",
+          "description": "par_reg updates on clock edge."
+        },
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "description": "par_reg updates on clock edge.",
+        "source_ref": "cycle_model.ordering[1]"
+      },
+      "cycle_backpressure_0": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_backpressure_0",
+          "class": "backpressure",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.backpressure[0]",
+          "source_ref": "cycle_model.backpressure[0]",
+          "description": "No backpressure."
+        },
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "description": "No backpressure.",
+        "source_ref": "cycle_model.backpressure[0]"
+      },
+      "cycle_perf_frequency_mhz": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_frequency_mhz",
+          "class": "frequency",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.frequency_mhz",
+          "source_ref": "cycle_model.performance.frequency_mhz",
+          "description": "50"
+        },
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "description": "50",
+        "source_ref": "cycle_model.performance.frequency_mhz"
+      },
+      "cycle_perf_throughput": {
+        "hit": true,
+        "source": "scoreboard_events",
+        "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+        "rtl_observed_keys": [
+          "even_par",
+          "even_rule",
+          "odd_par",
+          "odd_rule",
+          "par_reg",
+          "par_reg_rule"
+        ],
+        "raw_hit": true,
+        "plan": {
+          "id": "cycle_perf_throughput",
+          "class": "throughput",
+          "coverage_domain": "cycle",
+          "source": "cycle_model.performance.throughput",
+          "source_ref": "cycle_model.performance.throughput",
+          "description": "{'computes_per_cycle': 1}"
+        },
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "description": "{'computes_per_cycle': 1}",
+        "source_ref": "cycle_model.performance.throughput"
+      }
+    }
+  },
+  "coverage_model": {
+    "function": {
+      "source": "function_model",
+      "target_pct": 100.0,
+      "hit": 8,
+      "total": 12,
+      "pct": 66.67,
+      "meets_target": false
+    },
+    "cycle": {
+      "source": "cycle_model",
+      "target_pct": 100.0,
+      "hit": 11,
+      "total": 13,
+      "pct": 84.62,
+      "meets_target": false
+    }
+  },
+  "planned_bins": [
+    "SC1_executed",
+    "SC2_executed",
+    "SC3_executed",
+    "SC4_executed",
+    "SC5_executed",
+    "function_parity_compute",
+    "function_reset",
+    "cycle_handshake_0",
+    "cycle_handshake_1",
+    "cycle_handshake_2",
+    "cycle_latency_even_odd_par",
+    "cycle_latency_par_reg",
+    "cycle_pipeline_s0_comb",
+    "cycle_pipeline_s1_reg",
+    "cycle_pipeline_s0_reset",
+    "cycle_ordering_0",
+    "cycle_ordering_1",
+    "cycle_backpressure_0",
+    "cycle_perf_frequency_mhz",
+    "cycle_perf_throughput",
+    "error_error_0"
+  ],
+  "functional_bins": {
+    "SC1_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC1_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[0]",
+        "scenario": "SC1",
+        "description": "Reset \u2014 par_reg=0"
+      },
+      "class": "scenario",
+      "description": "Reset \u2014 par_reg=0",
+      "coverage_domain": "function"
+    },
+    "SC2_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC2",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC2",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC2_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[1]",
+        "scenario": "SC2",
+        "description": "All zeros \u2014 even parity 0"
+      },
+      "class": "scenario",
+      "description": "All zeros \u2014 even parity 0",
+      "coverage_domain": "function"
+    },
+    "SC3_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC3_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[2]",
+        "scenario": "SC3",
+        "description": "0x01 \u2014 even parity 1"
+      },
+      "class": "scenario",
+      "description": "0x01 \u2014 even parity 1",
+      "coverage_domain": "function"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC4",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "SC4_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[3]",
+        "scenario": "SC4",
+        "description": "0xFF \u2014 even parity 0 (8 bits set)"
+      },
+      "class": "scenario",
+      "description": "0xFF \u2014 even parity 0 (8 bits set)",
+      "coverage_domain": "function"
+    },
+    "SC5_executed": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "SC5_executed",
+        "class": "scenario",
+        "source": "test_requirements.scenarios[4]",
+        "scenario": "SC5",
+        "description": "Registered parity latches after clock"
+      },
+      "class": "scenario",
+      "description": "Registered parity latches after clock",
+      "coverage_domain": "function"
+    },
+    "function_parity_compute": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TRANSACTION_FM_PARITY",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "function_parity_compute",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[0]",
+        "source_ref": "function_model.transactions.fm_parity",
+        "description": "FM_PARITY parity_compute"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_PARITY parity_compute",
+      "source_ref": "function_model.transactions.fm_parity"
+    },
+    "function_reset": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "function_reset",
+        "class": "transaction_type",
+        "coverage_domain": "function",
+        "source": "function_model.transactions[1]",
+        "source_ref": "function_model.transactions.fm_reset",
+        "description": "FM_RESET reset"
+      },
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "description": "FM_RESET reset",
+      "source_ref": "function_model.transactions.fm_reset"
+    },
+    "cycle_handshake_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_0",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[0]",
+        "source_ref": "cycle_model.handshake_rules[0]",
+        "description": "{'signal': 'even_par', 'rule': 'Combinational \u2014 reflects data_in immediately', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'even_par', 'rule': 'Combinational \u2014 reflects data_in immediately', 'behavioral_contract_refs': ['BC_PAR_FUNC']}",
+      "source_ref": "cycle_model.handshake_rules[0]"
+    },
+    "cycle_handshake_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_handshake_1",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[1]",
+        "source_ref": "cycle_model.handshake_rules[1]",
+        "description": "{'signal': 'par_reg', 'rule': 'Registered \u2014 reflects even_par from previous cycle', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'par_reg', 'rule': 'Registered \u2014 reflects even_par from previous cycle', 'behavioral_contract_refs': ['BC_PAR_FUNC']}",
+      "source_ref": "cycle_model.handshake_rules[1]"
+    },
+    "cycle_handshake_2": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_handshake_2",
+        "class": "protocol",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.handshake_rules[2]",
+        "source_ref": "cycle_model.handshake_rules[2]",
+        "description": "{'signal': 'par_reg', 'rule': 'Cleared to 0 when rst_n=0', 'behavioral_contract_refs': ['BC_PAR_RESET']}"
+      },
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "description": "{'signal': 'par_reg', 'rule': 'Cleared to 0 when rst_n=0', 'behavioral_contract_refs': ['BC_PAR_RESET']}",
+      "source_ref": "cycle_model.handshake_rules[2]"
+    },
+    "cycle_latency_even_odd_par": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+      "scenario_id": "SC_015_EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_even_odd_par",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.even_odd_par",
+        "source_ref": "cycle_model.latency.even_odd_par",
+        "description": "{'min_cycles': 0, 'max_cycles': 0}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 0, 'max_cycles': 0}",
+      "source_ref": "cycle_model.latency.even_odd_par"
+    },
+    "cycle_latency_par_reg": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+      "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_latency_par_reg",
+        "class": "latency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.latency.par_reg",
+        "source_ref": "cycle_model.latency.par_reg",
+        "description": "{'min_cycles': 1, 'max_cycles': 1}"
+      },
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "description": "{'min_cycles': 1, 'max_cycles': 1}",
+      "source_ref": "cycle_model.latency.par_reg"
+    },
+    "cycle_pipeline_s0_comb": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+      "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s0_comb",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[0]",
+        "source_ref": "cycle_model.pipeline[0]",
+        "description": "even_par = ^data_in, odd_par = ~even_par (combinational)"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "even_par = ^data_in, odd_par = ~even_par (combinational)",
+      "source_ref": "cycle_model.pipeline[0]"
+    },
+    "cycle_pipeline_s1_reg": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_pipeline_s1_reg",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[1]",
+        "source_ref": "cycle_model.pipeline[1]",
+        "description": "par_reg <= even_par on rising clk"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "par_reg <= even_par on rising clk",
+      "source_ref": "cycle_model.pipeline[1]"
+    },
+    "cycle_pipeline_s0_reset": {
+      "hit": false,
+      "raw_hit": false,
+      "source": "missing_rtl_observed_scoreboard_evidence",
+      "raw": {
+        "hit": false,
+        "source": "fcov_plan"
+      },
+      "plan": {
+        "id": "cycle_pipeline_s0_reset",
+        "class": "pipeline_stage",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.pipeline[2]",
+        "source_ref": "cycle_model.pipeline[2]",
+        "description": "par_reg <= 0 when rst_n=0 (async reset)"
+      },
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "description": "par_reg <= 0 when rst_n=0 (async reset)",
+      "source_ref": "cycle_model.pipeline[2]"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_0",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[0]",
+        "source_ref": "cycle_model.ordering[0]",
+        "description": "even_par/odd_par update combinationally when data_in changes."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "even_par/odd_par update combinationally when data_in changes.",
+      "source_ref": "cycle_model.ordering[0]"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_ordering_1",
+        "class": "ordering",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.ordering[1]",
+        "source_ref": "cycle_model.ordering[1]",
+        "description": "par_reg updates on clock edge."
+      },
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "description": "par_reg updates on clock edge.",
+      "source_ref": "cycle_model.ordering[1]"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_backpressure_0",
+        "class": "backpressure",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.backpressure[0]",
+        "source_ref": "cycle_model.backpressure[0]",
+        "description": "No backpressure."
+      },
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "description": "No backpressure.",
+      "source_ref": "cycle_model.backpressure[0]"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_frequency_mhz",
+        "class": "frequency",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.frequency_mhz",
+        "source_ref": "cycle_model.performance.frequency_mhz",
+        "description": "50"
+      },
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "description": "50",
+      "source_ref": "cycle_model.performance.frequency_mhz"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "cycle_perf_throughput",
+        "class": "throughput",
+        "coverage_domain": "cycle",
+        "source": "cycle_model.performance.throughput",
+        "source_ref": "cycle_model.performance.throughput",
+        "description": "{'computes_per_cycle': 1}"
+      },
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "description": "{'computes_per_cycle': 1}",
+      "source_ref": "cycle_model.performance.throughput"
+    },
+    "error_error_0": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_013_EQ_ERROR_NONE",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": true,
+      "plan": {
+        "id": "error_error_0",
+        "class": "error",
+        "coverage_domain": "function",
+        "source": "error_handling.error_sources[0]",
+        "source_ref": "error_handling.error_sources[0]",
+        "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+      },
+      "class": "error",
+      "coverage_domain": "function",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}",
+      "source_ref": "error_handling.error_sources[0]"
+    },
+    "fcov_fm_parity": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "fcov_parity": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "ccov_pipeline_order": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_MODULE_PARITY_GEN_CX1",
+      "scenario_id": "SC_014_EQ_MODULE_PARITY_GEN_CX1",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    },
+    "ccov_backpressure": {
+      "hit": true,
+      "source": "scoreboard_events",
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "rtl_observed_keys": [
+        "even_par",
+        "even_rule",
+        "odd_par",
+        "odd_rule",
+        "par_reg",
+        "par_reg_rule"
+      ],
+      "raw_hit": null,
+      "coverage_domain": "function"
+    }
+  },
+  "raw_functional": {
+    "hit": 15,
+    "total": 15,
+    "pct": 100.0
+  },
+  "raw_functional_bins": {
+    "function_parity_compute": {
+      "hit": true,
+      "goal_id": "EQ_TRANSACTION_FM_PARITY",
+      "scenario_id": "SC_001_EQ_TRANSACTION_FM_PARITY"
+    },
+    "SC2_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC2",
+      "scenario_id": "SC_004_EQ_SCENARIO_SC2"
+    },
+    "SC4_executed": {
+      "hit": true,
+      "goal_id": "EQ_SCENARIO_SC4",
+      "scenario_id": "SC_006_EQ_SCENARIO_SC4"
+    },
+    "cycle_handshake_0": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1"
+    },
+    "cycle_handshake_1": {
+      "hit": true,
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "scenario_id": "SC_009_EQ_PROTOCOL_HANDSHAKE_1"
+    },
+    "cycle_ordering_0": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+    },
+    "cycle_ordering_1": {
+      "hit": true,
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "scenario_id": "SC_012_EQ_TIMING_ORDERING_1"
+    },
+    "error_error_0": {
+      "hit": true,
+      "goal_id": "EQ_ERROR_NONE",
+      "scenario_id": "SC_013_EQ_ERROR_NONE"
+    },
+    "cycle_latency_even_odd_par": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+      "scenario_id": "SC_015_EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR"
+    },
+    "cycle_latency_par_reg": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+      "scenario_id": "SC_016_EQ_COVERAGE_CYCLE_LATENCY_PAR_REG"
+    },
+    "cycle_pipeline_s0_comb": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+      "scenario_id": "SC_017_EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB"
+    },
+    "cycle_pipeline_s1_reg": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+      "scenario_id": "SC_018_EQ_COVERAGE_CYCLE_PIPELINE_S1_REG"
+    },
+    "cycle_backpressure_0": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "scenario_id": "SC_019_EQ_COVERAGE_CYCLE_BACKPRESSURE_0"
+    },
+    "cycle_perf_frequency_mhz": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "scenario_id": "SC_020_EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ"
+    },
+    "cycle_perf_throughput": {
+      "hit": true,
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "scenario_id": "SC_021_EQ_COVERAGE_CYCLE_PERF_THROUGHPUT"
+    }
+  },
+  "rtl_observed": {
+    "status": "blocked",
+    "scoreboard_events": 21,
+    "scoreboard_passed_events_with_refs": 16,
+    "goal_refs": [
+      "SC1_executed",
+      "SC2_executed",
+      "SC3_executed",
+      "SC4_executed",
+      "SC5_executed",
+      "cycle_backpressure_0",
+      "cycle_handshake_0",
+      "cycle_handshake_1",
+      "cycle_latency_even_odd_par",
+      "cycle_latency_par_reg",
+      "cycle_ordering_0",
+      "cycle_ordering_1",
+      "cycle_perf_frequency_mhz",
+      "cycle_perf_throughput",
+      "cycle_pipeline_s0_comb",
+      "cycle_pipeline_s1_reg",
+      "error_error_0",
+      "function_parity_compute",
+      "function_reset"
+    ],
+    "missing_bins": [
+      "SC1_executed",
+      "SC3_executed",
+      "SC5_executed",
+      "cycle_handshake_2",
+      "cycle_pipeline_s0_reset",
+      "function_reset"
+    ],
+    "invalid_rows": []
+  },
+  "owner_routes": {
+    "status": "absent",
+    "source": "",
+    "routes_by_bin": {},
+    "routed_missing_bins": [],
+    "unrouted_missing_bins": [
+      "SC1_executed",
+      "SC3_executed",
+      "SC5_executed",
+      "cycle_handshake_2",
+      "cycle_pipeline_s0_reset",
+      "function_reset"
+    ],
+    "invalid_routes": []
+  },
+  "lines": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "branches": {
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "target_pct": null,
+    "meets_target": true,
+    "measured": true,
+    "status": "pass"
+  },
+  "functions": {
+    "hit": 0,
+    "total": 0,
+    "pct": null
+  },
+  "fsm_state": {
+    "target_pct": null,
+    "hit": 0,
+    "total": 0,
+    "pct": null,
+    "meets_target": true,
+    "source": "not automatically measured by generic LCOV parser"
+  },
+  "files": {},
+  "limitations": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC1_executed, SC3_executed, SC5_executed, cycle_handshake_2, cycle_pipeline_s0_reset, function_reset"
+  },
+  "owner_routed_limitations": {},
+  "waived_limitations": {},
+  "static_universe_not_instrumented": {
+    "rtl_observed_coverage": "Functional bins are not covered until a passing scoreboard row with real rtl_observed signals hits them: SC1_executed, SC3_executed, SC5_executed, cycle_handshake_2, cycle_pipeline_s0_reset, function_reset"
+  },
+  "total_checks": 0,
+  "passed": 0,
+  "failed": 0,
+  "escalations": []
+}

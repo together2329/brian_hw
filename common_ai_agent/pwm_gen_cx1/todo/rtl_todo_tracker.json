@@ -1,0 +1,353 @@
+{
+  "name": "pwm_gen_cx1-rtl",
+  "description": "Auto-generated phase-grouped gen-rtl TodoTracker for pwm_gen_cx1: one visible TODO per SSOT ledger group plus a final deterministic gate. The full contract/evidence ledger remains in rtl_todo_plan.json; the gate loops back to Phase 1 until that ledger closes.",
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "source_task_count": 85,
+  "ledger_status_counts": {
+    "pending": 85
+  },
+  "status_counts": {
+    "pending": 25
+  },
+  "ui_grouping": {
+    "strategy": "phase_grouped_contract_gate",
+    "target_min": 2,
+    "target_max": 25,
+    "actual_count": 25,
+    "status_counts": {
+      "pending": 25
+    },
+    "ledger_status_counts": {
+      "pending": 85
+    },
+    "ledger_group_count": 24,
+    "ledger_groups": [
+      {
+        "key": "flow.prepare",
+        "title": "Prepare SSOT-derived RTL generation authority",
+        "task_count": 1
+      },
+      {
+        "key": "contract.locked_truth",
+        "title": "Implement locked req contracts in RTL",
+        "task_count": 5
+      },
+      {
+        "key": "interface.top_io",
+        "title": "Implement top module, ports, reset, and filelist",
+        "task_count": 6
+      },
+      {
+        "key": "interface.parameters",
+        "title": "Implement Verilog include parameters and constants",
+        "task_count": 1
+      },
+      {
+        "key": "interface.registers",
+        "title": "Implement register decode, storage, and field behavior",
+        "task_count": 2
+      },
+      {
+        "key": "workflow.rtl_gen",
+        "title": "Execute SSOT-authored rtl-gen workflow TODOs",
+        "task_count": 1
+      },
+      {
+        "key": "function.io_transactions",
+        "title": "Implement function_model inputs, outputs, and transactions",
+        "task_count": 7
+      },
+      {
+        "key": "function.conditions",
+        "title": "Implement function_model preconditions and invariants",
+        "task_count": 5
+      },
+      {
+        "key": "function.state_effects",
+        "title": "Implement function_model state and side effects",
+        "task_count": 6
+      },
+      {
+        "key": "cycle.handshake",
+        "title": "Implement cycle_model handshake, backpressure, and arbitration",
+        "task_count": 2
+      },
+      {
+        "key": "cycle.timing_order",
+        "title": "Implement cycle_model timing, ordering, pipeline, and reset",
+        "task_count": 9
+      },
+      {
+        "key": "datapath.dataflow",
+        "title": "Implement SSOT dataflow and ordering behavior",
+        "task_count": 2
+      },
+      {
+        "key": "feature.contracts",
+        "title": "Implement feature-level RTL contracts",
+        "task_count": 2
+      },
+      {
+        "key": "control.error_recovery",
+        "title": "Implement error handling and recovery behavior",
+        "task_count": 1
+      },
+      {
+        "key": "integration.signoff_constraints",
+        "title": "Close security, integration, and synthesis constraints",
+        "task_count": 9
+      },
+      {
+        "key": "verification.test_scenarios",
+        "title": "Preserve RTL evidence for SSOT test scenarios",
+        "task_count": 4
+      },
+      {
+        "key": "verification.equivalence",
+        "title": "Preserve FL-vs-RTL module equivalence mapping",
+        "task_count": 1
+      },
+      {
+        "key": "section.debug_observability",
+        "title": "Implement debug_observability RTL contracts",
+        "task_count": 1
+      },
+      {
+        "key": "section.dft",
+        "title": "Implement dft RTL contracts",
+        "task_count": 2
+      },
+      {
+        "key": "gate.authority",
+        "title": "Close RTL authority and provenance gates",
+        "task_count": 3
+      },
+      {
+        "key": "gate.traceability",
+        "title": "Close RTL traceability and implementation-depth gates",
+        "task_count": 5
+      },
+      {
+        "key": "gate.hierarchy_io",
+        "title": "Close top IO, hierarchy, and connection gates",
+        "task_count": 7
+      },
+      {
+        "key": "gate.compile_lint",
+        "title": "Run DUT-only compile and lint closure gates",
+        "task_count": 2
+      },
+      {
+        "key": "gate.sim_coverage",
+        "title": "Close cycle, assertion, FL-vs-RTL, and coverage gates",
+        "task_count": 1
+      }
+    ],
+    "detail_policy": "One visible TODO per SSOT ledger group drives implementation; a final deterministic gen-rtl gate (derive_rtl_todos.py --audit-rtl) verifies every ledger row and loops back to Phase 1 on failure, while preserving every per-contract row in rtl_todo_plan.json."
+  },
+  "lock_additions": false,
+  "tasks": [
+    {
+      "content": "[gen-rtl 1/24] Prepare SSOT-derived RTL generation authority",
+      "activeForm": "Implementing prepare SSOT-derived RTL generation authority for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 1/24 (ledger group 'flow.prepare') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0001\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'flow.prepare' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 2/24] Implement locked req contracts in RTL",
+      "activeForm": "Implementing implement locked req contracts in RTL for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 2/24 (ledger group 'contract.locked_truth') — 5 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0028, RTL-0029, RTL-0030, RTL-0031, RTL-0032\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'contract.locked_truth' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "critical"
+    },
+    {
+      "content": "[gen-rtl 3/24] Implement top module, ports, reset, and filelist",
+      "activeForm": "Implementing implement top module, ports, reset, and filelist for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 3/24 (ledger group 'interface.top_io') — 6 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0002, RTL-0023, RTL-0024, RTL-0025, RTL-0026, RTL-0027\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'interface.top_io' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 4/24] Implement Verilog include parameters and constants",
+      "activeForm": "Implementing implement Verilog include parameters and constants for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 4/24 (ledger group 'interface.parameters') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0022\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'interface.parameters' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "normal"
+    },
+    {
+      "content": "[gen-rtl 5/24] Implement register decode, storage, and field behavior",
+      "activeForm": "Implementing implement register decode, storage, and field behavior for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 5/24 (ledger group 'interface.registers') — 2 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0062, RTL-0063\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'interface.registers' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 6/24] Execute SSOT-authored rtl-gen workflow TODOs",
+      "activeForm": "Implementing execute SSOT-authored rtl-gen workflow TODOs for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 6/24 (ledger group 'workflow.rtl_gen') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0021\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'workflow.rtl_gen' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 7/24] Implement function_model inputs, outputs, and transactions",
+      "activeForm": "Implementing implement function_model inputs, outputs, and transactions for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 7/24 (ledger group 'function.io_transactions') — 7 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0035, RTL-0037, RTL-0038, RTL-0039, RTL-0043, RTL-0045, RTL-0046\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'function.io_transactions' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 8/24] Implement function_model preconditions and invariants",
+      "activeForm": "Implementing implement function_model preconditions and invariants for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 8/24 (ledger group 'function.conditions') — 5 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0036, RTL-0044, RTL-0048, RTL-0049, RTL-0050\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'function.conditions' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 9/24] Implement function_model state and side effects",
+      "activeForm": "Implementing implement function_model state and side effects for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 9/24 (ledger group 'function.state_effects') — 6 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0033, RTL-0034, RTL-0040, RTL-0041, RTL-0042, RTL-0047\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'function.state_effects' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 10/24] Implement cycle_model handshake, backpressure, and arbitration",
+      "activeForm": "Implementing implement cycle_model handshake, backpressure, and arbitration for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 10/24 (ledger group 'cycle.handshake') — 2 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0054, RTL-0060\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'cycle.handshake' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 11/24] Implement cycle_model timing, ordering, pipeline, and reset",
+      "activeForm": "Implementing implement cycle_model timing, ordering, pipeline, and reset for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 11/24 (ledger group 'cycle.timing_order') — 9 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0051, RTL-0052, RTL-0053, RTL-0055, RTL-0056, RTL-0057, RTL-0058, RTL-0059, +1 more\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'cycle.timing_order' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 12/24] Implement SSOT dataflow and ordering behavior",
+      "activeForm": "Implementing implement SSOT dataflow and ordering behavior for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 12/24 (ledger group 'datapath.dataflow') — 2 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0066, RTL-0067\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'datapath.dataflow' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 13/24] Implement feature-level RTL contracts",
+      "activeForm": "Implementing implement feature-level RTL contracts for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 13/24 (ledger group 'feature.contracts') — 2 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0064, RTL-0065\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'feature.contracts' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 14/24] Implement error handling and recovery behavior",
+      "activeForm": "Implementing implement error handling and recovery behavior for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 14/24 (ledger group 'control.error_recovery') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0068\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'control.error_recovery' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 15/24] Close security, integration, and synthesis constraints",
+      "activeForm": "Implementing close security, integration, and synthesis constraints for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 15/24 (ledger group 'integration.signoff_constraints') — 9 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0069, RTL-0071, RTL-0072, RTL-0073, RTL-0076, RTL-0077, RTL-0078, RTL-0079, +1 more\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'integration.signoff_constraints' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 16/24] Preserve RTL evidence for SSOT test scenarios",
+      "activeForm": "Implementing preserve RTL evidence for SSOT test scenarios for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 16/24 (ledger group 'verification.test_scenarios') — 4 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0082, RTL-0083, RTL-0084, RTL-0085\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'verification.test_scenarios' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "normal"
+    },
+    {
+      "content": "[gen-rtl 17/24] Preserve FL-vs-RTL module equivalence mapping",
+      "activeForm": "Implementing preserve FL-vs-RTL module equivalence mapping for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 17/24 (ledger group 'verification.equivalence') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0081\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'verification.equivalence' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 18/24] Implement debug_observability RTL contracts",
+      "activeForm": "Implementing implement debug_observability RTL contracts for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 18/24 (ledger group 'section.debug_observability') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0070\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'section.debug_observability' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 19/24] Implement dft RTL contracts",
+      "activeForm": "Implementing implement dft RTL contracts for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 19/24 (ledger group 'section.dft') — 2 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0074, RTL-0075\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'section.dft' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "high"
+    },
+    {
+      "content": "[gen-rtl 20/24] Close RTL authority and provenance gates",
+      "activeForm": "Implementing close RTL authority and provenance gates for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 20/24 (ledger group 'gate.authority') — 3 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0003, RTL-0004, RTL-0006\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'gate.authority' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "critical"
+    },
+    {
+      "content": "[gen-rtl 21/24] Close RTL traceability and implementation-depth gates",
+      "activeForm": "Implementing close RTL traceability and implementation-depth gates for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 21/24 (ledger group 'gate.traceability') — 5 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0005, RTL-0007, RTL-0008, RTL-0009, RTL-0010\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'gate.traceability' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "critical"
+    },
+    {
+      "content": "[gen-rtl 22/24] Close top IO, hierarchy, and connection gates",
+      "activeForm": "Implementing close top IO, hierarchy, and connection gates for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 22/24 (ledger group 'gate.hierarchy_io') — 7 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0011, RTL-0012, RTL-0013, RTL-0014, RTL-0015, RTL-0016, RTL-0017\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'gate.hierarchy_io' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "critical"
+    },
+    {
+      "content": "[gen-rtl 23/24] Run DUT-only compile and lint closure gates",
+      "activeForm": "Implementing run DUT-only compile and lint closure gates for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 23/24 (ledger group 'gate.compile_lint') — 2 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0018, RTL-0019\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'gate.compile_lint' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "critical"
+    },
+    {
+      "content": "[gen-rtl 24/24] Close cycle, assertion, FL-vs-RTL, and coverage gates",
+      "activeForm": "Implementing close cycle, assertion, FL-vs-RTL, and coverage gates for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Phase 24/24 (ledger group 'gate.sim_coverage') — 1 SSOT-derived item(s) for pwm_gen_cx1.\nInternal ledger: rtl/rtl_todo_plan.json; this phase owns the rows in this group.\nRead yaml/<ip>.ssot.yaml + rtl/rtl_authoring_plan.json; implement/repair only RTL-owned artifacts from SSOT authority.\nLedger rows: RTL-0020\nDeterministic verification of all phases happens in Task 25 (the gen-rtl gate).",
+      "criteria": "Every 'gate.sim_coverage' ledger row in rtl/rtl_todo_plan.json has live RTL evidence in rtl/<module>.sv\nOnly RTL-owned artifacts changed; SSOT/FL/coverage/requirement truth left locked\nNo placeholder/stub left for this group's contracts",
+      "priority": "critical"
+    },
+    {
+      "content": "[gen-rtl gate] Verify every RTL item is well-formed for pwm_gen_cx1",
+      "activeForm": "Running deterministic RTL build gate for pwm_gen_cx1",
+      "status": "pending",
+      "detail": "Deterministic gate after 24 implementation phase(s) for pwm_gen_cx1.\nRuns derive_rtl_todos.py --audit-rtl: every required ledger row must close and static checks must pass.\nOn failure this loops back to Phase 1 — read the audit output to see which group/rows are still open, repair RTL, then this gate reruns.\nAlso run rtl_compile_report.py and dut_lint_report.py and fix unwaived errors before declaring done.",
+      "criteria": "derive_rtl_todos.py --audit-rtl exits 0 (rtl/rtl_todo_plan.json gate.status=pass)\nsummary shows open_required_todos=0, static_missing=0, blockers=0, orphans=0, all_required_todos_pass=true\nEvery required ledger row has todo_completion.status=pass\nrtl_compile_report.py reports no compile errors; dut_lint_report.py reports no unwaived DUT-only lint errors",
+      "command": "python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/rtl-gen/scripts/derive_rtl_todos.py \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\" --audit-rtl",
+      "on_reject": 1,
+      "priority": "high"
+    }
+  ]
+}

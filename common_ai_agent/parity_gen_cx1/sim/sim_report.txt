@@ -1,0 +1,8 @@
+TESTS=1 PASS=1 FAIL=0
+results=parity_gen_cx1/sim/results.xml
+scoreboard=parity_gen_cx1/sim/scoreboard_events.jsonl
+coverage_functional=parity_gen_cx1/cov/coverage_functional.json
+waveforms=parity_gen_cx1/sim/parity_gen_cx1.vcd
+0 errors, 0 warnings
+[SIM ESCALATE] scoreboard_failed=5 owner=sim_debug evidence=/Users/brian/Desktop/Project/brian_hw/common_ai_agent/parity_gen_cx1/sim/scoreboard_events.jsonl
+[SIM ESCALATE] reason=FL-vs-RTL scoreboard mismatch: EQ_TRANSACTION_FM_RESET: no comparable RTL observable for FunctionalModel result; EQ_SCENARIO_SC1: no comparable RTL observable for FunctionalModel result; EQ_SCENARIO_SC3: par_reg_rule: expected=0 observed=1; par_reg: expected=0 observed=1; EQ_SCENARIO_SC5: par_reg_rule: expected=0 observed=1; par_reg: expected=0 observed=1; EQ_PROTOCOL_HANDSHAKE_2: no comparable RTL observable for FunctionalModel result

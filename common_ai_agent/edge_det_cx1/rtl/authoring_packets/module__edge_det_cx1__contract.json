@@ -1,0 +1,399 @@
+{
+  "context": {
+    "connection_contract_gap": {
+      "machine_readable_contract_count": 0,
+      "reason": "Production-profile multi-module RTL requires machine-readable integration.connections or sub_modules[].connections before top integration or signoff can close.",
+      "required_for_profile": false,
+      "status": "ok"
+    },
+    "connection_contract_suggestions": {},
+    "module_slice": {
+      "count": 12,
+      "enabled": true,
+      "index": 2,
+      "key": "contract",
+      "module_task_count": 74,
+      "rule": "Owner module edge_det_cx1 is split into 12 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "contract",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "owner": {
+      "file": "rtl/edge_det_cx1.sv",
+      "name": "edge_det_cx1",
+      "refs": [
+        "cycle_model",
+        "dataflow",
+        "decomposition",
+        "decomposition.units.edge_detect",
+        "decomposition.units.sync2ff",
+        "fsm",
+        "function_model",
+        "function_model.state_variables",
+        "function_model.state_variables.prev_sync",
+        "function_model.state_variables.sync1",
+        "function_model.state_variables.sync2",
+        "function_model.transactions",
+        "function_model.transactions.FM_FALL",
+        "function_model.transactions.FM_RISE",
+        "function_model.transactions.FM_STABLE",
+        "io_list",
+        "io_list.interfaces.signal_input"
+      ],
+      "wiring_only": false
+    },
+    "peer_modules": [
+      {
+        "file": "rtl/edge_det_cx1.sv",
+        "name": "edge_det_cx1",
+        "wiring_only": false
+      }
+    ],
+    "quality_profile": "standard",
+    "reference_profile": null,
+    "ssot_connection_contracts": [],
+    "ssot_top_io_contracts": [
+      {
+        "aliases": [
+          "clk"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "clk",
+        "source_ref": "io_list.clock_domains[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rst_n"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "rst_n",
+        "source_ref": "io_list.resets[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "sig_in",
+          "signal_input_sig_in"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "input",
+        "name": "sig_in",
+        "source_ref": "io_list.interfaces[0].ports[0]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "rise_out",
+          "signal_input_rise_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "rise_out",
+        "source_ref": "io_list.interfaces[0].ports[1]",
+        "width": "1"
+      },
+      {
+        "aliases": [
+          "fall_out",
+          "signal_input_fall_out"
+        ],
+        "allow_constant": false,
+        "allow_unused": false,
+        "direction": "output",
+        "name": "fall_out",
+        "source_ref": "io_list.interfaces[0].ports[2]",
+        "width": "1"
+      }
+    ],
+    "target_scale": null
+  },
+  "execution_policy": {
+    "blocked_by_locked_truth": [],
+    "blocked_by_tool_evidence": [],
+    "contract_blocked_open_count": 0,
+    "deferred_human_qa_allowed": false,
+    "draft_allowed": true,
+    "evidence_closure_allowed": false,
+    "human_locked_open_count": 0,
+    "integration_signoff_allowed": true,
+    "llm_actionable": false,
+    "llm_actionable_open_count": 0,
+    "open_required_count": 0,
+    "pass_allowed": true,
+    "stop_conditions": [
+      "Close this packet only after every required task in the packet has pass status.",
+      "Return human_gate/change-request JSON when locked truth is missing instead of inventing semantics.",
+      "Never use a fixed RTL template as the implementation."
+    ],
+    "tool_evidence_open_count": 0,
+    "tool_evidence_plan": [],
+    "work_allowed": true
+  },
+  "ip": "edge_det_cx1",
+  "kind": "module",
+  "owner_file": "rtl/edge_det_cx1.sv",
+  "owner_module": "edge_det_cx1",
+  "packet_id": "module__edge_det_cx1__contract",
+  "rules": [
+    "No fixed RTL template: author real IP-specific RTL from SSOT-derived tasks.",
+    "Do not edit locked SSOT/FL/coverage/interface/performance authority artifacts.",
+    "Every task must satisfy content, detail, and criteria before the packet is closed.",
+    "For split owner modules, preserve existing owner_file logic from earlier slices and add only the missing behavior for this slice.",
+    "Static RTL evidence is matched after SystemVerilog comments are stripped: required evidence_terms must appear as live RTL identifiers, declarations, or expressions in the owner_file, and the resulting RTL must remain lint-clean.",
+    "Do not add evidence-only alias wires or identifiers copied from natural-language criteria; evidence must come from real control, datapath, CSR, FSM, CDC, or IO behavior.",
+    "Tasks tagged repair_generated_fm_marker are advisory schema-repair markers; they are omitted from authoring packets and must not cause fm*_observed RTL ports, wires, or state.",
+    "Record generated RTL files and todo_plan_sha256 in rtl_authoring_provenance.json."
+  ],
+  "schema_version": 1,
+  "source_plan": "rtl/rtl_todo_plan.json",
+  "summary": {
+    "categories": {
+      "contract.behavioral.rtl": 1,
+      "contract.structural.rtl": 1
+    },
+    "module_slice": {
+      "count": 12,
+      "enabled": true,
+      "index": 2,
+      "key": "contract",
+      "module_task_count": 74,
+      "rule": "Owner module edge_det_cx1 is split into 12 authoring slices. Update the same owner_file incrementally and preserve logic from earlier slices.",
+      "section": "contract",
+      "section_chunk_count": 1,
+      "section_chunk_index": 1,
+      "task_limit": 48
+    },
+    "open_required_count": 0,
+    "required_count": 2,
+    "source_refs": [
+      "req.behavioral_contracts.BC_EDGE_SYNC",
+      "req.structural_contracts.SC_EDGE_PORTS"
+    ],
+    "status_counts": {
+      "pass": 2
+    },
+    "task_count": 2
+  },
+  "tasks": [
+    {
+      "category": "contract.behavioral.rtl",
+      "content": "Implement locked behavioral contract BC_EDGE_SYNC",
+      "contract_kind": "behavioral",
+      "contract_projection_refs": [
+        "sub_modules[0]"
+      ],
+      "contract_ref": "BC_EDGE_SYNC",
+      "contract_stage_contracts": [
+        {
+          "artifact": "rtl/edge_det_cx1.sv",
+          "pass_condition": "zero errors",
+          "stage": "rtl",
+          "validator": "iverilog compile"
+        }
+      ],
+      "criteria": [
+        "Contract BC_EDGE_SYNC remains traceable to req/behavioral_contracts.json",
+        "At least one SSOT behavior section projects this contract and owns RTL implementation work",
+        "An explicit rtl/rtl-gen stage_contract states the RTL observable/check/pass condition",
+        "Live owner RTL contains evidence terms from the contract inputs/outputs/state/observables",
+        "Traceability keeps source_ref req.behavioral_contracts.BC_EDGE_SYNC",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/behavioral_contracts.json. The RTL must implement the contract's machine behavior and close the listed RTL stage_contracts.\nSSOT ref: req.behavioral_contracts.BC_EDGE_SYNC.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via single_owner.\nSSOT item context: signal=[\"edge_det_cx1\", \"fall_out\", \"prev_sync\", \"rise_out\", \"sig_in\", \"sync1\", \"sync2\"].",
+      "evidence_terms": [
+        "cx1",
+        "det",
+        "edge",
+        "edge_det_cx1",
+        "fall",
+        "fall_out",
+        "in",
+        "out",
+        "prev",
+        "prev_sync",
+        "rise",
+        "rise_out",
+        "sig",
+        "sig_in",
+        "sync",
+        "sync1"
+      ],
+      "id": "RTL-0026",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.behavioral_contracts.BC_EDGE_SYNC",
+      "ssot_context": {
+        "signal": "[\"edge_det_cx1\", \"fall_out\", \"prev_sync\", \"rise_out\", \"sig_in\", \"sync1\", \"sync2\"]"
+      },
+      "ssot_refs": [
+        "req.behavioral_contracts.BC_EDGE_SYNC",
+        "sub_modules[0]"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 16,
+        "matched_terms": [
+          "cx1",
+          "det",
+          "edge",
+          "edge_det_cx1",
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "cx1",
+          "det",
+          "edge",
+          "edge_det_cx1",
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "prev",
+          "prev_sync",
+          "rise",
+          "rise_out",
+          "sig",
+          "sig_in",
+          "sync",
+          "sync1"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    },
+    {
+      "category": "contract.structural.rtl",
+      "content": "Implement locked structural contract SC_EDGE_PORTS",
+      "contract_kind": "structural",
+      "contract_ref": "SC_EDGE_PORTS",
+      "contract_stage_contracts": [
+        {
+          "check": "RTL top declaration matches structural signal dir/width/timing intent",
+          "stage": "rtl-gen"
+        }
+      ],
+      "criteria": [
+        "Contract SC_EDGE_PORTS remains traceable to req/structural_contracts.json",
+        "Every structural signal is declared on the RTL top or explicitly waived by locked truth",
+        "Direction and width are checked against the RTL top declaration",
+        "Active structural inputs/outputs participate in live RTL logic or explicit SSOT waiver",
+        "Traceability keeps source_ref req.structural_contracts.SC_EDGE_PORTS",
+        "Primary implementation evidence is in rtl/edge_det_cx1.sv"
+      ],
+      "detail": "This row is derived directly from req/structural_contracts.json. RTL top ports must satisfy the contract's signal names, direction, width, and timing ownership.\nSSOT ref: req.structural_contracts.SC_EDGE_PORTS.\nOwner: edge_det_cx1 in rtl/edge_det_cx1.sv via single_owner.\nSSOT item context: signal=[\"clk\", \"fall_out\", \"rise_out\", \"rst_n\", \"sig_in\"].",
+      "evidence_terms": [
+        "clk",
+        "fall",
+        "fall_out",
+        "in",
+        "out",
+        "rise",
+        "rise_out",
+        "rst",
+        "rst_n",
+        "sig",
+        "sig_in"
+      ],
+      "id": "RTL-0027",
+      "owner_file": "rtl/edge_det_cx1.sv",
+      "owner_module": "edge_det_cx1",
+      "priority": "critical",
+      "required": true,
+      "source_ref": "req.structural_contracts.SC_EDGE_PORTS",
+      "ssot_context": {
+        "signal": "[\"clk\", \"fall_out\", \"rise_out\", \"rst_n\", \"sig_in\"]"
+      },
+      "ssot_refs": [
+        "io_list",
+        "req.structural_contracts.SC_EDGE_PORTS",
+        "top_module"
+      ],
+      "static_evidence": {
+        "fallback_scope": "",
+        "matched_count": 11,
+        "matched_terms": [
+          "clk",
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "rise",
+          "rise_out",
+          "rst",
+          "rst_n",
+          "sig",
+          "sig_in"
+        ],
+        "owner_file_scoped": true,
+        "required": true,
+        "required_match_count": 2,
+        "required_terms": [
+          "clk",
+          "fall",
+          "fall_out",
+          "in",
+          "out",
+          "rise",
+          "rise_out",
+          "rst",
+          "rst_n",
+          "sig",
+          "sig_in"
+        ],
+        "source_scope": "rtl/edge_det_cx1.sv",
+        "status": "pass"
+      },
+      "todo_completion": {
+        "criteria_total": 6,
+        "evidence_basis": [
+          "rtl_todo_plan.json task criteria",
+          "rtl_traceability.json source_ref mapping",
+          "owner RTL file/module declaration evidence",
+          "static RTL evidence audit when evidence_terms are required"
+        ],
+        "reason": "Task criteria are closed by SSOT traceability plus owner RTL/audit evidence.",
+        "required": true,
+        "status": "pass"
+      }
+    }
+  ],
+  "todo_plan_sha256": "1d11b814cabf42954ca06cd88ad0bf019a13abc686b761df855bcf6b3b6bdd11",
+  "top": "edge_det_cx1",
+  "type": "rtl_authoring_packet"
+}

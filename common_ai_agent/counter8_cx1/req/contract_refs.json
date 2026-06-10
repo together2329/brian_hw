@@ -1,0 +1,83 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_CNT8_COUNT",
+      "obligation_refs": [
+        "OBL_CNT8_COUNT_001"
+      ],
+      "ssot_anchor": "function_model.transactions.TR_COUNT",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/counter8_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_counter8_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_CNT8_HOLD",
+      "obligation_refs": [
+        "OBL_CNT8_HOLD_001"
+      ],
+      "ssot_anchor": "function_model.transactions.TR_HOLD",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/counter8_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_counter8_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_CNT8_LINT",
+      "obligation_refs": [
+        "OBL_CNT8_LINT_001"
+      ],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_CNT8_RESET",
+      "obligation_refs": [
+        "OBL_CNT8_RESET_001"
+      ],
+      "ssot_anchor": "function_model.transactions.TR_RESET",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/counter8_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_counter8_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    }
+  ],
+  "ip": "counter8_cx1",
+  "schema_version": 1,
+  "type": "contract_refs"
+}

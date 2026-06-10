@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "requirements_index",
+  "ip": "pwm_gen_cx1",
+  "status": "requirements_locked",
+  "requirements": [
+    {
+      "requirement_id": "REQ_PWM_COUNTER_001",
+      "title": "8-bit free-running counter",
+      "statement": "An 8-bit counter (counter_q) shall increment by 1 on every rising clk edge, wrapping from 255 to 0, when rst_n is deasserted.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_PWM_COUNTER_001", "OBL_PWM_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_PWM_DUTY_001",
+      "title": "DUTY register write",
+      "statement": "The DUTY register shall latch duty_in[7:0] on the rising clk edge when wr_en is asserted.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_PWM_DUTY_001", "OBL_PWM_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_PWM_OUT_001",
+      "title": "PWM output compare",
+      "statement": "pwm_out shall be combinationally driven as 1 when counter_q < duty_reg, and 0 otherwise.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_PWM_OUT_001", "OBL_PWM_LINT_001"]
+    },
+    {
+      "requirement_id": "REQ_PWM_RESET_001",
+      "title": "Reset clears all state",
+      "statement": "On active-low reset (rst_n=0), counter_q and duty_reg shall clear to 0, producing pwm_out=0.",
+      "required": true,
+      "status": "locked",
+      "obligation_refs": ["OBL_PWM_RESET_001", "OBL_PWM_LINT_001"]
+    }
+  ]
+}

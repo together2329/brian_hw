@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "type": "generic_goal_scoreboard_cocotb_generation",
+  "status": "pass",
+  "ip": "fifo_sync_cx1",
+  "generated_at": "2026-06-10T14:58:48Z",
+  "manifest": "fifo_sync_cx1/tb/cocotb/tb_manifest.json",
+  "test": "fifo_sync_cx1/tb/cocotb/test_fifo_sync_cx1.py",
+  "runner": "fifo_sync_cx1/tb/cocotb/test_runner.py",
+  "goals": 14,
+  "rtl_sources": 1
+}

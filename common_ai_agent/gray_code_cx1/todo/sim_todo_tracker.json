@@ -1,0 +1,119 @@
+{
+  "description": "Dynamic sim todo list from sim/sim_todo_plan.json",
+  "name": "gray_code_cx1-sim",
+  "schema_version": "todo_tracker.dynamic.v1",
+  "source_plan": "sim/sim_todo_plan.json",
+  "source_task_count": 4,
+  "tasks": [
+    {
+      "activeForm": "Closing obligation OBL_GC_DECODE_001 for the sim stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-sim 1/3] bin_out is registered as cascaded XOR reduction of gray_in one cycle after vali…",
+      "criteria": "bin_out matches cascaded XOR of gray_in for all 16 values\ndecode sequence matches BC_GC_DECODE expected\nports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths\ncheck_evidence_contract.py confirms OBL_GC_DECODE_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_GC_DECODE_001 (sim stage; granularity=temporal).\nRequirement(s): REQ_GC_FUNC_001\nContract(s): C_GC_DECODE\nStructural contract(s): SC_GC_PORTS\nBehavioral contract(s): BC_GC_DECODE\nSSOT anchor: function_model.transactions.FM_PRIMARY\nbin_out is registered as cascaded XOR reduction of gray_in one cycle after valid is sampled.",
+      "priority": "high",
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/gray_code_cx1.sv"
+      ],
+      "source_id": "OBL_GC_DECODE_001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/gray_code_cx1.sv",
+          "sim",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[sim] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_GC_ENCODE_001 for the sim stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-sim 2/3] gray_out is registered as bin_in XOR (bin_in>>1) one cycle after valid is sampl…",
+      "criteria": "gray_out matches XOR formula for all 16 bin_in values\nencode sequence matches BC_GC_ENCODE expected\nports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths\ncheck_evidence_contract.py confirms OBL_GC_ENCODE_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_GC_ENCODE_001 (sim stage; granularity=temporal).\nRequirement(s): REQ_GC_FUNC_001\nContract(s): C_GC_ENCODE\nStructural contract(s): SC_GC_PORTS\nBehavioral contract(s): BC_GC_ENCODE\nSSOT anchor: function_model.transactions.FM_PRIMARY\ngray_out is registered as bin_in XOR (bin_in>>1) one cycle after valid is sampled.",
+      "priority": "high",
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/gray_code_cx1.sv"
+      ],
+      "source_id": "OBL_GC_ENCODE_001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/gray_code_cx1.sv",
+          "sim",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[sim] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Closing obligation OBL_GC_RESET_001 for the sim stage",
+      "approval_policy": "evidence_required",
+      "content": "[gen-sim 3/3] gray_out and bin_out clear to 0 synchronously when rst_n is low.",
+      "criteria": "outputs==0 during reset\noutputs==0 one cycle after rst_n asserts per BC_GC_RESET\nports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths\ncheck_evidence_contract.py confirms OBL_GC_RESET_001 is closed with fresh evidence",
+      "detail": "Obligation OBL_GC_RESET_001 (sim stage; granularity=temporal).\nRequirement(s): REQ_GC_FUNC_001\nContract(s): C_GC_RESET\nStructural contract(s): SC_GC_PORTS\nBehavioral contract(s): BC_GC_RESET\nSSOT anchor: cycle_model\ngray_out and bin_out clear to 0 synchronously when rst_n is low.",
+      "priority": "high",
+      "required_evidence": [
+        "sim/scoreboard_events.jsonl",
+        "rtl/gray_code_cx1.sv"
+      ],
+      "source_id": "OBL_GC_RESET_001",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "sim/scoreboard_events.jsonl",
+          "rtl/gray_code_cx1.sv",
+          "sim",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[sim] PASS",
+        "status": "pass"
+      }
+    },
+    {
+      "activeForm": "Running deterministic sim gate",
+      "approval_policy": "evidence_required",
+      "command": "/Library/Developer/CommandLineTools/usr/bin/python3 /Users/brian/Desktop/Project/brian_hw/common_ai_agent/workflow/req-gen/scripts/stage_gate.py sim \"$ATLAS_ACTIVE_IP\" --root \"$ATLAS_PROJECT_ROOT\"",
+      "content": "[gen-sim gate] Verify every sim obligation is closed",
+      "criteria": "stage_gate.py sim exits 0 (all hard checks pass; tool-absent checks skipped)",
+      "detail": "Deterministic gate after 3 obligation todo(s). Detect-and-skip policy: pure python/bash checks are hard; external-tool checks skip when the tool is absent (the sim stage blocks if no simulator). On failure this loops back to the first obligation todo so the agent repairs and the gate reruns.",
+      "on_reject": 1,
+      "priority": "high",
+      "required_evidence": [
+        "stage_gate.py sim returncode 0"
+      ],
+      "source_id": "GATE-SIM",
+      "source_plan": "sim/sim_todo_plan.json",
+      "status": "approved",
+      "todo_completion": {
+        "evidence_basis": [
+          "stage_gate.py sim returncode 0",
+          "sim",
+          "sim_evidence",
+          "ssot_coverage_summary"
+        ],
+        "reason": "[sim] PASS",
+        "status": "pass"
+      }
+    }
+  ],
+  "ui_grouping": {
+    "actual_count": 4,
+    "internal_plan": "sim/sim_todo_plan.json",
+    "source_task_count": 4,
+    "strategy": "vcm_obligation_contract_gate"
+  }
+}

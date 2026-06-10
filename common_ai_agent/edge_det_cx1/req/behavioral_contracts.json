@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "type": "behavioral_contracts",
+  "ip": "edge_det_cx1",
+  "contracts": [
+    {
+      "id": "BC_EDGE_SYNC",
+      "obligations": ["OBL_EDGE_SYNC_001", "OBL_EDGE_RISE_001", "OBL_EDGE_FALL_001", "OBL_EDGE_RESET_001"],
+      "transactions": [
+        {
+          "id": "FM_RISE",
+          "name": "rising_edge",
+          "preconditions": ["prev_sync == 0", "sync2 == 1"],
+          "outputs": {"rise_out": 1, "fall_out": 0},
+          "state_updates": {"sync1": "sig_in", "sync2": "sync1", "prev_sync": "sync2"}
+        },
+        {
+          "id": "FM_FALL",
+          "name": "falling_edge",
+          "preconditions": ["prev_sync == 1", "sync2 == 0"],
+          "outputs": {"rise_out": 0, "fall_out": 1},
+          "state_updates": {"sync1": "sig_in", "sync2": "sync1", "prev_sync": "sync2"}
+        },
+        {
+          "id": "FM_STABLE",
+          "name": "stable",
+          "preconditions": ["prev_sync == sync2"],
+          "outputs": {"rise_out": 0, "fall_out": 0},
+          "state_updates": {"sync1": "sig_in", "sync2": "sync1", "prev_sync": "sync2"}
+        },
+        {
+          "id": "FM_RESET",
+          "name": "reset",
+          "preconditions": ["rst_n == 0"],
+          "outputs": {"rise_out": 0, "fall_out": 0},
+          "state_updates": {"sync1": 0, "sync2": 0, "prev_sync": 0}
+        }
+      ],
+      "invariants": [
+        "rise_out = sync2 & ~prev_sync (combinational)",
+        "fall_out = ~sync2 & prev_sync (combinational)",
+        "rise_out and fall_out are mutually exclusive"
+      ],
+      "latency": {"edge_detect": {"min_cycles": 3, "max_cycles": 3}},
+      "ordering": ["sync1 updated first, then sync2, then prev_sync on each clock edge"],
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/edge_det_cx1.sv",                  "validator": "iverilog compile", "pass_condition": "zero errors"},
+        {"stage": "tb",   "artifact": "tb/cocotb/test_edge_det_cx1.py",        "validator": "cocotb scoreboard", "pass_condition": "rise/fall observed at correct cycle"},
+        {"stage": "sim",  "artifact": "sim/scoreboard_events.jsonl",           "validator": "check_sim_disk.py", "pass_condition": "all scoreboard events pass"},
+        {"stage": "lint", "artifact": "lint/dut_lint.json",                    "validator": "dut_lint_report", "pass_condition": "no latches no multi-driver"}
+      ]
+    }
+  ]
+}

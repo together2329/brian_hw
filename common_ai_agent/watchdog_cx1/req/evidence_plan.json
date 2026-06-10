@@ -1,0 +1,84 @@
+{
+  "evidence_plan": [
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_WDT_IDLE",
+      "evidence_id": "E_WDT_BC_IDLE",
+      "pass_condition": "count_q unchanged and timeout_pulse==0 when disabled per BC_WDT_IDLE",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_WDT_KICK",
+      "evidence_id": "E_WDT_BC_KICK",
+      "pass_condition": "count_q reloaded to period_q per BC_WDT_KICK",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "BC_WDT_LINT",
+      "evidence_id": "E_WDT_BC_LINT",
+      "pass_condition": "no latch findings per BC_WDT_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_WDT_TICK",
+      "evidence_id": "E_WDT_BC_TICK",
+      "pass_condition": "count_q decrement matches BC_WDT_TICK TR_TICK expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_WDT_TIMEOUT",
+      "evidence_id": "E_WDT_BC_TIMEOUT",
+      "pass_condition": "timeout_pulse==1 for exactly 1 cycle per BC_WDT_TIMEOUT",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_WDT_IDLE",
+      "evidence_id": "E_WDT_IDLE",
+      "pass_condition": "count_q unchanged and timeout_pulse==0 when enable_q==0",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_WDT_KICK",
+      "evidence_id": "E_WDT_KICK",
+      "pass_condition": "count_q reloaded to period_q after KICK write",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "C_WDT_LINT",
+      "evidence_id": "E_WDT_LINT",
+      "pass_condition": "no latch / no single-driver violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "rtl/watchdog_cx1.sv",
+      "contract_ref": "SC_WDT_PORTS",
+      "evidence_id": "E_WDT_SC_PORTS",
+      "pass_condition": "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR timeout_pulse present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_WDT_TICK",
+      "evidence_id": "E_WDT_TICK",
+      "pass_condition": "observed count_q decrement sequence matches FL expected",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_WDT_TIMEOUT",
+      "evidence_id": "E_WDT_TIMEOUT",
+      "pass_condition": "timeout_pulse==1 for exactly 1 cycle when count_q reaches 1",
+      "validator": "check_evidence_contract.py"
+    }
+  ],
+  "ip": "watchdog_cx1",
+  "schema_version": 1,
+  "type": "evidence_plan"
+}

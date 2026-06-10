@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "fifo_sync_cx1",
+  "source": "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "fifo_sync_cx1/req/",
+      "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml",
+      "fifo_sync_cx1/model/functional_model.py",
+      "fifo_sync_cx1/cov/fcov_plan.json",
+      "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml#io_list",
+      "fifo_sync_cx1/yaml/fifo_sync_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "fifo_sync_cx1/rtl/",
+      "fifo_sync_cx1/tb/",
+      "fifo_sync_cx1/sim/",
+      "fifo_sync_cx1/vectors/",
+      "fifo_sync_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC01_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC01",
+      "description": "reset contract"
+    },
+    {
+      "id": "SC02_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC02",
+      "description": "single write then read"
+    },
+    {
+      "id": "SC03_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC03",
+      "description": "fill to full"
+    },
+    {
+      "id": "SC04_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC04",
+      "description": "drain to empty"
+    },
+    {
+      "id": "function_write_behavior",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_write",
+      "description": "FM_WRITE write_behavior"
+    },
+    {
+      "id": "function_read_behavior",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_read",
+      "description": "FM_READ read_behavior"
+    },
+    {
+      "id": "cycle_wr_en_full",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'name': 'wr_en_full', 'signal': 'wr_en', 'condition': 'wr_data sampled when wr_en is high and full is low.', 'behavioral_contract_refs': ['BC_FIFO_WRITE']}"
+    },
+    {
+      "id": "cycle_rd_en_empty",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[1]",
+      "source_ref": "cycle_model.handshake_rules[1]",
+      "description": "{'name': 'rd_en_empty', 'signal': 'rd_en', 'condition': 'rd_ptr advanced when rd_en is high and empty is low.', 'behavioral_contract_refs': ['BC_FIFO_READ']}"
+    },
+    {
+      "id": "cycle_reset_clear",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[2]",
+      "source_ref": "cycle_model.handshake_rules[2]",
+      "description": "{'name': 'reset_clear', 'signal': 'rst_n', 'condition': 'rst_n low clears count, wr_ptr, rd_ptr to 0 synchronously.', 'behavioral_contract_refs': ['BC_FIFO_RESET']}"
+    },
+    {
+      "id": "cycle_pipeline_write_wr_en",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "Accept wr_data when wr_en and not full."
+    },
+    {
+      "id": "cycle_pipeline_read_rd_en",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "Advance rd_ptr when rd_en and not empty."
+    },
+    {
+      "id": "cycle_pipeline_count_full_empty",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[2]",
+      "source_ref": "cycle_model.pipeline[2]",
+      "description": "Update count, full and empty flags."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "Simultaneous write and read (bypass) is allowed when !full && !empty."
+    }
+  ],
+  "summary": {
+    "total_bins": 13,
+    "scenario_bins": 4,
+    "transaction_bins": 2,
+    "protocol_bins": 3,
+    "state_transition_bins": 0,
+    "error_bins": 0
+  }
+}

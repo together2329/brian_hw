@@ -1,0 +1,56 @@
+{
+  "approved_at_utc": "2026-06-10T14:36:29Z",
+  "approved_by": "cursor-agent",
+  "bundle_sha256": "bcacd1915c9b786fb92dd407ebbdb7e0e15b112a1b7aa2c77efe5ddd60509240",
+  "decision_note": "",
+  "draft": "gray_code_cx1/req",
+  "draft_sha256": "8f485089abc6690fbf450fee1cd4b23349ad6b9571e156567cc77f4e977a282b",
+  "files": {
+    "req/behavioral_contracts.json": {
+      "bytes": 4091,
+      "path": "gray_code_cx1/req/behavioral_contracts.json",
+      "sha256": "a56690773d80a1763c77689aa511a8f8416386323e9f1e0d66af381c9f27616f"
+    },
+    "req/contract_refs.json": {
+      "bytes": 1870,
+      "path": "gray_code_cx1/req/contract_refs.json",
+      "sha256": "8242b49110ac3e2f385c75b7abe50f2147767e0b1cf99e655d78adc05329cdd9"
+    },
+    "req/evidence_plan.json": {
+      "bytes": 2383,
+      "path": "gray_code_cx1/req/evidence_plan.json",
+      "sha256": "cdaa0d6c9f95fdfa54483730bb54019cd79474d48b30deb8fcb278d86cfeb9a8"
+    },
+    "req/locked_truth.md": {
+      "bytes": 14902,
+      "path": "gray_code_cx1/req/locked_truth.md",
+      "sha256": "92bfedef06150c4a2e70c0d1d2637bac4e72cd719dc8be194fc1812a77b8af1a"
+    },
+    "req/obligations.json": {
+      "bytes": 2543,
+      "path": "gray_code_cx1/req/obligations.json",
+      "sha256": "d396f2c11359b1fa08b2299a079ab3fd610383a102fa512e1cd033ca096b4dbb"
+    },
+    "req/requirements_index.json": {
+      "bytes": 683,
+      "path": "gray_code_cx1/req/requirements_index.json",
+      "sha256": "d799b5a2a604af40abeed8148f3a99541ac8d4131f2a3ecee14eb0387a44a9dd"
+    },
+    "req/structural_contracts.json": {
+      "bytes": 2376,
+      "path": "gray_code_cx1/req/structural_contracts.json",
+      "sha256": "79cf313ed560f67f7d72a2c8741d37f7adbd0cf63a3a76bae8bad0aa1940aa0d"
+    }
+  },
+  "ip": "gray_code_cx1",
+  "requirements": [
+    {
+      "required": true,
+      "requirement_id": "REQ_GC_FUNC_001",
+      "status": "locked"
+    }
+  ],
+  "schema_version": 1,
+  "status": "requirements_locked",
+  "type": "locked_truth_approval_manifest"
+}

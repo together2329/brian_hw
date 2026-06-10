@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "type": "behavioral_contracts",
+  "ip": "pwm_gen_cx1",
+  "contracts": [
+    {
+      "id": "BC_PWM_COUNT",
+      "obligations": ["OBL_PWM_COUNTER_001", "OBL_PWM_OUT_001"],
+      "ssot_section": "function_model",
+      "timing": "counter_q registered on rising clk; pwm_out combinational compare",
+      "latency": {
+        "count_update": "1 clock cycle: counter_q increments one rising clk after previous value",
+        "pwm_compare": "0 cycles: pwm_out is combinational from counter_q and duty_reg"
+      },
+      "ordering": "reset (rst_n==0) takes priority over normal counting",
+      "transactions": [
+        {
+          "id": "TR_TICK",
+          "preconditions": ["rst_n == 1", "wr_en == 0"],
+          "outputs": [{"name": "pwm_out", "expr": "1 if counter_q < duty_reg else 0"}],
+          "state_updates": [{"name": "counter_q", "expr": "(counter_q + 1) & 0xFF"}]
+        }
+      ],
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/pwm_gen_cx1.sv", "timing": "counter_q registered, pwm_out combinational"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_pwm_gen_cx1.py", "timing": "check pwm_out each cycle"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "pwm_out matches FL expected each cycle"}
+      ]
+    },
+    {
+      "id": "BC_PWM_DUTY",
+      "obligations": ["OBL_PWM_DUTY_001"],
+      "ssot_section": "function_model",
+      "timing": "duty_reg registered on rising clk when wr_en=1",
+      "latency": {
+        "duty_update": "1 clock cycle: duty_reg latches duty_in one rising clk after wr_en"
+      },
+      "ordering": "wr_en and counter increment can happen simultaneously on the same cycle",
+      "transactions": [
+        {
+          "id": "TR_WRITE",
+          "preconditions": ["rst_n == 1", "wr_en == 1"],
+          "outputs": [{"name": "pwm_out", "expr": "1 if counter_q < duty_in else 0"}],
+          "state_updates": [
+            {"name": "duty_reg",  "expr": "duty_in & 0xFF"},
+            {"name": "counter_q", "expr": "(counter_q + 1) & 0xFF"}
+          ]
+        }
+      ],
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/pwm_gen_cx1.sv", "timing": "duty_reg registered on rising clk"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_pwm_gen_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "duty_reg matches duty_in one cycle after wr_en"}
+      ]
+    },
+    {
+      "id": "BC_PWM_RESET",
+      "obligations": ["OBL_PWM_RESET_001"],
+      "ssot_section": "function_model",
+      "timing": "async reset assertion; sync deassertion",
+      "reset": "async active-low; counter_q and duty_reg clear to 0 on rst_n=0",
+      "transactions": [
+        {
+          "id": "TR_RESET",
+          "preconditions": ["rst_n == 0"],
+          "outputs": [{"name": "pwm_out", "expr": "0"}],
+          "state_updates": [
+            {"name": "counter_q", "expr": "0"},
+            {"name": "duty_reg",  "expr": "0"}
+          ]
+        }
+      ],
+      "stage_contracts": [
+        {"stage": "rtl", "artifact": "rtl/pwm_gen_cx1.sv", "reset": "async active-low"},
+        {"stage": "tb",  "artifact": "tb/cocotb/test_pwm_gen_cx1.py"},
+        {"stage": "sim", "artifact": "sim/scoreboard_events.jsonl", "pass_condition": "pwm_out=0 and counter_q=0 during reset"}
+      ]
+    },
+    {
+      "id": "BC_PWM_LINT",
+      "obligations": ["OBL_PWM_LINT_001"],
+      "ssot_section": "coding_rules",
+      "cycle_model_waiver": "lint-only obligation; functional cycle model covered by BC_PWM_COUNT, BC_PWM_DUTY, and BC_PWM_RESET",
+      "invariants": [
+        "No inferred latches in pwm_gen_cx1 RTL",
+        "counter_q and duty_reg are registered; single driver each"
+      ],
+      "timing": "registered outputs; no combinational loop or latch inference",
+      "stage_contracts": [
+        {"stage": "rtl",  "artifact": "rtl/pwm_gen_cx1.sv",   "timing": "registered outputs; no latch inference"},
+        {"stage": "lint", "artifact": "lint/dut_lint.json",    "pass_condition": "no latch findings"}
+      ]
+    }
+  ]
+}

@@ -1,5 +1,9 @@
 # Wiki Log
 
+## 2026-06-11
+
+- **10-IP 캠페인 + 자가포함 Cursor 팩**: *_cx1 IP 10종을 .cursor 문서만으로 req→rtl→tb→sim 제작 (9/10 sim PASS, 전부 <ip>/wiki 히스토리+check PASS). friction ~60건 → skills/rocev-chain/KNOWN_TRAPS.md 런북 + SKILL 보정 + 생성기 버그 4건 engine.stage known_gaps 등재. [[cursor-agent-pack]]
+
 ## 2026-06-10
 
 - **Cursor Agent Pack v2** (commits `c6b0daf2`+`c23195dd`): Cursor 공식 스펙

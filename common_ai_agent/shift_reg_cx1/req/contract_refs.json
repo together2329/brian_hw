@@ -1,0 +1,62 @@
+{
+  "contract_refs": [
+    {
+      "contract_ref_id": "C_SR8_LINT",
+      "obligation_refs": [
+        "OBL_SR8_LINT_001"
+      ],
+      "ssot_anchor": "coding_rules",
+      "stage_contracts": [
+        {
+          "artifact": "lint/dut_lint.json",
+          "stage": "lint"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_SR8_RESET",
+      "obligation_refs": [
+        "OBL_SR8_RESET_001"
+      ],
+      "ssot_anchor": "function_model.transactions.TR_RESET",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/shift_reg_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_shift_reg_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    },
+    {
+      "contract_ref_id": "C_SR8_SHIFT",
+      "obligation_refs": [
+        "OBL_SR8_SHIFT_001"
+      ],
+      "ssot_anchor": "function_model.transactions.TR_SHIFT",
+      "stage_contracts": [
+        {
+          "artifact": "rtl/shift_reg_cx1.sv",
+          "stage": "rtl"
+        },
+        {
+          "artifact": "tb/cocotb/test_shift_reg_cx1.py",
+          "stage": "tb"
+        },
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "stage": "sim"
+        }
+      ]
+    }
+  ],
+  "ip": "shift_reg_cx1",
+  "schema_version": 1,
+  "type": "contract_refs"
+}

@@ -1,0 +1,14 @@
+===== pyslang =====
+command: pyslang rtl/fifo_sync_cx1.sv
+returncode: 0
+errors: 0 warnings: 0
+pyslang files: 1
+errors=0 warnings=0
+
+===== verilator =====
+command: verilator --lint-only -Wall -Irtl -f list/fifo_sync_cx1.f --top-module fifo_sync_cx1
+returncode: 0
+errors: 0 warnings: 0
+- V e r i l a t i o n   R e p o r t: Verilator 5.046 2026-02-28 rev vUNKNOWN-built20260228
+- Verilator: Built from 0.034 MB sources in 2 modules, into 0.014 MB in 3 C++ files needing 0.000 MB
+- Verilator: Walltime 0.007 s (elab=0.000, cvt=0.004, bld=0.000); cpu 0.006 s on 1 threads; allocated 8.688 MB

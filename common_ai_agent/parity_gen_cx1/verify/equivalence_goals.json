@@ -1,0 +1,1711 @@
+{
+  "ip": "parity_gen_cx1",
+  "schema_version": 1,
+  "type": "fl_rtl_equivalence_goals",
+  "source_of_truth": {
+    "ssot": "parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml",
+    "functional_model": "parity_gen_cx1/model/functional_model.py",
+    "functional_model_exists": true,
+    "cycle_model_section": "cycle_model",
+    "decomposition": "parity_gen_cx1/model/decomposition.json",
+    "coverage_plan": "parity_gen_cx1/cov/fcov_plan.json",
+    "authority_contract": {
+      "rule": "LLM repair loops are allowed when a general criterion has objective machine evidence: PASS/FAIL/DIFF, coverage gap, lint diagnostic, assertion failure, stale evidence, traceability gap, or measured performance gap. Human gates own intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff.",
+      "general_evaluation_criteria": [
+        {
+          "id": "traceability",
+          "criterion": "Every generated artifact traces to SSOT requirement, function_model, cycle_model, interface, coverage, or quality_gates refs.",
+          "machine_evidence": [
+            "source refs in decomposition/equivalence goals",
+            "artifact manifests"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "functional_equivalence",
+          "criterion": "RTL observable behavior matches FunctionalModel results for every required transaction/scenario.",
+          "machine_evidence": [
+            "scoreboard_events.jsonl",
+            "fl_rtl_compare.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "module_equivalence",
+          "criterion": "Each behavior-owning RTL module has module-boundary evidence before top-level signoff.",
+          "machine_evidence": [
+            "scope.level=module scoreboard rows",
+            "module goal status"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "coverage_closure",
+          "criterion": "SSOT coverage goals are hit by passing RTL-observed scoreboard evidence.",
+          "machine_evidence": [
+            "fcov_plan.json",
+            "coverage.json",
+            "scoreboard coverage_refs"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "interface_protocol",
+          "criterion": "Ports, handshakes, ordering, reset, and error protocol obey SSOT io_list/cycle_model/interface contract.",
+          "machine_evidence": [
+            "protocol goals",
+            "assertion failures",
+            "waveform evidence"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "lint_compile",
+          "criterion": "DUT-only RTL compile/lint has zero unwaived errors, warnings, and style diagnostics.",
+          "machine_evidence": [
+            "rtl_compile.json",
+            "dut_lint.json"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "simulation_evidence",
+          "criterion": "Simulation results are fresh, bounded, non-stale, and tied to structured scoreboard goals.",
+          "machine_evidence": [
+            "results.xml",
+            "scoreboard_events.jsonl",
+            "stale_evidence checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "performance_cycle",
+          "criterion": "Cycle/performance targets from cycle_model/timing are measured or explicitly escalated.",
+          "machine_evidence": [
+            "latency/throughput measurements",
+            "CL/performance sweep reports"
+          ],
+          "llm_loop_allowed": "candidate_search_only"
+        },
+        {
+          "id": "debug_observability",
+          "criterion": "Waveforms and debug probes are sufficient to inspect reset, interface activity, state, outputs, and failures.",
+          "machine_evidence": [
+            "VCD/FST presence",
+            "debug_observability goals",
+            "waveform parser summary"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "maintainability",
+          "criterion": "Generated RTL/TB is structured by SSOT-owned modules, avoids fixed IP templates, and remains reviewable.",
+          "machine_evidence": [
+            "module contracts",
+            "dynamic todo plan",
+            "filelist/manifest checks"
+          ],
+          "llm_loop_allowed": true
+        },
+        {
+          "id": "human_decision",
+          "criterion": "Intent, semantic rule changes, waivers, interface changes, performance tradeoffs, and final signoff are human-owned.",
+          "machine_evidence": [
+            "human_gate questions/answers",
+            "approval state"
+          ],
+          "llm_loop_allowed": false
+        }
+      ],
+      "locked_artifacts": [
+        {
+          "name": "requirement",
+          "path": "parity_gen_cx1/req/",
+          "owner": "human",
+          "change_rule": "Human owns intent, scope, priority, tradeoffs, and final acceptance."
+        },
+        {
+          "name": "ssot_spec",
+          "path": "parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Behavior, interface, coverage goal, and waiver changes require human gate."
+        },
+        {
+          "name": "functional_model",
+          "path": "parity_gen_cx1/model/functional_model.py",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "FunctionalModel is the golden oracle; sim-debug cannot change it to match RTL."
+        },
+        {
+          "name": "coverage_plan",
+          "path": "parity_gen_cx1/cov/fcov_plan.json",
+          "owner": "human-approved fl-model-gen",
+          "change_rule": "LLM may add tests to hit bins, but cannot weaken or delete bins without approval."
+        },
+        {
+          "name": "interface_contract",
+          "path": "parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml#io_list",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "Protocol and port contract changes require human approval."
+        },
+        {
+          "name": "performance_target",
+          "path": "parity_gen_cx1/yaml/parity_gen_cx1.ssot.yaml#cycle_model",
+          "owner": "human-approved ssot-gen",
+          "change_rule": "LLM may sweep candidates, but target/tradeoff changes require human approval."
+        }
+      ],
+      "llm_editable_artifacts": [
+        "parity_gen_cx1/rtl/",
+        "parity_gen_cx1/tb/",
+        "parity_gen_cx1/sim/",
+        "parity_gen_cx1/reports/",
+        "parity_gen_cx1/vectors/"
+      ],
+      "loopable_evidence_points": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "loopable_oracles": [
+        {
+          "loop": "traceability_closure",
+          "criterion": "SSOT refs vs generated artifact refs",
+          "llm_action": "Add missing refs/artifact ownership or open a human gate if ownership is undefined."
+        },
+        {
+          "loop": "rtl_function",
+          "criterion": "FunctionalModel.apply expected values vs RTL observed values",
+          "llm_action": "Patch RTL and rerun cocotb/sim-debug."
+        },
+        {
+          "loop": "module_function",
+          "criterion": "scope.level=module equivalence goal against RTL module boundary observations",
+          "llm_action": "Patch the owning RTL module only."
+        },
+        {
+          "loop": "coverage_closure",
+          "criterion": "coverage goals vs RTL-observed scoreboard coverage rows",
+          "llm_action": "Add stimulus/tests/vectors without changing coverage goals."
+        },
+        {
+          "loop": "lint_compile",
+          "criterion": "DUT-only compile/lint diagnostics",
+          "llm_action": "Patch RTL syntax, widths, drivers, and coding style."
+        },
+        {
+          "loop": "assertion_protocol",
+          "criterion": "SSOT interface/cycle assertion failure",
+          "llm_action": "Patch RTL or TB driver/monitor depending on classified owner."
+        },
+        {
+          "loop": "cl_performance",
+          "criterion": "cycle_model/performance target vs measured latency/throughput",
+          "llm_action": "Run parameter/architecture sweeps and report tradeoff candidates."
+        },
+        {
+          "loop": "regression_minimize",
+          "criterion": "minimal vector still reproduces the same failure",
+          "llm_action": "Reduce failing stimulus before patching."
+        },
+        {
+          "loop": "report_root_cause",
+          "criterion": "scoreboard diff, logs, coverage miss, and waveform evidence",
+          "llm_action": "Write root-cause report and repair prompt."
+        }
+      ],
+      "non_loopable_decisions": [
+        "change requirement intent or scope",
+        "change SSOT behavioral rule",
+        "change FunctionalModel golden semantics",
+        "change coverage goal or waiver",
+        "change interface contract",
+        "change performance target or architecture tradeoff",
+        "final signoff"
+      ]
+    }
+  },
+  "summary": {
+    "total": 21,
+    "required": 21,
+    "optional": 0,
+    "blocked": 0,
+    "unverified": 0,
+    "module_total": 1,
+    "module_required": 1,
+    "module_blocked": 0,
+    "module_unverified": 0
+  },
+  "goals": [
+    {
+      "goal_id": "EQ_TRANSACTION_FM_PARITY",
+      "title": "Transaction parity_compute matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "function_parity_compute"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TRANSACTION_FM_RESET",
+      "title": "Transaction reset matches FunctionalModel",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "function_model.transactions[1]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed",
+        "function_reset"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 0"
+        ],
+        "transaction_id": "FM_RESET"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "par_reg=0",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold when applicable",
+        "state_updates": [
+          "par_reg cleared to 0",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Scoreboard calls FunctionalModel.apply with the same transaction intent",
+        "RTL observed outputs equal FL expected outputs",
+        "RTL side effects match FL model state updates",
+        "Linked functional coverage bins are hit when stimulus executes"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC1",
+      "title": "Scenario SC1: Reset \u2014 par_reg=0",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "SC1_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "reset",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "Assert rst_n=0",
+          "rst_n == 0"
+        ],
+        "machine_spec": {
+          "assign": {
+            "data_in": 0
+          }
+        },
+        "transaction_id": "FM_RESET"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "par_reg=0",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "par_reg cleared to 0",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC2",
+      "title": "Scenario SC2: All zeros \u2014 even parity 0",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[1]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "SC2_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "data_in=0x00",
+          "rst_n == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "assign": {
+                "data_in": 0
+              }
+            }
+          ]
+        },
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par=0, odd_par=1",
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC3",
+      "title": "Scenario SC3: 0x01 \u2014 even parity 1",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[2]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "SC3_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "data_in=0x01 (one bit set)",
+          "rst_n == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "assign": {
+                "data_in": 1
+              }
+            }
+          ]
+        },
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par=1, odd_par=0",
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC4",
+      "title": "Scenario SC4: 0xFF \u2014 even parity 0 (8 bits set)",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[3]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "SC4_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "data_in=0xFF",
+          "rst_n == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "assign": {
+                "data_in": 255
+              }
+            }
+          ]
+        },
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par=0, odd_par=1",
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_SCENARIO_SC5",
+      "title": "Scenario SC5: Registered parity latches after clock",
+      "kind": "transaction",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "test_requirements.scenarios[4]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "SC5_executed"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "scenario_id",
+          "kind"
+        ],
+        "constraints": [
+          "data_in=0x01; wait 1 cycle",
+          "rst_n == 1"
+        ],
+        "machine_spec": {
+          "timeline": [
+            {
+              "assign": {
+                "data_in": 1
+              }
+            }
+          ]
+        },
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "par_reg=1 one cycle after data_in=0x01",
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to the scenario",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated sequence executes the SSOT stimulus",
+        "Scoreboard expected result comes from FunctionalModel.apply and SSOT scenario expected field",
+        "RTL observed result matches expected result",
+        "Scenario coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_0",
+      "title": "Cycle/handshake rule handshake_0",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_0",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'even_par', 'rule': 'Combinational \u2014 reflects data_in immediately', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_1",
+      "title": "Cycle/handshake rule handshake_1",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[1]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_1",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'par_reg', 'rule': 'Registered \u2014 reflects even_par from previous cycle', 'behavioral_contract_refs': ['BC_PAR_FUNC']}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_PROTOCOL_HANDSHAKE_2",
+      "title": "Cycle/handshake rule handshake_2",
+      "kind": "protocol",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.handshake_rules[2]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_handshake_0",
+        "cycle_handshake_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "handshake_2",
+        "required_fields": [
+          "cycle",
+          "observed_signals"
+        ],
+        "constraints": [
+          "{'signal': 'par_reg', 'rule': 'Cleared to 0 when rst_n=0', 'behavioral_contract_refs': ['BC_PAR_RESET']}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ready/valid/control observables named by SSOT and DUT ports"
+        ],
+        "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL holds payload/control stability according to cycle_model",
+        "Handshake completion timing matches cycle_model latency/ordering",
+        "Protocol coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_0",
+      "title": "Ordering rule ordering_0",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_0",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "even_par/odd_par update combinationally when data_in changes."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_TIMING_ORDERING_1",
+      "title": "Ordering rule ordering_1",
+      "kind": "timing",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.ordering[1]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model"
+      ],
+      "coverage_refs": [
+        "cycle_ordering_0",
+        "cycle_ordering_1"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "ordering_1",
+        "required_fields": [
+          "cycle",
+          "transaction_order"
+        ],
+        "constraints": [
+          "par_reg updates on clock edge."
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "ordered RTL observable sequence"
+        ],
+        "latency": "{'even_odd_par': {'min_cycles': 0, 'max_cycles': 0}, 'par_reg': {'min_cycles': 1, 'max_cycles': 1}}",
+        "state_updates": [],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "RTL response order matches cycle_model ordering",
+        "FL trace and RTL monitor trace preserve the same transaction order"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_ERROR_NONE",
+      "title": "Error policy None",
+      "kind": "error",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "error_handling.error_sources[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "error_error_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "None",
+        "required_fields": [
+          "fault_condition"
+        ],
+        "constraints": [
+          "{'id': 'ERR_NONE', 'condition': 'No error sources', 'architectural_effect': 'No error outputs'}"
+        ]
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "error response",
+          "status/interrupt/debug observable"
+        ],
+        "latency": "error propagation timing from cycle_model",
+        "state_updates": [
+          "error state/counter/status update"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Fault stimulus produces the SSOT-defined error response",
+        "No illegal side effect occurs unless SSOT allows it",
+        "Error coverage bin is hit"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_MODULE_PARITY_GEN_CX1",
+      "title": "Module parity_gen_cx1 functionality equals FunctionalModel",
+      "kind": "module",
+      "scope": {
+        "level": "module",
+        "rtl_module": "parity_gen_cx1",
+        "rtl_file": "rtl/parity_gen_cx1.sv",
+        "boundary": "module RTL observable outputs must be compared against FunctionalModel.apply"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure.backpressure_0",
+        "cycle_model.clock",
+        "cycle_model.handshake_rules.even_par",
+        "cycle_model.handshake_rules.par_reg",
+        "cycle_model.latency",
+        "cycle_model.observability.observability_0",
+        "cycle_model.ordering.ordering_0",
+        "cycle_model.ordering.ordering_1",
+        "cycle_model.pipeline.s0_comb",
+        "cycle_model.pipeline.s1_reg",
+        "cycle_model.reset",
+        "features.even_parity_combinational",
+        "features.odd_parity_combinational",
+        "features.registered_parity",
+        "function_model",
+        "function_model.invariants.invariant_0",
+        "function_model.invariants.invariant_1",
+        "function_model.invariants.invariant_2",
+        "function_model.state_variables.par_reg_q",
+        "function_model.transactions",
+        "function_model.transactions.FM_PARITY",
+        "function_model.transactions.fm_parity",
+        "function_model.transactions.fm_parity.inputs.input_0",
+        "function_model.transactions.fm_parity.output_rules.even_rule",
+        "function_model.transactions.fm_parity.output_rules.odd_rule",
+        "function_model.transactions.fm_parity.output_rules.par_reg_rule",
+        "function_model.transactions.fm_parity.outputs.output_0",
+        "function_model.transactions.fm_parity.side_effects.side_effect_0",
+        "function_model.transactions.fm_parity.state_updates.par_reg_q",
+        "function_model.transactions.fm_reset",
+        "function_model.transactions.fm_reset.inputs.input_0",
+        "function_model.transactions.fm_reset.output_rules.par_reg_reset_rule",
+        "function_model.transactions.fm_reset.outputs.output_0",
+        "function_model.transactions.fm_reset.preconditions.precondition_0",
+        "function_model.transactions.fm_reset.side_effects.side_effect_0",
+        "function_model.transactions.fm_reset.state_updates.par_reg_q",
+        "io_list",
+        "io_list.interfaces.data_input",
+        "registers.config.addr_width",
+        "registers.config.byte_addressable",
+        "registers.config.register_width"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1"
+      ],
+      "coverage_refs": [],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "Use the module boundary stimulus/monitor contract from SSOT decomposition; do not compare against RTL-internal self-derived expected values."
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/ordering must hold at the module boundary",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Drive the RTL module boundary with stimulus derived from the same SSOT transaction intent used for FunctionalModel.apply",
+        "Observe only RTL module boundary outputs/state exposed by SSOT or rtl_contract",
+        "Compare RTL observed values against FunctionalModel.apply output; do not copy FL expected into rtl_observed",
+        "Record a scoreboard row for this module goal before top-level signoff"
+      ],
+      "owner_on_fail": {
+        "default": "rtl",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "rtl",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_EVEN_ODD_PAR",
+      "title": "Functional coverage bin cycle_latency_even_odd_par: {'min_cycles': 0, 'max_cycles': 0}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.even_odd_par"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_even_odd_par"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "{'min_cycles': 0, 'max_cycles': 0}"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_LATENCY_PAR_REG",
+      "title": "Functional coverage bin cycle_latency_par_reg: {'min_cycles': 1, 'max_cycles': 1}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.latency.par_reg"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_latency_par_reg"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "{'min_cycles': 1, 'max_cycles': 1}"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S0_COMB",
+      "title": "Functional coverage bin cycle_pipeline_s0_comb: even_par = ^data_in, odd_par = ~even_par (combinational)",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s0_comb"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "even_par = ^data_in, odd_par = ~even_par (combinational)"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PIPELINE_S1_REG",
+      "title": "Functional coverage bin cycle_pipeline_s1_reg: par_reg <= even_par on rising clk",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.pipeline[1]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_pipeline_s1_reg"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "par_reg <= even_par on rising clk"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_BACKPRESSURE_0",
+      "title": "Functional coverage bin cycle_backpressure_0: No backpressure.",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.backpressure[0]"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_backpressure_0"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "No backpressure."
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_FREQUENCY_MHZ",
+      "title": "Functional coverage bin cycle_perf_frequency_mhz: 50",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.frequency_mhz"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_frequency_mhz"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "50"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    },
+    {
+      "goal_id": "EQ_COVERAGE_CYCLE_PERF_THROUGHPUT",
+      "title": "Functional coverage bin cycle_perf_throughput: {'computes_per_cycle': 1}",
+      "kind": "coverage",
+      "scope": {
+        "level": "top"
+      },
+      "ssot_refs": [
+        "cycle_model.performance.throughput"
+      ],
+      "decomposition_refs": [
+        "parity_gen_cx1",
+        "parity_gen_cx1_protocol_model",
+        "parity_gen_cx1_register_model",
+        "parity_gen_cx1_datapath_model",
+        "parity_gen_cx1_fsm_model",
+        "parity_gen_cx1_error_model"
+      ],
+      "coverage_refs": [
+        "cycle_perf_throughput"
+      ],
+      "stimulus_contract": {
+        "transaction_type": "parity_compute",
+        "required_fields": [
+          "kind"
+        ],
+        "constraints": [
+          "rst_n == 1",
+          "{'computes_per_cycle': 1}"
+        ],
+        "transaction_id": "FM_PARITY"
+      },
+      "expected_contract": {
+        "model_api": "FunctionalModel.apply",
+        "observables": [
+          "even_par = ^data_in, odd_par = ~even_par, par_reg = par_reg_q (next cycle = even_par)",
+          "even_rule",
+          "odd_rule",
+          "par_reg_rule"
+        ],
+        "latency": "cycle_model latency/handshake constraints apply to coverage stimulus",
+        "state_updates": [
+          "par_reg_q updated each clock",
+          "par_reg_q"
+        ],
+        "error_policy": ""
+      },
+      "pass_criteria": [
+        "Generated stimulus executes an SSOT-derived behavior path",
+        "Scoreboard expected result comes from FunctionalModel.apply",
+        "Coverage collector samples this planned bin only after the scoreboard row passes"
+      ],
+      "owner_on_fail": {
+        "default": "coverage",
+        "possible": [
+          "ssot",
+          "fl_model",
+          "tb",
+          "coverage",
+          "human"
+        ]
+      },
+      "blocked": false,
+      "blocker": "",
+      "unverified": false
+    }
+  ]
+}

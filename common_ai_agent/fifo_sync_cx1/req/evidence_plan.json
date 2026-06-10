@@ -1,0 +1,84 @@
+{
+  "evidence_plan": [
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_FIFO_FLAGS",
+      "evidence_id": "E_FIFO_BC_FLAGS",
+      "pass_condition": "full/empty flags match count==8 and count==0 per BC_FIFO_FLAGS",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "BC_FIFO_LINT",
+      "evidence_id": "E_FIFO_BC_LINT",
+      "pass_condition": "no latch findings per BC_FIFO_LINT",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_FIFO_READ",
+      "evidence_id": "E_FIFO_BC_READ",
+      "pass_condition": "read behavior matches BC_FIFO_READ",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_FIFO_RESET",
+      "evidence_id": "E_FIFO_BC_RESET",
+      "pass_condition": "reset behavior matches BC_FIFO_RESET",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "BC_FIFO_WRITE",
+      "evidence_id": "E_FIFO_BC_WRITE",
+      "pass_condition": "write behavior matches BC_FIFO_WRITE",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_FIFO_FLAGS",
+      "evidence_id": "E_FIFO_FLAGS",
+      "pass_condition": "full asserts at depth 8; empty asserts at depth 0",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "lint/dut_lint.json",
+      "contract_ref": "C_FIFO_LINT",
+      "evidence_id": "E_FIFO_LINT",
+      "pass_condition": "no latch violations",
+      "validator": "dut_lint_report.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_FIFO_READ",
+      "evidence_id": "E_FIFO_READ",
+      "pass_condition": "rd_data matches written data; count decrements correctly",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_FIFO_RESET",
+      "evidence_id": "E_FIFO_RESET",
+      "pass_condition": "empty==1 and full==0 after reset",
+      "validator": "check_evidence_contract.py"
+    },
+    {
+      "artifact": "rtl/fifo_sync_cx1.sv",
+      "contract_ref": "SC_FIFO_PORTS",
+      "evidence_id": "E_FIFO_SC_PORTS",
+      "pass_condition": "ports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths",
+      "validator": "check_tb_python_compile.py"
+    },
+    {
+      "artifact": "sim/scoreboard_events.jsonl",
+      "contract_ref": "C_FIFO_WRITE",
+      "evidence_id": "E_FIFO_WRITE",
+      "pass_condition": "count increments correctly on each accepted write",
+      "validator": "check_evidence_contract.py"
+    }
+  ],
+  "ip": "fifo_sync_cx1",
+  "schema_version": 1,
+  "type": "evidence_plan"
+}

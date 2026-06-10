@@ -1,0 +1,240 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_UART_BUSY",
+      "evidence_refs": [
+        "E_UART_BC_BUSY"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_UART_BUSY_001"
+      ],
+      "pass_conditions": [
+        "tx_busy=1 during frame, tx_busy=0 after stop bit per BC_UART_BUSY"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_UART_DROP",
+      "evidence_refs": [
+        "E_UART_BC_DROP"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_UART_DROP_001"
+      ],
+      "pass_conditions": [
+        "write while busy silently ignored per BC_UART_DROP"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_UART_IDLE",
+      "evidence_refs": [
+        "E_UART_BC_IDLE"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_UART_IDLE_001"
+      ],
+      "pass_conditions": [
+        "tx_out=1 and tx_busy=0 when idle per BC_UART_IDLE"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "BC_UART_LINT",
+      "evidence_refs": [
+        "E_UART_BC_LINT"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_UART_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch findings per BC_UART_LINT"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "BC_UART_TX",
+      "evidence_refs": [
+        "E_UART_BC_TX"
+      ],
+      "kind": "behavioral_contract",
+      "obligation_refs": [
+        "OBL_UART_TX_001"
+      ],
+      "pass_conditions": [
+        "8N1 frame shape matches behavioral contract TR_TX_BYTE expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_UART_BUSY",
+      "evidence_refs": [
+        "E_UART_BUSY"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_UART_BUSY_001"
+      ],
+      "pass_conditions": [
+        "tx_busy=1 during frame, tx_busy=0 after stop bit"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_UART_DROP",
+      "evidence_refs": [
+        "E_UART_DROP"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_UART_DROP_001"
+      ],
+      "pass_conditions": [
+        "write while busy silently ignored; frame unaffected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_UART_IDLE",
+      "evidence_refs": [
+        "E_UART_IDLE"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_UART_IDLE_001"
+      ],
+      "pass_conditions": [
+        "tx_out=1 and tx_busy=0 when no transmission active"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_UART_LINT",
+      "evidence_refs": [
+        "E_UART_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_UART_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch / no single-driver violations"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_UART_TX",
+      "evidence_refs": [
+        "E_UART_TX"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_UART_TX_001"
+      ],
+      "pass_conditions": [
+        "8N1 frame shape on tx_out matches FL expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "rtl/uart_tx_lite_cx1.sv"
+      ],
+      "contract_ref": "SC_UART_PORTS",
+      "evidence_refs": [
+        "E_UART_SC_PORTS"
+      ],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_UART_BUSY_001",
+        "OBL_UART_DROP_001",
+        "OBL_UART_IDLE_001",
+        "OBL_UART_LINT_001",
+        "OBL_UART_TX_001"
+      ],
+      "pass_conditions": [
+        "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR tx_out tx_busy present with correct widths"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_tb_python_compile.py"
+      ]
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "uart_tx_lite_cx1",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 11,
+    "contracts": 11,
+    "required_closed": 11,
+    "required_contracts": 11
+  },
+  "type": "contract_authority_closure"
+}

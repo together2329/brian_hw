@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "type": "cl_model_check",
+  "ip": "gray_code_cx1",
+  "source": "model/cycle_model.py",
+  "backend": "python",
+  "timestamp": "2026-06-10T14:11:49Z",
+  "passed": true,
+  "self_check": {
+    "passed": true,
+    "backend": "python",
+    "transactions": 1,
+    "results_observed": 1,
+    "coverage_bins": 3,
+    "coverage_hit": 3,
+    "fl_errors": [],
+    "performance_targets": {
+      "frequency_mhz": 100,
+      "throughput": {
+        "sustained_beats_per_cycle": 1
+      },
+      "outstanding": null,
+      "pipeline_stages": null,
+      "queue_depth": null
+    }
+  },
+  "symbol_contract": {
+    "schema_version": 1,
+    "status": "pass",
+    "failure_owner": "",
+    "stage": "cl-model",
+    "reason": "",
+    "unknown_symbols": [],
+    "required_rerun": [],
+    "transactions": [
+      {
+        "id": "FM_PRIMARY",
+        "declared_symbols": [
+          "bin_in",
+          "bin_out",
+          "busy",
+          "clk",
+          "converter_io",
+          "error",
+          "gray_in",
+          "gray_out",
+          "main",
+          "mode",
+          "rst_n",
+          "sample_count",
+          "valid"
+        ],
+        "used_symbols": [
+          "bin_in",
+          "gray_in",
+          "sample_count"
+        ],
+        "missing_symbols": []
+      }
+    ],
+    "cycle_rules": []
+  },
+  "performance_targets": {
+    "frequency_mhz": 100,
+    "throughput": {
+      "sustained_beats_per_cycle": 1
+    },
+    "outstanding": null,
+    "pipeline_stages": null,
+    "queue_depth": null
+  },
+  "decomposition_units": 1,
+  "fcov_bins": 3
+}

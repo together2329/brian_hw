@@ -1,0 +1,259 @@
+{
+  "schema_version": 1,
+  "type": "functional_coverage_plan",
+  "ip": "pwm_gen_cx1",
+  "source": "pwm_gen_cx1/yaml/pwm_gen_cx1.ssot.yaml",
+  "planned_before_rtl": true,
+  "authority_contract": {
+    "rule": "LLM loops are allowed against general machine-checkable criteria (diffs, diagnostics, coverage gaps, traceability gaps, stale evidence, assertions, and measurements). Intended behavior, oracle semantics, waivers, interface changes, performance tradeoffs, and signoff require human approval.",
+    "general_evaluation_criteria": [
+      "traceability: every generated artifact traces to SSOT refs",
+      "functional_equivalence: RTL observables match FunctionalModel results",
+      "module_equivalence: behavior-owning modules have module-boundary evidence",
+      "coverage_closure: SSOT coverage goals are hit by passing RTL-observed evidence",
+      "interface_protocol: io_list/cycle_model handshakes, reset, ordering, and errors hold",
+      "lint_compile: DUT-only compile/lint has zero unwaived diagnostics",
+      "simulation_evidence: results, scoreboard rows, and coverage are fresh and structured",
+      "performance_cycle: cycle/performance targets are measured or escalated",
+      "debug_observability: waveform/probe evidence is inspectable",
+      "maintainability: no fixed IP workaround; modules/TB remain SSOT-owned and reviewable",
+      "human_decision: intent, waivers, oracle changes, tradeoffs, and final signoff are human-owned"
+    ],
+    "locked_artifacts": [
+      "pwm_gen_cx1/req/",
+      "pwm_gen_cx1/yaml/pwm_gen_cx1.ssot.yaml",
+      "pwm_gen_cx1/model/functional_model.py",
+      "pwm_gen_cx1/cov/fcov_plan.json",
+      "pwm_gen_cx1/yaml/pwm_gen_cx1.ssot.yaml#io_list",
+      "pwm_gen_cx1/yaml/pwm_gen_cx1.ssot.yaml#cycle_model"
+    ],
+    "llm_editable_artifacts": [
+      "pwm_gen_cx1/rtl/",
+      "pwm_gen_cx1/tb/",
+      "pwm_gen_cx1/sim/",
+      "pwm_gen_cx1/vectors/",
+      "pwm_gen_cx1/reports/"
+    ],
+    "loopable_evidence_points": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "loopable_oracles": [
+      "traceability gap",
+      "FL expected vs RTL actual diff",
+      "module FL expected vs RTL boundary actual diff",
+      "coverage goal vs coverage result gap",
+      "lint/compile diagnostic",
+      "interface/cycle assertion failure",
+      "CL target vs measured performance gap",
+      "minimal regression reproducer",
+      "report/root-cause evidence gap"
+    ],
+    "human_gate_required_for": [
+      "requirement intent/scope change",
+      "SSOT behavior or waiver change",
+      "FunctionalModel golden semantic change",
+      "coverage goal change",
+      "interface contract change",
+      "performance target/tradeoff change",
+      "final signoff"
+    ]
+  },
+  "bins": [
+    {
+      "id": "SC1_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[0]",
+      "scenario": "SC1",
+      "description": "Reset defaults"
+    },
+    {
+      "id": "SC2_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[1]",
+      "scenario": "SC2",
+      "description": "DUTY=0 gives pwm_out=0"
+    },
+    {
+      "id": "SC3_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[2]",
+      "scenario": "SC3",
+      "description": "DUTY=128 gives ~50% duty cycle"
+    },
+    {
+      "id": "SC4_executed",
+      "class": "scenario",
+      "source": "test_requirements.scenarios[3]",
+      "scenario": "SC4",
+      "description": "DUTY=255 gives pwm_out=1 almost always"
+    },
+    {
+      "id": "fcov_fm_write",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_WRITE",
+      "source_ref": "function_model.transactions.FM_WRITE",
+      "description": "Duty register write observed"
+    },
+    {
+      "id": "fcov_fm_tick",
+      "class": "transaction",
+      "coverage_domain": "function",
+      "source": "function_model.transactions.FM_TICK",
+      "source_ref": "function_model.transactions.FM_TICK",
+      "description": "Counter tick observed"
+    },
+    {
+      "id": "ccov_reset",
+      "class": "reset",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.reset",
+      "source_ref": "cycle_model.reset",
+      "description": "Reset observed"
+    },
+    {
+      "id": "ccov_duty_update",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.duty_update",
+      "source_ref": "cycle_model.latency.duty_update",
+      "description": "Duty update latency observed"
+    },
+    {
+      "id": "ccov_pwm_high",
+      "class": "handshake",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules",
+      "source_ref": "cycle_model.handshake_rules",
+      "description": "pwm_out=1 observed"
+    },
+    {
+      "id": "function_duty_write",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[0]",
+      "source_ref": "function_model.transactions.fm_write",
+      "description": "FM_WRITE duty_write"
+    },
+    {
+      "id": "function_counter_tick",
+      "class": "transaction_type",
+      "coverage_domain": "function",
+      "source": "function_model.transactions[1]",
+      "source_ref": "function_model.transactions.fm_tick",
+      "description": "FM_TICK counter_tick"
+    },
+    {
+      "id": "cycle_handshake_0",
+      "class": "protocol",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.handshake_rules[0]",
+      "source_ref": "cycle_model.handshake_rules[0]",
+      "description": "{'signal': 'pwm_out', 'rule': 'Combinational compare of counter_q < duty_reg.'}"
+    },
+    {
+      "id": "cycle_latency_duty_update",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.duty_update",
+      "source_ref": "cycle_model.latency.duty_update",
+      "description": "{'min_cycles': 1, 'max_cycles': 1, 'description': 'DUTY register updates one clock after wr_en'}"
+    },
+    {
+      "id": "cycle_latency_pwm_compare",
+      "class": "latency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.latency.pwm_compare",
+      "source_ref": "cycle_model.latency.pwm_compare",
+      "description": "{'min_cycles': 0, 'max_cycles': 0, 'description': 'pwm_out is combinational from counter_q and duty_reg'}"
+    },
+    {
+      "id": "cycle_pipeline_s0_compare",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[0]",
+      "source_ref": "cycle_model.pipeline[0]",
+      "description": "counter_q compared to duty_reg; pwm_out drives."
+    },
+    {
+      "id": "cycle_pipeline_s1_count",
+      "class": "pipeline_stage",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.pipeline[1]",
+      "source_ref": "cycle_model.pipeline[1]",
+      "description": "counter_q increments; duty_reg updates if wr_en."
+    },
+    {
+      "id": "cycle_ordering_0",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[0]",
+      "source_ref": "cycle_model.ordering[0]",
+      "description": "counter_q increments every rising clock edge."
+    },
+    {
+      "id": "cycle_ordering_1",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[1]",
+      "source_ref": "cycle_model.ordering[1]",
+      "description": "duty_reg latches duty_in on rising edge when wr_en=1."
+    },
+    {
+      "id": "cycle_ordering_2",
+      "class": "ordering",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.ordering[2]",
+      "source_ref": "cycle_model.ordering[2]",
+      "description": "pwm_out tracks counter_q < duty_reg combinationally."
+    },
+    {
+      "id": "cycle_backpressure_0",
+      "class": "backpressure",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.backpressure[0]",
+      "source_ref": "cycle_model.backpressure[0]",
+      "description": "No backpressure."
+    },
+    {
+      "id": "cycle_perf_frequency_mhz",
+      "class": "frequency",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.frequency_mhz",
+      "source_ref": "cycle_model.performance.frequency_mhz",
+      "description": "50"
+    },
+    {
+      "id": "cycle_perf_throughput",
+      "class": "throughput",
+      "coverage_domain": "cycle",
+      "source": "cycle_model.performance.throughput",
+      "source_ref": "cycle_model.performance.throughput",
+      "description": "{'writes_per_cycle': 1, 'condition': 'wr_en asserted'}"
+    },
+    {
+      "id": "error_error_0",
+      "class": "error",
+      "coverage_domain": "function",
+      "source": "error_handling.error_sources[0]",
+      "source_ref": "error_handling.error_sources[0]",
+      "description": "{'id': 'ERR_NONE', 'condition': 'No error sources in this minimal IP', 'architectural_effect': 'N/A'}"
+    }
+  ],
+  "summary": {
+    "total_bins": 23,
+    "scenario_bins": 4,
+    "transaction_bins": 2,
+    "protocol_bins": 1,
+    "state_transition_bins": 0,
+    "error_bins": 1
+  }
+}

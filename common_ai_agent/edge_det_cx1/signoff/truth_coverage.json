@@ -1,0 +1,67 @@
+{
+  "generated_at": "2026-06-10T14:20:16Z",
+  "ip": "edge_det_cx1",
+  "schema_version": 1,
+  "source_mode": "direct_ssot",
+  "status": "fail",
+  "summary": {
+    "covered": 2,
+    "evidence_tokens": 60,
+    "obligations": 8,
+    "uncovered_required": 6
+  },
+  "type": "truth_coverage",
+  "uncovered_required": [
+    {
+      "aliases": [
+        "fm_rise"
+      ],
+      "category": "function_transaction",
+      "id": "FM_RISE",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "fm_fall"
+      ],
+      "category": "function_transaction",
+      "id": "FM_FALL",
+      "source": "function_model.transactions"
+    },
+    {
+      "aliases": [
+        "err_none"
+      ],
+      "category": "error_source",
+      "id": "ERR_NONE",
+      "source": "error_handling.error_sources"
+    },
+    {
+      "aliases": [
+        "reset",
+        "sc1"
+      ],
+      "category": "scenario",
+      "id": "SC1",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_rise",
+        "sc2"
+      ],
+      "category": "scenario",
+      "id": "SC2",
+      "source": "test_requirements.scenarios"
+    },
+    {
+      "aliases": [
+        "fm_fall",
+        "sc3"
+      ],
+      "category": "scenario",
+      "id": "SC3",
+      "source": "test_requirements.scenarios"
+    }
+  ]
+}

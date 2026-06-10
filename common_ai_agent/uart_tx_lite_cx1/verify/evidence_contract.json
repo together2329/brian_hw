@@ -1,0 +1,97 @@
+{
+  "ip": "uart_tx_lite_cx1",
+  "schema_version": 1,
+  "type": "evidence_contract",
+  "generated_at": "2026-06-10T00:00:00Z",
+  "source": "rocev-chain-cx1",
+  "obligations": [
+    {
+      "obligation_id": "OBL_UART_IDLE_001",
+      "requirement_ids": ["REQ_UART_FUNC_001"],
+      "claim": "tx_out=1 and tx_busy=0 when no transmission active after reset.",
+      "contract_refs": ["BC_UART_IDLE"],
+      "scenario_ids": ["SC_RESET_IDLE"],
+      "required_observables": ["tx_busy", "tx_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_UART_IDLE"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "idle_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_UART_TX_001",
+      "requirement_ids": ["REQ_UART_FUNC_001"],
+      "claim": "TX_DATA write starts 8N1 frame; tx_busy=1; frame shape verified.",
+      "contract_refs": ["BC_UART_TX"],
+      "scenario_ids": ["SC_TX_WRITE", "SC_TX_START_BIT", "SC_TX_DATA_BITS"],
+      "required_observables": ["tx_busy", "tx_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_UART_TX_BYTE"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "tx_scoreboard_rows_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_UART_BUSY_001",
+      "requirement_ids": ["REQ_UART_FUNC_001"],
+      "claim": "tx_busy clears after stop bit completes; tx_out returns to 1.",
+      "contract_refs": ["BC_UART_BUSY"],
+      "scenario_ids": ["SC_BUSY_CLEARED"],
+      "required_observables": ["tx_busy", "tx_out"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_UART_BUSY_CLEARS"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "busy_clears_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    },
+    {
+      "obligation_id": "OBL_UART_DROP_001",
+      "requirement_ids": ["REQ_UART_FUNC_001"],
+      "claim": "Write to TX_DATA while tx_busy is silently dropped; tx_busy stays 1.",
+      "contract_refs": ["BC_UART_DROP"],
+      "scenario_ids": ["SC_DROP_WHILE_BUSY"],
+      "required_observables": ["tx_busy"],
+      "required": true,
+      "status": "active",
+      "evidence_rows": [
+        {
+          "artifact": "sim/scoreboard_events.jsonl",
+          "match": {"goal_id": "EQ_UART_BUSY_DROP"}
+        }
+      ],
+      "pass_conditions": [
+        {
+          "id": "drop_scoreboard_row_passed",
+          "kind": "row_passed"
+        }
+      ]
+    }
+  ]
+}
