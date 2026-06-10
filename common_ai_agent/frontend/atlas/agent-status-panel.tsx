@@ -143,7 +143,7 @@ interface AgentStatusPanelProps {
   onCollapse?: () => void;
 }
 
-const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false, agentRunning = false, onCollapse }: AgentStatusPanelProps) => {
+export const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false, agentRunning = false, onCollapse }: AgentStatusPanelProps) => {
   // Live context — populated by /healthz + WS 'context' events.
   const [liveContext, setLiveContext] = useState<LiveContext>(() => Object.assign({}, w.CONTEXT || {}));
   const _ctx = liveContext;
@@ -212,31 +212,41 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
     const sameSession = !prevSession || !effectiveSession
       || prevSession === effectiveSession
       || (_sessTail(prevSession) && _sessTail(prevSession) === _sessTail(effectiveSession));
-	    if (effectiveSession) merged.activeSession = effectiveSession;
+    if (effectiveSession) merged.activeSession = effectiveSession;
 
-	    // 'tokens' = the LIVE context size; it legitimately DROPS after history
-	    // compression, so it must NOT be monotonically clamped (Math.max froze the
-	    // Context meter post-compression). Only the genuinely-cumulative usage/cost
-	    // counters below are clamped against per-tick jitter.
+    // 'tokens' = the LIVE context size; it legitimately DROPS after history
+    // compression, so it must NOT be monotonically clamped (Math.max froze the
+    // Context meter post-compression). Only the genuinely-cumulative usage/cost
+    // counters below are clamped against per-tick jitter.
+    const prevTokens = numericValue(prevCtx.tokens, 0);
+    const nextTokens = numericValue(merged.tokens, NaN);
+    if (sameSession && prevTokens > 0 && Number.isFinite(nextTokens) && nextTokens <= 0) {
+      merged.tokens = prevTokens;
+    }
+    const prevMaxTokens = numericValue(prevCtx.maxTokens, 0);
+    const nextMaxTokens = numericValue(merged.maxTokens, NaN);
+    if (sameSession && prevMaxTokens > 0 && (!Number.isFinite(nextMaxTokens) || nextMaxTokens <= 0)) {
+      merged.maxTokens = prevMaxTokens;
+    }
     const counters = ['tokensIn', 'tokensCache', 'tokensOut', 'costUsd'];
     const incomingCostIp = String(clean.costIp || globalCtx.costIp || '').trim();
-	    const prevCostIp = String(prevCtx.costIp || '').trim();
-	    const costIpChanged = !!(incomingCostIp && prevCostIp && incomingCostIp !== prevCostIp);
-	    if (preserveBrowser && prevSession) {
-	      counters.forEach(key => {
-	        if (prevCtx[key] !== undefined && prevCtx[key] !== null) merged[key] = numericValue(prevCtx[key], 0);
-	      });
-	    } else if (preserveBrowser && effectiveRoute.ip) {
-	      counters.forEach(key => {
-	        merged[key] = 0;
-	      });
-	    } else if (costIpChanged) {
-	      counters.forEach(key => {
-	        merged[key] = numericValue(clean[key], 0);
-	      });
-	    } else if (sameSession) {
-	      counters.forEach(key => {
-	        const next = numericValue(merged[key], NaN);
+    const prevCostIp = String(prevCtx.costIp || '').trim();
+    const costIpChanged = !!(incomingCostIp && prevCostIp && incomingCostIp !== prevCostIp);
+    if (preserveBrowser && prevSession) {
+      counters.forEach(key => {
+        if (prevCtx[key] !== undefined && prevCtx[key] !== null) merged[key] = numericValue(prevCtx[key], 0);
+      });
+    } else if (preserveBrowser && effectiveRoute.ip) {
+      counters.forEach(key => {
+        merged[key] = 0;
+      });
+    } else if (costIpChanged) {
+      counters.forEach(key => {
+        merged[key] = numericValue(clean[key], 0);
+      });
+    } else if (sameSession) {
+      counters.forEach(key => {
+        const next = numericValue(merged[key], NaN);
         const prevVal = numericValue(prevCtx[key], 0);
         merged[key] = Number.isFinite(next) ? Math.max(prevVal, next) : prevVal;
       });
@@ -264,46 +274,45 @@ const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive = false,
       if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       fetch(healthzUrl(), { cache: 'no-store' })
         .then(r => r.ok ? r.json() : null)
-	        .then((j: HealthzResponse | null) => {
-	          if (!j || !healthMatchesCurrentUser(j)) return;
-	          const effectiveSession = uiEffectiveHealthSession(j);
-	          const acceptCounters = uiHealthCountersMatchBrowserRoute(j);
-	          const effectiveRoute = uiSessionRoute(effectiveSession);
-	          const counterPatch = acceptCounters ? {
-	            tokens: j.tokens,
-	            tokensIn: j.tokens_in,
-	            tokensCache: j.tokens_cache,
-	            tokensOut: j.tokens_out,
-	            costUsd: j.cost_usd,
-	            costScope: j.cost_scope || '',
-	            costUser: j.cost_user || '',
-	            costIp: j.cost_ip || '',
-	            costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : 0,
-	          } : {
-	            tokens: 0,
-	            tokensIn: 0,
-	            tokensCache: 0,
-	            tokensOut: 0,
-	            costUsd: 0,
-	            costScope: effectiveRoute.ip ? 'user_ip' : '',
-	            costUser: effectiveRoute.owner || '',
-	            costIp: effectiveRoute.ip || '',
-	            costCalls: 0,
-	          };
-	          syncContext({
-	            model: j.model || j.base_model || '',
-	            baseModel: j.base_model || '',
-	            baseUrl: j.base_url || '',
-	            provider: j.provider || '',
-	            reasoningEffort: j.reasoning_effort || '',
-	            modelOptions: Array.isArray(j.model_options) ? j.model_options : [],
-	            selectedModelKey: j.selected_model_key || '',
-	            maxTokens: j.max_context,
-	            ...counterPatch,
-	            pricing: j.pricing || null,
-	            activeSession: effectiveSession || '',
-	          });
-	        })
+        .then((j: HealthzResponse | null) => {
+          if (!j || !healthMatchesCurrentUser(j)) return;
+          const effectiveSession = uiEffectiveHealthSession(j);
+          const acceptCounters = uiHealthCountersMatchBrowserRoute(j);
+          const effectiveRoute = uiSessionRoute(effectiveSession);
+          const counterPatch = acceptCounters ? {
+            tokens: j.tokens,
+            tokensIn: j.tokens_in,
+            tokensCache: j.tokens_cache,
+            tokensOut: j.tokens_out,
+            costUsd: j.cost_usd,
+            costScope: j.cost_scope || '',
+            costUser: j.cost_user || '',
+            costIp: j.cost_ip || '',
+            costCalls: j.cost_calls != null ? Number(j.cost_calls || 0) : 0,
+          } : {
+            tokensIn: 0,
+            tokensCache: 0,
+            tokensOut: 0,
+            costUsd: 0,
+            costScope: effectiveRoute.ip ? 'user_ip' : '',
+            costUser: effectiveRoute.owner || '',
+            costIp: effectiveRoute.ip || '',
+            costCalls: 0,
+          };
+          syncContext({
+            model: j.model || j.base_model || '',
+            baseModel: j.base_model || '',
+            baseUrl: j.base_url || '',
+            provider: j.provider || '',
+            reasoningEffort: j.reasoning_effort || '',
+            modelOptions: Array.isArray(j.model_options) ? j.model_options : [],
+            selectedModelKey: j.selected_model_key || '',
+            maxTokens: j.max_context,
+            ...counterPatch,
+            pricing: j.pricing || null,
+            activeSession: effectiveSession || '',
+          });
+        })
         .catch(() => {});
     };
     const onDataChanged = () => syncContext();

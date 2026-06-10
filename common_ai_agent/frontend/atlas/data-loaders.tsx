@@ -738,9 +738,13 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
             return Number.isFinite(next) ? Math.max(prev, next) : prev;
           };
           const live = (key: string, value: any) => {
-            if (!acceptHealthCounters) return keep(Number(_prev[key] || 0));
-            const next = Number(value || 0);
-            return Number.isFinite(next) ? next : Number(_prev[key] || 0);
+            const prev = Number(_prev[key] || 0);
+            if (!acceptHealthCounters) return resetCounters ? 0 : prev;
+            const next = Number(value);
+            if (!Number.isFinite(next)) return resetCounters ? 0 : prev;
+            if (resetCounters) return next;
+            if (key === 'tokens' && next <= 0 && prev > 0) return prev;
+            return next;
           };
           const routeCostScope = routeActiveIp ? 'user_ip' : '';
           const routeCostUser = effectiveRoute.owner || String(_prev.costUser || '').trim();
