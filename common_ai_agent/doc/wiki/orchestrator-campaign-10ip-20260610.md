@@ -142,3 +142,28 @@ the session-scoped truth path corrected (finding 7), resume re-driven via the
 chat API when a run sat paused, and ssot-gen dispatched directly per IP when the
 orchestrator needed a nudge. The machinery bugs surfaced this way (findings 3,6,7,
 8,9,11) were each fixed in code.
+
+### Finding 12 — parallel ssot-gen dispatch overloads + orchestrator zombie-waits on dead workers
+Dispatching ssot-gen for 8 fresh IPs concurrently (one orchestrator run each)
+produced **2/10 real SSOTs**: cnt8 (pre-existing) + add8 (driven alone first).
+The other 8 stayed 1-line stubs. Diagnosis:
+- 8 `supervisor_ipc` (orchestrator loop) procs alive, **0 ssot-gen worker procs** —
+  the parallel ssot-gen workers died/stalled without emitting `job_complete`.
+- Each orchestrator then looped `yield_run:timer → read_pipeline_state → wait_job`
+  forever (mux4 run: steps 0..78), **never detecting the dead worker** — the
+  zombie-wait class of [[finding 4]] (no worker-liveness watchdog). The run
+  burns timer cycles but never advances or fails.
+Mitigation applied: killed the 8 zombie supervisors, marked the runs
+`error/worker_died_parallel_overload`, re-drove serially.
+**Lesson: ssot-gen must be dispatched serially / in small batches; and the
+orchestrator needs a dead-worker watchdog so a stalled job fails the run instead
+of spinning.** Serial drives (cnt8, add8, mux4-serial) each produced a real SSOT;
+8-at-once did not.
+
+### ssot-gen fix effect (clarified)
+add8 SSOT transactions are NAMED `feature_1/feature_2` (cosmetic — repair_ssot_schema.py
+derives names from the features[] list) but have **real_logic=True**: real
+preconditions/inputs/outputs authored from the locked contracts. So the
+locked-DETAIL injection fix (58d31e53) DID transfer semantics into function_model;
+the residual is transaction NAMING, not vacuous content. fl-model-gen's original
+block was on missing semantics, which are now present.
