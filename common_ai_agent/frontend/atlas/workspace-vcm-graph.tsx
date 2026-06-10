@@ -92,6 +92,11 @@ export function buildVcmElements(doc: VcmGraphDoc): { nodes: FlowNode[]; edges: 
   return { nodes: layoutDagre(baseNodes, edges, { direction: 'LR' }), edges };
 }
 
+const activeSessionId = (): string => {
+  const w = window as unknown as { ACTIVE_SESSION?: string };
+  return String(w.ACTIVE_SESSION || '').trim();
+};
+
 export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactNode => {
   const [doc, setDoc] = useState<VcmGraphDoc | null>(null);
   const [error, setError] = useState('');
@@ -99,15 +104,19 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [kindFilter, setKindFilter] = useState<string>('');
   const [openId, setOpenId] = useState<string | null>(null);
+  const [emitting, setEmitting] = useState(false);
 
   const load = useCallback(async () => {
     if (!activeIp) { setDoc(null); setError('no active IP'); return; }
     setError('');
     try {
-      const r = await fetch('/api/file?path=' + encodeURIComponent(activeIp + '/req/vcm_graph.json'), { cache: 'no-store' });
+      const params = new URLSearchParams({ path: activeIp + '/req/vcm_graph.json' });
+      const sid = activeSessionId();
+      if (sid) params.set('session_id', sid);
+      const r = await fetch('/api/file?' + params.toString(), { cache: 'no-store' });
       if (!r.ok) {
         setDoc(null);
-        setError('no vcm_graph.json — run: python3 "$ATLAS_WORKFLOW_ROOT/req-gen/scripts/emit_vcm_graph.py" ' + activeIp);
+        setError('no vcm_graph.json for ' + activeIp + ' — press Generate to build it from the locked req bundle.');
         return;
       }
       const parsed = await r.json() as VcmGraphDoc;
@@ -118,6 +127,26 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
       setError(String(e));
     }
   }, [activeIp]);
+
+  const emit = useCallback(async () => {
+    if (!activeIp) return;
+    setEmitting(true);
+    setError('');
+    try {
+      const sid = activeSessionId();
+      const r = await fetch('/api/vcm/emit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ip: activeIp, ...(sid ? { session_id: sid } : {}) }),
+      });
+      const d = await r.json() as { ok?: boolean; error?: string };
+      if (d && d.ok) { await load(); } else { setError((d && d.error) || 'generate failed'); }
+    } catch (e) {
+      setError(String(e));
+    } finally {
+      setEmitting(false);
+    }
+  }, [activeIp, load]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -177,8 +206,11 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
     return (
       <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--mono)', fontSize: 12 }}>
         VCM graph · {error}
-        <div style={{ marginTop: 8 }}>
-          <button onClick={() => void load()} style={{ fontSize: 11 }}>retry</button>
+        <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
+          <button onClick={() => void emit()} disabled={emitting || !activeIp} style={{ fontSize: 11 }}>
+            {emitting ? 'generating…' : '⚙ Generate graph'}
+          </button>
+          <button onClick={() => void load()} disabled={emitting} style={{ fontSize: 11 }}>retry</button>
         </div>
       </div>
     );
@@ -222,7 +254,10 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
           >{c.title}</span>
         ))}
         <span style={{ flex: 1 }} />
-        <button onClick={() => void load()} style={{ fontSize: 10 }}>↻</button>
+        <button onClick={() => void emit()} disabled={emitting} title="Regenerate vcm_graph.json from the locked req bundle" style={{ fontSize: 10 }}>
+          {emitting ? '…' : '⚙'}
+        </button>
+        <button onClick={() => void load()} disabled={emitting} title="Reload graph" style={{ fontSize: 10 }}>↻</button>
       </div>
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
         <div style={{ flex: 1, minHeight: 0, background: 'var(--bg-2)' }}>
