@@ -312,3 +312,110 @@ When a real run validates or refutes a candidate:
 
 Until a candidate is exercised, it stays here, not in [[index]] reading
 order.
+
+---
+
+The following candidates were captured 2026-06-10 from the
+[[stage-validation-pulse-counter-20260610]] run (fresh APB IP walked
+req→sim with every gate executed). Same parking-lot rules apply.
+
+## CAND-06 — Transaction-Goal Stimulus Channel (machine_spec)
+
+### Problem
+
+`test_requirements.scenarios[].stimulus_machine_spec` is the only SSOT-driven
+stimulus channel; `emit_equivalence_goals.py` wires it for `EQ_SCENARIO_*`
+goals only. `EQ_TRANSACTION_*`/module goals fall back to a generic input
+vector that cannot express IP-specific preconditions (e.g. an APB CTRL write
+before driving pulses), so FL-vs-RTL goals on any CSR-gated behavior cannot
+close without a hand-written IP-specific TB layer (the mctp pattern).
+Additionally, the goal runner's per-goal reset plus the trailing generic
+`_drive_inputs` vector interact badly with scenario timelines: in the
+pulse_counter run the VCD showed enable windows missing pulse windows,
+a count_fire wiped by the next goal's reset, and generic vectors
+side-writing the CLEAR register.
+
+### Proposed shape
+
+1. Let function_model transactions (or their goals) carry a
+   `stimulus_machine_spec`, reusing the existing timeline executor.
+2. Isolate scenario goals: suppress the trailing generic vector when a
+   machine_spec ran, and define expected-state semantics (FL reset alignment)
+   per goal explicitly.
+
+### Decision questions
+
+- Does FL `apply` semantics need a timeline-aware expected (N applications)?
+- Where does the per-goal reset contract live — SSOT (`state_accumulating`)
+  or goal metadata?
+
+## CAND-07 — Emitters Propagate contract_refs Into Self-Check Rows
+
+### Problem
+
+`check_model_contract_trace` (hardened) requires a passing per-contract row in
+`fl_model_check.json` / `cl_model_check.json`, but `emit_fl_model.py` /
+`emit_cycle_model.py` do not propagate the SSOT transactions'/pipeline rows'
+declared `contract_refs` into their result rows. Every worker must hand-author
+the join (the run used a deterministic augment script).
+
+### Proposed shape
+
+Emitters stamp `contract_refs` from the SSOT source row onto each self-check
+result row, and emit a `contracts:[{contract_id, passed}]` summary.
+
+## CAND-08 — Protocol-Generic check_register_contract
+
+### Problem
+
+`check_register_contract.py` finds the register file by `{ip}_regs.sv` /
+`s_axi_rdata` heuristics and parses only `s_axi_rdata[..] <=` patterns —
+pure AXI. APB IPs (prdata) cannot use the gate at all.
+
+### Proposed shape
+
+Resolve the register file and read-data signal from `rtl_contract.json`
+(output_map) instead of hardcoded AXI names.
+
+## CAND-09 — repair_ssot_schema Rebuilds rtl_contract Instead of Merging
+
+### Problem
+
+`repair_ssot_schema` merges `rtl_contract`, so scaffold-era generic ports
+(req_data/rsp_valid/...) survive an io_list replacement and poison
+input_map/output_map. Current workaround: drop the section and re-run repair.
+
+### Proposed shape
+
+Rebuild input_map/output_map from the current io_list on every repair (or
+detect orphan ports and prune with a notice).
+
+## CAND-10 — Timing Constants End-to-End
+
+### Problem
+
+`emit_timing_header.py` silently skips `timing_constraints` entries without
+`min_ns/max_ns/max_cycles/min_cycles/value` (a bare `cycles:` key produces an
+empty header and an ImportError later), and `emit_goal_scoreboard_cocotb.py`
+emits literal waits (3/4) that `check_tb_magic_numbers` then flags — every TB
+regeneration requires re-patching the generated test with `<ip>_timing.py`
+constants.
+
+### Proposed shape
+
+Accept `cycles:` (warn on any skipped entry), and have the TB generator import
+its wait constants from the timing header it already co-generates.
+
+## CAND-11 — Gate CLI Convention
+
+### Problem
+
+Most gates take `<ip> --root <dir>`, but `check_pyuvm_structure.sh`,
+`check_no_ip_coverage_workarounds.sh`, and `check_sim_pass.sh` are
+cwd-relative; `lint.sh` is a per-file hook that misparses `<ip> --root`.
+Headless drivers need a per-gate invocation table instead of one convention.
+
+### Proposed shape
+
+Uniform `--root` support (or an engine-level wrapper that normalizes cwd) so
+`WorkflowStageEngine`/headless workers can call every gate identically.
