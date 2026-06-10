@@ -1763,6 +1763,11 @@ def _idle_input_value(manifest: dict[str, Any], port: str) -> int:
                 )
             ):
                 return 0
+            # Edge/event inputs MUST idle low: parking them high makes the
+            # very first machine_spec `assign <pulse>=1` a 1->1 non-edge, so
+            # an edge-counting DUT never sees the stimulus.
+            if "pulse" in low or "event" in low or low.endswith(("_tick", "_edge", "_strobe", "_irq", "_int")):
+                return 0
             return _fit_port_value(manifest, str(port), _stimulus_value_for_field(manifest, str(field), 0, {}))
     return _fit_port_value(manifest, str(port), _default_field_value(str(port), 0))
 
@@ -2018,32 +2023,50 @@ def _is_reset_stimulus(stimulus: dict[str, Any]) -> bool:
 
 
 async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) -> None:
-    """APB master agent (setup -> access -> idle), used by machine_spec.csr_writes."""
+    """APB master agent (setup -> access -> idle), used by machine_spec.csr_writes.
+
+    Port names are resolved CASE-INSENSITIVELY from the manifest input ports:
+    the original implementation compared against literal "PSEL"/"PENABLE"/...
+    so any lowercase-port DUT (psel/penable) made every guard False and the
+    whole write silently became a multi-cycle no-op — CSR-gated machine_spec
+    timelines then ran against a DUT whose enable was never written.
+    """
     clock = manifest["clock"]
     clk = getattr(dut, clock)
     input_ports = set(manifest.get("input_ports") or [])
-    has_pready = _has_signal(dut, "PREADY")
+    def _apb_port(name: str):
+        for cand in input_ports:
+            if str(cand).lower() == name:
+                return str(cand)
+        return None
+    p_sel = _apb_port("psel")
+    p_enable = _apb_port("penable")
+    p_addr = _apb_port("paddr")
+    p_wdata = _apb_port("pwdata")
+    p_write = _apb_port("pwrite")
+    p_strb = _apb_port("pstrb")
+    p_ready = next((sig for sig in ("PREADY", "pready") if _has_signal(dut, sig)), None)
     await RisingEdge(clk)
-    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    if p_sel: _set_signal(dut, p_sel, 0)
+    if p_enable: _set_signal(dut, p_enable, 0)
     await RisingEdge(clk)
-    if "PADDR" in input_ports: _set_signal(dut, "PADDR", offset)
-    if "PWDATA" in input_ports: _set_signal(dut, "PWDATA", data)
-    if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 1)
-    if "PSTRB" in input_ports: _set_signal(dut, "PSTRB", 0xF)
-    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 1)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
+    if p_addr: _set_signal(dut, p_addr, offset)
+    if p_wdata: _set_signal(dut, p_wdata, data)
+    if p_write: _set_signal(dut, p_write, 1)
+    if p_strb: _set_signal(dut, p_strb, 0xF)
+    if p_sel: _set_signal(dut, p_sel, 1)
+    if p_enable: _set_signal(dut, p_enable, 0)
     await RisingEdge(clk)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 1)
+    if p_enable: _set_signal(dut, p_enable, 1)
     for _ in range(16):
         await ReadOnly()
-        ready = (not has_pready) or int(_get_signal(dut, "PREADY") or 0) == 1
+        ready = (p_ready is None) or int(_get_signal(dut, p_ready) or 0) == 1
         await RisingEdge(clk)
         if ready:
             break
-    if "PSEL" in input_ports: _set_signal(dut, "PSEL", 0)
-    if "PENABLE" in input_ports: _set_signal(dut, "PENABLE", 0)
-    if "PWRITE" in input_ports: _set_signal(dut, "PWRITE", 0)
+    if p_sel: _set_signal(dut, p_sel, 0)
+    if p_enable: _set_signal(dut, p_enable, 0)
+    if p_write: _set_signal(dut, p_write, 0)
 
 
 async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[str, Any]) -> None:
@@ -2150,6 +2173,17 @@ async def fl_rtl_equivalence_goals(dut):
             else None
         )
         _cl_result = None
+        _machine_spec_ran = False
+        def _reset_fl_oracle():
+            # Keep the FL oracle aligned with the DUT reset: per_goal_reset
+            # restarts the RTL from reset state, so the scoreboard's
+            # FunctionalModel must restart too — otherwise FL state accumulates
+            # across goals (count 1, 2, 3, ...) and every stateful expected
+            # value disagrees by construction.
+            try:
+                scoreboard.adapter.reset_model()
+            except Exception:
+                pass
         # State-accumulating IPs (per_goal_reset=false) still need a clean
         # baseline for *non-scenario* goals (handshake/ordering/coverage/
         # register/error/module): these are standalone property checks not
@@ -2164,16 +2198,19 @@ async def fl_rtl_equivalence_goals(dut):
             _reset_is_asserted = True
             if _cl is not None:
                 _cl.reset()
+            _reset_fl_oracle()
         else:
             if _reset_is_asserted:
                 await _reset_dut(dut, manifest)
                 _reset_is_asserted = False
                 if _cl is not None:
                     _cl.reset()
+                _reset_fl_oracle()
             elif _per_goal_reset or _reset_for_property:
                 await _reset_dut(dut, manifest)
                 if _cl is not None:
                     _cl.reset()
+                _reset_fl_oracle()
             await _apply_goal_preconditions(dut, manifest, goal)
             _clear_sample_inputs(dut, manifest)
             await ClockCycles(getattr(dut, clock), 4)
@@ -2181,6 +2218,7 @@ async def fl_rtl_equivalence_goals(dut):
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
                 await _apply_machine_spec(dut, manifest, machine_spec)
+                _machine_spec_ran = True
                 # When machine_spec drives csr_writes, mirror them into the CL.
                 if _cl is not None and isinstance(machine_spec, dict):
                     for entry in (machine_spec.get("csr_writes") or []):
@@ -2196,8 +2234,23 @@ async def fl_rtl_equivalence_goals(dut):
                             except Exception:
                                 pass
             await RisingEdge(getattr(dut, clock))
-            _drive_inputs(dut, manifest, stimulus)
-            _cycles = _goal_wait_cycles(goal, manifest)
+            if _machine_spec_ran:
+                # The machine_spec timeline IS the stimulus contract. Firing the
+                # generic vector afterwards re-drives psel/penable/paddr/pwdata
+                # with index-derived garbage (side-writing CSRs like CLEAR) and
+                # injects extra event edges, desynchronizing the FL expected
+                # from what the timeline just set up. Park every input at its
+                # idle value and give the DUT a short settle window instead.
+                for _field, _port in (manifest.get("input_map") or {}).items():
+                    if _port in (clock, manifest["reset"]):
+                        continue
+                    _set_signal(dut, _port, _idle_input_value(manifest, str(_port)))
+                for _ in range(2):
+                    await RisingEdge(getattr(dut, clock))
+                _cycles = 0
+            else:
+                _drive_inputs(dut, manifest, stimulus)
+                _cycles = _goal_wait_cycles(goal, manifest)
             # Mirror both field name (used in cocotb stimulus) and port name
             # (used in SSOT expressions) so FL.step env sees req_i and
             # requests both, etc.

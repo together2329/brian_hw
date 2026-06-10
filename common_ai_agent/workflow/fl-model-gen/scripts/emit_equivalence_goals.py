@@ -497,6 +497,13 @@ def _transaction_goals(ssot: dict[str, Any], decomp: dict[str, Any], fcov: dict[
             ],
             blocked=blocked,
             blocker="function_model transaction lacks output_rules/outputs, state_updates/side_effects, and error_cases" if blocked else "",
+            # CAND-06: transaction goals were the only FL-vs-RTL goals without a
+            # stimulus channel — preconditions like "CTRL.ENABLE==1" need real
+            # CSR writes the generic input vector cannot express, so CSR-gated
+            # behavior could never close without a hand-written TB. A
+            # function_model transaction may now declare its own
+            # stimulus_machine_spec (same timeline schema as scenarios).
+            machine_spec=tx.get("stimulus_machine_spec") if isinstance(tx.get("stimulus_machine_spec"), dict) else None,
         ))
     return goals
 

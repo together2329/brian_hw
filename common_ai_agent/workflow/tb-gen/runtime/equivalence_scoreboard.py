@@ -939,6 +939,22 @@ class EquivalenceScoreboard:
             else:
                 txn[name] = 0
 
+    def reset_model(self) -> None:
+        """Re-arm the FL oracle at reset state.
+
+        The generated goal runner resets the DUT between goals
+        (per_goal_reset); without resetting the FL model alongside it the FL
+        state accumulates across goals (count 1, 2, 3, ...) while the RTL
+        restarts from reset — every stateful expected value then disagrees by
+        construction (CAND-06 finding from the pulse_counter run).
+        """
+        reset = getattr(self.model, "reset", None)
+        if callable(reset):
+            try:
+                reset()
+            except Exception:
+                pass
+
     def expected_for_goal(
         self,
         goal_id: str,
@@ -949,8 +965,20 @@ class EquivalenceScoreboard:
         if goal is None:
             raise KeyError(f"unknown equivalence goal_id {goal_id}")
         txn = self.transaction_for_goal(goal_id, stimulus, scenario_id)
+        # A machine_spec timeline may apply the transaction several times
+        # (e.g. three pulse edges -> count==3). fl_apply_count tells the FL
+        # oracle how many applications the timeline performs; FL state
+        # accumulates across them exactly like the RTL does.
+        stim_contract = goal.get("stimulus_contract") if isinstance(goal.get("stimulus_contract"), dict) else {}
+        ms = stim_contract.get("machine_spec") if isinstance(stim_contract.get("machine_spec"), dict) else {}
+        try:
+            apply_count = max(1, int(ms.get("fl_apply_count", 1)))
+        except (TypeError, ValueError):
+            apply_count = 1
         try:
             model_result = self.model.apply(txn)
+            for _ in range(apply_count - 1):
+                model_result = self.model.apply(txn)
             model_error = ""
         except Exception as exc:
             model_result = {}
