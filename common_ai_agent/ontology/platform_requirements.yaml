@@ -215,3 +215,20 @@ requirements:
           - test: "tests/test_atlas_git_api.py::test_scm_change_delete_route_uses_perforce_adapter"
             observed_at: b3df2164
         repro: scripts/repro_perforce_pending.py
+
+  - id: REQ_PLAT_CURSOR_PARITY_001
+    claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
+    design_anchor: doc/wiki/cursor-agent-pack.md
+    obligations:
+      - id: OBL_CURSOR_TODO_LOOP_HOOK
+        owned_by: platform.cursor-pack
+        granularity: behavior
+        status: open   # stop hook이 open todo 잔존 시 followup_message로 루프, 완료/중단 시 침묵
+      - id: OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY
+        owned_by: platform.cursor-pack
+        granularity: structural
+        status: open   # hooks.json 스크립트 실재+실행성, agents/skills frontmatter 유효, skill name=folder
+      - id: OBL_CURSOR_ROCEV_CHAIN_SKILL
+        owned_by: platform.cursor-pack
+        granularity: structural
+        status: open   # rocev-chain skill이 실재하는 repo 스크립트/스테이지만 참조

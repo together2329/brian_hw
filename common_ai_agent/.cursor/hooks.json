@@ -17,6 +17,12 @@
     ],
     "stop": [
       {
+        "command": ".cursor/hooks/stop-todo-loop.py",
+        "timeout": 10,
+        "failClosed": false,
+        "loop_limit": 20
+      },
+      {
         "command": ".cursor/hooks/stop-loop-check.py",
         "timeout": 10,
         "failClosed": false,

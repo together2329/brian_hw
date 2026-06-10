@@ -1,0 +1,27 @@
+---
+description: ROCEV spine + todo-loop discipline (req→rtl→tb→sim)
+alwaysApply: true
+---
+
+# ROCEV + Todo Loop
+
+This repo's development contract (root `AGENTS.md`) applies inside Cursor too:
+work is declared as obligations, closed with evidence, judged by validators.
+
+For hardware flows, the spine is per stage:
+
+```text
+Requirement → Obligation → Contract → Evidence → Validation
+req           (VCM todos)   SSOT/goals  artifacts   stage gates
+```
+
+- Full chain runs: use the `rocev-chain` skill (req → rtl → tb → sim) or the
+  `/atlas-rocev-chain` subagent. Single stages: `/atlas-req-gen`, `/atlas-rtl-gen`,
+  `/atlas-tb-gen`, `/atlas-sim`.
+- The `stop` hook (`stop-todo-loop.py`) re-prompts while open todos remain in
+  `current_todos.json`. The loop ends by CLOSING todos with evidence, never by
+  marking them complete without it.
+- Platform (core/src/lib) feature work additionally follows
+  `ontology/platform_requirements.yaml` — declare an obligation before coding,
+  flip it closed with a pytest node as evidence
+  (`python3 scripts/platform_ontology.py check` must PASS before merge).
