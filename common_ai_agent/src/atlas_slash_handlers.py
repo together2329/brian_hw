@@ -32,6 +32,7 @@ def make_slash_handlers(
     _append_workflow_history,
     _atlas_active_session_cv,
     _canonical_session_string,
+    _session_canonical_string=None,
     _cmd_refresh_wiki,
     _collect_import_files,
     _command_ip,
@@ -89,6 +90,16 @@ def make_slash_handlers(
             return _ssot_yaml_path_for_session(ip, client_session)
         return _ssot_yaml_path(ip)
 
+    def _sess_key(ip: str, workflow: Any = None, client_session: Any | None = None) -> str:
+        """Workspace-session-preserving session key for conversation-history
+        writes. _canonical_session_string drops the workspace_session segment
+        (4-part user/ws/ip/wf -> 3-part user/ip/wf), so chat history landed in
+        the global default workspace and diverged from what the UI polls. Use
+        the client-session-aware builder when wired."""
+        if _session_canonical_string is not None:
+            return _session_canonical_string(ip, workflow, client_session=client_session)
+        return _canonical_session_string(ip, workflow) if workflow is not None else _canonical_session_string(ip)
+
     def _handle_bang_shell_command(text: str, client_session: Any) -> bool:
         raw = str(text or "").strip()
         if not raw.startswith("!"):
@@ -117,7 +128,7 @@ def make_slash_handlers(
         if err:
             _emit_workflow_result(err, "import")
             return True
-        _set_active_ssot_ip(ip)
+        _set_active_ssot_ip(ip, client_session=client_session)
         # Resolve the per-session workspace root so imported evidence lands in
         # the same IP directory the file tree, chat worker, and /to-ssot use.
         # base_root is the workspace root (parent of the IP dir); falls back to
@@ -142,8 +153,8 @@ def make_slash_handlers(
             )
             if errors:
                 msg += "\n\nnotes:\n" + "\n".join(f"- {e}" for e in errors[:8])
-            _append_session_message(_canonical_session_string(ip), "user", text)
-            _append_session_message(_canonical_session_string(ip), "assistant", msg)
+            _append_session_message(_sess_key(ip, client_session=client_session), "user", text)
+            _append_session_message(_sess_key(ip, client_session=client_session), "assistant", msg)
             _append_workflow_history("ssot-gen", "user", text)
             _append_workflow_history("ssot-gen", "assistant", msg)
             _append_active_history("user", text)
@@ -186,8 +197,8 @@ def make_slash_handlers(
         if len(artifact_paths_list) > 12:
             lines.append(f"- ... {len(artifact_paths_list) - 12} more")
         msg = "\n".join(lines)
-        _append_session_message(_canonical_session_string(ip), "user", text)
-        _append_session_message(_canonical_session_string(ip), "assistant", msg)
+        _append_session_message(_sess_key(ip, client_session=client_session), "user", text)
+        _append_session_message(_sess_key(ip, client_session=client_session), "assistant", msg)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", msg)
         _append_active_history("user", text)
@@ -217,7 +228,7 @@ def make_slash_handlers(
                 "grill-me",
             )
             return True
-        _set_active_ssot_ip(ip)
+        _set_active_ssot_ip(ip, client_session=client_session)
         try:
             _ip_root(ip).mkdir(parents=True, exist_ok=True)
         except OSError as exc:
@@ -234,8 +245,8 @@ def make_slash_handlers(
             f"backend baseline missing keys: {', '.join(missing) if missing else '(none)'}\n"
             "Fixed question templates are bypassed; questions must be derived from the current SSOT/imported evidence."
         )
-        _append_session_message(_canonical_session_string(ip), "user", text)
-        _append_session_message(_canonical_session_string(ip), "assistant", msg)
+        _append_session_message(_sess_key(ip, client_session=client_session), "user", text)
+        _append_session_message(_sess_key(ip, client_session=client_session), "assistant", msg)
         _append_workflow_history("ssot-gen", "user", text)
         _append_workflow_history("ssot-gen", "assistant", msg)
         _append_active_history("user", text)
@@ -288,7 +299,7 @@ def make_slash_handlers(
             return True
 
         initial_workflow = _new_ip_initial_workflow()
-        _set_active_ssot_ip(ip, initial_workflow)
+        _set_active_ssot_ip(ip, initial_workflow, client_session=client_session)
         state = _new_ssot_state(ip, kind)
         _ensure_new_ip_structure(ip)
         _ensure_ssot_draft(ip, kind)
@@ -299,7 +310,7 @@ def make_slash_handlers(
                 "Run `/import " + ip + " " + " ".join(import_paths) + "` to populate SSOT TODOs."
             )
         _save_ssot_state(ip, state)
-        session = _canonical_session_string(ip, initial_workflow)
+        session = _sess_key(ip, initial_workflow, client_session=client_session)
         plan = _render_new_ip_plan(ip, kind, state)
         if import_notes:
             plan += "\n\nImport:\n" + "\n".join(f"- {line}" for line in import_notes)
@@ -346,10 +357,10 @@ def make_slash_handlers(
             return True
         client_session.request_stop()
         client_session.emit("agent_state", running=False)
-        _set_active_ssot_ip(ip)
+        _set_active_ssot_ip(ip, client_session=client_session)
         msg = (
             f"[IP] active IP -> {ip}\n"
-            f"session: {_canonical_session_string(ip)}"
+            f"session: {_sess_key(ip, client_session=client_session)}"
         )
         _emit_workflow_result(msg, "ip")
         client_session.emit("commands_changed")
@@ -401,7 +412,7 @@ def make_slash_handlers(
                 "approve",
             )
             return True
-        _set_active_ssot_ip(ip)
+        _set_active_ssot_ip(ip, client_session=client_session)
         state = _load_ssot_state(ip)
         if not state:
             state = _new_ssot_state(ip)
@@ -413,8 +424,8 @@ def make_slash_handlers(
                 f"missing decisions: {', '.join(missing)}\n"
                 "Use /import to seed existing evidence, then /grill-me to answer only the gaps."
             )
-            _append_session_message(_canonical_session_string(ip), "user", text)
-            _append_session_message(_canonical_session_string(ip), "assistant", msg)
+            _append_session_message(_sess_key(ip, client_session=client_session), "user", text)
+            _append_session_message(_sess_key(ip, client_session=client_session), "assistant", msg)
             _append_workflow_history("ssot-gen", "user", text)
             _append_workflow_history("ssot-gen", "assistant", msg)
             _append_active_history("user", text)
@@ -434,7 +445,7 @@ def make_slash_handlers(
             f"YAML write is now allowed.\n"
             "Next: type /to-ssot in the Web UI when the summary looks correct."
         )
-        session = _canonical_session_string(ip)
+        session = _sess_key(ip, client_session=client_session)
         _append_session_message(session, "user", text)
         _append_session_message(session, "assistant", spec)
         _append_session_message(session, "assistant", msg)
@@ -495,10 +506,10 @@ def make_slash_handlers(
                 "to-ssot",
             )
             return True
-        _set_active_ssot_ip(ip)
+        _set_active_ssot_ip(ip, client_session=client_session)
         ip_dir = _session_ip_root(ip, client_session)
         state = _load_ssot_state(ip) or {}
-        session = _canonical_session_string(ip)
+        session = _sess_key(ip, client_session=client_session)
         manifest_path = ip_dir / "req" / "import_manifest.json"
         extracted_path = ip_dir / "req" / "extracted_decisions.json"
         evidence_path = ip_dir / "wiki" / "import-evidence.md"
@@ -732,7 +743,7 @@ def make_slash_handlers(
         validator = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         ssot_path = _session_ssot_yaml_path(ip, client_session)
         stage_root = _session_script_root(ip, client_session)
-        session = _canonical_session_string(ip)
+        session = _sess_key(ip, client_session=client_session)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
         _append_active_history("user", text)
@@ -844,11 +855,11 @@ def make_slash_handlers(
             )
             return True
 
-        _set_active_ssot_ip(ip)
+        _set_active_ssot_ip(ip, client_session=client_session)
         ssot_path = _session_ssot_yaml_path(ip, client_session)
         script = WORKFLOW_ROOT / "ssot-gen" / "scripts" / "verify_ssot.py"
         stage_root = _session_script_root(ip, client_session)
-        session = _canonical_session_string(ip)
+        session = _sess_key(ip, client_session=client_session)
         _append_session_message(session, "user", text)
         _append_workflow_history("ssot-gen", "user", text)
         _append_active_history("user", text)

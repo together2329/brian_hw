@@ -5214,6 +5214,7 @@ def create_app():
         _append_workflow_history=lambda *a, **k: _append_workflow_history(*a, **k),
         _atlas_active_session_cv=lambda *a, **k: _atlas_active_session_cv(*a, **k),
         _canonical_session_string=lambda *a, **k: _canonical_session_string(*a, **k),
+        _session_canonical_string=lambda *a, **k: _session_canonical_string(*a, **k),
         _cmd_refresh_wiki=lambda *a, **k: _cmd_refresh_wiki(*a, **k),
         _collect_import_files=lambda *a, **k: _collect_import_files(*a, **k),
         _command_ip=lambda *a, **k: _command_ip(*a, **k),
@@ -6633,6 +6634,26 @@ def create_app():
         workflow = workflow or os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
         return f"{owner}/{ip}/{workflow}"
 
+    def _session_canonical_string(ip: str | None = None,
+                                   workflow: str | None = None,
+                                   client_session: Any | None = None) -> str:
+        """Canonical session key that PRESERVES the caller's workspace_session.
+
+        _canonical_session_string rebuilds the key from env via
+        _resolve_session_owner, which returns only parts[0] of a 4-part
+        user/workspace_session/ip/workflow key — dropping workspace_session and
+        producing a 3-part legacy key that routes artifacts to the global
+        default workspace. When a 4-part client session is available, build the
+        key from it so writes (and the queued worker env) stay session-scoped.
+        """
+        context = _context_for_client_session(client_session)
+        if context is not None and not context.legacy and context.user_name:
+            ws = context.workspace_session or "default"
+            ip_seg = ip or context.ip_name or "default"
+            wf_seg = workflow or context.workflow or os.environ.get("ATLAS_DEFAULT_WORKFLOW") or "default"
+            return f"{context.user_name}/{ws}/{ip_seg}/{wf_seg}"
+        return _canonical_session_string(ip, workflow)
+
     def _canonical_session_dir(ip: str | None = None,
                                 workflow: str | None = None) -> Path:
         """Filesystem dir for the canonical session path (3 segments)."""
@@ -6670,12 +6691,19 @@ def create_app():
                 continue
         return canon
 
-    def _set_active_ssot_ip(ip: str, workflow: str = "ssot-gen") -> None:
+    def _set_active_ssot_ip(ip: str, workflow: str = "ssot-gen",
+                             client_session: Any | None = None) -> None:
         if not _valid_ip_name(ip):
             return
         workflow = normalize_session_name(str(workflow or "ssot-gen")) or "ssot-gen"
         _atlas_active_ip_cv.set(ip)
-        _atlas_active_session_cv.set(_canonical_session_string(ip, workflow))
+        # Preserve workspace_session: a 3-part canonical key here is later pushed
+        # to ATLAS_ACTIVE_SESSION by _sync_env_to_context and inherited by the
+        # queued ssot-gen worker, which would then write to the global default
+        # workspace instead of the caller's session.
+        _atlas_active_session_cv.set(
+            _session_canonical_string(ip, workflow, client_session=client_session)
+        )
 
     def _infer_ip_from_project_root() -> str:
         """Infer an IP when ATLAS is pointed directly at an IP workspace."""
@@ -6791,8 +6819,14 @@ def create_app():
             return None
 
     def _ip_root_for_session(ip: str, client_session: Any | None = None) -> Path:
+        # The workspace root is user/workspace_session — IP-agnostic — so route
+        # the REQUESTED ip into the caller's session workspace even when the
+        # session key's own ip segment differs (e.g. a template /to-ssot whose
+        # browser session still points at the prior/default ip). The old
+        # `context.ip_name == ip` guard forced those into the global
+        # PROJECT_ROOT/ip ("default") location.
         context = _context_for_client_session(client_session)
-        if context is not None and not context.legacy and context.ip_name == ip:
+        if context is not None and not context.legacy:
             root, error = _validated_context_workspace_root(context)
             if not error and root is not None:
                 return root / ip
@@ -6800,7 +6834,7 @@ def create_app():
 
     def _script_project_root_for_session(ip: str, client_session: Any | None = None) -> Path:
         context = _context_for_client_session(client_session)
-        if context is not None and not context.legacy and context.ip_name == ip:
+        if context is not None and not context.legacy:
             root, error = _validated_context_workspace_root(context)
             if not error and root is not None:
                 return root
