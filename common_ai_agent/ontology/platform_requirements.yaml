@@ -86,35 +86,35 @@ requirements:
         status: closed   # 196b4b53: per-IP git REST(commit/log/graph/revert) _fs_authz 게이트
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_ip_git_rest_endpoints_cross_user_denied"
-            observed_at: d3178b92
+            observed_at: 41f19077
       - id: OBL_IP_REPORTS_CROSS_TENANT_GATED
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: lint/coverage/ssot-gates per-IP authz
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_ip_report_endpoints_cross_user_denied"
-            observed_at: d3178b92
+            observed_at: 41f19077
       - id: OBL_WORKSPACE_DOWNLOAD_GATED
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: /api/workspace/download.zip subpath authz + whole-tree 거부
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_workspace_download_blocks_cross_tenant_and_whole_tree"
-            observed_at: d3178b92
+            observed_at: 41f19077
       - id: OBL_SETTINGS_ADMIN_ONLY_MULTIUSER
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: /api/settings/* 글로벌 .env 변조 → 멀티유저 admin-only
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_settings_endpoints_admin_only_in_multiuser"
-            observed_at: d3178b92
+            observed_at: 41f19077
       - id: OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: 익명 git fetch/clone 멀티유저 기본 OFF
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_git_default_blocks_anon_clone_in_multiuser"
-            observed_at: d3178b92
+            observed_at: 41f19077
       # ── DEFERRED (리뷰 confirmed, 별도 Perforce-aware 패스 필요) ──
       - id: OBL_SCM_JSON_API_CROSS_TENANT_GATED
         owned_by: runtime.authz
@@ -226,7 +226,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_checkout_folder_target_unsynced_opens_edit_and_submits"
-            observed_at: b3df2164
+            observed_at: 41f19077
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_EDIT_FAILURE_NOT_SOFTENED
         owned_by: platform.scm
@@ -234,7 +234,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_depot_selection_checkout_unsynced_opens_for_edit"
-            observed_at: b3df2164
+            observed_at: 41f19077
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL
         owned_by: platform.scm
@@ -242,7 +242,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_failed_default_submit_strands_no_numbered_changelist"
-            observed_at: b3df2164
+            observed_at: 41f19077
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_STREAM_ROOT_TARGET_MAPS_IP
         owned_by: platform.scm
@@ -250,7 +250,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_open_paths_stream_root_folder_target_mirrors_ip_subpath"
-            observed_at: b3df2164
+            observed_at: 41f19077
         repro: scripts/e2e_perforce_ui_flow.py
       - id: OBL_P4_UIPREFS_PERSISTENCE
         owned_by: platform.scm
@@ -258,20 +258,20 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_atlas_git_api.py::test_scm_uiprefs_roundtrip_persists_pane_locations"
-            observed_at: 786a953f
+            observed_at: 41f19077
           - test: "tests/test_atlas_git_api.py::test_scm_uiprefs_sanitizes_keys_and_bounds_growth"
-            observed_at: 786a953f
+            observed_at: 41f19077
       - id: OBL_P4_PENDING_CL_DELETABLE
         owned_by: platform.scm
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_delete_pending_changelist_keeps_workspace_content"
-            observed_at: b3df2164
+            observed_at: 41f19077
           - test: "tests/test_scm_perforce_adapter.py::test_live_revert_paths_deletes_emptied_numbered_changelist"
-            observed_at: b3df2164
+            observed_at: 41f19077
           - test: "tests/test_atlas_git_api.py::test_scm_change_delete_route_uses_perforce_adapter"
-            observed_at: d3178b92
+            observed_at: 41f19077
         repro: scripts/repro_perforce_pending.py
 
   - id: REQ_PLAT_CURSOR_PARITY_001
