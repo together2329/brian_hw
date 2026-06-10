@@ -21,6 +21,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    // Emit source maps so production crash stacks (the React error boundary +
+    // browser console) decode to real file:line instead of minified frames —
+    // needed to diagnose the brian_user_3/mctp_assembler_v2 workspace crash.
+    sourcemap: true,
     rollupOptions: {
       // Relative to Vite root (the config dir, frontend/atlas — where the build
       // runs). PORTABLE: no machine-absolute paths, no node-types dependency.

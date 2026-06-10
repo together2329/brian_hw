@@ -131,7 +131,12 @@ export function PhaseStrip({ stagesState }: PhaseStripProps) {
 export const ENH_LANE_X = { 1: 30, 2: 230, 3: 430, 4: 630, 5: 830, 6: 1030 };
 export const ENH_LANE_NAMES = { 1: 'SSOT', 2: 'MODELS', 3: 'RTL', 4: 'BRANCH', 5: 'VERIFY · EDA', 6: 'SIGNOFF' };
 export const ENH_LANE_HINTS = { 6: 'post-route' };
-export const ENH_ROW_Y = { 1: 140, 2: 220, 3: 300, 4: 380 };
+// Row 5 (y:460) is load-bearing: goal-audit sits at lane 6 / row 5 in the
+// SIGNOFF column. Without a row-5 entry, ENH_ROW_Y[5] is undefined and
+// pipeline-trace-canvas.tsx computes y=undefined, dropping the goal-audit node
+// to the top-left corner (overlapping the ORCHESTRATOR header) instead of the
+// SIGNOFF lane.
+export const ENH_ROW_Y = { 1: 140, 2: 220, 3: 300, 4: 380, 5: 460 };
 export const ENH_NODE_W = 168;
 export const ENH_NODE_H = 58;
 export const ENH_STAGE_LAYOUT = {
