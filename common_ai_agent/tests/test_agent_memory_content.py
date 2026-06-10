@@ -557,5 +557,86 @@ class TestMemoryFormatAllForPrompt(unittest.TestCase):
         self.assertEqual(mem.format_all_for_prompt(), "")
 
 
+# ---------------------------------------------------------------------------
+# DEFECT A — ProceduralMemory absolute path handling
+# ---------------------------------------------------------------------------
+
+class TestProceduralMemoryAbsolutePath(unittest.TestCase):
+    """Defect A: ProceduralMemory.__init__ must respect absolute paths."""
+
+    def test_absolute_memory_dir_used_as_is(self):
+        """An absolute tmp dir must be used directly, not prepended with home."""
+        tmp = Path(tempfile.mkdtemp())
+        abs_dir = tmp / "proc_abs"
+        pm = ProceduralMemory(memory_dir=str(abs_dir))
+        # The resolved memory_dir must equal the absolute path we passed in.
+        self.assertEqual(pm.memory_dir.resolve(), abs_dir.resolve())
+        # And the trajectories file must exist inside that absolute dir.
+        self.assertTrue(pm.trajectories_file.parent.resolve() == abs_dir.resolve())
+
+    def test_tilde_path_is_expanded_not_literal(self):
+        """A '~/.memory_xyz' arg must expand to home/.memory_xyz, not home/~/.memory_xyz."""
+        fake_home = Path(tempfile.mkdtemp())
+        rel_tilde = "~/.memory_test_tilde_xyz"
+        with patch("lib.procedural_memory.Path.home", return_value=fake_home):
+            pm = ProceduralMemory(memory_dir=rel_tilde)
+        # With correct expanduser() the tilde resolves to fake_home/.memory_test_tilde_xyz.
+        # With the buggy Path.home() / rel_tilde it would be fake_home/~/.memory_test_tilde_xyz.
+        wrong = fake_home / rel_tilde
+        self.assertNotEqual(
+            pm.memory_dir.resolve(), wrong.resolve(),
+            "memory_dir must not contain a literal '~' component"
+        )
+        expected = Path(rel_tilde).expanduser()
+        self.assertEqual(pm.memory_dir.resolve(), expected.resolve())
+
+    def test_relative_path_still_goes_under_home(self):
+        """Relative paths must continue to resolve under Path.home()."""
+        rel = ".memory_test_rel_xyz"
+        fake_home = Path(tempfile.mkdtemp())
+        with patch("lib.procedural_memory.Path.home", return_value=fake_home):
+            pm = ProceduralMemory(memory_dir=rel)
+        expected = fake_home / rel
+        self.assertEqual(pm.memory_dir.resolve(), expected.resolve())
+
+
+# ---------------------------------------------------------------------------
+# DEFECT B — MemorySystem.auto_extract_and_update LLM error marker
+# ---------------------------------------------------------------------------
+
+class TestAutoExtractLLMErrorMarker(unittest.TestCase):
+    """Defect B: LLM failure must carry llm_error; valid empty list must not."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.mem = _mem(self.tmp)
+
+    def test_llm_raises_produces_llm_error_key(self):
+        """When the LLM callable raises, result must have 'llm_error' key."""
+        def raising_llm(prompt: str) -> str:
+            raise RuntimeError("connection refused")
+
+        result = self.mem.auto_extract_and_update(
+            "I like Python", llm_call_func=raising_llm
+        )
+        self.assertIn("llm_error", result,
+                      "Expected 'llm_error' key when LLM raises, got: " + str(result))
+        self.assertIsInstance(result["llm_error"], str)
+        self.assertGreater(len(result["llm_error"]), 0)
+
+    def test_llm_returns_empty_list_no_llm_error_key(self):
+        """When the LLM returns a valid empty list, result must NOT have 'llm_error'."""
+        def empty_llm(prompt: str) -> str:
+            return "[]"
+
+        result = self.mem.auto_extract_and_update(
+            "Hello world", llm_call_func=empty_llm
+        )
+        self.assertNotIn("llm_error", result,
+                         "Unexpected 'llm_error' on successful-but-empty LLM response")
+        self.assertEqual(result.get("extracted"), 0)
+        self.assertEqual(result.get("actions"), [])
+
+
 if __name__ == "__main__":
     unittest.main()

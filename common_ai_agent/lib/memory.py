@@ -768,8 +768,11 @@ class MemorySystem:
                 return {"error": "No LLM call function available"}
 
         try:
-            # Extract facts using LLM
-            facts = self._llm_extract_facts(user_message, llm_call_func)
+            # Extract facts using LLM; returns None on LLM failure.
+            facts, llm_err = self._llm_extract_facts(user_message, llm_call_func)
+
+            if llm_err is not None:
+                return {"extracted": 0, "actions": [], "llm_error": llm_err}
 
             if not facts:
                 return {"extracted": 0, "actions": []}
@@ -839,7 +842,7 @@ class MemorySystem:
         except Exception as e:
             return {"error": str(e)}
 
-    def _llm_extract_facts(self, message: str, llm_call_func) -> list:
+    def _llm_extract_facts(self, message: str, llm_call_func):
         """
         Extract preference facts from message using LLM.
 
@@ -848,7 +851,9 @@ class MemorySystem:
             llm_call_func: LLM call function
 
         Returns:
-            List of extracted facts
+            Tuple (facts, llm_error): facts is a list of extracted dicts (may be
+            empty); llm_error is a non-empty string when the LLM call failed or
+            was unavailable, otherwise None.
         """
         prompt = f"""Extract user preferences from this message.
 Look for:
@@ -877,12 +882,12 @@ Preferences (JSON only):"""
             if start_idx != -1 and end_idx > start_idx:
                 json_str = response[start_idx:end_idx]
                 facts = json.loads(json_str)
-                return facts if isinstance(facts, list) else []
+                return (facts if isinstance(facts, list) else []), None
 
-            return []
+            return [], None
 
-        except Exception:
-            return []
+        except Exception as exc:
+            return [], str(exc) if str(exc) else type(exc).__name__
 
     def _llm_resolve_conflict(self, key: str, old_value: Any, new_value: Any,
                              llm_call_func) -> str:
