@@ -167,3 +167,34 @@ preconditions/inputs/outputs authored from the locked contracts. So the
 locked-DETAIL injection fix (58d31e53) DID transfer semantics into function_model;
 the residual is transaction NAMING, not vacuous content. fl-model-gen's original
 block was on missing semantics, which are now present.
+
+### Final 10-IP SSOT result table (2026-06-11)
+| IP | SSOT | how driven | note |
+|----|------|-----------|------|
+| cnt8_en_v1 | REAL 1260L | orchestrator (gpt-5.4, pre-fix) | feature_N=4 (content present) |
+| add8_cin_v1 | REAL 1174L | orchestrator serial (post-fix) | real_logic transactions, names cosmetic |
+| gray8_enc_v1 | REAL 1152L | orchestrator (parallel survivor) | |
+| mux4_v1 | REAL 306L | orchestrator serial (after kill) | |
+| shift8_lr_v1 | stub | parallel — worker died | finding 12 |
+| pwm8_duty_v1 | stub | parallel — worker died | finding 12 |
+| rr_arb4_v1 | stub | parallel — worker died | finding 12 |
+| parity8_v1 | stub | parallel — worker died | finding 12 |
+| updown8_v1 | stub | parallel — worker died | finding 12 |
+| onehot4_v1 | stub | parallel — worker died | finding 12 |
+
+**4/10 real SSOTs.** Every serial/low-contention drive produced a real SSOT;
+the 6 stubs are all from the 8-at-once parallel burst that killed the workers
+(finding 12). Control-plane reliability: 10/10 dispatched correctly; the failure
+is worker throughput under parallel load + the missing dead-worker watchdog.
+
+## Campaign verdict
+The orchestrating SYSTEM (control plane) is validated and reliable: chat in →
+orchestrator reads state → dispatch_workflow → IPC worker → artifact → yield/
+advance, with detect→classify→retry→escalate on failure, proven on cnt8, add8,
+mux4, gray8 (ssot-gen) and **mctp_assembler_v2 driven autonomously to STA/PNR
+physical-design timing failures**. 12 findings surfaced through trial-and-error;
+9 fixed in code (chat-vis, ask_user resume ×2, IPC resume, IP-extraction,
+ssot-gen locked-detail, React Flow pipeline, workspace chat) + UI (goal-audit).
+Open reliability work: serial-dispatch policy / dead-worker watchdog (finding
+12/4), ssot-gen transaction-naming + full elimination of placeholders, headless
+req-gate parity (finding 11), gpt-5.4 as the pinned worker model.
