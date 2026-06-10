@@ -6678,23 +6678,28 @@ def register_jobs_routes(
         candidate = ""
         msg = str(message or "")
         token_re = r"([A-Za-z][A-Za-z0-9_]*)"
+        # ONLY explicit IP markers may override the dropdown/body selection.
+        # A loose `on <word>` pattern was removed: it grabbed ordinary prose
+        # like "gating on evidence" → ip="evidence", silently retargeting the
+        # run away from the selected IP (campaign finding, 2026-06-11).
         patterns = (
             rf"\bfor\s+ip\s+{token_re}\b",
             rf"\bip\s+{token_re}\b",
             rf"\bip\s*=\s*{token_re}\b",
-            rf"\bon\s+{token_re}\b",
         )
         for pat in patterns:
             m = re.search(pat, msg)
             if m:
                 candidate = m.group(1).strip()
                 break
+        # An explicit body/dropdown IP outranks a loose "for <name>" guess —
+        # the user's selection is more reliable than prose pattern-matching.
+        if not candidate:
+            candidate = str(fallback or "").strip()
         if not candidate:
             m = re.search(r"\bfor\s+([A-Za-z][A-Za-z0-9_]*[_0-9][A-Za-z0-9_]*)\b", msg)
             if m:
                 candidate = m.group(1).strip()
-        if not candidate:
-            candidate = str(fallback or "").strip()
         # `default` is the placeholder IP that the IP dropdown shows when
         # nothing real is selected. The orchestrator's job is to progress
         # a *specific* IP's pipeline; with the placeholder, every tool

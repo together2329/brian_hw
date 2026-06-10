@@ -40,6 +40,9 @@ Related: [[orchestrator-chat-ux]], [[verification-contract-model]],
 | 5 | gpt-5.4 orchestrator asked the user instead of attempting requirement-truth creation, despite "keep going autonomously" — correct given gate #2, but it asked AFTER two failed dispatches rather than reading the gate error's remediation hint on the first failure | efficiency observation | logged for prompt tuning |
 | 6 | IPC live resume gap: in `--exec o`, `submit_or_attach` treated `paused` as active and only appended a wake — but ask_user-paused means the supervisor subprocess EXITED, so the wake had no reader. Reply returned "appended", run stayed paused forever (the runtime half of finding 3/4). | machinery P0 | FIXED 1a3a91d1 (`_attach_or_resume` re-spawns on paused; test_paused_run_respawns_supervisor_on_user_reply) |
 | 7 | Truth path-scope mismatch: the dispatch gate resolves the IP under the **session-scoped** root `<root>/<owner>/<workspace>/<ip>` (multi-user), but a human locking truth at the top-level `<root>/<ip>` is invisible to it → perpetual `truth_not_locked` despite a valid `requirements_locked` manifest. Same class as [[project_import_session_scope_fix]]. | operator footgun / scoping | RESOLVED for campaign by locking at `<root>/admin/default/<ip>`; gate-vs-author path contract still worth hardening |
+| 8 | IP-extraction footgun: `_extract_ip_from_orchestrator_message` had a loose `\bon\s+<word>\b` pattern that grabbed ordinary prose ("gating **on evidence**" → ip="evidence"), silently retargeting the run away from the explicit dropdown/body IP. | product P1 (chat routing) | FIXED (removed `on <word>` pattern; explicit body IP now outranks a loose `for <name>` guess; live-verified "gating on evidence" keeps ip=cnt8_en_v1) |
+| 9 | `read_pipeline_state:tool_failed` root cause = IPC tool-bridge **token mismatch** (`ValueError: bridge request token mismatch`): when a run is resumed/re-spawned, a 2nd `ToolBridgeServer` can briefly poll the same per-run bridge dir with a new token while the old one drains → the wrong server consumes+errors the request. Retried by the orchestrator (non-fatal) but wastes an LLM turn. | machinery P2 | ROOT-CAUSED (ipc_tool_bridge_server.py:103); fix = on token mismatch SKIP (don't consume) the request so the correct server answers — DEFERRED (security-test sensitive, needs focused pass) |
+| 10 | **SSOT semantic-transfer gap (the real campaign bottleneck)**: ssot-gen emits a structurally-valid but **semantically vacuous** SSOT — `transactions: FM1 name: feature_1`, `fsm: type none/states []` — instead of reflecting the locked truth's `behavioral_contracts` (real COUNT/CLR decision tables). fl-model-gen correctly **refuses to guess** and blocks on missing `function_model.transactions/state_variables`, `fsm.states`, `io_list...ports` semantics. Orchestrator detected→classified→retried→escalated **correctly**. | authoring chain (worker) | OPEN — locked-truth→SSOT semantic reflection is the gap; same family as [[project_workflow_ip_authoring_gotchas]] |
 
 ## Per-IP log
 
@@ -67,12 +70,29 @@ cnt8_en_v1 ssot-gen output (05:05): `yaml/cnt8_en_v1.ssot.yaml` (52 KB) +
 → 14 `yield_run` (waited on the job, did not prematurely finalize). First
 genuine chat→orchestrator→worker→artifact traversal of the campaign.
 
-Open follow-ons (next session):
+### 06-11 stage-drive attempt (run b680830)
+Orchestrator chained **ssot-gen → fl-model-gen** autonomously and behaved
+exactly right when the worker failed: dispatch → `job_complete:error` →
+read_pipeline_state → read_artifact → `classify_failure` → re-dispatch →
+`job_complete:error` → ask_user with a **precise** question (missing
+`model/fl_model_check.json` + `cov/fcov_plan.json`; asked for the worker log
+or bypass permission). The control loop is sound; the blocker is finding 10
+(vacuous SSOT semantics), not the orchestrator.
+
+**Key conclusion so far**: the orchestrating *system* is substantially
+validated — chat I/O, dispatch, multi-stage chaining, failure detection,
+classify, retry, and human escalation all work. The remaining campaign
+bottleneck is the **authoring chain** (locked-truth → SSOT semantic
+reflection → FL), which is a worker/content problem, not orchestration.
+
+Open follow-ons:
+- finding 10 (PRIMARY): make ssot-gen reflect `behavioral_contracts` decision
+  tables into `function_model.transactions`/`state_variables` so fl-model-gen
+  isn't blocked — OR have the human truth pack author a full FL-ready SSOT
+  (orch_campaign_truth.py emits only a stub today). This unblocks every IP.
 - finding 4: paused-run watchdog (zombie thread) — OBL_ORCH_RUN_STUCK_WATCHDOG_001.
-- finding 7: harden the gate-vs-author truth path contract so a human lock at
-  the top-level root is either honored or rejected loudly (not silently unseen).
-- step 12 `read_pipeline_state:tool_failed` mid-run — investigate the transient.
-- continue cnt8_en_v1 past ssot-gen (fl→rtl→lint→tb→sim) and the remaining 9 IPs;
-  exercise web-UI and headless entry points.
+- finding 7: harden gate-vs-author truth path contract (honor or loudly reject).
+- finding 9: IPC bridge token-mismatch skip-not-consume fix (security-test pass).
+- still untested: web-UI E2E entry, headless entry, remaining 9 IPs.
 
 (continued as the campaign progresses)
