@@ -203,3 +203,31 @@ def test_settings_endpoints_admin_only_in_multiuser(app_clients):
     alice, _, _ = app_clients
     assert alice.post("/api/settings/model", json={"key": "profile:kimi"}).status_code in (401, 403)
     assert alice.post("/api/settings/reasoning-effort", json={"effort": "med"}).status_code in (401, 403)
+
+
+def test_scm_api_cross_tenant_denied(app_clients):
+    # SECURITY (review [1], critical): the /api/scm/* + /api/git/* JSON API had
+    # no tenant authz and resolved the target from an attacker-supplied ip. A
+    # non-owner must now 403 — both read (status/log) and write (commit/revert).
+    alice, _, _ = app_clients
+    assert alice.get("/api/git/status", params={"ip": "beta"}).status_code == 403
+    assert alice.get("/api/git/log", params={"ip": "beta"}).status_code == 403
+    assert alice.post("/api/git/commit", json={"ip": "beta", "message": "x"}).status_code == 403
+    assert alice.post("/api/scm/revert", json={"ip": "beta"}).status_code == 403
+    assert alice.post("/api/scm/edit", json={"ip": "beta"}).status_code == 403
+    # own IP passes the gate (downstream may 4xx, but never 403)
+    assert alice.get("/api/git/status", params={"ip": "alpha"}).status_code != 403
+
+
+def test_scm_root_param_cannot_escape_project_root(app_clients, tmp_path):
+    # SECURITY (review [1]): a request-supplied scmRoot must not escape
+    # PROJECT_ROOT (absolute-path / traversal escape). Give alpha a .git so the
+    # request reaches the scmRoot validation (instead of stopping at the no-.git
+    # gate), then a scmRoot of /etc must be rejected as out-of-tree.
+    alice, _, _ = app_clients
+    (tmp_path / "alpha" / ".git").mkdir(parents=True, exist_ok=True)
+    resp = alice.post("/api/scm/edit", json={
+        "ip": "alpha", "scmRoot": "/etc", "paths": ["x"],
+    })
+    assert resp.status_code == 400, resp.text
+    assert "escapes project root" in (resp.text or "").lower()

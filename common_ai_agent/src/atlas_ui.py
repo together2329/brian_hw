@@ -10606,6 +10606,7 @@ def create_app():
         project_root=lambda: PROJECT_ROOT,
         active_ip_value=_active_ip_value,
         valid_ip_name=_valid_ip_name,
+        fs_authz=_fs_authz,
     )
     from atlas_api_vcd import register_vcd_routes  # noqa: WPS433
     register_vcd_routes(
