@@ -49,10 +49,47 @@ L4 래칫   0
 이런 게 "다음에 뭘 할지"의 좌표다. known_gaps 필드(run_command Windows, llm 이미지
 flatten, /compact 모델 미스코프 등)는 단위에 붙은 백로그다.
 
+## v2: ROCEV 척추 — 전면 추적성 (2026-06-10)
+
+VCM과 같은 메타패턴을 플랫폼 도메인에 인스턴스화:
+
+```
+Requirement → Obligation → (Contract=reflection) → Evidence → Validation
+  설계 결정      기계검증 가능한      코드의 어디가         pytest 노드 +      validate_spine()
+  (wiki anchor)  약속 (owned_by      구현/관측하나        observed_at 커밋    + check 게이트
+                 DevUnit)
+```
+
+- 선언부: `ontology/platform_requirements.yaml` (4 requirements / 17 obligations)
+- **status**: `closed`(evidence 필수) | `open` | `refuted`(refuted_by 필수 — known_gaps의
+  정식 승격: 결함 = 반증된 약속, 수정 완료 = closed로 뒤집는 evidence 제시)
+- **기계 강제**: anchor/owner/pytest 노드(ast)/commit 전부 실재 검증 — 유령 선언 = check 실패
+- **freshness**: observed_at 이후 owner의 owns/테스트 파일이 git상 바뀌면 `stale` 강등
+  (VCM의 PASS = correctness && freshness 그대로). 도입 당일 실전 작동: 스캐너 커밋이
+  테스트 파일을 바꾸자 그걸 증거로 쓰던 obligation 2개가 자동 stale → 재검증 후
+  observed_at 갱신으로 복귀.
+- 현재: **closed 12 / refuted 5 / open 0** (refuted 5 = memory LLM swallow, 절대경로 무시,
+  activate env 누수, authorize fail-open, compressor swallow — 이게 곧 수정 백로그)
+
+## 개발 루프 (필수 — 모든 기능 작업은 이 레이어를 거친다)
+
+2026-06-10 Brian 지시로 제도화. 루트 `CLAUDE.md`에 박혀 있어 모든 세션이 따른다:
+
+```
+① 선언  코드 전에 obligation(status: open) 추가 — 새 모듈이면 unit owns 등록
+② 구현  owned 경계 안에서 작성
+③ 증거  content test 작성 → pytest 노드 + observed_at(커밋) 을 evidence 로
+④ 닫기  status: closed → check PASS 확인 후에만 merge
+```
+
+- 발견한 결함 = 즉시 `status: refuted` obligation (채팅 메모 금지)
+- 작업 큐 = `backlog` 커맨드 (refuted > stale > open 순으로 출력)
+
 ## 사용법
 
 ```bash
-python3 scripts/platform_ontology.py report   # 표 + 히스토그램 + orphan top
+python3 scripts/platform_ontology.py report   # 표 + 히스토그램 + 추적표 + orphan top
+python3 scripts/platform_ontology.py backlog  # 작업 큐 (refuted/stale/open)
 python3 scripts/platform_ontology.py scan     # DB에 스냅샷 적재 (이력 누적)
 python3 scripts/platform_ontology.py check    # 게이트 (rc 0/1) — CI/훅용
 ```

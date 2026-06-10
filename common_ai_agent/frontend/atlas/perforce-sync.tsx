@@ -632,6 +632,13 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     if (!paths.length) { setErr('nothing to revert'); return; }
     post('/api/scm/revert', { paths }, `reverted ${paths.length} file(s)`);
   };
+  const onDeleteChange = () => {
+    if (selectedChange === 'default') return;
+    post('/api/scm/change/delete', { changelist: selectedChange }, `deleted CL ${selectedChange}`, () => {
+      setSelectedChange('default');
+      setSelPend(new Set());
+    });
+  };
   const renderBottomTab = (tab: BottomTab, label: string) => (
     <button
       type="button"
@@ -816,6 +823,9 @@ function PerforceSyncTab(props: PerforceSyncProps) {
                   ))}
                 </select>
                 <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
+                  {selectedChange !== 'default' ? (
+                    <button style={sx.btn} onClick={onDeleteChange} disabled={busy} title="Revert (-k) and delete this pending changelist">Delete CL</button>
+                  ) : null}
                   <button style={sx.btn} onClick={onRevert} disabled={busy || !visiblePending.length}>Revert</button>
                 </span>
               </div>

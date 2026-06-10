@@ -22,10 +22,12 @@ Usage:
 
 from __future__ import annotations
 
+import ast
 import fnmatch
 import json
 import re
 import sqlite3
+import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -34,7 +36,11 @@ import yaml
 
 REPO = Path(__file__).resolve().parent.parent
 ONTOLOGY_YAML = REPO / "ontology" / "platform_ontology.yaml"
+REQUIREMENTS_YAML = REPO / "ontology" / "platform_requirements.yaml"
 ONTOLOGY_DB = REPO / "ontology" / "platform.db"
+
+GRANULARITIES = {"structural", "behavior", "content", "concurrent"}
+STATUSES = {"closed", "open", "refuted"}
 
 LEVEL_NAMES = {0: "L0 존재", 1: "L1 단위테스트", 2: "L2 내용검증", 3: "L3 E2E", 4: "L4 래칫"}
 
@@ -58,6 +64,12 @@ CREATE TABLE IF NOT EXISTS unit_tests (
 );
 CREATE TABLE IF NOT EXISTS orphans (
   snapshot_id INTEGER, path TEXT, lines INTEGER
+);
+CREATE TABLE IF NOT EXISTS spine_state (
+  snapshot_id INTEGER, requirement_id TEXT, obligation_id TEXT,
+  owned_by TEXT, granularity TEXT, status TEXT, effective_status TEXT,
+  evidence_json TEXT, refuted_by TEXT,
+  PRIMARY KEY (snapshot_id, obligation_id)
 );
 """
 
@@ -166,6 +178,138 @@ def compute_levels(doc: dict, owned: dict, tests: dict, repo: Path = REPO) -> di
     return levels
 
 
+# ---------- ROCEV 척추 (requirement → obligation → evidence → validation) ----------
+
+def load_spine(path: Path = REQUIREMENTS_YAML) -> dict:
+    if not path.is_file():
+        return {"requirements": []}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {"requirements": []}
+
+
+_AST_CACHE: dict = {}
+
+
+def _test_node_exists(repo: Path, node: str) -> bool:
+    """'tests/x.py::test_f' 또는 'tests/x.py::TestC::test_m' 실재 검증 (ast)."""
+    parts = node.split("::")
+    if len(parts) not in (2, 3):
+        return False
+    fpath = repo / parts[0]
+    if not fpath.is_file():
+        return False
+    key = fpath.as_posix()
+    if key not in _AST_CACHE:
+        try:
+            _AST_CACHE[key] = ast.parse(fpath.read_text(encoding="utf-8"))
+        except (OSError, SyntaxError):
+            return False
+    tree = _AST_CACHE[key]
+    if len(parts) == 2:
+        return any(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))
+                   and n.name == parts[1] for n in tree.body)
+    for n in tree.body:
+        if isinstance(n, ast.ClassDef) and n.name == parts[1]:
+            return any(isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef))
+                       and m.name == parts[2] for m in n.body)
+    return False
+
+
+def _git(repo: Path, *args: str):
+    try:
+        out = subprocess.run(["git", "-C", str(repo), *args],
+                             capture_output=True, text=True, timeout=30)
+        return out.returncode, out.stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return 1, ""
+
+
+def _commit_exists(repo: Path, sha: str) -> bool:
+    rc, _ = _git(repo, "cat-file", "-e", f"{sha}^{{commit}}")
+    return rc == 0
+
+
+def _changed_since(repo: Path, sha: str, paths: list):
+    """observed_at 이후 해당 파일들 변경 여부. git 불가 시 None (unknown)."""
+    if not paths:
+        return []
+    rc, out = _git(repo, "diff", "--name-only", f"{sha}..HEAD", "--", *paths)
+    if rc != 0:
+        return None
+    return [line for line in out.splitlines() if line.strip()]
+
+
+def validate_spine(spine: dict, units_doc: dict, repo: Path = REPO):
+    """무결성 issue 목록 + obligation별 effective_status 해석을 반환.
+
+    effective_status: closed 인데 observed_at 이후 owner 코드/테스트가 바뀌면 stale.
+    """
+    unit_ids = {u["id"] for u in units_doc.get("units", [])}
+    owned, _, _ = map_ownership(units_doc, expand_scope(units_doc, repo), repo)
+    issues = []
+    resolved = []
+    seen_req, seen_ob = set(), set()
+    for req in spine.get("requirements", []):
+        rid = req.get("id", "?")
+        if rid in seen_req:
+            issues.append(f"{rid}: duplicate requirement id")
+        seen_req.add(rid)
+        if not (req.get("claim") or "").strip():
+            issues.append(f"{rid}: empty claim")
+        anchor = req.get("design_anchor", "")
+        if not anchor or not (repo / anchor).is_file():
+            issues.append(f"{rid}: design_anchor missing on disk: {anchor!r}")
+        obligations = req.get("obligations") or []
+        if not obligations:
+            issues.append(f"{rid}: no obligations")
+        for ob in obligations:
+            oid = ob.get("id", "?")
+            if oid in seen_ob:
+                issues.append(f"{oid}: duplicate obligation id")
+            seen_ob.add(oid)
+            owner = ob.get("owned_by", "")
+            if owner not in unit_ids:
+                issues.append(f"{oid}: owned_by unknown unit {owner!r}")
+            if ob.get("granularity") not in GRANULARITIES:
+                issues.append(f"{oid}: bad granularity {ob.get('granularity')!r}")
+            status = ob.get("status")
+            if status not in STATUSES:
+                issues.append(f"{oid}: bad status {status!r}")
+            repro = ob.get("repro")
+            if repro and not (repo / repro).is_file():
+                issues.append(f"{oid}: repro missing on disk: {repro}")
+            effective = status
+            if status == "refuted" and not (ob.get("refuted_by") or "").strip():
+                issues.append(f"{oid}: refuted without refuted_by")
+            if status == "closed":
+                evidence = ob.get("evidence") or []
+                if not evidence:
+                    issues.append(f"{oid}: closed without evidence")
+                stale_files = []
+                for ev in evidence:
+                    node = ev.get("test", "")
+                    if not _test_node_exists(repo, node):
+                        issues.append(f"{oid}: evidence node not found: {node}")
+                        continue
+                    sha = str(ev.get("observed_at", ""))
+                    if not sha or not _commit_exists(repo, sha):
+                        issues.append(f"{oid}: observed_at not a commit: {sha!r}")
+                        continue
+                    watch = list(owned.get(owner, [])) + [node.split("::")[0]]
+                    changed = _changed_since(repo, sha, watch)
+                    if changed:
+                        stale_files.extend(changed)
+                if stale_files:
+                    effective = "stale"
+            resolved.append({
+                "requirement_id": rid, "obligation_id": oid, "owned_by": owner,
+                "granularity": ob.get("granularity"), "status": status,
+                "effective_status": effective,
+                "evidence": ob.get("evidence") or [],
+                "refuted_by": ob.get("refuted_by", ""),
+            })
+    return issues, resolved
+
+
 def scan(write_db: bool = True):
     doc = load_ontology()
     scope_files = expand_scope(doc)
@@ -173,11 +317,14 @@ def scan(write_db: bool = True):
     tests = discover_tests(owned)
     missing = check_declared(doc)
     levels = compute_levels(doc, owned, tests)
+    spine = load_spine()
+    spine_issues, spine_resolved = validate_spine(spine, doc)
 
     result = {
         "doc": doc, "owned": owned, "orphans": orphans, "overlaps": overlaps,
         "tests": tests, "missing": missing, "levels": levels,
         "n_scope": len(scope_files),
+        "spine": spine, "spine_issues": spine_issues, "spine_resolved": spine_resolved,
     }
     if not write_db:
         return result
@@ -208,6 +355,12 @@ def scan(write_db: bool = True):
                         [(sid, uid, t, "discovered") for t in tests.get(uid, [])])
     con.executemany("INSERT INTO orphans VALUES (?,?,?)",
                     [(sid, o, _count_lines(REPO / o)) for o in orphans])
+    con.executemany(
+        "INSERT INTO spine_state VALUES (?,?,?,?,?,?,?,?,?)",
+        [(sid, r["requirement_id"], r["obligation_id"], r["owned_by"],
+          r["granularity"], r["status"], r["effective_status"],
+          json.dumps(r["evidence"], ensure_ascii=False), r["refuted_by"])
+         for r in spine_resolved])
     con.commit()
     con.close()
     result["snapshot_id"] = sid
@@ -239,11 +392,55 @@ def report():
         print("--- MISSING declared paths ---")
         for uid, field, rel in r["missing"]:
             print(f"  {uid}.{field}: {rel}")
+    # --- ROCEV 척추 추적표 ---
+    by_req = {}
+    for ob in r["spine_resolved"]:
+        by_req.setdefault(ob["requirement_id"], []).append(ob)
+    if by_req:
+        print("--- traceability (requirement → obligations) ---")
+        for req in r["spine"].get("requirements", []):
+            obs = by_req.get(req["id"], [])
+            cnt = {}
+            for ob in obs:
+                cnt[ob["effective_status"]] = cnt.get(ob["effective_status"], 0) + 1
+            summary = " ".join(f"{k}={v}" for k, v in sorted(cnt.items()))
+            print(f"{req['id']}: {summary}")
+            print(f"    \"{req.get('claim', '')}\"")
+            for ob in obs:
+                if ob["effective_status"] == "closed":
+                    continue
+                tag = ob["effective_status"].upper()
+                why = ob["refuted_by"].strip() if ob["refuted_by"] else ""
+                print(f"    [{tag}] {ob['obligation_id']} ({ob['owned_by']})"
+                      + (f" — {why[:80]}" if why else ""))
+    if r["spine_issues"]:
+        print("--- SPINE INTEGRITY ISSUES ---")
+        for issue in r["spine_issues"]:
+            print(f"  {issue}")
     print(f"--- orphans (top 15 by size) ---")
     top = sorted(r["orphans"], key=lambda o: -_count_lines(REPO / o))[:15]
     for o in top:
         print(f"  {o} ({_count_lines(REPO / o)}L)")
     return r
+
+
+def backlog() -> int:
+    """작업 큐: open(미착수 약속) + refuted(반증된 약속 = 결함) 목록."""
+    r = scan(write_db=False)
+    items = [o for o in r["spine_resolved"]
+             if o["effective_status"] in ("open", "refuted", "stale")]
+    if not items:
+        print("[ontology] backlog empty — all obligations closed & fresh")
+        return 0
+    order = {"refuted": 0, "stale": 1, "open": 2}
+    items.sort(key=lambda o: (order[o["effective_status"]], o["owned_by"]))
+    print(f"=== backlog ({len(items)}) — refuted(결함) > stale(재검증) > open(미착수) ===")
+    for ob in items:
+        tag = ob["effective_status"].upper()
+        print(f"[{tag:7}] {ob['obligation_id']}  ({ob['owned_by']}, {ob['granularity']})")
+        if ob["refuted_by"]:
+            print(f"          {ob['refuted_by'].strip()}")
+    return 0
 
 
 def check() -> int:
@@ -262,9 +459,19 @@ def check() -> int:
         rc = 1
         print(f"[ontology] FAIL: orphans {len(r['orphans'])} > baseline {baseline} "
               f"(새 파일은 단위에 등록하세요)")
+    for issue in r["spine_issues"]:
+        rc = 1
+        print(f"[ontology] FAIL: spine: {issue}")
+    stale = [o for o in r["spine_resolved"] if o["effective_status"] == "stale"]
+    for ob in stale:  # 신선도는 경고 (재실행+observed_at 갱신이 처방)
+        print(f"[ontology] WARN: stale evidence: {ob['obligation_id']} "
+              f"(owner 코드/테스트가 observed_at 이후 변경됨 — 재검증 필요)")
     if rc == 0:
+        n_ob = len(r["spine_resolved"])
+        closed = sum(1 for o in r["spine_resolved"] if o["effective_status"] == "closed")
         print(f"[ontology] PASS: declared paths OK, no overlap, "
-              f"orphans {len(r['orphans'])} ≤ baseline {baseline}")
+              f"orphans {len(r['orphans'])} ≤ baseline {baseline}, "
+              f"spine {closed}/{n_ob} closed ({len(stale)} stale)")
     return rc
 
 
@@ -280,6 +487,8 @@ def main(argv: list) -> int:
         return 0
     if cmd == "check":
         return check()
+    if cmd == "backlog":
+        return backlog()
     print(__doc__)
     return 2
 

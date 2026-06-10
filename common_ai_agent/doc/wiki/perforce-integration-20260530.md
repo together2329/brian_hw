@@ -88,6 +88,48 @@ adapter invoke `p4` from the selected IP/worktree path. The regression fixture
 pins both Perforce and Atlas client env vars so worktree cwd differences do not
 fall back to the wrong client.
 
+## 2026-06-10 pending-pileup and checkout-no-update fixes (REQ_PLAT_SCM_PERFORCE_SYNC_001)
+
+User-visible symptoms: the pending list kept accumulating junk changelists even
+after submit, and checking out an existing depot file then submitting never
+updated the depot. Reproduced mechanically against a throwaway local `p4d` with
+`scripts/repro_perforce_pending.py`; four root causes, all in
+`core/scm_perforce.py`:
+
+1. **Checkout opened existing depot files for `add`** — `_stage_local_sources`
+   chose edit-vs-add by the *shape of the UI target* (file-style `//depot/f`
+   vs folder-style `//depot/dir/`). The UI's default gesture sends a folder
+   target (`targetPaths=[depotDir]`), so with the client at have=0 the existing
+   depot file fell into the `reconcile` branch → opened for **add** → submit
+   died with `add of added file; must revert` and the depot was never updated.
+   Fix: `_depot_file_state()` (fstat headAction/haveRev) decides — depot file
+   exists → force-sync if have=0 → `p4 edit`; only genuinely new files reconcile.
+2. **`p4 edit` failures were softened into fake success** — "file(s) not on
+   client." sat in the `_BENIGN` list (correct for read paths, wrong for write
+   intent), and p4 sometimes exits 0 with that warning on stderr. Checkout
+   reported "checked out N file(s)" while opening nothing. Fix:
+   `_open_for_edit()` gates on the message (not rc), recovers via
+   `p4 sync -f` + retry, and never softens the final edit result.
+3. **Failed default submits stranded numbered changelists** — a failed
+   `p4 submit -d msg <filespec>` moves the default-changelist files into a
+   fresh numbered CL and leaves them there; every retry minted another CL
+   (and the UI's default-CL filter hid the stranded files, so the dropdown
+   just grew). Fix: on submit failure, parse the auto-created change number
+   (`Submitting change N` / `p4 submit -c N`), `p4 reopen -c default` the
+   files, `p4 change -d` the shell.
+4. **No way to delete a pending changelist** — `revert_paths` now sweeps
+   emptied numbered CLs (`p4 change -d`), and a new
+   `delete_pending_changelist()` (+ `POST /api/scm/change/delete` +
+   **Delete CL** button in the pending tab) reverts with `-k` (workspace
+   content kept) and deletes the CL. The button shows for any numbered CL,
+   including empty ones the old Revert button couldn't touch.
+
+Verification: `pytest tests/test_scm_perforce_adapter.py tests/test_scm_adapter.py
+tests/test_atlas_git_api.py` (5 new live-`p4d` regressions + endpoint tests);
+`npx vitest run __tests__/perforce-sync*.test.tsx` (17 passed, incl. new
+delete-CL test); `npm run build` pass; repro script now shows depot updated and
+zero leftover pending CLs in all five scenarios.
+
 ## Gotchas
 
 - After submit, p4 marks files read-only (`noallwrite`); editing outside p4 needs `chmod +w` or `p4 edit`.

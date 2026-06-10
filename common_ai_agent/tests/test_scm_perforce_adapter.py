@@ -1135,6 +1135,163 @@ def test_live_local_p4d_numbered_checkout_submit_clears_pending(local_p4d):
     assert "module numbered; endmodule" in printed.stdout
 
 
+def test_live_checkout_folder_target_unsynced_opens_edit_and_submits(local_p4d):
+    # REQ_PLAT_SCM_PERFORCE_SYNC_001 / OBL_P4_CHECKOUT_OPENS_EXISTING_AS_EDIT.
+    # UI default gesture: local files + folder targetPaths=[depotDir/]. With the
+    # client at have=0 this used to open the existing depot file for ADD and the
+    # submit died with "add of added file; must revert".
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    unsync = _run_live_p4(p4, env, client_root, "sync", "//depot/rtl/main.sv#0")
+    assert unsync.returncode == 0, unsync.stderr
+    source = ip_root / "rtl" / "main.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module folder_target_edit; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    opened = adapter.edit_paths(
+        ["rtl/main.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    pending = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv#1 - edit" in pending.stdout, pending.stdout
+
+    submitted = adapter.submit("folder target checkout", add_all=False, changelist="default")
+    assert submitted.ok, submitted.error or submitted.stderr
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert "module folder_target_edit; endmodule" in printed.stdout
+    leftovers = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert leftovers.stdout.strip() == "", leftovers.stdout
+
+
+def test_live_depot_selection_checkout_unsynced_opens_for_edit(local_p4d):
+    # REQ_PLAT_SCM_PERFORCE_SYNC_001 / OBL_P4_EDIT_FAILURE_NOT_SOFTENED.
+    # `p4 edit` of an unsynced depot file only warns "file(s) not on client."
+    # (sometimes with rc=0); the softened result used to fake a successful
+    # checkout that opened nothing.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    unsync = _run_live_p4(p4, env, client_root, "sync", "//depot/rtl/main.sv#0")
+    assert unsync.returncode == 0, unsync.stderr
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    opened = adapter.edit_paths(["//depot/rtl/main.sv"])
+
+    assert opened.ok, opened.error or opened.stderr
+    pending = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv#1 - edit" in pending.stdout, pending.stdout
+    assert (client_root / "rtl" / "main.sv").exists()
+
+
+def test_live_failed_default_submit_strands_no_numbered_changelist(local_p4d):
+    # REQ_PLAT_SCM_PERFORCE_SYNC_001 / OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL.
+    # A failed filespec submit moves default-changelist files into a fresh
+    # numbered changelist; the adapter must move them back and delete the shell.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    unsync = _run_live_p4(p4, env, client_root, "sync", "//depot/rtl/main.sv#0")
+    assert unsync.returncode == 0, unsync.stderr
+    stale = client_root / "rtl" / "main.sv"
+    stale.parent.mkdir(parents=True, exist_ok=True)
+    stale.write_text("module conflicting_add; endmodule\n", encoding="utf-8")
+    recon = _run_live_p4(p4, env, client_root, "reconcile", "rtl/main.sv")
+    assert "opened for add" in (recon.stdout + recon.stderr), recon.stdout + recon.stderr
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    submitted = adapter.submit("conflicting add", add_all=False, changelist="default")
+
+    assert not submitted.ok
+    leftovers = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert leftovers.stdout.strip() == "", leftovers.stdout
+    reopened = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "default change" in reopened.stdout, reopened.stdout
+
+
+def test_live_delete_pending_changelist_keeps_workspace_content(local_p4d):
+    # REQ_PLAT_SCM_PERFORCE_SYNC_001 / OBL_P4_PENDING_CL_DELETABLE (explicit delete).
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    change_form = (
+        "Change:\tnew\n"
+        "Client:\tatlas_ws\n"
+        "User:\tatlas_pytest\n"
+        "Status:\tnew\n"
+        "Description:\n"
+        "\tjunk changelist\n"
+    )
+    change = _run_live_p4(p4, env, client_root, "change", "-i", input_text=change_form)
+    assert change.returncode == 0, change.stderr
+    match = re.search(r"Change (\d+) created", change.stdout)
+    assert match is not None, change.stdout
+    change_id = match.group(1)
+    source = ip_root / "rtl" / "main.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module keep_me; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    opened = adapter.edit_paths(
+        ["rtl/main.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist=change_id,
+    )
+    assert opened.ok, opened.error or opened.stderr
+
+    deleted = adapter.delete_pending_changelist(change_id)
+
+    assert deleted.ok, deleted.error or deleted.stderr
+    leftovers = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert f"Change {change_id} " not in leftovers.stdout
+    still_open = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv" not in still_open.stdout
+    # revert -k: deleting the junk changelist must not clobber workspace content
+    assert (client_root / "rtl" / "main.sv").read_text(encoding="utf-8") == "module keep_me; endmodule\n"
+
+
+def test_live_revert_paths_deletes_emptied_numbered_changelist(local_p4d):
+    # REQ_PLAT_SCM_PERFORCE_SYNC_001 / OBL_P4_PENDING_CL_DELETABLE (revert path).
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    change_form = (
+        "Change:\tnew\n"
+        "Client:\tatlas_ws\n"
+        "User:\tatlas_pytest\n"
+        "Status:\tnew\n"
+        "Description:\n"
+        "\trevert sweep\n"
+    )
+    change = _run_live_p4(p4, env, client_root, "change", "-i", input_text=change_form)
+    match = re.search(r"Change (\d+) created", change.stdout)
+    assert match is not None, change.stdout
+    change_id = match.group(1)
+    edit = _run_live_p4(p4, env, client_root, "edit", "-c", change_id, "//depot/rtl/main.sv")
+    assert edit.returncode == 0, edit.stderr
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    reverted = adapter.revert_paths(["//depot/rtl/main.sv"])
+
+    assert reverted.ok, reverted.error or reverted.stderr
+    leftovers = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert f"Change {change_id} " not in leftovers.stdout, leftovers.stdout
+
+
+def test_delete_pending_changelist_requires_numbered_id(tmp_path):
+    adapter = PerforceP4Adapter(tmp_path)
+    for bogus in ("", "default", "abc"):
+        result = adapter.delete_pending_changelist(bogus)
+        assert result.ok is False
+        assert "numbered" in result.error
+
+
 def test_diff_accepts_pending_depot_file_path(tmp_path):
     p4_root = tmp_path / "perforce_workspace"
     p4_root.mkdir()
@@ -1178,7 +1335,12 @@ def test_edit_paths_opens_existing_target_before_copy(tmp_path):
 
         def _records(self, *args: str, timeout: int = 60):
             if args and args[0] == "fstat":
-                return [{"clientFile": target.as_posix()}], self._result(ok=True)
+                return [{
+                    "clientFile": target.as_posix(),
+                    "depotFile": "//GOOD_SOC/GOOD_IP/rtl/target.sv",
+                    "headAction": "edit",
+                    "haveRev": "1",
+                }], self._result(ok=True)
             return [], self._result(ok=True)
 
         def _run_p4(self, *args: str, timeout: int = 60):
@@ -1221,7 +1383,12 @@ def test_edit_paths_syncs_missing_depot_target_before_copy(tmp_path):
 
         def _records(self, *args: str, timeout: int = 60):
             if args and args[0] == "fstat":
-                return [{"clientFile": target.as_posix()}], self._result(ok=True)
+                return [{
+                    "clientFile": target.as_posix(),
+                    "depotFile": "//GOOD_SOC/GOOD_IP/rtl/target.sv",
+                    "headAction": "edit",
+                    "haveRev": "0",
+                }], self._result(ok=True)
             return [], self._result(ok=True)
 
         def _run_p4(self, *args: str, timeout: int = 60):

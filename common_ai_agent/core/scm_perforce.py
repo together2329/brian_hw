@@ -64,6 +64,13 @@ _RECONCILE_LOCAL_STATES: Final[Mapping[str, str]] = {
     "move/delete": "missing",
 }
 _STREAM_NAME_RE: Final[re.Pattern[str]] = re.compile(r"^//[A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+$")
+# A failed `p4 submit -d … <filespec>` first moves the default-changelist files
+# into a fresh numbered changelist; these patterns recover its number so the
+# adapter can move the files back instead of stranding the changelist.
+_SUBMIT_FAILED_CHANGE_RES: Final[tuple[re.Pattern[str], ...]] = (
+    re.compile(r"Submitting change (\d+)"),
+    re.compile(r"p4 submit -c (\d+)"),
+)
 _CLIENT_ENV_VARS: Final[tuple[str, ...]] = (
     "ATLAS_SCM_CLIENT_PERFORCE",
     "ATLAS_PERFORCE_CLIENT",
@@ -581,6 +588,61 @@ class PerforceP4Adapter(SCMAdapter):
             return self._result(ok=True)
         return self._soften(self._run_p4("reopen", "-c", target, *specs))
 
+    def _depot_file_state(self, spec: str) -> tuple[bool, int]:
+        """(file exists at depot head and is not deleted, client have revision)."""
+        recs, _ = self._records("fstat", "-T", "depotFile,headAction,haveRev", spec, timeout=10)
+        if not recs:
+            return False, 0
+        rec = recs[0]
+        head_action = rec.get("headAction", "")
+        exists = bool(head_action) and not head_action.endswith("delete")
+        try:
+            have = int(rec.get("haveRev", "") or 0)
+        except ValueError:
+            have = 0
+        return exists, have
+
+    def _open_for_edit(self, *specs: str) -> SCMCommandResult:
+        """p4 edit with write intent: never softened — a checkout that opens
+        nothing must fail loudly. A 'not on client' (have=0) failure is
+        recovered by force-syncing the specs and retrying once."""
+        result = self._run_p4("edit", *specs)
+        # p4 may exit 0 while only warning "file(s) not on client." on stderr —
+        # the file is then NOT opened, so gate the retry on the message, not rc.
+        low = f"{result.stderr} {result.error}".lower()
+        if "not on client" in low:
+            synced = self._soften(self._run_p4("sync", "-f", *specs))
+            if not synced.ok:
+                return synced
+            return self._run_p4("edit", *specs)
+        return result
+
+    @staticmethod
+    def _stranded_submit_change(result: SCMCommandResult) -> str:
+        text = f"{result.stdout}\n{result.stderr}\n{result.error}"
+        for pattern in _SUBMIT_FAILED_CHANGE_RES:
+            match = pattern.search(text)
+            if match:
+                return match.group(1)
+        return ""
+
+    def _restore_failed_submit_to_default(self, change: str) -> None:
+        """Move files a failed default-changelist submit stranded in the
+        auto-created numbered changelist back to default, then drop the empty
+        shell so the pending changelist list does not accumulate junk."""
+        opened, _ = self._records("opened", "-c", change)
+        files = [rec.get("clientFile") or rec.get("depotFile", "") for rec in opened]
+        files = [item for item in files if item]
+        if files:
+            self._soften(self._run_p4("reopen", "-c", "default", *files))
+        self._soften(self._run_p4("change", "-d", change))
+
+    def _delete_emptied_changelists(self, changes: set[str]) -> None:
+        for change in sorted(changes):
+            remaining, _ = self._records("opened", "-c", change)
+            if not remaining:
+                self._soften(self._run_p4("change", "-d", change))
+
     @staticmethod
     def _change_form_with_description(form: str, message: str) -> str:
         clean = (message or "atlas: submit").strip() or "atlas: submit"
@@ -826,7 +888,12 @@ class PerforceP4Adapter(SCMAdapter):
         opened, _ = self._records("opened", scope)
         if not opened and not allow_empty:
             return self._result(ok=False, returncode=0, stdout="no files opened", error="no changes to submit")
-        return self._run_p4("submit", "-d", message or "atlas: submit", scope)
+        result = self._run_p4("submit", "-d", message or "atlas: submit", scope)
+        if not result.ok:
+            stranded = self._stranded_submit_change(result)
+            if stranded:
+                self._restore_failed_submit_to_default(stranded)
+        return result
 
     def push(self, branch: str = "", remote: str = "origin") -> SCMCommandResult:
         _ = branch, remote
@@ -948,13 +1015,20 @@ class PerforceP4Adapter(SCMAdapter):
             depot_file_target = target_value.startswith("//") and not target_value.endswith("/")
             try:
                 target.parent.mkdir(parents=True, exist_ok=True)
-                if checkout_existing and depot_file_target and not target.exists():
-                    synced = self._soften(self._run_p4("sync", "-f", target_value))
-                    if not synced.ok:
-                        return synced
-                    results.append(synced)
-                if checkout_existing and (depot_file_target or target.exists()):
-                    opened = self._soften(self._run_p4("edit", target.as_posix()))
+                # Whether the depot already has this file decides edit-vs-add —
+                # NOT the shape of the UI target (folder targets used to fall
+                # into reconcile and open existing depot files for add).
+                depot_exists, have_rev = (False, 0)
+                if checkout_existing:
+                    p4_spec = target_value if depot_file_target else target.as_posix()
+                    depot_exists, have_rev = self._depot_file_state(p4_spec)
+                if checkout_existing and depot_exists:
+                    if have_rev <= 0 or not target.exists():
+                        synced = self._soften(self._run_p4("sync", "-f", p4_spec))
+                        if not synced.ok:
+                            return synced
+                        results.append(synced)
+                    opened = self._open_for_edit(target.as_posix())
                     if not opened.ok:
                         return opened
                     results.append(opened)
@@ -1005,7 +1079,7 @@ class PerforceP4Adapter(SCMAdapter):
         specs = self._filespecs_for_perforce_selection(paths)
         if not specs:
             return self._result(ok=False, returncode=2, error="no valid paths to edit/open")
-        result = self._soften(self._run_p4("edit", *specs))
+        result = self._open_for_edit(*specs)
         if not result.ok:
             return result
         return self._combine_results([result, self._move_to_changelist(changelist, specs)])
@@ -1015,7 +1089,30 @@ class PerforceP4Adapter(SCMAdapter):
         specs = self._filespecs_for_perforce_selection(paths)
         if not specs:
             return self._result(ok=False, returncode=2, error="no valid paths to revert")
-        return self._soften(self._run_p4("revert", *specs))
+        opened, _ = self._records("opened", *specs)
+        touched = {rec.get("change", "") for rec in opened}
+        result = self._soften(self._run_p4("revert", *specs))
+        if result.ok:
+            self._delete_emptied_changelists({c for c in touched if c.isdigit()})
+        return result
+
+    def delete_pending_changelist(self, changelist: str, stream: str = "") -> SCMCommandResult:
+        """Drop a numbered pending changelist. Opened files are reverted with
+        -k (workspace content kept) so deleting a junk changelist never
+        destroys local edits; shelved changelists still refuse deletion."""
+        self._select_stream(stream)
+        change = self._pending_changelist_id(changelist)
+        if not change:
+            return self._result(ok=False, returncode=2, error="a numbered pending changelist is required")
+        opened, _ = self._records("opened", "-c", change)
+        results: list[SCMCommandResult] = []
+        if opened:
+            reverted = self._soften(self._run_p4("revert", "-k", "-c", change, "//..."))
+            if not reverted.ok:
+                return reverted
+            results.append(reverted)
+        results.append(self._run_p4("change", "-d", change))
+        return self._combine_results(results)
 
     def sync_paths(
         self,

@@ -184,6 +184,19 @@ units:
     owns:
       - src/config.py
 
+  - id: platform.scm
+    kind: adapter
+    summary: SCM 추상화 (git 기본 + Perforce 어댑터) 및 /api/scm·/api/git 라우트
+    owns:
+      - core/scm.py
+      - core/scm_perforce.py
+      - core/scm_perforce_browse.py
+      - src/atlas_api_git.py
+    content_tests:
+      - tests/test_scm_perforce_adapter.py
+      - tests/test_scm_adapter.py
+      - tests/test_atlas_git_api.py
+
   - id: platform.ontology
     kind: meta
     summary: 이 온톨로지 자체 (선언+스캐너+래칫)
