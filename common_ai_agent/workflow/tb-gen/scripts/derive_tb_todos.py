@@ -1036,8 +1036,19 @@ def _write_outputs(ip_dir: Path, plan: dict[str, Any]) -> None:
     )
 
 
+def _relaxed_blocker_mode() -> bool:
+    """Build first, repair through validation: authoring-time SSOT findings
+    advise instead of stopping the stage, and the LLM closes them through the
+    normal gate/repair loop. Only an EXPLICIT signoff run mode hard-stops;
+    PASS/closure gates stay strict in every mode regardless."""
+    return (os.environ.get("ATLAS_RUN_MODE") or "").strip().lower() != "signoff"
+
+
 def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
-    path = ip_dir / "tb" / "cocotb" / "tb_blocked.json"
+    relaxed = _relaxed_blocker_mode()
+    blocked_path = ip_dir / "tb" / "cocotb" / "tb_blocked.json"
+    advisory_path = ip_dir / "tb" / "cocotb" / "tb_advisories.json"
+    path = advisory_path if relaxed else blocked_path
     blockers = plan.get("blockers") if isinstance(plan.get("blockers"), list) else []
     if blockers:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -1058,10 +1069,15 @@ def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
             json.dumps(
                 {
                     "schema_version": 1,
-                    "type": "ssot_derived_tb_todo_blocker",
-                    "status": "blocked",
+                    "type": "ssot_derived_tb_todo_advisory" if relaxed else "ssot_derived_tb_todo_blocker",
+                    "status": "advisory" if relaxed else "blocked",
                     "ip": plan.get("ip"),
-                    "reason": "SSOT-derived dynamic TB TODO gate is blocked.",
+                    "reason": (
+                        "SSOT findings recorded as advisories: TB generation proceeds, signoff still "
+                        "requires closure."
+                        if relaxed
+                        else "SSOT-derived dynamic TB TODO gate is blocked."
+                    ),
                     "questions": questions,
                     "next_action": "Repair req/SSOT/RTL authority artifacts and rerun /gen-tb.",
                     "evidence": "tb/tb_todo_plan.json",
@@ -1074,16 +1090,23 @@ def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
             + "\n",
             encoding="utf-8",
         )
-        return
-
-    if not path.is_file():
-        return
-    current = _load_json(path)
-    if current.get("type") == "ssot_derived_tb_todo_blocker":
+        # The counterpart artifact from a previous mode must not keep gating.
+        stale = blocked_path if relaxed else advisory_path
         try:
-            path.unlink()
+            stale.unlink()
         except OSError:
             pass
+        return
+
+    for leftover in (blocked_path, advisory_path):
+        if not leftover.is_file():
+            continue
+        current = _load_json(leftover)
+        if current.get("type") in {"ssot_derived_tb_todo_blocker", "ssot_derived_tb_todo_advisory"}:
+            try:
+                leftover.unlink()
+            except OSError:
+                pass
 
 
 def derive_plan(root: Path, ip: str, *, audit_tb: bool = False, audit_evidence: bool = False) -> dict[str, Any]:
@@ -1165,7 +1188,9 @@ def derive_plan(root: Path, ip: str, *, audit_tb: bool = False, audit_evidence: 
         blockers=blockers,
     )
     completion = plan["todo_completion"]
-    if blockers:
+    relaxed_gate = _relaxed_blocker_mode()
+    if blockers and not relaxed_gate:
+        # explicit signoff mode: SSOT findings hard-stop TB generation.
         status = "blocked"
     elif audit_evidence:
         status = "pass" if completion.get("all_required_todos_pass") else "fail"
@@ -1175,6 +1200,8 @@ def derive_plan(root: Path, ip: str, *, audit_tb: bool = False, audit_evidence: 
         status = "planned"
     plan["gate"] = {
         "status": status,
+        "relaxed_mode": relaxed_gate,
+        "advisory_findings": len(blockers) if relaxed_gate else 0,
         "audit_tb": audit_tb,
         "audit_evidence": audit_evidence,
         "blocking_questions": len(blockers),

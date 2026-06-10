@@ -4146,6 +4146,15 @@ def _module_authoring_slices(
     return raw_slices
 
 
+def _relaxed_blocker_mode() -> bool:
+    """Build first, repair through validation: authoring-time SSOT findings
+    advise instead of stopping the stage, and the LLM closes them through the
+    normal gate/repair loop. Only an EXPLICIT signoff run mode hard-stops on
+    them. PASS/signoff closure gates stay strict in every mode regardless —
+    you can always build, you can never sign off over open findings."""
+    return (os.environ.get("ATLAS_RUN_MODE") or "").strip().lower() != "signoff"
+
+
 _DRAFT_BLOCKING_GATE_KINDS = {
     "ssot_required_sections",
     "ssot_workflow_todo_format",
@@ -5842,21 +5851,35 @@ def _write_dynamic_blocker(ip_dir: Path, plan: dict[str, Any]) -> None:
                 "rule": "Every orphan source_ref must be covered by an exact ref or a dotted parent ref in the owning sub_modules[] row.",
             },
         })
+    relaxed = _relaxed_blocker_mode()
     out = {
         "schema_version": 1,
-        "type": "rtl_blocker",
-        "status": "blocked",
+        "type": "rtl_advisory" if relaxed else "rtl_blocker",
+        "status": "advisory" if relaxed else "blocked",
         "owner": "ssot-gen",
         "ip": plan.get("ip"),
         "top": plan.get("top"),
-        "reason": "SSOT-derived dynamic RTL TODO gate is blocked.",
+        "reason": (
+            "SSOT findings recorded as advisories (starter/engineering run mode): authoring proceeds, "
+            "signoff still requires closure."
+            if relaxed
+            else "SSOT-derived dynamic RTL TODO gate is blocked."
+        ),
         "questions": questions,
         "next_action": "Answer these questions inline so SSOT-gen records them, update SSOT, regenerate FL/equivalence goals, then rerun /ssot-rtl.",
         "timestamp": _utc(),
     }
-    path = ip_dir / "rtl" / "rtl_blocked.json"
+    blocked_path = ip_dir / "rtl" / "rtl_blocked.json"
+    advisory_path = ip_dir / "rtl" / "rtl_advisories.json"
+    path = advisory_path if relaxed else blocked_path
+    stale = blocked_path if relaxed else advisory_path
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(out, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    # The counterpart artifact from a previous mode must not keep gating.
+    try:
+        stale.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def _orphan_groups(orphans: list[dict[str, Any]], limit: int = 24) -> list[dict[str, Any]]:
@@ -9293,10 +9316,10 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
     _update_todo_completion(plan, ip_dir, audit_rtl=audit_rtl)
     static_missing = int((plan.get("static_rtl_evidence") or {}).get("missing") or 0)
     open_todos = int((plan.get("todo_completion") or {}).get("open_required_tasks") or 0)
+    relaxed_gate = _relaxed_blocker_mode()
     gate_status = "pass"
-    if blockers:
-        gate_status = "blocked"
-    elif orphans:
+    if (blockers or orphans) and not relaxed_gate:
+        # signoff mode: SSOT findings hard-stop authoring.
         gate_status = "blocked"
     elif audit_rtl and static_missing:
         gate_status = "fail"
@@ -9306,6 +9329,8 @@ def derive_plan(root: Path, ip: str, *, audit_rtl: bool = False) -> dict[str, An
         gate_status = "planned"
     plan["gate"] = {
         "status": gate_status,
+        "relaxed_mode": relaxed_gate,
+        "advisory_findings": (len(blockers) + len(orphans)) if relaxed_gate else 0,
         "audit_rtl": audit_rtl,
         "blocking_questions": len(blockers),
         "orphan_tasks": len(orphans),

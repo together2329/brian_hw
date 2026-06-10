@@ -171,3 +171,41 @@ def test_machine_spec_park_honors_timeline_final_assigns():
     # (e.g. pulse_in=1) instead of forcing idle, or synchronizer-state goals
     # fail by construction.
     assert "_field in _final_assigns or str(_port) in _final_assigns" in text
+
+
+# ---------------------------------------------------------------------------
+# 5. build-first: authoring blockers advise by default, block only in signoff
+# ---------------------------------------------------------------------------
+
+def test_authoring_blockers_advise_by_default_and_block_only_in_signoff(tmp_path, monkeypatch):
+    """User directive 2026-06-10: the system must not stop while building —
+    SSOT findings ride as advisories that the LLM repairs through validation;
+    only an EXPLICIT signoff run mode hard-stops. PASS/closure gates stay
+    strict in every mode (pass_allowed/contract closure are separate)."""
+    drt = _load_module("workflow/rtl-gen/scripts/derive_rtl_todos.py", "drt_relax")
+    dtt = _load_module("workflow/tb-gen/scripts/derive_tb_todos.py", "dtt_relax")
+    plan = {"ip": "x", "top": "x",
+            "blockers": [{"id": "B1", "source_ref": "function_model", "reason": "r"}],
+            "orphans": []}
+
+    monkeypatch.delenv("ATLAS_RUN_MODE", raising=False)
+    assert drt._relaxed_blocker_mode() is True
+    assert dtt._relaxed_blocker_mode() is True
+    drt._write_dynamic_blocker(tmp_path, dict(plan))
+    dtt._write_dynamic_blocker(tmp_path, dict(plan))
+    assert (tmp_path / "rtl" / "rtl_advisories.json").is_file()
+    assert not (tmp_path / "rtl" / "rtl_blocked.json").exists()
+    assert (tmp_path / "tb" / "cocotb" / "tb_advisories.json").is_file()
+    assert not (tmp_path / "tb" / "cocotb" / "tb_blocked.json").exists()
+
+    monkeypatch.setenv("ATLAS_RUN_MODE", "signoff")
+    assert drt._relaxed_blocker_mode() is False
+    assert dtt._relaxed_blocker_mode() is False
+    drt._write_dynamic_blocker(tmp_path, dict(plan))
+    dtt._write_dynamic_blocker(tmp_path, dict(plan))
+    # mode flip replaces the artifact AND removes the stale counterpart, so a
+    # leftover advisory/blocked file can never keep (un)gating the next run.
+    assert (tmp_path / "rtl" / "rtl_blocked.json").is_file()
+    assert not (tmp_path / "rtl" / "rtl_advisories.json").exists()
+    assert (tmp_path / "tb" / "cocotb" / "tb_blocked.json").is_file()
+    assert not (tmp_path / "tb" / "cocotb" / "tb_advisories.json").exists()
