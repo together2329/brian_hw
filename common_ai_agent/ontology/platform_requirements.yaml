@@ -373,6 +373,11 @@ requirements:
       - id: OBL_ORCH_CHAT_OUTPUT_VISIBLE
         owned_by: ui.workspace
         granularity: behavior
+        # NOTE: frontend .tsx is out of the ontology freshness scope (ui.workspace
+        # owns: []), so the stale-ratchet does not watch pipeline-rail.tsx. The
+        # contractual backstop is the pytest node below, which asserts source-text
+        # invariants on pipeline-rail.tsx — a regression in the source fails the
+        # test on execution (stronger than a staleness warning).
         status: closed   # 44d345db: WS-only 업데이트 경로(서버에 orchestrator_chat emitter 없음)로 패널 영구 무출력 + 전송 실패 무음 → 폴링 상시화 + 실패 피드 가시화
         evidence:
           - test: "tests/test_orchestrator_chat_visibility_frontend.py::test_orchestrator_chat_polls_regardless_of_live_backend"
@@ -381,3 +386,22 @@ requirements:
             observed_at: d3178b92
           - test: "tests/test_orchestrator_chat_visibility_frontend.py::test_behavioral_vitest_suite_present"
             observed_at: d3178b92
+
+  - id: REQ_PLAT_ORCH_RESUME_001
+    claim: "사람이 ask_user에 응답하면 paused orchestrator run은 그 응답을 소비해 재개한다 — 응답이 asking oneshot 종료와 레이스해도 좀비로 남지 않는다"
+    design_anchor: doc/wiki/orchestrator-campaign-10ip-20260610.md
+    obligations:
+      - id: OBL_ORCH_ASK_USER_RESUME
+        owned_by: agent.react-loop
+        granularity: behavior
+        # react_bridge.run() reconciler 변경. src/orchestrator/는 ontology unit이
+        # 없어(orphan) freshness-scope 밖 — 백스톱은 아래 pytest 노드로, 리컨실러를
+        # import·실행해 회귀 시 실행 단계에서 실패한다.
+        status: closed   # 0782a9bd: ask_user paused 중 도착한 user_reply 미소비→좀비 run; reconciler가 last ask_user 이후 reply를 소비·재진입(없으면 paused 유지)
+        evidence:
+          - test: "tests/test_orchestrator_ask_user_resume.py::test_raced_user_reply_resumes_paused_run"
+            observed_at: 0782a9bd
+          - test: "tests/test_orchestrator_ask_user_resume.py::test_ask_user_without_reply_still_exits_paused"
+            observed_at: 0782a9bd
+          - test: "tests/test_orchestrator_ask_user_resume.py::test_reply_sanitizes_delimiter_tokens"
+            observed_at: 0782a9bd
