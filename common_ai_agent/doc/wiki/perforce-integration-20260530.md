@@ -124,11 +124,27 @@ updated the depot. Reproduced mechanically against a throwaway local `p4d` with
    content kept) and deletes the CL. The button shows for any numbered CL,
    including empty ones the old Revert button couldn't touch.
 
+5. **(found by full-app E2E) Add/Checkout at the stream root mapped to nothing**
+   — the UI always sends the depot pane's current folder as `targetPaths`, and
+   the pane *starts at the stream root* (`//GOOD_SOC/GOOD_IP/`). For that
+   folder `_depot_output_rel` returned ""/garbage, so
+   `_workspace_targets_for_sources` produced no target and the whole call died
+   with `cannot map local paths to Perforce target paths` — nothing opened,
+   submit then says "no changes to submit". This was the user-reported
+   "submit이 안돼". Fix: a folder target equal to the selected stream root now
+   mirrors the IP 1:1 (`<stream>/<ip>/<relative path>`, the documented
+   mapping); deeper folder targets keep their existing drop-into semantics.
+
 Verification: `pytest tests/test_scm_perforce_adapter.py tests/test_scm_adapter.py
-tests/test_atlas_git_api.py` (5 new live-`p4d` regressions + endpoint tests);
+tests/test_atlas_git_api.py` (live-`p4d` regressions + endpoint tests);
 `npx vitest run __tests__/perforce-sync*.test.tsx` (17 passed, incl. new
-delete-CL test); `npm run build` pass; repro script now shows depot updated and
-zero leftover pending CLs in all five scenarios.
+delete-CL test); `npm run build` pass; repro script shows depot updated and
+zero leftover pending CLs in all five scenarios. **Full-app E2E**
+`scripts/e2e_perforce_ui_flow.py` boots a throwaway `p4d` with the dev
+topology (stream depot `GOOD_SOC`, mainline `//GOOD_SOC/GOOD_IP`, client
+`atlas_GOOD_IP`) plus the real ATLAS app (TestClient), and walks the exact UI
+payloads: pane → ＋Add → Submit → Checkout → pending-click diff → Submit →
+◀Sync → Delete CL — ALL PASS, including the 1:1 depot mapping assertion.
 
 ## Gotchas
 
