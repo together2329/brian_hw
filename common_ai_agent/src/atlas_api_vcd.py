@@ -365,7 +365,11 @@ def register_vcd_routes(
                 return status, {"error": conversion.status, "message": conversion.message}
             st = vcd_target.stat()
             truncated = st.st_size > max_vcd_bytes
-            data = vcd_target.read_bytes()[:max_vcd_bytes]
+            # Read only up to the cap — never pull a multi-GB VCD fully into
+            # memory just to slice it (truncated is derived from st_size, so
+            # the response shape is unchanged).
+            with open(vcd_target, "rb") as _fh:
+                data = _fh.read(max_vcd_bytes)
             content = data.decode("utf-8", errors="replace")
             payload = {
                 "path": _rel(root, vcd_target) or path,

@@ -66,6 +66,17 @@ def test_lint_report_api_exposes_pyslang_and_verilator_results(tmp_path, monkeyp
     client = TestClient(atlas_ui.create_app())
     registered = client.post("/api/auth/register", json={"username": "u", "password": "pw"})
     assert registered.status_code == 200, registered.text
+    # /api/lint/report is now per-IP authorized (security review): grant user
+    # "u" ownership of demo_ip via a session namespace so the gate passes and
+    # the parser assertions below still run. (A non-owner now correctly 403s.)
+    from core.atlas_db import AtlasDB
+    with AtlasDB() as db:
+        user = db.get_user_by_username("u")
+        sess = db.create_session(user["id"], "demo_ip session")
+        db._execute(
+            "UPDATE sessions SET namespace = ? WHERE id = ?",
+            ("u/demo_ip/lint", sess["id"]),
+        )
     response = client.get("/api/lint/report", params={"ip": "demo_ip"})
 
     assert response.status_code == 200, response.text

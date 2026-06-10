@@ -622,7 +622,15 @@ def git_anon_read_enabled() -> bool:
     raw = (os.environ.get("ATLAS_GIT_ANON_READ", "") or "").strip().lower()
     if raw in ("0", "false", "no", "off"):
         return False
-    return True
+    if raw in ("1", "true", "yes", "on"):
+        return True
+    # Unset: anonymous cross-tenant fetch/clone of ANY IP's bare repo is a
+    # disclosure in multi-user deployments, so default OFF there. Single-user/
+    # local mode keeps the convenient default-ON. Operators can still force
+    # either way with ATLAS_GIT_ANON_READ=1/0.
+    mu = (os.environ.get("ATLAS_MULTI_USER", "1") or "1").strip().lower()
+    multi_user = mu not in ("0", "false", "no", "off")
+    return not multi_user
 
 
 class AuthMiddleware:

@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 from typing import Any
 
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
@@ -27,6 +28,7 @@ def register_ssot_gates_routes(
     *,
     PROJECT_ROOT,
     _safe,
+    fs_authz,
 ) -> None:
     """Register GET /api/ssot-gates/{ip} on `app` via dep-injected helpers.
 
@@ -34,7 +36,10 @@ def register_ssot_gates_routes(
     create_app(), so no edits to the route body are required.
     """
     @app.get("/api/ssot-gates/{ip}")
-    async def api_ssot_gates(ip: str):
+    async def api_ssot_gates(ip: str, request: Request):
+        denied = fs_authz.ip(request, ip, "view")
+        if denied is not None:
+            return denied
         """Aggregate SSOT-quality + per-stage checker results for one IP.
 
         Drives the SSOT Design Preview "Gates" tab. Reads existing

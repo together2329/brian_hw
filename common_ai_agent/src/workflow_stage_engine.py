@@ -2132,8 +2132,12 @@ class WorkflowStageEngine:
     def _stage_gate_task(self, stage: str, *, total: int) -> dict[str, Any]:
         """Deterministic detect-and-skip gate todo appended after the obligation todos."""
         gate_script = (self.workflow_root / "req-gen" / "scripts" / "stage_gate.py").resolve()
+        # stage_gate.py is a PYTHON script — running it under `bash` made the
+        # gate exit 2 every time (bash cannot interpret Python), silently
+        # neutering the deterministic VCM stage gate. Invoke with the Python
+        # interpreter instead.
         cmd = (
-            f"bash {shlex.quote(str(gate_script))} {stage} "
+            f"{shlex.quote(sys.executable)} {shlex.quote(str(gate_script))} {stage} "
             f'"$ATLAS_ACTIVE_IP" --root "$ATLAS_PROJECT_ROOT"'
         )
         return {

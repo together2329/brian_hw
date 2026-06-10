@@ -16,6 +16,7 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
+from fastapi import Request
 from fastapi.responses import JSONResponse
 
 from src.atlas_coverage_vcd import list_vcd_artifacts, select_vcd_artifact
@@ -35,6 +36,7 @@ def register_coverage_report_routes(
     _normalize_toggle_report,
     _read_json_artifact,
     _static_rtl_coverage,
+    fs_authz,
 ) -> None:
     """Register GET /api/coverage/report on `app`.
 
@@ -47,11 +49,17 @@ def register_coverage_report_routes(
     @app.get("/api/coverage/report")
     async def api_coverage_report(
         ip: str,
+        request: Request,
         top: str = "",
         refresh: int = 0,
         vcd: int = 0,
         vcd_path: str = "",
     ):
+        # Per-IP authz: read needs 'view'; refresh re-runs coverage tooling
+        # against the IP tree, so require 'write'.
+        denied = fs_authz.ip(request, ip, "write" if refresh else "view")
+        if denied is not None:
+            return denied
         """Return a consolidated coverage report for Atlas.
 
         The endpoint intentionally aggregates existing workflow artifacts
