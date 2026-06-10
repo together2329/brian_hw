@@ -30,6 +30,10 @@ def test_reasoning_effort_endpoint_persists_config(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    # /api/settings/* now mutates the shared global config, so it is admin-only
+    # in multi-user mode (security review). Treat the caller as a local admin
+    # so this persistence test exercises the allowed path.
+    monkeypatch.setenv("ATLAS_LOCAL_ADMIN", "1")
     (tmp_path / ".config").write_text(
         "REASONING_MODE=xhigh\nREASONING_EFFORT=xhigh\n",
         encoding="utf-8",
@@ -60,6 +64,8 @@ def test_model_endpoint_uses_non_empty_dropdown_slots(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    # admin-only /api/settings/* in multi-user mode (security review)
+    monkeypatch.setenv("ATLAS_LOCAL_ADMIN", "1")
     env_path = tmp_path / ".env"
     env_path.write_text(
         "\n".join([
@@ -111,6 +117,8 @@ def test_model_endpoint_uses_portable_catalog_profiles(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
     monkeypatch.setattr(atlas_ui, "SOURCE_ROOT", tmp_path)
     monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+    # admin-only /api/settings/* in multi-user mode (security review)
+    monkeypatch.setenv("ATLAS_LOCAL_ADMIN", "1")
     env_path = tmp_path / ".env"
     env_path.write_text(
         "\n".join([

@@ -155,7 +155,7 @@ def main(argv: list[str]) -> int:
         run_skip(
             have_py("cocotb"),
             "pyuvm_structure",
-            "bash",
+            sys.executable,
             str(wf / "tb-gen" / "scripts" / "check_pyuvm_structure.py"),
             ip,
         )
@@ -176,7 +176,7 @@ def main(argv: list[str]) -> int:
         run_hard("sim_run", sys.executable, str(wf / "tb-gen" / "scripts" / "sim.py"), ip)
         run_hard(
             "sim_evidence",
-            "bash",
+            sys.executable,
             str(wf / "tb-gen" / "scripts" / "check_tb_sim_evidence.py"),
             ip,
         )

@@ -99,11 +99,25 @@ def test_unauthenticated_blocked(app_clients):
     assert anon.get("/api/file", params={"path": "alpha/rtl/top.sv"}).status_code == 401
 
 
-def test_git_default_allows_anon_clone_blocks_push(app_clients):
-    # ATLAS_GIT_ANON_READ defaults ON: anonymous fetch/clone is allowed (the bare
-    # repo isn't built in this fixture so the backend 404s, but auth does NOT
-    # block -> NOT 401/403). PUSH still requires auth even by default.
+def test_git_default_blocks_anon_clone_in_multiuser(app_clients):
+    # SECURITY (review [9]): ATLAS_GIT_ANON_READ is UNSET and the fixture runs
+    # multi-user, so anonymous fetch/clone of any tenant's bare repo is blocked
+    # by default (AuthMiddleware 401) — anonymous cross-tenant read was a leak.
+    # PUSH is always gated.
     _, _, anon = app_clients
+    assert anon.get("/git/alpha.git/info/refs",
+                    params={"service": "git-upload-pack"}).status_code == 401
+    assert anon.get("/git/alpha.git/info/refs",
+                    params={"service": "git-receive-pack"}).status_code in (401, 403)
+
+
+def test_git_anon_read_explicit_opt_in_allows_clone(app_clients, monkeypatch):
+    # ATLAS_GIT_ANON_READ=1 is an explicit operator opt-in that restores
+    # anonymous fetch/clone even in multi-user. The bare repo isn't built in
+    # the fixture so the backend 404s, but auth does NOT block -> NOT 401/403.
+    # PUSH stays gated.
+    _, _, anon = app_clients
+    monkeypatch.setenv("ATLAS_GIT_ANON_READ", "1")
     assert anon.get("/git/alpha.git/info/refs",
                     params={"service": "git-upload-pack"}).status_code not in (401, 403)
     assert anon.get("/git/alpha.git/info/refs",
@@ -145,3 +159,47 @@ def test_sim_debug_cluster_cross_user_denied(app_clients):
     assert alice.get("/api/hierarchy", params={"top": "x", "ip": "beta"}).status_code == 403
     # own IP is not denied by the gate (may 404/400 downstream, but not 403)
     assert alice.get("/api/cocotb", params={"ip": "alpha"}).status_code != 403
+
+
+def test_ip_git_rest_endpoints_cross_user_denied(app_clients):
+    # SECURITY (review [0], critical): the per-IP git REST endpoints resolve
+    # the target from an attacker-supplied session_id and previously skipped
+    # the ownership gate — a cross-tenant working-tree write (hard reset) /
+    # history leak. They must now 403 a non-owner.
+    alice, _, _ = app_clients
+    victim = {"session_id": "bob/beta/rtl-gen", "hash": "0" * 40}
+    assert alice.post("/api/ip/beta/git/revert", json=victim).status_code == 403
+    assert alice.post("/api/ip/beta/git/commit", json={"session_id": "bob/beta/rtl-gen"}).status_code == 403
+    assert alice.get("/api/ip/beta/git/log", params={"session_id": "bob/beta/rtl-gen"}).status_code == 403
+    assert alice.get("/api/ip/beta/git/graph", params={"session_id": "bob/beta/rtl-gen"}).status_code == 403
+    # own IP passes the gate (downstream may 404/409, but never 403)
+    assert alice.get("/api/ip/alpha/git/log").status_code != 403
+
+
+def test_ip_report_endpoints_cross_user_denied(app_clients):
+    # SECURITY (review [7][8]): per-IP report endpoints must IP-gate so a
+    # non-owner can neither read another tenant's artifacts nor trigger
+    # compute against their IP.
+    alice, _, _ = app_clients
+    assert alice.get("/api/lint/report", params={"ip": "beta"}).status_code == 403
+    assert alice.get("/api/coverage/report", params={"ip": "beta"}).status_code == 403
+    assert alice.get("/api/ssot-gates/beta").status_code == 403
+    assert alice.get("/api/lint/report", params={"ip": "alpha"}).status_code != 403
+
+
+def test_workspace_download_blocks_cross_tenant_and_whole_tree(app_clients):
+    # SECURITY (review [2], critical): the zip endpoint streamed any tenant's
+    # tree with no ownership check. A subpath into another tenant is denied,
+    # and the whole-tree default is refused in multi-user mode.
+    alice, _, anon = app_clients
+    assert anon.get("/api/workspace/download.zip").status_code == 401
+    assert alice.get("/api/workspace/download.zip").status_code == 403
+    assert alice.get("/api/workspace/download.zip", params={"subpath": "beta"}).status_code == 403
+
+
+def test_settings_endpoints_admin_only_in_multiuser(app_clients):
+    # SECURITY (review [6]): /api/settings/* persists global LLM config for
+    # every tenant, so a non-admin must be rejected in multi-user mode.
+    alice, _, _ = app_clients
+    assert alice.post("/api/settings/model", json={"key": "profile:kimi"}).status_code in (401, 403)
+    assert alice.post("/api/settings/reasoning-effort", json={"effort": "med"}).status_code in (401, 403)

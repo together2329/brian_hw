@@ -1935,6 +1935,11 @@ def create_app():
 
     @app.post("/api/settings/reasoning-effort")
     async def api_settings_reasoning_effort(request: Request):
+        # These persist to the shared .env and mutate the process-global LLM
+        # config for EVERY tenant, so restrict to admins in multi-user mode.
+        # (is_local_admin_mode keeps the solo/local user unrestricted.)
+        if _multi_user_enabled() and _admin_required(request) is None:
+            return _admin_denied(request)
         try:
             body = await request.json()
         except Exception:
@@ -1964,6 +1969,10 @@ def create_app():
 
     @app.post("/api/settings/model")
     async def api_settings_model(request: Request):
+        # Persists to the shared .env / process-global MODEL_NAME for all
+        # tenants — admin-only in multi-user mode (local mode stays open).
+        if _multi_user_enabled() and _admin_required(request) is None:
+            return _admin_denied(request)
         try:
             body = await request.json()
         except Exception:
@@ -2846,12 +2855,17 @@ def create_app():
         return out
 
     @app.get("/api/lint/report")
-    async def api_lint_report(ip: str, top: str = "", refresh: int = 0):
+    async def api_lint_report(ip: str, request: Request, top: str = "", refresh: int = 0):
         """Return the canonical DUT lint report, split by pyslang/Verilator.
 
         `refresh=1` runs workflow/lint/scripts/dut_lint_report.py first so
         the UI can regenerate the report without asking the user to leave ATLAS.
         """
+        # Per-IP authz: viewing the report needs 'view'; refresh spawns a
+        # subprocess against the IP tree, so require 'write'.
+        denied = _fs_authz.ip(request, ip, "write" if refresh else "view")
+        if denied is not None:
+            return denied
         ip_dir = _choose_lint_ip_dir(ip)
         if ip_dir is None:
             return JSONResponse({"error": "IP directory not found", "ip": ip}, status_code=404)
@@ -3364,6 +3378,7 @@ def create_app():
         _normalize_toggle_report=_normalize_toggle_report,
         _read_json_artifact=_read_json_artifact,
         _static_rtl_coverage=_static_rtl_coverage,
+        fs_authz=_fs_authz,
     )
 
     # ── Foldable structure for PreviewPane (sv / yaml) ────────────
@@ -3625,6 +3640,9 @@ def create_app():
         message = str((body or {}).get("message") or "").strip() or "commit"
         provider = _git_route_provider((body or {}).get("provider"))
         session_id = str((body or {}).get("session_id") or (body or {}).get("sessionId") or "")
+        denied = _fs_authz.ip(request, name, "write")
+        if denied is not None:
+            return denied
         resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
             _, err = resolved
@@ -3653,8 +3671,11 @@ def create_app():
             return JSONResponse({"error": str(exc)}, status_code=500)
 
     @app.get("/api/ip/{name}/git/log")
-    async def api_ip_git_log(name: str, limit: int = 50, provider: str = "", session_id: str = ""):
+    async def api_ip_git_log(name: str, request: Request, limit: int = 50, provider: str = "", session_id: str = ""):
         """Return the last N commits of the per-IP repo as JSON."""
+        denied = _fs_authz.ip(request, name, "view")
+        if denied is not None:
+            return denied
         provider = _git_route_provider(provider)
         resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
@@ -3824,11 +3845,14 @@ def create_app():
         return _StarResponse(content=resp_body, status_code=status, headers=headers)
 
     @app.get("/api/ip/{name}/git/graph")
-    async def api_ip_git_graph(name: str, limit: int = 80, provider: str = "", session_id: str = ""):
+    async def api_ip_git_graph(name: str, request: Request, limit: int = 80, provider: str = "", session_id: str = ""):
         """ASCII graph of the per-IP commit history. Returns the raw
         `git log --graph --oneline --decorate --all` text plus a parsed
         commit list so the frontend can render either a monospaced graph
         or a structured list."""
+        denied = _fs_authz.ip(request, name, "view")
+        if denied is not None:
+            return denied
         provider = _git_route_provider(provider)
         resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
@@ -3861,6 +3885,9 @@ def create_app():
         target_hash = str((body or {}).get("hash") or "").strip()
         provider = _git_route_provider((body or {}).get("provider"))
         session_id = str((body or {}).get("session_id") or (body or {}).get("sessionId") or "")
+        denied = _fs_authz.ip(request, name, "write")
+        if denied is not None:
+            return denied
         resolved = _resolve_ip_path(name, provider=provider, session_id=session_id)
         if isinstance(resolved, tuple):
             _, err = resolved
@@ -4156,7 +4183,7 @@ def create_app():
     # Phase 15: /api/ssot-gates/{ip} (~497 lines) extracted to
     # atlas_api_ssot_gates.py. Same factory pattern as Phase 14.
     from src.atlas_api_ssot_gates import register_ssot_gates_routes as _register_ssot_gates_routes
-    _register_ssot_gates_routes(app, PROJECT_ROOT=PROJECT_ROOT, _safe=_safe)
+    _register_ssot_gates_routes(app, PROJECT_ROOT=PROJECT_ROOT, _safe=_safe, fs_authz=_fs_authz)
 
     # Phase 11b: sim_debug API cluster (5 endpoints + 2 helpers + _ELAB_CACHE)
     # moved to src/atlas_api_sim_debug.py via register_sim_debug_routes.
@@ -9116,6 +9143,13 @@ def create_app():
         import_root = _ip_root(ip)
         if session:
             context, _ctx_err = _ssot_context_for_session(session)
+            # SECURITY: writing into a caller-named session workspace must
+            # verify the caller owns it — otherwise any authenticated user
+            # could pollute another tenant's <ip>/req/imports tree. Mirrors
+            # the sibling /api/ssot/export + /doc-source routes.
+            denied = _ssot_context_denied(request, context, ip)
+            if denied is not None:
+                return denied
             if context is not None and not context.legacy:
                 workspace_root, ws_err = _validated_context_workspace_root(context)
                 if not ws_err and workspace_root is not None:
@@ -10337,7 +10371,7 @@ def create_app():
             return JSONResponse({"error": str(e)}, status_code=500)
 
     @app.get("/api/conversation")
-    async def api_conversation(limit: int = 200):
+    async def api_conversation(request: Request, limit: int = 200):
         """Return the last N messages from the active workspace's
         conversation.json. Used by the Atlas frontend to hydrate the
         chat feed when the user switches workflow (/wf <name>) — without
@@ -10356,6 +10390,22 @@ def create_app():
             if _cfg is None:
                 return JSONResponse({"messages": [], "error": "config unavailable"})
             hpath = Path(getattr(_cfg, "HISTORY_FILE", "") or "")
+            # SECURITY: config.HISTORY_FILE is a process-global that points at
+            # whichever session last activated — in multi-user mode that may be
+            # another tenant's conversation. Bind strictly to the CALLER's own
+            # session conversation.json, and never rglob across `.session`
+            # owners (that fallback leaked the most-recently-active tenant's
+            # chat to any authenticated caller).
+            if _multi_user_enabled():
+                caller_session = normalize_session_name(
+                    _request_active_session_for_user(request)
+                )
+                own = (
+                    (PROJECT_ROOT / ".session" / caller_session / "conversation.json")
+                    if caller_session else None
+                )
+                if own is not None:
+                    hpath = own
 
             def _read_history(path: Path) -> list[dict[str, Any]]:
                 if not path.is_file():
@@ -10370,7 +10420,9 @@ def create_app():
                 return JSONResponse({"messages": [], "path": str(hpath),
                                        "error": f"parse: {e}"})
             non_system = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
-            if not non_system:
+            if not non_system and not _multi_user_enabled():
+                # Single-user/local mode only: one owner, so picking the most
+                # recent conversation.json is harmless convenience hydration.
                 root = PROJECT_ROOT / ".session"
                 candidates = []
                 if root.is_dir():
@@ -10457,6 +10509,7 @@ def create_app():
         project_root=lambda: PROJECT_ROOT,
         source_root=SOURCE_ROOT,
         safe_path=_safe,
+        fs_authz=_fs_authz,
     )
     # Orchestrator Chat API (per-IP rooms + _global). Routes share the
     # AtlasDB used everywhere else and route chat events through the

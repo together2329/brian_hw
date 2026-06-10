@@ -16,7 +16,7 @@ import zipfile
 from pathlib import Path
 from typing import Callable
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
 
@@ -26,6 +26,7 @@ def register_workspaces_routes(
     project_root: Callable[[], Path],
     source_root: Path,
     safe_path: Callable[[str], Path | None],
+    fs_authz,
 ) -> None:
     """Mount the workspaces API onto *app*.
 
@@ -72,13 +73,31 @@ def register_workspaces_routes(
         return JSONResponse({"active": active, "items": items})
 
     @app.get("/api/workspace/download.zip")
-    async def api_workspace_download(subpath: str = ""):
+    async def api_workspace_download(request: Request, subpath: str = ""):
         """Stream a zip of the workspace (or an optional sub-directory).
 
         subpath: optional path relative to PROJECT_ROOT. Defaults to the
         whole workspace. Refuses anything that escapes PROJECT_ROOT.
         Skips heavy/cache/secret folders (same skip-set as /tree, plus .env).
         """
+        # SECURITY: PROJECT_ROOT holds EVERY tenant's workspace in multi-user
+        # mode. Authorize per request: a subpath is gated by the fs-authz
+        # path check; the whole-tree default is refused whenever the caller's
+        # view is restricted (i.e. non-admin in multi-user), since it would
+        # otherwise stream all tenants' source. Single-user/admin (accessible
+        # == None) keeps the convenient whole-workspace download.
+        if subpath:
+            denied = fs_authz.path(request, subpath, "view")
+            if denied is not None:
+                return denied
+        else:
+            accessible = fs_authz.accessible_ips(request)
+            if accessible is not None:
+                return JSONResponse(
+                    {"error": "specify a subpath you own — whole-tree download "
+                              "is not allowed in multi-user mode"},
+                    status_code=403,
+                )
         skip_dirs = {
             ".git", "__pycache__", ".pytest_cache", ".mypy_cache",
             ".ruff_cache", "node_modules", ".venv", "venv", "vendor",
