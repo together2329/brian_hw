@@ -285,7 +285,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_checkout_folder_target_unsynced_opens_edit_and_submits"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_EDIT_FAILURE_NOT_SOFTENED
         owned_by: platform.scm
@@ -293,7 +293,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_depot_selection_checkout_unsynced_opens_for_edit"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_SUBMIT_FAIL_NO_STRANDED_CL
         owned_by: platform.scm
@@ -301,7 +301,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_failed_default_submit_strands_no_numbered_changelist"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
         repro: scripts/repro_perforce_pending.py
       - id: OBL_P4_STREAM_ROOT_TARGET_MAPS_IP
         owned_by: platform.scm
@@ -309,7 +309,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_open_paths_stream_root_folder_target_mirrors_ip_subpath"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
         repro: scripts/e2e_perforce_ui_flow.py
       - id: OBL_P4_PENDING_CL_DELETABLE
         owned_by: platform.scm
@@ -317,13 +317,22 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_live_delete_pending_changelist_keeps_workspace_content"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
           - test: "tests/test_scm_perforce_adapter.py::test_live_revert_paths_deletes_emptied_numbered_changelist"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
           - test: "tests/test_atlas_git_api.py::test_scm_change_delete_route_uses_perforce_adapter"
-            observed_at: 65e24dfd
+            observed_at: 786a953f
         repro: scripts/repro_perforce_pending.py
 
+      - id: OBL_P4_UIPREFS_PERSISTENCE
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_atlas_git_api.py::test_scm_uiprefs_roundtrip_persists_pane_locations"
+            observed_at: 786a953f
+          - test: "tests/test_atlas_git_api.py::test_scm_uiprefs_sanitizes_keys_and_bounds_growth"
+            observed_at: 786a953f
       - id: OBL_GIT_API_AUTHZ_TEST_COMPAT
         owned_by: platform.scm
         granularity: behavior
