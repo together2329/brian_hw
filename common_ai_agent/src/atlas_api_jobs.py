@@ -4883,7 +4883,29 @@ def _refresh_tracked_jobs(
                     _finish_job_db_run(job, job.get("status"))
                     _advance_pipeline_from(job)
             except Exception as e:
-                recovered, detail = _job_artifact_recovery(job, pr)
+                job["_poll_fail_count"] = int(job.get("_poll_fail_count", 0)) + 1
+                fail_limit = max(1, int(
+                    os.environ.get("ATLAS_JOB_POLL_FAIL_LIMIT", "5") or "5"
+                ))
+                is_unreachable = (
+                    "Connection refused" in str(e)
+                    or "urlopen error" in str(e)
+                    or "Max retries" in str(e)
+                )
+                # The worker explicitly reports this job id as unknown -> the
+                # run is genuinely gone, so the on-disk artifact is the final
+                # word and may be trusted immediately.
+                is_gone = "404" in str(e)
+                # SILENT-COMPLETE GUARD: do NOT fall back to an on-disk artifact
+                # on a single transient poll error while the worker may still be
+                # running — a blip would otherwise mark the job 'completed' from
+                # stale/in-progress evidence and advance the pipeline. Recover
+                # only when the run is genuinely gone (404) or after the
+                # consecutive-failure threshold is reached.
+                recovery_allowed = is_gone or job["_poll_fail_count"] >= fail_limit
+                recovered, detail = (
+                    _job_artifact_recovery(job, pr) if recovery_allowed else (False, "")
+                )
                 if recovered:
                     job["status"] = "completed"
                     job["error"] = ""
@@ -4897,34 +4919,24 @@ def _refresh_tracked_jobs(
                     _advance_pipeline_from(job)
                     changed = True
                 else:
-                    job["error"] = f"poll failed: {e}"
+                    job["error"] = f"poll failed (attempt {job['_poll_fail_count']}): {e}"
                     # A worker that exited mid-run (Connection refused) with no
                     # recoverable artifact would otherwise leave the job pinned
                     # at "running" forever, so the orchestrator's wait_job never
                     # advances. After several consecutive unreachable polls,
                     # declare the job failed so the loop can re-dispatch or
                     # escalate instead of hanging the whole pipeline.
-                    is_unreachable = (
-                        "Connection refused" in str(e)
-                        or "urlopen error" in str(e)
-                        or "Max retries" in str(e)
-                    )
-                    if is_unreachable:
-                        job["_poll_fail_count"] = int(job.get("_poll_fail_count", 0)) + 1
-                        fail_limit = int(
-                            os.environ.get("ATLAS_JOB_POLL_FAIL_LIMIT", "5") or "5"
+                    if is_unreachable and job["_poll_fail_count"] >= fail_limit:
+                        job["status"] = "error"
+                        job["error"] = (
+                            f"worker unreachable for {job['_poll_fail_count']} "
+                            f"consecutive polls (exited mid-run, no valid "
+                            f"artifact): {detail or e}"
                         )
-                        if job["_poll_fail_count"] >= max(1, fail_limit):
-                            job["status"] = "error"
-                            job["error"] = (
-                                f"worker unreachable for {job['_poll_fail_count']} "
-                                f"consecutive polls (exited mid-run, no valid "
-                                f"artifact): {detail or e}"
-                            )
-                            job["finished_at"] = now
-                            _finish_job_db_run(job, "error", job["error"])
-                            _advance_pipeline_from(job)
-                            changed = True
+                        job["finished_at"] = now
+                        _finish_job_db_run(job, "error", job["error"])
+                        _advance_pipeline_from(job)
+                        changed = True
         if job.get("status") == "completed":
             before_gate = job.get("status")
             _enforce_completion_evidence_gate(job, pr)
@@ -6271,9 +6283,15 @@ def register_jobs_routes(
             elif sid in failed_stages:
                 state = "failed"  # explicit artifact failure overrides stale/optimistic DB success
                 source = "fs"
-            elif db_state == "failed" and sid in passed_stages:
-                state = "passed"
-                source = "fs"
+            elif db_state == "failed":
+                # SILENT-PASS GUARD: the latest workflow_runs row is the
+                # deterministic execution record. A passing artifact left on
+                # disk from an EARLIER run must NOT flip a fresh DB 'failed'
+                # verdict to 'passed' — that is exactly the silent-PASS this
+                # repo forbids. DB-failed wins; under-claiming (showing failed
+                # when an untracked re-run passed) is the safe direction.
+                state = "failed"
+                source = "db"
             elif db_state is not None:
                 state = db_state  # DB is source of truth for completed runs
                 source = "db"
