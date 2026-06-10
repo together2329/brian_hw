@@ -16,6 +16,8 @@ from __future__ import annotations
 
 import asyncio
 import os
+import subprocess
+import sys
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any, Callable, Optional, cast
@@ -285,6 +287,50 @@ def register_file_routes(
             "path": rel_path or path, "size": stat.st_size, "mtime": stat.st_mtime,
             "truncated": truncated, "content": content,
         })
+
+    @app.post("/api/vcm/emit")
+    async def api_vcm_emit(request: Request, payload: Optional[dict] = None):
+        # Generate <ip>/req/vcm_graph.json on demand for the VCM tab, resolving
+        # the caller's session-scoped IP path (same resolution as /api/file) and
+        # running the trusted emit_vcm_graph.py from the workflow root. The
+        # script path is NEVER taken from the request — only ip + session are.
+        body = payload or {}
+        ip = str(body.get("ip") or "").strip()
+        session_id = str(body.get("session_id") or body.get("session") or "").strip()
+        if not ip:
+            return JSONResponse({"ok": False, "error": "ip required"}, status_code=400)
+        target, _base, context, rel = _target_for_session(ip, session_id)
+        denied = _gate_for_context_path(request, rel or ip, context, permission="edit")
+        if denied is not None:
+            return denied
+        if target is None:
+            return JSONResponse({"ok": False, "error": "ip path outside workspace"}, status_code=400)
+        ip_dir = target
+        if not (ip_dir / "req").is_dir():
+            return JSONResponse({"ok": False, "error": f"{ip} has no req/ bundle to graph"}, status_code=200)
+        try:
+            from src.atlas_runtime import _resolve_workflow_root
+            wf_env = os.environ.get("ATLAS_WORKFLOW_ROOT", "").strip()
+            wf_root = Path(wf_env).expanduser() if wf_env else _resolve_workflow_root()
+        except Exception:
+            wf_root = None
+        emitter = (Path(wf_root) / "req-gen" / "scripts" / "emit_vcm_graph.py") if wf_root else None
+        if emitter is None or not emitter.is_file():
+            return JSONResponse({"ok": False, "error": "emit_vcm_graph.py not found (workflow root)"}, status_code=200)
+
+        def _run():
+            return subprocess.run(
+                [sys.executable, str(emitter), ip_dir.name, "--root", str(ip_dir.parent)],
+                capture_output=True, text=True, timeout=60, check=False,
+            )
+        try:
+            proc = await asyncio.to_thread(_run)
+        except subprocess.TimeoutExpired:
+            return JSONResponse({"ok": False, "error": "emit timed out"}, status_code=200)
+        out = ((proc.stdout or "") + (proc.stderr or "")).strip()
+        if proc.returncode != 0 or not (ip_dir / "req" / "vcm_graph.json").is_file():
+            return JSONResponse({"ok": False, "error": out or "emit failed"}, status_code=200)
+        return JSONResponse({"ok": True, "stdout": out})
 
     @app.delete("/api/file/delete")
     async def api_file_delete(
