@@ -107,6 +107,62 @@ CAMPAIGN_SPECS: dict[str, dict] = {
                             ["single req[i]", "grant[i] every cycle"]]},
         ],
     },
+    "add8_cin_v1": {
+        "title": "8-bit adder with carry-in/out",
+        "ports": [_sig("a", "input", 8), _sig("b", "input", 8), _sig("cin", "input"),
+                  _sig("sum", "output", 8), _sig("cout", "output")],
+        "features": [
+            {"key": "ADD", "granularity": "structural",
+             "statement": "{cout,sum} = a + b + cin (9-bit result); purely combinational.",
+             "when_then": [["any a,b,cin", "{cout,sum}==a+b+cin"],
+                            ["a=255,b=1,cin=0", "sum=0, cout=1"]]},
+        ],
+    },
+    "mux4_v1": {
+        "title": "4:1 8-bit multiplexer",
+        "ports": [_sig("d0", "input", 8), _sig("d1", "input", 8), _sig("d2", "input", 8),
+                  _sig("d3", "input", 8), _sig("sel", "input", 2), _sig("y", "output", 8)],
+        "features": [
+            {"key": "SEL", "granularity": "structural",
+             "statement": "y = d[sel]; combinational select of one of four 8-bit inputs.",
+             "when_then": [["sel=0", "y=d0"], ["sel=1", "y=d1"],
+                            ["sel=2", "y=d2"], ["sel=3", "y=d3"]]},
+        ],
+    },
+    "parity8_v1": {
+        "title": "8-bit parity generator with registered output",
+        "ports": [_sig("clk", "input"), _sig("rst_n", "input"), _sig("valid_in", "input"),
+                  _sig("data", "input", 8), _sig("valid_out", "output"), _sig("parity", "output")],
+        "features": [
+            {"key": "PAR", "granularity": "temporal",
+             "statement": "parity = XOR of data bits (even parity), registered one cycle after valid_in; valid_out mirrors valid_in delayed 1.",
+             "when_then": [["valid_in=1@T", "parity=^data, valid_out=1 @T+1"],
+                            ["valid_in=0@T", "valid_out=0 @T+1"]]},
+        ],
+    },
+    "updown8_v1": {
+        "title": "8-bit up/down counter with load",
+        "ports": [_sig("clk", "input"), _sig("rst_n", "input"), _sig("en", "input"),
+                  _sig("up", "input"), _sig("load", "input"), _sig("din", "input", 8),
+                  _sig("count", "output", 8)],
+        "features": [
+            {"key": "UPDOWN", "granularity": "temporal",
+             "statement": "load=1 -> count=din; else en=1&up=1 -> count+=1 (wrap), en=1&up=0 -> count-=1 (wrap); en=0 hold; rst_n=0 -> count=0.",
+             "when_then": [["load=1", "count=din next edge"],
+                            ["en=1&up=1", "count+=1, 255->0"],
+                            ["en=1&up=0", "count-=1, 0->255"],
+                            ["en=0&load=0", "count holds"]]},
+        ],
+    },
+    "onehot4_v1": {
+        "title": "2-to-4 one-hot decoder with enable",
+        "ports": [_sig("sel", "input", 2), _sig("en", "input"), _sig("y", "output", 4)],
+        "features": [
+            {"key": "DECODE", "granularity": "structural",
+             "statement": "en=1 -> y is one-hot with bit sel set; en=0 -> y=0. Combinational.",
+             "when_then": [["en=1,sel=k", "y == (1<<k)"], ["en=0", "y == 0"]]},
+        ],
+    },
 }
 
 
