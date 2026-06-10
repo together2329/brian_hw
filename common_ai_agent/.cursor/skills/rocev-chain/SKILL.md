@@ -60,6 +60,18 @@ PASS = real artifacts + ≥1 passing scoreboard event + zero failure markers.
 A timeout/empty-XML run is NOT evidence. `/atlas-sim` owns; escalate DUT bugs
 to `/atlas-rtl-gen` instead of weakening the TB.
 
+## IP wiki history (every stage)
+
+After each stage's Validation verdict (PASS or final FAIL), append the outcome
+to the IP's own wiki so history accumulates next to the artifacts:
+
+```bash
+python3 scripts/ip_wiki.py log <ip> --stage <req|rtl|tb|sim> --title "<verdict>" --body "<gate output line>"
+python3 scripts/ip_wiki.py check <ip>
+```
+
+See the `atlas-ip-wiki` skill for page creation and rules.
+
 ## Loop discipline
 
 The `stop-todo-loop` hook re-prompts while stage todos remain open. Work one

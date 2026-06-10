@@ -274,12 +274,43 @@ requirements:
       - id: OBL_CURSOR_TODO_LOOP_HOOK
         owned_by: platform.cursor-pack
         granularity: behavior
-        status: open   # stop hook이 open todo 잔존 시 followup_message로 루프, 완료/중단 시 침묵
+        status: closed   # c6b0daf2: open todo 잔존 시 루프, abort/error/완료 시 침묵
+        evidence:
+          - test: "tests/test_cursor_pack.py::test_hook_loops_while_todos_open"
+            observed_at: c6b0daf2
+          - test: "tests/test_cursor_pack.py::test_hook_silent_on_abort_and_error"
+            observed_at: c6b0daf2
       - id: OBL_CURSOR_PACK_REFERENTIAL_INTEGRITY
         owned_by: platform.cursor-pack
         granularity: structural
-        status: open   # hooks.json 스크립트 실재+실행성, agents/skills frontmatter 유효, skill name=folder
+        status: closed   # c6b0daf2: hooks.json/agents/skills 유령 참조 차단
+        evidence:
+          - test: "tests/test_cursor_pack.py::test_hooks_json_commands_exist_and_are_python"
+            observed_at: c6b0daf2
+          - test: "tests/test_cursor_pack.py::test_skills_name_matches_folder"
+            observed_at: c6b0daf2
       - id: OBL_CURSOR_ROCEV_CHAIN_SKILL
         owned_by: platform.cursor-pack
         granularity: structural
-        status: open   # rocev-chain skill이 실재하는 repo 스크립트/스테이지만 참조
+        status: closed   # c6b0daf2: 실재 스크립트/오너 subagent만 참조
+        evidence:
+          - test: "tests/test_cursor_pack.py::test_rocev_chain_references_existing_scripts"
+            observed_at: c6b0daf2
+          - test: "tests/test_cursor_pack.py::test_rocev_chain_subagent_owners_exist"
+            observed_at: c6b0daf2
+      - id: OBL_IP_WIKI_HELPER
+        owned_by: platform.ip-wiki
+        granularity: behavior
+        status: open   # <ip>/wiki init/log/check 라운드트립 — IP 개발 히스토리 축적
+      - id: OBL_IP_WIKI_CHECK_KILLPROOF
+        owned_by: platform.ip-wiki
+        granularity: behavior
+        status: open   # check가 깨진 frontmatter/유령 [[link]]를 실제로 잡는지
+      - id: OBL_ATLAS_MCP_SERVER
+        owned_by: platform.cursor-pack
+        granularity: behavior
+        status: open   # stdio MCP 서버: rtl_db_query/rtl_db_wiki(주) + ontology/wiki 검색
+      - id: OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK
+        owned_by: platform.cursor-pack
+        granularity: behavior
+        status: open   # subagentStop: atlas-* 오너의 증거 없는 완료 주장에 followup

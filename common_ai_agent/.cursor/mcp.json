@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "atlas": {
+      "command": "python3",
+      "args": ["scripts/atlas_mcp_server.py"]
+    }
+  }
+}
