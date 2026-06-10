@@ -855,7 +855,21 @@ export function useWorkspaceSession(deps: UseWorkspaceSessionDeps) {
     const sid = activateSession(routeIp, next);
     const parts = (sid || activeSession || w.ACTIVE_SESSION || '').split('/');
     const owner = normalizeUiSession((w.ATLAS_USER && w.ATLAS_USER.username) || '') || parts[0] || 'default';
-    const workspaceSession = parts.length >= 4 && parts[0] === owner ? parts[1] : 'default';
+    // Preserve the caller's workspace_session across a workflow switch. Prefer
+    // the new sid's segment, then the established ATLAS_WORKSPACE_SESSION_ID,
+    // then the current active session — only fall back to 'default' when none
+    // is known. Then PERSIST it (mirroring handleSwitchSession) so the next
+    // sessionFor()/sendPrompt reads the real workspace instead of 'default' —
+    // otherwise /to-ssot (and every queued worker) writes to the default
+    // workspace even though the UI switched.
+    const curParts = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '').split('/').filter(Boolean);
+    const workspaceSession =
+      (parts.length >= 4 && parts[0] === owner ? parts[1] : '')
+      || normalizeUiSession((w as any).ATLAS_WORKSPACE_SESSION_ID || '')
+      || (curParts.length >= 4 && curParts[0] === owner ? curParts[1] : '')
+      || 'default';
+    (w as any).ATLAS_WORKSPACE_SESSION_ID = workspaceSession;
+    try { localStorage.setItem('atlasWorkspaceSessionId', workspaceSession); } catch (_) {}
     const ip = routeSessionIp(sid) || routeIp || (parts.length >= 4 ? parts[2] : parts[1]) || 'default';
     w.ACTIVE_IP = ip;
     setWorkflowDispatchInputRoute(next, ip);
