@@ -4247,7 +4247,7 @@ def _job_artifact_recovery(
         ssot_path = ip_dir / "yaml" / f"{ip}.ssot.yaml"
         if not ssot_path.is_file():
             return False, ""
-        checker = _workflow_root_for_project(project_root, ip) / "ssot-gen" / "scripts" / "check_ssot_disk.sh"
+        checker = _workflow_root_for_project(project_root, ip) / "ssot-gen" / "scripts" / "check_ssot_disk.py"
         if not checker.is_file():
             return False, f"SSOT checker missing: {checker}"
         run_mode = _normalize_run_mode(job.get("run_mode")) or _current_run_mode()
@@ -4258,7 +4258,7 @@ def _job_artifact_recovery(
         env.pop("ATLAS_IP_ROOT", None)
         try:
             proc = subprocess.run(
-                ["bash", str(checker), ip, "--root", str(tool_root), "--mode", run_mode],
+                [sys.executable, str(checker), ip, "--root", str(tool_root), "--mode", run_mode],
                 cwd=str(tool_root),
                 env=env,
                 text=True,
@@ -4677,11 +4677,11 @@ def _job_artifact_failure(
             or (ip_dir / "lint" / "dut_lint.json").is_file()
             or (ip_dir / "logs" / "stage_engine" / "ssot-rtl.json").is_file()
         )
-        checker = _workflow_root_for_project(project_root, ip) / "rtl-gen" / "scripts" / "check_rtl_disk.sh"
+        checker = _workflow_root_for_project(project_root, ip) / "rtl-gen" / "scripts" / "check_rtl_disk.py"
         if rtl_ran and has_rtl_evidence and checker.is_file():
             try:
                 proc = subprocess.run(
-                    ["bash", str(checker), ip],
+                    [sys.executable, str(checker), ip],
                     cwd=str(_tool_project_root_for_ip(project_root, ip)),
                     text=True,
                     encoding="utf-8",

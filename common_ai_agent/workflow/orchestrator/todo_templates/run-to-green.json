@@ -11,7 +11,7 @@
     },
     {
       "content": "[ORCH] Dispatch ssot-gen and verify SSOT validates",
-      "detail": "Call /dispatch ssot-gen <ip>. Wait for evidence at <ip>/yaml/<ip>.ssot.yaml. Run check_ssot_disk.sh invariants. If validator fails, retry up to ssot-gen budget (3); if still failing, /escalate.",
+      "detail": "Call /dispatch ssot-gen <ip>. Wait for evidence at <ip>/yaml/<ip>.ssot.yaml. Run check_ssot_disk.py invariants. If validator fails, retry up to ssot-gen budget (3); if still failing, /escalate.",
       "criteria": "yaml/<ip>.ssot.yaml exists\nrequire_top_sub_module_consistency passes\nfilelist.rtl includes top_module.file",
       "priority": "high"
     },

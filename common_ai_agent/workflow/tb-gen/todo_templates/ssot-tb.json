@@ -19,7 +19,7 @@
       "activeForm": "Running SSOT-derived simulation — attempt {loop_count}/{max_loop_iterations}",
       "detail": "Run the real simulator command after writing TB. Cocotb path: python3 -m pytest -q <ip>/tb/cocotb/test_runner.py --tb=short. SV path: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. If compile fails due to TB syntax, port mapping, runner path, or scoreboard bug, fix TB and rerun. If a scenario fails against the SSOT expected value, do not weaken the checker or change the expected value to observed RTL behavior; stop TB edits and emit [SIM ESCALATE] -> rtl-gen with exact test, expected, got, and suspected RTL file/signal.",
       "criteria": "Simulation command was run after the last TB edit\nCompile/elaboration exits 0\nAll SSOT scenario tests pass OR failures are escalated precisely\nA cocotb PASS summary is rejected if any [FAIL] line or failed SSOT check remains\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nTB does not modify RTL files\nNo failure markers remain on DONE path\nResults are captured to results.xml or sim_report.txt",
-      "validator": "bash workflow/tb-gen/scripts/check_tb_sim_evidence.sh",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_sim_evidence.py",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "PASS_OR_ESCALATE",

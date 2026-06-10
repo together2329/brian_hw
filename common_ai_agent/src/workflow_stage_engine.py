@@ -1489,7 +1489,7 @@ class WorkflowStageEngine:
     def _run_tb_cocotb(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "tb-gen" / "scripts" / "emit_goal_scoreboard_cocotb.py"
         todo_script = self.workflow_root / "tb-gen" / "scripts" / "derive_tb_todos.py"
-        validator = self.workflow_root / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"
+        validator = self.workflow_root / "tb-gen" / "scripts" / "check_pyuvm_structure.py"
         scoreboard = self.workflow_root / "tb-gen" / "runtime" / "equivalence_scoreboard.py"
         runs: list[ToolRun] = []
         contract_gate = self._run_contract_authority_gate(ip)
@@ -1511,7 +1511,7 @@ class WorkflowStageEngine:
             runs.append(self._run_tool("emit_goal_scoreboard_cocotb", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=180))
             gen_rc = runs[-1].returncode
         if gen_rc == 0:
-            runs.append(self._run_tool("check_pyuvm_structure", ["bash", str(validator), ip], timeout_s=180))
+            runs.append(self._run_tool("check_pyuvm_structure", [sys.executable, str(validator), ip], timeout_s=180))
             structure_rc = runs[-1].returncode
             runs.append(self._run_tool("equivalence_scoreboard_self_check", [sys.executable, str(scoreboard), ip, "--root", str(self.project_root), "--self-check"], timeout_s=90))
             self_check_rc = runs[-1].returncode
@@ -1679,7 +1679,7 @@ class WorkflowStageEngine:
                         "loop blocks and routes back to /gen-tb instead of fabricating evidence."
                     ),
                     "criteria": (
-                        "A supported TB runner exists, sim/sim_todo_plan.json exists, and sim.sh "
+                        "A supported TB runner exists, sim/sim_todo_plan.json exists, and sim.py "
                         "plus check_tb_sim_evidence produce machine-readable pass/fail evidence."
                     ),
                     "required_evidence": [
@@ -1695,7 +1695,7 @@ class WorkflowStageEngine:
                         "id": "SIM-0001",
                         "content": "Run generated testbench and collect simulator evidence",
                         "detail": "Simulation cannot start until TB GEN creates an executable runner.",
-                        "criteria": "A supported TB runner exists and sim.sh produces passing results.xml plus scoreboard_events.jsonl.",
+                        "criteria": "A supported TB runner exists and sim.py produces passing results.xml plus scoreboard_events.jsonl.",
                         "required_evidence": [
                             f"{ip}/tb/cocotb/test_runner.py",
                             f"{ip}/sim/results.xml",
@@ -1716,13 +1716,13 @@ class WorkflowStageEngine:
             ]
             self._append_expected(lines, artifacts)
             return self._result("sim", ip, "blocked", headline, lines, artifacts=artifacts, blocker=f"{ip}/tb")
-        script = self.workflow_root / "tb-gen" / "scripts" / "sim.sh"
-        validator = self.workflow_root / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
+        script = self.workflow_root / "tb-gen" / "scripts" / "sim.py"
+        validator = self.workflow_root / "tb-gen" / "scripts" / "check_tb_sim_evidence.py"
         coverage_script = self.workflow_root / "coverage" / "scripts" / "ssot_coverage_summary.py"
         rel_runner = str(runner.relative_to(self.project_root))
         runs = [
-            self._run_tool("sim", ["bash", str(script), rel_runner], timeout_s=240),
-            self._run_tool("sim_evidence", ["bash", str(validator), ip], timeout_s=180),
+            self._run_tool("sim", [sys.executable, str(script), rel_runner], timeout_s=240),
+            self._run_tool("sim_evidence", [sys.executable, str(validator), ip], timeout_s=180),
         ]
         if all(run.returncode == 0 for run in runs):
             runs.append(
@@ -1776,7 +1776,7 @@ class WorkflowStageEngine:
                     "the SSOT/TB/RTL contracts."
                 ),
                 "criteria": (
-                    "sim/sim_todo_plan.json exists; sim.sh and check_tb_sim_evidence pass; "
+                    "sim/sim_todo_plan.json exists; sim.py and check_tb_sim_evidence pass; "
                     "coverage summary passes or records the explicit rc=3 policy override; "
                     "results.xml, scoreboard_events.jsonl, and sim_report.txt are present."
                 ),
@@ -1793,8 +1793,8 @@ class WorkflowStageEngine:
                 {
                     "id": "SIM-0001",
                     "content": "Run generated testbench and collect simulator evidence",
-                    "detail": "Run the generated TB through sim.sh and require machine-readable pass/fail evidence.",
-                    "criteria": "sim.sh and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
+                    "detail": "Run the generated TB through sim.py and require machine-readable pass/fail evidence.",
+                    "criteria": "sim.py and check_tb_sim_evidence both exit 0; results.xml, scoreboard_events.jsonl, and sim_report.txt exist.",
                     "required_evidence": [
                         f"{ip}/sim/results.xml or {ip}/tb/cocotb/results.xml",
                         f"{ip}/sim/scoreboard_events.jsonl",
@@ -1816,10 +1816,10 @@ class WorkflowStageEngine:
         return self._result("sim", ip, status, headline, lines, runs=runs, artifacts=artifacts, metadata={"runner": rel_runner})
 
     def _run_coverage(self, ip: str) -> StageEngineResult:
-        sim_validator = self.workflow_root / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"
+        sim_validator = self.workflow_root / "tb-gen" / "scripts" / "check_tb_sim_evidence.py"
         summary_script = self.workflow_root / "coverage" / "scripts" / "ssot_coverage_summary.py"
         runs = [
-            self._run_tool("sim_evidence", ["bash", str(sim_validator), ip], timeout_s=180),
+            self._run_tool("sim_evidence", [sys.executable, str(sim_validator), ip], timeout_s=180),
         ]
         runs.append(
             self._run_tool(
@@ -2131,7 +2131,7 @@ class WorkflowStageEngine:
 
     def _stage_gate_task(self, stage: str, *, total: int) -> dict[str, Any]:
         """Deterministic detect-and-skip gate todo appended after the obligation todos."""
-        gate_script = (self.workflow_root / "req-gen" / "scripts" / "stage_gate.sh").resolve()
+        gate_script = (self.workflow_root / "req-gen" / "scripts" / "stage_gate.py").resolve()
         cmd = (
             f"bash {shlex.quote(str(gate_script))} {stage} "
             f'"$ATLAS_ACTIVE_IP" --root "$ATLAS_PROJECT_ROOT"'
@@ -2146,11 +2146,11 @@ class WorkflowStageEngine:
                 "absent (the sim stage blocks if no simulator). On failure this loops back to the "
                 "first obligation todo so the agent repairs and the gate reruns."
             ),
-            "criteria": f"stage_gate.sh {stage} exits 0 (all hard checks pass; tool-absent checks skipped)",
+            "criteria": f"stage_gate.py {stage} exits 0 (all hard checks pass; tool-absent checks skipped)",
             "command": cmd,
             "on_reject": 1,
             "priority": "high",
-            "required_evidence": [f"stage_gate.sh {stage} returncode 0"],
+            "required_evidence": [f"stage_gate.py {stage} returncode 0"],
             "source_refs": [],
         }
 

@@ -19,7 +19,7 @@
       "activeForm": "Running plain HDL simulation from SSOT - attempt {loop_count}/{max_loop_iterations}",
       "detail": "Run: iverilog -g2012 -I <ip>/rtl -f <ip>/list/<ip>.f <ip>/tb/tb_<ip>.sv -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. Fix TB-only compile, port mapping, task, and checker issues then rerun. If DUT behavior violates SSOT, stop TB edits and emit [SIM ESCALATE] -> rtl-gen with exact test, expected, got, and suspected RTL signal/file.",
       "criteria": "Simulation command was run after final TB edit\nCompile/elaboration exits 0\nAll SSOT scenarios pass or failures are escalated precisely\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nNo [FAIL] markers remain on DONE path\nsim_report.txt or equivalent exists\nTB does not modify RTL files",
-      "validator": "bash workflow/tb-gen/scripts/check_tb_sim_evidence.sh",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_sim_evidence.py",
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "PASS_OR_ESCALATE",

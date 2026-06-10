@@ -838,7 +838,7 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
 
 
 def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
-    checker = Path(__file__).with_name("check_ssot_disk.sh")
+    checker = Path(__file__).with_name("check_ssot_disk.py")
     bash = shutil.which("bash")
     if not checker.is_file() or not bash:
         reason = []
@@ -855,7 +855,7 @@ def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
             root,
             ip,
             mode,
-            f"check_ssot_disk.sh expects <root>/<ip>; got root={root}",
+            f"check_ssot_disk.py expects <root>/<ip>; got root={root}",
         )
     proc = subprocess.run(
         [bash, str(checker), ip, "--root", str(checker_root), "--mode", mode],
@@ -882,7 +882,7 @@ def _run_check_ssot(root: Path, ip: str, mode: str) -> dict[str, Any]:
                 root,
                 ip,
                 mode,
-                "check_ssot_disk.sh helper python cannot import PyYAML",
+                "check_ssot_disk.py helper python cannot import PyYAML",
             )
     return {
         "ok": proc.returncode == 0,
@@ -897,7 +897,7 @@ def _run_native_disk_check(root: Path, ip: str, mode: str, reason: str) -> dict[
 
     The full shell checker remains authoritative when available. This fallback
     keeps ATLAS UI validation useful on Windows or packaged installs where
-    `bash check_ssot_disk.sh` cannot be launched, while the main verifier still
+    `bash check_ssot_disk.py` cannot be launched, while the main verifier still
     performs canonical-shape and Preview-readable checks above.
     """
     ssot = _find_ssot(root, ip)
@@ -1001,7 +1001,7 @@ def main() -> int:
         default="strict",
         help="Whether missing Preview-readable fields are blockers, warnings, or ignored.",
     )
-    ap.add_argument("--skip-disk-check", action="store_true", help="Skip check_ssot_disk.sh.")
+    ap.add_argument("--skip-disk-check", action="store_true", help="Skip check_ssot_disk.py.")
     ap.add_argument("--json", action="store_true", help="Emit only JSON.")
     ns = ap.parse_args()
 
@@ -1048,7 +1048,7 @@ def main() -> int:
                     "blocker",
                     "check_ssot_disk.failed",
                     _rel(ssot, root),
-                    f"check_ssot_disk.sh failed with exit {check_result.get('returncode')}.",
+                    f"check_ssot_disk.py failed with exit {check_result.get('returncode')}.",
                     _first_line((check_result.get("stdout") or "") + "\n" + (check_result.get("stderr") or ""))
                     or "Run the same check command and repair the reported YAML contract failure.",
                 ))
@@ -1058,7 +1058,7 @@ def main() -> int:
                 "blocker",
                 "check_ssot_disk.error",
                 _rel(ssot, root),
-                f"check_ssot_disk.sh could not run: {exc}",
+                f"check_ssot_disk.py could not run: {exc}",
                 "Fix the verifier runtime issue, then rerun verify_ssot.",
             ))
 

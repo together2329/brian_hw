@@ -29,8 +29,8 @@
     },
     {
       "content": "[LINT] Write lint_report.txt",
-      "detail": "Write <ip>/lint/lint_report.txt with:\n- [ ] Date and lint tool/version (Windows should show iverilog)\n- [ ] Input files from <ip>/list/<ip>.f\n- [ ] Result: CLEAN only when dut_lint.json passed=true\n- [ ] Total errors fixed: N\n- [ ] Total warnings fixed: N\n- [ ] Remaining SSOT waivers: list only entries present in coding_rules.lint_waivers\nGate: File written to <ip>/lint/lint_report.txt — verified by check_lint_disk.sh or dut_lint.json (0 errors / 0 warnings / passed=true).",
-      "validator": "bash workflow/lint/scripts/check_lint_disk.sh",
+      "detail": "Write <ip>/lint/lint_report.txt with:\n- [ ] Date and lint tool/version (Windows should show iverilog)\n- [ ] Input files from <ip>/list/<ip>.f\n- [ ] Result: CLEAN only when dut_lint.json passed=true\n- [ ] Total errors fixed: N\n- [ ] Total warnings fixed: N\n- [ ] Remaining SSOT waivers: list only entries present in coding_rules.lint_waivers\nGate: File written to <ip>/lint/lint_report.txt — verified by check_lint_disk.py or dut_lint.json (0 errors / 0 warnings / passed=true).",
+      "validator": "python3 workflow/lint/scripts/check_lint_disk.py",
       "priority": "normal"
     }
   ]

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # =============================================================================
-# stage_gate.py <stage> <ip> --root <root>   (Python port of stage_gate.sh)
+# stage_gate.py <stage> <ip> --root <root>   (Python port of stage_gate.py)
 # -----------------------------------------------------------------------------
 # Deterministic VCM gate for the tb / sim / lint stages, with a detect-and-skip
 # policy: pure python/bash checks are HARD; checks that need an external tool
@@ -16,7 +16,7 @@
 # Exit: 0 = all hard checks passed (skips allowed) ; 1 = a hard check failed
 #       2 = blocked (sim stage, no simulator)
 # =============================================================================
-"""Python port of stage_gate.sh — same CLI, exit codes, and stdout/stderr.
+"""Python port of stage_gate.py — same CLI, exit codes, and stdout/stderr.
 
 bash `set -uo pipefail` (no -e): hard checks accumulate `status` rather than
 aborting; replicated with explicit return-code accumulation. Sub-checks are
@@ -86,7 +86,7 @@ def main(argv: list[str]) -> int:
             i += 1
 
     if not stage or not ip:
-        print("usage: stage_gate.sh <tb|sim|lint> <ip> --root <root>", file=sys.stderr)
+        print("usage: stage_gate.py <tb|sim|lint> <ip> --root <root>", file=sys.stderr)
         return 2
 
     # SCRIPTS_DIR / WF (workflow/, script lives in workflow/req-gen/scripts)
@@ -156,7 +156,7 @@ def main(argv: list[str]) -> int:
             have_py("cocotb"),
             "pyuvm_structure",
             "bash",
-            str(wf / "tb-gen" / "scripts" / "check_pyuvm_structure.sh"),
+            str(wf / "tb-gen" / "scripts" / "check_pyuvm_structure.py"),
             ip,
         )
     elif stage == "lint":
@@ -173,11 +173,11 @@ def main(argv: list[str]) -> int:
         if not have_tool("iverilog") and not have_tool("verilator"):
             print("  \U0001f6d1 sim BLOCKED: no simulator (iverilog/verilator) installed")
             return 2
-        run_hard("sim_run", "bash", str(wf / "tb-gen" / "scripts" / "sim.sh"), ip)
+        run_hard("sim_run", sys.executable, str(wf / "tb-gen" / "scripts" / "sim.py"), ip)
         run_hard(
             "sim_evidence",
             "bash",
-            str(wf / "tb-gen" / "scripts" / "check_tb_sim_evidence.sh"),
+            str(wf / "tb-gen" / "scripts" / "check_tb_sim_evidence.py"),
             ip,
         )
         run_hard(

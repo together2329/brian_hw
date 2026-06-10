@@ -709,9 +709,9 @@ def main() -> int:
     if rc != 0:
         return rc
     validators = [
-        root.parent / "brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_disk.sh",
-        root.parent / "brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.sh",
-        root.parent / "brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.sh",
+        root.parent / "brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_disk.py",
+        root.parent / "brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_pyuvm_structure.py",
+        root.parent / "brian_hw/common_ai_agent/workflow/tb-gen/scripts/check_tb_sim_evidence.py",
     ]
     for validator in validators:
         rc = subprocess.run(["bash", str(validator), args.ip], cwd=root).returncode

@@ -19,7 +19,7 @@
       "loop": true,
       "max_loop_iterations": 20,
       "exit_condition": "0 errors, 0 warnings",
-      "validator": "bash workflow/sim/scripts/check_sim_disk.sh",
+      "validator": "python3 workflow/sim/scripts/check_sim_disk.py",
       "priority": "high"
     },
     {

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """check_tb_sim_evidence.py — tb-gen validator for PASS or precise escalation.
 
-Python port of check_tb_sim_evidence.sh (ENFORCED in the sim + coverage stages).
+Python port of check_tb_sim_evidence.py (ENFORCED in the sim + coverage stages).
 
 A tb-gen simulation task is complete when:
   1. Real TB artifacts exist and have assertion paths.
@@ -19,7 +19,7 @@ Preserved hardening:
 
 Delegation:
   * check_tb_disk: prefer the sibling check_tb_disk.py if it exists, otherwise
-    fall back to check_tb_disk.sh (bash).
+    fall back to check_tb_disk.py (bash).
   * check_scoreboard_events.py when verify/equivalence_goals.json exists.
 """
 
@@ -61,12 +61,12 @@ def _locate_ip() -> str:
 
 
 def _run_check_tb_disk(ip: str) -> "subprocess.CompletedProcess[str]":
-    """Delegate to check_tb_disk.py if present, else check_tb_disk.sh."""
+    """Delegate to check_tb_disk.py if present, else check_tb_disk.py."""
     py = SCRIPT_DIR / "check_tb_disk.py"
     if py.is_file():
         cmd = [sys.executable, str(py), ip]
     else:
-        cmd = ["bash", str(SCRIPT_DIR / "check_tb_disk.sh"), ip]
+        cmd = ["bash", str(SCRIPT_DIR / "check_tb_disk.py"), ip]
     return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
 
 

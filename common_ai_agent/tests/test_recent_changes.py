@@ -1417,12 +1417,12 @@ class TestFixMdTreeFencing(unittest.TestCase):
         text = (
             "│ simple_pwm Pipeline Results │ │ Stage │ Result │ │ "
             "1. 디렉토리 생성 │ ✅ 14 subdirs │ │ "
-            "2. SSOT 검증 │ ✅ check_ssot_disk.sh PASS │"
+            "2. SSOT 검증 │ ✅ check_ssot_disk.py PASS │"
         )
         result = self._fix(text)
         self.assertIn("**simple_pwm Pipeline Results**", result)
         self.assertIn("- **1. 디렉토리 생성:** ✅ 14 subdirs", result)
-        self.assertIn("- **2. SSOT 검증:** ✅ check_ssot_disk.sh PASS", result)
+        self.assertIn("- **2. SSOT 검증:** ✅ check_ssot_disk.py PASS", result)
         self.assertNotIn("│", result)
 
     def test_accidentally_indented_markdown_summary_is_not_code_fenced(self):

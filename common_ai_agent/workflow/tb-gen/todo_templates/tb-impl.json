@@ -29,7 +29,7 @@
       "loop": true,
       "max_loop_iterations": 15,
       "exit_condition": "0 errors, 0 warnings",
-      "validator": "bash workflow/tb-gen/scripts/check_sim_pass.sh",
+      "validator": "python3 workflow/tb-gen/scripts/check_sim_pass.py",
       "priority": "high"
     },
     {

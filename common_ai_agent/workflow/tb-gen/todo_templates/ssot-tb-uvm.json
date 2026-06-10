@@ -19,7 +19,7 @@
       "activeForm": "Running UVM compile/simulation — attempt {loop_count}/{max_loop_iterations}",
       "detail": "Run the project-supported UVM simulator command. If no simulator/UVM library is available, emit [TB BLOCKED] with exact missing dependency. If TB syntax, port mapping, sequence, or scoreboard issues fail, fix UVM artifacts and rerun. If DUT behavior violates SSOT, emit [SIM ESCALATE] -> rtl-gen with exact expected/got evidence.",
       "criteria": "Simulation command or precise tool-blocker is recorded\nCompile/elaboration succeeds on PASS path\nAll SSOT tests pass or failures are escalated\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nNo failure markers remain on DONE path\nResults report exists",
-      "validator": "bash workflow/tb-gen/scripts/check_tb_sim_evidence.sh",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_sim_evidence.py",
       "loop": true,
       "max_loop_iterations": 10,
       "exit_condition": "PASS_OR_ESCALATE_OR_BLOCKED",

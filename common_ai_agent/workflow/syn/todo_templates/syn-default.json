@@ -14,27 +14,27 @@
     },
     {
       "content": "[SYN] Write yosys script <ip>/syn/run.ys",
-      "detail": "Run scripts/write_yosys_script.sh <ip>.\nResulting run.ys must contain: read_liberty, read_verilog -sv (one per filelist entry), hierarchy -top, synth -top, dfflibmap, abc -liberty, opt_clean, write_verilog, stat -liberty.\nGate: <ip>/syn/run.ys exists.",
+      "detail": "Run scripts/write_yosys_script.py <ip>.\nResulting run.ys must contain: read_liberty, read_verilog -sv (one per filelist entry), hierarchy -top, synth -top, dfflibmap, abc -liberty, opt_clean, write_verilog, stat -liberty.\nGate: <ip>/syn/run.ys exists.",
       "priority": "high"
     },
     {
       "content": "[SYN] Run yosys → <ip>/syn/out/synth.v + syn.log",
-      "detail": "Run scripts/run_yosys.sh <ip>.\nIf rc != 0: read syn.log tail, identify error class (Latch inferred / Module not found / unmapped cells), fix in RTL, re-run.\nGate: yosys rc=0, synth.v non-empty.",
+      "detail": "Run scripts/run_yosys.py <ip>.\nIf rc != 0: read syn.log tail, identify error class (Latch inferred / Module not found / unmapped cells), fix in RTL, re-run.\nGate: yosys rc=0, synth.v non-empty.",
       "priority": "high"
     },
     {
       "content": "[SYN] Sanity gate — no unmapped, no unintended latches",
-      "detail": "Run scripts/check_unmapped.sh <ip>.\n- [ ] 0 lines matching `^\\s*\\$_` in synth.v\n- [ ] 0 lines matching generic yosys cell prefixes\n- [ ] 0 latch cells UNLESS SSOT has `latch_intended: true`\nIf the gate fails: do NOT proceed. Report which check failed and which cells / lines triggered it. Re-synthesize after RTL fix.\nGate: check_unmapped.sh exits 0.",
+      "detail": "Run scripts/check_unmapped.py <ip>.\n- [ ] 0 lines matching `^\\s*\\$_` in synth.v\n- [ ] 0 lines matching generic yosys cell prefixes\n- [ ] 0 latch cells UNLESS SSOT has `latch_intended: true`\nIf the gate fails: do NOT proceed. Report which check failed and which cells / lines triggered it. Re-synthesize after RTL fix.\nGate: check_unmapped.py exits 0.",
       "priority": "high"
     },
     {
       "content": "[SYN] Parse area → <ip>/syn/out/area.json",
-      "detail": "Run scripts/parse_area.sh <ip>.\narea.json schema: {top, corner, total_cells, total_area_um2, by_kind.{sequential,combinational}.cells, by_cell{}}.\nGate: area.json exists, total_cells > 0, sequential.cells > 0 (unless SSOT clocks[] is empty).",
+      "detail": "Run scripts/parse_area.py <ip>.\narea.json schema: {top, corner, total_cells, total_area_um2, by_kind.{sequential,combinational}.cells, by_cell{}}.\nGate: area.json exists, total_cells > 0, sequential.cells > 0 (unless SSOT clocks[] is empty).",
       "priority": "high"
     },
     {
       "content": "[SYN] Write <ip>/syn/out/syn.report.md",
-      "detail": "Run scripts/write_report.sh <ip>.\nReport contents: top, corner, netlist path, total cells, total area μm², seq vs comb counts, top-5 cells by frequency, first 20 yosys warnings.\nGate: syn.report.md written.",
+      "detail": "Run scripts/write_report.py <ip>.\nReport contents: top, corner, netlist path, total cells, total area μm², seq vs comb counts, top-5 cells by frequency, first 20 yosys warnings.\nGate: syn.report.md written.",
       "priority": "normal"
     },
     {
