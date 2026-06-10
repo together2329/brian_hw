@@ -25,13 +25,19 @@ describe('PerforceSyncTab diff controls and saved locations', () => {
   const diffUrls: string[] = [];
   const paneUrls: string[] = [];
   const prefsPosts: RequestBody[] = [];
+  const editBodies: RequestBody[] = [];
   let savedPrefs: RequestBody = {};
+  let localRows: Array<Record<string, unknown>> = [];
+  let depotRows: Array<Record<string, unknown>> = [];
 
   beforeEach(() => {
     diffUrls.length = 0;
     paneUrls.length = 0;
     prefsPosts.length = 0;
+    editBodies.length = 0;
     savedPrefs = {};
+    localRows = [{ path: 'rtl', state: '', kind: 'folder' }];
+    depotRows = [];
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = requestUrl(input);
       if (url.startsWith('/api/ip/list')) {
@@ -54,14 +60,18 @@ describe('PerforceSyncTab diff controls and saved locations', () => {
           streams: ['//GOOD_SOC/GOOD_IP'],
           localDir: parsed.searchParams.get('local_dir') || '',
           depotDir: parsed.searchParams.get('depot_dir') || '//GOOD_SOC/GOOD_IP/',
-          local: [{ path: 'rtl', state: '', kind: 'folder' }],
-          depot: [],
+          local: localRows,
+          depot: depotRows,
           pending: [{ path: '//GOOD_SOC/GOOD_IP/rtl/opened.sv', action: 'edit', change: 'default' }],
           pendingChanges: [{ id: 'default', label: 'default' }],
         });
       }
       if (url.startsWith('/api/scm/log')) {
         return jsonResponse({ ok: true, commits: [] });
+      }
+      if (url === '/api/scm/edit') {
+        editBodies.push(readBody(init));
+        return jsonResponse({ ok: true });
       }
       if (url.startsWith('/api/scm/diff')) {
         diffUrls.push(url);
@@ -94,6 +104,35 @@ describe('PerforceSyncTab diff controls and saved locations', () => {
     expect(diffUrls).toHaveLength(1);
     expect(added.style.color).toBe('var(--ok)');
     expect(removed.style.color).toBe('var(--err)');
+  });
+
+  it('pairs multi-file checkout by visible list order, not click order', async () => {
+    localRows = [
+      { path: 'a.sv', state: 'modified', kind: 'file' },
+      { path: 'b.sv', state: 'modified', kind: 'file' },
+    ];
+    depotRows = [
+      { path: '//GOOD_SOC/GOOD_IP/ip/a.sv', rev: '1', kind: 'file' },
+      { path: '//GOOD_SOC/GOOD_IP/ip/b.sv', rev: '1', kind: 'file' },
+    ];
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+
+    // click in REVERSE order on both panes (local rows have bare-path titles)
+    fireEvent.click(await screen.findByTitle('b.sv'));
+    fireEvent.click(screen.getByTitle('a.sv'));
+    const depotB = await screen.findByTitle('//GOOD_SOC/GOOD_IP/ip/b.sv');
+    const depotA = screen.getByTitle('//GOOD_SOC/GOOD_IP/ip/a.sv');
+    fireEvent.click(depotB);
+    fireEvent.click(depotA);
+    fireEvent.click(screen.getByRole('button', { name: /checkout/i }));
+
+    await waitFor(() => expect(editBodies).toHaveLength(1));
+    // zipped positionally on the backend: a↔a, b↔b regardless of click order
+    expect(editBodies[0].paths).toEqual(['a.sv', 'b.sv']);
+    expect(editBodies[0].targetPaths).toEqual([
+      '//GOOD_SOC/GOOD_IP/ip/a.sv',
+      '//GOOD_SOC/GOOD_IP/ip/b.sv',
+    ]);
   });
 
   it('restores saved pane locations and saves navigation to uiprefs', async () => {

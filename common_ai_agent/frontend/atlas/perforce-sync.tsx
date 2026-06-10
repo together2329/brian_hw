@@ -438,10 +438,12 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         const savedStream = stream || (typeof prefs.stream === 'string' ? prefs.stream : '');
         const savedLocal = typeof prefs.localDir === 'string' ? prefs.localDir : '';
         const savedDepot = typeof prefs.depotDir === 'string' ? prefs.depotDir : '';
+        const savedRoot = scmRoot || (typeof prefs.scmRoot === 'string' ? prefs.scmRoot : '');
         if (savedStream && !stream) setStream(savedStream);
+        if (savedRoot && !scmRoot) setScmRoot(savedRoot);
         if (savedLocal) setLocalDir(savedLocal);
         if (savedDepot) setDepotDir(savedDepot);
-        loadPane(ip, savedStream, scmRoot, savedLocal, savedDepot, { remember: true, clearLocal: true, clearDepot: true });
+        loadPane(ip, savedStream, savedRoot, savedLocal, savedDepot, { remember: true, clearLocal: true, clearDepot: true });
       });
     return () => { cancelled = true; };
   }, [ip]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -630,10 +632,18 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     if (!paths.length) { setErr('no local changes to add'); return; }
     post('/api/scm/add', { paths, targetPaths: depotDir ? [depotDir] : [] }, `opened ${paths.length} file(s)`);
   };
+  // Pair selections by the VISIBLE list order of both panes (top-to-bottom):
+  // the backend zips sources/targets positionally, and Set click-order must
+  // never decide which local file lands on which depot file.
+  const orderedSelection = (rows: TreeRow[], sel: Set<string>): string[] => {
+    const visible = rows.filter(row => row.kind === 'file' && sel.has(row.path)).map(row => row.path);
+    const rest = [...sel].filter(path => !visible.includes(path));
+    return [...visible, ...rest];
+  };
   const onCheckout = () => {
-    const selectedDepotFiles = depot.filter(row => row.kind !== 'folder' && selDepot.has(row.path)).map(row => row.path);
+    const selectedDepotFiles = orderedSelection(depotRows, selDepot);
     if (selLocal.size) {
-      const localPaths = [...selLocal];
+      const localPaths = orderedSelection(localRows, selLocal);
       if (selectedDepotFiles.length > 0 && selectedDepotFiles.length !== localPaths.length) {
         setErr('match local files to Perforce targets one-to-one');
         return;
@@ -879,7 +889,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
                   ))}
                 </select>
                 <span style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}>
-                  <button style={sx.btn} onClick={onShowDiff} disabled={busy || !selPend.size} title="Show diff for the selected pending file">Diff</button>
+                  <button style={sx.btn} onClick={onShowDiff} disabled={busy || selPend.size !== 1} title="Show diff for the selected pending file">Diff</button>
                   {selectedChange !== 'default' ? (
                     <button style={sx.btn} onClick={onDeleteChange} disabled={busy} title="Revert (-k) and delete this pending changelist">Delete CL</button>
                   ) : null}

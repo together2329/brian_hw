@@ -546,6 +546,36 @@ def test_scm_uiprefs_roundtrip_persists_pane_locations(tmp_path: Path, monkeypat
     assert client.get("/api/scm/uiprefs?ip=alpha&session_id=other/sess/alpha/wf").json()["prefs"] == {}
 
 
+def test_scm_uiprefs_sanitizes_keys_and_bounds_growth(tmp_path: Path, monkeypatch):
+    import json as _json
+
+    prefs_path = tmp_path / "home" / ".common_ai_agent" / "perforce_ui_state.json"
+    monkeypatch.setenv("ATLAS_SCM_UI_PREFS_PATH", str(prefs_path))
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+
+    # invalid ip names collapse into the shared default bucket (no key injection)
+    weird = client.post(
+        "/api/scm/uiprefs",
+        json={"ip": "../../etc::evil\n", "localDir": "rtl"},
+    ).json()
+    assert weird["ok"] is True
+    data = _json.loads(prefs_path.read_text(encoding="utf-8"))
+    assert list(data.keys()) == ["default::default"]
+
+    # oversized values are truncated
+    client.post("/api/scm/uiprefs", json={"ip": "alpha", "localDir": "x" * 5000})
+    got = client.get("/api/scm/uiprefs?ip=alpha").json()["prefs"]
+    assert len(got["localDir"]) == 512
+
+    # key growth is bounded at 200 (oldest evicted)
+    for idx in range(205):
+        client.post("/api/scm/uiprefs", json={"ip": f"bulk_{idx}", "localDir": "d"})
+    data = _json.loads(prefs_path.read_text(encoding="utf-8"))
+    assert len(data) == 200
+    assert "default::bulk_204" in data
+    assert "default::default" not in data  # oldest got evicted
+
+
 def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)

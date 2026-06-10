@@ -585,7 +585,10 @@ def register_git_routes(
         session = normalize_session_name(str(session_id or ""))
         if session:
             owner = session.split("/", 1)[0]
-        return f"{owner or 'default'}::{str(ip or '').strip() or 'default'}"
+        clean_ip = str(ip or "").strip()
+        if not valid_ip_name(clean_ip):  # invalid/empty ip shares the default bucket
+            clean_ip = ""
+        return f"{owner or 'default'}::{clean_ip or 'default'}"
 
     def _scm_ui_prefs_load() -> dict[str, Any]:
         path = _scm_ui_prefs_path()
@@ -610,18 +613,31 @@ def register_git_routes(
         ip = str(body.get("ip") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or "")
         prefs = {
-            key: str(body.get(key) or "")
+            key: str(body.get(key) or "")[:512]
             for key in ("localDir", "depotDir", "stream", "scmRoot")
             if str(body.get(key) or "")
         }
-        data = _scm_ui_prefs_load()
-        data[_scm_ui_prefs_key(ip, session_id)] = prefs
         path = _scm_ui_prefs_path()
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            tmp = path.with_suffix(".tmp")
-            tmp.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
-            tmp.replace(path)
+            # exclusive lock over read-modify-write: concurrent users must not
+            # drop each other's just-saved locations (lost update)
+            try:
+                import fcntl
+            except ImportError:  # Windows: atomic replace only, no flock
+                fcntl = None
+            with open(path.with_suffix(".lock"), "w", encoding="utf-8") as lock_file:
+                if fcntl is not None:
+                    fcntl.flock(lock_file, fcntl.LOCK_EX)
+                data = _scm_ui_prefs_load()
+                key = _scm_ui_prefs_key(ip, session_id)
+                data.pop(key, None)  # re-insert at the end = most recent
+                data[key] = prefs
+                while len(data) > 200:  # bound junk-key growth (drop oldest)
+                    data.pop(next(iter(data)))
+                tmp = path.with_suffix(".tmp")
+                tmp.write_text(json.dumps(data, indent=2), encoding="utf-8")
+                tmp.replace(path)
         except OSError as exc:
             return JSONResponse({"ok": False, "error": str(exc)}, status_code=200)
         return JSONResponse({"ok": True, "prefs": prefs})
