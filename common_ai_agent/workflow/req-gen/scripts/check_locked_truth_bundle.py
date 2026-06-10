@@ -255,6 +255,8 @@ def _check_graph(
     req_ids = _collect_ids(requirements, "requirement_id", failures, "requirements")
     obl_ids = _collect_ids(obligations, "obligation_id", failures, "obligations")
     con_ids = _collect_ids(contracts, "contract_ref_id", failures, "contract_refs")
+    structural_failed = False
+    behavioral_failed = False
     try:
         normalized_structural = normalize_structural_contracts(
             str(req_doc.get("ip") or structural_doc.get("ip") or ""),
@@ -265,6 +267,7 @@ def _check_graph(
     except StructuralContractError as exc:
         failures.append(str(exc))
         structural_ids = set()
+        structural_failed = True
     try:
         normalized_behavioral = normalize_behavioral_contracts(
             str(req_doc.get("ip") or behavioral_doc.get("ip") or ""),
@@ -275,6 +278,44 @@ def _check_graph(
     except BehavioralContractError as exc:
         failures.append(str(exc))
         behavioral_ids = set()
+        behavioral_failed = True
+
+    # Shape tolerance (validators are liberal in shape, strict in semantics):
+    # a cross-link carries identical information in either direction, so a
+    # link declared on ONE side is derived for the other instead of failing
+    # the bundle, and synonym key names are accepted and normalized here.
+    def _refs_of(entry: JsonDoc, *keys: str) -> list[str]:
+        for key in keys:
+            values = _string_list(entry.get(key))
+            if values:
+                return values
+        return []
+
+    req_to_obls: dict[str, set[str]] = {}
+    obl_to_reqs: dict[str, set[str]] = {}
+    obl_to_cons: dict[str, set[str]] = {}
+    con_to_obls: dict[str, set[str]] = {}
+    for entry in requirements if isinstance(requirements, list) else []:
+        if isinstance(entry, dict):
+            rid = str(entry.get("requirement_id") or "")
+            for ref in _refs_of(entry, "obligation_refs", "obligations", "obligation_ids"):
+                req_to_obls.setdefault(rid, set()).add(ref)
+                obl_to_reqs.setdefault(ref, set()).add(rid)
+    for entry in obligations if isinstance(obligations, list) else []:
+        if isinstance(entry, dict):
+            oid = str(entry.get("obligation_id") or "")
+            for ref in _refs_of(entry, "requirement_refs", "requirements", "requirement_ids"):
+                obl_to_reqs.setdefault(oid, set()).add(ref)
+                req_to_obls.setdefault(ref, set()).add(oid)
+            for ref in _refs_of(entry, "contract_refs", "contracts", "contract_ref_ids"):
+                obl_to_cons.setdefault(oid, set()).add(ref)
+                con_to_obls.setdefault(ref, set()).add(oid)
+    for entry in contracts if isinstance(contracts, list) else []:
+        if isinstance(entry, dict):
+            cid = str(entry.get("contract_ref_id") or "")
+            for ref in _refs_of(entry, "obligation_refs", "obligations", "obligation_ids"):
+                con_to_obls.setdefault(cid, set()).add(ref)
+                obl_to_cons.setdefault(ref, set()).add(cid)
     all_contract_ids = con_ids | structural_ids | behavioral_ids
     evidence_entries = evidence if isinstance(evidence, list) else []
     evidence_contract_ids = {
@@ -289,7 +330,12 @@ def _check_graph(
                 failures.append(f"{req_id} requires title")
             if not _has_text(entry, ("statement", "requirement")):
                 failures.append(f"{req_id} requires statement")
-            _check_refs(req_id, _string_list(entry.get("obligation_refs")), obl_ids, "obligation", failures)
+            _check_refs(
+                req_id,
+                _refs_of(entry, "obligation_refs", "obligations", "obligation_ids")
+                or sorted(req_to_obls.get(req_id, set())),
+                obl_ids, "obligation", failures,
+            )
             if (
                 require_locked_status
                 and entry.get("required") is not False
@@ -301,21 +347,37 @@ def _check_graph(
             obl_id = str(entry.get("obligation_id") or "<missing obligation_id>")
             if not _has_text(entry, ("statement", "obligation")):
                 failures.append(f"{obl_id} requires statement")
-            _check_refs(obl_id, _string_list(entry.get("requirement_refs")), req_ids, "requirement", failures)
-            _check_refs(obl_id, _string_list(entry.get("contract_refs")), con_ids, "contract_ref", failures)
-            structural_refs = _string_list(entry.get("structural_contract_refs"))
-            behavioral_refs = _string_list(entry.get("behavioral_contract_refs"))
+            _check_refs(
+                obl_id,
+                _refs_of(entry, "requirement_refs", "requirements", "requirement_ids")
+                or sorted(obl_to_reqs.get(obl_id, set())),
+                req_ids, "requirement", failures,
+            )
+            _check_refs(
+                obl_id,
+                _refs_of(entry, "contract_refs", "contracts", "contract_ref_ids")
+                or sorted(obl_to_cons.get(obl_id, set())),
+                con_ids, "contract_ref", failures,
+            )
+            structural_refs = _refs_of(entry, "structural_contract_refs", "structural_contracts")
+            behavioral_refs = _refs_of(entry, "behavioral_contract_refs", "behavioral_contracts")
             if not structural_refs and not behavioral_refs:
                 failures.append(
                     f"{obl_id} requires at least one structural_contract_ref or behavioral_contract_ref; "
                     "contract_refs alone are anchor refs, not implementation authority"
                 )
-            for ref in structural_refs:
-                if ref not in structural_ids:
-                    failures.append(f"{obl_id} references unknown structural_contract {ref}")
-            for ref in behavioral_refs:
-                if ref not in behavioral_ids:
-                    failures.append(f"{obl_id} references unknown behavioral_contract {ref}")
+            # When the contract doc itself failed normalization the ID set is
+            # empty and every ref would cascade into a misleading
+            # "unknown ..." failure; the normalization failure already says
+            # what to fix, so suppress the dependent errors.
+            if not structural_failed:
+                for ref in structural_refs:
+                    if ref not in structural_ids:
+                        failures.append(f"{obl_id} references unknown structural_contract {ref}")
+            if not behavioral_failed:
+                for ref in behavioral_refs:
+                    if ref not in behavioral_ids:
+                        failures.append(f"{obl_id} references unknown behavioral_contract {ref}")
     for entry in contracts if isinstance(contracts, list) else []:
         if isinstance(entry, dict):
             con_id = str(entry.get("contract_ref_id") or "<missing contract_ref_id>")
@@ -324,7 +386,12 @@ def _check_graph(
                     f"{con_id} requires machine-checkable contract detail "
                     "(stage_contracts/checks/observables/validator/pass_condition, not title-only anchor text)"
                 )
-            _check_refs(con_id, _string_list(entry.get("obligation_refs")), obl_ids, "obligation", failures)
+            _check_refs(
+                con_id,
+                _refs_of(entry, "obligation_refs", "obligations", "obligation_ids")
+                or sorted(con_to_obls.get(con_id, set())),
+                obl_ids, "obligation", failures,
+            )
     for entry in behavioral_doc.get("contracts") or []:
         if not isinstance(entry, dict):
             continue

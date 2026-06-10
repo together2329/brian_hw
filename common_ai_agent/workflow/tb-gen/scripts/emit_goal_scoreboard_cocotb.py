@@ -2345,6 +2345,25 @@ async def fl_rtl_equivalence_goals(dut):
                         stimulus[_f] = int(_ev)
                     except (TypeError, ValueError):
                         stimulus[_f] = _ev
+                # Mirror timeline csr_writes into the FL oracle: a write can
+                # TRIGGER transaction semantics (e.g. a KICK strobe reloading
+                # a counter from a CSR) that the FL must see to reach the same
+                # post-state as the DUT. LLM-authored FLs implement csr_write
+                # side effects; the deterministic baseline at least mirrors
+                # register-bound values.
+                try:
+                    _fl_model = getattr(scoreboard.adapter, "model", None)
+                    _fl_csr = getattr(_fl_model, "csr_write", None)
+                    if callable(_fl_csr):
+                        for _step in _spec_steps:
+                            _cw = _step.get("csr_write") if isinstance(_step, dict) else None
+                            if isinstance(_cw, dict):
+                                _fl_csr(
+                                    int(_cw.get("offset", _cw.get("addr", 0)) or 0),
+                                    int(_cw.get("data", _cw.get("value", 0)) or 0),
+                                )
+                except Exception:
+                    pass
                 # When machine_spec drives csr_writes, mirror them into the CL.
                 if _cl is not None and isinstance(machine_spec, dict):
                     for entry in (machine_spec.get("csr_writes") or []):

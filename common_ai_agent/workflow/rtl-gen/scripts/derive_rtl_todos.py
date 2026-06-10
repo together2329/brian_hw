@@ -6437,10 +6437,23 @@ def _connection_contract_from_entry(
             "to_module",
             "dst_module",
             "destination_module",
+            # source-perspective synonyms: {from_module, from_port, to_signal}
+            # is the same module/port/signal record seen from the driver side
+            # (LLM authors produce this shape; shape tolerance belongs in the
+            # validator, semantic strictness stays in the term matching).
+            "from_module",
+            "src_module",
+            "source_module",
         )
         module = explicit_module or default_module
-        port = _ci_get(raw, "port", "child_port", "target_port", "sink_port", "to_port", "dst_port")
-        signal = _ci_get(raw, "signal", "expr", "expression", "source_signal", "from_signal", "top_signal")
+        port = _ci_get(
+            raw, "port", "child_port", "target_port", "sink_port", "to_port", "dst_port",
+            "from_port", "src_port", "source_port",
+        )
+        signal = _ci_get(
+            raw, "signal", "expr", "expression", "source_signal", "from_signal", "top_signal",
+            "to_signal", "dst_signal", "sink_signal", "destination_signal",
+        )
         instance = _ci_get(raw, "instance", "inst")
         endpoint = _ci_get(raw, "to", "sink", "target", "dst", "destination")
         if _present(endpoint):

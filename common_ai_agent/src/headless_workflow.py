@@ -2989,8 +2989,111 @@ class HeadlessWorkflowRunner:
             pass
         return ip
 
-    def _stage_fl_model(self, ip: str) -> StageResult:
+    def _stage_fl_model(self, ip: str, context: dict[str, Any] | None = None) -> StageResult:
+        if (os.getenv("ATLAS_FL_AUTHOR", "") or "").strip().lower() == "llm":
+            return self._run_fl_llm_authoring(ip, context or {})
         return self._append_engine_result(self.stage_engine.run_stage("ssot-fl-model", ip), "fl-model-gen")
+
+    def _fl_author_prompt(self, ip: str, context: dict[str, Any], baseline_source: str, failures: str = "") -> tuple[str, str]:
+        system = (
+            "HEADLESS PROVIDER CONTRACT.\n"
+            "You are a functional-model (FL oracle) author called by a headless artifact runner. "
+            "Return only the machine-readable JSON object requested; no markdown fences, no prose.\n"
+        )
+        ssot_text = ""
+        ssot_path = self._ip_dir(ip) / "yaml" / f"{ip}.ssot.yaml"
+        if ssot_path.is_file():
+            ssot_text = ssot_path.read_text(encoding="utf-8", errors="replace")
+        repair_block = (
+            f"\nPrevious FL FAILED check_fl_contract with these findings — fix every one without "
+            f"weakening the checks:\n{failures}\n"
+            if failures
+            else ""
+        )
+        prompt = (
+            f"Author the Python functional model (FL oracle) for {ip} at {ip}/model/functional_model.py.\n\n"
+            "Return exactly one JSON object:\n"
+            f'{{"files":[{{"path":"{ip}/model/functional_model.py","kind":"fl_model","content":"<python source>"}}]}}\n\n'
+            "Authority and validation:\n"
+            "- The SSOT function_model/cycle_model below is the locked semantic authority; the FL is its "
+            "executable projection. A deterministic baseline (generated from the same SSOT) is provided as "
+            "reference scaffolding — start from it, keep its module API EXACTLY (SSOT_MODEL, "
+            "_default_rule_helpers, FunctionalModel with apply/step/reset/csr_write and dict attributes "
+            "state/registers/params, _transactions, run_self_check), and extend the semantics the baseline "
+            "cannot express.\n"
+            "- Your FL is validated by check_fl_contract.py: interface gate, SSOT semantic-conformance gate "
+            "(the validator evaluates every transaction's output_rules/state_updates itself and compares), "
+            "and a dual-oracle gate against the baseline. Divergence from the baseline is acceptable ONLY "
+            "where the SSOT semantics demand it (the validator reports it; the repair feedback decides).\n\n"
+            "REQUIRED semantic extensions beyond the baseline:\n"
+            "- csr_write(offset, data) must apply WRITE-TRIGGERED TRANSACTION SEMANTICS, not just mirror "
+            "register-bound values: when a write to that offset is the trigger of an SSOT transaction "
+            "(e.g. a KICK/strobe register whose write reloads another counter from a CSR), apply that "
+            "transaction's state_updates exactly as the RTL write would. Resolve the transaction from the "
+            "SSOT preconditions (first declared match against the write context), never hardcode IP names.\n"
+            "- Keep transaction-complete semantics: 1-cycle strobe registers end a transaction consumed (0).\n"
+            "- state_updates evaluate sequentially (a later update sees an earlier update's new value); "
+            "output_rules evaluate against pre-transaction state.\n"
+            f"{repair_block}\n"
+            f"Locked SSOT YAML (authority):\n{ssot_text[:60000]}\n\n"
+            f"Deterministic baseline FL (reference scaffolding, keep its API):\n{baseline_source[:80000]}\n"
+        )
+        return system, prompt
+
+    def _run_fl_llm_authoring(self, ip: str, context: dict[str, Any]) -> StageResult:
+        """LLM-authored FL path (doc/wiki/llm-authored-oracle-architecture.md).
+
+        The deterministic emitter still runs first: its artifacts keep the
+        downstream stage battery satisfied and its model becomes the BASELINE
+        oracle for the dual-oracle gate. The LLM then authors
+        model/functional_model.py; check_fl_contract.py is the trust anchor
+        (interface + SSOT conformance + dual oracle), with bounded repair
+        rounds fed the gate output verbatim.
+        """
+        engine_result = self._append_engine_result(self.stage_engine.run_stage("ssot-fl-model", ip), "fl-model-gen")
+        if engine_result.status != "pass":
+            return engine_result
+        model_dir = self._ip_dir(ip) / "model"
+        model_path = model_dir / "functional_model.py"
+        baseline_path = model_dir / "functional_model_baseline.py"
+        if not model_path.is_file():
+            return self._append("fl-model-gen", "fail", "deterministic FL missing after engine stage", returncode=1)
+        shutil.copyfile(model_path, baseline_path)
+        baseline_source = model_path.read_text(encoding="utf-8", errors="replace")
+        gate_script = WORKFLOW_ROOT / "fl-model-gen" / "scripts" / "check_fl_contract.py"
+        attempts = max(0, int(os.getenv("ATLAS_HEADLESS_FL_REPAIR_ATTEMPTS", "2")))
+        failures = ""
+        for attempt in range(attempts + 1):
+            system, prompt = self._fl_author_prompt(ip, context, baseline_source, failures)
+            response = self._call_llm(
+                "fl-model-gen", ip, context,
+                system_prompt=system, prompt=prompt,
+                log_stage=("fl-author" if attempt == 0 else f"fl-author-repair-{attempt}"),
+            )
+            if response.status in {"blocked", "human_gate"}:
+                return self._append_llm_gate(ip, "fl-model-gen", response, topic=f"fl_author_{attempt}")
+            self._apply_artifacts(ip, response.parsed_artifacts)
+            gate = subprocess.run(
+                [sys.executable, str(gate_script), ip, "--root", str(self.root)],
+                cwd=str(self.root), text=True, encoding="utf-8", errors="replace",
+                capture_output=True, timeout=180,
+            )
+            if gate.returncode == 0:
+                return self._append(
+                    "fl-model-gen", "pass",
+                    f"LLM-authored FL passed fl contract gate\n{(gate.stdout or '').strip()}",
+                    artifacts=[
+                        f"{ip}/model/functional_model.py",
+                        f"{ip}/model/functional_model_baseline.py",
+                        f"{ip}/model/fl_contract_check.json",
+                    ],
+                )
+            failures = (gate.stdout or gate.stderr or "").strip()
+        return self._append(
+            "fl-model-gen", "fail",
+            f"LLM FL failed contract gate after {attempts + 1} attempts\n{failures}",
+            returncode=1, blocker=f"{ip}/model/fl_contract_check.json",
+        )
 
     def _stage_cl_model(self, ip: str) -> StageResult:
         cycle = self._append_engine_result(self.stage_engine.run_stage("ssot-cycle-model", ip), "cl-model-gen")
@@ -4171,7 +4274,7 @@ class HeadlessWorkflowRunner:
         elif canonical == "ssot-gen":
             self._run_ssot_generation(ip, context)
         elif canonical == "fl-model-gen":
-            self._stage_fl_model(ip)
+            self._stage_fl_model(ip, context)
         elif canonical == "cl-model-gen":
             self._stage_cl_model(ip)
         elif canonical == "dual-fcov":
