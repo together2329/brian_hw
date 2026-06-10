@@ -81,9 +81,10 @@ describe('TodoEditorPane readable modes', () => {
     fireEvent.click(screen.getByRole('button', { name: /^graph$/i }));
 
     expect(screen.getByText(/TODO FLOW/i)).toBeVisible();
-    expect(screen.getByText('next')).toBeVisible();
-    expect(screen.getByText('reject')).toBeVisible();
-    expect(screen.getByText('CMD')).toBeVisible();
+    // The flow now renders via React Flow; the next/reject/dep/condition edges
+    // and CMD markers are asserted on the data in workspace-todo-graph.test.tsx
+    // (buildTodoFlow). Here we just prove graph mode mounts the canvas.
+    expect(document.querySelector('.react-flow')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: /^edit$/i }));
 

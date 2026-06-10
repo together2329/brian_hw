@@ -1,11 +1,18 @@
-// VCM tab — interactive graph of the verification-contract spine:
+// VCM tab — interactive React Flow graph of the verification-contract spine:
 // Requirement → Obligation → Contract → Evidence → Validation.
 // Data comes from <ip>/req/vcm_graph.json (emit_vcm_graph.py); this component
-// renders columns per kind, free-text search, status/kind filter chips, hover
-// neighbourhood highlight and a click detail panel. No graph library — same
-// in-house SVG approach as workspace-todo-graph.tsx.
+// builds React Flow nodes/edges (dagre LR layout), with free-text search,
+// status/kind filter chips, neighbour focus on select, and a detail panel.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import {
+  GraphCanvas,
+  layoutDagre,
+  flowArrow,
+  type FlowNode,
+  type FlowEdge,
+  type FlowCardData,
+} from './workspace-graph-flow';
 
 type VcmNode = {
   readonly id: string;
@@ -21,7 +28,7 @@ type VcmEdge = {
   readonly kind: string;
 };
 
-type VcmGraphDoc = {
+export type VcmGraphDoc = {
   readonly ip: string;
   readonly locked?: boolean;
   readonly generated_at?: string;
@@ -53,6 +60,38 @@ const statusColor = (status: string): string => STATUS_COLOR[status] ?? 'var(--f
 
 const STATUS_FILTERS = ['locked', 'closed', 'open', 'planned', 'present', 'pass', 'fail', 'missing'] as const;
 
+const vcmSubtitle = (n: VcmNode): string => {
+  const label = n.label && n.label !== n.id ? n.label : '';
+  return label ? `${n.status} · ${label}` : n.status;
+};
+
+// Pure builder (exported for tests): vcm_graph.json doc → laid-out React Flow
+// base nodes (dagre LR, no dim/selected applied yet) + edges.
+export function buildVcmElements(doc: VcmGraphDoc): { nodes: FlowNode[]; edges: FlowEdge[] } {
+  const baseNodes: FlowNode[] = doc.nodes.map((n) => ({
+    id: n.id,
+    type: 'card',
+    position: { x: 0, y: 0 },
+    data: {
+      title: n.id,
+      subtitle: vcmSubtitle(n),
+      color: statusColor(n.status),
+      dashed: n.kind === 'ghost',
+    } satisfies FlowCardData as unknown as Record<string, unknown>,
+  }));
+  const edges: FlowEdge[] = doc.edges.map((e, i) => ({
+    id: `e${i}-${e.source}-${e.target}`,
+    source: e.source,
+    target: e.target,
+    label: e.kind,
+    markerEnd: flowArrow,
+    style: { stroke: 'var(--fg-mute, #888)' },
+    labelStyle: { fill: 'var(--fg-mute, #888)', fontSize: 8, fontFamily: 'var(--mono, monospace)' },
+    labelBgStyle: { fill: 'var(--bg-2, #181818)' },
+  }));
+  return { nodes: layoutDagre(baseNodes, edges, { direction: 'LR' }), edges };
+}
+
 export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactNode => {
   const [doc, setDoc] = useState<VcmGraphDoc | null>(null);
   const [error, setError] = useState('');
@@ -60,7 +99,6 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [kindFilter, setKindFilter] = useState<string>('');
   const [openId, setOpenId] = useState<string | null>(null);
-  const [hoverId, setHoverId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!activeIp) { setDoc(null); setError('no active IP'); return; }
@@ -97,6 +135,8 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
     return m;
   }, [edges]);
 
+  const built = useMemo(() => (doc ? buildVcmElements(doc) : { nodes: [], edges: [] }), [doc]);
+
   const q = query.trim().toLowerCase();
   const matches = useCallback((n: VcmNode): boolean => {
     if (statusFilter && n.status !== statusFilter) return false;
@@ -106,33 +146,30 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
     return hay.includes(q);
   }, [q, statusFilter, kindFilter]);
 
-  // ── layout: columns by kind, vertical stacking ──
-  const NODE_W = 168;
-  const NODE_H = 34;
-  const GAP_Y = 10;
-  const GAP_X = 70;
-  const PAD = 16;
-  const pos = useMemo(() => {
-    const p: Record<string, { x: number; y: number }> = {};
-    COLUMNS.forEach((col, ci) => {
-      const colNodes = nodes.filter((n: VcmNode) => col.kinds.includes(n.kind));
-      colNodes.forEach((n: VcmNode, ri: number) => {
-        p[n.id] = { x: PAD + ci * (NODE_W + GAP_X), y: PAD + 22 + ri * (NODE_H + GAP_Y) };
-      });
-    });
-    return p;
-  }, [nodes]);
-  const totalW = PAD * 2 + COLUMNS.length * NODE_W + (COLUMNS.length - 1) * GAP_X;
-  const maxRows = Math.max(1, ...COLUMNS.map(c => nodes.filter((n: VcmNode) => c.kinds.includes(n.kind)).length));
-  const totalH = PAD * 2 + 22 + maxRows * (NODE_H + GAP_Y);
-
   const focusSet = useMemo(() => {
-    const id = hoverId ?? openId;
-    if (!id) return null;
-    const s = new Set<string>([id]);
-    for (const nb of neighbours.get(id) ?? []) s.add(nb);
+    if (!openId) return null;
+    const s = new Set<string>([openId]);
+    for (const nb of neighbours.get(openId) ?? []) s.add(nb);
     return s;
-  }, [hoverId, openId, neighbours]);
+  }, [openId, neighbours]);
+
+  // Apply per-filter dim + selection onto the laid-out base nodes.
+  const displayNodes = useMemo<FlowNode[]>(() => built.nodes.map((rn) => {
+    const src = nodeById.get(rn.id);
+    const hit = src ? matches(src) : true;
+    const inFocus = !focusSet || focusSet.has(rn.id);
+    const data = rn.data as unknown as FlowCardData;
+    return {
+      ...rn,
+      selected: openId === rn.id,
+      data: { ...data, dim: !hit || !inFocus } as unknown as Record<string, unknown>,
+    };
+  }), [built.nodes, nodeById, matches, focusSet, openId]);
+
+  const displayEdges = useMemo<FlowEdge[]>(() => built.edges.map((e) => {
+    const inFocus = !focusSet || (focusSet.has(String(e.source)) && focusSet.has(String(e.target)));
+    return { ...e, style: { ...(e.style || {}), opacity: inFocus ? 1 : 0.18 }, animated: Boolean(focusSet && inFocus) };
+  }), [built.edges, focusSet]);
 
   const openNode = openId ? nodeById.get(openId) ?? null : null;
 
@@ -188,70 +225,8 @@ export const VcmGraphTab = ({ activeIp }: { readonly activeIp: string }): ReactN
         <button onClick={() => void load()} style={{ fontSize: 10 }}>↻</button>
       </div>
       <div style={{ flex: 1, minHeight: 0, display: 'flex' }}>
-        <div style={{ flex: 1, overflow: 'auto', background: 'var(--bg-2)' }}>
-          <svg width={totalW} height={totalH} style={{ display: 'block' }}>
-            <defs>
-              <marker id="vcm-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
-                <path d="M0,0 L10,5 L0,10 z" fill="var(--fg-mute)" />
-              </marker>
-            </defs>
-            {COLUMNS.map((col, ci) => (
-              <text key={col.key} x={PAD + ci * (NODE_W + GAP_X)} y={PAD + 6} fill="var(--fg-mute)"
-                    fontSize={10} fontFamily="var(--mono)" letterSpacing="0.08em">{col.title}</text>
-            ))}
-            {edges.map((e, i) => {
-              const a = pos[e.source];
-              const b = pos[e.target];
-              if (!a || !b) return null;
-              const inFocus = !focusSet || (focusSet.has(e.source) && focusSet.has(e.target));
-              const x1 = a.x + NODE_W;
-              const y1 = a.y + NODE_H / 2;
-              const x2 = b.x;
-              const y2 = b.y + NODE_H / 2;
-              const mx = (x1 + x2) / 2;
-              return (
-                <path
-                  key={i}
-                  d={`M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`}
-                  fill="none"
-                  stroke={inFocus ? 'var(--fg-mute)' : 'color-mix(in oklch, var(--fg-mute) 22%, transparent)'}
-                  strokeWidth={focusSet && inFocus ? 1.6 : 1}
-                  markerEnd="url(#vcm-arr)"
-                />
-              );
-            })}
-            {nodes.map(n => {
-              const p = pos[n.id];
-              if (!p) return null;
-              const hit = matches(n);
-              const inFocus = !focusSet || focusSet.has(n.id);
-              const dim = !hit || !inFocus;
-              const color = statusColor(n.status);
-              return (
-                <g
-                  key={n.id}
-                  transform={`translate(${p.x}, ${p.y})`}
-                  style={{ cursor: 'pointer', opacity: dim ? 0.28 : 1 }}
-                  onClick={() => setOpenId(openId === n.id ? null : n.id)}
-                  onMouseEnter={() => setHoverId(n.id)}
-                  onMouseLeave={() => setHoverId(null)}
-                >
-                  <rect
-                    width={NODE_W} height={NODE_H} rx={3}
-                    fill={`color-mix(in oklch, ${color} ${openId === n.id ? 22 : 12}%, transparent)`}
-                    stroke={openId === n.id ? color : (n.kind === 'ghost' ? 'var(--err, #e05a5a)' : 'var(--line)')}
-                    strokeDasharray={n.kind === 'ghost' ? '4 3' : undefined}
-                  />
-                  <text x={8} y={14} fontSize={10} fontFamily="var(--mono)" fill="var(--fg)">
-                    {n.id.length > 24 ? n.id.slice(0, 23) + '…' : n.id}
-                  </text>
-                  <text x={8} y={27} fontSize={9} fontFamily="var(--mono)" fill={color}>
-                    {n.status}{n.label && n.label !== n.id ? ' · ' + (n.label.length > 18 ? n.label.slice(0, 17) + '…' : n.label) : ''}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
+        <div style={{ flex: 1, minHeight: 0, background: 'var(--bg-2)' }}>
+          <GraphCanvas nodes={displayNodes} edges={displayEdges} onSelect={setOpenId} minimap />
         </div>
         {openNode && (
           <div style={{ width: 300, borderLeft: '1px solid var(--line)', overflow: 'auto', padding: 12, fontSize: 11, fontFamily: 'var(--mono)' }}>
