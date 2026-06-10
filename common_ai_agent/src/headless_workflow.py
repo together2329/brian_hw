@@ -156,6 +156,10 @@ REFERENCE_PROFILE_PROMPT_KEYS = (
     "guidance",
 )
 HEADLESS_STAGE_ALIASES = {
+    "req-contracts": "req-contracts",
+    "req-lock": "req-contracts",
+    "draft-req": "req-contracts",
+    "finalize-req": "req-contracts",
     "ssot": "ssot-gen",
     "ssot-gen": "ssot-gen",
     "fl-model": "fl-model-gen",
@@ -1642,6 +1646,8 @@ class HeadlessWorkflowRunner:
         llm_provider: LLMProvider | None = None,
         require_glm51: bool = False,
         run_mode: str = "",
+        req_approver: str = "",
+        stage_retries: int | None = None,
     ) -> None:
         self.root = Path(root).resolve()
         self.model = model or os.getenv("ATLAS_HEADLESS_LLM_MODEL") or "glm-5.1"
@@ -1652,6 +1658,13 @@ class HeadlessWorkflowRunner:
         self.stages: list[StageResult] = []
         self.ssot_repair_attempts = max(0, int(os.getenv("ATLAS_HEADLESS_SSOT_REPAIR_ATTEMPTS", "2")))
         self.rtl_repair_attempts = max(0, int(os.getenv("ATLAS_HEADLESS_RTL_REPAIR_ATTEMPTS", "2")))
+        self.req_approver = (req_approver or os.getenv("ATLAS_REQ_APPROVED_BY", "")).strip()
+        # Outer retry loop: a failed stage gets re-invoked with fresh internal
+        # repair rounds (phase-2: each re-invocation converged work the bounded
+        # in-stage rounds had left open). human_gate/blocked never retry.
+        if stage_retries is None:
+            stage_retries = int(os.getenv("ATLAS_HEADLESS_STAGE_RETRIES", "0"))
+        self.stage_retries = max(0, stage_retries)
 
     def _ip_dir(self, ip: str) -> Path:
         return self.root / ip
@@ -1832,6 +1845,268 @@ class HeadlessWorkflowRunner:
             return self._append("req", "human_gate", "requirements are incomplete", artifacts=[str(path.relative_to(self.root))], blocker=str(path.relative_to(self.root)))
         return self._append("req", "pass", "requirements copied", artifacts=[f"{ip}/req/{ip}_requirements.md", f"{ip}/req/requirements.md"])
 
+    REQ_CANDIDATE_FILES = (
+        "requirements_index.json",
+        "obligations.json",
+        "contract_refs.json",
+        "structural_contracts.json",
+        "behavioral_contracts.json",
+        "evidence_plan.json",
+    )
+
+    def _run_contract_bundle_gate(self, ip: str, *, review_candidate: bool = False) -> subprocess.CompletedProcess[str]:
+        script = WORKFLOW_ROOT / "req-gen" / "scripts" / "check_contract_bundle.py"
+        cmd = [sys.executable, str(script), ip, "--root", str(self.root)]
+        if review_candidate:
+            cmd.append("--review-candidate")
+        return subprocess.run(
+            cmd, cwd=str(self.root), text=True, encoding="utf-8", errors="replace",
+            capture_output=True, timeout=60,
+        )
+
+    def _req_contracts_prompt(self, ip: str, context: dict[str, Any], failures: str = "") -> tuple[str, str]:
+        system = (
+            "HEADLESS PROVIDER CONTRACT.\n"
+            "You are a requirements-contract author called by a headless artifact runner. "
+            "Return only the machine-readable JSON object requested; no markdown fences, "
+            "no prose, no tool actions.\n"
+        )
+        repair_block = (
+            f"\nPrevious candidate FAILED check_contract_bundle with these findings — fix every one:\n{failures}\n"
+            if failures
+            else ""
+        )
+        prompt = (
+            f"Author the VCM requirement-contract candidate bundle for {ip} from the requirement below. "
+            "The bundle is the locked-truth authority every downstream stage gates against; derive it from "
+            "the requirement semantics, never boilerplate.\n\n"
+            "Return exactly one JSON object:\n"
+            f'{{"files":[{{"path":"{ip}/req/<name>","kind":"req_contract","content":"<JSON document as string>"}}, ...]}}\n'
+            f"with exactly these six files under {ip}/req/: {', '.join(self.REQ_CANDIDATE_FILES)}.\n\n"
+            "Required shapes — the validator reads these EXACT key names; cross-links are checked both ways:\n"
+            "- requirements_index.json: {\"ip\", \"requirements\": [{\"requirement_id\", \"title\", "
+            "\"statement\", \"required\": true, \"status\": \"approved\", "
+            "\"obligation_refs\": [\"OBL_...\"]}]}\n"
+            "- obligations.json: {\"obligations\": [{\"obligation_id\", \"statement\", "
+            "\"requirement_refs\": [\"REQ_...\"], \"contract_refs\": [\"CR_...\"] (anchor refs into "
+            "contract_refs.json), and at least one of \"structural_contract_refs\": [\"SC_...\"] / "
+            "\"behavioral_contract_refs\": [\"BEH_...\"] (implementation authority), plus \"owned_by\", "
+            "\"required_stages\", \"closure_stage\", \"failure_owner\", "
+            "\"granularity\" (structural|count|content|temporal), \"ssot_anchor\"}]}\n"
+            "- contract_refs.json: {\"contract_refs\": [{\"contract_ref_id\": \"CR_...\", "
+            "\"obligation_refs\": [\"OBL_...\"], \"kind\", and machine-checkable detail: stage_contracts/"
+            "checks/observables/validator/pass_condition (never title-only anchor text)}]}\n"
+            "- structural_contracts.json: {\"contracts\": [{\"id\": \"SC_...\", \"title\", \"ssot_anchor\", "
+            "\"obligations\": [\"OBL_...\"] (this exact key), \"signals\": [{\"name\", "
+            "\"direction\": input|output|inout (MANDATORY on every signal — signals are top-level RTL "
+            "ports; register fields belong in behavioral contracts, not here), \"width\"}], "
+            "\"stage_contracts\": [{\"stage\", \"artifact\"}]}]}\n"
+            "- behavioral_contracts.json: {\"contracts\": [{\"id\": \"BEH_...\", \"title\", "
+            "\"obligations\": [\"OBL_...\"] (this exact key), \"rules\" (named exprs = function semantics), "
+            "\"transactions\": [{\"name\", \"preconditions\" or \"when\" (MANDATORY per transaction), and "
+            "\"outputs\"/\"state_updates\"/\"postconditions\" (at least one, MANDATORY)}], "
+            "\"cycle\" (timing semantics or an explicit cycle waiver), \"ssot_anchor\", "
+            "\"stage_contracts\" incl rtl + tb + sim with \"pass_condition\"}]}\n"
+            "- evidence_plan.json: {\"evidence_plan\": [{\"evidence_id\", \"contract_ref\" (must name an "
+            "existing CR_/SC_/BEH_ id; every contract needs evidence rows covering its stage_contracts or "
+            "it 'lacks evidence closure'), \"stage\", \"artifact\", \"validator\", \"pass_condition\"}]}\n\n"
+            "Cross-link integrity is validated in BOTH directions: every requirement lists obligation_refs, "
+            "every obligation lists requirement_refs AND contract_refs AND structural/behavioral refs that "
+            "resolve to declared ids. Use stable IDs (REQ_/OBL_/CR_/BEH_/SC_ prefixes).\n"
+            f"{repair_block}\n"
+            f"Requirement:\n{context.get('requirement_text', '')}"
+        )
+        return system, prompt
+
+    def _run_req_contracts_stage(self, ip: str, context: dict[str, Any]) -> StageResult:
+        """Author + gate (+ lock) the VCM requirement bundle.
+
+        Phase-2 gap: headless had no counterpart to /draft-req + /finalize-req,
+        so fresh IPs died late at rtl-gen's contract authority gate. This stage
+        runs early instead: idempotent when already locked, LLM-authors the
+        candidate bundle otherwise, and locks only with an explicit human
+        approver (--req-approver / ATLAS_REQ_APPROVED_BY) — otherwise it stops
+        at a human_gate, which is the correct VCM behavior.
+        """
+        req_dir = self._ip_dir(ip) / "req"
+        manifest = _read_json(req_dir / "approval_manifest.json")
+        locked = manifest.get("status") == "requirements_locked"
+        if locked:
+            gate = self._run_contract_bundle_gate(ip)
+            if gate.returncode == 0:
+                return self._append(
+                    "req-contracts", "pass",
+                    f"locked bundle valid\n{(gate.stdout or '').strip()}",
+                    artifacts=[f"{ip}/req/approval_manifest.json"],
+                )
+            q = self._write_human_gate(
+                ip, "req-contracts", "locked_bundle_invalid",
+                decision_needed=(
+                    "req/ bundle is locked but check_contract_bundle fails; a human must repair or "
+                    f"re-lock the authority files.\n{(gate.stdout or '').strip()}"
+                ),
+                evidence={"requirement_refs": [f"{ip}/req"], "tool_logs": [], "goal_ids": [], "ssot_refs": []},
+            )
+            return self._append(
+                "req-contracts", "human_gate", "locked bundle failed authority gate",
+                returncode=gate.returncode, blocker=str(q.relative_to(self.root)),
+            )
+
+        attempts = max(0, int(os.getenv("ATLAS_HEADLESS_REQ_REPAIR_ATTEMPTS", "2")))
+        failures = ""
+        candidates_exist = all((req_dir / name).is_file() for name in self.REQ_CANDIDATE_FILES)
+        for attempt in range(attempts + 1):
+            if not candidates_exist or failures:
+                system, prompt = self._req_contracts_prompt(ip, context, failures)
+                response = self._call_llm(
+                    "req-contracts", ip, context,
+                    system_prompt=system, prompt=prompt,
+                    log_stage=("req-contracts" if attempt == 0 else f"req-contracts-repair-{attempt}"),
+                )
+                if response.status in {"blocked", "human_gate"}:
+                    return self._append_llm_gate(ip, "req-contracts", response, topic=f"author_{attempt}")
+                self._apply_artifacts(ip, response.parsed_artifacts)
+                candidates_exist = all((req_dir / name).is_file() for name in self.REQ_CANDIDATE_FILES)
+                if not candidates_exist:
+                    missing = [n for n in self.REQ_CANDIDATE_FILES if not (req_dir / n).is_file()]
+                    failures = "missing candidate files: " + ", ".join(missing)
+                    continue
+            gate = self._run_contract_bundle_gate(ip, review_candidate=True)
+            if gate.returncode == 0:
+                break
+            failures = (gate.stdout or gate.stderr or "").strip()
+        else:
+            return self._append(
+                "req-contracts", "fail",
+                f"candidate bundle failed check_contract_bundle after {attempts + 1} attempts\n{failures}",
+                returncode=1, blocker=f"{ip}/req",
+            )
+
+        approver = self.req_approver
+        if not approver:
+            q = self._write_human_gate(
+                ip, "req-contracts", "approval_required",
+                decision_needed=(
+                    "Candidate bundle passes check_contract_bundle --review-candidate. Locking requires a "
+                    "human approver: re-run with --req-approver <name> (or ATLAS_REQ_APPROVED_BY), or lock "
+                    f"manually via lock_requirement_set.py {ip} --root {self.root} --from-candidate --approved-by <name>."
+                ),
+                evidence={"requirement_refs": [f"{ip}/req"], "tool_logs": [], "goal_ids": [], "ssot_refs": []},
+            )
+            return self._append(
+                "req-contracts", "human_gate", "candidate ready; human approval required to lock",
+                blocker=str(q.relative_to(self.root)),
+                artifacts=[f"{ip}/req/{name}" for name in self.REQ_CANDIDATE_FILES],
+            )
+
+        script = WORKFLOW_ROOT / "req-gen" / "scripts" / "lock_requirement_set.py"
+        cmd = [
+            sys.executable, str(script), ip, "--root", str(self.root),
+            "--from-candidate", "--approved-by", approver,
+            "--decision-note", "headless req-contracts stage lock",
+        ]
+        # Only a non-locked (markdown-copy) manifest may be replaced; a real
+        # lock returned early above.
+        if (req_dir / "approval_manifest.json").is_file() or (req_dir / "locked_truth.md").is_file():
+            cmd.append("--force")
+        lock = subprocess.run(
+            cmd, cwd=str(self.root), text=True, encoding="utf-8", errors="replace",
+            capture_output=True, timeout=60,
+        )
+        if lock.returncode != 0:
+            return self._append(
+                "req-contracts", "fail",
+                f"lock_requirement_set failed\n{(lock.stdout or '').strip()}\n{(lock.stderr or '').strip()}",
+                returncode=lock.returncode, blocker=f"{ip}/req",
+            )
+        gate = self._run_contract_bundle_gate(ip)
+        status = "pass" if gate.returncode == 0 else "fail"
+        return self._append(
+            "req-contracts", status,
+            f"bundle locked by {approver}\n{(gate.stdout or '').strip()}",
+            returncode=gate.returncode,
+            artifacts=[f"{ip}/req/locked_truth.md", f"{ip}/req/approval_manifest.json"],
+        )
+
+    def _locked_truth_projection_brief(self, ip: str) -> str:
+        """Prompt block telling ssot-gen HOW to project a locked req bundle.
+
+        Phase-2 headless validation: 4 of 13 pipeline stalls (symbol contract
+        x2, function_model projection, cycle_model projection + missing
+        stimulus specs) were all "the model authored SSOT without knowing the
+        locked-truth projection rules the downstream gates enforce". When the
+        bundle is locked, surface the contract IDs and the projection rules in
+        the ssot-gen prompt so the SSOT arrives projected instead of being
+        repaired stage by stage.
+        """
+        req_dir = self._ip_dir(ip) / "req"
+        try:
+            manifest = json.loads((req_dir / "approval_manifest.json").read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return ""
+        if not (isinstance(manifest, dict) and manifest.get("status") == "requirements_locked"):
+            return ""
+
+        def _ids(name: str, key: str) -> list[str]:
+            try:
+                doc = json.loads((req_dir / name).read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                return []
+            items = doc.get(key) if isinstance(doc, dict) else doc
+            found: list[str] = []
+            for item in items if isinstance(items, list) else []:
+                if isinstance(item, dict):
+                    cid = (
+                        item.get("id")
+                        or item.get("contract_id")
+                        or item.get("requirement_id")
+                        or item.get("obligation_id")
+                    )
+                    if cid:
+                        found.append(str(cid))
+            return found
+
+        requirements = _ids("requirements_index.json", "requirements")
+        obligations = _ids("obligations.json", "obligations")
+        behavioral = _ids("behavioral_contracts.json", "contracts")
+        structural = _ids("structural_contracts.json", "contracts")
+        if not (behavioral or structural or obligations):
+            return ""
+        return (
+            "LOCKED TRUTH PROJECTION CONTRACT.\n"
+            f"{ip}/req holds a hash-locked requirement bundle (status requirements_locked). "
+            "The SSOT must PROJECT this locked truth; never restate, rename, or contradict it.\n"
+            f"- Requirement IDs: {', '.join(requirements) or '(none)'}\n"
+            f"- Obligation IDs: {', '.join(obligations) or '(none)'}\n"
+            f"- Behavioral contract IDs: {', '.join(behavioral) or '(none)'}\n"
+            f"- Structural contract IDs: {', '.join(structural) or '(none)'}\n"
+            "Projection rules enforced by downstream gates (derive_rtl_todos, derive_tb_todos, "
+            "emit_cycle_model symbol contract):\n"
+            "- Every behavioral contract ID must appear in contract_refs on at least one "
+            "function_model.transactions[] entry whose output_rules/state_updates implement it.\n"
+            "- Every behavioral contract ID with timing/protocol semantics must also appear in "
+            "contract_refs on a cycle_model row carrying a machine-checkable expr "
+            "(handshake_rules/pipeline/ordering), or declare an explicit cycle_model_waiver.\n"
+            "- Symbol contract: every cycle_model.handshake_rules[].signal and every expr symbol "
+            "must be a declared io port, parameter, register field, function_model.state_variables[] "
+            "name, or function_model.derived_signals[] name. Declare any new helper symbol in "
+            "function_model.derived_signals with an expr; never invent undeclared names.\n"
+            "- Every function_model.transactions[] entry must carry stimulus_machine_spec with a "
+            "concrete timeline (csr_write/csr_read/assign/wait_cycles steps using real register "
+            "offsets and declared input ports) and fl_apply_count equal to the number of times the "
+            "timeline fires that transaction (count the event edges). FL output_rules evaluate "
+            "against PRE-transaction state; timelines that verify read-data must end with a "
+            "csr_read.\n"
+            "- FL state_updates model TRANSACTION-COMPLETE, sampled-after-settle state: a 1-cycle "
+            "request/strobe register (clear request, irq pulse) must end the transaction consumed "
+            "(0), never pending (1) — by the time the scoreboard samples, the strobe has decayed. "
+            "Verify pulse SHAPES in cycle_model rules, not FL state.\n"
+            "- cycle_model.state_accumulating means the TEST FLOW relies on cross-goal state "
+            "accumulation (rare; e.g. arbiter last-winner chains). For ordinary IPs — counters, "
+            "CSR blocks — leave it false: the harness resets DUT and FL between goals and each "
+            "transaction timeline must establish its own preconditions.\n\n"
+        )
+
     def _stage_prompt(self, stage: str, ip: str, context: dict[str, Any]) -> tuple[str, str]:
         system_path = WORKFLOW_ROOT / stage / "system_prompt.md"
         workflow_stage = stage
@@ -1852,6 +2127,7 @@ class HeadlessWorkflowRunner:
         if workflow_stage == "ssot-gen":
             system = headless_contract + system
             required_keys = _ssot_required_keys_for_mode(self.run_mode)
+            locked_truth_brief = self._locked_truth_projection_brief(ip)
             prompt = (
                 f"Generate canonical SSOT YAML for {ip} from {ip}/req/{ip}_requirements.md.\n\n"
                 f"Run Mode: {self.run_mode}. Starter may provide only user-authored intent and allow "
@@ -1903,6 +2179,7 @@ class HeadlessWorkflowRunner:
                 "Each item must include id, content, detail, criteria, source_refs, priority, required, "
                 "and owner_module/owner_file when inferable from sub_modules. These TODOs are the downstream "
                 "rtl-gen work ledger and must be specific to this IP, not fixed boilerplate.\n\n"
+                f"{locked_truth_brief}"
                 "If the requirements leave a semantic decision undefined, return exactly this JSON shape "
                 "instead of files[]:\n"
                 "{\n"
@@ -3521,7 +3798,22 @@ class HeadlessWorkflowRunner:
         )
         prompt = (
             f"RTL-GEN PACKET MODE for {ip}. Packet attempt {attempt}.\n\n"
-            "Return exactly one JSON object and nothing else. Do not wrap it in markdown.\n"
+            + (
+                # Phase-2 finding: a repair model answered the same port-map
+                # diagnostic with comments two rounds running because the
+                # diagnostic never said what ACTION closes it. Repair rounds
+                # get explicit action semantics.
+                "REPAIR SEMANTICS: the diagnostics below are work orders, not commentary prompts. "
+                "Every fix must change executable RTL — port maps, net names, assignments, logic. "
+                "Adding or editing comments never closes a diagnostic. For connection-contract "
+                "diagnostics ('RTL named port-map expression does not match SSOT connection signal "
+                "terms'), rewire the named instance port to the SSOT signal term, or rename the "
+                "local net / route it through a continuous assign so the SSOT term appears in live "
+                "wiring.\n\n"
+                if attempt > 0
+                else ""
+            )
+            + "Return exactly one JSON object and nothing else. Do not wrap it in markdown.\n"
             "Success schema:\n"
             f"{schema}\n"
             "If this packet exposes a missing locked-truth decision, return a human_gate object instead of "
@@ -3864,7 +4156,9 @@ class HeadlessWorkflowRunner:
 
     def _execute_canonical_stage(self, canonical: str, ip: str, context: dict[str, Any]) -> StageResult:
         before = len(self.stages)
-        if canonical == "ssot-gen":
+        if canonical == "req-contracts":
+            self._run_req_contracts_stage(ip, context)
+        elif canonical == "ssot-gen":
             self._run_ssot_generation(ip, context)
         elif canonical == "fl-model-gen":
             self._stage_fl_model(ip)
@@ -4146,6 +4440,25 @@ class HeadlessWorkflowRunner:
             self._write_heartbeat(ip, state="running", phase="stage", current_stage=canonical, model=self.model)
             self._execute_canonical_stage(canonical, ip, context)
 
+            # Outer retry: a plain "fail" gets fresh in-stage repair rounds.
+            # human_gate/blocked are decisions, not transient failures — never
+            # retried.
+            retries_left = self.stage_retries
+            while (
+                retries_left > 0
+                and self.stages
+                and self.stages[-1].status == "fail"
+            ):
+                retries_left -= 1
+                self._write_progress(
+                    ip,
+                    "stage_retry",
+                    stage=canonical,
+                    retries_left=retries_left,
+                    message=self.stages[-1].message[:400],
+                )
+                self._execute_canonical_stage(canonical, ip, context)
+
             if self.stages and self.stages[-1].status in {"fail", "human_gate", "blocked"}:
                 self._write_progress(
                     ip,
@@ -4328,6 +4641,17 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--provider", choices=["fake", "cached", "real"], default="real")
     parser.add_argument("--fixture", default="")
     parser.add_argument(
+        "--req-approver",
+        default=os.getenv("ATLAS_REQ_APPROVED_BY", ""),
+        help="human approver for the req-contracts lock; without it the stage stops at a human_gate",
+    )
+    parser.add_argument(
+        "--stage-retries",
+        type=int,
+        default=int(os.getenv("ATLAS_HEADLESS_STAGE_RETRIES", "0")),
+        help="re-invoke a failed stage up to N times with fresh repair rounds (human_gate/blocked never retry)",
+    )
+    parser.add_argument(
         "--workflow",
         default="",
         help="workflow name to claim when --stages take is used (e.g. rtl-gen)",
@@ -4343,6 +4667,8 @@ def main(argv: list[str] | None = None) -> int:
             run_mode=args.run_mode,
             llm_provider=provider,
             require_glm51=args.provider == "real" and os.getenv("ATLAS_HEADLESS_REQUIRE_GLM51") == "1",
+            req_approver=args.req_approver,
+            stage_retries=args.stage_retries,
         )
 
     if raw_stages == ["take"]:

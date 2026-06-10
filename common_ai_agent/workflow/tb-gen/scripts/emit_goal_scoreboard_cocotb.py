@@ -2299,7 +2299,7 @@ async def fl_rtl_equivalence_goals(dut):
                 # assigns into the stimulus so FL applies the same transaction
                 # the DUT just saw (index data like pwdata=14 vs driven data=1
                 # silently desyncs expected from driven otherwise).
-                _final_access = None
+                _last_write = None
                 _final_assigns = {}
                 _event_assigns = {}
                 _ms_input_map = manifest.get("input_map") or {}
@@ -2313,9 +2313,7 @@ async def fl_rtl_equivalence_goals(dut):
                     if not isinstance(_step, dict):
                         continue
                     if isinstance(_step.get("csr_write"), dict):
-                        _final_access = ("write", _step["csr_write"])
-                    elif isinstance(_step.get("csr_read"), dict):
-                        _final_access = ("read", _step["csr_read"])
+                        _last_write = _step["csr_write"]
                     if isinstance(_step.get("assign"), dict):
                         for _f, _v in _step["assign"].items():
                             _final_assigns[str(_f)] = _v
@@ -2330,14 +2328,15 @@ async def fl_rtl_equivalence_goals(dut):
                                     _event_assigns[str(_f)] = _v
                             except (TypeError, ValueError):
                                 pass
-                # Mirror only the written DATA, never op/addr: the FL resolves
-                # its transaction kind from the stimulus, and overriding
-                # op/addr re-resolves a different transaction than the donor
-                # the timeline was inherited from (a trailing csr_read for
-                # read-back sampling must not turn the goal into a read tx).
-                if _final_access is not None and _final_access[0] == "write":
-                    _acc = _final_access[1]
-                    _adata = int(_acc.get("data", _acc.get("value", 0)) or 0)
+                # Mirror the LAST csr_write's DATA, never op/addr: the FL
+                # resolves its transaction kind from the stimulus, and
+                # overriding op/addr re-resolves a different transaction than
+                # the donor the timeline was inherited from. A trailing
+                # csr_read (read-back sampling, mandated by the authoring
+                # rules) must neither turn the goal into a read tx nor hide
+                # the written data from the FL.
+                if isinstance(_last_write, dict):
+                    _adata = int(_last_write.get("data", _last_write.get("value", 0)) or 0)
                     for _k in ("data", "value", "pwdata", "wdata"):
                         stimulus[_k] = _adata
                 for _f, _v in _final_assigns.items():

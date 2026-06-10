@@ -92,6 +92,65 @@ API-key route would be needed for gpt-5.3-codex.
    itself refused to fabricate under a no-work policy (run 6) — the honesty
    machinery works on a real LLM worker.
 
+## Follow-up: findings 1–4 implemented (same day)
+
+All four worker-design findings above were implemented in
+`src/headless_workflow.py`, plus unit pins in
+`tests/test_headless_phase2_machinery.py` for the four machinery fixes:
+
+1. **`req-contracts` stage** (aliases `req-lock`/`draft-req`/`finalize-req`):
+   idempotent when the bundle is already locked and the gate passes; otherwise
+   LLM-authors the six candidate JSONs from the requirement md, gates them
+   with `check_contract_bundle --review-candidate` (bounded repair rounds,
+   gate failures fed back verbatim), then locks via `lock_requirement_set
+   --from-candidate` ONLY when a human approver is named (`--req-approver` /
+   `ATLAS_REQ_APPROVED_BY`) — otherwise it stops at a human_gate, which is the
+   correct VCM behavior. A locked-but-invalid bundle is a human_gate, never an
+   auto re-lock.
+2. **Locked-truth projection brief in the ssot-gen prompt**
+   (`_locked_truth_projection_brief`): when `req/` is locked, the prompt
+   carries the requirement/obligation/contract IDs plus the four projection
+   rules the downstream gates enforce (transactions[].contract_refs,
+   cycle-row contract_refs/waiver, the symbol declaration channels, and
+   stimulus_machine_spec + fl_apply_count with the PRE-state and
+   trailing-csr_read authoring rules).
+3. **Outer stage retry loop** (`--stage-retries` /
+   `ATLAS_HEADLESS_STAGE_RETRIES`): a plain `fail` re-invokes the same stage
+   with fresh in-stage repair rounds; `human_gate`/`blocked` are decisions and
+   never retry. Retries are logged as `stage_retry` progress events.
+4. **Repair-round action semantics** in the rtl-gen packet prompt: repair
+   attempts (attempt > 0) are prefixed with "diagnostics are work orders —
+   every fix must change executable RTL; comments never close a diagnostic",
+   with the connection-contract action spelled out.
+
+### Capstone E2E (pulse_counter_hx2, fresh root, all features on)
+
+`--stages req-contracts,ssot-gen,...,sim --req-approver brian --stage-retries 2`
+ran a SECOND fresh IP end to end: **54/54 scoreboard, every stage pass**,
+including the LLM-authored + locked VCM bundle and an SSOT that arrived with
+all 12 transactions carrying stimulus_machine_spec (a class that was manual
+repair on hx1 — the projection brief works). What it took:
+
+- req-contracts converged only after the prompt carried the EXACT validator
+  keys (`obligation_refs`/`requirement_refs` both directions, contracts'
+  `obligations[]`, `signals[].direction`, transactions'
+  `preconditions|when` + `outputs|state_updates|postconditions`) — extracted
+  from `check_locked_truth_bundle.py` + the normalizers. Schema sketches from
+  memory cost 9 LLM calls; exact keys converged in one round. Validator
+  semantics belong in the prompt, verbatim.
+- One more template refinement (regression-caught, third in this series): the
+  FL mirror must take the LAST `csr_write`'s data even when a `csr_read`
+  follows (the authoring rules MANDATE a trailing read — the write-only-final
+  rule hid the written data and FL applied index-derived values).
+  pc1 31/31 + hx1 57/57 + hx2 54/54 on the final template.
+- Two authoring-semantics traps fixed in the projection brief after gpt-5.5
+  hit them: `cycle_model.state_accumulating: true` ("a counter accumulates
+  state" is the wrong reading — the key means the TEST FLOW relies on
+  cross-goal accumulation; it desyncs DUT-accumulates vs FL-per-goal), and
+  1-cycle strobe registers (clear request, irq pulse) modeled as persistent
+  FL post-state (they have decayed by the post-settle sample; pulse shapes
+  belong to cycle_model rules).
+
 Related: [[stage-validation-pulse-counter-20260610]],
 [[stage-validation-reflections-20260610]],
 [[workflow-improvement-candidates]],
