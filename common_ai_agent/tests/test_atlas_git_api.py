@@ -515,6 +515,37 @@ def test_scm_change_delete_route_reports_unsupported_provider(tmp_path: Path, mo
     assert "not supported" in payload["error"]
 
 
+def test_scm_uiprefs_roundtrip_persists_pane_locations(tmp_path: Path, monkeypatch):
+    prefs_path = tmp_path / "home" / ".common_ai_agent" / "perforce_ui_state.json"
+    monkeypatch.setenv("ATLAS_SCM_UI_PREFS_PATH", str(prefs_path))
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+
+    empty = client.get("/api/scm/uiprefs?ip=alpha").json()
+    assert empty == {"ok": True, "prefs": {}}
+
+    saved = client.post(
+        "/api/scm/uiprefs",
+        json={
+            "ip": "alpha",
+            "localDir": "rtl",
+            "depotDir": "//GOOD_SOC/GOOD_IP/alpha/rtl/",
+            "stream": "//GOOD_SOC/GOOD_IP",
+        },
+    ).json()
+    assert saved["ok"] is True
+
+    restored = client.get("/api/scm/uiprefs?ip=alpha").json()
+    assert restored["prefs"] == {
+        "localDir": "rtl",
+        "depotDir": "//GOOD_SOC/GOOD_IP/alpha/rtl/",
+        "stream": "//GOOD_SOC/GOOD_IP",
+    }
+    assert prefs_path.exists()
+    # other ips / owners do not see it
+    assert client.get("/api/scm/uiprefs?ip=beta").json()["prefs"] == {}
+    assert client.get("/api/scm/uiprefs?ip=alpha&session_id=other/sess/alpha/wf").json()["prefs"] == {}
+
+
 def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)

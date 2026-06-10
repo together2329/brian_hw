@@ -146,6 +146,19 @@ topology (stream depot `GOOD_SOC`, mainline `//GOOD_SOC/GOOD_IP`, client
 payloads: pane → ＋Add → Submit → Checkout → pending-click diff → Submit →
 ◀Sync → Delete CL — ALL PASS, including the 1:1 depot mapping assertion.
 
+## 2026-06-10 UX follow-up (same branch)
+
+- **Pending click ≠ diff jump**: clicking a pending file now only selects it;
+  a **Diff** button (right side of the pending controls) opens the diff for
+  the selected file. Tests updated accordingly.
+- **Colored diff**: unified-diff lines render green (`+`, added) / red (`-`,
+  removed), headers dim, `@@` hunks accent — both pending diff and history diff.
+- **Saved pane locations**: last local/depot directories (+stream/scmRoot) per
+  user+IP persist via `GET/POST /api/scm/uiprefs` into
+  `~/.common_ai_agent/perforce_ui_state.json` (override:
+  `ATLAS_SCM_UI_PREFS_PATH`); the tab restores them on open instead of
+  starting at the roots every time.
+
 ## Gotchas
 
 - After submit, p4 marks files read-only (`noallwrite`); editing outside p4 needs `chmod +w` or `p4 edit`.
