@@ -1,0 +1,163 @@
+# Platform Requirements — ROCEV 척추 선언부 (source of truth)
+#
+#   Requirement → Obligation → (Contract=reflection) → Evidence → Validation
+#
+# RTL의 VCM(doc/wiki/verification-contract-model.md)과 같은 메타패턴을
+# common_ai_agent 플랫폼 개발에 인스턴스화한 것. 규칙 (스캐너가 기계 강제):
+#   - requirement: design_anchor(위키 문서) 실재 필수 + obligation ≥1
+#   - obligation:  owned_by 는 platform_ontology.yaml 의 DevUnit id
+#                  granularity ∈ {structural, behavior, content, concurrent}
+#                  status ∈ {closed, open, refuted}
+#   - closed  → evidence ≥1, 각 test 노드(ast 검증)와 observed_at 커밋 실재 필수
+#   - refuted → refuted_by 필수 (이게 '결함'의 정식 표기 — known_gaps 의 승격)
+#   - freshness: observed_at 이후 owner 단위의 owns/테스트 파일이 바뀌면
+#                effective_status=stale 로 강등 (정확성 && 신선도 = VCM 의 PASS 정의)
+# silent-PASS 금지: 유령 노드/유령 anchor 선언은 check 실패.
+version: 1
+
+requirements:
+  - id: REQ_PLAT_TENANT_ISOLATION_001
+    claim: "한 사용자는 다른 사용자의 세션/파일/이력을 읽거나 쓸 수 없다 (fail-closed)"
+    design_anchor: doc/wiki/platform-ontology.md
+    obligations:
+      - id: OBL_SESS_READ_CROSS_USER_404
+        owned_by: api.sessions
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_api_sessions_content.py::test_get_session_cross_user_returns_404"
+            observed_at: a515c974
+      - id: OBL_SESS_WRITE_CROSS_USER_404
+        owned_by: api.sessions
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_api_sessions_content.py::test_update_session_cross_user_returns_404"
+            observed_at: a515c974
+          - test: "tests/test_api_sessions_content.py::test_delete_session_cross_user_returns_404"
+            observed_at: a515c974
+      - id: OBL_SESS_HISTORY_STATE_CROSS_USER_DENIED
+        owned_by: api.sessions
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_api_sessions_content.py::test_session_history_cross_user_denied"
+            observed_at: a515c974
+          - test: "tests/test_api_sessions_content.py::test_session_state_cross_user_denied"
+            observed_at: a515c974
+      - id: OBL_FS_AUTHZ_FAIL_CLOSED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_fs_authz.py::test_unregistered_ip_denied_fail_closed"
+            observed_at: a515c974
+          - test: "tests/test_fs_authz.py::test_db_error_denies"
+            observed_at: a515c974
+      - id: OBL_PATH_TRAVERSAL_DENIED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_fs_authz.py::test_traversal_denied"
+            observed_at: a515c974
+          - test: "tests/test_api_sessions_content.py::test_session_history_path_traversal_rejected"
+            observed_at: a515c974
+      - id: OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
+        owned_by: api.sessions
+        granularity: concurrent
+        status: refuted
+        refuted_by: >-
+          신규 세션이 DB row 없이 namespace-owner 매치만으로 allow —
+          create↔authorize 사이 race 가능 (_authorize_session_request fail-open 분기)
+      - id: OBL_ACTIVATE_ENV_NO_CROSS_LEAK
+        owned_by: api.sessions
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          비프로세스 모드 activate 가 os.environ.update(context.export_env()) 로
+          전역 env 를 오염 — 멀티테넌트에서 사용자 간 누수 가능
+
+  - id: REQ_PLAT_MEMORY_DURABILITY_001
+    claim: "에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다"
+    design_anchor: doc/wiki/platform-ontology.md
+    obligations:
+      - id: OBL_MEM_PREF_PERSIST_RELOAD
+        owned_by: agent.memory
+        granularity: content
+        status: closed
+        evidence:
+          - test: "tests/test_agent_memory_content.py::TestMemoryPreferences::test_persistence_across_instances"
+            observed_at: a515c974
+      - id: OBL_MEM_CORRUPT_STORE_RECOVERY
+        owned_by: agent.memory
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_agent_memory_content.py::TestMemoryRules::test_corrupt_rules_file_falls_back_to_empty"
+            observed_at: a515c974
+          - test: "tests/test_agent_memory_content.py::TestProceduralMemoryPersistence::test_corrupt_trajectories_file_loads_empty"
+            observed_at: a515c974
+      - id: OBL_MEM_USER_ISOLATION
+        owned_by: agent.memory
+        granularity: content
+        status: closed
+        evidence:
+          - test: "tests/test_agent_memory_content.py::TestMemoryUserNormalization::test_user_isolation_separate_files"
+            observed_at: a515c974
+      - id: OBL_MEM_EXPORT_IMPORT_ROUNDTRIP
+        owned_by: agent.memory
+        granularity: content
+        status: closed
+        evidence:
+          - test: "tests/test_agent_memory_content.py::TestMemoryExportImport::test_export_import_round_trip"
+            observed_at: a515c974
+      - id: OBL_MEM_ABS_PATH_RESPECTED
+        owned_by: agent.memory
+        granularity: structural
+        status: refuted
+        refuted_by: >-
+          ProceduralMemory.__init__ 이 절대경로 memory_dir 도 무조건
+          Path.home() 밑에 prepend (MemorySystem 과 불일치) — 저장 위치 제어 불가
+
+  - id: REQ_PLAT_LLM_FAILURE_VISIBILITY_001
+    claim: "LLM 호출 실패는 절대 정상 결과로 둔갑하지 않는다 (green-while-broken 금지)"
+    design_anchor: doc/wiki/testing-methodology.md
+    obligations:
+      - id: OBL_MEM_EXTRACT_LLM_FAIL_DISTINGUISHABLE
+        owned_by: agent.memory
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          auto_extract_and_update 가 LLM 불가 시 {"extracted": 0} 을 반환 —
+          호출자가 'LLM 미상담'과 '추출할 것 없음'을 구분할 수 없음
+      - id: OBL_COMPRESS_LLM_FAIL_SURFACED
+        owned_by: agent.compression
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          compressor 가 LLM 실패를 조용히 truncation dump 로 대체 (silent swallow)
+        repro: scripts/verify_compression_llm.py
+
+  - id: REQ_PLAT_DEV_TRACEABILITY_001
+    claim: "플랫폼의 모든 개발 약속은 기계 추적 가능하다 (선언→증거→판정)"
+    design_anchor: doc/wiki/platform-ontology.md
+    obligations:
+      - id: OBL_ONTOLOGY_DECLARED_PATHS_REAL
+        owned_by: platform.ontology
+        granularity: structural
+        status: closed
+        evidence:
+          - test: "tests/test_platform_ontology.py::test_declared_paths_all_exist"
+            observed_at: a515c974
+      - id: OBL_NEW_MODULE_REGISTERED
+        owned_by: platform.ontology
+        granularity: structural
+        status: closed
+        evidence:
+          - test: "tests/test_platform_ontology.py::test_no_ownership_overlap_and_orphan_ratchet"
+            observed_at: a515c974
+      - id: OBL_SPINE_INTEGRITY_ENFORCED
+        owned_by: platform.ontology
+        granularity: structural
+        status: open   # 이번 라운드에서 스캐너+테스트가 생기면 closed 로 전환

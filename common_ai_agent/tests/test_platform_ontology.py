@@ -132,6 +132,106 @@ def test_discover_tests_matches_import_and_path(tmp_path):
     assert tests["u"] == ["tests/test_import.py", "tests/test_path.py"]
 
 
+# ---------- ROCEV 척추 (requirement→obligation→evidence) ----------
+
+def test_spine_integrity_on_real_repo():
+    """실제 척추 선언: 무결성 issue 0 (유령 노드/anchor/owner 없음)."""
+    issues, resolved = po.validate_spine(po.load_spine(), po.load_ontology())
+    assert issues == [], f"spine integrity issues: {issues}"
+    assert resolved, "spine must declare obligations"
+
+
+def test_spine_every_refuted_has_reason_and_closed_has_evidence():
+    _, resolved = po.validate_spine(po.load_spine(), po.load_ontology())
+    for ob in resolved:
+        if ob["status"] == "refuted":
+            assert ob["refuted_by"].strip(), f"{ob['obligation_id']}: refuted without reason"
+        if ob["status"] == "closed":
+            assert ob["evidence"], f"{ob['obligation_id']}: closed without evidence"
+
+
+def _spine(obligation):
+    return {"requirements": [{
+        "id": "REQ_X", "claim": "c", "design_anchor": "anchor.md",
+        "obligations": [obligation],
+    }]}
+
+
+def _units_doc():
+    return {"scope": [], "orphan_baseline": 0,
+            "units": [{"id": "u", "owns": []}]}
+
+
+def test_spine_killproof_ghost_evidence_node(tmp_path):
+    """KILL-PROOF: 존재하지 않는 테스트 노드를 evidence로 선언하면 잡혀야 한다."""
+    (tmp_path / "anchor.md").write_text("a", encoding="utf-8")
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_real.py").write_text(
+        "class TestC:\n    def test_m(self):\n        pass\n\ndef test_f():\n    pass\n",
+        encoding="utf-8")
+    ok_func = {"id": "O1", "owned_by": "u", "granularity": "behavior", "status": "closed",
+               "evidence": [{"test": "tests/test_real.py::test_f", "observed_at": "x"}]}
+    ok_method = {"id": "O1", "owned_by": "u", "granularity": "behavior", "status": "closed",
+                 "evidence": [{"test": "tests/test_real.py::TestC::test_m", "observed_at": "x"}]}
+    ghost = {"id": "O1", "owned_by": "u", "granularity": "behavior", "status": "closed",
+             "evidence": [{"test": "tests/test_real.py::test_ghost", "observed_at": "x"}]}
+    for ob, node_ok in ((ok_func, True), (ok_method, True), (ghost, False)):
+        issues, _ = po.validate_spine(_spine(ob), _units_doc(), tmp_path)
+        node_issues = [i for i in issues if "evidence node not found" in i]
+        assert bool(node_issues) == (not node_ok), f"{ob['evidence']}: {issues}"
+
+
+def test_spine_killproof_contract_violations(tmp_path):
+    """closed-without-evidence / refuted-without-reason / unknown owner / ghost anchor."""
+    (tmp_path / "anchor.md").write_text("a", encoding="utf-8")
+    cases = [
+        ({"id": "O", "owned_by": "u", "granularity": "behavior", "status": "closed"},
+         "closed without evidence"),
+        ({"id": "O", "owned_by": "u", "granularity": "behavior", "status": "refuted"},
+         "refuted without refuted_by"),
+        ({"id": "O", "owned_by": "nobody", "granularity": "behavior", "status": "open"},
+         "owned_by unknown unit"),
+        ({"id": "O", "owned_by": "u", "granularity": "vibes", "status": "open"},
+         "bad granularity"),
+    ]
+    for ob, expected in cases:
+        issues, _ = po.validate_spine(_spine(ob), _units_doc(), tmp_path)
+        assert any(expected in i for i in issues), f"{expected!r} not caught: {issues}"
+    ghost_anchor = _spine({"id": "O", "owned_by": "u", "granularity": "behavior",
+                           "status": "open"})
+    ghost_anchor["requirements"][0]["design_anchor"] = "ghost.md"
+    issues, _ = po.validate_spine(ghost_anchor, _units_doc(), tmp_path)
+    assert any("design_anchor missing" in i for i in issues)
+
+
+def test_spine_freshness_marks_stale(tmp_path):
+    """observed_at 이후 owner 코드가 바뀌면 effective_status=stale (git 픽스처)."""
+    import subprocess
+    def git(*a):
+        subprocess.run(["git", "-C", str(tmp_path), *a], check=True,
+                       capture_output=True, text=True)
+    git("init", "-q")
+    git("config", "user.email", "t@t"); git("config", "user.name", "t")
+    (tmp_path / "anchor.md").write_text("a", encoding="utf-8")
+    (tmp_path / "pkg").mkdir(); (tmp_path / "tests").mkdir()
+    (tmp_path / "pkg" / "a.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "tests" / "test_a.py").write_text("def test_f():\n    pass\n", encoding="utf-8")
+    git("add", "-A"); git("commit", "-qm", "base")
+    out = subprocess.run(["git", "-C", str(tmp_path), "rev-parse", "HEAD"],
+                         capture_output=True, text=True, check=True)
+    sha = out.stdout.strip()
+    units = {"scope": ["pkg/*.py"], "orphan_baseline": 0,
+             "units": [{"id": "u", "owns": ["pkg/a.py"]}]}
+    ob = {"id": "O", "owned_by": "u", "granularity": "behavior", "status": "closed",
+          "evidence": [{"test": "tests/test_a.py::test_f", "observed_at": sha}]}
+    issues, resolved = po.validate_spine(_spine(ob), units, tmp_path)
+    assert issues == [] and resolved[0]["effective_status"] == "closed"  # 변경 전: fresh
+    (tmp_path / "pkg" / "a.py").write_text("x = 2\n", encoding="utf-8")
+    git("add", "-A"); git("commit", "-qm", "change owner code")
+    issues, resolved = po.validate_spine(_spine(ob), units, tmp_path)
+    assert issues == [] and resolved[0]["effective_status"] == "stale"  # 변경 후: stale
+
+
 def test_scan_writes_snapshot(tmp_path, monkeypatch):
     db = tmp_path / "platform.db"
     monkeypatch.setattr(po, "ONTOLOGY_DB", db)
