@@ -483,3 +483,41 @@ def test_git_diff_accepts_active_ip_backslash_path(tmp_path, monkeypatch):
     assert "-module old_top;" in result
     assert "+module new_top;" in result
     assert "not a git repository" not in result.lower()
+
+
+def test_write_file_unwraps_json_envelope_to_ssot_yaml(tmp_path, monkeypatch):
+    # Bug B write-side fix: the headless artifact JSON envelope written verbatim
+    # into a .ssot.yaml is transparently UNWRAPPED to its inner YAML (no reject,
+    # no retry loop), so the file lands valid instead of corrupt.
+    import yaml as _yaml
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    target = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    target.parent.mkdir(parents=True)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    envelope = '{"files":[{"path":"' + ip + '/yaml/' + ip + '.ssot.yaml","kind":"ssot","content":"top_module:\\n  name: ' + ip + '\\n"}]}'
+    result = tools.write_file(path=f"{ip}/yaml/{ip}.ssot.yaml", content=envelope)
+
+    assert "successfully" in result.lower()
+    written = target.read_text(encoding="utf-8")
+    assert not written.lstrip().startswith("{"), "envelope must have been unwrapped"
+    doc = _yaml.safe_load(written)
+    assert isinstance(doc, dict) and doc["top_module"]["name"] == ip
+
+
+def test_write_file_allows_valid_and_scalar_ssot_yaml(tmp_path, monkeypatch):
+    # The guard is narrow: real YAML (and legacy scalar/draft writes) pass.
+    ip = "uart_core"
+    project_root = tmp_path / "served_root"
+    target = project_root / ip / "yaml" / f"{ip}.ssot.yaml"
+    target.parent.mkdir(parents=True)
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(project_root))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+    monkeypatch.setattr(tools, "_git_auto_commit", lambda *args, **kwargs: None)
+
+    ok = tools.write_file(path=f"{ip}/yaml/{ip}.ssot.yaml", content=f"top_module:\n  name: {ip}\n")
+    assert "successfully" in ok.lower()
+    assert "name: " + ip in target.read_text(encoding="utf-8")
