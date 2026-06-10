@@ -128,3 +128,6 @@ atlas_ssot_web_clean/
 /deepdeep_ip/
 /deepdeep_ip.git/
 /lint_result.txt
+
+# platform ontology derived DB (source of truth = ontology/platform_ontology.yaml)
+/ontology/platform.db

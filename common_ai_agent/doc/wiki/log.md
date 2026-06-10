@@ -2,6 +2,13 @@
 
 ## 2026-06-10
 
+- **Platform Ontology v1**: common_ai_agent 자체 개발용 단위/테스트/완성도 온톨로지를
+  DB화. 선언부 `ontology/platform_ontology.yaml`(19 DevUnits) + 스캐너
+  `scripts/platform_ontology.py`(scan/report/check) + 스냅샷 SQLite
+  `ontology/platform.db`(git-ignored) + 래칫/kill-proof `tests/test_platform_ontology.py`
+  (10 tests). 성숙도 사다리 L0~L4 기계 판정, 선언경로 실재 강제(silent-PASS 금지),
+  orphan ratchet @124. 첫 측정: L3×2 / L2×4 / L1×11 / L0×2. [[platform-ontology]]
+
 - Mutation-survivor signoff enforcement (commit `133c89e8`): `check_ip_signoff`
   passed any `mutation_report.json` with status=pass even at kill_rate 0.1 (9
   survivors) — a TB catching ~10% of planted faults still signed off. Now when a
