@@ -503,6 +503,7 @@ def test_scm_change_delete_route_uses_perforce_adapter(tmp_path: Path, monkeypat
 
 def test_scm_change_delete_route_reports_unsupported_provider(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    _init_repo(tmp_path / "alpha")
     client = _authenticated_client(_create_app(tmp_path, monkeypatch))
     response = client.post(
         "/api/scm/change/delete",
