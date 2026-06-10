@@ -299,19 +299,52 @@ requirements:
       - id: OBL_IP_WIKI_HELPER
         owned_by: platform.ip-wiki
         granularity: behavior
-        status: open   # <ip>/wiki init/log/check 라운드트립 — IP 개발 히스토리 축적
+        status: closed   # c23195dd 구현; 동시 merge가 closure 되돌려 재적용
+        evidence:
+          - test: "tests/test_ip_wiki.py::test_init_log_check_roundtrip"
+            observed_at: "200f768b"
+          - test: "tests/test_ip_wiki.py::test_init_is_idempotent"
+            observed_at: "200f768b"
       - id: OBL_IP_WIKI_CHECK_KILLPROOF
         owned_by: platform.ip-wiki
         granularity: behavior
-        status: open   # check가 깨진 frontmatter/유령 [[link]]를 실제로 잡는지
+        status: closed
+        evidence:
+          - test: "tests/test_ip_wiki.py::test_check_killproof_broken_frontmatter"
+            observed_at: "200f768b"
+          - test: "tests/test_ip_wiki.py::test_check_killproof_ghost_link"
+            observed_at: "200f768b"
       - id: OBL_ATLAS_MCP_SERVER
         owned_by: platform.cursor-pack
         granularity: behavior
-        status: open   # stdio MCP 서버: rtl_db_query/rtl_db_wiki(주) + ontology/wiki 검색
+        status: closed
+        evidence:
+          - test: "tests/test_atlas_mcp_server.py::test_initialize_and_tools_list"
+            observed_at: "200f768b"
+          - test: "tests/test_atlas_mcp_server.py::test_ontology_query_rejects_non_select"
+            observed_at: "200f768b"
       - id: OBL_CURSOR_SUBAGENT_EVIDENCE_HOOK
         owned_by: platform.cursor-pack
         granularity: behavior
-        status: open   # subagentStop: atlas-* 오너의 증거 없는 완료 주장에 followup
+        status: closed
+        evidence:
+          - test: "tests/test_cursor_pack.py::test_subagent_hook_blocks_claim_without_evidence"
+            observed_at: "200f768b"
+          - test: "tests/test_cursor_pack.py::test_subagent_hook_passes_with_evidence"
+            observed_at: "200f768b"
+
+      - id: OBL_CURSOR_PACK_SELF_CONTAINED
+        owned_by: platform.cursor-pack
+        granularity: behavior
+        status: open   # .cursor만 복사한 전달본에서 엔진/게이트/ip_wiki/MCP 단독 구동
+      - id: OBL_CURSOR_VENDOR_NO_DRIFT
+        owned_by: platform.cursor-pack
+        granularity: structural
+        status: open   # 정본 변경 시 vendored 사본 drift를 ratchet이 차단
+      - id: OBL_CURSOR_AGENT_FULL_COVERAGE
+        owned_by: platform.cursor-pack
+        granularity: structural
+        status: open   # 모든 활성 family에 owner agent + orchestrator 라우팅
 
   - id: REQ_PLAT_ORCH_CHAT_UX_001
     claim: "Orchestrator chat 패널은 백엔드가 산출한 모든 출력(유저 메시지/ack/thought/tool/최종 응답)과 전송 실패를 사용자에게 가시화한다 — 업데이트 채널이 죽어도 폴링이 바닥을 보장"

@@ -1,0 +1,12 @@
+{
+  "hooks": [
+    {
+      "script": "check_unmapped.sh",
+      "trigger": "after_tool",
+      "conditions": {
+        "tool_names": ["run_command"],
+        "output_contains": ["yosys", "Number of cells"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "syn-script",
+  "description": "Generate <ip>/syn/run.ys only (no execution)",
+  "aliases": ["syn-ys"],
+  "handler": "bash:write_yosys_script.sh",
+  "usage": "/syn-script"
+}

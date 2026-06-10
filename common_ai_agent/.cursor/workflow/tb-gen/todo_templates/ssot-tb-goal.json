@@ -1,0 +1,45 @@
+{
+  "name": "ssot-tb-goal",
+  "description": "SSOT->TB outcome goals: generic scenario-derived TB, passing simulation, VCD/coverage for sim_debug, or precise escalation",
+  "tasks": [
+    {
+      "content": "[Goal 1/4] Produce SSOT-derived TB artifacts on disk",
+      "activeForm": "Building generic SSOT-derived TB for {ip} — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "End state required: TB files exist and are derived from the current SSOT and <ip>/verify/equivalence_goals.json, not fixed scenario assumptions. Read SSOT, equivalence goals, RTL filelist, and RTL top. Choose cocotb unless SSOT/project requires SV-only. Write test_<ip>.py + test_runner.py or tb_<ip>.sv + scenario tasks. Include clock/reset, DUT port mapping, protocol helpers, scenario tests, workflow/tb-gen/runtime/equivalence_scoreboard.py (`EquivalenceScoreboard`) or equivalent FunctionalModel/model-adapter expected/got assertions, equivalence goal IDs, scoreboard_events.jsonl emission, coverage bins, and VCD dump setup. Any helper that logs [FAIL] or tracks failed checks must raise/assert so failures cannot be hidden behind a PASS summary.",
+      "criteria": "TB artifacts exist and are non-empty\npython3 workflow/tb-gen/runtime/equivalence_scoreboard.py <ip> --root . --self-check passes when FunctionalModel is present\nEvery SSOT scenario maps to a test/subtest\nEvery non-blocked equivalence goal maps to a scoreboard event row or precise blocker\nEvery top-level DUT port is driven/monitored or intentionally tied with rationale\nEvery SSOT scenario has a real assertion that fails the simulator on mismatch\nCoverage bins exist for scenarios/features\nVCD dumping is configured\nNo RTL files were modified",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_disk.py",
+      "loop": true,
+      "max_loop_iterations": 10,
+      "exit_condition": "real SSOT-derived TB artifacts on disk",
+      "priority": "high"
+    },
+    {
+      "content": "[Goal 2/4] Run simulation and reach PASS or precise failure classification",
+      "activeForm": "Running simulation — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "Run the real command: cocotb pytest runner or iverilog/vvp. If failures are TB-only, fix TB and rerun. If failures are RTL-vs-SSOT behavior, stop and prepare [SIM ESCALATE] blocks. Do not approve prose-only. Do not change SSOT expected results to observed DUT behavior. The final state must be either all scenario tests pass or every failing behavior is classified with exact evidence.",
+      "criteria": "python3 workflow/tb-gen/scripts/check_tb_python_compile.py <ip> --root . passed after final TB edit and before simulation\nSimulation command was executed after final TB edit\nThe exact report command runs without external PATH overrides or hidden setup\nCompile/elaboration succeeded or failure is classified\nPASS path has all tests passing, all required equivalence goals covered by scoreboard_events.jsonl, and no [FAIL] markers or failed-check counters\nFAIL path has expected/got lines and suspected owner workflow\nNo old simulation output is reused as final evidence",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_sim_evidence.py",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "PASS_OR_ESCALATE",
+      "priority": "high"
+    },
+    {
+      "content": "[Goal 3/4] Emit sim_debug artifacts: VCD, coverage, report",
+      "activeForm": "Collecting sim_debug artifacts — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "On PASS path, ensure <ip>/sim/<ip>.vcd, <ip>/sim/scoreboard_events.jsonl, <ip>/cov/coverage_functional.json, <ip>/sim/coverage_report.md, and latest per-run results XMLs or sim_report.txt exist. TB-gen may write raw functional bins and waveform setup, but final <ip>/cov/coverage.json, static line/branch/FSM evidence, and SSOT coverage signoff must come from the generic coverage workflow and reusable SSOT summary script. Do not create an IP-specific Verilator harness, coverage summary Python, fixed bus/memory template, or one-off parser under <ip>/tb/ to force coverage. If generic coverage cannot measure an SSOT coverage_goals metric, emit an explicit evidence-gap escalation instead of DONE. If VCD is missing or a .vcd file is binary/non-parseable, fix generic dump setup and rerun simulation or emit a waveform-evidence escalation.",
+      "criteria": "Waveform exists and is inspectable as ASCII VCD, or real binary format plus converter is available\nscoreboard_events.jsonl exists and covers required equivalence goal IDs\ncoverage_functional.json exists and reports raw functional hit/total/pct\ncoverage_report.md exists\nlatest results XML or sim_report.txt exists\nCoverage source is labeled accurately\nFinal coverage.json is produced by the common coverage stage from SSOT/fcov_plan plus raw evidence\nStatic line/branch/FSM metrics are produced by generic coverage workflow artifacts or explicitly escalated\nNo IP-specific coverage harness or one-off coverage summary script was added under <ip>/tb/",
+      "validator": "python3 workflow/tb-gen/scripts/check_no_ip_coverage_workarounds.py",
+      "loop": true,
+      "max_loop_iterations": 5,
+      "exit_condition": "no IP-specific coverage workaround artifacts",
+      "priority": "high"
+    },
+    {
+      "content": "[Goal 4/4] Output DONE or escalation handoff",
+      "detail": "PASS branch: emit [SSOT RESULT] tb-gen DONE with module, TB files, sim command, test count, coverage path, VCD path, and Handoff: sim_debug. FAIL branch: emit [SIM ESCALATE] -> rtl-gen block per failing behavior with module, file/signal if known, test, expected, got, hypothesis. EVIDENCE-GAP branch: emit [SIM ESCALATE] -> tb-gen or coverage for stale results, non-parseable waveform, or SSOT coverage goals that were not instrumented. Do not claim DONE if any failure or evidence gap remains.",
+      "criteria": "PASS branch includes real artifact paths and command evidence\nFAIL branch includes precise escalation blocks\nEvidence-gap branch names exact missing/stale/non-parseable artifacts\nNo simulation/coverage result is fabricated\nNext owner is sim_debug on PASS or rtl-gen/ssot-gen/tb-gen/coverage on escalation",
+      "priority": "normal"
+    }
+  ]
+}

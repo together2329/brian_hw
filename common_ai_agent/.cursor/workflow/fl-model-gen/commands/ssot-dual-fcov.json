@@ -1,0 +1,8 @@
+{
+  "name": "ssot-dual-fcov",
+  "description": "Split functional coverage plan into FL bins (transactions/state/error) and CL bins (handshake/timing/ordering); refresh union view",
+  "aliases": ["sdf"],
+  "handler": "stage:ssot-dual-fcov",
+  "usage": "/ssot-dual-fcov <module_name>",
+  "area": "cov"
+}

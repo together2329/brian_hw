@@ -1,0 +1,16 @@
+{
+  "name": "signoff",
+  "description": "IP signoff workspace - strict local evidence gate against IP_SIGNOFF.md",
+  "env": {
+    "MAX_ITERATIONS": "80",
+    "ENABLE_MARKDOWN_RENDER": "true",
+    "WORKFLOW_DISABLED_TOOLS": "ask_user,record_ssot_qa,dispatch_workflow"
+  },
+  "skills": {
+    "force_activate": [],
+    "disable": []
+  },
+  "system_prompt_mode": "prepend",
+  "plan_prompt_mode": "prepend",
+  "compression_prompt_mode": "replace"
+}

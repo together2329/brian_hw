@@ -1,0 +1,9 @@
+{
+  "name": "sim",
+  "description": "Compile and run simulation (iverilog+vvp or verilator)",
+  "aliases": [
+    "s"
+  ],
+  "handler": "stage:sim",
+  "usage": "/sim [tb_module.sv]"
+}

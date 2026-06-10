@@ -1,0 +1,25 @@
+{
+  "name": "New Feature",
+  "description": "Standard new feature implementation workflow",
+  "trigger_keywords": ["add", "implement", "create", "new feature", "build"],
+  "tasks": [
+    {
+      "content": "Analyzed existing codebase and identified integration points",
+      "activeForm": "Analyzing codebase...",
+      "priority": "high",
+      "detail": "Read relevant files. Understand existing patterns before writing new code."
+    },
+    {
+      "content": "Implemented feature",
+      "activeForm": "Implementing feature...",
+      "priority": "high",
+      "detail": "Follow existing code style and patterns. Write minimal, focused code."
+    },
+    {
+      "content": "Tested feature end-to-end",
+      "activeForm": "Testing feature...",
+      "priority": "medium",
+      "detail": "Manually verify the feature works as expected. Check edge cases."
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+[
+  {
+    "name": "add-ip",
+    "description": "Scaffold a new IP and add an instance to soc.ssot.yaml. /add-ip <name> [cluster] [addr]",
+    "aliases": ["ai"],
+    "usage": "/add-ip <name> [cluster] [addr]",
+    "handler": "todo:template:architect-add-ip"
+  },
+  {
+    "name": "import-ipxact",
+    "description": "Import an IP-XACT XML and register it as a new instance. /import-ipxact <path> [name] [cluster]",
+    "aliases": ["ix"],
+    "usage": "/import-ipxact <xml-path> [name] [cluster]",
+    "handler": "todo:template:architect-import-ipxact"
+  },
+  {
+    "name": "connect",
+    "description": "Add a bus connection between two IP instances. /connect <a/iface> <b/iface> [proto]",
+    "aliases": ["cn"],
+    "usage": "/connect <inst_a/iface_a> <inst_b/iface_b> [proto]",
+    "handler": "todo:template:architect-connect"
+  },
+  {
+    "name": "check-addrmap",
+    "description": "Run the address-map validator (overlaps, alignment, gaps).",
+    "aliases": ["am"],
+    "usage": "/check-addrmap",
+    "handler": "tool:addrmap_check"
+  },
+  {
+    "name": "wrapper-gen",
+    "description": "Regenerate the top-level SoC wrapper RTL from soc.ssot.yaml.",
+    "aliases": ["wg"],
+    "usage": "/wrapper-gen",
+    "handler": "tool:wrapper_gen"
+  },
+  {
+    "name": "regen-all",
+    "description": "Dispatch rtl-gen on every IP instance whose status.rtl != ok.",
+    "aliases": ["ra"],
+    "usage": "/regen-all",
+    "handler": "todo:template:architect-regen-all"
+  },
+  {
+    "name": "soc-status",
+    "description": "Show the current SoC composition + per-IP pipeline status.",
+    "aliases": ["ss"],
+    "usage": "/soc-status",
+    "handler": "tool:soc_status"
+  }
+]

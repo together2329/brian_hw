@@ -1,0 +1,8 @@
+{
+  "name": "pnr-auto",
+  "description": "One-shot full pipeline (no agent walkthrough). For CI / scripted use",
+  "aliases": [],
+  "handler": "bash:auto_pnr.sh",
+  "usage": "/pnr-auto <ip>",
+  "timeout_sec": 900
+}

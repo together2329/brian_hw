@@ -1,0 +1,7 @@
+{
+  "name": "coverage-build",
+  "description": "Build DUT with Verilator + line/toggle coverage instrumentation",
+  "aliases": ["cov-build"],
+  "handler": "bash:coverage_build.sh",
+  "usage": "/coverage-build [<dut_name>]   (default: gpio_pad)"
+}

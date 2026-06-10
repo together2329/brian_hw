@@ -1,0 +1,15 @@
+{
+  "name": "route",
+  "description": "Read <ip>/sim/mismatch_classification.json and dispatch per-owner workers. rtl_bug → rtl-gen, tb_bug → tb-gen, frontier → escalate.",
+  "aliases": ["rt"],
+  "usage": "/route [ip]",
+  "args": [
+    { "name": "ip", "required": false, "description": "IP to route; defaults to active Pipeline IP" }
+  ],
+  "side_effects": [
+    "reads <ip>/sim/mismatch_classification.json",
+    "dispatches one job per owner group via /dispatch",
+    "escalates frontier mismatches via /escalate"
+  ],
+  "post_action": "wait_for_evidence"
+}

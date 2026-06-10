@@ -1,0 +1,41 @@
+{
+  "name": "ssot-tb",
+  "description": "SSOT->TB: parse canonical YAML and RTL, derive tests generically, run simulation, emit coverage/VCD, or escalate precise failures",
+  "tasks": [
+    {
+      "content": "[SSOT->TB] Parse SSOT, RTL, and build verification ledger",
+      "detail": "Read the canonical SSOT at <ip>/yaml/<ip>.ssot.yaml or exact path from [SSOT HANDOFF]. Read <ip>/verify/equivalence_goals.json when present; if it is missing, run or request /ssot-equiv-goals <ip> before TB signoff. Read <ip>/list/<ip>.f and all RTL it references. Build a verification ledger: top module, simulator, clock/reset, DUT ports, protocol drivers needed, scenario list, equivalence goal IDs, expected results, FunctionalModel/model-adapter source, scoreboard model, coverage bins, waveform requirements, and known assumptions. SSOT expected behavior is authoritative; never rewrite expected values to match observed RTL. Derive from actual SSOT content; do not assume DMA/APB/register-only scenario names.",
+      "criteria": "SSOT file was read\nequivalence_goals.json was read or a precise /ssot-equiv-goals blocker was emitted\nRTL filelist and all referenced RTL files were read\nEvery DUT top port is mapped to a TB/cocotb signal\nEvery test_requirements.scenarios[] entry has stimulus, SSOT-derived expected result, checker plan, and coverage bin\nEvery non-blocked equivalence goal has a planned scoreboard event row keyed by goal_id\nCoverage bins are planned for reset, each feature, each FSM path, error behavior, and protocol handshakes where present\nNo fixed IP-specific generator/template was added",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->TB] Choose verification implementation and write TB artifacts",
+      "detail": "Choose cocotb/Python unless the SSOT/project explicitly requires SV-only or cocotb is unavailable. For cocotb: write <ip>/tb/cocotb/test_<ip>.py and test_runner.py with clock/reset helpers, protocol driver helpers, workflow/tb-gen/runtime/equivalence_scoreboard.py (`EquivalenceScoreboard`) or copied FunctionalModel adapter, scoreboard model, scenario tests, coverage writer, VCD dumping, and <ip>/sim/scoreboard_events.jsonl emission. Any helper that logs [FAIL] or increments failed-check counters must raise AssertionError so cocotb records a real failure. For SV-only: write <ip>/tb/tb_<ip>.sv and scenario task file(s) plus a reference_model/model_adapter path that preserves SSOT/FunctionalModel expected behavior and writes the same scoreboard_events.jsonl fields. All tests must be derived from SSOT scenarios and equivalence goals, not from fixed scenario names.",
+      "criteria": "TB files exist on disk in the chosen layout\npython3 workflow/tb-gen/scripts/check_tb_python_compile.py <ip> --root . passes before simulation\npython3 workflow/tb-gen/runtime/equivalence_scoreboard.py <ip> --root . --self-check passes when FunctionalModel is present\nClock and reset behavior matches SSOT\nDUT instantiation/toplevel matches RTL top module\nEvery SSOT scenario is represented by a test/subtest\nEvery non-blocked equivalence goal is checked or has a precise human/SSOT blocker\nscoreboard_events.jsonl rows include goal_id, scenario_id, cycle, stimulus, fl_expected, rtl_observed, passed, mismatch, and coverage_refs\nEvery test has an assertion/checker with expected/got failure text\nAny [FAIL] path raises/asserts and cannot be hidden by a PASS summary\nCoverage JSON writer or SV report path is implemented\nVCD dump path for sim_debug is implemented",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->TB] Run compile/simulation and repair TB-only issues",
+      "activeForm": "Running SSOT-derived simulation — attempt {loop_count}/{max_loop_iterations}",
+      "detail": "Run the real simulator command after writing TB. Cocotb path: python3 -m pytest -q <ip>/tb/cocotb/test_runner.py --tb=short. SV path: iverilog -g2012 -f <ip>/list/<ip>.f -o <ip>/sim/<ip>.out && vvp <ip>/sim/<ip>.out. If compile fails due to TB syntax, port mapping, runner path, or scoreboard bug, fix TB and rerun. If a scenario fails against the SSOT expected value, do not weaken the checker or change the expected value to observed RTL behavior; stop TB edits and emit [SIM ESCALATE] -> rtl-gen with exact test, expected, got, and suspected RTL file/signal.",
+      "criteria": "Simulation command was run after the last TB edit\nCompile/elaboration exits 0\nAll SSOT scenario tests pass OR failures are escalated precisely\nA cocotb PASS summary is rejected if any [FAIL] line or failed SSOT check remains\nAll non-blocked equivalence goals have scoreboard_events.jsonl evidence before DONE\nTB does not modify RTL files\nNo failure markers remain on DONE path\nResults are captured to results.xml or sim_report.txt",
+      "validator": "python3 workflow/tb-gen/scripts/check_tb_sim_evidence.py",
+      "loop": true,
+      "max_loop_iterations": 15,
+      "exit_condition": "PASS_OR_ESCALATE",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->TB] Emit coverage and sim_debug artifacts",
+      "detail": "Ensure sim_debug can inspect results. Required outputs on PASS path: <ip>/sim/<ip>.vcd, <ip>/sim/scoreboard_events.jsonl, <ip>/cov/coverage_functional.json when functional bins are tracked, <ip>/cov/toggle.json when VCD parsing is available, <ip>/sim/coverage_report.md, and <ip>/tb/cocotb/results.xml or <ip>/sim/sim_report.txt. Final <ip>/cov/coverage.json is produced by the common coverage stage from SSOT/fcov_plan plus raw evidence. Do not claim instrumented code coverage unless the tool actually produced it.",
+      "criteria": "VCD exists and is non-empty\nscoreboard_events.jsonl exists and references equivalence goal IDs\ncoverage_functional.json exists when functional bins are tracked\ncoverage report distinguishes raw functional bins from final SSOT coverage signoff\nResults XML or sim_report exists\nArtifacts are under <ip>/sim, <ip>/cov, or <ip>/tb only",
+      "priority": "high"
+    },
+    {
+      "content": "[SSOT->TB] Emit tb-gen result or escalation handoff",
+      "detail": "If PASS, output [SSOT RESULT] tb-gen DONE with module, SSOT path, TB files, simulation command, pass count, coverage path, VCD path, and next workflow sim_debug. If failures remain, output one [SIM ESCALATE] -> rtl-gen block per failing behavior with exact expected/got evidence and do not claim DONE.",
+      "criteria": "DONE path includes fresh simulation evidence\nDONE path names exact VCD and coverage files\nFailure path includes precise SIM ESCALATE blocks\nNo RTL success beyond simulation evidence is overstated\nNext workflow is sim_debug",
+      "priority": "normal"
+    }
+  ]
+}

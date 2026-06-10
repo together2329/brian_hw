@@ -1,0 +1,7 @@
+{
+  "name": "to-ssot",
+  "description": "Synthesize approved context or locked truth into <ip>/yaml/<ip>.ssot.yaml as a generator-ready Design Spec projection with source_refs, contract_refs, function_model, and cycle_model",
+  "aliases": ["ssot", "ts"],
+  "handler": "skill:to-ssot",
+  "usage": "/to-ssot [<ip_name>]"
+}

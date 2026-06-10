@@ -1,0 +1,88 @@
+{
+  "name": "golden-workflow-augment",
+  "description": "IP-agnostic workflow-level patches to fl-model-gen that lift FL emission to true golden authority (T1/T2/T4)",
+  "lock_additions": true,
+  "tasks": [],
+  "items": [
+    {
+      "content": "Remove name-heuristic state autoincrement in emit_fl_model.py::_apply_primary",
+      "activeForm": "Patching _apply_primary to drop count/bad/good auto-increment",
+      "detail": "Lines 884-892 of emit_fl_model.py rely on substring matches in state names to fabricate state updates. Replace with: when SSOT does not define output_rules/state_updates for the transaction, return RESP_SLVERR with kind='unsupported_transaction' and emit [SSOT QUESTION] state_updates undefined for transaction <id>.",
+      "criteria": "Name-heuristic block removed\nUnsupported transactions return RESP_SLVERR with explicit [SSOT QUESTION] payload\nfl_model_check.json::passed remains true on all currently-passing IPs after patch",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Remove module-ref auto-fill in emit_fl_model.py::_active_rtl_modules",
+      "activeForm": "Removing top_module ref auto-fill",
+      "detail": "Lines 208-209 silently fill 4 fake refs when the only module has no SSOT refs. Replace with blocked=true and blocker='SSOT module ownership undefined'.",
+      "criteria": "Auto-fill block removed\nIPs with single module and no refs are flagged blocked rather than silently passing",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Drop transactions[0] strong default in _coverage_closure_goals",
+      "activeForm": "Patching coverage closure to require transaction match",
+      "detail": "_coverage_closure_goals currently uses _primary_transaction_contract (transactions[0]) to fabricate a contract for every orphan bin. Replace with name-matching scan; if no transaction matches, emit blocked closure goal with blocker='no executable transaction matches coverage bin'.",
+      "criteria": "transactions[0] forced default removed\nOrphan bins without matching transaction are blocked, not silently bound",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Move generated_at/timestamp out of payload into model/manifest.json",
+      "activeForm": "Splitting timestamps into manifest",
+      "detail": "decomposition.json, fcov_plan.json, fl_model_check.json, equivalence_goals.json all include generated_at making outputs non-deterministic. Move all wall-clock fields into <ip>/model/manifest.json (host, run_id, generated_at) and keep payloads byte-stable.",
+      "criteria": "Two consecutive runs of emit_fl_model.py + emit_equivalence_goals.py produce byte-identical decomposition.json/fcov_plan.json/fl_model_check.json/equivalence_goals.json\nmanifest.json contains the wall-clock fields",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Add invariants/reset/error_case assertions to emit_fl_model.py::run_self_check",
+      "activeForm": "Extending self-check coverage",
+      "detail": "run_self_check currently only checks transaction RESP_OKAY. Add: invariants_evaluated counter (every invariant evaluated for every applied txn), reset_consistency check (after reset, state == state_defaults), error_case_triggered set (each tx.error_cases entry intentionally fired). fl_model_check.json gains invariants_evaluated, invariants_failed, reset_consistency, error_cases_covered fields.",
+      "criteria": "fl_model_check.json::self_check has new keys: invariants_evaluated, invariants_failed, reset_consistency, error_cases_covered\nfl_model_check.passed=false when any invariant fails or reset is inconsistent\nGolden TODO GLD_AUG_SELF_CHECK validator checks invariants_evaluated >= len(invariants)",
+      "status": "pending",
+      "priority": "high"
+    },
+    {
+      "content": "Emit model/model_signature.json with SSOT/transactions/invariants/expressions hashes",
+      "activeForm": "Adding deterministic model_signature.json",
+      "detail": "Implemented by workflow/fl-model-gen/scripts/emit_model_signature.py. Hooks: emit_fl_model.py invokes emit_model_signature() at end so signature is always fresh.",
+      "criteria": "<ip>/model/model_signature.json exists after emit_fl_model.py run\nKeys: schema_version, ip, ssot_hash, transactions_hash, invariants_hash, expressions_hash\n--check mode returns 0/1 to detect drift",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "content": "Add semantic-change gate to tb-gen / sim-debug / rtl-gen workers",
+      "activeForm": "Wiring model_signature gate into downstream workers",
+      "detail": "On worker entry, read <ip>/model/model_signature.json and compare against last-known. If mismatch, emit [SSOT HANDOFF] golden_changed -> human and stop. Stored last-known signature lives in <ip>/model/.signature.lock.",
+      "criteria": "Each downstream worker has the gate\nMismatch triggers [SSOT HANDOFF] golden_changed and exits non-zero\nMatch lets work proceed silently",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "content": "Add determinism property test apply(seq) == compose(apply(prefix), apply(suffix))",
+      "activeForm": "Adding determinism property test",
+      "detail": "Generate N random transaction sequences from SSOT vocabulary; verify FunctionalModel.apply on the full sequence equals applying prefix then suffix on a fresh model. Non-determinism (e.g. dict key ordering, non-stable trace) breaks this.",
+      "criteria": "fl_model_check.json includes determinism_property: passed/failed\nN >= 50 sequences sampled\nAny failure roots into a [SSOT QUESTION] for the offending transaction",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "content": "Add golden_vectors.jsonl regression playback",
+      "activeForm": "Wiring golden_vectors.jsonl into emit cycle",
+      "detail": "When humans confirm an FL output for a (txn, expected_result) pair, append to <ip>/model/golden_vectors.jsonl. emit_fl_model.py replays the file at the end of every run; any divergence flags [SSOT HANDOFF] golden_regression -> human.",
+      "criteria": "<ip>/model/golden_vectors.jsonl is read on every emit\nAny mismatch fails fl_model_check.passed\nfl_model_check.json::self_check has golden_vectors_replayed and golden_vectors_failed fields",
+      "status": "pending",
+      "priority": "medium"
+    },
+    {
+      "content": "Stable trace canonicalization (key sort, deterministic dict order)",
+      "activeForm": "Canonicalizing FunctionalModel.trace",
+      "detail": "Today FunctionalModel.trace appends raw dict snapshots; key order can drift across Python builds. Wrap with a canonical_dict() that sorts keys recursively, so `hash(trace)` is reproducible. Same treatment for state snapshots.",
+      "criteria": "Trace dump is byte-identical across two runs of run_self_check on the same SSOT\nCanonicalization helper added to functional_model.py template\nfl_model_check.json includes trace_hash matching across runs",
+      "status": "pending",
+      "priority": "low"
+    }
+  ]
+}

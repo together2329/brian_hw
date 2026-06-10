@@ -219,6 +219,58 @@ def test_skills_name_matches_folder():
         assert fm.get("description"), f"{path}: description missing"
 
 
+# ---------- 자가포함(단독 전달) 증명 ----------
+
+def test_vendor_manifest_in_sync():
+    """ratchet: 정본(workflow/엔진/헬퍼)이 바뀌면 sync 전까지 빨간불."""
+    proc = subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "sync_cursor_pack.py"), "check"],
+        capture_output=True, text=True, timeout=60)
+    assert proc.returncode == 0, proc.stdout + proc.stderr
+
+
+def test_pack_is_self_contained(tmp_path):
+    """.cursor만 복사한 '전달본'에서 엔진/게이트/ip_wiki/MCP가 repo 없이 돈다."""
+    import shutil
+    fake = tmp_path / "delivered_project"
+    fake.mkdir()
+    shutil.copytree(CURSOR, fake / ".cursor",
+                    ignore=shutil.ignore_patterns("__pycache__"))
+    env = {"PATH": "/usr/bin:/bin"}
+
+    def run(args, **kw):
+        return subprocess.run([sys.executable, *args], cwd=fake, env=env,
+                              capture_output=True, text=True, timeout=90, **kw)
+
+    # 1. 러너가 vendored 엔진(.cursor/src)으로 import 성공
+    r = run([".cursor/skills/rtl-to-signoff/scripts/rtl_to_signoff.py", "--help"])
+    assert r.returncode == 0 and "usage" in (r.stdout + r.stderr).lower(), r.stderr[-400:]
+
+    # 2. vendored 게이트가 단독 실행 (정상적 FAIL verdict — crash 아님)
+    r = run([".cursor/workflow/sim/scripts/check_sim_disk.py", "ghost_ip"])
+    assert r.returncode == 1 and "check_sim_disk" in r.stdout, r.stderr[-400:]
+
+    # 3. vendored ip_wiki 라운드트립
+    (fake / "demo_ip").mkdir()
+    assert run([".cursor/scripts/ip_wiki.py", "init", "demo_ip"]).returncode == 0
+    assert run([".cursor/scripts/ip_wiki.py", "log", "demo_ip",
+                "--title", "standalone OK"]).returncode == 0
+    assert run([".cursor/scripts/ip_wiki.py", "check", "demo_ip"]).returncode == 0
+
+    # 4. vendored MCP 서버 handshake
+    msgs = (json.dumps({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                        "params": {"protocolVersion": "2025-06-18"}}) + "\n"
+            + json.dumps({"jsonrpc": "2.0", "id": 2, "method": "tools/list"}) + "\n")
+    r = run([".cursor/scripts/atlas_mcp_server.py"], input=msgs)
+    assert r.returncode == 0
+    names = set()
+    for line in r.stdout.splitlines():
+        msg = json.loads(line)
+        if msg.get("id") == 2:
+            names = {t["name"] for t in msg["result"]["tools"]}
+    assert "rtl_db_query" in names
+
+
 # ---------- rocev-chain skill: 실재 스크립트만 참조 ----------
 
 def test_rocev_chain_references_existing_scripts():
@@ -233,6 +285,36 @@ def test_rocev_chain_references_existing_scripts():
         assert (REPO / rel).is_file(), f"rocev-chain references missing script: {rel}"
 
 
+def test_workflow_families_have_agents():
+    """모든 활성 workflow family에 owner agent 존재 (system prompt 기반)."""
+    SKIP = {"mas-gen", "default", "worker", "cmux", "chat-responder", "eda",
+            "prompts", "scripts", "wiki", "ip-contract", "orchestrator"}
+    fam_alias = {"sim_debug": "sim-debug", "signoff": "signoff-runner"}
+    missing = []
+    for d in sorted((REPO / "workflow").iterdir()):
+        if not d.is_dir() or d.name.startswith("_") or d.name in SKIP:
+            continue
+        if not (d / "system_prompt.md").is_file() and not (d / "scripts").is_dir():
+            continue
+        name = fam_alias.get(d.name, d.name)
+        if not ((CURSOR / "agents" / f"{name}.md").is_file()
+                or (CURSOR / "agents" / f"{name.replace('-gen', '')}.md").is_file()):
+            missing.append(d.name)
+    assert missing == [], f"workflow families without owner agent: {missing}"
+
+
+def test_orchestrator_routes_every_stage_owner():
+    """orchestrator 라우팅 표의 owner들이 전부 실재 + 핵심 스테이지 망라."""
+    text = (CURSOR / "agents" / "orchestrator.md").read_text(encoding="utf-8")
+    owners = set(re.findall(r"`/([a-z0-9-]+)`", text))
+    for required in ("ssot-gen", "req-gen", "rtl-gen", "tb-gen", "sim", "lint",
+                     "coverage", "mutation", "syn", "pnr", "sta", "signoff-runner",
+                     "verifier", "hephaestus"):
+        assert required in owners, f"orchestrator routing missing: {required}"
+    for owner in owners:
+        assert (CURSOR / "agents" / f"{owner}.md").is_file(), f"routed owner missing: {owner}"
+
+
 def test_rocev_chain_subagent_owners_exist():
     text = (CURSOR / "agents" / "rocev-chain.md").read_text(encoding="utf-8")
     owners = re.findall(r"`/([a-z0-9-]+)`", text)
@@ -242,6 +324,11 @@ def test_rocev_chain_subagent_owners_exist():
 
 
 def test_no_atlas_prefixed_names_under_cursor():
-    """ratchet: .cursor 밑 식별자(파일/폴더명)에 atlas- 접두어 금지 (2026-06-10 지시)."""
-    offenders = [p for p in CURSOR.rglob("atlas-*") if "atlas-" in p.name]
+    """ratchet: 팩 식별자(파일/폴더명)에 atlas- 접두어 금지 (2026-06-10 지시).
+
+    .cursor/workflow 는 정본 미러(vendor)라서 면제 — 정본 파일명을 바꾸면
+    엔진/manifest 가 깨진다."""
+    offenders = [p for p in CURSOR.rglob("atlas-*")
+                 if "atlas-" in p.name
+                 and ".cursor/workflow/" not in p.as_posix()]
     assert offenders == [], f"atlas-prefixed names remain: {offenders}"

@@ -70,6 +70,25 @@ stdio JSON-RPC (MCP 2025-06-18, stdlib-only). `.cursor/mcp.json`으로 Cursor에
 Claude Code에서도 `claude mcp add rtl-db -- python3 scripts/atlas_mcp_server.py`로 동일 사용.
 온톨로지: OBL_ATLAS_MCP_SERVER.
 
+## 자가포함 배포 (v3, 2026-06-10 Brian 지시: "참조만 하면 안 돼")
+
+`.cursor`는 **단독 전달 가능**: workflow 본체(517 파일 — 스크립트/manifest/템플릿)와
+엔진(`src/workflow_stage_engine.py` 등 3종), 헬퍼(`ip_wiki`, MCP 서버)가
+`.cursor/{workflow,src,scripts}/`에 vendoring돼 있다.
+
+- 동기화: `python3 scripts/sync_cursor_pack.py sync` (정본→팩, 해시 manifest)
+- drift ratchet: `... check` + `test_vendor_manifest_in_sync` — 정본이 바뀌면 빨간불
+- 러너/서버는 풀 repo에선 정본을, 전달본에선 vendored 사본을 자동 선택
+- 증명: `test_pack_is_self_contained` — 팩만 복사한 가짜 프로젝트에서
+  엔진 import·게이트 실행·ip_wiki 라운드트립·MCP handshake 전부 통과
+
+## Agents 전체 커버리지 + Orchestrator
+
+활성 workflow family 전부에 owner agent 존재 (27 agents; system_prompt.md 기반,
+`test_workflow_families_have_agents` ratchet). `orchestrator`는 명시적 컨덕터:
+스테이지→owner 라우팅 표, gate-then-advance, 위임 계약(IP/스테이지/직전 verdict/기대
+증거), ip_wiki 히스토리 의무, "done = signoff+verifier 재검" — 본인은 저작 금지.
+
 ## 이름 규칙
 
 `.cursor` 밑 식별자(agents/skills/rules 파일·폴더명)에는 `atlas-` 접두어를 쓰지

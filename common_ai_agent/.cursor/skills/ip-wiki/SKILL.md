@@ -12,10 +12,10 @@ as git history next to the artifacts they explain.
 ## Commands
 
 ```bash
-python3 scripts/ip_wiki.py init  <ip_dir>                                  # 골격 (멱등)
-python3 scripts/ip_wiki.py log   <ip_dir> --title "..." --stage sim --body "..."
-python3 scripts/ip_wiki.py page  <ip_dir> <name> --title "..." --tags a,b
-python3 scripts/ip_wiki.py check <ip_dir>                                  # rc 0/1 게이트
+python3 .cursor/scripts/ip_wiki.py init  <ip_dir>                                  # 골격 (멱등)
+python3 .cursor/scripts/ip_wiki.py log   <ip_dir> --title "..." --stage sim --body "..."
+python3 .cursor/scripts/ip_wiki.py page  <ip_dir> <name> --title "..." --tags a,b
+python3 .cursor/scripts/ip_wiki.py check <ip_dir>                                  # rc 0/1 게이트
 ```
 
 ## When to log (mandatory moments)
