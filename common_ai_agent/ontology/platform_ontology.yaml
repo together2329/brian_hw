@@ -197,6 +197,17 @@ units:
       - tests/test_scm_adapter.py
       - tests/test_atlas_git_api.py
 
+  - id: platform.cursor-pack
+    kind: adapter
+    summary: Cursor 에이전트 팩 (.cursor rules/hooks/subagents/skills — todo-loop hook + ROCEV chain)
+    owns:
+      - .cursor/hooks/stop-todo-loop.py
+      - .cursor/hooks/stop-loop-check.py
+      - .cursor/hooks/guard-shell.py
+      - .cursor/hooks/protect-generated-artifacts.py
+    content_tests:
+      - tests/test_cursor_pack.py
+
   - id: platform.ontology
     kind: meta
     summary: 이 온톨로지 자체 (선언+스캐너+래칫)
