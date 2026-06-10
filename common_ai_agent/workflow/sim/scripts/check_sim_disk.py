@@ -160,6 +160,11 @@ def main(argv: list[str]) -> int:
         bin_path = _find_first(ip, r"/sim_build/sim\.vvp$")
     if not bin_path:
         bin_path = _find_first(ip, r"/sim_build/.*\.vvp$")
+    if not bin_path:
+        # cocotb_test-based generated runners (emit_goal_scoreboard_cocotb) build
+        # into sim/cocotb_build/<ip>.vvp rather than sim_build/sim.vvp.
+        # (ported from the main-side .sh improvement at merge time)
+        bin_path = _find_first(ip, r"/cocotb_build/.*\.vvp$")
 
     min_bin = int(os.environ.get("MIN_BIN", "1000"))
     min_rpt = int(os.environ.get("MIN_RPT", "100"))
@@ -168,7 +173,7 @@ def main(argv: list[str]) -> int:
     if not bin_path:
         print(
             f"[check_sim_disk] FAIL: no compiled binary at {bin_iv.as_posix()}, "
-            f"{bin_vcs.as_posix()}, or */sim_build/sim.vvp"
+            f"{bin_vcs.as_posix()}, */sim_build/*.vvp, or */cocotb_build/*.vvp"
         )
         return 1
     bin_sz = _size(Path(bin_path))
