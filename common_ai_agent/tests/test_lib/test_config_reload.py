@@ -233,6 +233,43 @@ class TestProfileSystem(unittest.TestCase):
         cfg = _fresh_config(os.environ)
         self.assertTrue(cfg._active_profile_blocks_auto_opencode())
 
+    def test_profile_fallthrough_uses_original_not_poisoned_topkey(self):
+        """review [31]: switching A -> B (B omitting base_url/api_key) must fall
+        through to the ORIGINAL top-level LLM_*, never the os.environ value that
+        A's apply poisoned — otherwise B's calls go to A's endpoint with A's key.
+        """
+        import importlib
+        # env set BEFORE reload so the import-time original-snapshot captures it
+        os.environ["LLM_BASE_URL"] = "https://original.example/v1"
+        os.environ["LLM_API_KEY"] = "original-key"
+        os.environ["PROFILE_a_MODEL"] = "model-a"
+        os.environ["PROFILE_a_BASE_URL"] = "https://provider-a.example/v1"
+        os.environ["PROFILE_a_API_KEY"] = "a-key"
+        os.environ["PROFILE_b_MODEL"] = "model-b"  # b omits BASE_URL + API_KEY
+        import config as cfg
+        importlib.reload(cfg)
+
+        self.assertTrue(cfg._apply_profile("a"))
+        self.assertEqual(cfg.BASE_URL, "https://provider-a.example/v1")
+        # os.environ is now poisoned with A's url; B must NOT inherit it.
+        prof_b = cfg.get_profile("b")
+        self.assertEqual(prof_b["base_url"], "https://original.example/v1")
+        self.assertEqual(prof_b["api_key"], "original-key")
+        self.assertTrue(cfg._apply_profile("b"))
+        self.assertEqual(cfg.BASE_URL, "https://original.example/v1")
+        self.assertEqual(cfg.API_KEY, "original-key")
+        self.assertEqual(cfg.MODEL_NAME, "model-b")
+
+    def test_active_provider_returns_consistent_trio(self):
+        """review [32]: active_provider() returns the live (base_url, api_key,
+        model) trio atomically (same values as the module globals)."""
+        os.environ["LLM_BASE_URL"] = "https://prov.example/v1"
+        os.environ["LLM_API_KEY"] = "k1"
+        os.environ["LLM_MODEL_NAME"] = "m1"
+        cfg = _fresh_config(os.environ)
+        trio = cfg.active_provider()
+        self.assertEqual(trio, (cfg.BASE_URL, cfg.API_KEY, cfg.MODEL_NAME))
+
 
 if __name__ == "__main__":
     unittest.main()
