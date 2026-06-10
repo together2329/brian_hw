@@ -2076,6 +2076,83 @@ class HeadlessWorkflowRunner:
         structural = _ids("structural_contracts.json", "contracts")
         if not (behavioral or structural or obligations):
             return ""
+
+        # The IDs alone tell the LLM WHICH contracts exist but not WHAT they
+        # specify. In headless mode the worker cannot self-read req/ (tool use
+        # is blocked by the provider contract), so without injecting the
+        # contract bodies the model authors a generic SSOT
+        # (feature_1/feature_2 placeholders, empty fsm) and the repair pass
+        # masks it. Surface the actual decision tables + statements so the LLM
+        # AUTHORS function_model.transactions from the locked guidelines.
+        # (Design: truth = guidelines, Function Model = LLM-authored.)
+        def _detail() -> str:
+            blocks: list[str] = []
+
+            def _load(name: str, key: str) -> list:
+                try:
+                    doc = json.loads((req_dir / name).read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError):
+                    return []
+                items = doc.get(key) if isinstance(doc, dict) else doc
+                return items if isinstance(items, list) else []
+
+            req_lines: list[str] = []
+            for item in _load("requirements_index.json", "requirements"):
+                if not isinstance(item, dict):
+                    continue
+                rid = item.get("requirement_id") or item.get("id") or ""
+                stmt = str(item.get("statement") or item.get("title") or "").strip()
+                if rid and stmt:
+                    req_lines.append(f"  - {rid}: {stmt[:400]}")
+            if req_lines:
+                blocks.append("Requirement statements:\n" + "\n".join(req_lines))
+
+            obl_lines: list[str] = []
+            for item in _load("obligations.json", "obligations"):
+                if not isinstance(item, dict):
+                    continue
+                oid = item.get("obligation_id") or item.get("id") or ""
+                stmt = str(item.get("statement") or "").strip()
+                if oid and stmt:
+                    obl_lines.append(f"  - {oid}: {stmt[:300]}")
+            if obl_lines:
+                blocks.append("Obligation statements:\n" + "\n".join(obl_lines))
+
+            beh_lines: list[str] = []
+            for item in _load("behavioral_contracts.json", "contracts"):
+                if not isinstance(item, dict):
+                    continue
+                bid = item.get("id") or item.get("contract_id") or ""
+                if not bid:
+                    continue
+                rows = item.get("decision_table")
+                table = ""
+                if isinstance(rows, list) and rows:
+                    pairs = []
+                    for r in rows:
+                        if isinstance(r, dict):
+                            w = str(r.get("when") or r.get("if") or "").strip()
+                            t = str(r.get("then") or r.get("expect") or "").strip()
+                            if w or t:
+                                pairs.append(f"      WHEN {w} -> {t}")
+                    table = "\n".join(pairs)
+                obls = item.get("obligations")
+                obl_ref = f" (obligations: {', '.join(map(str, obls))})" if isinstance(obls, list) and obls else ""
+                detail = f"  - {bid}{obl_ref}"
+                if table:
+                    detail += "\n" + table
+                beh_lines.append(detail)
+            if beh_lines:
+                blocks.append(
+                    "Behavioral contract decision tables — AUTHOR a "
+                    "function_model.transactions[] entry implementing each, with "
+                    "output_rules/state_updates expressions over declared io ports "
+                    "(never leave feature_N placeholders):\n" + "\n".join(beh_lines)
+                )
+            joined = "\n".join(blocks)
+            return ("\nLOCKED TRUTH DETAIL (the guidelines to author from):\n" + joined + "\n") if joined else ""
+
+        truth_detail = _detail()
         return (
             "LOCKED TRUTH PROJECTION CONTRACT.\n"
             f"{ip}/req holds a hash-locked requirement bundle (status requirements_locked). "
@@ -2084,6 +2161,7 @@ class HeadlessWorkflowRunner:
             f"- Obligation IDs: {', '.join(obligations) or '(none)'}\n"
             f"- Behavioral contract IDs: {', '.join(behavioral) or '(none)'}\n"
             f"- Structural contract IDs: {', '.join(structural) or '(none)'}\n"
+            f"{truth_detail}"
             "Projection rules enforced by downstream gates (derive_rtl_todos, derive_tb_todos, "
             "emit_cycle_model symbol contract):\n"
             "- Every behavioral contract ID must appear in contract_refs on at least one "
