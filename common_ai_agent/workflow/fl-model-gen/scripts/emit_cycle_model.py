@@ -15,6 +15,7 @@ import json
 import re
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -1191,6 +1192,29 @@ def main() -> int:
     if not triggered:
         print(f"[emit_cycle_model] {args.ip} CL not required (declarative cycle_model is sufficient)")
         print(f"[emit_cycle_model] trigger check: {reason}")
+        # Refresh the check artifact: a STALE failing cl_model_check.json from
+        # an earlier SSOT version otherwise keeps the cl-model stage red
+        # forever (finding 24, live add8 run 919806f5 — the worker PASSed
+        # "not required" while the 19:05 stale check said passed=false and the
+        # pipeline-truth branch kept failing the stage).
+        check_path = ip_dir / "model" / "cl_model_check.json"
+        check_path.parent.mkdir(parents=True, exist_ok=True)
+        check_path.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "type": "cl_model_check",
+                    "ip": args.ip,
+                    "passed": True,
+                    "cl_required": False,
+                    "reason": f"CL not required: {reason}",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
         return 0
 
     print(f"[emit_cycle_model] trigger fired: {reason}")

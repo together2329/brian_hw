@@ -1151,3 +1151,39 @@ def test_model_stage_artifact_failures(tmp_path) -> None:
         {"ip": ip, "stage_id": "ssot", "workflow": "ssot-gen"}, tmp_path
     )
     assert not failed
+
+
+def test_model_stage_stale_check_not_red(tmp_path) -> None:
+    """Finding 24 — a *_check.json older than the SSOT refers to a previous
+    SSOT version; a stale FAIL must not keep the stage red (the live add8 run
+    looped ssot-gen repairs against a stale cl_model_check after the SSOT
+    converged and CL became not-required)."""
+    import json as _json
+    import os as _os
+    import time as _time
+
+    from src import atlas_api_jobs as jobs
+
+    ip = "ipy"
+    ip_dir = tmp_path / ip
+    (ip_dir / "model").mkdir(parents=True)
+    (ip_dir / "yaml").mkdir(parents=True)
+
+    check = ip_dir / "model" / "cl_model_check.json"
+    check.write_text(_json.dumps({"passed": False}), encoding="utf-8")
+    old = _time.time() - 3600
+    _os.utime(check, (old, old))
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text("top_module: {}\n", encoding="utf-8")
+
+    failed, _ = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert not failed  # stale fail -> needs re-run, not red
+
+    # Fresh fail (check newer than SSOT) stays red.
+    now = _time.time() + 10
+    _os.utime(check, (now, now))
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert failed and "cl_model_check.json" in reason
