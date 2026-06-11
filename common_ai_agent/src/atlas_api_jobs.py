@@ -4696,6 +4696,72 @@ def _job_artifact_failure(
         return False, ""
     stage = str(job.get("stage_id") or job.get("workflow") or "").strip()
     workflow = str(job.get("workflow") or "").strip()
+    # Model/authoring stages. Without these branches the FS-truth function is
+    # blind to fl/cl/equivalence/tb/ssot failures: read_pipeline_state never
+    # lists them as red, the upstream-red dispatch gate cannot fire on them,
+    # and a finalize sees all-green — the 2026-06-11 add8 run finalized
+    # "completed" over a failing cl_model_check this way (campaign finding 22).
+    if stage == "ssot":
+        validation = ip_dir / "req" / "ssot_validation.json"
+        if validation.is_file():
+            try:
+                doc = json.loads(validation.read_text(encoding="utf-8"))
+            except Exception:
+                return True, f"unparseable artifact: {ip}/req/ssot_validation.json"
+            if isinstance(doc, dict) and doc.get("ok") is False:
+                ids = ",".join(
+                    str(b.get("id") or "") for b in (doc.get("blockers") or [])[:3]
+                )
+                return True, f"{ip}/req/ssot_validation.json ok=false blockers={ids}"
+        return False, ""
+    if stage == "fl-model":
+        check = ip_dir / "model" / "fl_model_check.json"
+        if check.is_file():
+            try:
+                doc = json.loads(check.read_text(encoding="utf-8"))
+            except Exception:
+                return True, f"unparseable artifact: {ip}/model/fl_model_check.json"
+            if isinstance(doc, dict) and doc.get("passed") is False:
+                return True, f"{ip}/model/fl_model_check.json passed=false"
+        reason = _json_status_artifact_failure(
+            ip_dir / "logs" / "stage_engine" / "ssot-fl-model.json",
+            "logs/stage_engine/ssot-fl-model.json",
+        )
+        if reason:
+            return True, f"{ip}/{reason}"
+        return False, ""
+    if stage == "cl-model":
+        check = ip_dir / "model" / "cl_model_check.json"
+        if check.is_file():
+            try:
+                doc = json.loads(check.read_text(encoding="utf-8"))
+            except Exception:
+                return True, f"unparseable artifact: {ip}/model/cl_model_check.json"
+            if isinstance(doc, dict) and doc.get("passed") is False:
+                return True, f"{ip}/model/cl_model_check.json passed=false"
+        reason = _json_status_artifact_failure(
+            ip_dir / "logs" / "stage_engine" / "ssot-cycle-model.json",
+            "logs/stage_engine/ssot-cycle-model.json",
+        )
+        if reason:
+            return True, f"{ip}/{reason}"
+        return False, ""
+    if stage == "equivalence":
+        reason = _json_status_artifact_failure(
+            ip_dir / "logs" / "stage_engine" / "ssot-equiv-goals.json",
+            "logs/stage_engine/ssot-equiv-goals.json",
+        )
+        if reason:
+            return True, f"{ip}/{reason}"
+        return False, ""
+    if stage == "tb" or workflow == "tb-gen":
+        reason = _json_status_artifact_failure(
+            ip_dir / "logs" / "stage_engine" / "ssot-tb-cocotb.json",
+            "logs/stage_engine/ssot-tb-cocotb.json",
+        )
+        if reason:
+            return True, f"{ip}/{reason}"
+        return False, ""
     if stage == "lint" or workflow == "lint":
         for rel in ("lint/dut_lint.json", "lint/lint_report.json"):
             path = ip_dir / rel

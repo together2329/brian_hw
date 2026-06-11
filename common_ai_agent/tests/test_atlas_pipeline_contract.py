@@ -1071,3 +1071,83 @@ def test_rtl_artifact_recovery_refreshes_stale_provenance_with_existing_filelist
         f"rtl/{ip}.sv",
         f"rtl/{ip}_engine.sv",
     ]
+
+
+def test_model_stage_artifact_failures(tmp_path) -> None:
+    """Campaign finding 22 — the FS-truth function was blind to model stages:
+    fl/cl/equivalence/tb/ssot could never be computed red, so the upstream-red
+    dispatch gate and the finalize gate saw all-green over a failing
+    cl_model_check (live add8 run 7abb7ba3, 2026-06-11)."""
+    import json as _json
+
+    from src import atlas_api_jobs as jobs
+
+    ip = "ipx"
+    ip_dir = tmp_path / ip
+    (ip_dir / "model").mkdir(parents=True)
+    (ip_dir / "logs" / "stage_engine").mkdir(parents=True)
+    (ip_dir / "req").mkdir(parents=True)
+
+    # cl-model: cl_model_check passed=false -> red
+    (ip_dir / "model" / "cl_model_check.json").write_text(
+        _json.dumps({"passed": False}), encoding="utf-8"
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert failed and "cl_model_check.json" in reason
+
+    # cl-model: passed=true -> green
+    (ip_dir / "model" / "cl_model_check.json").write_text(
+        _json.dumps({"passed": True}), encoding="utf-8"
+    )
+    failed, _ = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert not failed
+
+    # fl-model: fl_model_check passed=false -> red
+    (ip_dir / "model" / "fl_model_check.json").write_text(
+        _json.dumps({"passed": False}), encoding="utf-8"
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "fl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert failed and "fl_model_check.json" in reason
+
+    # equivalence: stage-engine BLOCKED record -> red
+    (ip_dir / "logs" / "stage_engine" / "ssot-equiv-goals.json").write_text(
+        _json.dumps({"status": "blocked", "headline": "unsupported rule helper"}),
+        encoding="utf-8",
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "equivalence", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert failed and "ssot-equiv-goals.json" in reason
+
+    # tb: stage-engine fail record -> red
+    (ip_dir / "logs" / "stage_engine" / "ssot-tb-cocotb.json").write_text(
+        _json.dumps({"status": "fail", "headline": "generated TB needs repair"}),
+        encoding="utf-8",
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "tb", "workflow": "tb-gen"}, tmp_path
+    )
+    assert failed and "ssot-tb-cocotb.json" in reason
+
+    # ssot: ssot_validation ok=false -> red, ok=true -> green
+    (ip_dir / "req" / "ssot_validation.json").write_text(
+        _json.dumps({"ok": False, "blockers": [{"id": "ssot.yaml_parse_failed"}]}),
+        encoding="utf-8",
+    )
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "ssot", "workflow": "ssot-gen"}, tmp_path
+    )
+    assert failed and "ssot_validation.json" in reason
+    (ip_dir / "req" / "ssot_validation.json").write_text(
+        _json.dumps({"ok": True, "blockers": []}), encoding="utf-8"
+    )
+    failed, _ = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "ssot", "workflow": "ssot-gen"}, tmp_path
+    )
+    assert not failed
