@@ -4701,6 +4701,15 @@ def _job_artifact_failure(
     # lists them as red, the upstream-red dispatch gate cannot fire on them,
     # and a finalize sees all-green — the 2026-06-11 add8 run finalized
     # "completed" over a failing cl_model_check this way (campaign finding 22).
+    # Staleness (finding 24): a *_check.json older than the SSOT refers to a
+    # PREVIOUS SSOT version — a stale FAIL must not keep the stage red after
+    # the SSOT changed (the stage needs a re-run, which is not a failure).
+    def _model_check_is_stale(ip_dir_: Path, ip_: str, check_path: Path) -> bool:
+        ssot_path = ip_dir_ / "yaml" / f"{ip_}.ssot.yaml"
+        try:
+            return ssot_path.is_file() and check_path.stat().st_mtime < ssot_path.stat().st_mtime
+        except OSError:
+            return False
     if stage == "ssot":
         validation = ip_dir / "req" / "ssot_validation.json"
         if validation.is_file():
@@ -4716,7 +4725,7 @@ def _job_artifact_failure(
         return False, ""
     if stage == "fl-model":
         check = ip_dir / "model" / "fl_model_check.json"
-        if check.is_file():
+        if check.is_file() and not _model_check_is_stale(ip_dir, ip, check):
             try:
                 doc = json.loads(check.read_text(encoding="utf-8"))
             except Exception:
@@ -4732,7 +4741,7 @@ def _job_artifact_failure(
         return False, ""
     if stage == "cl-model":
         check = ip_dir / "model" / "cl_model_check.json"
-        if check.is_file():
+        if check.is_file() and not _model_check_is_stale(ip_dir, ip, check):
             try:
                 doc = json.loads(check.read_text(encoding="utf-8"))
             except Exception:
