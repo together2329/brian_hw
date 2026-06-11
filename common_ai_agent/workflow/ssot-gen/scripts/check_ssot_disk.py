@@ -51,6 +51,37 @@ class _Fail(Exception):
     """Mirrors the embedded heredoc's SystemExit(message) — validation failure."""
 
 
+def _combinational_locked_truth(ssot_path: "Path") -> bool:
+    """True when EVERY locked behavioral contract is cycle-waived (combinational).
+
+    Finding 23 (2026-06-11, add8_cin_v1): this script demanded a non-empty
+    ``function_model.state_variables`` while the combinational gate
+    (verify_ssot + repair_ssot_schema) demands it be EMPTY for cycle-waived
+    IPs — a validator deadlock the authoring loop could never converge out of.
+    Same predicate as verify_ssot._combinational_state_issues."""
+    try:
+        req = Path(ssot_path).resolve().parent.parent / "req" / "behavioral_contracts.json"
+        if not req.is_file():
+            return False
+        workflow_root = Path(__file__).resolve().parents[2]
+        if str(workflow_root) not in sys.path:
+            sys.path.insert(0, str(workflow_root))
+        import json as _json
+
+        from behavioral_contracts import (  # type: ignore
+            behavioral_contract_map,
+            _cycle_model_waived,
+        )
+
+        doc = _json.loads(req.read_text(encoding="utf-8"))
+        contracts = behavioral_contract_map(doc)
+        return bool(contracts) and all(
+            _cycle_model_waived(contract) for contract in contracts.values()
+        )
+    except Exception:
+        return False
+
+
 def _validate_yaml(path: str, run_mode: str) -> None:
     """Faithful port of the embedded python heredoc in check_ssot_disk.sh.
 
@@ -386,8 +417,18 @@ def _validate_yaml(path: str, run_mode: str) -> None:
     fm = doc.get("function_model")
     if not isinstance(fm, dict):
         raise _Fail("function_model must be a mapping")
+    combinational = _combinational_locked_truth(Path(path))
     for key in ("state_variables", "transactions", "invariants"):
-        if not isinstance(fm.get(key), list) or not fm.get(key):
+        value = fm.get(key)
+        if key == "state_variables" and combinational:
+            # Cycle-waived combinational locked truth: the combinational gate
+            # requires state_variables to be EMPTY; demanding non-empty here
+            # deadlocked SSOT authoring (finding 23). Absent or any list is
+            # legal for these IPs.
+            if value is None or isinstance(value, list):
+                continue
+            raise _Fail("function_model.state_variables must be a list")
+        if not isinstance(value, list) or not value:
             raise _Fail(f"function_model.{key} must be a non-empty list")
     all_ports = collect_ports()
     output_ports = {

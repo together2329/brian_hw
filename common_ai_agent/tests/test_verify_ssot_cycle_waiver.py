@@ -397,3 +397,92 @@ def test_combinational_contracts_reject_fictional_cycle_model_timing(tmp_path):
     assert "primary_operation" in lat["path"]
     # min_cycles: 0 lanes must not be flagged
     assert not any("latency.response" in str(item.get("path")) for item in report.get("blockers") or [])
+
+
+# --------------------------------------------------------------------------- #
+# 7. check_ssot_disk must not demand non-empty state_variables on a
+#    combinational IP — that contradicted the combinational gate and
+#    deadlocked SSOT authoring (finding 23). Sequential IPs keep the strict
+#    requirement.
+# --------------------------------------------------------------------------- #
+def _run_disk_check(ip: str, root: Path) -> subprocess.CompletedProcess[str]:
+    env = dict(os.environ)
+    env["ATLAS_PROJECT_ROOT"] = str(root)
+    # Reach the strict function_model checks without authoring a full
+    # 4000B/34-section SSOT: the size/section-count fast-fails are
+    # env-tunable by design.
+    env["MIN_YAML"] = "120"
+    env["MIN_SECTIONS"] = "1"
+    env["ATLAS_RUN_MODE"] = "signoff"
+    script = ROOT / "workflow" / "ssot-gen" / "scripts" / "check_ssot_disk.py"
+    return subprocess.run(
+        [sys.executable, str(script), ip],
+        text=True, encoding="utf-8", errors="replace",
+        capture_output=True, timeout=30, env=env, cwd=str(root),
+    )
+
+
+def _write_disk_ssot(ssot_path: Path, ip: str, root: Path) -> None:
+    """Write an SSOT that reaches _validate_yaml's strict function_model loop.
+
+    check_ssot_disk fails fast on size (<4000B) and on missing required
+    sections; the exact section list is mode/version-dependent, so this
+    helper self-heals: run the checker, add stub sections it names, repeat.
+    The fixture's function_model has transactions+invariants non-empty and
+    state_variables EMPTY — the state_variables verdict is the test subject.
+    """
+    import yaml as _yaml
+
+    doc = {
+        "top_module": {"name": ip, "description": "combinational adder"},
+        "io_list": {"interfaces": [{"name": "data", "type": "custom", "ports": [
+            {"name": "a", "direction": "input", "width": 8, "description": "operand a"},
+        ]}]},
+        "function_model": {
+            "state_variables": [],
+            "transactions": [{"id": "FM_ADD", "name": "add", "description": "combinational add"}],
+            "invariants": [{"id": "INV1", "description": "sum stays 8-bit"}],
+        },
+        "custom": {"pad": "x" * 4200},
+    }
+    # Fast-fail guard wants >=34 top-level sections before it even names the
+    # required ones — pre-stuff fillers; the heal loop below adds the real
+    # required sections the checker names.
+    for i in range(34):
+        doc.setdefault(f"filler_section_{i:02d}", {"stub": True})
+    for _ in range(4):
+        ssot_path.parent.mkdir(parents=True, exist_ok=True)
+        ssot_path.write_text(_yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+        result = _run_disk_check(ip, root)
+        combined = result.stdout + result.stderr
+        if "missing required sections:" in combined:
+            missing = combined.split("missing required sections:", 1)[1].splitlines()[0]
+            for key in [k.strip() for k in missing.split(",") if k.strip()]:
+                doc.setdefault(key, {"stub": True})
+            continue
+        break
+
+
+def test_disk_check_combinational_allows_empty_state_variables(tmp_path):
+    ip = "add8_cin_disk"
+    _write_locked_req_bundle(tmp_path / ip / "req", ip, sequential=False)
+    _write_disk_ssot(tmp_path / ip / "yaml" / f"{ip}.ssot.yaml", ip, tmp_path)
+
+    result = _run_disk_check(ip, tmp_path)
+
+    # The stub fixture fails LATER strict requirements — the pin here is only
+    # that the failure is NOT the state_variables deadlock.
+    combined = result.stdout + result.stderr
+    assert "state_variables must be a non-empty list" not in combined, combined
+
+
+def test_disk_check_sequential_still_requires_state_variables(tmp_path):
+    ip = "cnt_disk"
+    _write_locked_req_bundle(tmp_path / ip / "req", ip, sequential=True)
+    _write_disk_ssot(tmp_path / ip / "yaml" / f"{ip}.ssot.yaml", ip, tmp_path)
+
+    result = _run_disk_check(ip, tmp_path)
+
+    combined = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "state_variables must be a non-empty list" in combined, combined
