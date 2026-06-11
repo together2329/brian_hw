@@ -723,6 +723,52 @@ def _combinational_state_issues(doc: Any, behavioral_doc: dict[str, Any]) -> lis
                     remediation,
                 ))
 
+    # Fictional TIMING is the same defect one section over (live add8_cin_v1:
+    # cycle_model declared a valid/ready handshake + min_cycles>=1 latency on a
+    # cycle-waived adder; the downstream CL semantic gate blocked every cl run).
+    timing_remediation = (
+        "Strip handshake_rules/pipeline/backpressure and any min_cycles>=1 "
+        "latency from cycle_model — a cycle-waived IP is purely combinational "
+        "(same-cycle outputs, no handshake, no clocked ordering)."
+    )
+    cycle_model = doc.get("cycle_model")
+    if isinstance(cycle_model, dict):
+        handshakes = [h for h in _as_list(cycle_model.get("handshake_rules")) if _present(h)]
+        if handshakes:
+            issues.append(_issue(
+                "blocker",
+                "ssot.combinational_ip_declares_handshake",
+                "cycle_model.handshake_rules",
+                f"cycle_model.handshake_rules is non-empty ({len(handshakes)} rule(s)); {reason}.",
+                timing_remediation,
+            ))
+        for key in ("pipeline", "backpressure"):
+            if _present(cycle_model.get(key)):
+                issues.append(_issue(
+                    "blocker",
+                    f"ssot.combinational_ip_declares_{key}",
+                    f"cycle_model.{key}",
+                    f"cycle_model.{key} is present; {reason}.",
+                    timing_remediation,
+                ))
+        latency = cycle_model.get("latency")
+        if isinstance(latency, dict):
+            for lane, entry in latency.items():
+                if not isinstance(entry, dict):
+                    continue
+                try:
+                    min_cycles = int(entry.get("min_cycles") or 0)
+                except Exception:
+                    min_cycles = 0
+                if min_cycles >= 1:
+                    issues.append(_issue(
+                        "blocker",
+                        "ssot.combinational_ip_declares_clocked_latency",
+                        f"cycle_model.latency.{lane}",
+                        f"cycle_model.latency.{lane}.min_cycles={min_cycles} declares clocked latency; {reason}.",
+                        timing_remediation,
+                    ))
+
     return issues
 
 
@@ -1177,6 +1223,10 @@ def main() -> int:
             "ssot.combinational_ip_declares_fsm",
             "ssot.combinational_ip_declares_state_variables",
             "ssot.combinational_ip_declares_state_updates",
+            "ssot.combinational_ip_declares_handshake",
+            "ssot.combinational_ip_declares_pipeline",
+            "ssot.combinational_ip_declares_backpressure",
+            "ssot.combinational_ip_declares_clocked_latency",
         }
         hard = [item for item in blockers if str(item.get("id") or "") in hard_ids]
         guardrails = [item for item in blockers if str(item.get("id") or "") not in hard_ids]

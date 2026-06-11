@@ -362,3 +362,38 @@ def test_relaxed_mode_keeps_combinational_gate_hard(tmp_path):
     assert "ssot.combinational_ip_declares_state_updates" in ids
     demoted = {item.get("id") for item in (report.get("guardrails") or [])}
     assert "ssot.combinational_ip_declares_fsm" not in demoted
+
+
+# --------------------------------------------------------------------------- #
+# 6. Fictional TIMING on a combinational IP (the live add8 cycle_model defect):
+#    handshake_rules + min_cycles>=1 latency must hard-fail like the FSM did,
+#    in relaxed mode too.
+# --------------------------------------------------------------------------- #
+_FICTIONAL_TIMING_BLOCK = _CLEAN_FUNCTION_BLOCK + """
+cycle_model:
+  clock: clk
+  handshake_rules:
+    - { signal: valid/ready, rule: payload stable until ready }
+  latency:
+    primary_operation: { min_cycles: 1, max_cycles: null }
+    response: { min_cycles: 0 }"""
+
+
+def test_combinational_contracts_reject_fictional_cycle_model_timing(tmp_path):
+    ip = "add8_cin_timing"
+    _write_locked_req_bundle(tmp_path / ip / "req", ip, sequential=False)
+    _write_ssot(tmp_path / ip / "yaml" / f"{ip}.ssot.yaml", ip, _FICTIONAL_TIMING_BLOCK)
+
+    result = _run_verify(ip, tmp_path, run_mode="engineering")
+
+    assert result.returncode != 0, result.stdout
+    report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
+    assert report.get("ok") is False
+    ids = {item.get("id") for item in (report.get("blockers") or [])}
+    assert "ssot.combinational_ip_declares_handshake" in ids
+    assert "ssot.combinational_ip_declares_clocked_latency" in ids
+    by_id = {item["id"]: item for item in (report.get("blockers") or [])}
+    lat = by_id["ssot.combinational_ip_declares_clocked_latency"]
+    assert "primary_operation" in lat["path"]
+    # min_cycles: 0 lanes must not be flagged
+    assert not any("latency.response" in str(item.get("path")) for item in report.get("blockers") or [])
