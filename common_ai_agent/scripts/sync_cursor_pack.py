@@ -27,6 +27,9 @@ MANIFEST = PACK / "VENDOR_MANIFEST.json"
 
 VENDOR_EXTS = {".py", ".json", ".md", ".yaml", ".yml", ".txt", ".j2", ".sv", ".v"}
 EXCLUDE_DIRS = {"__pycache__", "mas-gen"}
+# README.md는 사람용 문서일 뿐 엔진/게이트가 소비하지 않는다. vendoring에서 제외해
+# 세션 간 README 추가/삭제가 드리프트 래칫을 흔드는 noise를 차단한다.
+EXCLUDE_NAMES = {"README.md"}
 
 SINGLE_FILES = [
     ("src/workflow_stage_engine.py", "src/workflow_stage_engine.py"),
@@ -42,6 +45,8 @@ def _iter_workflow():
         if not p.is_file() or p.suffix not in VENDOR_EXTS:
             continue
         if any(part in EXCLUDE_DIRS for part in p.parts):
+            continue
+        if p.name in EXCLUDE_NAMES:
             continue
         yield p
 
