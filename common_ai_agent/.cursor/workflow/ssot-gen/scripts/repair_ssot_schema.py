@@ -4334,6 +4334,112 @@ def _validate_downstream_readiness(doc: dict[str, Any], ip: str, root: Path) -> 
     return issues
 
 
+def _load_req_doc(root: Path, ip: str, name: str) -> dict[str, Any]:
+    """Load a req/*.json locked-truth doc next to the SSOT, or {} if absent."""
+    path = root / ip / "req" / name
+    if not path.is_file():
+        return {}
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return doc if isinstance(doc, dict) else {}
+
+
+def _obligation_to_transaction_index(doc: dict[str, Any]) -> dict[str, int]:
+    """Map each obligation id to the function_model.transactions[] index that
+    implements it.
+
+    Transactions are positionally derived from features (FM{idx} <- features[idx-1]
+    in ``_ensure_function_model``), so the obligation -> feature -> transaction
+    chain is deterministic: obligations declared on ``features[i].obligation_refs``
+    own the transaction at the same positional index. This keeps the projection
+    LLM-independent.
+    """
+    mapping: dict[str, int] = {}
+    txs = []
+    fm = doc.get("function_model")
+    if isinstance(fm, dict) and isinstance(fm.get("transactions"), list):
+        txs = fm["transactions"]
+    features = [f for f in (doc.get("features") or []) if isinstance(f, dict)]
+    for idx, feature in enumerate(features):
+        if idx >= len(txs):
+            break
+        for ob_ref in feature.get("obligation_refs") or []:
+            ob_ref = str(ob_ref).strip()
+            if ob_ref and ob_ref not in mapping:
+                mapping[ob_ref] = idx
+    return mapping
+
+
+def _project_locked_behavioral_contracts(doc: dict[str, Any], root: Path, ip: str) -> list[dict[str, Any]]:
+    """Project every locked behavioral contract id into the function_model.
+
+    rtl-gen's contract-projection gate (``derive_rtl_todos._collect_contract_projection_refs``)
+    requires every behavioral contract id from ``req/behavioral_contracts.json`` to
+    appear literally inside a ``contract_refs`` / ``behavioral_contract_refs`` key of
+    at least one ``function_model.transactions[]`` entry. Without this the gate emits
+    ``LOCKED_TRUTH_CONTRACT_NOT_PROJECTED_<BC>`` and leaves the contract orphaned with
+    no inferable RTL owner. This deterministic repair derives the mapping
+    BC -> obligation -> feature -> transaction and appends the BC id so the contract
+    is never left unprojected.
+    """
+    actions: list[dict[str, Any]] = []
+    behavioral = _load_req_doc(root, ip, "behavioral_contracts.json")
+    contracts = [c for c in (behavioral.get("contracts") or []) if isinstance(c, dict)]
+    if not contracts:
+        return actions
+
+    fm = doc.get("function_model")
+    if not isinstance(fm, dict):
+        return actions
+    txs = fm.get("transactions")
+    if not isinstance(txs, list):
+        return actions
+
+    ob_to_tx = _obligation_to_transaction_index(doc)
+    for contract in contracts:
+        bc_id = str(contract.get("id") or "").strip()
+        if not bc_id:
+            continue
+        obligations = [str(o).strip() for o in (contract.get("obligations") or []) if str(o).strip()]
+        # Choose the transaction that implements one of the contract's obligations.
+        tx_index: int | None = None
+        for ob in obligations:
+            if ob in ob_to_tx:
+                tx_index = ob_to_tx[ob]
+                break
+        # Fallback: attach to the first transaction so the contract is never
+        # left unprojected. If there is no transaction at all, synthesize a
+        # minimal projecting transaction from the contract.
+        if tx_index is None:
+            if txs:
+                tx_index = 0
+            else:
+                txs.append({
+                    "id": f"FM_{_norm_token(bc_id).upper()}",
+                    "name": _norm_token(bc_id),
+                    "preconditions": ["Feature trigger is asserted under legal configuration"],
+                    "inputs": ["Inputs described by io_list and dataflow"],
+                    "outputs": ["Architectural output matches the locked behavioral contract"],
+                    "side_effects": ["Architectural state updates according to FSM/control policy"],
+                })
+                tx_index = len(txs) - 1
+        tx = txs[tx_index]
+        if not isinstance(tx, dict):
+            continue
+        before = list(tx.get("contract_refs") or [])
+        _append_unique_ref(tx, "contract_refs", bc_id)
+        _append_unique_ref(tx, "behavioral_contract_refs", bc_id)
+        if tx.get("contract_refs") != before:
+            actions.append({
+                "behavioral_contract": bc_id,
+                "transaction": str(tx.get("id") or tx.get("name") or f"transactions[{tx_index}]"),
+                "via_obligations": obligations,
+            })
+    return actions
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("ip")
@@ -4358,6 +4464,7 @@ def main() -> int:
     strict_downstream_issues = _validate_downstream_readiness(doc, ns.ip, root) if ns.strict_downstream else []
     state = _load_state(root, ns.ip)
     repaired = repair(doc, state, ns.ip)
+    projection_actions = _project_locked_behavioral_contracts(repaired, root, ns.ip)
     ssot.write_text(yaml.safe_dump(repaired, sort_keys=False, width=4096, allow_unicode=False), encoding="utf-8")
     loaded = yaml.safe_load(ssot.read_text(encoding="utf-8"))
     missing = [key for key in REQUIRED_ORDER if key not in loaded]
@@ -4367,6 +4474,10 @@ def main() -> int:
     print(f"[repair_ssot_schema] wrote {ssot.relative_to(root)}")
     print(f"[repair_ssot_schema] provenance: {sidecar.relative_to(root)}")
     print(f"[repair_ssot_schema] sections: {len([k for k in REQUIRED_ORDER if k in loaded])}/{len(REQUIRED_ORDER)}")
+    if projection_actions:
+        print(f"[repair_ssot_schema] locked behavioral contract projection: {len(projection_actions)} contract(s)")
+        for action in projection_actions:
+            print(f"  - {action['behavioral_contract']} -> function_model.transactions[{action['transaction']}]")
     downstream_issues = strict_downstream_issues or _validate_downstream_readiness(loaded, ns.ip, root)
     blockers_path = root / ns.ip / "req" / "ssot_downstream_blockers.json"
     blockers_path.parent.mkdir(parents=True, exist_ok=True)

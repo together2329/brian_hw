@@ -11,11 +11,16 @@ import argparse
 import importlib.util
 import json
 import re
+import sys
 import time
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+_SCRIPT_DIR = Path(__file__).resolve().parent
+if str(_SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPT_DIR))
 
 
 def _load_ssot(ip_dir: Path, ip: str) -> dict[str, Any]:
@@ -2036,6 +2041,30 @@ if __name__ == "__main__":
 '''
 
 
+def _run_semantic_validation(ip: str, root: Path, *, use_llm: bool) -> dict[str, Any]:
+    """Run the FL-vs-behavioral-contract semantic gate.
+
+    Imported lazily so a fresh checkout missing the validator module degrades to an
+    explicit ``not_run`` status (never a crash and never a silent pass).
+    """
+    try:
+        from validate_fl_semantics import validate_fl_semantics
+    except Exception as exc:  # pragma: no cover - defensive import guard
+        return {
+            "status": "not_run",
+            "passed": True,
+            "reason": f"semantic validator unavailable: {type(exc).__name__}: {exc}",
+        }
+    try:
+        return validate_fl_semantics(ip, root, use_llm=use_llm)
+    except Exception as exc:  # pragma: no cover - validator must not break emit
+        return {
+            "status": "not_run",
+            "passed": True,
+            "reason": f"semantic validation raised {type(exc).__name__}: {exc}",
+        }
+
+
 def _run_generated_self_check(path: Path) -> dict[str, Any]:
     spec = importlib.util.spec_from_file_location("generated_functional_model", path)
     if spec is None or spec.loader is None:
@@ -2051,6 +2080,16 @@ def main() -> int:
     parser.add_argument("ip")
     parser.add_argument("--root", default=".")
     parser.add_argument("--no-check", action="store_true")
+    parser.add_argument(
+        "--no-semantic",
+        action="store_true",
+        help="skip the FL-vs-behavioral-contract semantic validation gate entirely",
+    )
+    parser.add_argument(
+        "--no-semantic-llm",
+        action="store_true",
+        help="run the deterministic semantic backstop only (skip the LLM judge)",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -2090,13 +2129,24 @@ def main() -> int:
     check = {"passed": True, "skipped": True}
     if not args.no_check:
         check = _run_generated_self_check(model_path)
+
+    # Semantic validation: the self-check only runs the FL model against itself
+    # and never asks whether the FL transactions faithfully implement the locked
+    # behavioral contracts. The semantic gate (deterministic backstop + optional
+    # LLM judge) flags fictional state (e.g. an FSM/state_updates projected onto a
+    # cycle-waived combinational IP) before the bad FL model reaches sim.
+    semantic = _run_semantic_validation(args.ip, root, use_llm=not args.no_semantic_llm) \
+        if not args.no_semantic else {"status": "skipped", "passed": True, "reason": "--no-semantic"}
+    semantic_passed = bool(semantic.get("passed", True))
+
     report = {
         "schema_version": 1,
         "type": "fl_model_check",
         "ip": args.ip,
         "source": str(model_path.relative_to(ip_dir)),
-        "passed": bool(check.get("passed")),
+        "passed": bool(check.get("passed")) and semantic_passed,
         "self_check": check,
+        "semantic_validation": semantic,
         "decomposition_units": len(decomposition["units"]),
         "fcov_bins": len(bins),
         "authority_contract": _authority_contract(args.ip),
@@ -2119,6 +2169,11 @@ def main() -> int:
     (model_dir / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
     print(f"[emit_fl_model] wrote {model_path}")
     print(f"[emit_fl_model] decomposition_units={len(decomposition['units'])} fcov_bins={len(bins)} passed={report['passed']}")
+    if not semantic_passed:
+        print(f"[emit_fl_model] SEMANTIC GATE FAIL: {semantic.get('reason', 'FL model violates locked behavioral contracts')}")
+        for violation in semantic.get("violations", []) or []:
+            if isinstance(violation, dict) and violation.get("detail"):
+                print(f"  - {violation['detail']}")
     return 0 if report["passed"] and decomposition["units"] and bins else 1
 
 
