@@ -1,7 +1,0 @@
-{
-  "name": "sta-sdc",
-  "description": "Generate <ip>/sta/out/<ip>.sdc from SSOT (no execution)",
-  "aliases": [],
-  "handler": "bash:write_sdc.sh",
-  "usage": "/sta-sdc"
-}

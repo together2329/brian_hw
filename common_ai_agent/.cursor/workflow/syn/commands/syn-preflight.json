@@ -1,7 +1,0 @@
-{
-  "name": "syn-preflight",
-  "description": "Check yosys, PDK liberty, LEF/tracks, SSOT, filelist, and RTL inputs before synthesis",
-  "aliases": ["syn-pf"],
-  "handler": "bash:preflight.sh",
-  "usage": "/syn-preflight <ip>"
-}

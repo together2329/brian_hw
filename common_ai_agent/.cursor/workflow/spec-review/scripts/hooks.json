@@ -1,9 +1,0 @@
-{
-  "hooks": [
-    {
-      "script": "post_session.sh",
-      "trigger": "on_session_end",
-      "conditions": {}
-    }
-  ]
-}

@@ -1,7 +1,0 @@
-{
-  "name": "dft",
-  "description": "Full DFT flow — agent walks handoff → SSOT → scan-insert (or passthrough) → optional ATPG → report",
-  "aliases": ["scan"],
-  "handler": "todo:template:dft-default",
-  "usage": "/dft"
-}

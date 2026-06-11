@@ -1,7 +1,0 @@
-{
-  "name": "dft-tcl",
-  "description": "Generate <ip>/dft/run.tcl from SSOT (no execution)",
-  "aliases": [],
-  "handler": "bash:write_dft_tcl.sh",
-  "usage": "/dft-tcl"
-}

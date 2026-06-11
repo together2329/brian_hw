@@ -1,7 +1,0 @@
-{
-  "name": "draft-req",
-  "description": "Draft requirement, obligation, structural/behavioral contract, and evidence JSON for the active IP",
-  "aliases": ["draft_req", "req-draft"],
-  "handler": "todo:template:draft-req",
-  "usage": "/draft-req"
-}

@@ -1,7 +1,0 @@
-{
-  "name": "pnr-report",
-  "description": "Re-emit pnr.report.md from existing artifacts (no re-PnR)",
-  "aliases": ["pnr-r"],
-  "handler": "bash:write_report.sh",
-  "usage": "/pnr-report <ip>"
-}

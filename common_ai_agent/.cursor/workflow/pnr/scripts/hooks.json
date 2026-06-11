@@ -1,5 +1,0 @@
-{
-  "hooks": [
-    { "script": "auto_pnr.sh", "trigger": "manual", "conditions": {} }
-  ]
-}

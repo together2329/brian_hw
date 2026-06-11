@@ -1,7 +1,0 @@
-{
-  "name": "finalize-req",
-  "description": "Finalize a human review candidate for requirement JSON without locking it",
-  "aliases": ["finalize_req", "req-finalize"],
-  "handler": "todo:template:finalize-req",
-  "usage": "/finalize-req"
-}

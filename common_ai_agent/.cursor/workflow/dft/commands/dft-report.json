@@ -1,7 +1,0 @@
-{
-  "name": "dft-report",
-  "description": "Re-emit dft.report.md from existing scan_chains.json (no re-insertion)",
-  "aliases": ["dft-r"],
-  "handler": "bash:write_report.sh",
-  "usage": "/dft-report"
-}

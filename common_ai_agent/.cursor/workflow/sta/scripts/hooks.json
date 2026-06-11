@@ -1,9 +1,0 @@
-{
-  "hooks": [
-    {
-      "script": "auto_sta.sh",
-      "trigger": "manual",
-      "conditions": {}
-    }
-  ]
-}

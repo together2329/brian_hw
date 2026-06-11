@@ -1,7 +1,0 @@
-{
-  "name": "lock-req",
-  "description": "Lock human-approved requirement JSON into locked truth authority files",
-  "aliases": ["lock_req", "req-lock", "truth-lock", "lock-truth"],
-  "handler": "todo:template:lock-req",
-  "usage": "/lock-req"
-}
