@@ -344,6 +344,33 @@ def _bind_orchestrator_tools(
         if workflow == "__final__":
             payload = kw.get("payload") or {}
             state = str(payload.get("state") or "completed")
+            reason = str(payload.get("reason") or "")
+            # Deterministic finalize gate (campaign finding 21): "completed" is
+            # an evidence claim, not an LLM verdict. Re-read the live pipeline
+            # state; any red stage downgrades the finalize to "blocked" with the
+            # red map as the reason — the 2026-06-11 add8 run finalized
+            # "completed" over a failing cl_model_check + errored sim refresh.
+            if state == "completed":
+                failed: dict[str, Any] = {}
+                try:
+                    snapshot = _read_pipeline_state(ip=ctx.ip_name)
+                    # orch_tools.read_pipeline_state returns (result, summary).
+                    if isinstance(snapshot, tuple):
+                        snapshot = snapshot[0] if snapshot else {}
+                    if isinstance(snapshot, dict):
+                        failed = snapshot.get("failed") or {}
+                except Exception:
+                    failed = {}
+                if failed:
+                    detail = "; ".join(
+                        f"{stage}: {str(why)[:80]}"
+                        for stage, why in sorted(failed.items())[:4]
+                    )
+                    state = "blocked"
+                    reason = (
+                        "finalize_downgraded: completed claimed with red stages — "
+                        f"{detail}"
+                    )
             db.update_orchestrator_run(
                 ctx.run_id,
                 status=state,
@@ -351,7 +378,7 @@ def _bind_orchestrator_tools(
                 ended=(state != "paused"),
             )
             return (
-                {"ok": True, "final_state": state, "reason": payload.get("reason", "")},
+                {"ok": True, "final_state": state, "reason": reason},
                 f"finalised: {state}",
             )
         # Check budget for each workflow about to be dispatched. The LLM may

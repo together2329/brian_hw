@@ -198,3 +198,74 @@ class TestParallelToolCalls:
         # Both dispatches actually invoked the bridge.
         assert len(dispatched) == 2
         assert {d["workflow"] for d in dispatched} == {"lint", "tb-gen"}
+
+
+class TestFinalizeEvidenceGate:
+    """Campaign finding 21 — ``__final__ completed`` is an evidence claim.
+
+    The 2026-06-11 add8 run finalized "completed" over a failing
+    cl_model_check and an errored sim refresh. The finalize gate re-reads the
+    live pipeline state and downgrades a "completed" claim to "blocked" when
+    any stage is red.
+    """
+
+    def _with_state_bridge(self, monkeypatch, failed):
+        import core.tools as core_tools
+
+        def bridge(**kw):
+            return {"ip": kw.get("ip"), "passed": [], "failed": failed, "running": []}
+
+        monkeypatch.setattr(
+            core_tools, "_read_pipeline_state_callback", bridge, raising=False
+        )
+
+    def test_final_completed_downgraded_to_blocked_on_red_stage(
+        self, db, ctx, monkeypatch
+    ):
+        self._with_state_bridge(
+            monkeypatch, {"cl-model": "model/cl_model_check.json passed=false"}
+        )
+        caller = _scripted(
+            _tool_call(
+                "dispatch_workflow",
+                workflow="__final__",
+                payload={"state": "completed", "reason": "all green"},
+            ),
+            {"content": "done"},
+        )
+        outcome = OrchestratorReactLoop(db, ctx, llm_caller=caller).run(max_steps=5)
+        assert outcome.status == "blocked"
+        run = db.get_orchestrator_run(ctx.run_id)
+        assert run["status"] == "blocked"
+        assert run["final_state"] == "blocked"
+        assert run["ended_at"] is not None
+
+    def test_final_completed_stays_completed_when_all_green(
+        self, db, ctx, monkeypatch
+    ):
+        self._with_state_bridge(monkeypatch, {})
+        caller = _scripted(
+            _tool_call(
+                "dispatch_workflow",
+                workflow="__final__",
+                payload={"state": "completed", "reason": "all green"},
+            ),
+            {"content": "done"},
+        )
+        outcome = OrchestratorReactLoop(db, ctx, llm_caller=caller).run(max_steps=5)
+        assert outcome.status == "completed"
+
+    def test_final_blocked_claim_passes_through_untouched(self, db, ctx, monkeypatch):
+        # The gate only audits "completed" claims; an honest blocked claim is
+        # recorded as-is even with reds present.
+        self._with_state_bridge(monkeypatch, {"sim": "results.xml failures=2"})
+        caller = _scripted(
+            _tool_call(
+                "dispatch_workflow",
+                workflow="__final__",
+                payload={"state": "blocked", "reason": "sim red"},
+            ),
+            {"content": "stopping"},
+        )
+        outcome = OrchestratorReactLoop(db, ctx, llm_caller=caller).run(max_steps=5)
+        assert outcome.status == "blocked"
