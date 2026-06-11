@@ -15,6 +15,13 @@ repo 없이 자족합니다 (workflow 본체·엔진·헬퍼가 폴더 안에 ve
 Cursor IDE로 `<your-project>`를 열면 끝. rules가 자동 주입되고
 `/orchestrator`, `/sim`, `/rtl-gen` 같은 subagent와 skill이 바로 보인다.
 
+**권장 2가지** (둘 다 프로젝트 루트에 둬야 Cursor가 전역 인식 — `.cursor` 안이 아님):
+- `cp .cursor/cursorignore.sample .cursorignore` — vendored 본체(workflow/src/scripts)를
+  시맨틱 인덱스에서 제외해 "내 코드" 검색에 사본이 섞이지 않게 한다 (실행엔 영향 없음).
+- `.cursor/AGENTS.md`는 `.cursor` 안에선 그 폴더 작업 시에만 적용된다(nested 범위).
+  전역 운영 규약으로 쓰려면 `cp .cursor/AGENTS.md AGENTS.md`로 루트에 복사.
+  (안 해도 `rules/*.mdc`가 alwaysApply로 같은 규율을 전역 주입하므로 동작엔 지장 없음.)
+
 ## 2. 준비물
 
 | 필수 | 용도 |

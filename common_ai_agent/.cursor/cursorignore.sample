@@ -1,0 +1,7 @@
+# vendored 본체는 Cursor 시맨틱 인덱스(@-검색/컨텍스트)에서 제외한다.
+# 실행은 영향 없음 — hooks/skills가 `python3 .cursor/workflow/...` 직접 경로로 부른다.
+# 인덱스에서만 빼서 "내 코드" 검색에 vendored 사본이 섞이지 않게 한다.
+.cursor/workflow/
+.cursor/src/
+.cursor/scripts/
+.cursor/VENDOR_MANIFEST.json
