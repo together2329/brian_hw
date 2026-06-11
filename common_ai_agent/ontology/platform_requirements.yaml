@@ -561,6 +561,10 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
             observed_at: 1d1edd4e
+      - id: OBL_TB_CONSTRAINED_RANDOM_SWEEP
+        owned_by: engine.stage
+        granularity: content
+        status: open   # 사용자 지시(2026-06-11): goal-driven directed stimulus 외에 constrained-random 입력 스윕(수백 벡터, 전수 FL-vs-RTL 체크)을 generic TB가 생성해야 함 — 현재 emit_goal_scoreboard_cocotb는 random 미지원 (add8 12/12는 directed만으로 닫힘); RTL mutation kill-test(contract_check 연계)와 함께 rigorous-verification 페이즈의 1번 항목
       - id: OBL_TB_SUPPORTS_CLOCKLESS_DUT
         owned_by: engine.stage
         granularity: behavior
