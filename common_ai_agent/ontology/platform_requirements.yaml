@@ -348,15 +348,15 @@ requirements:
         status: closed   # cursor.com/docs 대조: rules/commands/skills/agents/hooks 포맷 ratchet
         evidence:
           - test: "tests/test_cursor_pack.py::test_conformance_rules_frontmatter_keys_and_semantics"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: e2c4edee
           - test: "tests/test_cursor_pack.py::test_conformance_commands_are_plain_markdown"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: e2c4edee
           - test: "tests/test_cursor_pack.py::test_conformance_skills_frontmatter_keys"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: e2c4edee
           - test: "tests/test_cursor_pack.py::test_conformance_agents_frontmatter_keys"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: e2c4edee
           - test: "tests/test_cursor_pack.py::test_conformance_hooks_event_names"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: e2c4edee
       - id: OBL_CURSOR_PACK_SELF_CONTAINED
         owned_by: platform.cursor-pack
         granularity: behavior
