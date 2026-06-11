@@ -193,56 +193,54 @@ TOOL_FNS = {
 }
 
 
-def _reply(msg_id, result=None, error=None) -> None:
-    payload = {"jsonrpc": "2.0", "id": msg_id}
-    if error is not None:
-        payload["error"] = error
-    else:
-        payload["result"] = result
-    sys.stdout.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    sys.stdout.flush()
+def dispatch(msg: dict):
+    """JSON-RPC 메시지 → 응답 payload dict (notification이면 None).
 
-
-def handle(msg: dict) -> None:
+    transport(stdio/HTTP) 무관하게 동일 로직. 호출측이 응답을 어떻게 보낼지 결정.
+    """
     method = msg.get("method", "")
     msg_id = msg.get("id")
+
+    def ok(result):
+        return {"jsonrpc": "2.0", "id": msg_id, "result": result}
+
+    def err(code, message):
+        return {"jsonrpc": "2.0", "id": msg_id, "error": {"code": code, "message": message}}
+
     if method.startswith("notifications/"):
-        return  # no response to notifications
+        return None
     if method == "initialize":
         client = msg.get("params", {}).get("protocolVersion") or PROTOCOL_VERSION
-        _reply(msg_id, {
+        return ok({
             "protocolVersion": client,
             "capabilities": {"tools": {}},
             "serverInfo": {"name": "atlas-mcp", "version": "1.0.0"},
         })
-        return
     if method == "ping":
-        _reply(msg_id, {})
-        return
+        return ok({})
     if method == "tools/list":
-        _reply(msg_id, {"tools": TOOLS})
-        return
+        return ok({"tools": TOOLS})
     if method == "tools/call":
         params = msg.get("params", {})
         name = params.get("name", "")
         fn = TOOL_FNS.get(name)
         if fn is None:
-            _reply(msg_id, error={"code": -32602, "message": f"unknown tool: {name}"})
-            return
+            return err(-32602, f"unknown tool: {name}")
         try:
             text = fn(params.get("arguments") or {})
         except Exception as exc:  # noqa: BLE001 — 서버는 죽지 않는다
             text = f"[{name}] ERROR: {exc}"
-        _reply(msg_id, {
+        return ok({
             "content": [{"type": "text", "text": text}],
             "isError": text.startswith("[") and "ERROR" in text.split("\n", 1)[0],
         })
-        return
     if msg_id is not None:
-        _reply(msg_id, error={"code": -32601, "message": f"method not found: {method}"})
+        return err(-32601, f"method not found: {method}")
+    return None
 
 
-def main() -> int:
+def run_stdio() -> int:
+    """기본 transport: Cursor가 이 프로세스를 spawn해 stdin/stdout으로 대화."""
     for line in sys.stdin:
         line = line.strip()
         if not line:
@@ -251,8 +249,73 @@ def main() -> int:
             msg = json.loads(line)
         except json.JSONDecodeError:
             continue
-        handle(msg)
+        resp = dispatch(msg)
+        if resp is not None:
+            sys.stdout.write(json.dumps(resp, ensure_ascii=False) + "\n")
+            sys.stdout.flush()
     return 0
+
+
+def run_http(host: str, port: int) -> int:
+    """상주 transport: 직접 실행해두면 Cursor가 URL로 접속 (Streamable HTTP).
+
+    POST <path> 로 JSON-RPC 1건을 받아 application/json 1건으로 응답.
+    notification(id 없음)은 202. GET /health 로 살아있는지 확인.
+    """
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *a):  # 조용히
+            pass
+
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(
+                {"server": "atlas-mcp", "status": "ok", "tools": [t["name"] for t in TOOLS]}
+            ).encode())
+
+        def do_POST(self):
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            body = self.rfile.read(length) if length else b""
+            try:
+                msg = json.loads(body or b"{}")
+            except json.JSONDecodeError:
+                self.send_response(400); self.end_headers(); return
+            resp = dispatch(msg)
+            if resp is None:
+                self.send_response(202); self.end_headers(); return
+            payload = json.dumps(resp, ensure_ascii=False).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            self.end_headers()
+            self.wfile.write(payload)
+
+    server = ThreadingHTTPServer((host, port), Handler)
+    sys.stderr.write(f"[atlas-mcp] HTTP listening on http://{host}:{port}  "
+                     f"(Cursor mcp.json: {{\"url\": \"http://{host}:{port}/mcp\"}})\n")
+    sys.stderr.flush()
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    return 0
+
+
+def main(argv=None) -> int:
+    argv = sys.argv[1:] if argv is None else argv
+    if "--http" in argv:
+        host = "127.0.0.1"
+        port = 8765
+        for i, a in enumerate(argv):
+            if a == "--port" and i + 1 < len(argv):
+                port = int(argv[i + 1])
+            elif a == "--host" and i + 1 < len(argv):
+                host = argv[i + 1]
+        return run_http(host, port)
+    return run_stdio()
 
 
 if __name__ == "__main__":

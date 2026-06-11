@@ -120,3 +120,49 @@ def test_mcp_json_registers_server():
     server = doc["mcpServers"]["rtl-db"]
     script = server["args"][0]
     assert (REPO / script).is_file(), f"mcp.json references missing server: {script}"
+
+
+# ---------- HTTP transport (상주 서버 모드) ----------
+
+def test_http_mode_serves_requests(tmp_path):
+    """--http 모드: 상주 서버를 띄워 /health + JSON-RPC POST 가 동작."""
+    import time
+    import urllib.request
+    port = 8791
+    proc = subprocess.Popen(
+        [sys.executable, str(SERVER), "--http", "--port", str(port)],
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        env={"PATH": "/usr/bin:/bin"})
+    try:
+        # 바인딩될 때까지 폴링 (sleep 대신 재시도)
+        base = f"http://127.0.0.1:{port}"
+        health = None
+        for _ in range(50):
+            try:
+                with urllib.request.urlopen(base + "/health", timeout=1) as r:
+                    health = json.loads(r.read())
+                    break
+            except Exception:
+                time.sleep(0.1)
+        assert health and health["server"] == "atlas-mcp" and health["status"] == "ok"
+
+        def post(obj):
+            req = urllib.request.Request(
+                base + "/mcp", data=json.dumps(obj).encode(),
+                headers={"Content-Type": "application/json"})
+            with urllib.request.urlopen(req, timeout=5) as r:
+                return json.loads(r.read())
+
+        init = post({"jsonrpc": "2.0", "id": 1, "method": "initialize",
+                     "params": {"protocolVersion": "2025-06-18"}})
+        assert init["result"]["serverInfo"]["name"] == "atlas-mcp"
+        tools = post({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+        assert {t["name"] for t in tools["result"]["tools"]} == \
+            {"ontology_query", "wiki_search", "rtl_db_query", "rtl_db_wiki"}
+        call = post({"jsonrpc": "2.0", "id": 3, "method": "tools/call",
+                     "params": {"name": "wiki_search",
+                                "arguments": {"query": "Platform Ontology"}}})
+        assert "platform-ontology" in call["result"]["content"][0]["text"]
+    finally:
+        proc.terminate()
+        proc.wait(timeout=5)
