@@ -200,7 +200,14 @@ def build_pack(ip: str, spec: dict) -> dict[str, object]:
                             # checks correctness. Waive the cycle_model explicitly (per
                             # verify_ssot: use only when truly cycle-independent).
                             "cycle_model_waiver": True,
-                            "stage_contracts": [{"stage": closure,
+                            # rtl stage_contract is REQUIRED: rtl-gen's gate raises
+                            # LOCKED_TRUTH_CONTRACT_NO_RTL_STAGE_<BC> if a behavioral
+                            # contract has no rtl/rtl-gen stage to close against.
+                            "stage_contracts": [{"stage": "rtl",
+                                                  "check": f"RTL implements {feat['statement'][:60]}",
+                                                  "pass_condition": "rtl_compile PASS + output_rules realized in RTL",
+                                                  "validator": "rtl_compile_report.py"},
+                                                 {"stage": closure,
                                                   "check": feat["statement"][:80],
                                                   "pass_condition": "scoreboard/assert PASS per decision table",
                                                   "validator": "check_evidence_contract.py" if temporal else "check_scoreboard_events.py"}]})
@@ -225,7 +232,10 @@ def build_pack(ip: str, spec: dict) -> dict[str, object]:
     behaviorals.append({"id": f"BC-{tag}-LINT", "obligations": [lint_obl],
                         "decision_table": [{"when": "static analysis runs", "then": "no latch, single driver"}],
                         "cycle_model_waiver": True,
-                        "stage_contracts": [{"stage": "lint", "check": "lint clean",
+                        "stage_contracts": [{"stage": "rtl", "check": "RTL is synthesizable + single-driver",
+                                              "pass_condition": "rtl_compile PASS, no inferred latch",
+                                              "validator": "rtl_compile_report.py"},
+                                             {"stage": "lint", "check": "lint clean",
                                               "pass_condition": "no latch / multi-driver findings",
                                               "validator": "dut_lint_report.py"}]})
     evidence.append({"evidence_id": f"E_{tag}_LINT", "contract_ref": f"C_{tag}_LINT",
