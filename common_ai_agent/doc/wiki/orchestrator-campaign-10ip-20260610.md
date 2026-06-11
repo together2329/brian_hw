@@ -248,3 +248,49 @@ production uses).
 10/10 real SSOTs authored from locked truth; one IP (add8) advanced ssot→fl-model
 (PASS); orchestrating control plane validated end-to-end incl. mctp to STA/PNR;
 13 findings, 9 code fixes (all on main); web UI on React Flow + chat visible.
+
+---
+
+## add8_cin_v1 full-pipeline drive (2026-06-11) — 6 green stages + compiling RTL + UVM TB
+
+Drove add8 from human-locked truth through the pipeline via orchestrator chat.
+Orchestrator state at the end: **passed = [ssot, fl-model, cl-model, equivalence,
+lint, tb]** (6 green), **rtl = gate fail** (`open_required_todos=5,
+blocking_questions=4`) despite the RTL artifact compiling (`rtl_compile=True`)
+and lint passing (`dut_lint=True`). sim correctly gated because rtl is not green.
+
+Real artifacts produced:
+- rtl/: `add8_cin_v1.sv` (proper SystemVerilog, SSOT port contract) +
+  comb_logic leaf + param.vh + rtl_compile.json(True) + contract/traceability.
+- lint/: dut_lint.json (True).
+- tb/cocotb/: full UVM-style bench — test_add8_cin_v1.py, scoreboard.py,
+  sequences.py, agents.py, uvm_env.py, transactions.py, tb_coverage.py.
+
+### Blockers resolved this drive (all direct intervention, in order)
+1. **gpt-5.5 pathological latency** — one orchestrator call took 482s (vs
+   gpt-5.4 4.8s). Restarted on gpt-5.4. (gpt-5.5 normal ~4.3s; the 482s was an
+   endpoint overload spike.)
+2. **gpt-5.3-codex-spark malformed orchestrator tool calls** — fast (1.3s) and
+   good at authoring, but called dispatch_workflow with empty args ({}) →
+   "workflow required" loop. Model-fit finding: spark OK for workers, too weak
+   for the orchestrator's structured tool-calling → use gpt-5.4 for the
+   orchestrator. (gpt-5.3-codex itself is UNAVAILABLE on a ChatGPT account: HTTP
+   400.)
+3. **contract-authority gate** — obligations lacked structural/behavioral
+   contract_refs and the SC_/BC_ contracts had no evidence_plan closure;
+   orch_campaign_truth.py now emits both + cycle_model_waiver. check_locked_truth_bundle PASS.
+4. **stale-worker scheduler block** — the many model-test restarts left orphaned
+   "running" worker_runs rows; the scheduler thought workers were busy and left
+   rtl-gen queued. Cleared stale rows → rtl-gen picked up and produced RTL.
+5. **rtl-gate spec todos (remaining)** — the rtl-gen worker left 5 required
+   todos + 4 blocking questions (adder cin/cout/overflow spec ambiguities) open,
+   so the rtl stage gate is red even though the RTL compiles+lints; this gates
+   sim. The worker's spec-completeness handling is the open item.
+
+### Verdict
+The orchestrating system drove a fresh IP from locked truth through 6 pipeline
+stages with real, compiling, lint-clean RTL + a full cocotb UVM testbench,
+correctly evidence-gating each stage. Model-fit matters: **gpt-5.4 for the
+orchestrator** (reliable tool calls), spark/gpt-5.4 for workers. The last gap to
+signoff is the rtl-gen worker resolving its own blocking-questions to turn the
+rtl gate green.
