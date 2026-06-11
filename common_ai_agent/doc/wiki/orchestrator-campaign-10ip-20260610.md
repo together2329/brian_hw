@@ -432,3 +432,36 @@ All now behind the shared _cycle_model_waived predicate; live add8 SSOT passes
 check_ssot_disk in BOTH engineering and signoff. Lesson: when a gate FORBIDS
 content for a class of IPs, every other validator demanding that content is a
 deadlock — validator consistency is itself a contract.
+
+---
+
+## 06-11 night — add8_cin_v1 HONEST SCOREBOARD CLOSURE: 12/12 (run 13f69fb0)
+
+Final state: **scoreboard 12/12 all-pass, scoreboard_failed=0, sim gate PASS
+(real pass, not PASS_OR_ESCALATE)**, finalize "completed" AUDITED by the new
+evidence gate (no red stages). The goal set went 29 (with phantom FSM state
+goals) → 24 (clean regen) → 12 (converged SSOT) as the fictional architecture
+was eliminated layer by layer.
+
+The last two layers before closure:
+- **Finding 25** (OBL_TB_SUPPORTS_CLOCKLESS_DUT, refuted/open): the generic
+  cocotb TB has no clockless mode (`contract.get("clock") or "clk"`), so a
+  purely combinational IP needs TB-harness clk/rst_n pins. Resolution for the
+  campaign: harness pins added to the LOCKED truth via orch_campaign_truth
+  (--force re-lock, human-authorized) — the structural projection's "extra
+  port clk/rst_n not covered" authority blockers (the final tb-gen pin) then
+  cleared. True clockless TB support remains the open obligation.
+- Version-skew lesson repeated twice (rtl_contract emitted from a pre-repair
+  SSOT; cl_model_check stale): artifacts emitted by jobs that started before
+  an upstream repair landed read as authoritative — worth a generic
+  job-start-vs-artifact-mtime guard someday.
+
+Caveat recorded honestly: the 12/12 closure is goal-driven DIRECTED stimulus
+only — the user-directed constrained-random sweep (hundreds of vectors) is NOT
+yet generatable by emit_goal_scoreboard_cocotb (OBL_TB_CONSTRAINED_RANDOM_SWEEP,
+open) and the RTL mutation kill-test phase has not run. Those two are the
+rigorous-verification phase queue, in that order.
+
+Session totals (06-11 afternoon→night): findings 14-25; 11 fixed same-day in
+general machinery (never IP patches), 2 declared open (clockless TB, random
+sweep). Spine 30→34/57 closed with the open declarations counted.
