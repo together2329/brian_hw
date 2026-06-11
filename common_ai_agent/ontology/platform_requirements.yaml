@@ -420,3 +420,45 @@ requirements:
             observed_at: 0782a9bd
           - test: "tests/test_orchestrator_ask_user_resume.py::test_reply_sanitizes_delimiter_tokens"
             observed_at: 0782a9bd
+
+  - id: REQ_PLAT_MODEL_FIDELITY_001
+    claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
+    design_anchor: doc/wiki/llm-authored-oracle-architecture.md
+    obligations:
+      - id: OBL_FL_SEMANTIC_FICTIONAL_STATE
+        owned_by: engine.stage
+        granularity: content
+        # validate_fl_semantics.py / emit_fl_model.py 는 workflow/fl-model-gen 에 살아
+        # ontology unit이 없다(orphan) → freshness-scope 밖. 백스톱은 아래 pytest 노드:
+        # validator를 import·실행하므로 회귀 시 실행 단계에서 실패한다(staleness 경고보다 강함).
+        status: closed   # cycle_model_waiver=true(조합) 계약에 FSM/state_updates/미선언 state_variables 투영 = 허구 state; deterministic backstop가 LLM 없이 CRITICAL FAIL, emit_fl_model passed AND-gate
+        evidence:
+          - test: "tests/test_validate_fl_semantics.py::test_fl_gate_flags_fictional_fsm_deterministic"
+            observed_at: c5fa3769
+          - test: "tests/test_validate_fl_semantics.py::test_fl_gate_flags_fictional_state_updates"
+            observed_at: c5fa3769
+          - test: "tests/test_validate_fl_semantics.py::test_fl_gate_no_false_positive_on_stateful_ip"
+            observed_at: c5fa3769
+          - test: "tests/test_validate_fl_semantics.py::test_fl_gate_llm_unavailable_records_not_run"
+            observed_at: c5fa3769
+      - id: OBL_CL_SEMANTIC_FICTIONAL_TIMING
+        owned_by: engine.stage
+        granularity: content
+        # validate_cl_semantics.py / emit_cycle_model.py 동일하게 workflow/ orphan →
+        # freshness-scope 밖, pytest 노드(validator+emit subprocess)가 실행 백스톱.
+        status: closed   # cycle_model_waiver=true(조합) 계약에 handshake/ordering/pipeline/backpressure/multi-cycle latency 투영 = 허구 timing; deterministic backstop가 CRITICAL FAIL + emit_cycle_model passed AND-gate (cl_model_check.json.semantic_validation)
+        evidence:
+          - test: "tests/test_validate_cl_semantics.py::test_cl_gate_flags_fictional_timing_deterministic"
+            observed_at: c5fa3769
+          - test: "tests/test_validate_cl_semantics.py::test_cl_gate_no_false_positive_on_stateful_ip"
+            observed_at: c5fa3769
+          - test: "tests/test_validate_cl_semantics.py::test_cl_gate_llm_unavailable_records_not_run"
+            observed_at: c5fa3769
+          - test: "tests/test_validate_cl_semantics.py::test_emit_cycle_model_blocks_on_fictional_timing"
+            observed_at: c5fa3769
+      - id: OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET
+        owned_by: engine.stage
+        granularity: content
+        status: refuted
+        # 작업 중 발견한 결함 (AGENTS.md: 결함은 refuted obligation으로 즉시 등재).
+        refuted_by: "조합 IP라도 일반 req-gen 경로로 저작된 계약은 cycle_model_waiver를 받지 못한다. mux4_v1은 add8과 동일한 허구 cycle_model(handshake/ordering/pipeline/unbounded latency)을 갖지만 cycle_model_waived=[] → deterministic backstop 무발화, LLM judge에만 의존. 현재 flag를 set하는 것은 orch_campaign_truth.py(캠페인 IP)뿐(add8). 템플릿이 조합 IP에도 FSM/state를 날조하므로 '구조적 state 부재'로는 조합성 추론 불가. 완료정의 = 조합 계약 자동 cycle_model_waiver 부여(또는 안전한 의미적 추론)로 backstop가 mux4도 deterministic하게 잡고 closed로 뒤집는 evidence. 참조: doc/wiki/llm-authored-oracle-architecture.md (## Known limitation)"
