@@ -338,17 +338,19 @@ validation pattern) correctly blocks every fl/cl regen (job 5af1c569b448), so
 the pipeline can never converge without an ssot-gen prompt/validator fix. The
 phantom FSM also generated the phantom equivalence state goal
 (EQ_STATE_CONTROL_EXEC_FEATURE_2_TO_COMPLETE_3) = the single open scoreboard
-row. Ontology: OBL_SSOT_GEN_HONORS_CYCLE_WAIVER (refuted).
+row. Ontology: OBL_SSOT_GEN_HONORS_CYCLE_WAIVER — **FIXED 48efb049** (verify_ssot blocker-fails fsm/state_variables/state_updates when all locked contracts are cycle-waived, with convergent remediation; + authoring prompt rules; live add8 phantom-FSM SSOT now FAILs the gate).
 
 ### Finding 16 — appended user_message wake never drains → busy-loop → cap death
 A chat message appended to a live run is re-consumed on EVERY subsequent
 yield_run (`woken: user_message`, job_ids=[]), burning 1-2 LLM calls per cycle;
 run 0a5f0be2 spent ~steps 13-50 in this loop and died at the 50-step cap
-(`blocked`). wake.jsonl grew to 35 rows. Ontology: OBL_ORCH_USER_WAKE_DRAINED
-(refuted). Same watchdog family as findings 4/12.
+(`blocked`). wake.jsonl grew to 35 rows. Ontology: OBL_ORCH_USER_WAKE_DRAINED —
+**FIXED 48efb049** (runner-lifetime consumed_event_ids shared across wakers;
+match-only consumption keeps unmatched job_complete deliverable = zombie-wait
+protection intact). Same watchdog family as findings 4/12.
 
 ### Net assessment
 Control plane re-confirmed end-to-end (read→dispatch→yield→wake→verify→finalize,
 detect→classify→retry→escalate, downstream-stale marking). The two blockers to
-hands-off convergence are now precisely scoped: ssot-gen waiver-aware authoring
-(finding 15) and user-wake drain (finding 16).
+hands-off convergence (findings 15/16) were fixed same-day in 48efb049; next
+re-judge = re-drive add8 ssot repair through the orchestrator to 29/29.
