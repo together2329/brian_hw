@@ -1076,6 +1076,91 @@ def _job_allows_failed_dependency(candidate: dict[str, Any], dependency: dict[st
     return str(dependency.get("stage_id") or "") in allowed
 
 
+def _transitive_upstream_stage_ids(stage_id: str) -> set[str]:
+    """All stages that must be green before ``stage_id`` (full DAG closure).
+
+    Walks ``_PIPELINE_STAGE_DEPS`` (the canonical pipeline dependency map) so we
+    don't hardcode a parallel list. Excludes ``stage_id`` itself.
+    """
+    seen: set[str] = set()
+    frontier = list(_PIPELINE_STAGE_DEPS.get(stage_id, ()))
+    while frontier:
+        dep = frontier.pop()
+        if dep in seen:
+            continue
+        seen.add(dep)
+        frontier.extend(_PIPELINE_STAGE_DEPS.get(dep, ()))
+    return seen
+
+
+def _upstream_red_dispatch_block(
+    project_root: Path,
+    ip: str,
+    requested_stage_ids: list[str],
+    *,
+    source: str = "dispatch_workflow_tool",
+) -> dict[str, Any] | None:
+    """Refuse an orchestrator dispatch of a DOWNSTREAM stage while an upstream
+    dependency is red.
+
+    Campaign finding 20: the orchestrator dispatched tb -> sim -> coverage while
+    cl-model was red — three guaranteed-failure worker runs. This gate refuses
+    such a dispatch so the refusal reason teaches the orchestrator LLM to fix the
+    red stage first. Failure truth comes from the SAME source the pipeline-state
+    snapshot uses (``_job_artifact_failure`` over ``_PIPELINE_STAGES``), so the
+    gate and the state the LLM reads stay consistent.
+
+    Returns a ``{ok: False, ...}`` payload to return to the caller when blocked,
+    or ``None`` when the dispatch is allowed. Allowed cases:
+      - dispatching the red stage ITSELF (it is in ``requested_stage_ids``)
+      - dispatching a stage upstream of the red one (no red strict-upstream)
+      - re-running a batch that itself includes the red upstream stage
+      - a red stage that an explicit waiver (``_PIPELINE_ALLOWED_FAILED_DEPS``)
+        permits downstream (e.g. sim-debug consuming a failed sim)
+    """
+    requested = {sid for sid in requested_stage_ids if sid}
+    if not requested:
+        return None
+
+    failed: dict[str, str] = {}
+    for stage in _PIPELINE_STAGES:
+        sid = stage["id"]
+        fake_job = {"ip": ip, "stage_id": sid, "workflow": stage["workflow"]}
+        bad, why = _job_artifact_failure(fake_job, project_root)
+        if bad:
+            failed[sid] = why
+    if not failed:
+        return None
+
+    for target in requested_stage_ids:
+        if not target:
+            continue
+        upstream = _transitive_upstream_stage_ids(target)
+        # A red upstream stage that is ALSO being dispatched in this batch is a
+        # re-run, not a stale block — allow it.
+        waived = set(_PIPELINE_ALLOWED_FAILED_DEPS.get(target, ()))
+        for red_stage in sorted(upstream):
+            if red_stage not in failed:
+                continue
+            if red_stage in requested:
+                continue
+            if red_stage in waived:
+                continue
+            return {
+                "ok": False,
+                "source": source,
+                "ip": ip,
+                "error": (
+                    f"upstream_stage_red: {red_stage} is red; fix it before "
+                    f"dispatching {target} (or pass force=true)"
+                ),
+                "upstream_stage_red": red_stage,
+                "blocked_stage": target,
+                "failure": failed.get(red_stage, ""),
+            }
+    return None
+
+
 def _resolve_pipeline_schedule(
     requested_schedule: str,
     stages: list[dict[str, str]],
@@ -3988,6 +4073,45 @@ def _drain_ready_worker_queue() -> None:
         _dispatch_job_to_worker(job)
 
 
+_GENERIC_JOB_ERRORS = {
+    "direct slash command failed",
+}
+
+
+def _job_wake_reason(job: dict[str, Any]) -> str:
+    """Best-effort failure headline for a job_complete wake event.
+
+    The orchestrator LLM sees this inline with the wake so it does not have to
+    burn a read_artifact + extra turn rediscovering WHY a job ended. Prefer the
+    job's ``error`` field; when that is a generic placeholder (e.g. "direct
+    slash command failed"), mine a better headline from the result text — the
+    first non-empty line that looks like a failing gate. Cheap, truncated.
+    """
+    error = str(job.get("error") or "").strip()
+    if error and error.lower() not in _GENERIC_JOB_ERRORS:
+        return error[:200]
+    summary = str(job.get("result_summary") or "").strip()
+    if summary:
+        gate_line = ""
+        first_line = ""
+        for raw_line in summary.splitlines():
+            line = raw_line.strip()
+            if not line:
+                continue
+            if not first_line:
+                first_line = line
+            low = line.lower()
+            if not gate_line and (
+                "fail" in low or "error" in low or "blocked" in low or "gate" in low
+            ):
+                gate_line = line
+                break
+        headline = gate_line or first_line
+        if headline:
+            return headline[:200]
+    return error[:200] if error else ""
+
+
 def _advance_pipeline_from(job: dict[str, Any]) -> None:
     # Wake any orchestrator yield_run waker watching this job. Lazy/defensive:
     # the runner singleton may not be initialised (CLI runs, isolated tests),
@@ -4009,6 +4133,7 @@ def _advance_pipeline_from(job: dict[str, Any]) -> None:
                 run_id=str(job.get("orchestrator_run_id") or ""),
                 job_id=job_id,
                 status=job_status,
+                reason=_job_wake_reason(job) if job_status != "completed" else "",
             )
         except Exception:
             pass
@@ -7160,6 +7285,9 @@ def register_jobs_routes(
             body.get("trigger_source") or "orchestrator_chat"
         ).strip()
         orchestrator_run_id_resolved = str(body.get("orchestrator_run_id") or "").strip()
+        # Escape hatch for the upstream-red dispatch gate: repair flows sometimes
+        # intentionally re-run a downstream stage while an upstream is still red.
+        force_dispatch = bool(body.get("force"))
         # Chat seed = latest user message from the orchestrator chat. Plumbed
         # through payload.user_seed by react_bridge so workers always see the
         # user's concrete requirement, even when the LLM omits ``prompt``.
@@ -7325,6 +7453,24 @@ def register_jobs_routes(
         )
         if locked_truth_block is not None:
             return locked_truth_block
+        # Campaign finding 20: refuse dispatching a DOWNSTREAM stage while an
+        # upstream dependency is red (guaranteed-failure worker runs). Only
+        # applies to orchestrator-triggered dispatches; force=true bypasses for
+        # intentional repair re-runs. Dispatching the red stage itself (or
+        # upstream of it) is always allowed.
+        is_orchestrator_dispatch = (
+            trigger_source_resolved == "orchestrator_chat"
+            or exec_mode_resolved == EXEC_MODE_ORCHESTRATOR
+        )
+        if is_orchestrator_dispatch and not force_dispatch:
+            upstream_red_block = _upstream_red_dispatch_block(
+                tool_project_root,
+                ip_name,
+                selected_stage_ids,
+                source="dispatch_workflow_tool",
+            )
+            if upstream_red_block is not None:
+                return upstream_red_block
         _, _ = _refresh_tracked_jobs(
             tool_project_root,
             job_filter=lambda job: _job_visible_to_request(job, owner_display_id, owner_user_id, False, tool_project_root),

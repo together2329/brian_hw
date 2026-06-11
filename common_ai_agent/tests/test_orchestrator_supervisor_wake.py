@@ -54,6 +54,95 @@ def test_waker_reads_job_complete_event(tmp_path: Path) -> None:
     assert waker.wait() == "job_complete:job-1:completed"
 
 
+def test_waker_job_complete_event_appends_reason_when_present(tmp_path: Path) -> None:
+    from src.orchestrator.supervisor_wake import FileBackedWaker, append_wake_event
+
+    wake_path = tmp_path / "wake.jsonl"
+    waker = FileBackedWaker(
+        wake_path=wake_path,
+        cancel_path=tmp_path / "cancel.json",
+        run_id="run-1",
+        user_id="user-1",
+        ip_id="ip-1",
+        job_ids={"job-1"},
+        user_message=False,
+        after_seconds=0.5,
+    )
+
+    append_wake_event(
+        wake_path,
+        {
+            "event_id": "evt-reason",
+            "type": "job_complete",
+            "job_id": "job-1",
+            "status": "error",
+            "reason": "FL-vs-RTL scoreboard mismatch: 3 failed",
+        },
+    )
+
+    assert (
+        waker.wait()
+        == "job_complete:job-1:error:FL-vs-RTL scoreboard mismatch: 3 failed"
+    )
+
+
+def test_waker_job_complete_event_keeps_legacy_format_without_reason(tmp_path: Path) -> None:
+    from src.orchestrator.supervisor_wake import FileBackedWaker, append_wake_event
+
+    wake_path = tmp_path / "wake.jsonl"
+    waker = FileBackedWaker(
+        wake_path=wake_path,
+        cancel_path=tmp_path / "cancel.json",
+        run_id="run-1",
+        user_id="user-1",
+        ip_id="ip-1",
+        job_ids={"job-1"},
+        user_message=False,
+        after_seconds=0.5,
+    )
+
+    # Empty reason must NOT add a trailing segment (legacy consumers parse
+    # job_complete:<id>:<status>).
+    append_wake_event(
+        wake_path,
+        {
+            "event_id": "evt-empty-reason",
+            "type": "job_complete",
+            "job_id": "job-1",
+            "status": "completed",
+            "reason": "",
+        },
+    )
+
+    assert waker.wait() == "job_complete:job-1:completed"
+
+
+def test_append_job_complete_wake_persists_reason(tmp_path: Path) -> None:
+    import json
+
+    from src.orchestrator.supervisor_wake import (
+        append_job_complete_wake,
+        supervisor_control_dir,
+    )
+
+    ok = append_job_complete_wake(
+        tmp_path,
+        run_id="run-1",
+        job_id="job-9",
+        status="error",
+        reason="lint gate: errors=4",
+    )
+    assert ok is True
+
+    wake_path = supervisor_control_dir(tmp_path, "run-1") / "wake.jsonl"
+    line = wake_path.read_text(encoding="utf-8").strip()
+    event = json.loads(line)
+    assert event["type"] == "job_complete"
+    assert event["job_id"] == "job-9"
+    assert event["status"] == "error"
+    assert event["reason"] == "lint gate: errors=4"
+
+
 def test_waker_timer_reason_matches_existing_contract(tmp_path: Path) -> None:
     from src.orchestrator.supervisor_wake import FileBackedWaker
 
