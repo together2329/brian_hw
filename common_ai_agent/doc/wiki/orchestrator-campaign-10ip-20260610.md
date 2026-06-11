@@ -422,3 +422,13 @@ explaining tonight's forward-thrash (gate couldn't see cl red) and the
 "completed" finalize over a failing cl_model_check. Branches added. Finding 21:
 `__final__ completed` is now evidence-gated (live state re-read; red → blocked
 downgrade with reason). Both closed with pytest evidence.
+
+### Finding 23/23b — validator deadlock family FIXED (bfa75f5b, a332edc9)
+check_ssot_disk contradicted the combinational gate on every clocked-IP field:
+state_variables (23), then cycle_model reset/latency/handshake_rules/pipeline/
+ordering/performance and io_list clock_domains/resets/per-interface
+clock_domain (23b — the live run burned its SSOT retry budget on these).
+All now behind the shared _cycle_model_waived predicate; live add8 SSOT passes
+check_ssot_disk in BOTH engineering and signoff. Lesson: when a gate FORBIDS
+content for a class of IPs, every other validator demanding that content is a
+deadlock — validator consistency is itself a contract.
