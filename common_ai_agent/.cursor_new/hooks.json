@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/ip-dev-memory-session.py",
+        "timeout": 10,
+        "failClosed": false
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": ".cursor/hooks/ip-dev-memory-session.py",
+        "timeout": 10,
+        "failClosed": false
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/guard-rocev-evidence.py",
+        "timeout": 5,
+        "failClosed": false
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/ip-dev-memory-session.py",
+        "timeout": 10,
+        "failClosed": false
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/ip-dev-memory-stop.py",
+        "timeout": 10,
+        "failClosed": false,
+        "loop_limit": 1
+      },
+      {
+        "command": ".cursor/hooks/remind-rocev-report.py",
+        "timeout": 5,
+        "failClosed": false,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

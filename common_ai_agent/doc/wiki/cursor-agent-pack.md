@@ -11,6 +11,10 @@ status: v2 (2026-06-10) — todo-loop stop hook + ROCEV req→rtl→tb→sim cha
 권위 모델로 구동하기 위한 팩이다. 규약 원문은 repo 루트 `AGENTS.md`(공통)이며,
 이 팩은 그것을 Cursor 네이티브 표면(rule/hook/subagent/skill)으로 구체화한다.
 
+> ⚠️ STALE 주의 (2026-06-11): 이 페이지는 v2(2026-06-10) 전체 구성(MCP·전 stage)
+> 기준이다. 이후 팩을 ROCEV `req→rtl→tb→sim` 골격으로 슬림화(stage 41→12, MCP 제거)
+> 했다. 슬림 결정·근거(워크플로 관점)는 [[cursor-rocev-workflow-slim-20260611]] 참조.
+
 ## 구성 (Cursor 공식 스펙 기준)
 
 | 표면 | 위치 | 스펙 요점 |

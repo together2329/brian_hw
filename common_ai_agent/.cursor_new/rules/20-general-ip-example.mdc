@@ -1,0 +1,107 @@
+---
+description: General IP example for ROCEV-based Cursor workflow
+globs: "**/rtl/**, **/tb/**, **/sim/**, **/lint/**, **/cov/**, **/verify/**, **/signoff/**, doc/wiki/**/*.md"
+alwaysApply: false
+---
+
+# General IP ROCEV Example
+
+Use this shape for any IP.
+
+## Case
+
+```text
+<ip> / <feature or edge case>
+```
+
+## ROCEV map
+
+| ROCEV | General IP example |
+|---|---|
+| Requirement | `<ip>` must handle `<case>` correctly. |
+| Obligation | O1: when `<condition>` occurs, DUT must produce `<expected behavior>`. O2: no unintended side effect occurs. |
+| Contract | Expected model/checker defines the result; scoreboard compares RTL observed vs expected; coverage contains `<case>`. |
+| Evidence | `rtl/rtl_compile.json`, `lint/dut_lint.json`, `sim/results.xml`, `sim/scoreboard_events.jsonl`, `cov/coverage.json`, `sim/*.vcd`, optional `verify/formal_status.json`. |
+| Validation | Closed only if the selected obligation has fresh passing evidence. Formal proof is a separate stronger check, not a substitute for missing stimulus. |
+
+## Bad report
+
+```text
+Directed tests passed.
+```
+
+Why this is weak:
+
+- It does not say which requirement was checked.
+- It does not say which obligation was closed.
+- It does not say whether RTL matched the expected model.
+- It does not say whether coverage hit the target case.
+
+## Better report
+
+```text
+Requirement:
+  <ip> must handle <case>.
+
+Obligation:
+  O1: when <condition> happens, DUT must produce <expected behavior>.
+
+Contract:
+  expected model/checker defines <expected behavior>;
+  scoreboard compares RTL observed vs expected;
+  coverage includes <case>.
+
+Evidence:
+  sim/results.xml PASS
+  sim/scoreboard_events.jsonl contains this obligation
+  cov/coverage.json shows the target case/bin
+  sim/<ip>.vcd exists for debug
+
+Validation:
+  closed for O1
+```
+
+## Formal note
+
+Formal can add another contract:
+
+```text
+Property:
+  <bad condition> must never produce <forbidden output/state>
+
+Evidence:
+  verify/protocol_assertions.sva
+  verify/formal_status.json
+
+Validation:
+  closed only for the property and assumptions that were actually proven
+```
+
+## Filled-in examples
+
+```text
+FIFO:
+  Requirement: FIFO preserves order.
+  Obligation: the first pushed item is the first popped item.
+  Contract: reference queue model + scoreboard compare.
+  Evidence: results.xml, scoreboard row, full/empty coverage.
+  Validation: closed for order preservation.
+```
+
+```text
+Register block:
+  Requirement: W1C status bits clear only when written with 1.
+  Obligation: writing 0 does not clear a status bit.
+  Contract: register model/checker defines expected readback.
+  Evidence: APB/AHB test, readback scoreboard, coverage bin.
+  Validation: closed for W1C zero-write behavior.
+```
+
+```text
+Packet parser:
+  Requirement: invalid header is rejected.
+  Obligation: parser must not emit a valid packet for invalid header.
+  Contract: expected model says valid_out=0 and drop_reason is observable.
+  Evidence: sim result, scoreboard row, invalid-header coverage, optional VCD.
+  Validation: closed for that invalid-header case.
+```

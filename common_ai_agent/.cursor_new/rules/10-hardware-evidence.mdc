@@ -1,0 +1,56 @@
+---
+description: Hardware evidence vocabulary for RTL, TB, sim, coverage, VCD, formal, and signoff
+globs: "**/rtl/**, **/tb/**, **/sim/**, **/lint/**, **/cov/**, **/verify/**, **/signoff/**"
+alwaysApply: false
+---
+
+# Hardware Evidence
+
+Evidence is not one thing.
+
+Each stage has a different kind of evidence. Validation is the decision made
+after checking that evidence.
+
+| Stage | Requirement/Obligation | Contract | Evidence examples | Validation question |
+|---|---|---|---|---|
+| Requirement | What must exist | locked req / review rule | `requirements.md`, locked req JSON | Is the requirement explicit enough to test? |
+| RTL | What RTL must implement | compile/lint/interface contract | RTL diff, `rtl_compile.json` | Does the implementation exist and compile? |
+| Lint | What style/structure must hold | lint rules | `dut_lint.json`, lint log | Are there blocking lint issues? |
+| TB | What must be observed | scenario/scoreboard contract | cocotb/pyuvm test, scoreboard code | Does the TB observe the obligation? |
+| Sim | What actually ran | simulator pass/fail contract | `results.xml`, sim log | Did the run really execute and pass? |
+| Scoreboard | Expected vs observed | FL/model/expected contract | `scoreboard_events.jsonl` | Did RTL match expected behavior? |
+| Coverage | Which cases were exercised | coverage plan / bins | `coverage.json`, coverage report | Did the important case run? |
+| VCD/Waveform | Cycle-level trace | dump/manifest contract | `.vcd`, `.fst`, wave manifest | Can we inspect the root cause? |
+| Formal | Property proof | SVA / formal property | `.sva`, proof log, `formal_status.json` | Was this property proven? |
+| Signoff | Evidence bundle closure | signoff checklist | `truth_coverage.json`, signoff report | Is the chosen bundle complete? |
+
+## PASS means different things
+
+```text
+RTL compile PASS
+  means the code compiles.
+
+Simulation PASS
+  means the tests that ran did not fail.
+
+Scoreboard PASS
+  means observed values matched expected values.
+
+Coverage PASS
+  means selected bins or goals were hit.
+
+Formal PASS
+  means a specific property was proven.
+
+Signoff PASS
+  means the required evidence bundle is complete.
+```
+
+Do not collapse these into "tests passed."
+
+Prefer:
+
+```text
+Simulation passed, scoreboard rows passed, the target edge-case coverage bin
+was hit, and a VCD was saved for debug.
+```

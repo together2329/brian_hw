@@ -1,0 +1,73 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -lc 'root=\"${COMMON_AI_AGENT_ROOT:-$PWD}\"; while [ \"$root\" != \"/\" ] && [ ! -f \"$root/scripts/ip_dev_memory.py\" ]; do root=\"$(dirname \"$root\")\"; done; exec /usr/bin/python3 \"$root/scripts/ip_dev_memory.py\" hook-session --surface codex'",
+            "timeout": 10,
+            "statusMessage": "Initializing IP development memory"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -lc 'root=\"${COMMON_AI_AGENT_ROOT:-$PWD}\"; while [ \"$root\" != \"/\" ] && [ ! -f \"$root/scripts/ip_dev_memory.py\" ]; do root=\"$(dirname \"$root\")\"; done; exec /usr/bin/python3 \"$root/scripts/ip_dev_memory.py\" hook-session --surface codex'",
+            "timeout": 10,
+            "statusMessage": "Checking IP development memory"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -lc 'root=\"${COMMON_AI_AGENT_ROOT:-$PWD}\"; while [ \"$root\" != \"/\" ] && [ ! -f \"$root/.codex_ref/hooks/rocev_pre_tool_use.py\" ]; do root=\"$(dirname \"$root\")\"; done; exec /usr/bin/python3 \"$root/.codex_ref/hooks/rocev_pre_tool_use.py\"'",
+            "timeout": 10,
+            "statusMessage": "Checking ROCEV evidence command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -lc 'root=\"${COMMON_AI_AGENT_ROOT:-$PWD}\"; while [ \"$root\" != \"/\" ] && [ ! -f \"$root/scripts/ip_dev_memory.py\" ]; do root=\"$(dirname \"$root\")\"; done; exec /usr/bin/python3 \"$root/scripts/ip_dev_memory.py\" hook-file-edit --surface codex'",
+            "timeout": 10,
+            "statusMessage": "Checking IP development memory"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -lc 'root=\"${COMMON_AI_AGENT_ROOT:-$PWD}\"; while [ \"$root\" != \"/\" ] && [ ! -f \"$root/scripts/ip_dev_memory.py\" ]; do root=\"$(dirname \"$root\")\"; done; exec /usr/bin/python3 \"$root/scripts/ip_dev_memory.py\" hook-stop --surface codex'",
+            "timeout": 10,
+            "statusMessage": "Checking IP memory closure"
+          },
+          {
+            "type": "command",
+            "command": "/bin/sh -lc 'root=\"${COMMON_AI_AGENT_ROOT:-$PWD}\"; while [ \"$root\" != \"/\" ] && [ ! -f \"$root/.codex_ref/hooks/rocev_stop_reminder.py\" ]; do root=\"$(dirname \"$root\")\"; done; exec /usr/bin/python3 \"$root/.codex_ref/hooks/rocev_stop_reminder.py\"'",
+            "timeout": 10,
+            "statusMessage": "Checking ROCEV completion shape"
+          }
+        ]
+      }
+    ]
+  }
+}
