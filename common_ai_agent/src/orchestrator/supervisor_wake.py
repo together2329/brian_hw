@@ -81,12 +81,20 @@ def append_job_complete_wake(
     run_id: str,
     job_id: str,
     status: str,
+    reason: str = "",
 ) -> bool:
     if not run_id or not job_id or status not in TERMINAL_JOB_STATUSES:
         return False
+    event: dict[str, Any] = {"type": "job_complete", "job_id": job_id, "status": status}
+    # The failure headline (gate line / job error) travels with the wake so the
+    # orchestrator LLM sees WHY a job ended without burning a read_artifact +
+    # extra turn rediscovering it. Best-effort, may be empty.
+    reason_text = str(reason or "").strip()
+    if reason_text:
+        event["reason"] = reason_text
     append_wake_event(
         _prepare_job_complete_wake_path(project_root, run_id),
-        {"type": "job_complete", "job_id": job_id, "status": status},
+        event,
     )
     return True
 
@@ -192,7 +200,14 @@ class FileBackedWaker:
             job_id = str(event.get("job_id") or "")
             if job_id in self.job_ids:
                 status = str(event.get("status") or "")
-                return f"job_complete:{job_id}:{status}".rstrip(":")
+                base = f"job_complete:{job_id}:{status}".rstrip(":")
+                reason = str(event.get("reason") or "").strip()
+                # Only append the reason segment when present, so legacy
+                # consumers/tests that parse `job_complete:<id>:<status>` keep
+                # matching on events without a reason.
+                if reason:
+                    return f"{base}:{reason}"
+                return base
         if event_type == "timer":
             return str(event.get("reason") or "timer")
         return ""

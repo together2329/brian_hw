@@ -991,12 +991,37 @@ class CycleModel:
         # wr_counter_global_clear, or sram_rdata directly in state/output expressions;
         # a cycle-model self-check must provide deterministic sample values for those
         # declared inputs instead of reporting missing FL dependencies.
+        #
+        # Transaction input/payload fields arrive in two shapes: a bare string
+        # name ("paddr") or a declared-port dict ({{"port": "a", "width": 8}}).
+        # A purely combinational IP declares its operand ports the dict way
+        # (function_model.transactions[].inputs[].port), and its functional
+        # rules reference those io ports directly (e.g. "(a + b + cin) & 255").
+        # The FL oracle binds rule symbols from the transaction payload, so the
+        # cycle self-check must bind every declared input PORT NAME — not the
+        # dict's repr — or every such rule fails with "unknown rule name a".
+        # This mirrors emit_fl_model.run_self_check, which seeds rule expression
+        # symbols that are not params/state/registers/derived/output names.
+        def _field_names(raw) -> list:
+            if raw is None:
+                return []
+            if isinstance(raw, str):
+                text = raw.strip()
+                return [text] if text else []
+            if isinstance(raw, dict):
+                for key in ("port", "name", "signal", "field"):
+                    val = raw.get(key)
+                    if val is not None and str(val).strip():
+                        return [str(val).strip()]
+                return []
+            return [str(raw).strip()] if str(raw).strip() else []
+
         declared_fields = []
         for container_name in ("required_fields", "inputs"):
             for raw_name in selected.get(container_name) or []:
-                name = str(raw_name).strip()
-                if name and name not in declared_fields:
-                    declared_fields.append(name)
+                for name in _field_names(raw_name):
+                    if name and name not in declared_fields:
+                        declared_fields.append(name)
 
         def _sample_value(name: str, field_idx: int):
             low = name.lower()

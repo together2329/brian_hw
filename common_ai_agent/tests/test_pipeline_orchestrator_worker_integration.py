@@ -2325,6 +2325,146 @@ def test_orchestrator_dispatch_workflow_tool_creates_pipeline_job(
         jobs._jobs.clear()
 
 
+def _write_locked_truth_manifest(ip_dir: Path) -> None:
+    """Mark requirement truth locked so the locked-truth dispatch guard allows
+    the dispatch to proceed (that guard is orthogonal to the upstream-red gate
+    under test here)."""
+    req_dir = ip_dir / "req"
+    req_dir.mkdir(parents=True, exist_ok=True)
+    (req_dir / "approval_manifest.json").write_text(
+        '{"status":"requirements_locked","requirements":['
+        '{"requirement_id":"REQ_1","status":"locked","required":true}'
+        ']}',
+        encoding="utf-8",
+    )
+
+
+def test_orchestrator_dispatch_refuses_downstream_stage_while_upstream_red(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """Campaign finding 20: dispatching tb while cl-model is red must be refused
+    with an upstream_stage_red reason; force=true bypasses; dispatching the red
+    stage itself is allowed."""
+    import atlas_api_jobs as jobs
+    from core import tools
+
+    ip = "upstream_red_ip"
+    ip_dir = tmp_path / "u" / "default" / ip
+    (ip_dir / "rtl").mkdir(parents=True)
+    _write_locked_truth_manifest(ip_dir)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    real_failure = jobs._job_artifact_failure
+
+    def _mock_failure(job: dict, project_root: Path) -> tuple[bool, str]:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        if stage == "cl-model":
+            return True, "cl_model_check.json status=fail"
+        return real_failure(job, project_root)
+
+    monkeypatch.setattr(jobs, "_job_artifact_failure", _mock_failure)
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/{ip}/orchestrator")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+        monkeypatch.setenv("WORKER_URL_DEFAULT", rtl_url)
+        monkeypatch.setenv("WORKER_URL_RTL_GEN", rtl_url)
+        monkeypatch.setenv("WORKER_URL_TB_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+
+        # 1) Downstream (tb) while upstream (cl-model) is red -> refused.
+        refused = json.loads(tools.dispatch_workflow(workflow="tb", ip=ip))
+        assert refused["ok"] is False, refused
+        assert refused["upstream_stage_red"] == "cl-model", refused
+        assert refused["blocked_stage"] == "tb", refused
+        assert "upstream_stage_red: cl-model is red" in refused["error"]
+        assert "dispatching tb" in refused["error"]
+        assert len(rtl_worker.runs_for_workflow("tb-gen")) == 0
+
+        # 2) force=true bypasses the gate.
+        forced = json.loads(
+            tools.dispatch_workflow(workflow="tb", ip=ip, payload={"force": True})
+        )
+        assert forced["ok"] is True, forced
+        assert [j["stage_id"] for j in forced["jobs"]] == ["tb"]
+
+        # 3) Dispatching the red stage ITSELF is allowed (it's the fix run).
+        red_self = json.loads(tools.dispatch_workflow(workflow="cl-model", ip=ip))
+        assert red_self["ok"] is True, red_self
+        assert [j["stage_id"] for j in red_self["jobs"]] == ["cl-model"]
+
+        # 4) A batch that re-runs the red upstream alongside the downstream is
+        # allowed (the red stage is in the requested set).
+        batch = json.loads(
+            tools.dispatch_workflow(stages=["cl-model", "tb"], ip=ip)
+        )
+        assert batch["ok"] is True, batch
+        assert {j["stage_id"] for j in batch["jobs"]} == {"cl-model", "tb"}
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
+def test_non_orchestrator_dispatch_unaffected_by_upstream_red_gate(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    """The upstream-red gate is orchestrator-only. A non-orchestrator dispatch
+    (exec_mode single-worker, trigger_source not orchestrator_chat) must NOT be
+    blocked even when an upstream stage is red."""
+    import atlas_api_jobs as jobs
+    from core import tools
+
+    ip = "upstream_red_non_orch_ip"
+    ip_dir = tmp_path / "u" / "default" / ip
+    (ip_dir / "rtl").mkdir(parents=True)
+    _write_locked_truth_manifest(ip_dir)
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+    real_failure = jobs._job_artifact_failure
+
+    def _mock_failure(job: dict, project_root: Path) -> tuple[bool, str]:
+        stage = str(job.get("stage_id") or job.get("workflow") or "")
+        if stage == "cl-model":
+            return True, "cl_model_check.json status=fail"
+        return real_failure(job, project_root)
+
+    monkeypatch.setattr(jobs, "_job_artifact_failure", _mock_failure)
+
+    with _mock_worker("rtl") as (rtl_url, rtl_worker):
+        monkeypatch.setenv("ATLAS_MULTI_USER", "1")
+        monkeypatch.setenv("ATLAS_ACTIVE_SESSION", f"u/{ip}/orchestrator")
+        monkeypatch.setenv("ATLAS_ACTIVE_IP", ip)
+        monkeypatch.setenv("WORKER_URL_DEFAULT", rtl_url)
+        monkeypatch.setenv("WORKER_URL_TB_GEN", rtl_url)
+
+        _make_client(tmp_path, monkeypatch)
+
+        # Non-orchestrator: single-worker exec mode + an explicit human-UI
+        # trigger_source. The gate must not fire.
+        allowed = json.loads(
+            tools.dispatch_workflow(
+                workflow="tb",
+                ip=ip,
+                exec_mode="single-worker",
+                payload={"trigger_source": "pipeline_button"},
+            )
+        )
+        assert allowed["ok"] is True, allowed
+        assert [j["stage_id"] for j in allowed["jobs"]] == ["tb"]
+        assert len(rtl_worker.runs_for_workflow("tb-gen")) == 1
+
+    with jobs._jobs_lock:
+        jobs._jobs.clear()
+
+
 def test_orchestrator_dispatch_workflow_tool_uses_payload_session_owner(
     tmp_path: Path,
     monkeypatch,
