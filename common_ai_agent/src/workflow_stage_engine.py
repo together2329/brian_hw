@@ -767,6 +767,13 @@ def _rtl_manifest_progress(ip_dir: Path, doc: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+# Stage tool subprocess budget. emit_fl_model/emit_cycle_model carry the
+# LLM semantic judge (per-contract model calls) — 90s killed them mid-judge on
+# cnt8_en_v1 (finding 27, exit 999 timeout); deterministic scripts finish in
+# seconds so the higher ceiling is harmless.
+_STAGE_TOOL_TIMEOUT_S = max(60, int(os.environ.get("ATLAS_STAGE_TOOL_TIMEOUT_S", "300") or "300"))
+
+
 @dataclass
 class ToolRun:
     label: str
@@ -954,7 +961,7 @@ class WorkflowStageEngine:
         return self._run_tool(
             "contract_authority_gate",
             [sys.executable, str(script), ip, "--root", str(self.project_root)],
-            timeout_s=90,
+            timeout_s=_STAGE_TOOL_TIMEOUT_S,
         )
 
     def _contract_authority_blocked_result(self, stage: str, ip: str, run: ToolRun) -> StageEngineResult:
@@ -986,7 +993,7 @@ class WorkflowStageEngine:
 
     def _run_fl_model(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_fl_model.py"
-        run = self._run_tool("emit_fl_model", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=90)
+        run = self._run_tool("emit_fl_model", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=_STAGE_TOOL_TIMEOUT_S)
         status = "pass" if run.returncode == 0 else "fail"
         lines = [
             "[ssot-fl-model] generic SSOT-driven FL model stage",
@@ -1012,7 +1019,7 @@ class WorkflowStageEngine:
             self._run_tool(
                 "emit_fl_model",
                 [sys.executable, str(fl_script), ip, "--root", str(self.project_root)],
-                timeout_s=90,
+                timeout_s=_STAGE_TOOL_TIMEOUT_S,
             )
         ]
         if runs[-1].returncode == 0:
@@ -1020,7 +1027,7 @@ class WorkflowStageEngine:
                 self._run_tool(
                     "emit_cycle_model",
                     [sys.executable, str(cl_script), ip, "--root", str(self.project_root)],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
         else:
@@ -1060,7 +1067,7 @@ class WorkflowStageEngine:
         run = self._run_tool(
             "emit_dual_fcov",
             [sys.executable, str(script), ip, "--root", str(self.project_root)],
-            timeout_s=90,
+            timeout_s=_STAGE_TOOL_TIMEOUT_S,
         )
         status = "pass" if run.returncode == 0 else "fail"
         headline = "[ssot-dual-fcov] PASS" if status == "pass" else "[ssot-dual-fcov] FAIL"
@@ -1083,10 +1090,10 @@ class WorkflowStageEngine:
         fl_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_fl_model.py"
         eq_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_equivalence_goals.py"
         runs = [
-            self._run_tool("emit_fl_model", [sys.executable, str(fl_script), ip, "--root", str(self.project_root)], timeout_s=90)
+            self._run_tool("emit_fl_model", [sys.executable, str(fl_script), ip, "--root", str(self.project_root)], timeout_s=_STAGE_TOOL_TIMEOUT_S)
         ]
         if runs[-1].returncode == 0:
-            runs.append(self._run_tool("emit_equivalence_goals", [sys.executable, str(eq_script), ip, "--root", str(self.project_root)], timeout_s=90))
+            runs.append(self._run_tool("emit_equivalence_goals", [sys.executable, str(eq_script), ip, "--root", str(self.project_root)], timeout_s=_STAGE_TOOL_TIMEOUT_S))
         else:
             runs.append(ToolRun("emit_equivalence_goals", [sys.executable, str(eq_script), ip, "--root", str(self.project_root)], 999, stderr="skipped because emit_fl_model failed"))
 
@@ -1123,7 +1130,7 @@ class WorkflowStageEngine:
 
     def _run_protocol_assertions(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_protocol_assertions.py"
-        run = self._run_tool("emit_protocol_assertions", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=90)
+        run = self._run_tool("emit_protocol_assertions", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=_STAGE_TOOL_TIMEOUT_S)
         summary_path = self.ip_dir(ip) / "verify" / "protocol_assertions.summary.json"
         summary_doc = _read_json(summary_path) if summary_path.is_file() else {}
         assertions_total = int(summary_doc.get("assertions_total") or 0)
@@ -1168,7 +1175,7 @@ class WorkflowStageEngine:
             self._run_tool(
                 "derive_rtl_todos",
                 [sys.executable, str(todo_script), ip, "--root", str(self.project_root)],
-                timeout_s=90,
+                timeout_s=_STAGE_TOOL_TIMEOUT_S,
             )
         )
         derive_run = runs[-1]
@@ -1178,7 +1185,7 @@ class WorkflowStageEngine:
                 self._run_tool(
                     "refresh_rtl_provenance",
                     [sys.executable, str(refresh_script), ip, "--root", str(self.project_root)],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
         compile_rc = lint_rc = None
@@ -1209,7 +1216,7 @@ class WorkflowStageEngine:
                 self._run_tool(
                     "audit_rtl_todos",
                     [sys.executable, str(todo_script), ip, "--root", str(self.project_root), "--audit-rtl"],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
         else:
@@ -1217,7 +1224,7 @@ class WorkflowStageEngine:
                 self._run_tool(
                     "audit_rtl_todos",
                     [sys.executable, str(todo_script), ip, "--root", str(self.project_root), "--audit-rtl"],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
         audit_run = runs[-1]
@@ -1501,7 +1508,7 @@ class WorkflowStageEngine:
             self._run_tool(
                 "derive_tb_todos",
                 [sys.executable, str(todo_script), ip, "--root", str(self.project_root)],
-                timeout_s=90,
+                timeout_s=_STAGE_TOOL_TIMEOUT_S,
             )
         )
         gen_rc = None
@@ -1513,13 +1520,13 @@ class WorkflowStageEngine:
         if gen_rc == 0:
             runs.append(self._run_tool("check_pyuvm_structure", [sys.executable, str(validator), ip], timeout_s=180))
             structure_rc = runs[-1].returncode
-            runs.append(self._run_tool("equivalence_scoreboard_self_check", [sys.executable, str(scoreboard), ip, "--root", str(self.project_root), "--self-check"], timeout_s=90))
+            runs.append(self._run_tool("equivalence_scoreboard_self_check", [sys.executable, str(scoreboard), ip, "--root", str(self.project_root), "--self-check"], timeout_s=_STAGE_TOOL_TIMEOUT_S))
             self_check_rc = runs[-1].returncode
             runs.append(
                 self._run_tool(
                     "audit_tb_todos",
                     [sys.executable, str(todo_script), ip, "--root", str(self.project_root), "--audit-tb"],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
             audit_tb_rc = runs[-1].returncode
@@ -1729,7 +1736,7 @@ class WorkflowStageEngine:
                 self._run_tool(
                     "ssot_coverage_summary",
                     [sys.executable, str(coverage_script), str(self.ip_dir(ip))],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
         sim_core_pass = all(run.returncode == 0 for run in runs[:2])
@@ -1825,7 +1832,7 @@ class WorkflowStageEngine:
             self._run_tool(
                 "ssot_coverage_summary",
                 [sys.executable, str(summary_script), str(self.ip_dir(ip))],
-                timeout_s=90,
+                timeout_s=_STAGE_TOOL_TIMEOUT_S,
             )
         )
         coverage_summary_rc = runs[-1].returncode
@@ -1844,7 +1851,7 @@ class WorkflowStageEngine:
                 self._run_tool(
                     "audit_tb_evidence",
                     [sys.executable, str(tb_todo_script), ip, "--root", str(self.project_root), "--audit-evidence"],
-                    timeout_s=90,
+                    timeout_s=_STAGE_TOOL_TIMEOUT_S,
                 )
             )
             audit_evidence_rc = runs[-1].returncode
@@ -1974,7 +1981,7 @@ class WorkflowStageEngine:
 
     def _run_sim_debug(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "sim_debug" / "scripts" / "compare_fl_rtl_results.py"
-        run = self._run_tool("sim_debug", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=90)
+        run = self._run_tool("sim_debug", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=_STAGE_TOOL_TIMEOUT_S)
         compare_path = self.ip_dir(ip) / "sim" / "fl_rtl_compare.json"
         classify_path = self.ip_dir(ip) / "sim" / "mismatch_classification.json"
         summary_line = ""
@@ -2020,7 +2027,7 @@ class WorkflowStageEngine:
 
     def _run_goal_audit(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "sim_debug" / "scripts" / "audit_fl_rtl_equivalence_goal.py"
-        run = self._run_tool("goal_audit", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=90)
+        run = self._run_tool("goal_audit", [sys.executable, str(script), ip, "--root", str(self.project_root)], timeout_s=_STAGE_TOOL_TIMEOUT_S)
         audit_path = self.ip_dir(ip) / "sim" / "fl_rtl_goal_audit.json"
         summary_line = ""
         blockers: list[str] = []
