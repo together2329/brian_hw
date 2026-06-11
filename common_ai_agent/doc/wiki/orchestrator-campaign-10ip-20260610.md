@@ -354,3 +354,55 @@ Control plane re-confirmed end-to-end (read→dispatch→yield→wake→verify�
 detect→classify→retry→escalate, downstream-stale marking). The two blockers to
 hands-off convergence (findings 15/16) were fixed same-day in 48efb049; next
 re-judge = re-drive add8 ssot repair through the orchestrator to 29/29.
+
+---
+
+## 06-11 evening — live re-judge run 7abb7ba3: findings 15b/15c/15d/16 closed-by-fire, 19/20 opened
+
+Re-drove add8 through the orchestrator with the finding-15/16 fixes live.
+Both held: the deliberate mid-run chat message woke the run exactly ONCE
+(wake-drain fix, finding 16), and the combinational gate steered three
+ssot-gen repair passes (FSM deleted → state_variables/state_updates deleted →
+expressions rewritten in supported DSL).
+
+The trial-and-error then peeled three more layers, each fixed same-session:
+- **15b** (a5c55fe5): relaxed run-mode demoted the new blockers to guardrails
+  (`ok:true` with the FSM intact) — the codes joined the non-demotable hard_ids.
+- **15c** (f2e1e13e): fictional TIMING twin — cycle_model declared valid/ready
+  handshake_rules + min_cycles>=1 latency on the waived IP; gate extended
+  (handshake/pipeline/backpressure/clocked-latency now blockers).
+- **15d** (8b7259ec, THE ROOT): `repair_ssot_schema.py` unconditionally
+  re-injected the fsm/state/handshake templates the LLM kept stripping — the
+  worker itself reported the re-injection. Repair is now waiver-aware and
+  PRUNES; live proof: next ssot-gen pass converged in ONE shot
+  (fsm present:false + rationale, no state, no handshake, verify_ssot ok).
+- Equivalence goals regenerated **clean: 24 goals, zero EQ_STATE_CONTROL_***
+  (was 29 incl. the phantom state goal that was the 28/29 open row).
+  fl-model PASS, dual-fcov PASS.
+
+### Finding 19 (OPEN) — CL stepper cannot resolve io-port symbols in combinational rules
+With the SSOT fully converged, cl-model still fails: cl_model_check
+self_check.fl_errors = "unresolved output rule dependencies: 'unknown rule
+name a'" — emit_cycle_model's stepper does not put io ports (a/b/cin) in the
+evaluation env of combinational output_rule expressions (job ba3319d05c5b).
+Ontology: OBL_CL_COMBINATIONAL_RULE_SYMBOLS (refuted). This is the new
+convergence frontier for combinational IPs.
+
+### Finding 20 (policy) — forward-thrash past a red upstream
+Three times this run the orchestrator dispatched tb/sim/coverage while
+cl-model (upstream) was red, burning worker cycles on guaranteed failures.
+Wants either a dispatch-gate (refuse downstream when upstream stage red) or a
+prompt rule.
+
+### Finding 16b (minor) — respawn re-delivers the whole message ledger
+Each supervisor respawn starts with an empty consumed-set, so every historical
+user_message wake re-fires once (~8 by late run). Bounded but wasteful; prime
+the consumed set with pre-existing events on respawn (excluding the resume
+trigger).
+
+### Net
+Orchestrator control loop: validated again (incl. resume×3, mark_downstream_stale,
+classify). Authoring chain for combinational IPs: SSOT layer now CONVERGES
+(15→15d all closed); the frontier moved one layer down into the CL emitter
+(finding 19). Job-status wake carries no failure reason (finding 18, noted
+06-11 afternoon) — orchestrator sees bare "error" and must re-read artifacts.

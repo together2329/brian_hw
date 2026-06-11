@@ -508,3 +508,24 @@ requirements:
             observed_at: 48efb049
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_no_locked_contracts_no_combinational_check"
             observed_at: 48efb049
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_relaxed_mode_keeps_combinational_gate_hard"
+            observed_at: a5c55fe5
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_combinational_contracts_reject_fictional_cycle_model_timing"
+            observed_at: f2e1e13e
+          - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_phantom_ssot_is_pruned"
+            observed_at: 8b7259ec
+          - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_sequential_ssot_still_injects_template"
+            observed_at: 8b7259ec
+          - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
+            observed_at: 8b7259ec
+      - id: OBL_CL_COMBINATIONAL_RULE_SYMBOLS
+        owned_by: engine.stage
+        granularity: content
+        status: refuted
+        refuted_by: >-
+          emit_cycle_model의 CL stepper가 조합 transaction의 output_rule 식에서
+          io 포트 심볼(a/b/cin)을 해석하지 못하고 'unknown rule name a'로 실패 —
+          SSOT가 완전 수렴(verify_ssot PASS, fl PASS)한 뒤에도 cl_model_check
+          self_check.fl_errors로 cl-model이 영구 블록. 라이브 증거 2026-06-11
+          run 7abb7ba3 job ba3319d05c5b (add8_cin_v1, campaign finding 19;
+          doc/wiki/orchestrator-campaign-10ip-20260610.md)
