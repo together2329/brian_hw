@@ -342,6 +342,15 @@ requirements:
           - test: "tests/test_cursor_pack.py::test_subagent_hook_passes_with_evidence"
             observed_at: d3178b92
 
+      - id: OBL_CURSOR_TODO_EXTERNAL_FILE
+        owned_by: platform.cursor-pack
+        granularity: behavior
+        status: closed   # cursor_todo CLI가 hook이 읽는 current_todos.json을 외부 제어 (단일 done 기준)
+        evidence:
+          - test: "tests/test_cursor_todo.py::test_hook_reads_what_cli_writes"
+            observed_at: HEAD_PLACEHOLDER
+          - test: "tests/test_cursor_todo.py::test_done_statuses_match_hook"
+            observed_at: HEAD_PLACEHOLDER
       - id: OBL_CURSOR_DOC_CONFORMANCE
         owned_by: platform.cursor-pack
         granularity: structural

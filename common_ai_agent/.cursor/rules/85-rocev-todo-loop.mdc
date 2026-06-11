@@ -18,9 +18,13 @@ req           (VCM todos)   SSOT/goals  artifacts   stage gates
 - Full chain runs: use the `rocev-chain` skill (req → rtl → tb → sim) or the
   `/rocev-chain` subagent. Single stages: `/req-gen`, `/rtl-gen`,
   `/tb-gen`, `/sim`.
-- The `stop` hook (`stop-todo-loop.py`) re-prompts while open todos remain in
-  `current_todos.json`. The loop ends by CLOSING todos with evidence, never by
-  marking them complete without it.
+- **Track todos in the external file the hook reads** — manage them via
+  `python3 .cursor/scripts/cursor_todo.py {add|start|done|cancel|list|status}`,
+  which writes `current_todos.json`. This file (NOT Cursor's internal todo UI) is
+  the single source of "done"; the `stop` hook (`stop-todo-loop.py`) reads it and
+  re-prompts while any todo stays open. Plan a stage → `add` its todos → `start`
+  one → attach the gate verdict as evidence → `done`. The loop ends only when
+  every todo is closed; never mark done without the validator output.
 - Platform (core/src/lib) feature work additionally follows
   `ontology/platform_requirements.yaml` — declare an obligation before coding,
   flip it closed with a pytest node as evidence

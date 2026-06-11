@@ -36,6 +36,7 @@ SINGLE_FILES = [
     ("src/workflow_stage_surface.py", "src/workflow_stage_surface.py"),
     ("src/workflow_lint_kpi.py", "src/workflow_lint_kpi.py"),
     ("scripts/ip_wiki.py", "scripts/ip_wiki.py"),
+    ("scripts/cursor_todo.py", "scripts/cursor_todo.py"),
     ("scripts/atlas_mcp_server.py", "scripts/atlas_mcp_server.py"),
 ]
 

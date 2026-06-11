@@ -13,11 +13,19 @@ import ast
 import importlib.util
 import json
 import re
+import sys
 import time
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+# This script's own directory, so the lazy ``from validate_cl_semantics import …``
+# in ``_run_semantic_validation`` resolves whether emit_cycle_model is run as a
+# file (dir already on sys.path[0]) or imported as a module by the stage engine.
+_SCRIPT_DIR = str(Path(__file__).resolve().parent)
+if _SCRIPT_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPT_DIR)
 
 
 # ---------------------------------------------------------------------------
@@ -1100,6 +1108,31 @@ def _run_generated_self_check(path: Path) -> dict[str, Any]:
             _sys.path.remove(model_dir)
 
 
+def _run_semantic_validation(ip: str, root: Path, *, use_llm: bool) -> dict[str, Any]:
+    """Run the CL-vs-behavioral-contract semantic gate.
+
+    Imported lazily so a fresh checkout missing the validator module degrades to
+    an explicit ``not_run`` status (never a crash and never a silent pass), the
+    same contract as the FL semantic gate in ``emit_fl_model``.
+    """
+    try:
+        from validate_cl_semantics import validate_cl_semantics
+    except Exception as exc:  # pragma: no cover - defensive import guard
+        return {
+            "status": "not_run",
+            "passed": True,
+            "reason": f"semantic validator unavailable: {type(exc).__name__}: {exc}",
+        }
+    try:
+        return validate_cl_semantics(ip, root, use_llm=use_llm)
+    except Exception as exc:  # pragma: no cover - validator must not break emit
+        return {
+            "status": "not_run",
+            "passed": True,
+            "reason": f"semantic validation raised {type(exc).__name__}: {exc}",
+        }
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -1110,6 +1143,16 @@ def main() -> int:
     )
     parser.add_argument("ip", help="IP name (subdirectory under --root)")
     parser.add_argument("--root", default=".", help="Project root directory")
+    parser.add_argument(
+        "--no-semantic",
+        action="store_true",
+        help="skip the CL-vs-behavioral-contract semantic validation gate entirely",
+    )
+    parser.add_argument(
+        "--no-semantic-llm",
+        action="store_true",
+        help="run the deterministic semantic backstop only (skip the LLM judge)",
+    )
     args = parser.parse_args()
 
     root = Path(args.root).resolve()
@@ -1174,7 +1217,22 @@ def main() -> int:
 
     # 7. Run self-check via importlib
     check = _run_generated_self_check(model_path)
-    passed = bool(check.get("passed")) and symbol_contract.get("status") == "pass"
+
+    # 7b. Semantic validation: the self-check only runs the CL model against
+    # itself (declared kinds observed, bins hit). It never asks whether the
+    # cycle-level timing is justified by the locked behavioral contracts. The
+    # semantic gate (deterministic backstop + optional LLM judge) flags fictional
+    # timing (e.g. a valid/ready handshake, FSM-terminal ordering or unbounded
+    # latency projected onto a cycle-waived combinational IP) before the bad CL
+    # model reaches sim — the cycle-domain twin of emit_fl_model's gate.
+    semantic = _run_semantic_validation(args.ip, root, use_llm=not args.no_semantic_llm) \
+        if not args.no_semantic else {"status": "skipped", "passed": True, "reason": "--no-semantic"}
+    semantic_passed = bool(semantic.get("passed", True))
+    passed = (
+        bool(check.get("passed"))
+        and symbol_contract.get("status") == "pass"
+        and semantic_passed
+    )
 
     # 8. Write cl_model_check.json
     report: dict[str, Any] = {
@@ -1186,6 +1244,7 @@ def main() -> int:
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "passed": passed,
         "self_check": check,
+        "semantic_validation": semantic,
         "symbol_contract": symbol_contract,
         "performance_targets": performance_targets,
         "decomposition_units": len(ssot.get("sub_modules") or []) or 1,
@@ -1198,6 +1257,11 @@ def main() -> int:
     print(f"[emit_cycle_model] CL self-check passed={passed}")
     if not passed and check.get("error"):
         print(f"[emit_cycle_model] error: {check['error']}")
+    if not semantic_passed:
+        print(f"[emit_cycle_model] SEMANTIC GATE FAIL: {semantic.get('reason', 'CL timing violates locked behavioral contracts')}")
+        for violation in semantic.get("violations", []) or []:
+            if isinstance(violation, dict) and violation.get("detail"):
+                print(f"  - {violation['detail']}")
     if symbol_contract.get("status") != "pass":
         print(
             "[emit_cycle_model] symbol contract blocked: "

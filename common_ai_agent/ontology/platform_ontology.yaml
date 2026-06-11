@@ -214,8 +214,10 @@ units:
       - .cursor/hooks/guard-shell.py
       - .cursor/hooks/protect-generated-artifacts.py
       - scripts/atlas_mcp_server.py
+      - scripts/cursor_todo.py
     content_tests:
       - tests/test_cursor_pack.py
+      - tests/test_cursor_todo.py
     known_gaps:
       - stop hook 루프는 IDE 대화 모드 전용 — cursor-agent -p(print)에서 미발화 실측 (2026-06-10); Cursor 문서상 cloud/headless는 stop 미지원
 
