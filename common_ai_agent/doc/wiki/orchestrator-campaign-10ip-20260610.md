@@ -414,3 +414,11 @@ classify). Authoring chain for combinational IPs: SSOT layer now CONVERGES
   transitive closure; force=true escape; human dispatch unchanged).
 - 18: job_complete wakes carry the failure reason (gate headline mined when the
   worker error is generic). Ontology: all three obligations closed.
+
+### Findings 21/22 — FIXED 1d1edd4e (root of the hollow finalize)
+Finding 22 was the unifying blind spot: `_job_artifact_failure` had no model-
+stage branches, so fl/cl/equivalence/tb/ssot could NEVER read as red —
+explaining tonight's forward-thrash (gate couldn't see cl red) and the
+"completed" finalize over a failing cl_model_check. Branches added. Finding 21:
+`__final__ completed` is now evidence-gated (live state re-read; red → blocked
+downgrade with reason). Both closed with pytest evidence.
