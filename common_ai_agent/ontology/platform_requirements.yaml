@@ -561,6 +561,18 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
             observed_at: 1d1edd4e
+      - id: OBL_TB_SUPPORTS_CLOCKLESS_DUT
+        owned_by: engine.stage
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          generic cocotb TB 에미터(emit_goal_scoreboard_cocotb.py:512
+          contract.get("clock") or "clk")가 클럭리스 DUT 모드를 갖지 않음 —
+          rtl_contract.clock=None이어도 'clk'로 폴백해 input port 선언을 요구
+          (TB_CLOCK_PORT/TB_RESET_PORT 블로커). 순수 조합 IP는 harness용
+          clk/rst_n 핀을 SSOT에 되살려야만 TB/sim에 도달 가능. 라이브 증거
+          2026-06-11 run 919806f5 job 58f0a90b6e87 (campaign finding 25;
+          doc/wiki/orchestrator-campaign-10ip-20260610.md)
       - id: OBL_SSOT_DISK_CHECK_WAIVER_CONSISTENT
         owned_by: engine.stage
         granularity: content
