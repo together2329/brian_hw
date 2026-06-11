@@ -429,6 +429,19 @@ requirements:
             observed_at: 0782a9bd
           - test: "tests/test_orchestrator_ask_user_resume.py::test_reply_sanitizes_delimiter_tokens"
             observed_at: 0782a9bd
+      - id: OBL_ORCH_USER_WAKE_DRAINED
+        owned_by: agent.react-loop
+        granularity: behavior
+        # supervisor_wake.py 는 src/orchestrator (orphan, freshness-scope 밖) —
+        # 백스톱은 아래 pytest 노드(FileBackedSupervisorRunner를 직접 구동).
+        status: closed   # 48efb049: runner-수명 consumed_event_ids 공유 — matched 이벤트만 소비(미스매치 job_complete는 후속 waker에 전달되어 zombie-wait 보호 유지), user_message 1회 소비로 busy-loop→cap 사망 제거 (finding 16, run 0a5f0be2)
+        evidence:
+          - test: "tests/test_orchestrator_supervisor_wake.py::test_user_message_wake_consumed_once_per_runner"
+            observed_at: 48efb049
+          - test: "tests/test_orchestrator_supervisor_wake.py::test_unmatched_job_complete_not_consumed_by_other_waker"
+            observed_at: 48efb049
+          - test: "tests/test_orchestrator_supervisor_wake.py::test_fresh_runner_sees_old_pending_events_once"
+            observed_at: 48efb049
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
@@ -480,3 +493,18 @@ requirements:
             observed_at: 7f912a27
           - test: "tests/test_validate_fl_semantics.py::test_fl_gate_no_false_positive_on_stateful_ip"
             observed_at: 7f912a27
+      - id: OBL_SSOT_GEN_HONORS_CYCLE_WAIVER
+        owned_by: engine.stage
+        granularity: content
+        # verify_ssot.py 는 workflow/ssot-gen (orphan, freshness-scope 밖) —
+        # 백스톱은 아래 pytest 노드(verify_ssot subprocess 구동, add8 phantom shape 재현).
+        status: closed   # 48efb049: 모든 locked contract가 cycle-waived(조합)면 fsm states/state_variables/state_updates를 verify_ssot blocker로 거부(경로+이유+치유책) — 저작 단계에서 repair 수렴; 라이브 add8 phantom-FSM SSOT FAIL 확인 + 프롬프트 규칙(plan_prompt/SKILL) (finding 15)
+        evidence:
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_combinational_contracts_reject_phantom_fsm_and_state"
+            observed_at: 48efb049
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_combinational_contracts_pass_clean_combinational_ssot"
+            observed_at: 48efb049
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_sequential_contracts_allow_fsm_no_false_positive"
+            observed_at: 48efb049
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_no_locked_contracts_no_combinational_check"
+            observed_at: 48efb049

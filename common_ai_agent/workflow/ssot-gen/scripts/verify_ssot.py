@@ -24,7 +24,11 @@ WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
 if str(WORKFLOW_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKFLOW_ROOT))
 
-from behavioral_contracts import compare_behavioral_to_function_cycle
+from behavioral_contracts import (
+    behavioral_contract_map,
+    compare_behavioral_to_function_cycle,
+    _cycle_model_waived,
+)
 
 
 RUN_MODES = {"starter", "engineering", "signoff"}
@@ -638,6 +642,100 @@ def _projection_files(value: Any) -> set[str]:
     return refs
 
 
+def _combinational_state_issues(doc: Any, behavioral_doc: dict[str, Any]) -> list[dict[str, str]]:
+    """Reject architectural state when the locked truth is purely combinational.
+
+    When req/behavioral_contracts.json exists and EVERY locked behavioral
+    contract is cycle_model_waiver/combinational (derived from the locked
+    decision tables by behavioral_contracts._cycle_model_waived), the IP has no
+    cycle/sequential behaviour to model. ssot-gen must therefore author no
+    state-control FSM and no architectural state. Live evidence (add8_cin_v1,
+    2026-06-11): the SSOT carried a fictional control FSM
+    (IDLE/ACCEPT/EXEC_FEATURE_1/.../ERROR), function_model.state_variables
+    [state, error, fm2_observed], and a transaction with
+    state_updates: [fm2_observed]. The downstream FL semantic gate blocks this,
+    but verify_ssot passed it, so the LLM repair loop regenerated the same FSM
+    forever. Failing here, at the authoring stage, makes the repair converge.
+
+    No false positives: the checks fire only when at least one contract is
+    present AND every contract is waived. A single non-waived (sequential)
+    contract suppresses them; an absent behavioral_contracts.json suppresses
+    them (the caller only invokes this when expected behavioral_contracts exist).
+    """
+    contracts = behavioral_contract_map(behavioral_doc)
+    if not contracts or not all(_cycle_model_waived(contract) for contract in contracts.values()):
+        return []
+    if not isinstance(doc, dict):
+        return []
+
+    reason = (
+        "all locked behavioral contracts are cycle_model_waiver/combinational "
+        "(req/behavioral_contracts.json) -- a combinational IP must not declare a "
+        "state-control FSM or architectural state"
+    )
+    remediation = (
+        "Remove the fsm states/state_variables/state_updates; keep transactions "
+        "purely combinational (decision_table when/then + output_rules) per the "
+        "locked decision tables. This IP has no cycle/sequential behaviour to model."
+    )
+    issues: list[dict[str, str]] = []
+
+    fsm = doc.get("fsm")
+    if isinstance(fsm, dict):
+        for group, group_value in fsm.items():
+            states: Any = None
+            if isinstance(group_value, dict):
+                states = group_value.get("states")
+            elif group == "states":
+                states = group_value
+            state_list = [str(item) for item in _as_list(states) if _present(item)]
+            if state_list:
+                issues.append(_issue(
+                    "blocker",
+                    "ssot.combinational_ip_declares_fsm",
+                    f"fsm.{group}.states",
+                    f"fsm.{group}.states declares states {state_list}; {reason}.",
+                    remediation,
+                ))
+
+    function_model = doc.get("function_model")
+    if isinstance(function_model, dict):
+        state_vars = [str(_state_var_name(item)) for item in _as_list(function_model.get("state_variables")) if _present(item)]
+        if state_vars:
+            issues.append(_issue(
+                "blocker",
+                "ssot.combinational_ip_declares_state_variables",
+                "function_model.state_variables",
+                f"function_model.state_variables is non-empty {state_vars}; {reason}.",
+                remediation,
+            ))
+        for index, txn in enumerate(_as_list(function_model.get("transactions"))):
+            if not isinstance(txn, dict):
+                continue
+            updates = [str(_state_var_name(item)) for item in _as_list(txn.get("state_updates")) if _present(item)]
+            if updates:
+                txn_id = str(txn.get("id") or txn.get("name") or index)
+                issues.append(_issue(
+                    "blocker",
+                    "ssot.combinational_ip_declares_state_updates",
+                    f"function_model.transactions[{txn_id}].state_updates",
+                    f"function_model.transactions[{txn_id}].state_updates is non-empty {updates}; {reason}.",
+                    remediation,
+                ))
+
+    return issues
+
+
+def _state_var_name(item: Any) -> str:
+    if isinstance(item, dict):
+        for key in ("name", "id", "signal"):
+            value = item.get(key)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return "<unnamed>"
+    return str(item)
+
+
 def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[dict[str, str]], list[dict[str, str]], dict[str, Any]]:
     manifest_path = root / ip / "req" / "approval_manifest.json"
     if not manifest_path.is_file():
@@ -825,6 +923,11 @@ def _locked_truth_projection_gate(root: Path, ip: str, doc: Any) -> tuple[list[d
                     "use cycle_model_waiver only when the contract is truly cycle-independent."
                 ),
             ))
+        # Combinational IPs must not author a state-control FSM or architectural
+        # state. Fires only when every locked behavioral contract is waived; a
+        # single sequential contract suppresses it. Catches the add8_cin_v1
+        # phantom FSM at the authoring stage so the LLM repair loop converges.
+        blockers.extend(_combinational_state_issues(doc, loaded["behavioral_contracts"]))
 
     summary = {
         "active": True,

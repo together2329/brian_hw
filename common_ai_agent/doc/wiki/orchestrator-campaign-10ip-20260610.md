@@ -294,3 +294,63 @@ correctly evidence-gating each stage. Model-fit matters: **gpt-5.4 for the
 orchestrator** (reliable tool calls), spark/gpt-5.4 for workers. The last gap to
 signoff is the rtl-gen worker resolving its own blocking-questions to turn the
 rtl gate green.
+
+---
+
+## 06-11 PM session — add8 signoff drive + repair-loop probe (runs a806ad40 / 0a5f0be2)
+
+Server recipe that worked: `python3 -m src.atlas_runtime_run --root <ws> --exec o
+--port 8765` + `ATLAS_ORCHESTRATOR_MODEL=gpt-5.4` + ALL `ATLAS_WORKER_MODEL_*=gpt-5.4`
++ `ATLAS_RUN_REAL_LLM_TDD=1`, kicked via `POST /api/pipeline/orchestrator/chat`
+with a real **admin login cookie** (`/api/auth/login`).
+
+### Finding 14 — auth-path scoping: local-admin can never see admin/default artifacts
+`ATLAS_ADMIN_AUTH_MODE=off` makes every request `local-admin`, and in multi-user
+mode the project root always follows the request username → the run scoped to a
+fresh empty namespace, saw zero artifacts, tried ssot-gen restart, hit
+`session owner/workspace mismatch`, asked, finalized blocked (run 63d13646,
+correct behavior, wrong identity). Finding-7 family on the auth axis. Recipe:
+log in as the real `admin` DB user; cookie-auth the chat kick.
+
+### Run a806ad40 — VERIFIED full traversal (8 steps, 78s)
+read_pipeline_state → parallel artifact reads → detected **stale RTL gate
+evidence** → dispatched rtl-gen (IPC, gpt-5.4) → woke on job_complete →
+re-verified → finalized completed. Disk evidence: rtl_compile.json +
+dut_lint.json rewritten by the worker (passed=true, real iverilog/
+pyslang+verilator). Sim: 3 tests 0 fail, scoreboard 28/29; the 1 open row was
+NOT silently passed — gate printed `PASS_OR_ESCALATE scoreboard_failed=1` +
+`[SIM ESCALATE] owner=sim_debug`.
+
+### Run 0a5f0be2 — repair probe: gates honest, authoring non-convergent
+Orchestrator correctly routed the escalation (dispatch sim_debug → error →
+fl/cl → SEMANTIC GATE FAIL → equivalence → fail → classify → tb/sim probe),
+and after a human root-cause nudge dispatched ssot-gen repair + used
+**mark_downstream_stale(from_stage=ssot)** (previously-reported missing wiring —
+now confirmed live). Worker errors surface as generic `direct slash command
+failed`; the real verdicts live in the worker response result text.
+
+### Finding 15 — ssot-gen does not honor cycle_model_waiver (root cause of the 28/29 row)
+add8 locked contracts are cycle_model_waiver=true (combinational), but ssot-gen
+authored a fictional control FSM (IDLE/ACCEPT/EXEC_FEATURE_*/COMPLETE/ERROR) +
+state_variables, and the **repair dispatch re-authored the same FSM** (job
+e2bb7c931167, 122s — non-convergent). The FL semantic gate (locked-truth
+validation pattern) correctly blocks every fl/cl regen (job 5af1c569b448), so
+the pipeline can never converge without an ssot-gen prompt/validator fix. The
+phantom FSM also generated the phantom equivalence state goal
+(EQ_STATE_CONTROL_EXEC_FEATURE_2_TO_COMPLETE_3) = the single open scoreboard
+row. Ontology: OBL_SSOT_GEN_HONORS_CYCLE_WAIVER — **FIXED 48efb049** (verify_ssot blocker-fails fsm/state_variables/state_updates when all locked contracts are cycle-waived, with convergent remediation; + authoring prompt rules; live add8 phantom-FSM SSOT now FAILs the gate).
+
+### Finding 16 — appended user_message wake never drains → busy-loop → cap death
+A chat message appended to a live run is re-consumed on EVERY subsequent
+yield_run (`woken: user_message`, job_ids=[]), burning 1-2 LLM calls per cycle;
+run 0a5f0be2 spent ~steps 13-50 in this loop and died at the 50-step cap
+(`blocked`). wake.jsonl grew to 35 rows. Ontology: OBL_ORCH_USER_WAKE_DRAINED —
+**FIXED 48efb049** (runner-lifetime consumed_event_ids shared across wakers;
+match-only consumption keeps unmatched job_complete deliverable = zombie-wait
+protection intact). Same watchdog family as findings 4/12.
+
+### Net assessment
+Control plane re-confirmed end-to-end (read→dispatch→yield→wake→verify→finalize,
+detect→classify→retry→escalate, downstream-stale marking). The two blockers to
+hands-off convergence (findings 15/16) were fixed same-day in 48efb049; next
+re-judge = re-drive add8 ssot repair through the orchestrator to 29/29.

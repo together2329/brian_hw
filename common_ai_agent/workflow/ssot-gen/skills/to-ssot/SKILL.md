@@ -53,6 +53,13 @@ When `<ip>/req/approval_manifest.json` exists:
   contract needs a concrete machine-readable `function_model` row and a concrete
   machine-readable `cycle_model` timing/protocol row, or an explicit
   `cycle_model_waiver` when cycle timing is genuinely not applicable.
+- When **all** locked behavioral contracts are cycle-waived/combinational (every
+  contract is `cycle_model_waiver` or its locked decision table has no
+  clock/cycle/reset/handshake/state vocabulary), the IP is purely combinational:
+  author **no** `fsm` block, **no** `function_model.state_variables`, and **no**
+  `function_model.transactions[*].state_updates`. Keep transactions
+  combinational (decision_table when/then + output_rules). `verify_ssot` rejects
+  a state-control FSM or architectural state for a combinational IP.
 - Attach `source_refs`, `contract_refs`, and where useful `evidence_refs` to
   important Design Spec items.
 - If the user explicitly wants direct RTL before FL/CL, record
