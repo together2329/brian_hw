@@ -406,3 +406,11 @@ classify). Authoring chain for combinational IPs: SSOT layer now CONVERGES
 (15→15d all closed); the frontier moved one layer down into the CL emitter
 (finding 19). Job-status wake carries no failure reason (finding 18, noted
 06-11 afternoon) — orchestrator sees bare "error" and must re-read artifacts.
+
+### Findings 18/19/20 — FIXED f74961a4 (same evening)
+- 19: emit_cycle_model CL self-check now binds declared-port dict entries into
+  the rule eval env (parity with FL); live add8 cl_model_check flips passed=True.
+- 20: orchestrator dispatch refuses downstream-of-red (_PIPELINE_STAGE_DEPS
+  transitive closure; force=true escape; human dispatch unchanged).
+- 18: job_complete wakes carry the failure reason (gate headline mined when the
+  worker error is generic). Ontology: all three obligations closed.
