@@ -540,8 +540,16 @@ def _validate_yaml(path: str, run_mode: str) -> None:
 
     require_mapping("rtl_contract", ("transaction", "input_map", "output_map"))
 
-    timing = require_mapping("timing", ("target_clocks", "latency_budget"))
-    if not isinstance(timing.get("target_clocks"), list) or not timing["target_clocks"]:
+    # Combinational truth: no clocks exist — target_clocks would be fictional
+    # (finding 23b family); the synthesis PPA target carries the virtual-clock
+    # intent. latency_budget (prop-delay) stays required.
+    timing = require_mapping(
+        "timing",
+        ("latency_budget",) if combinational else ("target_clocks", "latency_budget"),
+    )
+    if not combinational and (
+        not isinstance(timing.get("target_clocks"), list) or not timing["target_clocks"]
+    ):
         raise _Fail("timing.target_clocks must be a non-empty list")
 
     power = require_mapping("power", ("domains", "power_states"))
