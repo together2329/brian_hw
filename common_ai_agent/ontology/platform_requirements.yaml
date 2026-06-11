@@ -443,13 +443,13 @@ requirements:
         status: closed   # cycle_model_waiver=true(조합) 계약에 FSM/state_updates/미선언 state_variables 투영 = 허구 state; deterministic backstop가 LLM 없이 CRITICAL FAIL, emit_fl_model passed AND-gate
         evidence:
           - test: "tests/test_validate_fl_semantics.py::test_fl_gate_flags_fictional_fsm_deterministic"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
           - test: "tests/test_validate_fl_semantics.py::test_fl_gate_flags_fictional_state_updates"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
           - test: "tests/test_validate_fl_semantics.py::test_fl_gate_no_false_positive_on_stateful_ip"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
           - test: "tests/test_validate_fl_semantics.py::test_fl_gate_llm_unavailable_records_not_run"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
       - id: OBL_CL_SEMANTIC_FICTIONAL_TIMING
         owned_by: engine.stage
         granularity: content
@@ -458,16 +458,25 @@ requirements:
         status: closed   # cycle_model_waiver=true(조합) 계약에 handshake/ordering/pipeline/backpressure/multi-cycle latency 투영 = 허구 timing; deterministic backstop가 CRITICAL FAIL + emit_cycle_model passed AND-gate (cl_model_check.json.semantic_validation)
         evidence:
           - test: "tests/test_validate_cl_semantics.py::test_cl_gate_flags_fictional_timing_deterministic"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
           - test: "tests/test_validate_cl_semantics.py::test_cl_gate_no_false_positive_on_stateful_ip"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
           - test: "tests/test_validate_cl_semantics.py::test_cl_gate_llm_unavailable_records_not_run"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
           - test: "tests/test_validate_cl_semantics.py::test_emit_cycle_model_blocks_on_fictional_timing"
-            observed_at: c5fa3769
+            observed_at: 7f912a27
       - id: OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET
         owned_by: engine.stage
         granularity: content
-        status: refuted
-        # 작업 중 발견한 결함 (AGENTS.md: 결함은 refuted obligation으로 즉시 등재).
-        refuted_by: "조합 IP라도 일반 req-gen 경로로 저작된 계약은 cycle_model_waiver를 받지 못한다. mux4_v1은 add8과 동일한 허구 cycle_model(handshake/ordering/pipeline/unbounded latency)을 갖지만 cycle_model_waived=[] → deterministic backstop 무발화, LLM judge에만 의존. 현재 flag를 set하는 것은 orch_campaign_truth.py(캠페인 IP)뿐(add8). 템플릿이 조합 IP에도 FSM/state를 날조하므로 '구조적 state 부재'로는 조합성 추론 불가. 완료정의 = 조합 계약 자동 cycle_model_waiver 부여(또는 안전한 의미적 추론)로 backstop가 mux4도 deterministic하게 잡고 closed로 뒤집는 evidence. 참조: doc/wiki/llm-authored-oracle-architecture.md (## Known limitation)"
+        # workflow/behavioral_contracts.py 는 orphan(freshness-scope 밖); pytest 노드가
+        # 파생 로직을 import·실행하는 백스톱이다.
+        status: closed   # 7f912a27: cycle_model_waiver를 locked decision_table 어휘에서 결정론적 파생(_cycle_model_waived/_contract_is_combinational + _SEQUENTIAL_TOKEN_RE). mux4_v1(flag 없는 조합 IP)이 LLM 없이 backstop에 잡히고 cnt8/mctp는 PASS. explicit flag가 clocked table과 충돌하면 hard projection issue. "명확한 기준이 truth에"
+        evidence:
+          - test: "tests/test_validate_cl_semantics.py::test_cl_gate_catches_fictional_timing_without_explicit_waiver"
+            observed_at: 7f912a27
+          - test: "tests/test_validate_fl_semantics.py::test_fl_gate_catches_fictional_fsm_without_explicit_waiver"
+            observed_at: 7f912a27
+          - test: "tests/test_validate_cl_semantics.py::test_cl_gate_no_false_positive_on_stateful_ip"
+            observed_at: 7f912a27
+          - test: "tests/test_validate_fl_semantics.py::test_fl_gate_no_false_positive_on_stateful_ip"
+            observed_at: 7f912a27
