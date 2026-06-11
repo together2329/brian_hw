@@ -318,7 +318,13 @@ def _validate_yaml(path: str, run_mode: str) -> None:
                     require_present(write_semantics, f"{fpath}.write_effect or {rpath}.write_side_effects")
 
     def require_interface_contract(io):
-        for group_key in ("clock_domains", "resets", "interfaces"):
+        # Cycle-waived combinational truth: no clock/reset pins exist —
+        # demanding clock_domains/resets (and per-interface clock_domain)
+        # forces fictional clocking (finding 23b family).
+        group_keys = (
+            ("interfaces",) if combinational else ("clock_domains", "resets", "interfaces")
+        )
+        for group_key in group_keys:
             if not isinstance(io.get(group_key), list) or not io[group_key]:
                 raise _Fail(f"io_list.{group_key} must be a non-empty list")
 
@@ -328,7 +334,8 @@ def _validate_yaml(path: str, run_mode: str) -> None:
             name = require_present(ci_get(iface, "name"), f"io_list.interfaces[{idx}].name")
             ipath = f"io_list.interfaces.{name}"
             require_present(ci_get(iface, "type", "protocol_type"), f"{ipath}.type")
-            require_present(ci_get(iface, "clock_domain", "clock"), f"{ipath}.clock_domain")
+            if not combinational:
+                require_present(ci_get(iface, "clock_domain", "clock"), f"{ipath}.clock_domain")
             ports = as_list(iface.get("ports"))
             if not ports:
                 raise _Fail(f"{ipath}.ports must be a non-empty list")
@@ -486,16 +493,26 @@ def _validate_yaml(path: str, run_mode: str) -> None:
         )
 
     cm = doc.get("cycle_model")
-    if not isinstance(cm, dict):
-        raise _Fail("cycle_model must be a mapping")
-    for key in ("clock", "reset", "latency", "handshake_rules", "pipeline", "ordering"):
-        if not cm.get(key):
-            raise _Fail(f"cycle_model.{key} is required")
-    for key in ("handshake_rules", "pipeline", "ordering"):
-        if not isinstance(cm.get(key), list) or not cm.get(key):
-            raise _Fail(f"cycle_model.{key} must be a non-empty list")
-    if not isinstance(cm.get("performance"), dict) or not cm["performance"]:
-        raise _Fail("cycle_model.performance must be a non-empty mapping for cycle/performance coverage")
+    if combinational:
+        # Cycle-waived combinational locked truth (finding 23b): the
+        # combinational gate STRIPS handshake_rules/pipeline/ordering and
+        # clamps latency to 0 — demanding them here re-created the finding-23
+        # validator deadlock (live add8 run 919806f5 hit retry budget on
+        # cycle_model.ordering/reset). cycle_model is optional metadata for
+        # these IPs; forcing timing sections invites fictional timing.
+        if cm is not None and not isinstance(cm, dict):
+            raise _Fail("cycle_model must be a mapping")
+    else:
+        if not isinstance(cm, dict):
+            raise _Fail("cycle_model must be a mapping")
+        for key in ("clock", "reset", "latency", "handshake_rules", "pipeline", "ordering"):
+            if not cm.get(key):
+                raise _Fail(f"cycle_model.{key} is required")
+        for key in ("handshake_rules", "pipeline", "ordering"):
+            if not isinstance(cm.get(key), list) or not cm.get(key):
+                raise _Fail(f"cycle_model.{key} must be a non-empty list")
+        if not isinstance(cm.get("performance"), dict) or not cm["performance"]:
+            raise _Fail("cycle_model.performance must be a non-empty mapping for cycle/performance coverage")
 
     def require_mapping(section, keys=()):
         value = doc.get(section)
@@ -509,7 +526,13 @@ def _validate_yaml(path: str, run_mode: str) -> None:
 
     require_top_sub_module_consistency(doc, ip)
 
-    io = require_mapping("io_list", ("clock_domains", "resets", "interfaces"))
+    # A cycle-waived combinational IP has no clock or reset pins — demanding
+    # non-empty clock_domains/resets forces fictional clocking (finding 23b
+    # family). interfaces stay required.
+    io = require_mapping(
+        "io_list",
+        ("interfaces",) if combinational else ("clock_domains", "resets", "interfaces"),
+    )
     require_interface_contract(io)
 
     regs = require_mapping("registers")
