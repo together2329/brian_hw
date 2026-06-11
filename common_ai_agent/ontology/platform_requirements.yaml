@@ -561,6 +561,15 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
             observed_at: 1d1edd4e
+      - id: OBL_SSOT_DISK_CHECK_WAIVER_CONSISTENT
+        owned_by: engine.stage
+        granularity: content
+        status: closed   # bfa75f5b: check_ssot_disk의 non-empty state_variables 요구가 조합 게이트(empty 요구)와 충돌해 저작 루프 데드락(finding 23, run 919806f5) — waiver-aware 완화, sequential은 strict 유지
+        evidence:
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_disk_check_combinational_allows_empty_state_variables"
+            observed_at: bfa75f5b
+          - test: "tests/test_verify_ssot_cycle_waiver.py::test_disk_check_sequential_still_requires_state_variables"
+            observed_at: bfa75f5b
       - id: OBL_CL_COMBINATIONAL_RULE_SYMBOLS
         owned_by: engine.stage
         granularity: content
