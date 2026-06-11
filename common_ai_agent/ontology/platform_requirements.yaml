@@ -216,6 +216,32 @@ requirements:
           - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
             observed_at: d3178b92
 
+  - id: REQ_PLAT_AGENT_PACK_ROCEV_001
+    claim: "Cursor/Codex 에이전트 팩은 ROCEV 기준을 실제 IP evidence와 연결해 재사용 가능한 workflow로 제공한다"
+    design_anchor: doc/wiki/req-obligation-contract-evidence-validation.md
+    obligations:
+      - id: OBL_CODEX_ROCEV_PACK_DECLARED
+        owned_by: platform.cursor-pack
+        granularity: content
+        status: open
+      - id: OBL_ROCEV_IP_AUDIT_10_IP
+        owned_by: platform.cursor-pack
+        granularity: content
+        status: open
+      - id: OBL_AGENT_PACK_IP_MEMORY_HOOKS
+        owned_by: platform.cursor-pack
+        granularity: content
+        status: open
+
+  - id: REQ_PLAT_IP_DEV_MEMORY_001
+    claim: "각 IP 개발 과정은 IP-local wiki와 git snapshot으로 장기 추적 가능하다"
+    design_anchor: doc/wiki/platform-ontology.md
+    obligations:
+      - id: OBL_IP_DEV_MEMORY_INIT_GIT_WIKI
+        owned_by: platform.ip-wiki
+        granularity: behavior
+        status: open
+
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
     design_anchor: doc/wiki/perforce-integration-20260530.md

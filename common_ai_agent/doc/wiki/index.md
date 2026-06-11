@@ -29,6 +29,8 @@ This section is additive; it does not replace the reading order below.
 | Chat input latency: round-2 perf pass (adaptive parent-sync debounce, poller bail-outs) + opt-in live input-perf HUD (`localStorage.ATLAS_PERF='1'`) | [[atlas-input-latency-perf-20260610]] |
 | Platform Ontology — 플랫폼 자체 개발 단위(DevUnit)/테스트/완성도 DB (L0~L4 사다리, orphan ratchet, scan/report/check CLI) | [[platform-ontology]] |
 | Cursor Agent Pack — rules/hooks/subagents/skills, todo-loop stop hook, ROCEV req→rtl→tb→sim chain, <ip>/wiki 히스토리, RTL DB query MCP | [[cursor-agent-pack]] |
+| Cursor Pack ROCEV slim (워크플로 관점 고민들, 2026-06-11) — `.cursor`를 req→rtl→tb→sim 골격만 남긴 슬림화 결정+근거: stage-engine subprocess 라우팅 → 안전 드롭, DV 프로파일 실제 트리거, fl-model-gen=oracle 딜레마(contract self-contained 아님), todo seed 다리, keep/drop 매니페스트, 스모크 5/5 | [[cursor-rocev-workflow-slim-20260611]] |
+| Codex ROCEV Agent Pack (2026-06-11) — Cursor seminar pack을 Codex 공식 표면(AGENTS.md, `.agents/skills`, `.codex_ref/agents`, `.codex_ref/hooks`, `.codex_ref/rules`)으로 옮긴 구성 + MCTP/PWM 예시 + 11 IP audit | [[codex-rocev-agent-pack-20260611]] |
 | 테스트 방법론 — 4층 피라미드 + green-while-broken 교훈 + 프론트 컷오버 전 E2E 필수 | [[testing-methodology]] |
 | uart_tx 직접 end-to-end 실행 — flow 골격 검증 + MSB-first mutation으로 shallow-observation silent-PASS 실증 + same-cycle 생성기 경계 + 직접 구동 cheat-sheet (audit=mutation kill-rate 권고) | [[uart-tx-end-to-end-findings-20260530]] |
 | MCTP assembler scratch req-to-audit run — AXI4/VDM/MCTP/SRAM/APB scope, truth_coverage refresh, local signoff 18/18 pass, mutation advisory interpretation, post-signoff RTL risks | [[mctp-assembler-scratch-flow-20260531]] |

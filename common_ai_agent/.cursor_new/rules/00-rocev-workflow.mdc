@@ -1,0 +1,107 @@
+---
+description: ROCEV workflow baseline for hardware work
+alwaysApply: true
+---
+
+# ROCEV Workflow Baseline
+
+Use this project rule when discussing RTL, TB, simulation, coverage, formal, or
+signoff work:
+
+```text
+Requirement -> Obligation -> Contract -> Evidence -> Validation
+```
+
+This is not a Cursor Skill. It is the working standard.
+
+## Meaning
+
+| Term | Plain meaning | Example |
+|---|---|---|
+| Requirement | What we want | FIFO preserves order |
+| Obligation | Small thing the design must do | first pushed item is first popped |
+| Contract | How it can be judged | expected model + scoreboard compare |
+| Evidence | What actually exists on disk | results.xml, scoreboard row, coverage, VCD |
+| Validation | Decision from evidence | closed / not closed / needs more evidence |
+
+## Completion rule
+
+Do not say a hardware task is done from model confidence.
+
+Use this shape instead:
+
+```text
+Requirement:
+Obligation:
+Contract:
+Evidence:
+Validation:
+```
+
+If one field is missing, say it is missing.
+
+## Examples
+
+### RTL change
+
+```text
+Requirement:
+  <ip> implements the required behavior for <case>.
+
+Obligation:
+  When <condition> occurs, RTL must produce <expected output/state>.
+
+Contract:
+  RTL compile/lint must pass, and the expected model or checker defines the
+  expected output/state for this case.
+
+Evidence:
+  rtl/rtl_compile.json
+  lint/dut_lint.json
+  sim/scoreboard_events.jsonl
+
+Validation:
+  PASS only if compile/lint pass and the matching scoreboard/checker row passes.
+```
+
+### TB change
+
+```text
+Requirement:
+  The testbench must observe <case>.
+
+Obligation:
+  At least one scenario drives <condition> and checks <expected behavior>.
+
+Contract:
+  Scenario list and scoreboard goals include this obligation.
+
+Evidence:
+  tb/cocotb/* test
+  sim/scoreboard_events.jsonl
+  cov/coverage.json
+
+Validation:
+  PASS only if the test ran, the scoreboard row exists, and coverage shows the case.
+```
+
+### Formal check
+
+```text
+Requirement:
+  A safety invariant must hold for all legal states.
+
+Obligation:
+  <bad condition> must never produce <forbidden output/state>.
+
+Contract:
+  SVA property states the invariant.
+
+Evidence:
+  verify/protocol_assertions.sva
+  verify/formal_status.json
+  proof log
+
+Validation:
+  PASS only for the property that was actually proven.
+```

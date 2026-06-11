@@ -206,18 +206,54 @@ units:
 
   - id: platform.cursor-pack
     kind: adapter
-    summary: Cursor 에이전트 팩 (.cursor rules/hooks/subagents/skills — todo-loop hook + ROCEV chain)
+    summary: Cursor/Codex 에이전트 팩 (rules/guidance, hooks, agents, skills — ROCEV chain)
     owns:
+      - AGENTS.md
       - .cursor/hooks/stop-todo-loop.py
       - .cursor/hooks/subagent-evidence-check.py
       - .cursor/hooks/stop-loop-check.py
       - .cursor/hooks/guard-shell.py
       - .cursor/hooks/protect-generated-artifacts.py
+      - .cursor_new/README.md
+      - .cursor_new/hooks.json
+      - .cursor_new/hooks/guard-rocev-evidence.py
+      - .cursor_new/hooks/ip-dev-memory-session.py
+      - .cursor_new/hooks/ip-dev-memory-stop.py
+      - .cursor_new/hooks/remind-rocev-report.py
+      - .cursor_new/rules/00-rocev-workflow.mdc
+      - .cursor_new/rules/10-hardware-evidence.mdc
+      - .cursor_new/rules/20-general-ip-example.mdc
+      - .cursor_new/rules/30-ip-dev-memory.mdc
+      - .cursor_new/skills/ip-dev-memory/SKILL.md
+      - .cursor_new/skills/ip-rocev-mini-run/SKILL.md
+      - .cursor_new/skills/rocev-evidence-review/SKILL.md
+      - .cursor_new/agents/rocev-requirement-agent.md
+      - .cursor_new/agents/rocev-rtl-agent.md
+      - .cursor_new/agents/rocev-verification-agent.md
+      - .cursor_new/agents/rocev-validator-agent.md
+      - .cursor_new/examples/pwm-gen-cx1-rocev-worked-example.md
+      - .cursor_new/examples/stage-evidence-map.md
+      - .codex_ref/README.md
+      - .codex_ref/hooks.json
+      - .codex_ref/hooks/rocev_pre_tool_use.py
+      - .codex_ref/hooks/rocev_stop_reminder.py
+      - .codex_ref/rules/rocev.rules
+      - .codex_ref/scripts/rocev_ip_audit.py
+      - .codex_ref/examples/rocev-ip-example-catalog.md
+      - .codex_ref/agents/rocev-requirement-agent.toml
+      - .codex_ref/agents/rocev-rtl-agent.toml
+      - .codex_ref/agents/rocev-verification-agent.toml
+      - .codex_ref/agents/rocev-validator-agent.toml
+      - .agents/skills/ip-dev-memory/SKILL.md
+      - .agents/skills/ip-rocev-mini-run/SKILL.md
+      - .agents/skills/rocev-evidence-review/SKILL.md
+      - .agents/skills/rocev-ip-audit/SKILL.md
       - scripts/atlas_mcp_server.py
       - scripts/cursor_todo.py
     content_tests:
       - tests/test_cursor_pack.py
       - tests/test_cursor_todo.py
+      - tests/test_agent_pack_rocev.py
     known_gaps:
       - stop hook 루프는 IDE 대화 모드 전용 — cursor-agent -p(print)에서 미발화 실측 (2026-06-10); Cursor 문서상 cloud/headless는 stop 미지원
 
@@ -225,8 +261,10 @@ units:
     kind: tooling
     summary: IP 폴더 내장 wiki (<ip>/wiki) — 개발 히스토리 축적 + frontmatter/link 무결성 게이트
     owns:
+      - scripts/ip_dev_memory.py
       - scripts/ip_wiki.py
     content_tests:
+      - tests/test_ip_dev_memory.py
       - tests/test_ip_wiki.py
 
   - id: platform.ontology

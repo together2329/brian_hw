@@ -1,0 +1,56 @@
+---
+description: IP development memory and IP-local git baseline
+globs: "**/req/**, **/rtl/**, **/tb/**, **/sim/**, **/lint/**, **/cov/**, **/verify/**, **/signoff/**, **/wiki/**"
+---
+
+# IP Development Memory
+
+When working on an IP, do not rely on the chat transcript as the only memory.
+The durable memory lives inside the IP folder.
+
+## Start of IP work
+
+Run this once when an IP becomes the work target:
+
+```bash
+python3 scripts/ip_dev_memory.py init <ip>
+```
+
+This creates or checks:
+
+- `<ip>/wiki/index.md`
+- `<ip>/wiki/log.md`
+- `<ip>/wiki/llm_memory.md`
+- `<ip>/wiki/git.md`
+- `<ip>/.git/`
+
+If `<ip>/.git/` does not exist, initialize it. Use local git config inside the
+IP folder; do not rely on global git identity.
+
+## During development
+
+At each meaningful stage boundary, write a short memory entry:
+
+```bash
+python3 scripts/ip_dev_memory.py log <ip> \
+  --stage sim \
+  --title "scoreboard mismatch reproduced" \
+  --body "Observed pwm_out high for 1 extra cycle when DUTY changes." \
+  --evidence <ip>/sim/scoreboard_events.jsonl
+```
+
+Then snapshot the IP-local repository after evidence or behavior changes:
+
+```bash
+python3 scripts/ip_dev_memory.py snapshot <ip> --message "sim: reproduce duty update mismatch"
+```
+
+## Before claiming completion
+
+Run:
+
+```bash
+python3 scripts/ip_dev_memory.py check <ip> --require-git
+```
+
+Completion should mention the wiki/git evidence alongside ROCEV evidence.

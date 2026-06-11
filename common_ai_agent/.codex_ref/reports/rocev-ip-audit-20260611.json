@@ -1,0 +1,808 @@
+{
+  "count": 11,
+  "results": [
+    {
+      "ip": "pwm_gen_cx1",
+      "path": "pwm_gen_cx1",
+      "validation": "partial",
+      "gaps": [
+        "coverage is blocked"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/locked_truth.md",
+            "req/pwm_gen_cx1_requirements.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 18,
+            "passed": 18,
+            "failed": 0,
+            "coverage_refs": 16,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage.json",
+          "status": "blocked"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/pwm_gen_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": false,
+          "path": null,
+          "status": "missing"
+        }
+      }
+    },
+    {
+      "ip": "fifo_sync_cx1",
+      "path": "fifo_sync_cx1",
+      "validation": "partial",
+      "gaps": [
+        "scoreboard has failed rows",
+        "coverage is blocked"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/fifo_sync_cx1_requirements.md",
+            "req/locked_truth.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 14,
+            "passed": 9,
+            "failed": 5,
+            "coverage_refs": 13,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage.json",
+          "status": "blocked"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/fifo_sync_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "fail"
+        }
+      }
+    },
+    {
+      "ip": "counter8_cx1",
+      "path": "counter8_cx1",
+      "validation": "partial",
+      "gaps": [
+        "coverage is missing"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/counter8_cx1_requirements.md",
+            "req/locked_truth.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 4
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 15,
+            "passed": 15,
+            "failed": 0,
+            "coverage_refs": 15,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": false,
+          "path": null,
+          "status": "missing"
+        },
+        "waveform": {
+          "present": false,
+          "paths": []
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "pass"
+        }
+      }
+    },
+    {
+      "ip": "debounce_cx1",
+      "path": "debounce_cx1",
+      "validation": "partial",
+      "gaps": [
+        "scoreboard has failed rows"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/locked_truth.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 21,
+            "passed": 2,
+            "failed": 19,
+            "coverage_refs": 19,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage_functional.json",
+          "status": "pass"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/debounce_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": false,
+          "path": null,
+          "status": "missing"
+        }
+      }
+    },
+    {
+      "ip": "edge_det_cx1",
+      "path": "edge_det_cx1",
+      "validation": "partial",
+      "gaps": [
+        "scoreboard has failed rows",
+        "coverage is blocked"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/edge_det_cx1_requirements.md",
+            "req/locked_truth.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 19,
+            "passed": 2,
+            "failed": 17,
+            "coverage_refs": 18,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage.json",
+          "status": "blocked"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/edge_det_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "fail"
+        }
+      }
+    },
+    {
+      "ip": "gray_code_cx1",
+      "path": "gray_code_cx1",
+      "validation": "partial",
+      "gaps": [
+        "scoreboard has failed rows",
+        "coverage is blocked"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/gray_code_cx1_requirements.md",
+            "req/locked_truth.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 4
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 12,
+            "passed": 10,
+            "failed": 2,
+            "coverage_refs": 11,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage.json",
+          "status": "blocked"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/gray_code_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "fail"
+        }
+      }
+    },
+    {
+      "ip": "parity_gen_cx1",
+      "path": "parity_gen_cx1",
+      "validation": "partial",
+      "gaps": [
+        "scoreboard has failed rows",
+        "coverage is blocked"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/locked_truth.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 21,
+            "passed": 16,
+            "failed": 5,
+            "coverage_refs": 20,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage.json",
+          "status": "blocked"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/parity_gen_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "fail"
+        }
+      }
+    },
+    {
+      "ip": "shift_reg_cx1",
+      "path": "shift_reg_cx1",
+      "validation": "partial",
+      "gaps": [
+        "coverage is missing"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/locked_truth.md",
+            "req/shift_reg_cx1_requirements.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 3
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 25,
+            "passed": 25,
+            "failed": 0,
+            "coverage_refs": 25,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": false,
+          "path": null,
+          "status": "missing"
+        },
+        "waveform": {
+          "present": false,
+          "paths": []
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "pass"
+        }
+      }
+    },
+    {
+      "ip": "uart_tx_lite_cx1",
+      "path": "uart_tx_lite_cx1",
+      "validation": "partial",
+      "gaps": [
+        "coverage is missing"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/locked_truth.md",
+            "req/uart_tx_lite_cx1_requirements.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 6,
+            "passed": 6,
+            "failed": 0,
+            "coverage_refs": 6,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": false,
+          "path": null,
+          "status": "missing"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/uart_tx_lite_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "pass"
+        }
+      }
+    },
+    {
+      "ip": "watchdog_cx1",
+      "path": "watchdog_cx1",
+      "validation": "partial",
+      "gaps": [
+        "coverage is missing"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/locked_truth.md",
+            "req/watchdog_cx1_requirements.md"
+          ]
+        },
+        "obligation": {
+          "present": true,
+          "path": "req/obligations.json",
+          "count": 5
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "req/evidence_plan.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 9,
+            "passed": 9,
+            "failed": 0,
+            "coverage_refs": 9,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": false,
+          "path": null,
+          "status": "missing"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/watchdog_cx1.vcd"
+          ]
+        },
+        "formal": {
+          "present": false,
+          "status": "not_run",
+          "sva": []
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "pass"
+        }
+      }
+    },
+    {
+      "ip": "mctp_assembler_v3",
+      "path": "mctp_assembler_v3",
+      "validation": "partial",
+      "gaps": [
+        "missing obligations.json"
+      ],
+      "evidence": {
+        "requirement": {
+          "present": true,
+          "paths": [
+            "req/mctp_assembler_v3_requirements.md"
+          ]
+        },
+        "obligation": {
+          "present": false,
+          "path": null,
+          "count": null
+        },
+        "contract": {
+          "present": true,
+          "paths": [
+            "verify/evidence_contract.json",
+            "verify/equivalence_goals.json"
+          ]
+        },
+        "rtl_compile": {
+          "present": true,
+          "status": "pass"
+        },
+        "lint": {
+          "present": true,
+          "status": "pass"
+        },
+        "simulation": {
+          "present": true,
+          "status": "pass"
+        },
+        "scoreboard": {
+          "present": true,
+          "path": "sim/scoreboard_events.jsonl",
+          "summary": {
+            "total": 106,
+            "passed": 106,
+            "failed": 0,
+            "coverage_refs": 95,
+            "unreadable": 0
+          }
+        },
+        "coverage": {
+          "present": true,
+          "path": "cov/coverage.json",
+          "status": "pass"
+        },
+        "waveform": {
+          "present": true,
+          "paths": [
+            "sim/mctp_assembler_v3.vcd"
+          ]
+        },
+        "formal": {
+          "present": true,
+          "status": "optional_not_run",
+          "sva": [
+            "verify/protocol_assertions.sva",
+            "verify/safety_properties.sva"
+          ]
+        },
+        "signoff": {
+          "present": true,
+          "path": "signoff/truth_coverage.json",
+          "status": "pass"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+# Codex rules are command approval policy, not project thinking rules.
+# ROCEV itself lives in AGENTS.md and skills.
+
+prefix_rule(
+    pattern = ["rm"],
+    decision = "prompt",
+    justification = "Deleting evidence artifacts should be reviewed first.",
+    match = [
+        "rm pwm_gen_cx1/sim/results.xml",
+        "rm -f pwm_gen_cx1/cov/coverage.json",
+    ],
+    not_match = [
+        "python3 .codex_ref/scripts/rocev_ip_audit.py pwm_gen_cx1",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "clean"],
+    decision = "prompt",
+    justification = "git clean can remove generated evidence; inspect first.",
+    match = [
+        "git clean -fd",
+        "git clean -fdx",
+    ],
+    not_match = [
+        "git status --short",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "prompt",
+    justification = "Hard reset can erase IP-local development memory before it is snapshotted.",
+    match = [
+        "git reset --hard HEAD",
+    ],
+    not_match = [
+        "git -C pwm_gen_cx1 status --short",
+    ],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "prompt",
+    justification = "Removing .git or wiki can destroy IP-local long-term memory.",
+    match = [
+        "rm -rf pwm_gen_cx1/.git",
+        "rm -rf pwm_gen_cx1/wiki",
+    ],
+    not_match = [
+        "python3 scripts/ip_dev_memory.py init pwm_gen_cx1",
+    ],
+)
