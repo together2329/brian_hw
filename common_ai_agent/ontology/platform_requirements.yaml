@@ -437,11 +437,11 @@ requirements:
         status: closed   # 48efb049: runner-수명 consumed_event_ids 공유 — matched 이벤트만 소비(미스매치 job_complete는 후속 waker에 전달되어 zombie-wait 보호 유지), user_message 1회 소비로 busy-loop→cap 사망 제거 (finding 16, run 0a5f0be2)
         evidence:
           - test: "tests/test_orchestrator_supervisor_wake.py::test_user_message_wake_consumed_once_per_runner"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
           - test: "tests/test_orchestrator_supervisor_wake.py::test_unmatched_job_complete_not_consumed_by_other_waker"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
           - test: "tests/test_orchestrator_supervisor_wake.py::test_fresh_runner_sees_old_pending_events_once"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
 
   - id: REQ_PLAT_ORCH_DISPATCH_ECONOMY_001
     claim: "Orchestrator 디스패치는 증거 게이트와 일관된다 — 상류 stage가 red면 하류 디스패치는 결정론적으로 거부되고(사유 반환), job 완료 wake에는 실패 사유가 동봉되어 LLM이 재발굴 없이 다음 행동을 고른다"
@@ -453,20 +453,20 @@ requirements:
         status: closed   # f74961a4: orchestrator dispatch가 _PIPELINE_STAGE_DEPS 전이폐쇄 기준 상류 red면 upstream_stage_red로 거부(+force=true 우회, red stage 자신/상류 재실행 허용, human 디스패치 무관) — finding 20
         evidence:
           - test: "tests/test_pipeline_orchestrator_worker_integration.py::test_orchestrator_dispatch_refuses_downstream_stage_while_upstream_red"
-            observed_at: f74961a4
+            observed_at: 1d1edd4e
           - test: "tests/test_pipeline_orchestrator_worker_integration.py::test_non_orchestrator_dispatch_unaffected_by_upstream_red_gate"
-            observed_at: f74961a4
+            observed_at: 1d1edd4e
       - id: OBL_ORCH_JOB_WAKE_CARRIES_REASON
         owned_by: api.jobs
         granularity: behavior
         status: closed   # f74961a4: job_complete wake에 실패 사유 동봉(job error 또는 generic일 때 게이트 headline 발굴, 200자) → job_complete:<id>:<status>:<reason>; 무사유 시 legacy 포맷 유지 — finding 18
         evidence:
           - test: "tests/test_orchestrator_supervisor_wake.py::test_waker_job_complete_event_appends_reason_when_present"
-            observed_at: f74961a4
+            observed_at: 1d1edd4e
           - test: "tests/test_orchestrator_supervisor_wake.py::test_waker_job_complete_event_keeps_legacy_format_without_reason"
-            observed_at: f74961a4
+            observed_at: 1d1edd4e
           - test: "tests/test_orchestrator_supervisor_wake.py::test_append_job_complete_wake_persists_reason"
-            observed_at: f74961a4
+            observed_at: 1d1edd4e
       - id: OBL_PIPELINE_TRUTH_COVERS_MODEL_STAGES
         owned_by: api.jobs
         granularity: behavior
@@ -479,11 +479,11 @@ requirements:
         granularity: behavior
         status: closed   # 1d1edd4e: __final__ completed 주장 시 live pipeline state 재독 — red 존재하면 blocked로 결정론 강등(+사유); blocked/paused 정직 주장은 통과 (finding 21: stale 증거 위 completed 마감)
         evidence:
-          - test: "tests/test_orchestrator_react_loop_parity.py::test_final_completed_downgraded_to_blocked_on_red_stage"
+          - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_completed_downgraded_to_blocked_on_red_stage"
             observed_at: 1d1edd4e
-          - test: "tests/test_orchestrator_react_loop_parity.py::test_final_completed_stays_completed_when_all_green"
+          - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_completed_stays_completed_when_all_green"
             observed_at: 1d1edd4e
-          - test: "tests/test_orchestrator_react_loop_parity.py::test_final_blocked_claim_passes_through_untouched"
+          - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_blocked_claim_passes_through_untouched"
             observed_at: 1d1edd4e
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
@@ -544,23 +544,23 @@ requirements:
         status: closed   # 48efb049: 모든 locked contract가 cycle-waived(조합)면 fsm states/state_variables/state_updates를 verify_ssot blocker로 거부(경로+이유+치유책) — 저작 단계에서 repair 수렴; 라이브 add8 phantom-FSM SSOT FAIL 확인 + 프롬프트 규칙(plan_prompt/SKILL) (finding 15)
         evidence:
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_combinational_contracts_reject_phantom_fsm_and_state"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_combinational_contracts_pass_clean_combinational_ssot"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_sequential_contracts_allow_fsm_no_false_positive"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_no_locked_contracts_no_combinational_check"
-            observed_at: 48efb049
+            observed_at: 1d1edd4e
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_relaxed_mode_keeps_combinational_gate_hard"
-            observed_at: a5c55fe5
+            observed_at: 1d1edd4e
           - test: "tests/test_verify_ssot_cycle_waiver.py::test_combinational_contracts_reject_fictional_cycle_model_timing"
-            observed_at: f2e1e13e
+            observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_phantom_ssot_is_pruned"
-            observed_at: 8b7259ec
+            observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_sequential_ssot_still_injects_template"
-            observed_at: 8b7259ec
+            observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
-            observed_at: 8b7259ec
+            observed_at: 1d1edd4e
       - id: OBL_CL_COMBINATIONAL_RULE_SYMBOLS
         owned_by: engine.stage
         granularity: content
