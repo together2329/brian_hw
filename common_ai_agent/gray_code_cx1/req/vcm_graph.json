@@ -1,0 +1,498 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "gray_code_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 1,
+    "obligation": 4,
+    "contract_ref": 4,
+    "structural_contract": 1,
+    "behavioral_contract": 4,
+    "evidence": 9,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_GC_DECODE",
+      "kind": "behavioral_contract",
+      "label": "BC_GC_DECODE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_GC_ENCODE",
+      "kind": "behavioral_contract",
+      "label": "BC_GC_ENCODE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_GC_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_GC_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_GC_RESET",
+      "kind": "behavioral_contract",
+      "label": "BC_GC_RESET",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_GC_DECODE",
+      "kind": "contract_ref",
+      "label": "C_GC_DECODE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_GC_ENCODE",
+      "kind": "contract_ref",
+      "label": "C_GC_ENCODE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_GC_LINT",
+      "kind": "contract_ref",
+      "label": "C_GC_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_GC_RESET",
+      "kind": "contract_ref",
+      "label": "C_GC_RESET",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_GC_BC_DECODE",
+      "kind": "evidence",
+      "label": "E_GC_BC_DECODE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "decode sequence matches BC_GC_DECODE expected"
+      }
+    },
+    {
+      "id": "E_GC_BC_ENCODE",
+      "kind": "evidence",
+      "label": "E_GC_BC_ENCODE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "encode sequence matches BC_GC_ENCODE expected"
+      }
+    },
+    {
+      "id": "E_GC_BC_LINT",
+      "kind": "evidence",
+      "label": "E_GC_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch findings per BC_GC_LINT"
+      }
+    },
+    {
+      "id": "E_GC_BC_RESET",
+      "kind": "evidence",
+      "label": "E_GC_BC_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "outputs==0 one cycle after rst_n asserts per BC_GC_RESET"
+      }
+    },
+    {
+      "id": "E_GC_DECODE",
+      "kind": "evidence",
+      "label": "E_GC_DECODE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "bin_out matches cascaded XOR of gray_in for all 16 values"
+      }
+    },
+    {
+      "id": "E_GC_ENCODE",
+      "kind": "evidence",
+      "label": "E_GC_ENCODE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "gray_out matches XOR formula for all 16 bin_in values"
+      }
+    },
+    {
+      "id": "E_GC_LINT",
+      "kind": "evidence",
+      "label": "E_GC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch violations"
+      }
+    },
+    {
+      "id": "E_GC_RESET",
+      "kind": "evidence",
+      "label": "E_GC_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "outputs==0 during reset"
+      }
+    },
+    {
+      "id": "E_GC_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_GC_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/gray_code_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "ports clk rst_n valid mode bin_in gray_in gray_out bin_out present with correct widths"
+      }
+    },
+    {
+      "id": "OBL_GC_DECODE_001",
+      "kind": "obligation",
+      "label": "OBL_GC_DECODE_001",
+      "status": "locked",
+      "data": {
+        "statement": "bin_out is registered as cascaded XOR reduction of gray_in one cycle after valid is sampled.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_GC_ENCODE_001",
+      "kind": "obligation",
+      "label": "OBL_GC_ENCODE_001",
+      "status": "locked",
+      "data": {
+        "statement": "gray_out is registered as bin_in XOR (bin_in>>1) one cycle after valid is sampled.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_GC_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_GC_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "No inferred latches; gray_out and bin_out are registered single-driver outputs.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_GC_RESET_001",
+      "kind": "obligation",
+      "label": "OBL_GC_RESET_001",
+      "status": "locked",
+      "data": {
+        "statement": "gray_out and bin_out clear to 0 synchronously when rst_n is low.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_GC_FUNC_001",
+      "kind": "requirement",
+      "label": "4-bit binary-to-Gray and Gray-to-binary converter (registered)",
+      "status": "locked",
+      "data": {
+        "statement": "On each rising clock edge when valid is high, gray_out is registered as bin_in XOR (bin_in>>1) and bin_out is registered as the cascaded XOR reduction of gray_in. Both outputs clear to 0 synchronously when rst_n is low.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_GC_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_GC_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 10/12",
+      "status": "fail",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 10,
+        "total": 12
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_DECODE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_ENCODE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_DECODE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_GC_DECODE_001",
+      "target": "C_GC_DECODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_DECODE_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_DECODE_001",
+      "target": "BC_GC_DECODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_ENCODE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_GC_ENCODE_001",
+      "target": "C_GC_ENCODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_ENCODE_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_ENCODE_001",
+      "target": "BC_GC_ENCODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_GC_LINT_001",
+      "target": "C_GC_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_LINT_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_LINT_001",
+      "target": "BC_GC_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_GC_FUNC_001",
+      "target": "OBL_GC_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_GC_RESET_001",
+      "target": "C_GC_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_RESET_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_RESET_001",
+      "target": "BC_GC_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_DECODE_001",
+      "target": "C_GC_DECODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_ENCODE_001",
+      "target": "C_GC_ENCODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_LINT_001",
+      "target": "C_GC_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_RESET_001",
+      "target": "C_GC_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_DECODE_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_ENCODE_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_LINT_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_RESET_001",
+      "target": "SC_GC_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_DECODE_001",
+      "target": "BC_GC_DECODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_ENCODE_001",
+      "target": "BC_GC_ENCODE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_LINT_001",
+      "target": "BC_GC_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_GC_RESET_001",
+      "target": "BC_GC_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_GC_DECODE",
+      "target": "E_GC_BC_DECODE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_GC_ENCODE",
+      "target": "E_GC_BC_ENCODE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_GC_LINT",
+      "target": "E_GC_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_GC_RESET",
+      "target": "E_GC_BC_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_GC_DECODE",
+      "target": "E_GC_DECODE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_GC_ENCODE",
+      "target": "E_GC_ENCODE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_GC_LINT",
+      "target": "E_GC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_GC_RESET",
+      "target": "E_GC_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_GC_PORTS",
+      "target": "E_GC_SC_PORTS",
+      "kind": "evidenced_by"
+    }
+  ]
+}

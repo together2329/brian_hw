@@ -1,0 +1,393 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "shift_reg_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 1,
+    "obligation": 3,
+    "contract_ref": 3,
+    "structural_contract": 1,
+    "behavioral_contract": 3,
+    "evidence": 7,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_SR8_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_SR8_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_SR8_RESET",
+      "kind": "behavioral_contract",
+      "label": "BC_SR8_RESET",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_SR8_SHIFT",
+      "kind": "behavioral_contract",
+      "label": "BC_SR8_SHIFT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_SR8_LINT",
+      "kind": "contract_ref",
+      "label": "C_SR8_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_SR8_RESET",
+      "kind": "contract_ref",
+      "label": "C_SR8_RESET",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_SR8_SHIFT",
+      "kind": "contract_ref",
+      "label": "C_SR8_SHIFT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_SR8_BC_LINT",
+      "kind": "evidence",
+      "label": "E_SR8_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch findings per BC_SR8_LINT"
+      }
+    },
+    {
+      "id": "E_SR8_BC_RESET",
+      "kind": "evidence",
+      "label": "E_SR8_BC_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "po==0 one cycle after rst_n asserts per BC_SR8_RESET"
+      }
+    },
+    {
+      "id": "E_SR8_BC_SHIFT",
+      "kind": "evidence",
+      "label": "E_SR8_BC_SHIFT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "shift sequence matches BC_SR8_SHIFT TR_SHIFT expected"
+      }
+    },
+    {
+      "id": "E_SR8_LINT",
+      "kind": "evidence",
+      "label": "E_SR8_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations"
+      }
+    },
+    {
+      "id": "E_SR8_RESET",
+      "kind": "evidence",
+      "label": "E_SR8_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "po==0 observed one cycle after rst_n asserts"
+      }
+    },
+    {
+      "id": "E_SR8_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_SR8_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/shift_reg_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "top ports clk rst_n si po present with correct widths"
+      }
+    },
+    {
+      "id": "E_SR8_SHIFT",
+      "kind": "evidence",
+      "label": "E_SR8_SHIFT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "observed shift sequence matches FL expected"
+      }
+    },
+    {
+      "id": "OBL_SR8_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_SR8_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "No inferred latches; po is a single-driver registered output.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_SR8_RESET_001",
+      "kind": "obligation",
+      "label": "OBL_SR8_RESET_001",
+      "status": "locked",
+      "data": {
+        "statement": "po clears to 0 synchronously when rst_n==0.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_SR8_SHIFT_001",
+      "kind": "obligation",
+      "label": "OBL_SR8_SHIFT_001",
+      "status": "locked",
+      "data": {
+        "statement": "po shifts left each cycle with si entering at bit 0.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_SR8_FUNC_001",
+      "kind": "requirement",
+      "label": "8-bit SIPO shift register with sync reset",
+      "status": "locked",
+      "data": {
+        "statement": "The shift register shifts left by 1 on every rising clock edge when rst_n==1 (si enters at bit 0) and clears to 0 synchronously when rst_n==0.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_SR8_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_SR8_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 25/25",
+      "status": "pass",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 25,
+        "total": 25
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_SR8_FUNC_001",
+      "target": "OBL_SR8_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_SR8_FUNC_001",
+      "target": "OBL_SR8_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_SR8_FUNC_001",
+      "target": "OBL_SR8_SHIFT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_SR8_FUNC_001",
+      "target": "OBL_SR8_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_SR8_LINT_001",
+      "target": "C_SR8_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_LINT_001",
+      "target": "SC_SR8_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_LINT_001",
+      "target": "BC_SR8_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_SR8_FUNC_001",
+      "target": "OBL_SR8_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_SR8_RESET_001",
+      "target": "C_SR8_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_RESET_001",
+      "target": "SC_SR8_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_RESET_001",
+      "target": "BC_SR8_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_SR8_FUNC_001",
+      "target": "OBL_SR8_SHIFT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_SR8_SHIFT_001",
+      "target": "C_SR8_SHIFT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_SHIFT_001",
+      "target": "SC_SR8_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_SHIFT_001",
+      "target": "BC_SR8_SHIFT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_LINT_001",
+      "target": "C_SR8_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_RESET_001",
+      "target": "C_SR8_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_SHIFT_001",
+      "target": "C_SR8_SHIFT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_LINT_001",
+      "target": "SC_SR8_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_RESET_001",
+      "target": "SC_SR8_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_SHIFT_001",
+      "target": "SC_SR8_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_LINT_001",
+      "target": "BC_SR8_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_RESET_001",
+      "target": "BC_SR8_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_SR8_SHIFT_001",
+      "target": "BC_SR8_SHIFT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_SR8_LINT",
+      "target": "E_SR8_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_SR8_RESET",
+      "target": "E_SR8_BC_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_SR8_SHIFT",
+      "target": "E_SR8_BC_SHIFT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_SR8_LINT",
+      "target": "E_SR8_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_SR8_RESET",
+      "target": "E_SR8_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_SR8_PORTS",
+      "target": "E_SR8_SC_PORTS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_SR8_SHIFT",
+      "target": "E_SR8_SHIFT",
+      "kind": "evidenced_by"
+    }
+  ]
+}

@@ -1,0 +1,636 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "pwm_gen_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 4,
+    "obligation": 5,
+    "contract_ref": 5,
+    "structural_contract": 1,
+    "behavioral_contract": 4,
+    "evidence": 10,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_PWM_COUNT",
+      "kind": "behavioral_contract",
+      "label": "BC_PWM_COUNT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_PWM_DUTY",
+      "kind": "behavioral_contract",
+      "label": "BC_PWM_DUTY",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_PWM_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_PWM_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_PWM_RESET",
+      "kind": "behavioral_contract",
+      "label": "BC_PWM_RESET",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_PWM_COUNTER",
+      "kind": "contract_ref",
+      "label": "C_PWM_COUNTER",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_PWM_DUTY",
+      "kind": "contract_ref",
+      "label": "C_PWM_DUTY",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_PWM_LINT",
+      "kind": "contract_ref",
+      "label": "C_PWM_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_PWM_OUT",
+      "kind": "contract_ref",
+      "label": "C_PWM_OUT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_PWM_RESET",
+      "kind": "contract_ref",
+      "label": "C_PWM_RESET",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_PWM_BC_COUNT",
+      "kind": "evidence",
+      "label": "E_PWM_BC_COUNT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "pwm_out matches FL expected (counter_q < duty_reg) each cycle"
+      }
+    },
+    {
+      "id": "E_PWM_BC_DUTY",
+      "kind": "evidence",
+      "label": "E_PWM_BC_DUTY",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "duty_reg matches duty_in one cycle after wr_en per BC_PWM_DUTY"
+      }
+    },
+    {
+      "id": "E_PWM_BC_LINT",
+      "kind": "evidence",
+      "label": "E_PWM_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations per BC_PWM_LINT"
+      }
+    },
+    {
+      "id": "E_PWM_BC_RESET",
+      "kind": "evidence",
+      "label": "E_PWM_BC_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "counter_q=0 and duty_reg=0 observed during reset per BC_PWM_RESET"
+      }
+    },
+    {
+      "id": "E_PWM_COUNTER",
+      "kind": "evidence",
+      "label": "E_PWM_COUNTER",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "counter_q increments observed in scoreboard"
+      }
+    },
+    {
+      "id": "E_PWM_DUTY",
+      "kind": "evidence",
+      "label": "E_PWM_DUTY",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "duty_reg write observed in scoreboard"
+      }
+    },
+    {
+      "id": "E_PWM_LINT",
+      "kind": "evidence",
+      "label": "E_PWM_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations"
+      }
+    },
+    {
+      "id": "E_PWM_OUT",
+      "kind": "evidence",
+      "label": "E_PWM_OUT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "pwm_out = (counter_q < duty_reg) observed in scoreboard"
+      }
+    },
+    {
+      "id": "E_PWM_RESET",
+      "kind": "evidence",
+      "label": "E_PWM_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "pwm_out=0 observed during reset in scoreboard"
+      }
+    },
+    {
+      "id": "E_PWM_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_PWM_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/pwm_gen_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "top ports clk rst_n duty_in wr_en pwm_out present with correct widths"
+      }
+    },
+    {
+      "id": "OBL_PWM_COUNTER_001",
+      "kind": "obligation",
+      "label": "OBL_PWM_COUNTER_001",
+      "status": "locked",
+      "data": {
+        "statement": "counter_q increments by 1 each rising clk edge and wraps 0..255 when rst_n=1.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_PWM_DUTY_001",
+      "kind": "obligation",
+      "label": "OBL_PWM_DUTY_001",
+      "status": "locked",
+      "data": {
+        "statement": "duty_reg latches duty_in on rising clk when wr_en=1.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "count"
+      }
+    },
+    {
+      "id": "OBL_PWM_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_PWM_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "RTL must have no inferred latches and a single driver per register.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_PWM_OUT_001",
+      "kind": "obligation",
+      "label": "OBL_PWM_OUT_001",
+      "status": "locked",
+      "data": {
+        "statement": "pwm_out = (counter_q < duty_reg) combinationally every clock cycle.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "content"
+      }
+    },
+    {
+      "id": "OBL_PWM_RESET_001",
+      "kind": "obligation",
+      "label": "OBL_PWM_RESET_001",
+      "status": "locked",
+      "data": {
+        "statement": "counter_q and duty_reg clear to 0 on rst_n=0; pwm_out=0 during reset.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "REQ_PWM_COUNTER_001",
+      "kind": "requirement",
+      "label": "8-bit free-running counter",
+      "status": "locked",
+      "data": {
+        "statement": "An 8-bit counter (counter_q) shall increment by 1 on every rising clk edge, wrapping from 255 to 0, when rst_n is deasserted.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_PWM_DUTY_001",
+      "kind": "requirement",
+      "label": "DUTY register write",
+      "status": "locked",
+      "data": {
+        "statement": "The DUTY register shall latch duty_in[7:0] on the rising clk edge when wr_en is asserted.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_PWM_OUT_001",
+      "kind": "requirement",
+      "label": "PWM output compare",
+      "status": "locked",
+      "data": {
+        "statement": "pwm_out shall be combinationally driven as 1 when counter_q < duty_reg, and 0 otherwise.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_PWM_RESET_001",
+      "kind": "requirement",
+      "label": "Reset clears all state",
+      "status": "locked",
+      "data": {
+        "statement": "On active-low reset (rst_n=0), counter_q and duty_reg shall clear to 0, producing pwm_out=0.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_PWM_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_PWM_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 18/18",
+      "status": "pass",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 18,
+        "total": 18
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_PWM_COUNTER_001",
+      "target": "OBL_PWM_COUNTER_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_COUNTER_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_DUTY_001",
+      "target": "OBL_PWM_DUTY_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_DUTY_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_OUT_001",
+      "target": "OBL_PWM_OUT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_OUT_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_RESET_001",
+      "target": "OBL_PWM_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_RESET_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_COUNTER_001",
+      "target": "OBL_PWM_COUNTER_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_PWM_COUNTER_001",
+      "target": "C_PWM_COUNTER",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_COUNTER_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_COUNTER_001",
+      "target": "BC_PWM_COUNT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_PWM_DUTY_001",
+      "target": "OBL_PWM_DUTY_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_PWM_DUTY_001",
+      "target": "C_PWM_DUTY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_DUTY_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_DUTY_001",
+      "target": "BC_PWM_DUTY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_PWM_OUT_001",
+      "target": "OBL_PWM_OUT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_PWM_OUT_001",
+      "target": "C_PWM_OUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_OUT_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_OUT_001",
+      "target": "BC_PWM_COUNT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_PWM_RESET_001",
+      "target": "OBL_PWM_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_PWM_RESET_001",
+      "target": "C_PWM_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_RESET_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_RESET_001",
+      "target": "BC_PWM_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_PWM_COUNTER_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_DUTY_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_OUT_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_PWM_RESET_001",
+      "target": "OBL_PWM_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_PWM_LINT_001",
+      "target": "C_PWM_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_LINT_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_LINT_001",
+      "target": "BC_PWM_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_COUNTER_001",
+      "target": "C_PWM_COUNTER",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_DUTY_001",
+      "target": "C_PWM_DUTY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_OUT_001",
+      "target": "C_PWM_OUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_RESET_001",
+      "target": "C_PWM_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_LINT_001",
+      "target": "C_PWM_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_COUNTER_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_DUTY_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_OUT_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_RESET_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_LINT_001",
+      "target": "SC_PWM_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_COUNTER_001",
+      "target": "BC_PWM_COUNT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_OUT_001",
+      "target": "BC_PWM_COUNT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_DUTY_001",
+      "target": "BC_PWM_DUTY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_RESET_001",
+      "target": "BC_PWM_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_PWM_LINT_001",
+      "target": "BC_PWM_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_PWM_COUNT",
+      "target": "E_PWM_BC_COUNT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_PWM_DUTY",
+      "target": "E_PWM_BC_DUTY",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_PWM_RESET",
+      "target": "E_PWM_BC_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_PWM_LINT",
+      "target": "E_PWM_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_PWM_COUNTER",
+      "target": "E_PWM_COUNTER",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_PWM_DUTY",
+      "target": "E_PWM_DUTY",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_PWM_OUT",
+      "target": "E_PWM_OUT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_PWM_RESET",
+      "target": "E_PWM_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_PWM_LINT",
+      "target": "E_PWM_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_PWM_PORTS",
+      "target": "E_PWM_SC_PORTS",
+      "kind": "evidenced_by"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "complex_timer_v1",
+  "locked": false,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 0,
+    "obligation": 0,
+    "contract_ref": 0,
+    "structural_contract": 0,
+    "behavioral_contract": 0,
+    "evidence": 0,
+    "validation": 0,
+    "ghost": 0
+  },
+  "nodes": [],
+  "edges": []
+}

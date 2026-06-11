@@ -1,0 +1,603 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "watchdog_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:19Z",
+  "counts": {
+    "requirement": 1,
+    "obligation": 5,
+    "contract_ref": 5,
+    "structural_contract": 1,
+    "behavioral_contract": 5,
+    "evidence": 11,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_WDT_IDLE",
+      "kind": "behavioral_contract",
+      "label": "BC_WDT_IDLE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_WDT_KICK",
+      "kind": "behavioral_contract",
+      "label": "BC_WDT_KICK",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_WDT_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_WDT_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_WDT_TICK",
+      "kind": "behavioral_contract",
+      "label": "BC_WDT_TICK",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_WDT_TIMEOUT",
+      "kind": "behavioral_contract",
+      "label": "BC_WDT_TIMEOUT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_WDT_IDLE",
+      "kind": "contract_ref",
+      "label": "C_WDT_IDLE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_WDT_KICK",
+      "kind": "contract_ref",
+      "label": "C_WDT_KICK",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_WDT_LINT",
+      "kind": "contract_ref",
+      "label": "C_WDT_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_WDT_TICK",
+      "kind": "contract_ref",
+      "label": "C_WDT_TICK",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_WDT_TIMEOUT",
+      "kind": "contract_ref",
+      "label": "C_WDT_TIMEOUT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_WDT_BC_IDLE",
+      "kind": "evidence",
+      "label": "E_WDT_BC_IDLE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "count_q unchanged and timeout_pulse==0 when disabled per BC_WDT_IDLE"
+      }
+    },
+    {
+      "id": "E_WDT_BC_KICK",
+      "kind": "evidence",
+      "label": "E_WDT_BC_KICK",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "count_q reloaded to period_q per BC_WDT_KICK"
+      }
+    },
+    {
+      "id": "E_WDT_BC_LINT",
+      "kind": "evidence",
+      "label": "E_WDT_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch findings per BC_WDT_LINT"
+      }
+    },
+    {
+      "id": "E_WDT_BC_TICK",
+      "kind": "evidence",
+      "label": "E_WDT_BC_TICK",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "count_q decrement matches BC_WDT_TICK TR_TICK expected"
+      }
+    },
+    {
+      "id": "E_WDT_BC_TIMEOUT",
+      "kind": "evidence",
+      "label": "E_WDT_BC_TIMEOUT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "timeout_pulse==1 for exactly 1 cycle per BC_WDT_TIMEOUT"
+      }
+    },
+    {
+      "id": "E_WDT_IDLE",
+      "kind": "evidence",
+      "label": "E_WDT_IDLE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "count_q unchanged and timeout_pulse==0 when enable_q==0"
+      }
+    },
+    {
+      "id": "E_WDT_KICK",
+      "kind": "evidence",
+      "label": "E_WDT_KICK",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "count_q reloaded to period_q after KICK write"
+      }
+    },
+    {
+      "id": "E_WDT_LINT",
+      "kind": "evidence",
+      "label": "E_WDT_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations"
+      }
+    },
+    {
+      "id": "E_WDT_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_WDT_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/watchdog_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR timeout_pulse present with correct widths"
+      }
+    },
+    {
+      "id": "E_WDT_TICK",
+      "kind": "evidence",
+      "label": "E_WDT_TICK",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "observed count_q decrement sequence matches FL expected"
+      }
+    },
+    {
+      "id": "E_WDT_TIMEOUT",
+      "kind": "evidence",
+      "label": "E_WDT_TIMEOUT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "timeout_pulse==1 for exactly 1 cycle when count_q reaches 1"
+      }
+    },
+    {
+      "id": "OBL_WDT_IDLE_001",
+      "kind": "obligation",
+      "label": "OBL_WDT_IDLE_001",
+      "status": "locked",
+      "data": {
+        "statement": "When CTRL.enable==0, count_q holds its value and timeout_pulse=0.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_WDT_KICK_001",
+      "kind": "obligation",
+      "label": "OBL_WDT_KICK_001",
+      "status": "locked",
+      "data": {
+        "statement": "An APB write to KICK (offset 4) reloads count_q from period_q and clears timeout_pulse.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_WDT_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_WDT_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "No inferred latches; all registered signals are single-driver.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_WDT_TICK_001",
+      "kind": "obligation",
+      "label": "OBL_WDT_TICK_001",
+      "status": "locked",
+      "data": {
+        "statement": "count_q decrements by 1 each enabled PCLK cycle when no kick occurs.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_WDT_TIMEOUT_001",
+      "kind": "obligation",
+      "label": "OBL_WDT_TIMEOUT_001",
+      "status": "locked",
+      "data": {
+        "statement": "When count_q reaches 1, timeout_pulse=1 for exactly 1 cycle and count_q auto-reloads from period_q.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_WDT_FUNC_001",
+      "kind": "requirement",
+      "label": "Watchdog counter decrement and timeout pulse",
+      "status": "locked",
+      "data": {
+        "statement": "The watchdog counter decrements by 1 on each rising PCLK edge when CTRL.enable==1. When the counter reaches 1 it emits timeout_pulse=1 for exactly one cycle and auto-reloads from PERIOD.period. When CTRL.enable==0 the counter is frozen and timeout_pulse=0. APB write to KICK reloads the counter.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_WDT_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_WDT_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 9/9",
+      "status": "pass",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 9,
+        "total": 9
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_IDLE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_KICK_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_TICK_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_TIMEOUT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_IDLE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_WDT_IDLE_001",
+      "target": "C_WDT_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_IDLE_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_IDLE_001",
+      "target": "BC_WDT_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_KICK_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_WDT_KICK_001",
+      "target": "C_WDT_KICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_KICK_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_KICK_001",
+      "target": "BC_WDT_KICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_WDT_LINT_001",
+      "target": "C_WDT_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_LINT_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_LINT_001",
+      "target": "BC_WDT_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_TICK_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_WDT_TICK_001",
+      "target": "C_WDT_TICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TICK_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TICK_001",
+      "target": "BC_WDT_TICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_WDT_FUNC_001",
+      "target": "OBL_WDT_TIMEOUT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_WDT_TIMEOUT_001",
+      "target": "C_WDT_TIMEOUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TIMEOUT_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TIMEOUT_001",
+      "target": "BC_WDT_TIMEOUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_IDLE_001",
+      "target": "C_WDT_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_KICK_001",
+      "target": "C_WDT_KICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_LINT_001",
+      "target": "C_WDT_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TICK_001",
+      "target": "C_WDT_TICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TIMEOUT_001",
+      "target": "C_WDT_TIMEOUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_IDLE_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_KICK_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_LINT_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TICK_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TIMEOUT_001",
+      "target": "SC_WDT_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_IDLE_001",
+      "target": "BC_WDT_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_KICK_001",
+      "target": "BC_WDT_KICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_LINT_001",
+      "target": "BC_WDT_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TICK_001",
+      "target": "BC_WDT_TICK",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_WDT_TIMEOUT_001",
+      "target": "BC_WDT_TIMEOUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_WDT_IDLE",
+      "target": "E_WDT_BC_IDLE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_WDT_KICK",
+      "target": "E_WDT_BC_KICK",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_WDT_LINT",
+      "target": "E_WDT_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_WDT_TICK",
+      "target": "E_WDT_BC_TICK",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_WDT_TIMEOUT",
+      "target": "E_WDT_BC_TIMEOUT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_WDT_IDLE",
+      "target": "E_WDT_IDLE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_WDT_KICK",
+      "target": "E_WDT_KICK",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_WDT_LINT",
+      "target": "E_WDT_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_WDT_PORTS",
+      "target": "E_WDT_SC_PORTS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_WDT_TICK",
+      "target": "E_WDT_TICK",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_WDT_TIMEOUT",
+      "target": "E_WDT_TIMEOUT",
+      "kind": "evidenced_by"
+    }
+  ]
+}

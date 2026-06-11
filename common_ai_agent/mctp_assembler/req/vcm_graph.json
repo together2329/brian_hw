@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "mctp_assembler",
+  "locked": false,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 0,
+    "obligation": 0,
+    "contract_ref": 0,
+    "structural_contract": 0,
+    "behavioral_contract": 0,
+    "evidence": 0,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 28/28",
+      "status": "pass",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 28,
+        "total": 28
+      }
+    },
+    {
+      "id": "VAL_SSOT",
+      "kind": "validation",
+      "label": "to-ssot verify_ssot",
+      "status": "pass",
+      "data": {
+        "artifact": "req/ssot_validation.json"
+      }
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,603 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "uart_tx_lite_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:19Z",
+  "counts": {
+    "requirement": 1,
+    "obligation": 5,
+    "contract_ref": 5,
+    "structural_contract": 1,
+    "behavioral_contract": 5,
+    "evidence": 11,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_UART_BUSY",
+      "kind": "behavioral_contract",
+      "label": "BC_UART_BUSY",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_UART_DROP",
+      "kind": "behavioral_contract",
+      "label": "BC_UART_DROP",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_UART_IDLE",
+      "kind": "behavioral_contract",
+      "label": "BC_UART_IDLE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_UART_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_UART_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_UART_TX",
+      "kind": "behavioral_contract",
+      "label": "BC_UART_TX",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_UART_BUSY",
+      "kind": "contract_ref",
+      "label": "C_UART_BUSY",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_UART_DROP",
+      "kind": "contract_ref",
+      "label": "C_UART_DROP",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_UART_IDLE",
+      "kind": "contract_ref",
+      "label": "C_UART_IDLE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_UART_LINT",
+      "kind": "contract_ref",
+      "label": "C_UART_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_UART_TX",
+      "kind": "contract_ref",
+      "label": "C_UART_TX",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_UART_BC_BUSY",
+      "kind": "evidence",
+      "label": "E_UART_BC_BUSY",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit per BC_UART_BUSY"
+      }
+    },
+    {
+      "id": "E_UART_BC_DROP",
+      "kind": "evidence",
+      "label": "E_UART_BC_DROP",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "write while busy silently ignored per BC_UART_DROP"
+      }
+    },
+    {
+      "id": "E_UART_BC_IDLE",
+      "kind": "evidence",
+      "label": "E_UART_BC_IDLE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "tx_out=1 and tx_busy=0 when idle per BC_UART_IDLE"
+      }
+    },
+    {
+      "id": "E_UART_BC_LINT",
+      "kind": "evidence",
+      "label": "E_UART_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch findings per BC_UART_LINT"
+      }
+    },
+    {
+      "id": "E_UART_BC_TX",
+      "kind": "evidence",
+      "label": "E_UART_BC_TX",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "8N1 frame shape matches behavioral contract TR_TX_BYTE expected"
+      }
+    },
+    {
+      "id": "E_UART_BUSY",
+      "kind": "evidence",
+      "label": "E_UART_BUSY",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "tx_busy=1 during frame, tx_busy=0 after stop bit"
+      }
+    },
+    {
+      "id": "E_UART_DROP",
+      "kind": "evidence",
+      "label": "E_UART_DROP",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "write while busy silently ignored; frame unaffected"
+      }
+    },
+    {
+      "id": "E_UART_IDLE",
+      "kind": "evidence",
+      "label": "E_UART_IDLE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "tx_out=1 and tx_busy=0 when no transmission active"
+      }
+    },
+    {
+      "id": "E_UART_LINT",
+      "kind": "evidence",
+      "label": "E_UART_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations"
+      }
+    },
+    {
+      "id": "E_UART_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_UART_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/uart_tx_lite_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "top ports PCLK PRESETn PADDR PSEL PENABLE PWRITE PWDATA PRDATA PREADY PSLVERR tx_out tx_busy present with correct widths"
+      }
+    },
+    {
+      "id": "E_UART_TX",
+      "kind": "evidence",
+      "label": "E_UART_TX",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "8N1 frame shape on tx_out matches FL expected"
+      }
+    },
+    {
+      "id": "OBL_UART_BUSY_001",
+      "kind": "obligation",
+      "label": "OBL_UART_BUSY_001",
+      "status": "locked",
+      "data": {
+        "statement": "tx_busy=1 from TX_DATA write acceptance until the stop bit completes; tx_busy=0 after stop bit.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_UART_DROP_001",
+      "kind": "obligation",
+      "label": "OBL_UART_DROP_001",
+      "status": "locked",
+      "data": {
+        "statement": "APB write to TX_DATA while tx_busy=1 is silently ignored; current frame is unaffected.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_UART_IDLE_001",
+      "kind": "obligation",
+      "label": "OBL_UART_IDLE_001",
+      "status": "locked",
+      "data": {
+        "statement": "When tx_busy=0 and no write, tx_out=1 (idle/mark) and tx_busy=0.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_UART_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_UART_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "No inferred latches; all registered signals are single-driver.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_UART_TX_001",
+      "kind": "obligation",
+      "label": "OBL_UART_TX_001",
+      "status": "locked",
+      "data": {
+        "statement": "After APB write to TX_DATA when idle, tx_out emits start(0), 8 data bits LSB-first, stop(1), each for BAUD_DIV PCLK cycles.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_UART_FUNC_001",
+      "kind": "requirement",
+      "label": "Minimal UART TX 8N1 byte transmit with fixed baud divisor",
+      "status": "locked",
+      "data": {
+        "statement": "Writing a byte to TX_DATA CSR (offset 0) when not busy begins an 8N1 UART frame on tx_out. The frame: start bit (0), 8 data bits LSB-first, stop bit (1), each for BAUD_DIV PCLK cycles. tx_busy=1 during transmission. Writes while tx_busy are silently dropped.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_UART_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_UART_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 6/6",
+      "status": "pass",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 6,
+        "total": 6
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_BUSY_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_DROP_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_IDLE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_TX_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_BUSY_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_UART_BUSY_001",
+      "target": "C_UART_BUSY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_BUSY_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_BUSY_001",
+      "target": "BC_UART_BUSY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_DROP_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_UART_DROP_001",
+      "target": "C_UART_DROP",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_DROP_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_DROP_001",
+      "target": "BC_UART_DROP",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_IDLE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_UART_IDLE_001",
+      "target": "C_UART_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_IDLE_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_IDLE_001",
+      "target": "BC_UART_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_UART_LINT_001",
+      "target": "C_UART_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_LINT_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_LINT_001",
+      "target": "BC_UART_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_UART_FUNC_001",
+      "target": "OBL_UART_TX_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_UART_TX_001",
+      "target": "C_UART_TX",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_TX_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_TX_001",
+      "target": "BC_UART_TX",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_BUSY_001",
+      "target": "C_UART_BUSY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_DROP_001",
+      "target": "C_UART_DROP",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_IDLE_001",
+      "target": "C_UART_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_LINT_001",
+      "target": "C_UART_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_TX_001",
+      "target": "C_UART_TX",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_BUSY_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_DROP_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_IDLE_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_LINT_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_TX_001",
+      "target": "SC_UART_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_BUSY_001",
+      "target": "BC_UART_BUSY",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_DROP_001",
+      "target": "BC_UART_DROP",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_IDLE_001",
+      "target": "BC_UART_IDLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_LINT_001",
+      "target": "BC_UART_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_UART_TX_001",
+      "target": "BC_UART_TX",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_UART_BUSY",
+      "target": "E_UART_BC_BUSY",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_UART_DROP",
+      "target": "E_UART_BC_DROP",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_UART_IDLE",
+      "target": "E_UART_BC_IDLE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_UART_LINT",
+      "target": "E_UART_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_UART_TX",
+      "target": "E_UART_BC_TX",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_UART_BUSY",
+      "target": "E_UART_BUSY",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_UART_DROP",
+      "target": "E_UART_DROP",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_UART_IDLE",
+      "target": "E_UART_IDLE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_UART_LINT",
+      "target": "E_UART_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_UART_PORTS",
+      "target": "E_UART_SC_PORTS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_UART_TX",
+      "target": "E_UART_TX",
+      "kind": "evidenced_by"
+    }
+  ]
+}

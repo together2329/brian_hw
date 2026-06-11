@@ -1,0 +1,636 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "debounce_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 4,
+    "obligation": 5,
+    "contract_ref": 5,
+    "structural_contract": 1,
+    "behavioral_contract": 4,
+    "evidence": 10,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_DEB_BOUNCE",
+      "kind": "behavioral_contract",
+      "label": "BC_DEB_BOUNCE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_DEB_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_DEB_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_DEB_RESET",
+      "kind": "behavioral_contract",
+      "label": "BC_DEB_RESET",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_DEB_STABLE",
+      "kind": "behavioral_contract",
+      "label": "BC_DEB_STABLE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_DEB_BOUNCE",
+      "kind": "contract_ref",
+      "label": "C_DEB_BOUNCE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_DEB_LINT",
+      "kind": "contract_ref",
+      "label": "C_DEB_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_DEB_OUTPUT",
+      "kind": "contract_ref",
+      "label": "C_DEB_OUTPUT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_DEB_RESET",
+      "kind": "contract_ref",
+      "label": "C_DEB_RESET",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_DEB_STABLE",
+      "kind": "contract_ref",
+      "label": "C_DEB_STABLE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_DEB_BC_BOUNCE",
+      "kind": "evidence",
+      "label": "E_DEB_BC_BOUNCE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "db_out unchanged on bounce; counter resets observed"
+      }
+    },
+    {
+      "id": "E_DEB_BC_LINT",
+      "kind": "evidence",
+      "label": "E_DEB_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations per BC_DEB_LINT"
+      }
+    },
+    {
+      "id": "E_DEB_BC_RESET",
+      "kind": "evidence",
+      "label": "E_DEB_BC_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "db_out=0 observed during reset per BC_DEB_RESET"
+      }
+    },
+    {
+      "id": "E_DEB_BC_STABLE",
+      "kind": "evidence",
+      "label": "E_DEB_BC_STABLE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "db_out matches FL expected (updates after THRESH stable cycles) each cycle"
+      }
+    },
+    {
+      "id": "E_DEB_BOUNCE",
+      "kind": "evidence",
+      "label": "E_DEB_BOUNCE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "bounce reset observed in scoreboard"
+      }
+    },
+    {
+      "id": "E_DEB_LINT",
+      "kind": "evidence",
+      "label": "E_DEB_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / no single-driver violations"
+      }
+    },
+    {
+      "id": "E_DEB_OUTPUT",
+      "kind": "evidence",
+      "label": "E_DEB_OUTPUT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "db_out update after THRESH cycles observed in scoreboard"
+      }
+    },
+    {
+      "id": "E_DEB_RESET",
+      "kind": "evidence",
+      "label": "E_DEB_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "db_out=0 observed during reset in scoreboard"
+      }
+    },
+    {
+      "id": "E_DEB_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_DEB_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/debounce_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "top ports clk rst_n btn_in db_out present with correct widths"
+      }
+    },
+    {
+      "id": "E_DEB_STABLE",
+      "kind": "evidence",
+      "label": "E_DEB_STABLE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "stability counter increment observed in scoreboard"
+      }
+    },
+    {
+      "id": "OBL_DEB_BOUNCE_001",
+      "kind": "obligation",
+      "label": "OBL_DEB_BOUNCE_001",
+      "status": "locked",
+      "data": {
+        "statement": "Stability counter resets to 0 when btn_in != last sampled value on rising clk edge.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_DEB_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_DEB_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "RTL must have no inferred latches and a single driver per register.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_DEB_OUTPUT_001",
+      "kind": "obligation",
+      "label": "OBL_DEB_OUTPUT_001",
+      "status": "locked",
+      "data": {
+        "statement": "db_out updates to btn_in when stability counter reaches THRESH consecutive stable cycles.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "content"
+      }
+    },
+    {
+      "id": "OBL_DEB_RESET_001",
+      "kind": "obligation",
+      "label": "OBL_DEB_RESET_001",
+      "status": "locked",
+      "data": {
+        "statement": "Stability counter, last-sample register, and db_out clear to 0 on rst_n=0.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_DEB_STABLE_001",
+      "kind": "obligation",
+      "label": "OBL_DEB_STABLE_001",
+      "status": "locked",
+      "data": {
+        "statement": "Stability counter increments each rising clk edge when btn_in == last sampled value, when rst_n=1.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_DEB_BOUNCE_001",
+      "kind": "requirement",
+      "label": "Counter resets on input change",
+      "status": "locked",
+      "data": {
+        "statement": "The stability counter shall reset to 0 on any rising clk edge where btn_in differs from the last sampled value.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_DEB_OUTPUT_001",
+      "kind": "requirement",
+      "label": "db_out updates after THRESH stable cycles",
+      "status": "locked",
+      "data": {
+        "statement": "db_out shall update to match btn_in when the stability counter reaches THRESH consecutive stable cycles.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_DEB_RESET_001",
+      "kind": "requirement",
+      "label": "Reset clears all state",
+      "status": "locked",
+      "data": {
+        "statement": "On active-low reset (rst_n=0), the stability counter, last-sample register, and db_out shall clear to 0.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_DEB_STABLE_001",
+      "kind": "requirement",
+      "label": "Stability counter increments on stable input",
+      "status": "locked",
+      "data": {
+        "statement": "An internal stability counter shall increment by 1 on every rising clk edge where btn_in equals the last sampled value, when rst_n is deasserted.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_DEB_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_DEB_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 2/21",
+      "status": "fail",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 2,
+        "total": 21
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_DEB_STABLE_001",
+      "target": "OBL_DEB_STABLE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_STABLE_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_BOUNCE_001",
+      "target": "OBL_DEB_BOUNCE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_BOUNCE_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_OUTPUT_001",
+      "target": "OBL_DEB_OUTPUT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_OUTPUT_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_RESET_001",
+      "target": "OBL_DEB_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_RESET_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_STABLE_001",
+      "target": "OBL_DEB_STABLE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_DEB_STABLE_001",
+      "target": "C_DEB_STABLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_STABLE_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_STABLE_001",
+      "target": "BC_DEB_STABLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_DEB_BOUNCE_001",
+      "target": "OBL_DEB_BOUNCE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_DEB_BOUNCE_001",
+      "target": "C_DEB_BOUNCE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_BOUNCE_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_BOUNCE_001",
+      "target": "BC_DEB_BOUNCE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_DEB_OUTPUT_001",
+      "target": "OBL_DEB_OUTPUT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_DEB_OUTPUT_001",
+      "target": "C_DEB_OUTPUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_OUTPUT_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_OUTPUT_001",
+      "target": "BC_DEB_STABLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_DEB_RESET_001",
+      "target": "OBL_DEB_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_DEB_RESET_001",
+      "target": "C_DEB_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_RESET_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_RESET_001",
+      "target": "BC_DEB_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_DEB_STABLE_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_BOUNCE_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_OUTPUT_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_DEB_RESET_001",
+      "target": "OBL_DEB_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_DEB_LINT_001",
+      "target": "C_DEB_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_LINT_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_LINT_001",
+      "target": "BC_DEB_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_STABLE_001",
+      "target": "C_DEB_STABLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_BOUNCE_001",
+      "target": "C_DEB_BOUNCE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_OUTPUT_001",
+      "target": "C_DEB_OUTPUT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_RESET_001",
+      "target": "C_DEB_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_LINT_001",
+      "target": "C_DEB_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_STABLE_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_BOUNCE_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_OUTPUT_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_RESET_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_LINT_001",
+      "target": "SC_DEB_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_STABLE_001",
+      "target": "BC_DEB_STABLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_OUTPUT_001",
+      "target": "BC_DEB_STABLE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_BOUNCE_001",
+      "target": "BC_DEB_BOUNCE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_RESET_001",
+      "target": "BC_DEB_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_DEB_LINT_001",
+      "target": "BC_DEB_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_DEB_STABLE",
+      "target": "E_DEB_BC_STABLE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_DEB_BOUNCE",
+      "target": "E_DEB_BC_BOUNCE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_DEB_RESET",
+      "target": "E_DEB_BC_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_DEB_LINT",
+      "target": "E_DEB_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_DEB_STABLE",
+      "target": "E_DEB_STABLE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_DEB_BOUNCE",
+      "target": "E_DEB_BOUNCE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_DEB_OUTPUT",
+      "target": "E_DEB_OUTPUT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_DEB_RESET",
+      "target": "E_DEB_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_DEB_LINT",
+      "target": "E_DEB_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_DEB_PORTS",
+      "target": "E_DEB_SC_PORTS",
+      "kind": "evidenced_by"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [
+    {
+      "artifacts": [
+        "sim/scoreboard_events.jsonl"
+      ],
+      "contract_ref": "C_TIMER_COUNT",
+      "evidence_refs": [
+        "E_TIMER_COUNT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_TIMER_COUNT_001"
+      ],
+      "pass_conditions": [
+        "observed counter seq == FL expected"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_evidence_contract.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "tb/cocotb/test_timer.py"
+      ],
+      "contract_ref": "C_TIMER_IRQ",
+      "evidence_refs": [
+        "E_TIMER_IRQ"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_TIMER_IRQ_001"
+      ],
+      "pass_conditions": [
+        "irq pulse at zero"
+      ],
+      "status": "closed",
+      "validators": [
+        "check_scoreboard_events.py"
+      ]
+    },
+    {
+      "artifacts": [
+        "lint/dut_lint.json"
+      ],
+      "contract_ref": "C_TIMER_LINT",
+      "evidence_refs": [
+        "E_TIMER_LINT"
+      ],
+      "kind": "contract_ref",
+      "obligation_refs": [
+        "OBL_TIMER_LINT_001"
+      ],
+      "pass_conditions": [
+        "no latch/single-driver findings"
+      ],
+      "status": "closed",
+      "validators": [
+        "dut_lint_report.py"
+      ]
+    },
+    {
+      "artifacts": [],
+      "contract_ref": "SC_TIMER_REGS",
+      "evidence_refs": [],
+      "kind": "structural_contract",
+      "obligation_refs": [
+        "OBL_TIMER_COUNT_001",
+        "OBL_TIMER_IRQ_001",
+        "OBL_TIMER_LINT_001"
+      ],
+      "pass_conditions": [],
+      "status": "open",
+      "validators": []
+    }
+  ],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "timer",
+  "schema_version": 1,
+  "status": "open",
+  "summary": {
+    "closed": 3,
+    "contracts": 4,
+    "required_closed": 3,
+    "required_contracts": 4
+  },
+  "type": "contract_authority_closure"
+}

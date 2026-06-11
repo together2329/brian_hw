@@ -1,0 +1,550 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "edge_det_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 4,
+    "obligation": 5,
+    "contract_ref": 5,
+    "structural_contract": 1,
+    "behavioral_contract": 1,
+    "evidence": 7,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_EDGE_SYNC",
+      "kind": "behavioral_contract",
+      "label": "BC_EDGE_SYNC",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_EDGE_FALL",
+      "kind": "contract_ref",
+      "label": "C_EDGE_FALL",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_EDGE_LINT",
+      "kind": "contract_ref",
+      "label": "C_EDGE_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_EDGE_RESET",
+      "kind": "contract_ref",
+      "label": "C_EDGE_RESET",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_EDGE_RISE",
+      "kind": "contract_ref",
+      "label": "C_EDGE_RISE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_EDGE_SYNC",
+      "kind": "contract_ref",
+      "label": "C_EDGE_SYNC",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_EDGE_BC_SYNC",
+      "kind": "evidence",
+      "label": "E_EDGE_BC_SYNC",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_sim_disk.py",
+        "pass_condition": "all FM_RISE FM_FALL FM_STABLE FM_RESET transactions observed and matched"
+      }
+    },
+    {
+      "id": "E_EDGE_FALL",
+      "kind": "evidence",
+      "label": "E_EDGE_FALL",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_sim_disk.py",
+        "pass_condition": "fall_out=1 observed exactly 1 cycle after sync2 falls"
+      }
+    },
+    {
+      "id": "E_EDGE_LINT",
+      "kind": "evidence",
+      "label": "E_EDGE_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch / single-driver findings"
+      }
+    },
+    {
+      "id": "E_EDGE_RESET",
+      "kind": "evidence",
+      "label": "E_EDGE_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_sim_disk.py",
+        "pass_condition": "rise_out=0 fall_out=0 during and immediately after reset"
+      }
+    },
+    {
+      "id": "E_EDGE_RISE",
+      "kind": "evidence",
+      "label": "E_EDGE_RISE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_sim_disk.py",
+        "pass_condition": "rise_out=1 observed exactly 1 cycle after sync2 rises"
+      }
+    },
+    {
+      "id": "E_EDGE_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_EDGE_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/edge_det_cx1.sv",
+        "validator": "iverilog compile check",
+        "pass_condition": "all 5 ports present with correct directions and widths"
+      }
+    },
+    {
+      "id": "E_EDGE_SYNC",
+      "kind": "evidence",
+      "label": "E_EDGE_SYNC",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_sim_disk.py",
+        "pass_condition": "sync2 observed 2 cycles after sig_in transition"
+      }
+    },
+    {
+      "id": "OBL_EDGE_FALL_001",
+      "kind": "obligation",
+      "label": "OBL_EDGE_FALL_001",
+      "status": "locked",
+      "data": {
+        "statement": "fall_out is combinationally driven as ~sync2 & prev_sync and pulses for exactly one cycle on each falling edge.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_EDGE_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_EDGE_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "RTL must have no inferred latches and a single driver per register.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_EDGE_RESET_001",
+      "kind": "obligation",
+      "label": "OBL_EDGE_RESET_001",
+      "status": "locked",
+      "data": {
+        "statement": "All FFs clear to 0 on rst_n=0; rise_out and fall_out are both 0 during reset.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_EDGE_RISE_001",
+      "kind": "obligation",
+      "label": "OBL_EDGE_RISE_001",
+      "status": "locked",
+      "data": {
+        "statement": "rise_out is combinationally driven as sync2 & ~prev_sync and pulses for exactly one cycle on each rising edge.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_EDGE_SYNC_001",
+      "kind": "obligation",
+      "label": "OBL_EDGE_SYNC_001",
+      "status": "locked",
+      "data": {
+        "statement": "Two flip-flop synchronizer stages capture sig_in into sync1 then sync2 on every rising clk edge.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_EDGE_FALL_001",
+      "kind": "requirement",
+      "label": "Falling edge detection",
+      "status": "locked",
+      "data": {
+        "statement": "fall_out shall pulse high for exactly one clock cycle when sync2 transitions from 1 to 0 (detected via ~sync2 & prev_sync).",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_EDGE_RESET_001",
+      "kind": "requirement",
+      "label": "Reset clears all state",
+      "status": "locked",
+      "data": {
+        "statement": "On active-low reset (rst_n=0), all internal registers (sync1, sync2, prev_sync) shall clear to 0, producing rise_out=0 and fall_out=0.",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_EDGE_RISE_001",
+      "kind": "requirement",
+      "label": "Rising edge detection",
+      "status": "locked",
+      "data": {
+        "statement": "rise_out shall pulse high for exactly one clock cycle when sync2 transitions from 0 to 1 (detected via sync2 & ~prev_sync).",
+        "required": true
+      }
+    },
+    {
+      "id": "REQ_EDGE_SYNC_001",
+      "kind": "requirement",
+      "label": "2-flop synchronizer",
+      "status": "locked",
+      "data": {
+        "statement": "sig_in must pass through two flip-flop stages (sync1, sync2) clocked by clk before reaching the edge detector, providing CDC safety.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_EDGE_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_EDGE_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 2/19",
+      "status": "fail",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 2,
+        "total": 19
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_EDGE_SYNC_001",
+      "target": "OBL_EDGE_SYNC_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_SYNC_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_RISE_001",
+      "target": "OBL_EDGE_RISE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_RISE_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_FALL_001",
+      "target": "OBL_EDGE_FALL_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_FALL_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_RESET_001",
+      "target": "OBL_EDGE_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_RESET_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_SYNC_001",
+      "target": "OBL_EDGE_SYNC_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_EDGE_SYNC_001",
+      "target": "C_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_SYNC_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_SYNC_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_EDGE_RISE_001",
+      "target": "OBL_EDGE_RISE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_EDGE_RISE_001",
+      "target": "C_EDGE_RISE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RISE_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RISE_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_EDGE_FALL_001",
+      "target": "OBL_EDGE_FALL_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_EDGE_FALL_001",
+      "target": "C_EDGE_FALL",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_FALL_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_FALL_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_EDGE_RESET_001",
+      "target": "OBL_EDGE_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_EDGE_RESET_001",
+      "target": "C_EDGE_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RESET_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RESET_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_EDGE_SYNC_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_RISE_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_FALL_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_EDGE_RESET_001",
+      "target": "OBL_EDGE_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_EDGE_LINT_001",
+      "target": "C_EDGE_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_LINT_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_LINT_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_SYNC_001",
+      "target": "C_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RISE_001",
+      "target": "C_EDGE_RISE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_FALL_001",
+      "target": "C_EDGE_FALL",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RESET_001",
+      "target": "C_EDGE_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_LINT_001",
+      "target": "C_EDGE_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_SYNC_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RISE_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_FALL_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RESET_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_LINT_001",
+      "target": "SC_EDGE_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_SYNC_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RISE_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_FALL_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_EDGE_RESET_001",
+      "target": "BC_EDGE_SYNC",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "C_EDGE_SYNC",
+      "target": "E_EDGE_SYNC",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_EDGE_RISE",
+      "target": "E_EDGE_RISE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_EDGE_FALL",
+      "target": "E_EDGE_FALL",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_EDGE_RESET",
+      "target": "E_EDGE_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_EDGE_LINT",
+      "target": "E_EDGE_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_EDGE_PORTS",
+      "target": "E_EDGE_SC_PORTS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_EDGE_SYNC",
+      "target": "E_EDGE_BC_SYNC",
+      "kind": "evidenced_by"
+    }
+  ]
+}

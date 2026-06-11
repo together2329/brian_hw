@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "atlas_flow_gpio_demo",
+  "locked": false,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 0,
+    "obligation": 0,
+    "contract_ref": 0,
+    "structural_contract": 0,
+    "behavioral_contract": 0,
+    "evidence": 0,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 23/23",
+      "status": "pass",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 23,
+        "total": 23
+      }
+    },
+    {
+      "id": "VAL_SSOT",
+      "kind": "validation",
+      "label": "to-ssot verify_ssot",
+      "status": "pass",
+      "data": {
+        "artifact": "req/ssot_validation.json"
+      }
+    }
+  ],
+  "edges": []
+}

@@ -1,0 +1,15 @@
+{
+  "authority": "req/ structural_contracts + behavioral_contracts + evidence_plan",
+  "contracts": [],
+  "function_cycle_policy": "behavioral contracts require function semantics plus cycle/timing semantics or explicit waiver",
+  "ip": "mctp_assembler_v3",
+  "schema_version": 1,
+  "status": "pass",
+  "summary": {
+    "closed": 0,
+    "contracts": 0,
+    "required_closed": 0,
+    "required_contracts": 0
+  },
+  "type": "contract_authority_closure"
+}

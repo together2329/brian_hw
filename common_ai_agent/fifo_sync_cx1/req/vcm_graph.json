@@ -1,0 +1,603 @@
+{
+  "schema_version": 1,
+  "type": "vcm_graph",
+  "ip": "fifo_sync_cx1",
+  "locked": true,
+  "generated_at": "2026-06-10T21:20:18Z",
+  "counts": {
+    "requirement": 1,
+    "obligation": 5,
+    "contract_ref": 5,
+    "structural_contract": 1,
+    "behavioral_contract": 5,
+    "evidence": 11,
+    "validation": 2,
+    "ghost": 0
+  },
+  "nodes": [
+    {
+      "id": "BC_FIFO_FLAGS",
+      "kind": "behavioral_contract",
+      "label": "BC_FIFO_FLAGS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_FIFO_LINT",
+      "kind": "behavioral_contract",
+      "label": "BC_FIFO_LINT",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": true
+      }
+    },
+    {
+      "id": "BC_FIFO_READ",
+      "kind": "behavioral_contract",
+      "label": "BC_FIFO_READ",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_FIFO_RESET",
+      "kind": "behavioral_contract",
+      "label": "BC_FIFO_RESET",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "BC_FIFO_WRITE",
+      "kind": "behavioral_contract",
+      "label": "BC_FIFO_WRITE",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "C_FIFO_FLAGS",
+      "kind": "contract_ref",
+      "label": "C_FIFO_FLAGS",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_FIFO_LINT",
+      "kind": "contract_ref",
+      "label": "C_FIFO_LINT",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_FIFO_READ",
+      "kind": "contract_ref",
+      "label": "C_FIFO_READ",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_FIFO_RESET",
+      "kind": "contract_ref",
+      "label": "C_FIFO_RESET",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "C_FIFO_WRITE",
+      "kind": "contract_ref",
+      "label": "C_FIFO_WRITE",
+      "status": "closed",
+      "data": {
+        "kind": ""
+      }
+    },
+    {
+      "id": "E_FIFO_BC_FLAGS",
+      "kind": "evidence",
+      "label": "E_FIFO_BC_FLAGS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "full/empty flags match count==8 and count==0 per BC_FIFO_FLAGS"
+      }
+    },
+    {
+      "id": "E_FIFO_BC_LINT",
+      "kind": "evidence",
+      "label": "E_FIFO_BC_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch findings per BC_FIFO_LINT"
+      }
+    },
+    {
+      "id": "E_FIFO_BC_READ",
+      "kind": "evidence",
+      "label": "E_FIFO_BC_READ",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "read behavior matches BC_FIFO_READ"
+      }
+    },
+    {
+      "id": "E_FIFO_BC_RESET",
+      "kind": "evidence",
+      "label": "E_FIFO_BC_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "reset behavior matches BC_FIFO_RESET"
+      }
+    },
+    {
+      "id": "E_FIFO_BC_WRITE",
+      "kind": "evidence",
+      "label": "E_FIFO_BC_WRITE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "write behavior matches BC_FIFO_WRITE"
+      }
+    },
+    {
+      "id": "E_FIFO_FLAGS",
+      "kind": "evidence",
+      "label": "E_FIFO_FLAGS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "full asserts at depth 8; empty asserts at depth 0"
+      }
+    },
+    {
+      "id": "E_FIFO_LINT",
+      "kind": "evidence",
+      "label": "E_FIFO_LINT",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "lint/dut_lint.json",
+        "validator": "dut_lint_report.py",
+        "pass_condition": "no latch violations"
+      }
+    },
+    {
+      "id": "E_FIFO_READ",
+      "kind": "evidence",
+      "label": "E_FIFO_READ",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "rd_data matches written data; count decrements correctly"
+      }
+    },
+    {
+      "id": "E_FIFO_RESET",
+      "kind": "evidence",
+      "label": "E_FIFO_RESET",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "empty==1 and full==0 after reset"
+      }
+    },
+    {
+      "id": "E_FIFO_SC_PORTS",
+      "kind": "evidence",
+      "label": "E_FIFO_SC_PORTS",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "rtl/fifo_sync_cx1.sv",
+        "validator": "check_tb_python_compile.py",
+        "pass_condition": "ports clk rst_n wr_en wr_data rd_en rd_data full empty present with correct widths"
+      }
+    },
+    {
+      "id": "E_FIFO_WRITE",
+      "kind": "evidence",
+      "label": "E_FIFO_WRITE",
+      "status": "present",
+      "data": {
+        "stage": "",
+        "artifact": "sim/scoreboard_events.jsonl",
+        "validator": "check_evidence_contract.py",
+        "pass_condition": "count increments correctly on each accepted write"
+      }
+    },
+    {
+      "id": "OBL_FIFO_FLAGS_001",
+      "kind": "obligation",
+      "label": "OBL_FIFO_FLAGS_001",
+      "status": "locked",
+      "data": {
+        "statement": "full asserts when count reaches 8; empty asserts when count is 0.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "count"
+      }
+    },
+    {
+      "id": "OBL_FIFO_LINT_001",
+      "kind": "obligation",
+      "label": "OBL_FIFO_LINT_001",
+      "status": "locked",
+      "data": {
+        "statement": "No inferred latches; all state is registered.",
+        "owned_by": "",
+        "closure_stage": "lint",
+        "granularity": "structural"
+      }
+    },
+    {
+      "id": "OBL_FIFO_READ_001",
+      "kind": "obligation",
+      "label": "OBL_FIFO_READ_001",
+      "status": "locked",
+      "data": {
+        "statement": "When rd_en is high and empty is low, rd_data presents the head entry and count decrements on the rising clock edge.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_FIFO_RESET_001",
+      "kind": "obligation",
+      "label": "OBL_FIFO_RESET_001",
+      "status": "locked",
+      "data": {
+        "statement": "All FIFO state clears to reset values synchronously when rst_n is low.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "OBL_FIFO_WRITE_001",
+      "kind": "obligation",
+      "label": "OBL_FIFO_WRITE_001",
+      "status": "locked",
+      "data": {
+        "statement": "When wr_en is high and full is low, wr_data is stored and count increments on the rising clock edge.",
+        "owned_by": "",
+        "closure_stage": "sim",
+        "granularity": "temporal"
+      }
+    },
+    {
+      "id": "REQ_FIFO_FUNC_001",
+      "kind": "requirement",
+      "label": "8-deep 8-bit synchronous FIFO with full/empty flags",
+      "status": "locked",
+      "data": {
+        "statement": "The FIFO accepts a write when wr_en is high and full is low; data is stored and count increments. Accepts a read when rd_en is high and empty is low; rd_data presents the head entry and count decrements. full asserts when count==8; empty asserts when count==0. All state clears synchronously when rst_n is low.",
+        "required": true
+      }
+    },
+    {
+      "id": "SC_FIFO_PORTS",
+      "kind": "structural_contract",
+      "label": "SC_FIFO_PORTS",
+      "status": "closed",
+      "data": {
+        "ssot_anchor": "",
+        "cycle_model_waiver": false
+      }
+    },
+    {
+      "id": "VAL_CONTRACT_CLOSURE",
+      "kind": "validation",
+      "label": "bundle closure",
+      "status": "pass",
+      "data": {
+        "artifact": "req/contract_closure.json"
+      }
+    },
+    {
+      "id": "VAL_SIM_SCOREBOARD",
+      "kind": "validation",
+      "label": "sim scoreboard 9/14",
+      "status": "fail",
+      "data": {
+        "artifact": "sim/scoreboard_events.jsonl",
+        "passed": 9,
+        "total": 14
+      }
+    }
+  ],
+  "edges": [
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_FLAGS_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_READ_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_WRITE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_FLAGS_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_FIFO_FLAGS_001",
+      "target": "C_FIFO_FLAGS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_FLAGS_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_FLAGS_001",
+      "target": "BC_FIFO_FLAGS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_LINT_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_FIFO_LINT_001",
+      "target": "C_FIFO_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_LINT_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_LINT_001",
+      "target": "BC_FIFO_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_READ_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_FIFO_READ_001",
+      "target": "C_FIFO_READ",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_READ_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_READ_001",
+      "target": "BC_FIFO_READ",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_RESET_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_FIFO_RESET_001",
+      "target": "C_FIFO_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_RESET_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_RESET_001",
+      "target": "BC_FIFO_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "REQ_FIFO_FUNC_001",
+      "target": "OBL_FIFO_WRITE_001",
+      "kind": "requires"
+    },
+    {
+      "source": "OBL_FIFO_WRITE_001",
+      "target": "C_FIFO_WRITE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_WRITE_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_WRITE_001",
+      "target": "BC_FIFO_WRITE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_FLAGS_001",
+      "target": "C_FIFO_FLAGS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_LINT_001",
+      "target": "C_FIFO_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_READ_001",
+      "target": "C_FIFO_READ",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_RESET_001",
+      "target": "C_FIFO_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_WRITE_001",
+      "target": "C_FIFO_WRITE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_FLAGS_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_LINT_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_READ_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_RESET_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_WRITE_001",
+      "target": "SC_FIFO_PORTS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_FLAGS_001",
+      "target": "BC_FIFO_FLAGS",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_LINT_001",
+      "target": "BC_FIFO_LINT",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_READ_001",
+      "target": "BC_FIFO_READ",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_RESET_001",
+      "target": "BC_FIFO_RESET",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "OBL_FIFO_WRITE_001",
+      "target": "BC_FIFO_WRITE",
+      "kind": "contracted_by"
+    },
+    {
+      "source": "BC_FIFO_FLAGS",
+      "target": "E_FIFO_BC_FLAGS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_FIFO_LINT",
+      "target": "E_FIFO_BC_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_FIFO_READ",
+      "target": "E_FIFO_BC_READ",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_FIFO_RESET",
+      "target": "E_FIFO_BC_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "BC_FIFO_WRITE",
+      "target": "E_FIFO_BC_WRITE",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_FIFO_FLAGS",
+      "target": "E_FIFO_FLAGS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_FIFO_LINT",
+      "target": "E_FIFO_LINT",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_FIFO_READ",
+      "target": "E_FIFO_READ",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_FIFO_RESET",
+      "target": "E_FIFO_RESET",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "SC_FIFO_PORTS",
+      "target": "E_FIFO_SC_PORTS",
+      "kind": "evidenced_by"
+    },
+    {
+      "source": "C_FIFO_WRITE",
+      "target": "E_FIFO_WRITE",
+      "kind": "evidenced_by"
+    }
+  ]
+}
