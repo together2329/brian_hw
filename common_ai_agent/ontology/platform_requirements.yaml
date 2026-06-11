@@ -348,9 +348,9 @@ requirements:
         status: closed   # cursor_todo CLI가 hook이 읽는 current_todos.json을 외부 제어 (단일 done 기준)
         evidence:
           - test: "tests/test_cursor_todo.py::test_hook_reads_what_cli_writes"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: 5b7aea11
           - test: "tests/test_cursor_todo.py::test_done_statuses_match_hook"
-            observed_at: HEAD_PLACEHOLDER
+            observed_at: 5b7aea11
       - id: OBL_CURSOR_DOC_CONFORMANCE
         owned_by: platform.cursor-pack
         granularity: structural
