@@ -502,12 +502,91 @@ def _model_hits(
     return hits
 
 
-def _cycle_model_waived(contract: JsonDoc) -> bool:
+# ── Cycle-model waiver derived from the locked truth ─────────────────────────
+# A behavioral contract is COMBINATIONAL when its locked decision/truth table
+# references none of the irreducible sequential-hardware vocabulary (clock edges,
+# cycles, reset, latency, handshakes, state holds) and declares no
+# state_transitions. Such a contract has no cycle behaviour to model, so it is
+# cycle-model-waived *by the truth itself* — not by an optional, inconsistently
+# authored flag. This is the root fix for mux4-class fictional timing: a
+# combinational IP authored without an explicit cycle_model_waiver still gets a
+# reliable waived classification, so the FL/CL semantic backstops fire
+# deterministically (closes OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET).
+#
+# Safety direction: a sequential contract that lacked every token below would be
+# mis-derived as combinational (the dangerous case — its real timing would read
+# as fictional). The list is therefore deliberately generous: any one
+# clock/cycle/reset/handshake/state token keeps a contract sequential, and real
+# sequential hardware cannot specify its behaviour in a decision table without
+# one. Over-tagging a combinational contract as sequential is the safe direction
+# (it just falls back to the LLM judge instead of the deterministic catch).
+_SEQUENTIAL_TOKEN_RE = re.compile(
+    # Strict word-boundary timing/state vocabulary.
+    r"\b(?:clk|clock|posedge|negedge|rising|falling|edge|"
+    r"cycle|cycles|latency|latencies|pipeline|pipelined|stall|stalls|"
+    r"outstanding|throughput|"
+    r"rst|rst_n|reset|resets|async|asynchronous|synchronous|"
+    r"hold|holds|held|retain|retains|retained|stored|stores|previous|"
+    r"registered|sample|sampled|samples|enqueue|dequeue|fsm|"
+    r"increment|increments|accumulate|accumulates|wrap|wraps|counter)\b"
+    # Handshake / queue vocabulary that commonly lives INSIDE signal names
+    # (cmd_valid, req_ready, t_valid, axi_fifo) — matched loosely so an
+    # underscore word-boundary cannot hide it. invalid/validate over-match toward
+    # 'sequential', which is the safe direction (falls back to the LLM judge).
+    r"|valid|ready|handshake|backpressure|fifo"
+    r"|next\s+(?:cycle|clk|clock|state)|\+=",
+    re.IGNORECASE,
+)
+
+
+def _cycle_table_text(contract: JsonDoc) -> str:
+    """Concatenate the locked decision/truth-table when/then text for scanning.
+
+    Only the machine rows (decision_table / truth_table) are scanned — not prose
+    description — so the combinational/sequential derivation reads the locked
+    semantics, not loosely-worded summaries.
+    """
+    parts: list[str] = []
+    for key in ("decision_table", "truth_table"):
+        for row in _decision_rows(contract.get(key)):
+            for value in row.values():
+                parts.append(value if isinstance(value, str) else str(value))
+    return " ".join(parts)
+
+
+def _cycle_sequential_signal(contract: JsonDoc) -> bool:
+    """True iff the locked truth shows the contract has cycle/sequential behaviour."""
+    if _present(contract.get("state_transitions")):
+        return True
+    return bool(_SEQUENTIAL_TOKEN_RE.search(_cycle_table_text(contract)))
+
+
+def _contract_is_combinational(contract: JsonDoc) -> bool:
+    """Derive combinational-ness from the locked truth (no LLM, no flag).
+
+    True iff the contract has a readable decision/truth table that carries no
+    sequential-hardware vocabulary and no state_transitions. A contract with no
+    table to read is left to the explicit flag (we cannot derive it)."""
+    has_table = bool(_decision_rows(contract.get("decision_table"))) or bool(
+        _decision_rows(contract.get("truth_table"))
+    )
+    return has_table and not _cycle_sequential_signal(contract)
+
+
+def _cycle_model_waiver_explicit(contract: JsonDoc) -> bool:
     for key in ("cycle_model_waiver", "cycle_waiver", "cycle_model_not_applicable", "no_cycle_model",
                 "projection_waiver"):
         if _present(contract.get(key)):
             return True
     return False
+
+
+def _cycle_model_waived(contract: JsonDoc) -> bool:
+    """Cycle-model waived = explicit author flag OR combinational-by-truth.
+
+    The criterion lives in the locked truth (the decision table), so a
+    combinational contract is waived even when the optional flag was never set."""
+    return _cycle_model_waiver_explicit(contract) or _contract_is_combinational(contract)
 
 
 def _function_model_waived(contract: JsonDoc) -> bool:
@@ -602,6 +681,16 @@ def compare_behavioral_to_function_cycle(behavioral_doc: JsonDoc, ssot_doc: Json
                 "behavioral contract_refs or an explicit function_model_waiver/projection_waiver"
             )
 
+        if _cycle_model_waiver_explicit(contract) and _cycle_sequential_signal(contract):
+            # The criterion must be consistent with the locked truth: a contract
+            # whose decision table uses clocked/sequential language cannot be
+            # cycle-model-waived. Catch the mis-authored waiver at the truth gate.
+            issues.append(
+                f"behavioral contract {contract_id} declares a cycle_model_waiver but its locked "
+                "decision_table uses clocked/sequential language (clk/cycle/reset/handshake/state); "
+                "remove the waiver and project real cycle_model timing rows, or rewrite the contract "
+                "as combinational"
+            )
         if _cycle_model_waived(contract):
             cycle_waived.append(contract_id)
         elif cycle_machine:

@@ -121,26 +121,48 @@ semantic_validation`, and AND it into the artifact's `passed` (so a fictional
 model exits non-zero and never reaches sim). Flags: `--no-semantic`,
 `--no-semantic-llm`. Evidence: `tests/test_validate_cl_semantics.py` (7 cases).
 
-### Known limitation — the deterministic layer trusts the waiver flag
+### Root fix — the criterion lives in the locked truth, not an optional flag
 
-The no-LLM backstop fires only on the **explicit** `cycle_model_waiver=true`
-flag. The generic stateful SSOT template fabricates an FSM + `state_variables`
-on combinational IPs too (`add8`, `mux4`, `cnt8` all carry a fictional FSM), so
-*absence of state* is **not** a usable signal — there is no safe deterministic
-"is combinational" inference. Consequence: a combinational IP whose contracts
-were authored **without** the waiver flag (e.g. `mux4_v1`, authored by the normal
-req-gen path rather than `orch_campaign_truth.py` which sets it) carries the same
-fictional timing but the deterministic layer stays silent; only the LLM judge
-catches it. The durable fix is truth-authoring: combinational contracts must get
-`cycle_model_waiver=true` (tracked as a refuted obligation —
-`OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET`).
+User direction (2026-06-11): **"명확한 기준이 truth에 있어야지"** — the
+combinational/sequential criterion must be IN the locked truth. The first cut of
+the backstop fired only on the **explicit** `cycle_model_waiver=true` flag, which
+the normal req-gen path doesn't set, so `mux4_v1` (combinational, authored
+without the flag) kept the same fictional timing as `add8` yet the no-LLM layer
+stayed silent.
+
+The naive structural inference ("no state ⇒ combinational") is **unusable**: the
+generic SSOT template fabricates an FSM + `state_variables` on combinational IPs
+too (`add8`, `mux4`, `cnt8` all carry a fictional FSM), so *absence of state* is
+not a signal. The reliable signal is the **locked decision table's own
+vocabulary**: a genuinely sequential contract cannot specify its behaviour
+without clock/cycle/reset/handshake/state language (`cnt8`: "rising clk", "next
+cycle", "async", "+="; the timer's `cmd_valid/cmd_ready` handshake), while a
+combinational contract is a pure input→output function (`mux4`: "sel=0 ⇒ y=d0";
+`add8`: "{cout,sum}==a+b+cin"). So `cycle_model_waiver` is now **derived
+deterministically from the decision table** in the shared truth authority
+(`behavioral_contracts._cycle_model_waived` / `_contract_is_combinational`): a
+contract with a readable table, no `state_transitions`, and none of the
+sequential vocabulary (`_SEQUENTIAL_TOKEN_RE`) is combinational — waived by the
+truth itself, flag or no flag. The explicit flag remains an override, and a flag
+that **contradicts** a clocked decision table is now a hard projection issue
+(`compare_behavioral_to_function_cycle`), so the criterion stays consistent with
+the truth.
+
+Result: `mux4_v1` is now caught by the deterministic backstop with no LLM and no
+flag; `cnt8_en_v1` / `mctp_assembler_v2` stay PASS (their decision tables carry
+the sequential vocabulary). Safety direction is deliberate — over-tagging a
+combinational contract as sequential just falls back to the LLM judge, whereas
+mis-waiving a sequential contract (the dangerous case) requires *every* token to
+be absent from a clocked spec, which does not happen. Closes
+`OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET`.
 
 ## Status
 
 - Direction approved by user 2026-06-10. **Gate 1 first slice (FL+CL
   semantic-conformance, deterministic backstop + LLM judge) implemented
-  2026-06-11**; gates 2–4 (mutation / dual-oracle / provenance) and full
-  LLM-authoring path still pending.
+  2026-06-11**, with the waiver criterion **derived from the locked decision
+  table** (root fix, same day). Gates 2–4 (mutation / dual-oracle / provenance)
+  and the full LLM-authoring path still pending.
 - hx3 (`apb_watchdog_v1`) intentionally left at 47/55 — its 8 remaining
   failures (KICK write-side-effect class + timeout strobe sampling + reset
   window) are the acceptance test for FL migration step 1.

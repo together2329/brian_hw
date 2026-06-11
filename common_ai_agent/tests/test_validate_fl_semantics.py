@@ -35,6 +35,7 @@ def _write_ip(
     fsm: dict | None = None,
     state_variables: list | None = None,
     state_updates: list | None = None,
+    sequential: bool = False,
 ) -> Path:
     ip_dir = root / ip
     (ip_dir / "yaml").mkdir(parents=True)
@@ -63,9 +64,14 @@ def _write_ip(
         yaml.safe_dump(ssot, sort_keys=False), encoding="utf-8"
     )
 
+    decision_table = (
+        [{"when": "en==1 at rising clk", "then": "count += 1 next cycle"}]
+        if sequential
+        else [{"when": "any in", "then": "out = f(in)"}]
+    )
     contract = {
         "id": f"BC-{ip.upper()}-OP",
-        "decision_table": [{"when": "any in", "then": "out = f(in)"}],
+        "decision_table": decision_table,
         "obligations": [f"OBL_{ip.upper()}_OP_001"],
         "stage_contracts": [
             {"stage": "rtl", "check": "RTL realizes out = f(in)",
@@ -117,9 +123,10 @@ def test_fl_gate_flags_fictional_state_updates(tmp_path: Path) -> None:
 
 
 def test_fl_gate_no_false_positive_on_stateful_ip(tmp_path: Path) -> None:
-    """A genuinely sequential IP (contract NOT waived) is not flagged."""
+    """A genuinely sequential IP (clocked decision table) keeps its FSM/state —
+    the criterion is the decision-table vocabulary, not the SSOT state_variables."""
     _write_ip(
-        tmp_path, "seq_fl", cycle_model_waiver=False,
+        tmp_path, "seq_fl", cycle_model_waiver=False, sequential=True,
         fsm={"states": ["IDLE", "COUNT"]},
         state_variables=[{"name": "count", "width": 8}],
         state_updates=[{"name": "count", "next": "count + 1"}],
@@ -127,6 +134,22 @@ def test_fl_gate_no_false_positive_on_stateful_ip(tmp_path: Path) -> None:
     report = validate_fl_semantics("seq_fl", tmp_path, use_llm=False)
     assert report["passed"] is True
     assert report["deterministic_backstop"]["violations"] == []
+
+
+def test_fl_gate_catches_fictional_fsm_without_explicit_waiver(tmp_path: Path) -> None:
+    """ROOT FIX: a combinational contract (no clocked vocabulary) carrying a
+    fictional FSM is caught deterministically even with NO cycle_model_waiver
+    flag — the waiver is derived from the locked decision table, not an optional
+    field (the mux4_v1 class). Closes OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET."""
+    _write_ip(
+        tmp_path, "comb_noflag_fl", cycle_model_waiver=False,  # flag absent
+        fsm={"states": ["IDLE", "EXEC"]},
+        state_variables=[{"name": "phase", "width": 2}],
+    )
+    report = validate_fl_semantics("comb_noflag_fl", tmp_path, use_llm=False)
+    assert report["passed"] is False
+    assert any(v["kind"] == "fictional_state"
+               for v in report["deterministic_backstop"]["violations"])
 
 
 def test_fl_gate_inactive_without_contract_authority(tmp_path: Path) -> None:

@@ -54,6 +54,7 @@ def _write_ip(
     cycle_model_waiver: bool,
     cycle_model: dict | None = None,
     state_variables: list | None = None,
+    sequential: bool = False,
 ) -> Path:
     ip_dir = root / ip
     (ip_dir / "yaml").mkdir(parents=True)
@@ -87,9 +88,14 @@ def _write_ip(
         yaml.safe_dump(ssot, sort_keys=False), encoding="utf-8"
     )
 
+    decision_table = (
+        [{"when": "en==1 at rising clk", "then": "count += 1 next cycle"}]
+        if sequential
+        else [{"when": "any in", "then": "out = f(in)"}]
+    )
     contract = {
         "id": f"BC-{ip.upper()}-OP",
-        "decision_table": [{"when": "any in", "then": "out = f(in)"}],
+        "decision_table": decision_table,
         "obligations": [f"OBL_{ip.upper()}_OP_001"],
         "stage_contracts": [
             {"stage": "rtl", "check": "RTL realizes out = f(in)",
@@ -132,14 +138,30 @@ def test_cl_gate_flags_fictional_timing_deterministic(tmp_path: Path) -> None:
 
 
 def test_cl_gate_no_false_positive_on_stateful_ip(tmp_path: Path) -> None:
-    """A genuinely sequential IP (contract NOT waived) is not flagged."""
-    _write_ip(tmp_path, "seq_ip", cycle_model_waiver=False,
+    """A genuinely sequential IP (clocked decision table) is not flagged — the
+    criterion is the decision-table vocabulary, not the fictional state_variables."""
+    _write_ip(tmp_path, "seq_ip", cycle_model_waiver=False, sequential=True,
               cycle_model=dict(_FICTIONAL_CYCLE_MODEL),
               state_variables=[{"name": "count", "width": 8}])
     report = validate_cl_semantics("seq_ip", tmp_path, use_llm=False)
 
     assert report["passed"] is True
     assert report["deterministic_backstop"]["violations"] == []
+
+
+def test_cl_gate_catches_fictional_timing_without_explicit_waiver(tmp_path: Path) -> None:
+    """ROOT FIX: a combinational contract (no clocked vocabulary) carrying a
+    fictional cycle_model is caught deterministically even with NO
+    cycle_model_waiver flag — the waiver is derived from the locked decision
+    table, not an optional field (the mux4_v1 class that the explicit-flag-only
+    backstop missed). Closes OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET."""
+    _write_ip(tmp_path, "comb_noflag", cycle_model_waiver=False,  # flag absent
+              cycle_model=dict(_FICTIONAL_CYCLE_MODEL))
+    report = validate_cl_semantics("comb_noflag", tmp_path, use_llm=False)
+    assert report["passed"] is False
+    assert report["status"] == "fail"
+    assert any(v["kind"] == "fictional_timing"
+               for v in report["deterministic_backstop"]["violations"])
 
 
 def test_cl_gate_inactive_without_contract_authority(tmp_path: Path) -> None:
