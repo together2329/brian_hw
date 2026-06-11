@@ -221,12 +221,12 @@ traceability:
     )
 
 
-def _run_verify(ip: str, root: Path) -> subprocess.CompletedProcess[str]:
+def _run_verify(ip: str, root: Path, run_mode: str = "signoff") -> subprocess.CompletedProcess[str]:
     env = dict(os.environ)
     # signoff keeps every blocker hard (the relaxed/guardrail demotion only
     # applies when ATLAS_RUN_MODE != signoff), so the gate's exit code and the
     # blockers list are deterministic regardless of run-mode defaults.
-    env["ATLAS_RUN_MODE"] = "signoff"
+    env["ATLAS_RUN_MODE"] = run_mode
     return subprocess.run(
         [
             sys.executable,
@@ -336,3 +336,29 @@ def test_no_locked_contracts_no_combinational_check(tmp_path):
     assert "ssot.combinational_ip_declares_fsm" not in ids
     assert "ssot.combinational_ip_declares_state_variables" not in ids
     assert "ssot.combinational_ip_declares_state_updates" not in ids
+
+
+# --------------------------------------------------------------------------- #
+# 5. Relaxed (engineering) run mode must NOT demote the combinational gate:
+#    the build-first guardrail demotion bounced the live add8_cin_v1 repair
+#    loop forever (verify_ssot ok=true kept the phantom FSM while the hard
+#    downstream FL semantic gate kept failing). These codes stay blockers in
+#    every run mode.
+# --------------------------------------------------------------------------- #
+def test_relaxed_mode_keeps_combinational_gate_hard(tmp_path):
+    ip = "add8_cin_relaxed"
+    _write_locked_req_bundle(tmp_path / ip / "req", ip, sequential=False)
+    _write_ssot(tmp_path / ip / "yaml" / f"{ip}.ssot.yaml", ip, _PHANTOM_FSM_FUNCTION_BLOCK)
+
+    result = _run_verify(ip, tmp_path, run_mode="engineering")
+
+    assert result.returncode != 0, result.stdout
+    report = json.loads((tmp_path / ip / "req" / "ssot_validation.json").read_text(encoding="utf-8"))
+    assert report.get("run_mode_relaxed") is True
+    assert report.get("ok") is False
+    ids = {item.get("id") for item in (report.get("blockers") or [])}
+    assert "ssot.combinational_ip_declares_fsm" in ids
+    assert "ssot.combinational_ip_declares_state_variables" in ids
+    assert "ssot.combinational_ip_declares_state_updates" in ids
+    demoted = {item.get("id") for item in (report.get("guardrails") or [])}
+    assert "ssot.combinational_ip_declares_fsm" not in demoted

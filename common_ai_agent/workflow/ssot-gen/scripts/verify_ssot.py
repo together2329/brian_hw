@@ -1167,7 +1167,17 @@ def main() -> int:
     relaxed = (os.environ.get("ATLAS_RUN_MODE") or "").strip().lower() != "signoff"
     guardrails: list[dict[str, str]] = []
     if relaxed and blockers:
-        hard_ids = {"ssot.ip_missing", "ssot.file_missing", "ssot.yaml_parse_failed"}
+        # Fictional architecture on a combinational IP stays HARD in every run
+        # mode: equiv goals/TB are generated FROM it, and the downstream FL
+        # semantic gate is hard in all modes — demoting here just bounces the
+        # repair loop off that gate forever (live: add8_cin_v1 engineering-mode
+        # repair saw ok=true and kept the phantom FSM, 2026-06-11).
+        hard_ids = {
+            "ssot.ip_missing", "ssot.file_missing", "ssot.yaml_parse_failed",
+            "ssot.combinational_ip_declares_fsm",
+            "ssot.combinational_ip_declares_state_variables",
+            "ssot.combinational_ip_declares_state_updates",
+        }
         hard = [item for item in blockers if str(item.get("id") or "") in hard_ids]
         guardrails = [item for item in blockers if str(item.get("id") or "") not in hard_ids]
         blockers = hard
