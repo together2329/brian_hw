@@ -429,6 +429,16 @@ requirements:
             observed_at: 0782a9bd
           - test: "tests/test_orchestrator_ask_user_resume.py::test_reply_sanitizes_delimiter_tokens"
             observed_at: 0782a9bd
+      - id: OBL_ORCH_USER_WAKE_DRAINED
+        owned_by: agent.react-loop
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          live run에 append된 user_message wake가 소비/드레인되지 않아 이후 모든
+          yield_run이 즉시 woken:user_message로 깨어남(job_ids=[] busy-loop, 사이클당
+          LLM 1-2콜 소모) → 50-step cap까지 도달해 run이 blocked로 사망. 라이브 증거
+          2026-06-11 run 0a5f0be220284579a534f6a699368f14 (steps ~13-50이 wake-loop,
+          wake.jsonl 35행; doc/wiki/orchestrator-campaign-10ip-20260610.md finding 16)
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
@@ -480,3 +490,16 @@ requirements:
             observed_at: 7f912a27
           - test: "tests/test_validate_fl_semantics.py::test_fl_gate_no_false_positive_on_stateful_ip"
             observed_at: 7f912a27
+      - id: OBL_SSOT_GEN_HONORS_CYCLE_WAIVER
+        owned_by: engine.stage
+        granularity: content
+        status: refuted
+        refuted_by: >-
+          ssot-gen이 cycle_model_waiver=true(조합) locked contract인데도 허구 control
+          FSM(IDLE/ACCEPT/EXEC_FEATURE_*/COMPLETE/ERROR)+state_variables를 SSOT에
+          저작하고, repair 디스패치도 동일 FSM을 재저작(비수렴 루프) — FL 의미게이트가
+          하류에서 막아 파이프라인이 영구 블록. 그 허구 FSM이 만든 phantom equivalence
+          state goal(EQ_STATE_CONTROL_EXEC_FEATURE_2_TO_COMPLETE_3)이 add8_cin_v1
+          scoreboard 28/29의 유일한 open row. 라이브 증거 2026-06-11 orchestrator run
+          0a5f0be2: ssot-gen job e2bb7c931167(repair 후에도 fsm 잔존), cl job
+          5af1c569b448 SEMANTIC GATE FAIL 재현 (doc/wiki/orchestrator-campaign-10ip-20260610.md finding 15)
