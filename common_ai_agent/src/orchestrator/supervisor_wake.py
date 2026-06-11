@@ -104,6 +104,7 @@ class FileBackedWaker:
         user_message: bool = True,
         after_seconds: Optional[float] = None,
         poll_interval: float = 0.025,
+        consumed_event_ids: Optional[Set[str]] = None,
     ) -> None:
         self.wake_path = Path(wake_path)
         self.cancel_path = Path(cancel_path)
@@ -116,6 +117,15 @@ class FileBackedWaker:
         self.poll_interval = poll_interval
         self._offset = 0
         self._seen_event_ids: set[str] = set()
+        # Shared across all wakers of the same runner (supervisor process
+        # lifetime). An event_id lands here only once a waker MATCHES it and
+        # returns it as a wake reason, so a later waker won't re-fire on the
+        # same already-handled event (busy-loop fix). Unmatched events are
+        # never added here, so a job_complete for job X appended while a waker
+        # filtered on job Y still wakes a LATER waker filtering on X.
+        self._consumed_event_ids: set[str] = (
+            consumed_event_ids if consumed_event_ids is not None else set()
+        )
         self._forced_reason = ""
 
     def wake(self, reason: str) -> None:
@@ -157,12 +167,20 @@ class FileBackedWaker:
             except Exception:
                 continue
             event_id = str(event.get("event_id") or "")
-            if event_id and event_id in self._seen_event_ids:
+            if event_id and (
+                event_id in self._seen_event_ids
+                or event_id in self._consumed_event_ids
+            ):
                 continue
             if event_id:
                 self._seen_event_ids.add(event_id)
             reason = self._reason_for(event)
             if reason:
+                # Only mark as consumed across the runner when THIS waker's
+                # filter matched. Unmatched events stay deliverable to a
+                # later waker with a different filter.
+                if event_id:
+                    self._consumed_event_ids.add(event_id)
                 return reason
         return ""
 
@@ -185,6 +203,12 @@ class FileBackedSupervisorRunner:
         self.wake_path = Path(wake_path)
         self.cancel_path = Path(cancel_path)
         self._wakers: dict[str, FileBackedWaker] = {}
+        # Shared by every waker this runner registers. The runner lives for the
+        # supervisor process lifetime, so a user_message (or any matched event)
+        # consumed by one yield_run won't busy-loop-wake every subsequent one.
+        # A fresh runner (supervisor respawn) starts empty and may re-deliver
+        # one old pending event once (intentional resume semantics).
+        self.consumed_event_ids: set[str] = set()
 
     def register_waker(
         self,
@@ -204,6 +228,7 @@ class FileBackedSupervisorRunner:
             job_ids=job_ids,
             user_message=user_message,
             after_seconds=after_seconds,
+            consumed_event_ids=self.consumed_event_ids,
         )
         self._wakers[run_id] = waker
         return waker
