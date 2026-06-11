@@ -14,10 +14,21 @@ import ast
 import json
 import os
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+
+WORKFLOW_ROOT = Path(__file__).resolve().parents[2]
+if str(WORKFLOW_ROOT) not in sys.path:
+    sys.path.insert(0, str(WORKFLOW_ROOT))
+
+from behavioral_contracts import (  # noqa: E402 - sys.path bootstrap above
+    behavioral_contract_map,
+    _cycle_model_waived,
+)
 
 
 REQUIRED_ORDER = [
@@ -1769,13 +1780,18 @@ def _move_internal_output_rules_to_state_updates(
             tx["state_updates"] = updates
 
 
-def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
+def _ensure_function_model_machine_rules(doc: dict[str, Any], combinational: bool = False) -> None:
     fm = doc.get("function_model")
     if not isinstance(fm, dict):
         return
     txs = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
     if not txs:
         return
+    if combinational:
+        # A combinational IP has no architectural state. Keep promoting concrete
+        # output_rules into the rtl_contract (machine-checkable outputs), but
+        # never move rules into state_updates or synthesize state-driven rules.
+        _prune_combinational_transaction_state(txs)
     contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
     widths = _port_widths(doc)
     input_port = _infer_primary_input_port(doc, contract)
@@ -1844,12 +1860,13 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
         for state in fm.get("state_variables") or []
         if isinstance(state, dict) and str(state.get("name") or "").strip()
     }
-    _move_internal_output_rules_to_state_updates(
-        txs,
-        output_ports=output_ports,
-        output_map=output_map,
-        state_names=state_names,
-    )
+    if not combinational:
+        _move_internal_output_rules_to_state_updates(
+            txs,
+            output_ports=output_ports,
+            output_map=output_map,
+            state_names=state_names,
+        )
     contract_rules = contract.get("output_rules") if isinstance(contract.get("output_rules"), list) else []
     contract_rule_ports = {
         _concrete_port_ref(rule.get("port") or rule.get("name"), output_ports)
@@ -1934,12 +1951,43 @@ def _ensure_function_model_machine_rules(doc: dict[str, Any]) -> None:
     _normalize_machine_rule_exprs(doc)
 
 
-def _ensure_transaction_machine_rule_completeness(doc: dict[str, Any]) -> None:
+def _ensure_transaction_machine_rule_completeness(doc: dict[str, Any], combinational: bool = False) -> None:
     fm = doc.get("function_model")
     if not isinstance(fm, dict):
         return
     txs = [item for item in fm.get("transactions") or [] if isinstance(item, dict)]
     if not txs:
+        return
+    if combinational:
+        # A combinational IP has no architectural state: never auto-inject the
+        # {tx_id}_observed state markers (REPAIR_TRANSACTION_STATE_MARKER) or
+        # state_updates. Make transactions machine-checkable via a benign
+        # output_rule on a declared output port only (no state).
+        output_ports = set(_ports_by_direction(doc, "output"))
+        widths = _port_widths(doc)
+        if output_ports and not any(
+            isinstance(rule, dict)
+            and str(rule.get("name") or rule.get("port") or "").strip()
+            and _machine_rule_has_expr(rule)
+            for tx in txs
+            for rule in (tx.get("output_rules") if isinstance(tx.get("output_rules"), list) else [])
+        ):
+            target_tx = next((tx for tx in txs if not _is_reset_transaction(tx)), None)
+            if target_tx is not None:
+                preferred = ["error", "pslverr", "irq", "rsp_valid", "pready", "done", "busy"]
+                port = next((name for name in preferred if name in output_ports), sorted(output_ports)[0])
+                rules = target_tx.get("output_rules") if isinstance(target_tx.get("output_rules"), list) else []
+                rules.append({
+                    "name": port,
+                    "port": port,
+                    "expr": "0",
+                    "width": widths.get(port, 1),
+                    "description": (
+                        "Auto-injected benign observable rule so the function_model has at least one "
+                        "scoreboard-visible output equation; replace with IP-specific output behavior before signoff."
+                    ),
+                })
+                target_tx["output_rules"] = rules
         return
     states = fm.get("state_variables") if isinstance(fm.get("state_variables"), list) else []
     output_ports = set(_ports_by_direction(doc, "output"))
@@ -2631,7 +2679,23 @@ def _ensure_interrupts(doc: dict[str, Any]) -> dict[str, Any]:
     return {"present": False, "sources": [], "rationale": "No interrupt output is implied by repair; add interrupt sources explicitly before rtl-gen implements IRQ behavior"}
 
 
-def _ensure_fsm(doc: dict[str, Any]) -> dict[str, Any]:
+def _combinational_fsm_section() -> dict[str, Any]:
+    """The only legal fsm shape for a cycle-waived (combinational) IP: explicit
+    absence. verify_ssot hard-blocks any fsm.*.states on a combinational IP, so
+    repair must never synthesize a control FSM here."""
+    return {
+        "present": False,
+        "rationale": (
+            "Locked truth is cycle_model_waiver/combinational "
+            "(req/behavioral_contracts.json); a purely combinational IP has no "
+            "state-control FSM."
+        ),
+    }
+
+
+def _ensure_fsm(doc: dict[str, Any], combinational: bool = False) -> dict[str, Any]:
+    if combinational:
+        return _combinational_fsm_section()
     fsm = doc.get("fsm") if isinstance(doc.get("fsm"), dict) else {}
     if fsm and not _has_tbd(fsm):
         return fsm
@@ -2714,7 +2778,18 @@ def _error_sources(doc: dict[str, Any]) -> list[dict[str, Any]]:
     return [{"id": "ERR_PROTOCOL", "condition": "Downstream protocol response is non-OKAY or invalid", "architectural_effect": "Set error status and block signoff until handled"}]
 
 
-def _ensure_function_model(doc: dict[str, Any], state: dict[str, Any]) -> dict[str, Any]:
+def _prune_combinational_transaction_state(txs: list[Any]) -> None:
+    """Drop architectural state_updates from transactions of a combinational IP.
+
+    verify_ssot hard-blocks any non-empty transaction state_updates on a
+    cycle-waived IP, so pruning them (rather than leaving forbidden content)
+    helps the repair loop converge."""
+    for tx in txs:
+        if isinstance(tx, dict):
+            tx.pop("state_updates", None)
+
+
+def _ensure_function_model(doc: dict[str, Any], state: dict[str, Any], combinational: bool = False) -> dict[str, Any]:
     fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
     existing_txs = fm.get("transactions") if isinstance(fm.get("transactions"), list) else []
     generic_only = (
@@ -2722,6 +2797,28 @@ def _ensure_function_model(doc: dict[str, Any], state: dict[str, Any]) -> dict[s
         and existing_txs
         and str(existing_txs[0].get("name") or "").lower() in {"primary_operation", "basic_operation"}
     )
+    if combinational:
+        # A purely combinational IP has no architectural state to model.
+        # Preserve the existing transactions but never inject (or keep)
+        # state_variables / transaction state_updates -- verify_ssot blocks them.
+        repaired = dict(fm)
+        repaired.pop("state_variables", None)
+        repaired_txs: list[dict[str, Any]] = []
+        for idx, tx in enumerate(existing_txs, start=1):
+            item = dict(tx) if isinstance(tx, dict) else {"name": str(tx)}
+            tx_id = str(item.get("id") or item.get("name") or f"FM{idx}")
+            item["id"] = tx_id
+            item["name"] = item.get("name") or tx_id.lower()
+            item.pop("state_updates", None)
+            repaired_txs.append(item)
+        repaired["transactions"] = repaired_txs
+        if not repaired.get("purpose"):
+            repaired["purpose"] = "Cycle-independent combinational behavioral contract for rtl-gen and tb-gen."
+        repaired.setdefault(
+            "reference_model_hint",
+            "tb-gen must build a scoreboard/reference model from function_model transactions and compare expected versus observed results.",
+        )
+        return repaired
     if fm.get("state_variables") and fm.get("transactions") and fm.get("invariants") and not generic_only:
         repaired = dict(fm)
         repaired_txs: list[dict[str, Any]] = []
@@ -2836,7 +2933,45 @@ def _fsm_pipeline(doc: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def _ensure_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
+def _combinational_cycle_model(doc: dict[str, Any]) -> dict[str, Any]:
+    """Cycle model for a cycle-waived (combinational) IP.
+
+    verify_ssot hard-blocks handshake_rules/pipeline/backpressure and any
+    min_cycles>=1 latency on a combinational IP, so repair must never inject
+    them. Clock/reset metadata and min_cycles=0 lanes are allowed, so we keep
+    the IP's existing cycle_model but strip the forbidden content (pruning is
+    safe -- the gate blocks the same content anyway)."""
+    cm = dict(doc.get("cycle_model")) if isinstance(doc.get("cycle_model"), dict) else {}
+    clock, freq = _first_clock(doc)
+    for forbidden in ("handshake_rules", "pipeline", "backpressure", "ordering"):
+        cm.pop(forbidden, None)
+    latency = cm.get("latency")
+    if isinstance(latency, dict):
+        pruned_latency: dict[str, Any] = {}
+        for lane, entry in latency.items():
+            if isinstance(entry, dict):
+                lane_entry = dict(entry)
+                try:
+                    if int(lane_entry.get("min_cycles") or 0) >= 1:
+                        lane_entry["min_cycles"] = 0
+                except (TypeError, ValueError):
+                    lane_entry["min_cycles"] = 0
+                pruned_latency[lane] = lane_entry
+            else:
+                pruned_latency[lane] = entry
+        cm["latency"] = pruned_latency
+    cm["purpose"] = cm.get("purpose") or (
+        "Combinational (cycle_model_waiver) IP: same-cycle outputs, no clocked "
+        "ordering, no handshake. Retained only for clock/reset metadata."
+    )
+    cm["cycle_model_waiver"] = True
+    cm["clock"] = cm.get("clock") or clock
+    return cm
+
+
+def _ensure_cycle_model(doc: dict[str, Any], combinational: bool = False) -> dict[str, Any]:
+    if combinational:
+        return _combinational_cycle_model(doc)
     cm = dict(doc.get("cycle_model")) if isinstance(doc.get("cycle_model"), dict) else {}
     clock, freq = _first_clock(doc)
     cm.setdefault("executable", "python")
@@ -4041,7 +4176,15 @@ def _legacy_interface_to_io_list(doc: dict[str, Any]) -> None:
     doc.pop("interface", None)
 
 
-def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any]:
+def repair(doc: dict[str, Any], state: dict[str, Any], ip: str, combinational: bool = False) -> dict[str, Any]:
+    """Repair an SSOT to canonical schema.
+
+    ``combinational=True`` activates the cycle-waived branch: the locked truth
+    (req/behavioral_contracts.json) declares a purely combinational IP, so repair
+    must not inject (or keep) any control FSM, function_model.state_variables,
+    transaction state_updates, or cycle_model handshake/pipeline/backpressure/
+    min_cycles>=1 latency. verify_ssot hard-blocks all of those for combinational
+    IPs. ``combinational=False`` is the legacy stateful behavior, unchanged."""
     out = dict(doc)
     _legacy_interface_to_io_list(out)
     _legacy_top_interfaces_to_io_list(out)
@@ -4058,15 +4201,15 @@ def repair(doc: dict[str, Any], state: dict[str, Any], ip: str) -> dict[str, Any
     out["registers"] = _ensure_registers(out)
     out["memory"] = _ensure_memory(out)
     out["interrupts"] = _ensure_interrupts(out)
-    out["fsm"] = _ensure_fsm(out)
-    out["function_model"] = _ensure_function_model(out, state)
+    out["fsm"] = _ensure_fsm(out, combinational)
+    out["function_model"] = _ensure_function_model(out, state, combinational)
     out["sub_modules"] = _ensure_submodule_behavior_ownership(out, ip)
-    out["cycle_model"] = _ensure_cycle_model(out)
+    out["cycle_model"] = _ensure_cycle_model(out, combinational)
     _ensure_ready_constant_policy(out)
     out["rtl_contract"] = _ensure_rtl_contract(out, ip)
-    _ensure_function_model_machine_rules(out)
+    _ensure_function_model_machine_rules(out, combinational)
     _ensure_rule_expr_input_map_completeness(out)
-    _ensure_transaction_machine_rule_completeness(out)
+    _ensure_transaction_machine_rule_completeness(out, combinational)
     _remove_stale_repair_machine_markers(out)
     _ensure_state_update_widths(out)
     _ensure_transaction_output_summaries(out)
@@ -4346,6 +4489,24 @@ def _load_req_doc(root: Path, ip: str, name: str) -> dict[str, Any]:
     return doc if isinstance(doc, dict) else {}
 
 
+def _is_combinational_locked_truth(root: Path, ip: str) -> bool:
+    """True iff the locked truth says this IP is purely combinational.
+
+    Mirrors verify_ssot._combinational_state_issues exactly: the IP is
+    combinational when req/behavioral_contracts.json exists, declares at least
+    one behavioral contract, AND every contract is cycle_model_waiver/
+    combinational (derived from the locked decision tables by
+    behavioral_contracts._cycle_model_waived). A single non-waived (sequential)
+    contract, or an absent/empty behavioral_contracts.json, returns False so
+    repair keeps its legacy stateful template behavior byte-for-byte.
+    """
+    behavioral = _load_req_doc(root, ip, "behavioral_contracts.json")
+    contracts = behavioral_contract_map(behavioral)
+    if not contracts:
+        return False
+    return all(_cycle_model_waived(contract) for contract in contracts.values())
+
+
 def _obligation_to_transaction_index(doc: dict[str, Any]) -> dict[str, int]:
     """Map each obligation id to the function_model.transactions[] index that
     implements it.
@@ -4463,7 +4624,8 @@ def main() -> int:
     before_repair = dict(doc)
     strict_downstream_issues = _validate_downstream_readiness(doc, ns.ip, root) if ns.strict_downstream else []
     state = _load_state(root, ns.ip)
-    repaired = repair(doc, state, ns.ip)
+    combinational = _is_combinational_locked_truth(root, ns.ip)
+    repaired = repair(doc, state, ns.ip, combinational)
     projection_actions = _project_locked_behavioral_contracts(repaired, root, ns.ip)
     ssot.write_text(yaml.safe_dump(repaired, sort_keys=False, width=4096, allow_unicode=False), encoding="utf-8")
     loaded = yaml.safe_load(ssot.read_text(encoding="utf-8"))
