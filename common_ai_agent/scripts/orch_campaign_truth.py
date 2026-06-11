@@ -109,7 +109,12 @@ CAMPAIGN_SPECS: dict[str, dict] = {
     },
     "add8_cin_v1": {
         "title": "8-bit adder with carry-in/out",
-        "ports": [_sig("a", "input", 8), _sig("b", "input", 8), _sig("cin", "input"),
+        # clk/rst_n are TB-harness pins, unused by the combinational logic:
+        # the generic cocotb TB machinery has no clockless mode (finding 25,
+        # OBL_TB_SUPPORTS_CLOCKLESS_DUT), so the locked structural contract
+        # must cover them or the structural projection rejects the SSOT ports.
+        "ports": [_sig("clk", "input"), _sig("rst_n", "input"),
+                  _sig("a", "input", 8), _sig("b", "input", 8), _sig("cin", "input"),
                   _sig("sum", "output", 8), _sig("cout", "output")],
         "features": [
             {"key": "ADD", "granularity": "structural",
@@ -281,6 +286,8 @@ def main() -> int:
     ap.add_argument("--root", required=True)
     ap.add_argument("--spec", default="")
     ap.add_argument("--approved-by", default="brian")
+    ap.add_argument("--force", action="store_true",
+                    help="replace an existing locked pack (human-authorized truth amendment)")
     ns = ap.parse_args()
 
     spec = json.loads(Path(ns.spec).read_text()) if ns.spec else CAMPAIGN_SPECS.get(ns.ip)
@@ -296,9 +303,11 @@ def main() -> int:
     req_dir.mkdir(parents=True, exist_ok=True)
     for name, doc in build_pack(ns.ip, spec).items():
         (req_dir / name).write_text(json.dumps(doc, indent=1), "utf-8")
-    r = subprocess.run([sys.executable, str(LOCK), ns.ip, "--root", str(root),
-                        "--from-candidate", "--approved-by", ns.approved_by],
-                       capture_output=True, text=True)
+    lock_cmd = [sys.executable, str(LOCK), ns.ip, "--root", str(root),
+                "--from-candidate", "--approved-by", ns.approved_by]
+    if ns.force:
+        lock_cmd.append("--force")
+    r = subprocess.run(lock_cmd, capture_output=True, text=True)
     out = (r.stdout + r.stderr).strip()
     print(out.splitlines()[-1] if out else "")
     if r.returncode != 0:
