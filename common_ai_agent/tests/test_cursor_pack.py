@@ -333,3 +333,75 @@ def test_no_atlas_prefixed_names_under_cursor():
                  if "atlas-" in p.name
                  and ".cursor/workflow/" not in p.as_posix()]
     assert offenders == [], f"atlas-prefixed names remain: {offenders}"
+
+
+# ---------- Cursor 공식 문서 포맷 적합성 ratchet (cursor.com/docs 대조) ----------
+# 스펙 출처: rules=context/rules, skills=context/skills, commands=context/commands,
+#           agents=agent/subagents, hooks=agent/hooks (2026-06 확인)
+
+def _fm_keys(path: Path) -> list:
+    text = path.read_text(encoding="utf-8")
+    m = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
+    if not m:
+        return []
+    return [line.split(":", 1)[0].strip()
+            for line in m.group(1).splitlines()
+            if ":" in line and not line[0].isspace()]
+
+
+def test_conformance_rules_frontmatter_keys_and_semantics():
+    """rules: 키는 description/globs/alwaysApply만; alwaysApply:true + globs 모순 금지."""
+    allowed = {"description", "globs", "alwaysApply"}
+    for f in sorted((CURSOR / "rules").glob("*.mdc")):
+        text = f.read_text(encoding="utf-8")
+        keys = set(_fm_keys(f))
+        assert keys, f"{f.name}: rule needs frontmatter (plain .md is ignored by Cursor)"
+        assert keys <= allowed, f"{f.name}: non-spec keys {keys - allowed}"
+        m = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
+        body = m.group(1)
+        always = re.search(r"(?m)^alwaysApply:\s*true\b", body)
+        has_globs = re.search(r"(?m)^globs:\s*\S", body)
+        assert not (always and has_globs), (
+            f"{f.name}: alwaysApply:true + globs is contradictory (globs only matter when false)")
+
+
+def test_conformance_commands_are_plain_markdown():
+    """commands: frontmatter 금지(순수 md), 파일명=명령명(kebab)."""
+    cmds = sorted((CURSOR / "commands").glob("*.md"))
+    assert cmds
+    for f in cmds:
+        assert not f.read_text(encoding="utf-8").startswith("---\n"), (
+            f"{f.name}: commands must be plain markdown with NO frontmatter (Cursor spec)")
+        assert re.fullmatch(r"[a-z0-9-]+", f.stem), f"{f.name}: command name not kebab-case"
+
+
+def test_conformance_skills_frontmatter_keys():
+    """skills: 키는 name/description/paths/disable-model-invocation/metadata만; name=folder."""
+    allowed = {"name", "description", "paths", "disable-model-invocation", "metadata"}
+    for f in sorted((CURSOR / "skills").glob("*/SKILL.md")):
+        keys = set(_fm_keys(f))
+        assert "name" in keys and "description" in keys, f"{f}: name+description required"
+        assert keys <= allowed, f"{f.parent.name}: non-spec skill keys {keys - allowed}"
+
+
+def test_conformance_agents_frontmatter_keys():
+    """agents: 키는 name/description/model/readonly/is_background만."""
+    allowed = {"name", "description", "model", "readonly", "is_background"}
+    for f in sorted((CURSOR / "agents").glob("*.md")):
+        keys = set(_fm_keys(f))
+        assert "name" in keys and "description" in keys, f"{f.name}: name+description required"
+        assert keys <= allowed, f"{f.name}: non-spec agent keys {keys - allowed}"
+
+
+def test_conformance_hooks_event_names():
+    """hooks.json: 이벤트명이 Cursor 문서의 실제 이벤트 집합에 속함 + version 1."""
+    valid_events = {
+        "sessionStart", "sessionEnd", "preToolUse", "postToolUse", "postToolUseFailure",
+        "subagentStart", "subagentStop", "beforeShellExecution", "afterShellExecution",
+        "beforeMCPExecution", "afterMCPExecution", "beforeReadFile", "afterFileEdit",
+        "beforeSubmitPrompt", "preCompact", "stop", "afterAgentResponse", "afterAgentThought",
+    }
+    doc = json.loads((CURSOR / "hooks.json").read_text(encoding="utf-8"))
+    assert doc.get("version") == 1
+    bad = set(doc["hooks"]) - valid_events
+    assert not bad, f"non-spec hook events: {bad}"
