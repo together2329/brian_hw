@@ -4,14 +4,42 @@
 powershell이나 터미널로 따로 실행할 필요 없다. Cursor가 mcp.json을 읽고
 `atlas_mcp_server.py`를 자식 프로세스로 spawn해 stdin/stdout(JSON-RPC)으로 대화한다.
 
-## 원리
+## Cursor가 서버에 접근하는 두 방식 (transport)
 
-```
-Cursor (MCP 클라이언트 + 런처) ──stdio JSON-RPC──► atlas_mcp_server.py (서버)
-```
+서버는 **두 가지로 띄울 수 있다.** mcp.json 형식이 곧 접근 방식을 정한다.
 
-Cursor 자체가 MCP 클라이언트라 **별도 어댑터 불필요**. stdio 방식이므로 서버는
-상주 데몬이 아니라 Cursor에 붙은 프로세스다 (Cursor 켜지면 뜨고 꺼지면 닫힘).
+### A) stdio — Cursor가 spawn (기본, 설정 0)
+
+```json
+{ "mcpServers": { "rtl-db": {
+    "command": "python3", "args": [".cursor/scripts/atlas_mcp_server.py"] } } }
+```
+Cursor가 이 프로세스를 자식으로 띄우고 stdin/stdout(JSON-RPC)으로 대화한다.
+**당신이 따로 실행할 필요 없다.** Cursor 켜지면 뜨고 꺼지면 닫힌다.
+
+### B) HTTP — 상주 서버를 당신이 띄우고, Cursor는 URL로 접속 (안정/공유용)
+
+먼저 서버를 직접 실행해 띄워둔다 (Cursor와 무관하게 상주):
+```bash
+python3 .cursor/scripts/atlas_mcp_server.py --http --port 8765
+#  → http://127.0.0.1:8765  로 listen, /health 로 생존 확인
+```
+그다음 Cursor mcp.json을 **URL 방식**으로:
+```json
+{ "mcpServers": { "rtl-db": { "url": "http://127.0.0.1:8765/mcp" } } }
+```
+Cursor는 그 URL로 JSON-RPC를 POST한다. 서버가 Cursor 재시작에도 살아있고,
+여러 클라이언트/팀원이 같은 서버에 붙을 수 있으며, 원격 호스트에도 둘 수 있다.
+
+| 기준 | A) stdio | B) HTTP 상주 |
+|---|---|---|
+| 실행 주체 | Cursor가 spawn | **당신이 직접** |
+| 수명 | Cursor와 동일 | **항상** |
+| 공유/원격 | ✗ | ✅ |
+| 설정 부담 | 0 | 띄워두기 + 살려두기(systemd/pm2) |
+| 권장 | 단일 사용자, 간단 | **안정성·공유·원격이 필요할 때** |
+
+Cursor 자체가 MCP 클라이언트라 **어느 방식이든 별도 어댑터 불필요**.
 
 ## 제공 툴
 
