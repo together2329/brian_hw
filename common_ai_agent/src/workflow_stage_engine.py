@@ -1180,7 +1180,16 @@ class WorkflowStageEngine:
         )
         derive_run = runs[-1]
         provenance_path = self.ip_dir(ip) / "rtl" / "rtl_authoring_provenance.json"
-        if provenance_path.is_file():
+        # finding 31: also CREATE the provenance when the authoring loop left
+        # its fingerprints (rtl_authoring_plan/authoring_packets/status) but
+        # never emitted the record — otherwise the provenance gate fails
+        # forever while the worker keeps "completing". refresh_rtl_provenance
+        # itself refuses manual RTL (no fingerprints -> hard exit).
+        authoring_fingerprints = any(
+            (self.ip_dir(ip) / "rtl" / name).exists()
+            for name in ("rtl_authoring_plan.json", "authoring_packets", "rtl_authoring_status.md")
+        )
+        if provenance_path.is_file() or authoring_fingerprints:
             runs.append(
                 self._run_tool(
                     "refresh_rtl_provenance",

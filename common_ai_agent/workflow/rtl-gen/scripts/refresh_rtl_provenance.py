@@ -123,8 +123,26 @@ def refresh(ip: str, root: Path) -> dict[str, Any]:
     provenance_path = ip_dir / "rtl" / "rtl_authoring_provenance.json"
     prior = _read_json(provenance_path)
     if not prior:
-        raise SystemExit("[refresh_rtl_provenance] missing existing rtl/rtl_authoring_provenance.json")
-    _validate_prior_common_agent(prior, expected)
+        # CREATE mode (campaign finding 31): the rtl-gen authoring loop
+        # sometimes finishes its RTL without emitting the provenance record,
+        # permanently failing the provenance gate. Creation is allowed ONLY
+        # when the workflow's own authoring fingerprints exist next to the
+        # RTL — artifacts no operator workflow produces by hand. This still
+        # refuses to bless manual RTL dropped into rtl/ without those traces.
+        fingerprints = [
+            ip_dir / "rtl" / "rtl_authoring_plan.json",
+            ip_dir / "rtl" / "authoring_packets",
+            ip_dir / "rtl" / "rtl_authoring_status.md",
+        ]
+        if not any(p.exists() for p in fingerprints):
+            raise SystemExit(
+                "[refresh_rtl_provenance] missing existing rtl/rtl_authoring_provenance.json "
+                "and no rtl-gen authoring fingerprints (rtl_authoring_plan.json / "
+                "authoring_packets/ / rtl_authoring_status.md) — refusing to bless manual RTL"
+            )
+        prior = {"authoring_packets": []}
+    else:
+        _validate_prior_common_agent(prior, expected)
 
     filelist = ip_dir / "list" / f"{ip}.f"
     filelist.parent.mkdir(parents=True, exist_ok=True)
