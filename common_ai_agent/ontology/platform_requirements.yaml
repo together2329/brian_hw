@@ -886,8 +886,14 @@ requirements:
       - id: OBL_WIKI_GRAPH_FRESHNESS_GATE
         owned_by: platform.wiki
         granularity: behavior
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_wiki_build_graph.py::test_check_fails_when_existing_graph_markdown_inventory_is_stale"
+            observed_at: dc563f27
       - id: OBL_WIKI_READ_LOOP_INJECTION
-        owned_by: agent.react-loop
+        owned_by: agent.prompt-builder
         granularity: behavior
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_core/test_prompt_builder.py::TestProjectWikiContext::test_stage_tagged_project_wiki_pages_are_injected"
+            observed_at: dc563f27

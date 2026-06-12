@@ -30,7 +30,14 @@ units:
       - core/react_loop.py
       - core/action_parser.py
       - core/chat_loop.py
+
+  - id: agent.prompt-builder
+    kind: engine
+    summary: 시스템 프롬프트 조립과 동적 컨텍스트 주입
+    owns:
       - core/prompt_builder.py
+    content_tests:
+      - tests/test_core/test_prompt_builder.py
 
   - id: agent.tools
     kind: registry
