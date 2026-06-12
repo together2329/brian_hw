@@ -228,7 +228,6 @@ requirements:
           - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
             observed_at: d3178b92
 
-<<<<<<< Updated upstream
   - id: REQ_PLAT_AGENT_PACK_ROCEV_001
     claim: "Cursor/Codex 에이전트 팩은 ROCEV 기준을 실제 IP evidence와 연결해 재사용 가능한 workflow로 제공한다"
     design_anchor: doc/wiki/req-obligation-contract-evidence-validation.md
@@ -254,7 +253,7 @@ requirements:
         owned_by: platform.ip-wiki
         granularity: behavior
         status: open
-=======
+
   - id: REQ_PLAT_SERVER_LAUNCHER_001
     claim: "ATLAS 로컬 서버 런처는 재실행 전에 대상 포트의 LISTEN 프로세스를 확실히 종료한다"
     design_anchor: doc/wiki/platform-ontology.md
@@ -268,7 +267,6 @@ requirements:
             observed_at: e9142c20
           - test: "tests/test_run_server_launcher.py::test_run_server_build_failures_do_not_fall_through_to_server_start"
             observed_at: e9142c20
->>>>>>> Stashed changes
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
@@ -734,3 +732,62 @@ requirements:
             observed_at: f74961a4
           - test: "tests/test_emit_cycle_model_port_symbols.py::test_cl_self_check_passes_on_live_add8_ssot_copy"
             observed_at: f74961a4
+      - id: OBL_TB_RESET_STIMULUS_DEASSERTED_BY_DEFAULT
+        owned_by: engine.stage
+        granularity: content
+        # 776c5008 (findings 33/34): TB가 reset 핀을 stimulus에서 구동하기 시작하자
+        # (finding 33), _default_field_value의 polarity-blind reset=0 기본값이 폭로됨.
+        # active-low rst_n에서 0=ASSERTED이므로 모든 비-reset functional goal이 DUT를
+        # reset에 잡아 count=0으로 고정 — FL oracle은 그 spurious 필드를 무시해 우연히
+        # 일치(가려짐). _stimulus_value_for_field가 reset 핀을 DEASSERTED 기본값
+        # (active-low=1, active-high=0)으로 채움; 진짜 reset 자산은 _is_reset_goal
+        # 경로의 _reset_dut가 별도 시퀀싱.
+        status: closed
+        evidence:
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_defaults_to_deasserted_for_active_low"
+            observed_at: 776c5008
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_deasserted_is_zero_for_active_high"
+            observed_at: 776c5008
+      - id: OBL_TB_HONORS_GOAL_CONSTRAINT_FIELD_VALUES
+        owned_by: engine.stage
+        granularity: content
+        # 776c5008 (finding 35): _constraint_field_value가 reset/valid/enable/hready/
+        # hresp 고정 어휘만 파싱해, locked goal constraint "clr==1 at rising clk"가
+        # 무시되고 CLEAR 경로가 자산되지 않음(clr이 zero-fill 0으로 떨어짐). 임의
+        # scalar 제어 필드의 명시적 "<field> == <int>" constraint를 honor하도록 범용화;
+        # 공백 제거 전 text에서 좌측 단어경계로 매칭("len==5"가 "en"에 오매칭 금지,
+        # whitespace-strip이 "and"를 "clr"에 붙여 경계가 깨지는 것도 방지).
+        status: closed
+        evidence:
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_clear_constraint_asserts_clr"
+            observed_at: 776c5008
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_count_constraint_holds_clr_low"
+            observed_at: 776c5008
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_generic_constraint_does_not_overmatch_substring_field"
+            observed_at: 776c5008
+      - id: OBL_FL_ENUM_STATE_UPDATES_MODEL_RESOLVED
+        owned_by: engine.stage
+        granularity: content
+        # 49d76e22 (finding 36; silent-pass 가족, OBL_CL_COMBINATIONAL_RULE_SYMBOLS의
+        # 형제): LLM 저작 FunctionalModel이 enum-named state update("fsm_state = COUNT")를
+        # resolve 못 해 _eval_ast가 'unknown rule name COUNT'로 크래시 → FSM trace가
+        # RESET에 방치. 세 게이트(run_self_check / check_fl_contract._self_txn /
+        # equivalence_scoreboard._seed_rule_fields)가 enum 값 이름 COUNT를 stimulus
+        # placeholder(txn["COUNT"]=0)로 시드해 그 크래시를 은폐 — 게이트는 vacuous PASS,
+        # 스코어보드는 주입된 0이 모델 enum 바인딩을 덮어 모든 FSM expected를 RESET(0)으로.
+        # _eval_ast가 IP 간 byte-identical(공유 scaffold)이라 enum-FSM IP 전반의 인프라
+        # 결함. 수정: 선언된 enum 값 이름은 모델이 자기 인코딩에서 resolve하는 상수이며
+        # 절대 stimulus placeholder로 시드하지 않음 → enum 미해결 모델은 apply()가 터져
+        # 게이트가 잡음(vacuous PASS 불가). check_fl_contract/_seed_rule_fields가
+        # SSOT-선언 enum 이름(function_model.state_variables[].enum,
+        # registers.internal_state_registers[].enum)을 known에 추가.
+        status: closed
+        evidence:
+          - test: "tests/test_fl_enum_state_update_gate.py::test_check_fl_contract_declares_enum_names"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_check_fl_contract_self_txn_does_not_seed_enum_names"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_check_fl_contract_self_txn_still_seeds_real_unknown_fields"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_equivalence_scoreboard_enum_helper_excludes_from_seed"
+            observed_at: 49d76e22
