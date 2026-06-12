@@ -791,3 +791,28 @@ requirements:
             observed_at: 49d76e22
           - test: "tests/test_fl_enum_state_update_gate.py::test_equivalence_scoreboard_enum_helper_excludes_from_seed"
             observed_at: 49d76e22
+      - id: OBL_EQUIVALENCE_TXN_RESOLVED_BY_STIMULUS_GUARD
+        owned_by: engine.stage
+        granularity: content
+        # da42662d (finding 37): _best_model_kind가 cycle_model rule-name goal
+        # (CM_PRIORITY_ENABLE/CM_NO_VALID_READY)과 bare scenario id(SC04)를 name/text
+        # 휴리스틱으로 transaction 매핑해, 실제 구동되는 en/clr/rst_n을 무시하고 잘못된
+        # 기본값(first-alias=reset, 또는 text keyword=count)으로 떨어짐 → FL expected가
+        # 같은 stimulus의 RTL과 발산(fsm RESET vs HOLD/COUNT, count 1 vs 0). 수정:
+        # _transaction_by_stimulus_guard가 각 transaction의 sample_condition을 stimulus
+        # 제어입력에 평가해 EXACTLY ONE non-reset txn이 매칭되면 그것을 반환(RTL이
+        # 디코드하는 priority와 동일, 휴리스틱보다 우선). explicit-alias 직후·text 직전
+        # 삽입, CSR/error/op는 더 앞서 return, reset-context goal은 제외(TB가 reset 자산),
+        # 모호(0/>1)면 None. cnt8 29/29, add8 12/12 무회귀.
+        status: closed
+        evidence:
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_resolves_unique_count"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_resolves_unique_hold"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_resolves_unique_clear"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_skips_reset_transaction"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_returns_none_on_ambiguous_or_missing_control"
+            observed_at: da42662d
