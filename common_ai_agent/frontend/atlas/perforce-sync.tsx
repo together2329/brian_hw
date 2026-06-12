@@ -799,7 +799,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     }
     const submittedChange = selectedChange;
     setSubmitDebug(submitDebugText('Submit request sent.', selectedChange, visiblePending));
-    post('/api/scm/submit', { message: desc.trim(), add_all: false }, 'submitted', payload => {
+    post('/api/scm/submit', {
+      message: desc.trim(),
+      add_all: false,
+      paths: visiblePending.map(row => row.path),
+    }, 'submitted', payload => {
       setSubmitDebug(submitDebugText('Submit succeeded.', selectedChange, visiblePending, payload));
       setDesc('');
       setSelPend(new Set());

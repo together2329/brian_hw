@@ -403,6 +403,7 @@ def register_git_routes(
         provider = str(body.get("provider") or "")
         stream = str(body.get("stream") or "")
         changelist = str(body.get("changelist") or body.get("change") or "")
+        paths = body.get("paths") or []
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         if not message:
@@ -413,9 +414,14 @@ def register_git_routes(
         )
         if error is not None:
             return error
-        kwargs = {"stream": stream} if stream and _request_provider(provider) == "perforce" else {}
-        if changelist and _request_provider(provider) == "perforce":
-            kwargs["changelist"] = changelist
+        kwargs = {}
+        if _request_provider(provider) == "perforce":
+            kwargs["local_root"] = local_root
+            kwargs["paths"] = paths
+            if stream:
+                kwargs["stream"] = stream
+            if changelist:
+                kwargs["changelist"] = changelist
         result = await _scm_call(scm_root_path, "submit", message, add_all=add_all, provider=provider, **kwargs)
         return JSONResponse({
             "ok": result.ok,

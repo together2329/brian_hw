@@ -677,11 +677,13 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
         def __init__(self, root: str) -> None:
             self.root = root
 
-        def submit(self, message: str, *, add_all=True, stream="", changelist=""):
+        def submit(self, message: str, *, add_all=True, stream="", changelist="", local_root=None, paths=None):
             seen["message"] = message
             seen["add_all"] = add_all
             seen["stream"] = stream
             seen["changelist"] = changelist
+            seen["local_root"] = local_root
+            seen["paths"] = list(paths or [])
             return SCMCommandResult(
                 ok=True,
                 provider=self.provider,
@@ -708,6 +710,7 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
             "message": "submit selected pending",
             "add_all": False,
             "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/opened.sv"],
         },
     )
     assert response.status_code == 200
@@ -720,4 +723,6 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
         "add_all": False,
         "stream": "//GOOD_SOC/GOOD_IP",
         "changelist": "12",
+        "local_root": str(tmp_path / "alpha"),
+        "paths": ["//GOOD_SOC/GOOD_IP/rtl/opened.sv"],
     }

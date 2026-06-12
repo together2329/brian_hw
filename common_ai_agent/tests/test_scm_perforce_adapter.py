@@ -1156,6 +1156,46 @@ def test_live_local_p4d_checkout_copy_submit_roundtrip(local_p4d):
     assert "module edited; endmodule" in printed.stdout
 
 
+def test_live_local_p4d_submit_restages_split_local_workspace_edit(local_p4d):
+    # Given: local IP files live outside the Perforce client root. Checkout
+    # opens/copies the current local file, then the user edits the local file
+    # again before pressing Submit.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    source = ip_root / "rtl" / "main.sv"
+    source.parent.mkdir(parents=True)
+    source.write_text("module first_checkout_copy; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    assert adapter._configured_client() == "atlas_ws"
+
+    opened = adapter.edit_paths(
+        ["rtl/main.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    assert (client_root / "rtl" / "main.sv").read_text(encoding="utf-8") == "module first_checkout_copy; endmodule\n"
+    source.write_text("module edited_after_checkout; endmodule\n", encoding="utf-8")
+    assert (client_root / "rtl" / "main.sv").read_text(encoding="utf-8") == "module first_checkout_copy; endmodule\n"
+
+    submitted = adapter.submit(
+        "split local workspace submit",
+        add_all=False,
+        changelist="default",
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv"],
+    )
+
+    assert submitted.ok, submitted.error or submitted.stderr
+    assert "restaged local edit: //depot/rtl/main.sv" in submitted.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module edited_after_checkout; endmodule" in printed.stdout
+
+
 def test_live_local_p4d_numbered_checkout_submit_clears_pending(local_p4d):
     # Given: a numbered pending changelist on a real local p4d server.
     p4 = local_p4d["p4"]
@@ -1177,7 +1217,7 @@ def test_live_local_p4d_numbered_checkout_submit_clears_pending(local_p4d):
     change_id = match.group(1)
     source = ip_root / "rtl" / "main.sv"
     source.parent.mkdir(parents=True, exist_ok=True)
-    source.write_text("module numbered; endmodule\n", encoding="utf-8")
+    source.write_text("module numbered_checkout_copy; endmodule\n", encoding="utf-8")
     adapter = PerforceP4Adapter(client_root, executable=p4)
     assert adapter._configured_client() == "atlas_ws"
 
@@ -1189,14 +1229,24 @@ def test_live_local_p4d_numbered_checkout_submit_clears_pending(local_p4d):
         changelist=change_id,
     )
     assert opened.ok, opened.error or opened.stderr
-    submitted = adapter.submit("numbered checkout submit", add_all=False, changelist=change_id)
+    assert (client_root / "rtl" / "main.sv").read_text(encoding="utf-8") == "module numbered_checkout_copy; endmodule\n"
+    source.write_text("module numbered_after_checkout; endmodule\n", encoding="utf-8")
+    assert (client_root / "rtl" / "main.sv").read_text(encoding="utf-8") == "module numbered_checkout_copy; endmodule\n"
+    submitted = adapter.submit(
+        "numbered checkout submit",
+        add_all=False,
+        changelist=change_id,
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv"],
+    )
 
     # Then: the selected changelist leaves the pending list and depot receives the edit.
     assert submitted.ok, submitted.error or submitted.stderr
+    assert "restaged local edit: //depot/rtl/main.sv" in submitted.stdout
     pending_changes = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
     assert f"Change {change_id} " not in pending_changes.stdout
     printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
-    assert "module numbered; endmodule" in printed.stdout
+    assert "module numbered_after_checkout; endmodule" in printed.stdout
 
 
 def test_live_checkout_folder_target_unsynced_opens_edit_and_submits(local_p4d):

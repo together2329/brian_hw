@@ -300,6 +300,7 @@ describe('PerforceSyncTab pane navigation', () => {
         ip: 'ulw_p4',
         message: 'submit checkout diff',
         changelist: 'default',
+        paths: ['//GOOD_SOC/GOOD_IP/rtl/main.sv'],
       });
     });
   });

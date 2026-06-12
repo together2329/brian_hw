@@ -477,6 +477,30 @@ class PerforceP4Adapter(SCMAdapter):
             return None
         return resolved
 
+    def _client_file_rel(self, client_file: str) -> Path | None:
+        text = str(client_file or "").strip()
+        if not text:
+            return None
+        if text.startswith("//"):
+            parts = [part for part in text.strip("/").split("/") if part]
+            if len(parts) < 2:
+                return None
+            configured = self._configured_client() or self._info().get("clientName", "")
+            if configured and parts[0] != configured:
+                return None
+            return Path(*parts[1:])
+        try:
+            return Path(text).resolve().relative_to(self._workspace_root_path().resolve())
+        except (OSError, RuntimeError, ValueError):
+            return None
+
+    def _workspace_path_from_client_file(self, client_file: str) -> Path | None:
+        rel = self._client_file_rel(client_file)
+        if rel is None:
+            return None
+        filespec = self._workspace_filespec(self._workspace_root_path() / rel)
+        return Path(filespec) if filespec is not None else None
+
     def _copy_depot_to_local(
         self,
         depot_spec: str,
@@ -509,10 +533,9 @@ class PerforceP4Adapter(SCMAdapter):
         base = self._workspace_root_path()
         recs, result = self._records("fstat", "-T", "clientFile", depot_file, timeout=10)
         if self._soften(result).ok and recs and recs[0].get("clientFile"):
-            filespec = self._workspace_filespec(Path(recs[0]["clientFile"]))
-            if filespec is None:
-                return None
-            return Path(filespec)
+            mapped = self._workspace_path_from_client_file(recs[0]["clientFile"])
+            if mapped is not None:
+                return mapped
         rel = self._depot_output_rel(depot_file)
         if not rel:
             return None
@@ -668,6 +691,67 @@ class PerforceP4Adapter(SCMAdapter):
         if files:
             self._soften(self._run_p4("reopen", "-c", "default", *files))
         self._soften(self._run_p4("change", "-d", change))
+
+    @staticmethod
+    def _clean_depot_key(value: str) -> str:
+        clean = str(value or "").strip()
+        for marker in ("#", "@"):
+            idx = clean.find(marker)
+            if idx >= 0:
+                clean = clean[:idx]
+                break
+        return clean.rstrip("/")
+
+    def _restage_local_submit_paths(
+        self,
+        opened: list[dict[str, str]],
+        local_root: str | Path | None = None,
+        paths: Any = None,
+    ) -> SCMCommandResult:
+        if local_root is None:
+            return self._result(ok=True)
+        requested = {
+            self._clean_depot_key(str(path))
+            for path in ([paths] if isinstance(paths, str) else list(paths or []))
+            if str(path or "").strip()
+        }
+        copied: list[str] = []
+        for rec in opened:
+            action = rec.get("action", "")
+            if action.endswith("delete"):
+                continue
+            depot_file = self._clean_depot_key(rec.get("depotFile", ""))
+            if requested and depot_file not in requested:
+                continue
+            source = None
+            client_file = rec.get("clientFile", "")
+            client_rel = self._client_file_rel(client_file)
+            if client_rel is not None:
+                try:
+                    source = (self._local_root_path(local_root) / client_rel).resolve()
+                except (OSError, RuntimeError, ValueError):
+                    source = None
+            if source is None:
+                source = self._depot_output_path(depot_file, local_root)
+            if source is None or not source.is_file():
+                continue
+            target = self._workspace_path_from_client_file(client_file) if client_file else None
+            if target is None:
+                target = self._client_path_for_depot(depot_file)
+            if target is None:
+                return self._result(ok=False, returncode=2, error=f"cannot map opened file to workspace path: {depot_file}")
+            try:
+                if source.resolve() == target.resolve():
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if target.exists() and filecmp.cmp(source, target, shallow=False):
+                    continue
+                shutil.copy2(source, target)
+                copied.append(depot_file or target.as_posix())
+            except OSError as exc:
+                return self._result(ok=False, returncode=1, error=str(exc))
+        stdout = "\n".join(f"restaged local edit: {path}" for path in copied)
+        return self._result(ok=True, stdout=stdout)
 
     def _delete_emptied_changelists(self, changes: set[str]) -> None:
         for change in sorted(changes):
@@ -898,6 +982,8 @@ class PerforceP4Adapter(SCMAdapter):
         allow_empty: bool = False,
         stream: str = "",
         changelist: str = "",
+        local_root: str | Path | None = None,
+        paths: Any = None,
     ) -> SCMCommandResult:
         self._select_stream(stream)
         if self._is_client_root() and add_all:
@@ -910,22 +996,28 @@ class PerforceP4Adapter(SCMAdapter):
             opened, _ = self._records("opened", "-c", target_change, self._perforce_scope())
             if not opened and not allow_empty:
                 return self._result(ok=False, returncode=0, stdout="no files opened", error="no changes to submit")
+            restaged = self._restage_local_submit_paths(opened, local_root, paths)
+            if not restaged.ok:
+                return restaged
             updated = self._update_pending_changelist_description(target_change, message)
             if not updated.ok:
                 return updated
-            return self._run_p4("submit", "-c", target_change)
+            return self._combine_results([restaged, updated, self._run_p4("submit", "-c", target_change)])
         if add_all:
             self._run_p4("reconcile", self._workspace_scope())  # benign if nothing to reconcile
         scope = self._workspace_scope() if add_all else self._perforce_scope()
         opened, _ = self._records("opened", scope)
         if not opened and not allow_empty:
             return self._result(ok=False, returncode=0, stdout="no files opened", error="no changes to submit")
+        restaged = self._restage_local_submit_paths(opened, local_root, paths)
+        if not restaged.ok:
+            return restaged
         result = self._run_p4("submit", "-d", message or "atlas: submit", scope)
         if not result.ok:
             stranded = self._stranded_submit_change(result)
             if stranded:
                 self._restore_failed_submit_to_default(stranded)
-        return result
+        return self._combine_results([restaged, result])
 
     def push(self, branch: str = "", remote: str = "origin") -> SCMCommandResult:
         _ = branch, remote
