@@ -118,7 +118,31 @@ def _interface_gate(module, failures: list[str]) -> dict[str, Any]:
     return {"status": "pass" if not failures else "fail", "model_constructed": model is not None}
 
 
-def _self_txn(tx: dict[str, Any], idx: int, model, helpers: dict[str, Any]) -> dict[str, Any]:
+def _declared_enum_names(ssot_model: dict[str, Any]) -> set[str]:
+    """FSM/enum state value NAMES declared in the SSOT model.
+
+    Drawn from function_model.state_variables[].enum and
+    registers.internal_state_registers[].enum — derived from the SSOT, NOT from
+    whatever the FL happened to bind, so a model that FAILS to bind its enums is
+    still held to the contract (campaign finding 36)."""
+    if not isinstance(ssot_model, dict):
+        return set()
+    sources: list[Any] = []
+    fm = ssot_model.get("function_model")
+    if isinstance(fm, dict):
+        sources += list(fm.get("state_variables") or [])
+    regs = ssot_model.get("registers")
+    if isinstance(regs, dict):
+        sources += list(regs.get("internal_state_registers") or [])
+    names: set[str] = set()
+    for item in sources:
+        if isinstance(item, dict) and isinstance(item.get("enum"), (list, tuple)):
+            names.update(str(v).strip() for v in item["enum"] if str(v).strip())
+    return names
+
+
+def _self_txn(tx: dict[str, Any], idx: int, model, helpers: dict[str, Any],
+              enum_names: set[str] | None = None) -> dict[str, Any]:
     """Build the same deterministic sample transaction the emitter self-check
     uses, so conformance is judged on identical inputs."""
     kind = tx.get("id") or tx.get("name") or f"transaction_{idx}"
@@ -133,6 +157,12 @@ def _self_txn(tx: dict[str, Any], idx: int, model, helpers: dict[str, Any]) -> d
         rule_names.update(_expr_names(rule.get("expr", rule.get("expression", rule.get("value", "")))))
     known = set(model.params) | set(model.state) | set(model.registers) | set(helpers)
     known.update({"true", "false", "True", "False", "and", "or", "not", "range", "read_mux", "reduction_or"})
+    # Declared enum value names (RESET/COUNT/...) are constants the model must
+    # resolve from its own encodings, not stimulus fields. Seeding them as
+    # placeholders let a model that cannot resolve its own ``fsm_state = COUNT``
+    # state-update score a vacuous pass; leaving them for the model to resolve
+    # makes apply() raise and the gate catch the defect (campaign finding 36).
+    known.update(enum_names or set())
     for name in sorted(rule_names - known):
         if name and name not in txn:
             txn[name] = idx + len(txn) + 1
@@ -144,6 +174,7 @@ def _conformance_gate(module, ssot_model: dict[str, Any], failures: list[str]) -
     model = module.FunctionalModel()
     helpers = dict(module._default_rule_helpers())
     fm = ssot_model.get("function_model") or {}
+    enum_names = _declared_enum_names(ssot_model)
     derived = _rule_items(fm.get("derived_signals"))
     rows: list[dict[str, Any]] = []
     txs = [tx for tx in (fm.get("transactions") or []) if isinstance(tx, dict)]
@@ -152,7 +183,7 @@ def _conformance_gate(module, ssot_model: dict[str, Any], failures: list[str]) -
         if str(tx.get("name") or "").strip().lower() == "reset":
             continue
         model.reset()
-        txn = _self_txn(tx, idx, model, helpers)
+        txn = _self_txn(tx, idx, model, helpers, enum_names)
         # pre-state env: SSOT output_rules/state_updates evaluate against
         # PRE-transaction state (the documented FL semantics).
         pre_env: dict[str, Any] = {}
@@ -239,6 +270,7 @@ def _dual_oracle_gate(module, baseline_module, ssot_model: dict[str, Any], failu
     base = baseline_module.FunctionalModel()
     helpers = dict(module._default_rule_helpers())
     fm = ssot_model.get("function_model") or {}
+    enum_names = _declared_enum_names(ssot_model)
     divergences: list[dict[str, Any]] = []
     compared = 0
     txs = [tx for tx in (fm.get("transactions") or []) if isinstance(tx, dict)]
@@ -248,7 +280,7 @@ def _dual_oracle_gate(module, baseline_module, ssot_model: dict[str, Any], failu
             continue
         model.reset()
         base.reset()
-        txn = _self_txn(tx, idx, base, helpers)
+        txn = _self_txn(tx, idx, base, helpers, enum_names)
         try:
             model.apply(dict(txn))
             base.apply(dict(txn))

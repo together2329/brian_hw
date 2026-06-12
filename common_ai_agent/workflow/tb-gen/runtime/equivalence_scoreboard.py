@@ -1072,6 +1072,17 @@ class EquivalenceScoreboard:
             except Exception:
                 pass
         known.update({"read_mux", "reduction_or"})
+        # Declared FSM/enum state value NAMES (e.g. RESET/HOLD/CLEAR/COUNT) are
+        # NOT stimulus fields: they are constants the FunctionalModel must
+        # resolve from its own enum encodings when it evaluates a state_update
+        # like ``fsm_state = COUNT``. Seeding them as txn placeholders (the old
+        # behavior) injected ``COUNT=0`` which, applied after the model's enum
+        # bindings in _rule_env, silently forced every FSM state expected back
+        # to RESET(0) — masking the real transition (campaign finding 36). Mark
+        # them known so they are left for the model to resolve; an FL that
+        # cannot resolve its own enum then raises in apply() and surfaces the
+        # defect instead of scoring a vacuous pass.
+        known.update(self._declared_enum_value_names())
         for name in sorted(names - known):
             if not name or name in txn:
                 continue
@@ -1084,6 +1095,29 @@ class EquivalenceScoreboard:
                 txn[name] = 1
             else:
                 txn[name] = 0
+
+    def _declared_enum_value_names(self) -> set[str]:
+        """Every FSM/enum state value NAME declared in the SSOT model.
+
+        Pulled from function_model.state_variables[].enum and
+        registers.internal_state_registers[].enum — the same enum lists the
+        FunctionalModel binds to integer encodings. Used to keep these names
+        out of the seeded-stimulus placeholders so the model resolves them."""
+        ssot_model = getattr(self.model_module, "SSOT_MODEL", {})
+        if not isinstance(ssot_model, dict):
+            return set()
+        sources: list[Any] = []
+        fm = ssot_model.get("function_model")
+        if isinstance(fm, dict):
+            sources += list(fm.get("state_variables") or [])
+        regs = ssot_model.get("registers")
+        if isinstance(regs, dict):
+            sources += list(regs.get("internal_state_registers") or [])
+        names: set[str] = set()
+        for item in sources:
+            if isinstance(item, dict) and isinstance(item.get("enum"), (list, tuple)):
+                names.update(str(v).strip() for v in item["enum"] if str(v).strip())
+        return names
 
     def reset_model(self) -> None:
         """Re-arm the FL oracle at reset state.
