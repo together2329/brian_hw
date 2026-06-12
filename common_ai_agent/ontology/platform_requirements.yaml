@@ -366,7 +366,14 @@ requirements:
       - id: OBL_P4_REVERT_DIAGNOSTIC_MATRIX
         owned_by: platform.scm
         granularity: behavior
-        status: open   # UI/API/adapter가 selected CL revert와 실패 진단을 여러 경로에서 보존해야 함
+        status: closed   # UI/API/adapter가 selected CL revert와 실패 진단을 여러 경로에서 보존해야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_revert_debug_context_contract"
+            observed_at: df838f79
+          - test: "tests/test_scm_perforce_adapter.py::test_revert_reports_remaining_resolve_state_after_fallback"
+            observed_at: df838f79
+          - test: "tests/test_atlas_git_api.py::test_scm_revert_route_preserves_perforce_failure_diagnostics"
+            observed_at: df838f79
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
