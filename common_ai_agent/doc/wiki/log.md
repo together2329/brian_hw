@@ -12,7 +12,7 @@
   (subagentStop: atlas-* 오너의 증거 없는 완료 차단) ③ `rocev-chain` skill +
   `req-gen`/`rocev-chain` subagents (req→rtl→tb→sim, 스테이지별
   ROCEV) ④ `scripts/ip_wiki.py` + `ip-wiki` skill (<ip>/wiki 히스토리,
-  frontmatter/[[link]] 게이트) ⑤ `scripts/atlas_mcp_server.py` + `mcp.json`
+  frontmatter/wiki-link 게이트) ⑤ `scripts/atlas_mcp_server.py` + `mcp.json`
   (RTL DB query MCP: rtl_db_query/rtl_db_wiki 주 툴 + ontology_query/wiki_search).
   검증 30 tests + cursor-agent 실런(rule 주입·hooks 인식 확인). 한계 실측:
   stop hook 루프는 `-p` print 모드 미발화 (IDE 대화 모드 전용) → known_gap.
@@ -159,7 +159,7 @@
   graph's shape as a Karpathy-LLM-wiki-form KG ([[karpathy-llm-wiki-pattern]],
   [[llm-wiki-knowledge-graph-discussion-20260602]]) but with strict typed triples:
   reuse the `doc/wiki` build_graph machinery for the human/nav layer, but truth edges
-  must be load-bearing (resolve = HARD FAIL), not associative `[[link]]`s (the repo's
+  must be load-bearing (resolve = HARD FAIL), not associative wiki links (the repo's
   own risk boundary: LLM graph treated as truth → stale edge ships). Split edges into
   two classes — load-bearing (`derived_from`/`closes`/`references_signal`/`anchors_to`/
   `proves`, gates run here) vs organizational (`belongs_to_theme`/`part_of`/`related`,

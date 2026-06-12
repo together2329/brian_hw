@@ -27,7 +27,7 @@ Each such idiom (strobes, write-side-effects, multi-event flows) forces another
 semantic into `emit_fl_model.py`; the compiler is becoming an interpreter of an
 open-ended SSOT semantics language. The pulse-counter family fit it; a watchdog
 already does not. This is the same trajectory that made fixed TB templates fail
-before IP-specific datapath stimulus ([[project-mctp-v3-datapath-tb]] arc).
+before IP-specific datapath stimulus ([[mctp-assembler-v3-ingress-fidelity-20260603]] arc).
 
 ## Architecture
 
@@ -47,11 +47,11 @@ battery). FL/CL/TB stop being special:
    `function_model.transactions[]` (preconditions, output_rules,
    state_updates, invariants) and locked behavioral-contract rule against the
    LLM oracle; content-semantic comparison, not count-semantic
-   ([[project-mctp-v3-trust-campaign]] lesson). Blocking on any divergence
+   ([[mctp-assembler-scratch-flow-20260531]] lesson). Blocking on any divergence
    without an SSOT-cited waiver.
 2. **Mutation gate** — inject mutations into the LLM oracle (and stimulus);
    the scoreboard must catch them. Gate criterion is `unknown == 0`, not kill
-   rate ([[project-contract-mutation-gate]] pattern).
+   rate ([[mctp-contract-slice-trial-and-error-20260606]] pattern).
 3. **Dual-oracle cross-check** — keep the deterministic emitter FL/CL as a
    BASELINE oracle. Wherever the deterministic semantics are expressible, the
    LLM oracle must agree; divergence raises a blocking question. This is the

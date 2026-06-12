@@ -30,6 +30,7 @@ units:
       - core/react_loop.py
       - core/action_parser.py
       - core/chat_loop.py
+      - core/prompt_builder.py
 
   - id: agent.tools
     kind: registry
@@ -269,6 +270,15 @@ units:
     content_tests:
       - tests/test_ip_dev_memory.py
       - tests/test_ip_wiki.py
+
+  - id: platform.wiki
+    kind: tooling
+    summary: 프로젝트/IP wiki 그래프 인덱스와 검색 전제 무결성 게이트
+    owns:
+      - workflow/wiki/build_graph.py
+    content_tests:
+      - tests/test_wiki_build_graph.py
+      - tests/test_wiki_query_tool.py
 
   - id: platform.ontology
     kind: meta

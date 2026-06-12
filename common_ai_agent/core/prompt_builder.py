@@ -9,8 +9,11 @@ Public API:
   build_system_prompt()  — main builder
   _build_system_prompt_str()  — always-string wrapper
 """
+import json
 import os
+import re
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Set, Union
 
 
@@ -44,6 +47,30 @@ MEMORY_INSERT_MARKERS = (
     "\nRules:",
 )
 
+PROJECT_WIKI_CONTEXT_START = "=== PROJECT WIKI (read before acting) ==="
+PROJECT_WIKI_CONTEXT_END = "=== END PROJECT WIKI ==="
+PROJECT_WIKI_STAGE_TAGS: Dict[str, List[str]] = {
+    "req-gen": ["requirements", "req", "locked-truth"],
+    "ssot-gen": ["ssot-gen", "ssot", "new-ip", "ssot-flags", "requirements"],
+    "fl-model-gen": ["fl-model-gen", "functional-model", "model-fidelity", "ssot"],
+    "cl-model-gen": ["cl-model-gen", "cycle-model", "model-fidelity", "ssot"],
+    "equiv-goals": ["equiv-goals", "equivalence", "coverage"],
+    "rtl-gen": ["rtl-gen", "rtl-ownership", "rtl", "ssot"],
+    "lint": ["lint", "rtl-gen", "rtl"],
+    "tb-gen": ["tb-gen", "tb", "stimulus-contract", "scoreboard"],
+    "sim": ["sim", "sim-debug", "scoreboard"],
+    "sim-debug": ["sim-debug", "sim", "scoreboard", "rtl-gen", "tb-gen"],
+    "coverage": ["coverage", "sim", "scoreboard"],
+    "goal-audit": ["goal-audit", "equivalence", "coverage"],
+}
+PROJECT_WIKI_TERM_RE = re.compile(r"[^a-z0-9]+")
+PROJECT_WIKI_STOPWORDS = {
+    "the", "and", "for", "you", "are", "how", "what", "why", "when", "where",
+    "with", "this", "that", "from", "into", "onto", "then", "than", "can",
+    "could", "would", "should", "please", "about", "your", "have", "has",
+    "had", "not", "but", "all", "any", "use", "using", "fix",
+}
+
 
 def active_workflow_name() -> Optional[str]:
     """Resolve the active workflow name from Atlas/workspace environment."""
@@ -53,6 +80,21 @@ def active_workflow_name() -> Optional[str]:
         return parts[-1]
     workspace = (os.environ.get("ACTIVE_WORKSPACE") or "").strip()
     return workspace or None
+
+
+def active_ip_name() -> Optional[str]:
+    """Resolve the active IP name from Atlas/workspace environment."""
+    ip = (os.environ.get("ATLAS_ACTIVE_IP") or "").strip()
+    if ip:
+        return ip
+    ip_root = (os.environ.get("ATLAS_IP_ROOT") or "").strip()
+    if ip_root:
+        return Path(ip_root).expanduser().name or None
+    session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
+    parts = [part for part in session.split("/") if part]
+    if len(parts) >= 2:
+        return parts[-2]
+    return None
 
 
 def build_memory_override(memory_system: Any, workflow: Optional[str] = None) -> str:
@@ -267,6 +309,7 @@ Write detailed tasks — include file paths, what to change, and expected outcom
         or ctx.graph_lite is not None
         or ctx.procedural_memory is not None
         or getattr(cfg, 'ENABLE_SKILL_SYSTEM', False)
+        or getattr(cfg, 'ENABLE_PROJECT_WIKI_CONTEXT', True)
     )
 
     if has_optional:
@@ -294,6 +337,12 @@ Write detailed tasks — include file paths, what to change, and expected outcom
             graph_ctx = _build_graph_context(cfg, ctx.graph_lite, messages)
             if graph_ctx:
                 context_parts.append(graph_ctx)
+
+        # Project wiki push context
+        if getattr(cfg, 'ENABLE_PROJECT_WIKI_CONTEXT', True):
+            wiki_ctx = _build_project_wiki_context(cfg, messages)
+            if wiki_ctx:
+                context_parts.append(wiki_ctx)
 
         # Smart RAG
         if getattr(cfg, 'ENABLE_SMART_RAG', False) and messages:
@@ -383,6 +432,190 @@ def _build_procedural_guidance(cfg, procedural_memory, messages) -> str:
         return guidance
     except Exception:
         return ""
+
+
+def _project_wiki_graph_path(cfg) -> Optional[Path]:
+    explicit = (
+        getattr(cfg, "PROJECT_WIKI_GRAPH_PATH", "")
+        or os.environ.get("ATLAS_PROJECT_WIKI_GRAPH", "")
+    )
+    if explicit:
+        return Path(os.path.expandvars(explicit)).expanduser()
+
+    root_override = (
+        getattr(cfg, "PROJECT_WIKI_ROOT", "")
+        or os.environ.get("ATLAS_PROJECT_WIKI_ROOT", "")
+    )
+    if root_override:
+        root = Path(os.path.expandvars(root_override)).expanduser()
+        return root / "_graph.json" if root.name == "wiki" else root / "doc" / "wiki" / "_graph.json"
+
+    candidates = [
+        os.environ.get("COMMON_AI_AGENT_HOME", ""),
+        os.environ.get("ATLAS_WORKFLOW_ROOT", ""),
+        os.environ.get("ATLAS_PROJECT_ROOT", ""),
+        os.getcwd(),
+        str(Path(__file__).resolve().parents[1]),
+    ]
+    for raw in candidates:
+        if not raw:
+            continue
+        root = Path(os.path.expandvars(raw)).expanduser()
+        graph_path = root / "doc" / "wiki" / "_graph.json"
+        if graph_path.is_file():
+            return graph_path
+    return Path(__file__).resolve().parents[1] / "doc" / "wiki" / "_graph.json"
+
+
+def _load_project_wiki_graph(cfg) -> Optional[Dict[str, Any]]:
+    graph_path = _project_wiki_graph_path(cfg)
+    if graph_path is None or not graph_path.is_file():
+        return None
+    try:
+        graph = json.loads(graph_path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+    return graph if isinstance(graph, dict) else None
+
+
+def _split_project_wiki_terms(text: str) -> List[str]:
+    terms: List[str] = []
+    for term in PROJECT_WIKI_TERM_RE.split((text or "").lower().replace("_", "-")):
+        if len(term) >= 2 and term not in PROJECT_WIKI_STOPWORDS and term not in terms:
+            terms.append(term)
+    return terms
+
+
+def _stage_key(workflow: Optional[str]) -> str:
+    return (workflow or "").strip().lower().replace("_", "-")
+
+
+def _node_text(node: Dict[str, Any], *fields: str) -> str:
+    values: List[str] = []
+    for field_name in fields:
+        value = node.get(field_name)
+        if isinstance(value, list):
+            values.extend(str(item) for item in value)
+        elif value is not None:
+            values.append(str(value))
+    return " ".join(values).replace("_", "-").lower()
+
+
+def _score_project_wiki_node(
+    node: Dict[str, Any],
+    *,
+    stage_tags: List[str],
+    query_terms: List[str],
+    active_ip: str,
+) -> int:
+    tags = [str(tag).lower().replace("_", "-") for tag in node.get("tags") or []]
+    identifiers = _node_text(node, "id", "title", "path", "type")
+    summary = _node_text(node, "summary")
+    score = 0
+
+    for tag in stage_tags:
+        tag_l = tag.lower().replace("_", "-")
+        if tag_l in tags:
+            score += 30
+        if tag_l and tag_l in identifiers:
+            score += 14
+        if tag_l and tag_l in summary:
+            score += 4
+
+    for term in query_terms:
+        if term in identifiers:
+            score += 6
+        if term in " ".join(tags):
+            score += 5
+        if term in summary:
+            score += 2
+
+    if active_ip:
+        ip_l = active_ip.lower().replace("_", "-")
+        if ip_l in identifiers:
+            score += 10
+        if ip_l in summary:
+            score += 4
+
+    if node.get("type") in {"rule", "runbook", "process"} and score:
+        score += 2
+    return score
+
+
+def _build_project_wiki_context(cfg, messages) -> str:
+    workflow = active_workflow_name()
+    stage = _stage_key(workflow)
+    active_ip = active_ip_name() or ""
+    user_msgs = [m for m in (messages or []) if m.get("role") == "user"]
+    recent_topic = str(user_msgs[-1].get("content", ""))[:500] if user_msgs else ""
+    stage_tags = list(PROJECT_WIKI_STAGE_TAGS.get(stage, []))
+    if stage and stage not in stage_tags:
+        stage_tags.insert(0, stage)
+    query_terms = _split_project_wiki_terms(" ".join([active_ip, stage, recent_topic]))
+    if not stage_tags and not query_terms:
+        return ""
+
+    graph = _load_project_wiki_graph(cfg)
+    if not graph:
+        return ""
+    nodes = [node for node in graph.get("nodes") or [] if isinstance(node, dict)]
+    if not nodes:
+        return ""
+
+    scored: List[tuple[int, Dict[str, Any]]] = []
+    for node in nodes:
+        score = _score_project_wiki_node(
+            node,
+            stage_tags=stage_tags,
+            query_terms=query_terms,
+            active_ip=active_ip,
+        )
+        if score > 0:
+            scored.append((score, node))
+    if not scored:
+        return ""
+
+    try:
+        limit = int(getattr(cfg, "PROJECT_WIKI_CONTEXT_LIMIT", 5))
+    except Exception:
+        limit = 5
+    limit = max(1, min(8, limit))
+    scored.sort(
+        key=lambda item: (
+            item[0],
+            str(item[1].get("updated") or ""),
+            str(item[1].get("id") or ""),
+        ),
+        reverse=True,
+    )
+    included = scored[:limit]
+
+    scope_bits = []
+    if stage:
+        scope_bits.append(f"workflow={stage}")
+    if active_ip:
+        scope_bits.append(f"ip={active_ip}")
+    scope = " · ".join(scope_bits) if scope_bits else "message query"
+    lines = [
+        PROJECT_WIKI_CONTEXT_START,
+        f"Relevant project wiki pages surfaced from doc/wiki/_graph.json ({scope}).",
+    ]
+    for score, node in included:
+        node_id = str(node.get("id") or "?")
+        path = str(node.get("path") or "")
+        summary = " ".join(str(node.get("summary") or "").split())
+        if len(summary) > 220:
+            summary = summary[:219].rsplit(" ", 1)[0] + "..."
+        line = f"- [[{node_id}]]"
+        if path:
+            line += f" ({path})"
+        if summary:
+            line += f" - {summary}"
+        line += f" [score={score}]"
+        lines.append(line)
+    lines.append("Open full pages with wiki_query or direct file reads before acting on matching workflow details.")
+    lines.append(PROJECT_WIKI_CONTEXT_END)
+    return "\n".join(lines)
 
 
 def _build_graph_context(cfg, graph_lite, messages) -> str:

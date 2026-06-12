@@ -86,3 +86,34 @@ def test_project_graph_indexes_sim_debug_requirements_ledger():
     assert "frontend/atlas/__tests__/sim-debug-requirements-signals.test.tsx" in body
     assert "frontend/atlas/__tests__/sim-debug-requirements-waveband.test.tsx" in body
     assert "tests/test_simulation_quality_gate.py" in body
+
+
+def test_check_fails_when_existing_graph_markdown_inventory_is_stale(tmp_path: Path):
+    wiki = tmp_path / "doc" / "wiki"
+    wiki.mkdir(parents=True)
+    (wiki / "fresh-page.md").write_text(
+        "---\ntitle: Fresh Page\ntags: [rtl-gen]\n---\n# Fresh Page\n\nfresh summary\n",
+        encoding="utf-8",
+    )
+    graph_path = wiki / "_graph.json"
+    graph_path.write_text(
+        '{\n'
+        '  "schema_version": "wiki_graph.v1",\n'
+        '  "node_count": 1,\n'
+        '  "edge_count": 0,\n'
+        '  "nodes": [\n'
+        '    {"id": "old-page", "path": "doc/wiki/old-page.md", "type": "reference"}\n'
+        '  ]\n'
+        '}\n',
+        encoding="utf-8",
+    )
+    build_graph = _load_build_graph()
+
+    first_rc = build_graph.main(["--wiki", str(wiki), "--check", "--quiet"])
+    rebuilt = graph_path.read_text(encoding="utf-8")
+    second_rc = build_graph.main(["--wiki", str(wiki), "--check", "--quiet"])
+
+    assert first_rc == 1
+    assert '"id": "fresh-page"' in rebuilt
+    assert '"old-page"' not in rebuilt
+    assert second_rc == 0
