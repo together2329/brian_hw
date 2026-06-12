@@ -4723,34 +4723,32 @@ def _job_artifact_failure(
                 )
                 return True, f"{ip}/req/ssot_validation.json ok=false blockers={ids}"
         return False, ""
-    if stage == "fl-model":
-        check = ip_dir / "model" / "fl_model_check.json"
+    if stage in ("fl-model", "cl-model"):
+        check_name = "fl_model_check.json" if stage == "fl-model" else "cl_model_check.json"
+        record_name = "ssot-fl-model.json" if stage == "fl-model" else "ssot-cycle-model.json"
+        check = ip_dir / "model" / check_name
+        record = ip_dir / "logs" / "stage_engine" / record_name
         if check.is_file() and not _model_check_is_stale(ip_dir, ip, check):
             try:
                 doc = json.loads(check.read_text(encoding="utf-8"))
             except Exception:
-                return True, f"unparseable artifact: {ip}/model/fl_model_check.json"
+                return True, f"unparseable artifact: {ip}/model/{check_name}"
             if isinstance(doc, dict) and doc.get("passed") is False:
-                return True, f"{ip}/model/fl_model_check.json passed=false"
+                return True, f"{ip}/model/{check_name} passed=false"
+            if isinstance(doc, dict) and doc.get("passed") is True:
+                # Freshness ordering (finding 24/29): a FRESH passing check
+                # artifact outranks an OLDER failed stage-engine record (e.g.
+                # a prior run died on a judge timeout, then the check was
+                # regenerated green) — the record is stale evidence then.
+                try:
+                    if (not record.is_file()
+                            or record.stat().st_mtime <= check.stat().st_mtime):
+                        return False, ""
+                except OSError:
+                    return False, ""
         reason = _json_status_artifact_failure(
-            ip_dir / "logs" / "stage_engine" / "ssot-fl-model.json",
-            "logs/stage_engine/ssot-fl-model.json",
-        )
-        if reason:
-            return True, f"{ip}/{reason}"
-        return False, ""
-    if stage == "cl-model":
-        check = ip_dir / "model" / "cl_model_check.json"
-        if check.is_file() and not _model_check_is_stale(ip_dir, ip, check):
-            try:
-                doc = json.loads(check.read_text(encoding="utf-8"))
-            except Exception:
-                return True, f"unparseable artifact: {ip}/model/cl_model_check.json"
-            if isinstance(doc, dict) and doc.get("passed") is False:
-                return True, f"{ip}/model/cl_model_check.json passed=false"
-        reason = _json_status_artifact_failure(
-            ip_dir / "logs" / "stage_engine" / "ssot-cycle-model.json",
-            "logs/stage_engine/ssot-cycle-model.json",
+            record,
+            f"logs/stage_engine/{record_name}",
         )
         if reason:
             return True, f"{ip}/{reason}"
