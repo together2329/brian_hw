@@ -38,7 +38,7 @@ def _markdown_section(path: Path, heading: str) -> str:
     return "\n".join(section)
 
 
-def test_goal_scoreboard_template_drives_inputs_on_rising_clock_edge() -> None:
+def test_goal_scoreboard_template_waits_on_clock_or_timer() -> None:
     # Given: the production cocotb goal-scoreboard template.
     template = _module_string_constant(SCRIPT, "TEST_PY")
 
@@ -47,9 +47,12 @@ def test_goal_scoreboard_template_drives_inputs_on_rising_clock_edge() -> None:
         line for line in template.splitlines() if line.startswith("from cocotb.triggers import")
     ]
 
-    # Then: default generated input drives are aligned to the active rising clock edge.
+    # Then: clocked DUTs use RisingEdge and clockless combinational DUTs use
+    # Timer-based settling through the same wait helper.
     assert "FallingEdge" not in template
-    assert trigger_imports == ["from cocotb.triggers import ClockCycles, ReadOnly, RisingEdge"]
+    assert trigger_imports == ["from cocotb.triggers import ReadOnly, RisingEdge, Timer"]
+    assert "async def _wait_cycle" in template
+    assert "await Timer(1, units=\"ns\")" in template
 
 
 def test_tb_gen_rules_require_clock_domain_synchronization() -> None:

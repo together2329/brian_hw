@@ -66,6 +66,15 @@ def _ident(value: Any) -> str:
     return text
 
 
+_NO_PORT_TOKENS = {"", "none", "null", "nil", "no_clock", "no_reset", "clockless", "resetless"}
+
+
+def _is_no_port_token(value: Any) -> bool:
+    if value is None:
+        return False
+    return str(value).strip().lower() in _NO_PORT_TOKENS
+
+
 def _load_json(path: Path, label: str) -> dict[str, Any]:
     if not path.is_file():
         raise RuntimeError(f"missing {label}: {path}")
@@ -508,10 +517,14 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
             "TB signoff must not silently skip required SSOT behavior.",
         ))
 
-    clock = _ident(contract.get("clock") or "clk")
-    reset = _ident(contract.get("reset") or "rst_n")
-    reset_active = str(contract.get("reset_active") or "low").lower()
-    if clock not in input_ports:
+    raw_clock = contract.get("clock")
+    raw_reset = contract.get("reset")
+    no_clock = bool(contract.get("no_clock")) or ("clock" in contract and _is_no_port_token(raw_clock))
+    no_reset = bool(contract.get("no_reset")) or ("reset" in contract and _is_no_port_token(raw_reset))
+    clock = "" if no_clock else _ident(raw_clock or "clk")
+    reset = "" if no_reset else _ident(raw_reset or "rst_n")
+    reset_active = "" if no_reset else str(contract.get("reset_active") or "low").lower()
+    if clock and clock not in input_ports:
         questions.append(_question(
             "TB_CLOCK_PORT",
             f"Declare RTL contract clock {clock!r} as an input port.",
@@ -519,7 +532,7 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
             "Align rtl_contract.clock with io_list clock_domains[].ports[].name.",
             "cocotb cannot start a clock on a missing DUT signal.",
         ))
-    if reset not in input_ports:
+    if reset and reset not in input_ports:
         questions.append(_question(
             "TB_RESET_PORT",
             f"Declare RTL contract reset {reset!r} as an input port.",
@@ -527,7 +540,7 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
             "Align rtl_contract.reset with io_list resets[].ports[].name.",
             "cocotb cannot apply reset to a missing DUT signal.",
         ))
-    if reset_active not in {"low", "high"}:
+    if reset and reset_active not in {"low", "high"}:
         questions.append(_question(
             "TB_RESET_ACTIVE",
             "Use low or high for rtl_contract.reset_active.",
@@ -642,6 +655,8 @@ def _build_manifest(ip: str, root: Path) -> tuple[dict[str, Any], list[dict[str,
         "clock": clock,
         "reset": reset,
         "reset_active": reset_active,
+        "clockless": not bool(clock),
+        "resetless": not bool(reset),
         "latency_cycles": _latency_cycles(ssot),
         "parameters": _param_defaults(ssot),
         "registers": _register_manifest(ssot),
@@ -899,7 +914,7 @@ from typing import Any
 import cocotb
 from cocotb.binary import BinaryValue
 from cocotb.clock import Clock
-from cocotb.triggers import ClockCycles, ReadOnly, RisingEdge
+from cocotb.triggers import ReadOnly, RisingEdge, Timer
 
 
 def _ip_dir() -> Path:
@@ -927,6 +942,34 @@ def _goals(ip_dir: Path) -> list[dict[str, Any]]:
 
 def _has_signal(dut, name: str) -> bool:
     return hasattr(dut, name)
+
+
+def _clock_name(manifest: dict[str, Any]) -> str:
+    return str(manifest.get("clock") or "").strip()
+
+
+def _reset_name(manifest: dict[str, Any]) -> str:
+    return str(manifest.get("reset") or "").strip()
+
+
+def _clock_signal(dut, manifest: dict[str, Any]):
+    clock = _clock_name(manifest)
+    if clock and _has_signal(dut, clock):
+        return getattr(dut, clock)
+    return None
+
+
+async def _wait_cycle(dut, manifest: dict[str, Any]) -> None:
+    clk = _clock_signal(dut, manifest)
+    if clk is not None:
+        await RisingEdge(clk)
+    else:
+        await Timer(1, units="ns")
+
+
+async def _wait_cycles(dut, manifest: dict[str, Any], count: int) -> None:
+    for _ in range(max(int(count or 0), 0)):
+        await _wait_cycle(dut, manifest)
 
 
 def _set_signal(dut, name: str, value: int | str) -> None:
@@ -1802,8 +1845,8 @@ def _idle_input_value(manifest: dict[str, Any], port: str) -> int:
 async def _reset_dut(dut, manifest: dict[str, Any], *, release: bool = True) -> None:
     input_ports = set(manifest.get("input_ports") or [])
     inout_ports = _inout_ports(manifest)
-    clock = manifest["clock"]
-    reset = manifest["reset"]
+    clock = _clock_name(manifest)
+    reset = _reset_name(manifest)
     active = 0 if manifest.get("reset_active") == "low" else 1
     inactive = 1 - active
     for port in input_ports:
@@ -1813,8 +1856,8 @@ async def _reset_dut(dut, manifest: dict[str, Any], *, release: bool = True) -> 
             _set_signal(dut, port, _highz_value(manifest, port))
             continue
         _set_signal(dut, port, active if port == reset else _idle_input_value(manifest, str(port)))
-    await ClockCycles(getattr(dut, clock), 3)
-    if not release:
+    await _wait_cycles(dut, manifest, 3)
+    if not release or not reset:
         return
     _set_signal(dut, reset, inactive)
     _clear_sample_inputs(dut, manifest)
@@ -1836,8 +1879,9 @@ async def _apply_goal_preconditions(dut, manifest: dict[str, Any], goal: dict[st
     input_ports = set(manifest.get("input_ports") or [])
     if not {"req_valid", "req_data"}.issubset(input_ports):
         return
-    clock = manifest["clock"]
-    clk = getattr(dut, clock)
+    clk = _clock_signal(dut, manifest)
+    if clk is None:
+        return
     width = max(_port_width(manifest, "rsp_data"), _port_width(manifest, "req_data"), 1)
     max_count = (1 << width) - 1
     await RisingEdge(clk)
@@ -1986,8 +2030,9 @@ def _apb_sweep_vectors(manifest: dict[str, Any]) -> list[dict[str, int]]:
 
 
 async def _drive_apb_sweep_access(dut, manifest: dict[str, Any], vector: dict[str, int]) -> None:
-    clock = manifest["clock"]
-    clk = getattr(dut, clock)
+    clk = _clock_signal(dut, manifest)
+    if clk is None:
+        return
     input_ports = set(manifest.get("input_ports") or [])
     await RisingEdge(clk)
     _set_signal(dut, "psel", 1)
@@ -2015,8 +2060,8 @@ async def _run_static_coverage_sweep(dut, manifest: dict[str, Any]) -> None:
     only for reusable Verilator line/branch/toggle evidence and intentionally
     avoids writing scoreboard rows.
     """
-    clock = manifest["clock"]
-    reset = manifest["reset"]
+    clock = _clock_name(manifest)
+    reset = _reset_name(manifest)
     inout_ports = _inout_ports(manifest)
     input_ports = [
         str(port)
@@ -2027,16 +2072,16 @@ async def _run_static_coverage_sweep(dut, manifest: dict[str, Any]) -> None:
         if port in {"psel", "penable"}:
             continue
         for value in _sweep_values_for_port(manifest, port)[:6]:
-            await RisingEdge(getattr(dut, clock))
+            await _wait_cycle(dut, manifest)
             _set_signal(dut, port, _fit_port_value(manifest, port, value))
-            await RisingEdge(getattr(dut, clock))
+            await _wait_cycle(dut, manifest)
     for idx, vector in enumerate(_apb_sweep_vectors(manifest)[:512]):
-        await RisingEdge(getattr(dut, clock))
+        await _wait_cycle(dut, manifest)
         if "gpio_in" in input_ports:
             gpio_values = _sweep_values_for_port(manifest, "gpio_in")
             _set_signal(dut, "gpio_in", gpio_values[idx % len(gpio_values)])
         await _drive_apb_sweep_access(dut, manifest, vector)
-    await RisingEdge(getattr(dut, clock))
+    await _wait_cycle(dut, manifest)
     _clear_sample_inputs(dut, manifest)
 
 
@@ -2075,8 +2120,9 @@ async def _apb_write_one(dut, manifest: dict[str, Any], offset: int, data: int) 
     whole write silently became a multi-cycle no-op — CSR-gated machine_spec
     timelines then ran against a DUT whose enable was never written.
     """
-    clock = manifest["clock"]
-    clk = getattr(dut, clock)
+    clk = _clock_signal(dut, manifest)
+    if clk is None:
+        return
     input_ports = set(manifest.get("input_ports") or [])
     def _apb_port(name: str):
         for cand in input_ports:
@@ -2119,8 +2165,9 @@ async def _apb_read_one(dut, manifest: dict[str, Any], offset: int) -> None:
     Performs the read so the DUT's read-data output reflects the addressed
     register at the goal's sample point (read-back verification). Port names
     resolve case-insensitively, like _apb_write_one."""
-    clock = manifest["clock"]
-    clk = getattr(dut, clock)
+    clk = _clock_signal(dut, manifest)
+    if clk is None:
+        return
     input_ports = set(manifest.get("input_ports") or [])
     def _apb_port(name: str):
         for cand in input_ports:
@@ -2162,18 +2209,19 @@ async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[
       - csr_writes[]: sequence of APB writes (no timeline)
     """
     timeline = machine_spec.get("timeline") or []
-    clock = manifest["clock"]
-    clk = getattr(dut, clock)
+    clk = _clock_signal(dut, manifest)
     input_ports = set(manifest.get("input_ports") or [])
     input_map = manifest.get("input_map") or {}
     if not timeline and machine_spec.get("assign"):
-        await RisingEdge(clk)
+        await _wait_cycle(dut, manifest)
         for field, value in machine_spec["assign"].items():
             port = input_map.get(field, field)
             if port in input_ports:
                 _set_signal(dut, port, int(value))
         return
     if not timeline and machine_spec.get("csr_writes"):
+        if clk is None:
+            return
         for entry in machine_spec["csr_writes"]:
             await _apb_write_one(dut, manifest, int(entry.get("offset", entry.get("addr", 0))), int(entry.get("data", entry.get("value", 0))))
         return
@@ -2181,21 +2229,26 @@ async def _apply_machine_spec(dut, manifest: dict[str, Any], machine_spec: dict[
         if not isinstance(step, dict):
             continue
         if "csr_write" in step:
+            if clk is None:
+                return
             cw = step["csr_write"]
             await _apb_write_one(dut, manifest, int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
         elif "csr_read" in step:
+            if clk is None:
+                return
             cr = step["csr_read"]
             await _apb_read_one(dut, manifest, int(cr.get("offset", cr.get("addr", 0))))
         elif "assign" in step:
-            await RisingEdge(clk)
+            await _wait_cycle(dut, manifest)
             for field, value in (step["assign"] or {}).items():
                 port = input_map.get(field, field)
                 if port in input_ports:
                     _set_signal(dut, port, int(value))
         elif "wait_cycles" in step:
-            for _ in range(int(step["wait_cycles"])):
-                await RisingEdge(clk)
+            await _wait_cycles(dut, manifest, int(step["wait_cycles"]))
         elif "wait_until" in step:
+            if clk is None:
+                return
             wu = step["wait_until"]
             sig = wu.get("signal")
             target = int(wu.get("equals", 1))
@@ -2211,8 +2264,10 @@ async def fl_rtl_equivalence_goals(dut):
     manifest = _load_manifest()
     ip_dir = _ip_dir()
     ip = manifest["ip"]
-    clock = manifest["clock"]
-    cocotb.start_soon(Clock(getattr(dut, clock), 10, units="ns").start())
+    clock = _clock_name(manifest)
+    clk = _clock_signal(dut, manifest)
+    if clk is not None:
+        cocotb.start_soon(Clock(clk, 10, units="ns").start())
     await _reset_dut(dut, manifest)
 
     from scoreboard import GoalScoreboard
@@ -2330,7 +2385,7 @@ async def fl_rtl_equivalence_goals(dut):
                 _reset_fl_oracle()
             await _apply_goal_preconditions(dut, manifest, goal)
             _clear_sample_inputs(dut, manifest)
-            await ClockCycles(getattr(dut, clock), 4)
+            await _wait_cycles(dut, manifest, 4)
             if isinstance(machine_spec, dict) and (
                 machine_spec.get("timeline") or machine_spec.get("assign") or machine_spec.get("csr_writes")
             ):
@@ -2422,7 +2477,7 @@ async def fl_rtl_equivalence_goals(dut):
                                 _cl.csr_write(int(cw.get("offset", cw.get("addr", 0))), int(cw.get("data", cw.get("value", 0))))
                             except Exception:
                                 pass
-            await RisingEdge(getattr(dut, clock))
+            await _wait_cycle(dut, manifest)
             if _machine_spec_ran:
                 # The machine_spec timeline IS the stimulus contract. Firing the
                 # generic vector afterwards re-drives psel/penable/paddr/pwdata
@@ -2445,8 +2500,7 @@ async def fl_rtl_equivalence_goals(dut):
                             _set_signal(dut, _port, _idle_input_value(manifest, str(_port)))
                         continue
                     _set_signal(dut, _port, _idle_input_value(manifest, str(_port)))
-                for _ in range(2):
-                    await RisingEdge(getattr(dut, clock))
+                await _wait_cycles(dut, manifest, 2)
                 _cycles = 0
             else:
                 _drive_inputs(dut, manifest, stimulus)
@@ -2460,7 +2514,7 @@ async def fl_rtl_equivalence_goals(dut):
                 _cl_inputs[_field] = _val
                 _cl_inputs[_port] = _val
             for _cycle_idx in range(_cycles):
-                await RisingEdge(getattr(dut, clock))
+                await _wait_cycle(dut, manifest)
                 if _cycle_idx == 0:
                     _step_inputs = _cl_inputs
                     _clear_single_shot_inputs(dut, manifest)
@@ -2523,7 +2577,7 @@ async def fl_rtl_equivalence_goals(dut):
                 rtl_observed=observed,
             )
         coverage.sample(goal, row)
-        await RisingEdge(getattr(dut, clock))
+        await _wait_cycle(dut, manifest)
         _clear_sample_inputs(dut, manifest)
 
     if _cl is not None and _cl_total > 0:

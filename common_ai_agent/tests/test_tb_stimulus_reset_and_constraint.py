@@ -48,7 +48,7 @@ def _tb_namespace():
     clock = types.ModuleType("cocotb.clock")
     clock.Clock = object
     triggers = types.ModuleType("cocotb.triggers")
-    for name in ("ClockCycles", "ReadOnly", "RisingEdge"):
+    for name in ("ReadOnly", "RisingEdge", "Timer"):
         setattr(triggers, name, object)
     saved = {k: sys.modules.get(k) for k in
              ("cocotb", "cocotb.binary", "cocotb.clock", "cocotb.triggers")}
