@@ -547,6 +547,18 @@ class PerforceP4Adapter(SCMAdapter):
             data["sources"] = {}
         return data
 
+    def _source_map_error(self) -> str:
+        path = self._source_map_path()
+        if not path.exists():
+            return ""
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return f"invalid Perforce source map: {path} ({exc})"
+        if not isinstance(data, dict) or not isinstance(data.get("sources"), dict):
+            return f"invalid Perforce source map: {path} (missing sources object)"
+        return ""
+
     def _save_source_map(self, data: dict[str, Any]) -> None:
         path = self._source_map_path()
         try:
@@ -810,6 +822,9 @@ class PerforceP4Adapter(SCMAdapter):
             for path in ([paths] if isinstance(paths, str) else list(paths or []))
             if str(path or "").strip()
         }
+        source_map_error = self._source_map_error()
+        if requested and source_map_error:
+            return self._result(ok=False, returncode=2, error=source_map_error)
         matched: set[str] = set()
         copied: list[str] = []
         diagnostics: list[str] = []

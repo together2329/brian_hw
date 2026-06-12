@@ -370,6 +370,26 @@ def test_submit_restage_reports_missing_local_source(tmp_path):
     assert str(local_root) in result.stdout
 
 
+def test_submit_restage_blocks_corrupt_source_map_for_selected_paths(tmp_path):
+    adapter = PerforceP4Adapter(tmp_path, executable="__missing_p4__")
+    local_root = tmp_path / "ip"
+    local_root.mkdir()
+    source_map = tmp_path / ".atlas" / "p4_source_map.json"
+    source_map.parent.mkdir()
+    source_map.write_text("{not json", encoding="utf-8")
+
+    result = adapter._restage_local_submit_paths(
+        [{"depotFile": "//depot/rtl/main.sv", "clientFile": "//atlas_ws/rtl/main.sv", "action": "edit"}],
+        local_root=local_root,
+        paths=["//depot/rtl/main.sv"],
+    )
+
+    assert not result.ok
+    assert result.returncode == 2
+    assert "invalid Perforce source map" in result.error
+    assert str(source_map) in result.error
+
+
 def test_safe_filespecs_rejects_escapes(tmp_path):
     a = PerforceP4Adapter(tmp_path)
     (tmp_path / "a.txt").write_text("x", encoding="utf-8")
@@ -1395,6 +1415,136 @@ def test_live_local_p4d_numbered_split_local_depot_path_submit_restages_source_m
     assert printed.returncode == 0, printed.stderr or printed.stdout
     assert "module numbered_mapped_second; endmodule" in printed.stdout
     assert not _source_map_has_key(client_root, "//depot/rtl/main.sv")
+
+
+def test_live_local_p4d_multi_split_local_depot_paths_submit_restages_all(local_p4d):
+    # Given: two local files have unrelated source paths but are mapped to two
+    # depot files in one checkout/submit batch.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    aux_seed = client_root / "rtl" / "aux.sv"
+    aux_seed.write_text("module aux_seed; endmodule\n", encoding="utf-8")
+    add = _run_live_p4(p4, env, client_root, "add", "rtl/aux.sv")
+    assert add.returncode == 0, add.stderr or add.stdout
+    submit_aux = _run_live_p4(p4, env, client_root, "submit", "-d", "seed aux")
+    assert submit_aux.returncode == 0, submit_aux.stderr or submit_aux.stdout
+    main_source = ip_root / "src" / "generated" / "main_impl.sv"
+    aux_source = ip_root / "blocks" / "aux_impl.sv"
+    main_source.parent.mkdir(parents=True, exist_ok=True)
+    aux_source.parent.mkdir(parents=True, exist_ok=True)
+    main_source.write_text("module multi_main_first; endmodule\n", encoding="utf-8")
+    aux_source.write_text("module multi_aux_first; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    opened = adapter.edit_paths(
+        ["src/generated/main_impl.sv", "blocks/aux_impl.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv", "//depot/rtl/aux.sv"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    assert _source_map_has_key(client_root, "//depot/rtl/main.sv")
+    assert _source_map_has_key(client_root, "//depot/rtl/aux.sv")
+    main_source.write_text("module multi_main_second; endmodule\n", encoding="utf-8")
+    aux_source.write_text("module multi_aux_second; endmodule\n", encoding="utf-8")
+
+    submitted = adapter.submit(
+        "multi split path submit",
+        add_all=False,
+        changelist="default",
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv", "//depot/rtl/aux.sv"],
+    )
+
+    assert submitted.ok, submitted.error or submitted.stderr
+    assert "restaged local edit: //depot/rtl/main.sv" in submitted.stdout
+    assert "restaged local edit: //depot/rtl/aux.sv" in submitted.stdout
+    printed_main = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    printed_aux = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/aux.sv")
+    assert "module multi_main_second; endmodule" in printed_main.stdout
+    assert "module multi_aux_second; endmodule" in printed_aux.stdout
+    assert not _source_map_has_key(client_root, "//depot/rtl/main.sv")
+    assert not _source_map_has_key(client_root, "//depot/rtl/aux.sv")
+
+
+def test_live_local_p4d_split_local_depot_path_revision_spec_restages(local_p4d):
+    # Given: the selected submit path carries a revision qualifier from depot UI
+    # state. Restage matching must still compare the clean depot file key.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    source = ip_root / "src" / "generated" / "revision_qualified.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module rev_first; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    opened = adapter.edit_paths(
+        ["src/generated/revision_qualified.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    source.write_text("module rev_second; endmodule\n", encoding="utf-8")
+
+    submitted = adapter.submit(
+        "revision qualified selected path",
+        add_all=False,
+        changelist="default",
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv#1"],
+    )
+
+    assert submitted.ok, submitted.error or submitted.stderr
+    assert "restaged local edit: //depot/rtl/main.sv" in submitted.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module rev_second; endmodule" in printed.stdout
+
+
+def test_live_local_p4d_split_local_depot_path_corrupt_source_map_blocks_submit(local_p4d):
+    # Given: a split checkout made a source map, but that map becomes invalid
+    # before Submit. The adapter must not submit the stale workspace copy.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    source = ip_root / "src" / "generated" / "corrupt_map.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module corrupt_first; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    opened = adapter.edit_paths(
+        ["src/generated/corrupt_map.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    source_map = client_root / ".atlas" / "p4_source_map.json"
+    assert source_map.exists()
+    source_map.write_text("{broken", encoding="utf-8")
+    source.write_text("module corrupt_second; endmodule\n", encoding="utf-8")
+
+    submitted = adapter.submit(
+        "should block corrupt source map",
+        add_all=False,
+        changelist="default",
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv"],
+    )
+
+    assert not submitted.ok
+    assert submitted.returncode == 2
+    assert "invalid Perforce source map" in submitted.error
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module seed; endmodule" in printed.stdout
+    source_map.unlink()
+    reverted = adapter.revert_paths(["//depot/rtl/main.sv"], changelist="default")
+    assert reverted.ok, reverted.error or reverted.stderr
 
 
 def test_live_local_p4d_folder_target_add_restages_split_source_map(local_p4d):

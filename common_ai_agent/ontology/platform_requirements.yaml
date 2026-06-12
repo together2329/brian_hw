@@ -363,6 +363,10 @@ requirements:
             observed_at: 1d138805
           - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_missing_source_blocks_submit"
             observed_at: 1d138805
+      - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_EXCEPTIONS
+        owned_by: platform.scm
+        granularity: behavior
+        status: open   # corrupt source map, multi-file split mapping, revision-qualified paths 같은 예외도 stale submit을 만들면 안 됨
       - id: OBL_P4_SUBMIT_FAILURE_DIAGNOSTICS
         owned_by: platform.scm
         granularity: behavior
