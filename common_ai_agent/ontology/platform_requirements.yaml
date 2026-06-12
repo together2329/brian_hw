@@ -335,7 +335,12 @@ requirements:
       - id: OBL_P4_SPLIT_LOCAL_WORKSPACE_SUBMIT_RESTAGES_LOCAL
         owned_by: platform.scm
         granularity: behavior
-        status: open   # local IP 와 P4 workspace 가 달라도 submit 직전 local 수정분이 workspace opened file 로 반영돼야 함
+        status: closed   # local IP 와 P4 workspace 가 달라도 submit 직전 local 수정분이 workspace opened file 로 반영돼야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_submit_restages_split_local_workspace_edit"
+            observed_at: f57f78f0
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_numbered_checkout_submit_clears_pending"
+            observed_at: f57f78f0
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
