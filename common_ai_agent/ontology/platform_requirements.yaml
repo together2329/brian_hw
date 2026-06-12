@@ -599,6 +599,36 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
             observed_at: 1d1edd4e
+      - id: OBL_WORKER_REPAIR_SEES_EVIDENCE_VALIDATORS
+        owned_by: engine.stage
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          worker repair 루프는 verify_ssot만 돌리고 evidence 게이트는
+          check_ssot_disk를 요구 — worker가 done이라 믿는데 evidence가 거부
+          (cnt8 sub_modules 중복: 3연속 'missing required evidence', 사유는
+          worker에게 비가시). 처방 = repair 루프가 evidence validator를 함께
+          실행하거나 evidence 거부 사유를 worker 프롬프트로 환류 (finding 26)
+      - id: OBL_TRUTH_GUARD_ALLOWS_HUMAN_RELOCK
+        owned_by: agent.react-loop
+        granularity: concurrent
+        status: refuted
+        refuted_by: >-
+          locked-truth 가드(스냅샷/복원)가 worker job 실행 중 이뤄진 정당한
+          사람 재잠금(lock_requirement_set 경유, approval_manifest 갱신)을
+          클로버로 간주해 원복 — cnt8 hold-row 재잠금이 1회 되돌려짐. 처방 =
+          가드가 정식 재잠금 서명(manifest sha 체인)을 인식하면 원복 대신
+          job-fail (finding 30)
+      - id: OBL_RTL_REFRESH_EMITS_PROVENANCE
+        owned_by: engine.stage
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          rtl-gen worker가 refresh/no-change 패스에서 RTL은 그대로 두고
+          rtl_authoring_provenance.json을 쓰지 않음(60 tool calls, 0 writes
+          silent-fail ×2, run 00ba672e) → provenance 게이트가 영구 미충족.
+          처방 = 저작 루프 종료 조건에 provenance 작성 포함 + refresh 패스도
+          현 todo_plan sha로 provenance 재서명 (finding 31)
       - id: OBL_SEMANTIC_JUDGE_CACHED_DETERMINISTIC
         owned_by: engine.stage
         granularity: behavior
