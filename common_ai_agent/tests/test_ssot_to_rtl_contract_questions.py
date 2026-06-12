@@ -1058,3 +1058,90 @@ custom:
     assert contract_doc["type"] == "generic_ssot_rule_rtl_contract"
     assert contract_doc["top"] == ip
     assert contract_doc["contract"]["outputs"][0]["port"] == "y_o"
+
+
+def test_signoff_preflight_accepts_clockless_resetless_combinational_contract(tmp_path: Path):
+    rtl_gen = _load_rtl_gen()
+    ip = "tiny_clockless_xor"
+    ip_dir = tmp_path / ip
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "rtl").mkdir()
+    (ip_dir / "list").mkdir()
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        """
+top_module:
+  name: tiny_clockless_xor
+  file: rtl/tiny_clockless_xor.sv
+  type: combinational_logic
+io_list:
+  interfaces:
+    - name: pins
+      ports:
+        - {name: a, direction: input, width: 1}
+        - {name: b, direction: input, width: 1}
+        - {name: y, direction: output, width: 1}
+rtl_contract:
+  type: combinational_scalar_contract
+  transaction: xor
+  clock: none
+  reset: none
+  reset_active: none
+  sample_condition: continuous_comb_evaluation
+  input_map: {a: a, b: b}
+  output_map: {xor_y: y}
+  output_rules:
+    - {name: xor_y, port: y, expr: "a ^ b", width: 1}
+function_model:
+  transactions:
+    - id: xor
+      output_rules:
+        - {name: xor_y, port: y, expr: "a ^ b", width: 1}
+cycle_model:
+  cycle_model_waiver: true
+  combinational_eval:
+    clock: none
+    reset: none
+    latency_cycles: 0
+    ready_valid: false
+custom:
+  optional_behavior_policy:
+    resolution: No optional behavior exists for this minimal combinational IP.
+    rule: Optional behavior is disabled.
+""".strip()
+        + "\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "rtl" / f"{ip}.sv").write_text(
+        "module tiny_clockless_xor(input logic a, input logic b, output logic y); assign y = a ^ b; endmodule\n",
+        encoding="utf-8",
+    )
+    (ip_dir / "list" / f"{ip}.f").write_text(f"rtl/{ip}.sv\n", encoding="utf-8")
+    (ip_dir / "rtl" / "rtl_todo_plan.json").write_text("{}", encoding="utf-8")
+    todo_hash = rtl_gen._stable_json_sha256(ip_dir / "rtl" / "rtl_todo_plan.json")
+    (ip_dir / "rtl" / "rtl_authoring_provenance.json").write_text(
+        json.dumps(
+            {
+                "type": "rtl_authoring_provenance",
+                "agent": "common_ai_agent",
+                "workflow": "rtl-gen",
+                "surface": "atlas_ui",
+                "todo_plan_sha256": todo_hash,
+                "rtl_files": [f"rtl/{ip}.sv"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    rtl_gen.generate(ip, tmp_path, mode="signoff")
+
+    assert not (ip_dir / "rtl" / "rtl_blocked.json").exists()
+    contract_doc = json.loads((ip_dir / "rtl" / "rtl_contract.json").read_text(encoding="utf-8"))
+    contract = contract_doc["contract"]
+    assert contract_doc["type"] == "generic_ssot_rule_rtl_contract"
+    assert contract["clock"] == "none"
+    assert contract["reset"] == "none"
+    assert contract["reset_active"] == "none"
+    assert contract["no_clock"] is True
+    assert contract["no_reset"] is True
+    assert contract["sample_condition"] == "1'b1"
+    assert contract["outputs"][0]["port"] == "y"

@@ -846,6 +846,18 @@ requirements:
             observed_at: 5760b62b
           - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_defaults_to_deasserted_for_active_low"
             observed_at: 5760b62b
+      - id: OBL_RTL_PREFLIGHT_SUPPORTS_CLOCKLESS_DUT
+        owned_by: engine.stage
+        granularity: behavior
+        # finding 45: scratch_xor2_v1 proved TB clockless support alone is
+        # insufficient. The live worker could hand-author clockless RTL and
+        # rtl_contract.json, but the official ssot-rtl stage still blocked in
+        # ssot_to_rtl._find_clock_reset on RTL_CLOCK_PORT/RTL_RESET_PORT and
+        # stale rtl_blocked.json, so orchestrator gate truth regressed RED after
+        # a formal stage rerun. Pure combinational no_clock/no_reset contracts
+        # must pass RTL preflight without synthetic harness clk/rst_n.
+        status: open
+        evidence: []
       - id: OBL_SSOT_DISK_CHECK_WAIVER_CONSISTENT
         owned_by: engine.stage
         granularity: content
