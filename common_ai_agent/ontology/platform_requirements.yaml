@@ -587,6 +587,18 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
             observed_at: 1d1edd4e
+      - id: OBL_FL_GATE_REJECTS_UNRESOLVED_CONTRACT_REFS
+        owned_by: engine.stage
+        granularity: content
+        status: refuted
+        refuted_by: >-
+          FL 의미게이트가 transaction contract_refs의 미해석 id(존재하지 않는
+          계약)를 거부하지 않고 통과시킨 뒤, 해석된 계약 집합 기준의 오도된
+          진단('cycle_model_waiver=true requires...')을 출력 — 라이브 cnt8_en_v1
+          (run c7b5be0e): 수리가 C_CNT8_EN_V1_COUNT(미존재)로 오기재했는데
+          게이트가 'unknown contract id'라 말하지 않아 LLM repair가 엉뚱한
+          방향으로 반복. 올바른 동작 = 미해석 ref는 known id 목록과 함께
+          CRITICAL 거부 (campaign finding 28; silent-pass 가족)
       - id: OBL_TB_CONSTRAINED_RANDOM_SWEEP
         owned_by: engine.stage
         granularity: content
