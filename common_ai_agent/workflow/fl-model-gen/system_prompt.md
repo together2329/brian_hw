@@ -64,6 +64,14 @@ current SSOT. The normal pipeline path is:
 1. Read `yaml/<ip>.ssot.yaml`.
 2. Author `model/functional_model.py`, `model/decomposition.json`,
    `model/fl_model_check.json`, and `cov/fcov_plan.json` directly from SSOT.
+   - When a state variable declares an `enum` (e.g. `fsm_state` with
+     `["RESET","HOLD","CLEAR","COUNT"]`), the model MUST bind each enum NAME to
+     its index in the rule-evaluation env so a `state_update` written as
+     `fsm_state = COUNT` resolves to its encoding. An unbound enum name makes the
+     rule evaluator raise (`unknown rule name COUNT`) and the FSM trace state
+     silently sticks at its reset value — the FL-vs-RTL scoreboard then reads
+     every FSM expected as RESET. The contract gate rejects a model that cannot
+     resolve its own declared enum state-updates.
 3. Run the validation gate:
 
 ```bash

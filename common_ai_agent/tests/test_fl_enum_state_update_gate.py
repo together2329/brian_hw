@@ -91,6 +91,35 @@ def test_check_fl_contract_self_txn_still_seeds_real_unknown_fields():
     assert "some_input_field" in txn  # genuine unknown stimulus field is still seeded
 
 
+def test_emit_fl_model_engine_binds_and_resolves_enum_names():
+    """The canonical FL engine (emit_fl_model._model_source — the byte-identical
+    reference the LLM mirrors) must emit the enum binding so a re-authored /
+    emitter-generated FL resolves `fsm_state = COUNT` instead of crashing."""
+    import ast
+    efm = _load("workflow/fl-model-gen/scripts/emit_fl_model.py", "emit_fl_model_engine")
+    ssot = {
+        "ip": "demo", "parameters": {},
+        "function_model": {
+            "state_variables": [
+                {"name": "fsm_state", "width": 2, "reset": "RESET",
+                 "enum": ["RESET", "HOLD", "CLEAR", "COUNT"]},
+            ],
+            "transactions": [], "invariants": [],
+        },
+        "registers": {"internal_state_registers": []},
+    }
+    src = efm._model_source("demo", ssot, {}, [])
+    ast.parse(src)  # rendered engine is valid Python
+    assert "env.update(self._enum_bindings)" in src
+    ns: dict = {}
+    exec(compile(src, "<emitted_fl>", "exec"), ns)
+    model = ns["FunctionalModel"]()
+    assert model._enum_bindings == {"RESET": 0, "HOLD": 1, "CLEAR": 2, "COUNT": 3}
+    # The rule evaluator resolves the bare enum NAME to its encoding.
+    assert ns["_eval_rule_expr"]("COUNT", model._rule_env({})) == 3
+    assert ns["_eval_rule_expr"]("RESET", model._rule_env({})) == 0
+
+
 def test_equivalence_scoreboard_enum_helper_excludes_from_seed():
     """The runtime adapter's _declared_enum_value_names mirrors the same source
     so transaction_for_goal never injects an enum name over the model binding."""
