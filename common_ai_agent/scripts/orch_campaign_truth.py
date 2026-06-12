@@ -198,13 +198,31 @@ def build_pack(ip: str, spec: dict) -> dict[str, object]:
         contracts.append({"contract_ref_id": c_id, "obligation_refs": [obl_id],
                           "ssot_anchor": f"function_model.transactions.{key.lower()}",
                           "stage_contracts": stage_arts})
+        # Cycle semantics per feature, derived from the rows themselves
+        # (matches behavioral_contracts._cycle_model_waived): clocked rows
+        # ("at rising clk", "next cycle", async reset) ARE the contract's
+        # cycle/timing semantics — emit them as cycle_rules. Only genuinely
+        # combinational features get the explicit waiver. The old
+        # unconditional cycle_model_waiver: True mis-waived SEQUENTIAL
+        # contracts on re-lock (cnt8 CLR/COUNT) because explicit flags
+        # override the truth derivation.
+        _seq_re = __import__("re").compile(
+            r"clk|clock|cycle|rising|falling|edge|rst|reset|next state|pipelin|handshake",
+            __import__("re").IGNORECASE,
+        )
+        clocked_rows = [
+            {"when": w, "then": t}
+            for w, t in feat["when_then"]
+            if _seq_re.search(f"{w} {t}")
+        ]
+        cycle_fields = (
+            {"cycle_rules": clocked_rows}
+            if clocked_rows
+            else {"cycle_model_waiver": True}
+        )
         behaviorals.append({"id": f"BC-{tag}-{key}", "obligations": [obl_id],
                             "decision_table": [{"when": w, "then": t} for w, t in feat["when_then"]],
-                            # Simple register/combinational IPs have no bus handshake or
-                            # pipeline protocol to model — the FL-vs-RTL scoreboard at sim
-                            # checks correctness. Waive the cycle_model explicitly (per
-                            # verify_ssot: use only when truly cycle-independent).
-                            "cycle_model_waiver": True,
+                            **cycle_fields,
                             # rtl stage_contract is REQUIRED: rtl-gen's gate raises
                             # LOCKED_TRUTH_CONTRACT_NO_RTL_STAGE_<BC> if a behavioral
                             # contract has no rtl/rtl-gen stage to close against.
