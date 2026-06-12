@@ -344,7 +344,14 @@ requirements:
       - id: OBL_P4_SUBMIT_FAILURE_DIAGNOSTICS
         owned_by: platform.scm
         granularity: behavior
-        status: open   # submit 실패/skip 시 localRoot/scmRoot/paths와 restage 사유를 UI에서 볼 수 있어야 함
+        status: closed   # submit 실패/skip 시 localRoot/scmRoot/paths와 restage 사유를 UI에서 볼 수 있어야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_submit_restage_reports_selected_path_not_opened"
+            observed_at: 771cfbf8
+          - test: "tests/test_scm_perforce_adapter.py::test_submit_restage_reports_missing_local_source"
+            observed_at: 771cfbf8
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_submit_debug_context_contract"
+            observed_at: 771cfbf8
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
