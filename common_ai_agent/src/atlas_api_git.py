@@ -69,7 +69,52 @@ def register_git_routes(
     def _scm_provider_for_root(scm_root: str | None, provider: str = ""):
         return resolve_scm_adapter(scm_root or str(project_root()), provider=_request_provider(provider) or None).provider
 
-    def _resolve_existing_root(value: str, label: str) -> tuple[Path | None, JSONResponse | None]:
+    def _path_within(path: Path, base: Path) -> bool:
+        try:
+            path.resolve().relative_to(base.resolve())
+            return True
+        except ValueError:
+            return False
+
+    def _root_relative_base(local_root: Path) -> Path:
+        project = project_root().resolve()
+        try:
+            local_root.resolve().relative_to(project)
+            return project
+        except ValueError:
+            return local_root.resolve().parent
+
+    def _configured_perforce_roots(local_root: Path) -> list[Path]:
+        roots: list[Path] = []
+        relative_base = _root_relative_base(local_root)
+        for key in ("ATLAS_SCM_ROOT_PERFORCE", "ATLAS_PERFORCE_ROOT", "P4_WORKSPACE_ROOT"):
+            configured = os.environ.get(key, "").strip()
+            if not configured:
+                continue
+            candidate = Path(configured).expanduser()
+            if not candidate.is_absolute():
+                candidate = relative_base / candidate
+            roots.append(candidate.resolve())
+        return roots
+
+    def _request_scm_root_is_allowed(resolved: Path, provider: str, local_root: Path) -> bool:
+        if _path_within(resolved, project_root()):
+            return True
+        selected = _request_provider(provider) or configured_scm_provider()
+        if selected != "perforce":
+            return False
+        return any(
+            root.is_dir() and _path_within(resolved, root)
+            for root in _configured_perforce_roots(local_root)
+        )
+
+    def _resolve_existing_root(
+        value: str,
+        label: str,
+        *,
+        provider: str = "",
+        local_root: Path | None = None,
+    ) -> tuple[Path | None, JSONResponse | None]:
         clean = str(value or "").strip()
         if not clean:
             return None, None
@@ -77,15 +122,16 @@ def register_git_routes(
         if not candidate.is_absolute():
             candidate = project_root() / candidate
         resolved = candidate.resolve()
-        # SECURITY: a request-supplied scmRoot must not escape PROJECT_ROOT
-        # (absolute-path / traversal escape). resolve()+relative_to is OS-neutral
-        # — it handles Windows drive letters, UNC paths, and backslashes too.
-        # Perforce workspaces that legitimately live elsewhere are configured via
-        # env (ATLAS_SCM_ROOT_PERFORCE / _default_scm_root), not this param.
-        try:
-            resolved.relative_to(project_root().resolve())
-        except ValueError:
-            return None, JSONResponse({"error": f"{label} escapes project root"}, status_code=400)
+        # SECURITY: request-supplied scmRoot stays project-scoped by default.
+        # Perforce workspaces may live elsewhere, but only inside explicit
+        # env-configured workspace roots such as P4_WORKSPACE_ROOT.
+        if not _request_scm_root_is_allowed(resolved, provider, local_root or project_root()):
+            selected = _request_provider(provider) or configured_scm_provider()
+            suffix = " or configured Perforce workspace root" if selected == "perforce" else ""
+            return None, JSONResponse(
+                {"error": f"{label} escapes project root{suffix}"},
+                status_code=400,
+            )
         if not resolved.is_dir():
             return None, JSONResponse({"error": f"{label} not found", label: str(resolved)}, status_code=404)
         return resolved, None
@@ -109,30 +155,14 @@ def register_git_routes(
         except ValueError as exc:
             return None, JSONResponse({"error": str(exc)}, status_code=400)
 
-    def _root_relative_base(local_root: Path) -> Path:
-        project = project_root().resolve()
-        try:
-            local_root.resolve().relative_to(project)
-            return project
-        except ValueError:
-            return local_root.resolve().parent
-
     def _default_scm_root(provider: str, local_root: Path) -> Path:
         selected = _request_provider(provider) or configured_scm_provider()
         if selected != "perforce":
             return local_root
-        relative_base = _root_relative_base(local_root)
-        configured = (
-            os.environ.get("ATLAS_SCM_ROOT_PERFORCE", "").strip()
-            or os.environ.get("ATLAS_PERFORCE_ROOT", "").strip()
-            or os.environ.get("P4_WORKSPACE_ROOT", "").strip()
-        )
-        if configured:
-            candidate = Path(configured).expanduser()
-            if not candidate.is_absolute():
-                candidate = relative_base / candidate
+        for candidate in _configured_perforce_roots(local_root):
             if candidate.is_dir():
                 return candidate.resolve()
+        relative_base = _root_relative_base(local_root)
         candidate = relative_base / "perforce"
         return candidate.resolve() if candidate.is_dir() else relative_base.resolve()
 
@@ -158,7 +188,12 @@ def register_git_routes(
         workspace_root = context.workspace_root.resolve() if context is not None else project_root().resolve()
         if not clean:
             local_root = workspace_root
-            explicit_scm, explicit_error = _resolve_existing_root(scm_root_value, "scmRoot")
+            explicit_scm, explicit_error = _resolve_existing_root(
+                scm_root_value,
+                "scmRoot",
+                provider=provider,
+                local_root=local_root,
+            )
             if explicit_error is not None:
                 return None, None, explicit_error, ""
             scm_root = explicit_scm or _default_scm_root(provider, local_root)
@@ -177,7 +212,12 @@ def register_git_routes(
             and not (candidate / ".git").is_dir()
         ):
             return None, None, JSONResponse({"error": "ip has no .git", "ip": clean}, status_code=409), clean
-        explicit_scm, explicit_error = _resolve_existing_root(scm_root_value, "scmRoot")
+        explicit_scm, explicit_error = _resolve_existing_root(
+            scm_root_value,
+            "scmRoot",
+            provider=provider,
+            local_root=candidate,
+        )
         if explicit_error is not None:
             return None, None, explicit_error, clean
         scm_root = explicit_scm or _default_scm_root(provider, candidate)

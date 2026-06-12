@@ -121,6 +121,11 @@ requirements:
         granularity: behavior
         status: open   # /api/scm/*·/api/git/* tenant authz 미적용 + scm_root PROJECT_ROOT 탈출
                        # (src/atlas_api_git.py) — Perforce 절대경로 정당성 때문에 신중 수정 보류
+      - id: OBL_SCM_PERFORCE_EXTERNAL_ROOT_ALLOWLIST
+        owned_by: platform.scm
+        granularity: behavior
+        status: open   # request scmRoot 의 PROJECT_ROOT 탈출은 기본 차단하되,
+                       # Perforce 는 명시 설정된 workspace root 안에서만 허용
       - id: OBL_CONVERSATION_SSOT_IMPORT_OWNER_SCOPED
         owned_by: runtime.authz
         granularity: behavior
