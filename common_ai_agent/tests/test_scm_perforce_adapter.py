@@ -1150,12 +1150,13 @@ def test_submit_numbered_changelist_updates_description_before_submit(tmp_path):
 
     assert result.ok is True
     assert adapter.calls == [
+        ("resolve", "-n", "//GOOD_SOC/GOOD_IP/rtl/opened.sv"),
         ("change", "-o", "12"),
         ("change", "-i"),
         ("submit", "-c", "12"),
     ]
-    assert "Description:\n\tship checkout fix\n" in adapter.input_texts[1]
-    assert "\told description" not in adapter.input_texts[1]
+    assert "Description:\n\tship checkout fix\n" in adapter.input_texts[2]
+    assert "\told description" not in adapter.input_texts[2]
 
 
 def test_live_local_p4d_checkout_copy_submit_roundtrip(local_p4d):
@@ -1427,11 +1428,72 @@ def test_live_revert_paths_deletes_emptied_numbered_changelist(local_p4d):
     assert edit.returncode == 0, edit.stderr
     adapter = PerforceP4Adapter(client_root, executable=p4)
 
-    reverted = adapter.revert_paths(["//depot/rtl/main.sv"])
+    reverted = adapter.revert_paths(["//depot/rtl/main.sv"], changelist=change_id)
 
     assert reverted.ok, reverted.error or reverted.stderr
+    assert "-c" in reverted.command
+    assert change_id in reverted.command
     leftovers = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
     assert f"Change {change_id} " not in leftovers.stdout, leftovers.stdout
+
+
+def test_live_revert_clears_out_of_date_resolve_state(local_p4d):
+    # A second client can advance depot head while Atlas has a file open. Submit
+    # must stop before creating a failed submit CL, and Revert must clear the
+    # opened file plus pending resolve state in the selected P4 workspace.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    peer_root = client_root.parent / "peer_client"
+    peer_root.mkdir()
+    peer_env = dict(env)
+    peer_env["P4CLIENT"] = "atlas_peer"
+    peer_env["ATLAS_SCM_CLIENT_PERFORCE"] = "atlas_peer"
+    peer_env["ATLAS_PERFORCE_CLIENT"] = "atlas_peer"
+    peer_env["ATLAS_P4CLIENT"] = "atlas_peer"
+    peer_spec = (
+        "Client:\tatlas_peer\n"
+        "Owner:\tatlas_pytest\n"
+        f"Root:\t{peer_root.as_posix()}\n"
+        "Options:\tnoallwrite noclobber nocompress unlocked nomodtime normdir\n"
+        "LineEnd:\tlocal\n"
+        "View:\n"
+        "\t//depot/... //atlas_peer/...\n"
+    )
+    peer_client = _run_live_p4(p4, peer_env, client_root.parent, "client", "-i", input_text=peer_spec)
+    assert peer_client.returncode == 0, peer_client.stderr or peer_client.stdout
+    peer_sync = _run_live_p4(p4, peer_env, peer_root, "sync", "//depot/...")
+    assert peer_sync.returncode == 0, peer_sync.stderr or peer_sync.stdout
+
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    opened = adapter.edit_paths(["//depot/rtl/main.sv"])
+    assert opened.ok, opened.error or opened.stderr
+    (client_root / "rtl" / "main.sv").write_text("module atlas_edit; endmodule\n", encoding="utf-8")
+
+    peer_edit = _run_live_p4(p4, peer_env, peer_root, "edit", "//depot/rtl/main.sv")
+    assert peer_edit.returncode == 0, peer_edit.stderr or peer_edit.stdout
+    (peer_root / "rtl" / "main.sv").write_text("module peer_edit; endmodule\n", encoding="utf-8")
+    peer_submit = _run_live_p4(p4, peer_env, peer_root, "submit", "-d", "peer advances head")
+    assert peer_submit.returncode == 0, peer_submit.stderr or peer_submit.stdout
+
+    submitted = adapter.submit("atlas stale submit", add_all=False, changelist="default")
+
+    assert not submitted.ok
+    assert submitted.returncode == 3
+    assert "Perforce resolve required before submit" in submitted.error
+    assert "//depot/rtl/main.sv haveRev=1 headRev=2" in submitted.stdout
+    assert "fstat" in submitted.command
+    assert "depotFile,haveRev,headRev,headAction" in submitted.command
+    pending_changes = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert "Submit failed" not in pending_changes.stdout
+
+    reverted = adapter.revert_paths(["//depot/rtl/main.sv"], changelist="default")
+
+    assert reverted.ok, reverted.error or reverted.stderr
+    opened_after = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv" not in opened_after.stdout
+    resolve_after = _run_live_p4(p4, env, client_root, "resolve", "-n", "//depot/rtl/main.sv")
+    assert "no file(s) to resolve" in resolve_after.stderr
 
 
 def test_delete_pending_changelist_requires_numbered_id(tmp_path):

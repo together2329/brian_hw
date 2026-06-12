@@ -435,6 +435,62 @@ def test_scm_edit_route_can_checkout_perforce_target_without_local_root(tmp_path
     }
 
 
+def test_scm_revert_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def revert_paths(self, paths, *, stream="", changelist=""):
+            seen["paths"] = list(paths)
+            seen["stream"] = stream
+            seen["changelist"] = changelist
+            return SCMCommandResult(
+                ok=True,
+                provider=self.provider,
+                root=self.root,
+                stdout="revert ok",
+                returncode=0,
+                command=("p4", "revert", "-c", changelist, "//GOOD_SOC/GOOD_IP/rtl/foo.v"),
+            )
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/revert",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["command"] == ["p4", "revert", "-c", "12", "//GOOD_SOC/GOOD_IP/rtl/foo.v"]
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        "stream": "//GOOD_SOC/GOOD_IP",
+        "changelist": "12",
+    }
+
+
 def test_scm_pane_route_passes_directory_scope_to_perforce_adapter(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)

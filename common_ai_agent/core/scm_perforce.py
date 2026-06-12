@@ -622,13 +622,16 @@ class PerforceP4Adapter(SCMAdapter):
         failures = [result for result in results if not result.ok]
         stdout = "\n".join(result.stdout.strip() for result in results if result.stdout.strip())
         stderr = "\n".join(result.stderr.strip() for result in results if result.stderr.strip())
+        command = next((result.command for result in failures if result.command), ())
+        if not command:
+            command = next((result.command for result in reversed(results) if result.command), ())
         if failures:
             first = failures[0]
             return self._result(
                 ok=False, stdout=stdout, stderr=stderr,
-                returncode=first.returncode, error=first.error or first.stderr.strip(),
+                returncode=first.returncode, error=first.error or first.stderr.strip(), command=command,
             )
-        return self._result(ok=True, stdout=stdout, stderr=stderr)
+        return self._result(ok=True, stdout=stdout, stderr=stderr, command=command)
 
     @staticmethod
     def _pending_changelist_id(changelist: str = "") -> str:
@@ -770,6 +773,79 @@ class PerforceP4Adapter(SCMAdapter):
                 )
         stdout = "\n".join([*(f"restaged local edit: {path}" for path in copied), *diagnostics])
         return self._result(ok=True, stdout=stdout)
+
+    @staticmethod
+    def _opened_depot_specs(opened: list[dict[str, str]]) -> list[str]:
+        specs: list[str] = []
+        for rec in opened:
+            depot_file = PerforceP4Adapter._clean_depot_key(rec.get("depotFile", ""))
+            if depot_file:
+                specs.append(depot_file)
+        return specs
+
+    def _pending_resolve(self, specs: list[str]) -> tuple[bool, SCMCommandResult]:
+        preview = self._run_p4("resolve", "-n", *(specs or [self._perforce_scope()]))
+        checked = self._soften(preview)
+        text = f"{preview.stdout}\n{preview.stderr}\n{preview.error}".strip()
+        low = text.lower()
+        pending = checked.ok and bool(text) and "no file(s) to resolve" not in low
+        return pending, preview
+
+    def _resolve_required_result(self, preview: SCMCommandResult, action: str) -> SCMCommandResult:
+        text = "\n".join(part.strip() for part in (preview.stdout, preview.stderr, preview.error) if part.strip())
+        return self._result(
+            ok=False,
+            stdout=text,
+            stderr=preview.stderr,
+            returncode=3,
+            command=preview.command,
+            error=(
+                f"Perforce resolve required before {action}. "
+                "Resolve the file in P4, or use Revert to discard the pending workspace edit."
+            ),
+        )
+
+    def _out_of_date_opened(self, opened: list[dict[str, str]]) -> SCMCommandResult:
+        specs = self._opened_depot_specs(opened)
+        if not specs:
+            return self._result(ok=True)
+        recs, result = self._records("fstat", "-T", "depotFile,haveRev,headRev,headAction", *specs, timeout=10)
+        checked = self._soften(result)
+        if not checked.ok:
+            return checked
+        stale: list[str] = []
+        for rec in recs:
+            head_action = rec.get("headAction", "")
+            if head_action.endswith("delete"):
+                continue
+            try:
+                have = int(rec.get("haveRev", "") or 0)
+                head = int(rec.get("headRev", "") or 0)
+            except ValueError:
+                continue
+            if have > 0 and head > have:
+                stale.append(f"{rec.get('depotFile', '')} haveRev={have} headRev={head}")
+        if not stale:
+            return self._result(ok=True)
+        return self._result(
+            ok=False,
+            stdout="\n".join(stale),
+            returncode=3,
+            command=result.command,
+            error=(
+                "Perforce resolve required before submit. "
+                "Opened file is out of date; sync/resolve it in P4, or use Revert to discard the pending workspace edit."
+            ),
+        )
+
+    def _submit_resolve_preflight(self, opened: list[dict[str, str]]) -> SCMCommandResult:
+        out_of_date = self._out_of_date_opened(opened)
+        if not out_of_date.ok:
+            return out_of_date
+        resolve_pending, resolve_preview = self._pending_resolve(self._opened_depot_specs(opened))
+        if resolve_pending:
+            return self._resolve_required_result(resolve_preview, "submit")
+        return self._result(ok=True)
 
     def _delete_emptied_changelists(self, changes: set[str]) -> None:
         for change in sorted(changes):
@@ -1017,6 +1093,9 @@ class PerforceP4Adapter(SCMAdapter):
             restaged = self._restage_local_submit_paths(opened, local_root, paths)
             if not restaged.ok:
                 return restaged
+            preflight = self._submit_resolve_preflight(opened)
+            if not preflight.ok:
+                return self._combine_results([restaged, preflight])
             updated = self._update_pending_changelist_description(target_change, message)
             if not updated.ok:
                 return updated
@@ -1030,6 +1109,9 @@ class PerforceP4Adapter(SCMAdapter):
         restaged = self._restage_local_submit_paths(opened, local_root, paths)
         if not restaged.ok:
             return restaged
+        preflight = self._submit_resolve_preflight(opened)
+        if not preflight.ok:
+            return self._combine_results([restaged, preflight])
         result = self._run_p4("submit", "-d", message or "atlas: submit", scope)
         if not result.ok:
             stranded = self._stranded_submit_change(result)
@@ -1226,17 +1308,52 @@ class PerforceP4Adapter(SCMAdapter):
             return result
         return self._combine_results([result, self._move_to_changelist(changelist, specs)])
 
-    def revert_paths(self, paths: Any, stream: str = "") -> SCMCommandResult:
+    def revert_paths(self, paths: Any, stream: str = "", changelist: str = "") -> SCMCommandResult:
         self._select_stream(stream)
         specs = self._filespecs_for_perforce_selection(paths)
         if not specs:
             return self._result(ok=False, returncode=2, error="no valid paths to revert")
-        opened, _ = self._records("opened", *specs)
+        change = self._pending_changelist_id(changelist)
+        opened_args = ["opened", *specs] if not change else ["opened", "-c", change, *specs]
+        opened, _ = self._records(*opened_args)
         touched = {rec.get("change", "") for rec in opened}
-        result = self._soften(self._run_p4("revert", *specs))
+        if change:
+            touched.add(change)
+        revert_args = ["revert", *specs] if not change else ["revert", "-c", change, *specs]
+        result = self._soften(self._run_p4(*revert_args))
+        results = [result]
         if result.ok:
+            resolve_pending, resolve_preview = self._pending_resolve(specs)
+            if resolve_pending:
+                fallback_args = ["revert", "-k", *specs] if not change else ["revert", "-k", "-c", change, *specs]
+                fallback = self._soften(self._run_p4(*fallback_args))
+                results.append(fallback)
+                still_pending, still_preview = self._pending_resolve(specs)
+                if still_pending:
+                    diagnostics = "\n".join(
+                        part.strip()
+                        for part in (
+                            resolve_preview.stdout,
+                            resolve_preview.stderr,
+                            fallback.stdout,
+                            fallback.stderr,
+                            still_preview.stdout,
+                            still_preview.stderr,
+                        )
+                        if part.strip()
+                    )
+                    return self._combine_results([
+                        *results,
+                        self._result(
+                            ok=False,
+                            stdout=diagnostics,
+                            returncode=3,
+                            command=still_preview.command,
+                            error="revert did not clear Perforce resolve state",
+                        ),
+                    ])
             self._delete_emptied_changelists({c for c in touched if c.isdigit()})
-        return result
+        return self._combine_results(results)
 
     def delete_pending_changelist(self, changelist: str, stream: str = "") -> SCMCommandResult:
         """Drop a numbered pending changelist. Opened files are reverted with
