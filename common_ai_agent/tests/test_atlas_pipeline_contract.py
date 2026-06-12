@@ -1187,3 +1187,43 @@ def test_model_stage_stale_check_not_red(tmp_path) -> None:
         {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
     )
     assert failed and "cl_model_check.json" in reason
+
+
+def test_model_stage_fresh_pass_outranks_stale_fail_record(tmp_path) -> None:
+    """Finding 24/29 freshness ordering: a FRESH passing *_check.json outranks
+    an OLDER failed stage-engine record (prior run died on a judge timeout,
+    check regenerated green) — the live cnt8 dispatch gate kept cl-model red
+    off a stale ssot-cycle-model.json fail record."""
+    import json as _json
+    import os as _os
+    import time as _time
+
+    from src import atlas_api_jobs as jobs
+
+    ip = "ipz"
+    ip_dir = tmp_path / ip
+    (ip_dir / "model").mkdir(parents=True)
+    (ip_dir / "logs" / "stage_engine").mkdir(parents=True)
+    (ip_dir / "yaml").mkdir(parents=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text("top_module: {}\n", encoding="utf-8")
+
+    record = ip_dir / "logs" / "stage_engine" / "ssot-cycle-model.json"
+    record.write_text(_json.dumps({"status": "fail", "headline": "judge timeout"}), encoding="utf-8")
+    old = _time.time() - 600
+    _os.utime(record, (old, old))
+
+    check = ip_dir / "model" / "cl_model_check.json"
+    check.write_text(_json.dumps({"passed": True}), encoding="utf-8")
+
+    failed, _ = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert not failed  # fresh green check wins over stale fail record
+
+    # Inverse: record NEWER than the check -> the failed record still reds.
+    now = _time.time() + 10
+    _os.utime(record, (now, now))
+    failed, reason = jobs._job_artifact_failure(
+        {"ip": ip, "stage_id": "cl-model", "workflow": "fl-model-gen"}, tmp_path
+    )
+    assert failed and "ssot-cycle-model.json" in reason
