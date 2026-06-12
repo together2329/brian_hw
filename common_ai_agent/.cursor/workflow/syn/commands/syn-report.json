@@ -1,7 +1,0 @@
-{
-  "name": "syn-report",
-  "description": "Re-emit syn.report.md from existing area.json + syn.log (no re-synthesis)",
-  "aliases": ["syn-r"],
-  "handler": "bash:write_report.sh",
-  "usage": "/syn-report"
-}

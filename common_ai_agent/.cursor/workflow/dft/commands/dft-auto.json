@@ -1,7 +1,0 @@
-{
-  "name": "dft-auto",
-  "description": "One-shot DFT (no agent walkthrough) — runs auto_dft.sh end-to-end. For CI / scripted use",
-  "aliases": [],
-  "handler": "bash:auto_dft.sh",
-  "usage": "/dft-auto"
-}

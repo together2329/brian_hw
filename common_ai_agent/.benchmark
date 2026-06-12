@@ -118,3 +118,37 @@
 2026-06-04T11:38:18 sim=PASS errors=0 warnings=1 pass=10 fail=0 tb=mctp_assembler_v3/tb/cocotb/test_runner.py
 2026-06-04T11:45:49 sim=PASS errors=0 warnings=1 pass=10 fail=0 tb=mctp_assembler_v3/tb/cocotb/test_runner.py
 2026-06-04T11:59:36 sim=PASS errors=0 warnings=1 pass=10 fail=0 tb=mctp_assembler_v3/tb/cocotb/test_runner.py
+2026-06-10T23:12:27 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=pwm_gen_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:13:23 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=pwm_gen_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:19:58 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=edge_det_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:21:44 sim=FAIL stage=compile
+2026-06-10T23:21:45 sim=FAIL stage=compile
+2026-06-10T23:22:21 sim=FAIL stage=compile
+2026-06-10T23:25:03 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=counter8_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:27:23 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=counter8_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:27:27 sim=PASS errors=0 warnings=0 pass=1 fail=0 tb=shift_reg_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:34:00 sim=FAIL stage=compile
+2026-06-10T23:34:41 sim=FAIL stage=compile
+2026-06-10T23:34:53 sim=FAIL stage=compile
+2026-06-10T23:36:56 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=gray_code_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:36:57 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=fifo_sync_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:38:22 sim=FAIL stage=compile
+2026-06-10T23:38:39 sim=FAIL stage=compile
+2026-06-10T23:38:48 sim=FAIL stage=compile
+2026-06-10T23:40:05 sim=FAIL stage=compile
+2026-06-10T23:44:28 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=gray_code_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:44:32 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=fifo_sync_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:45:47 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=gray_code_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:45:50 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=fifo_sync_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:49:09 sim=FAIL stage=compile
+2026-06-10T23:49:13 sim=FAIL stage=compile
+2026-06-10T23:50:17 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=gray_code_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:50:19 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=fifo_sync_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:57:39 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=fifo_sync_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:57:41 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=gray_code_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:58:43 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=parity_gen_cx1/tb/cocotb/test_runner.py
+2026-06-10T23:59:00 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=fifo_sync_cx1/tb/cocotb/test_runner.py
+2026-06-11T00:01:49 sim=FAIL stage=compile
+2026-06-11T00:04:53 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=parity_gen_cx1/tb/cocotb/test_runner.py
+2026-06-11T00:08:13 sim=PASS errors=0 warnings=1 pass=1 fail=0 tb=parity_gen_cx1/tb/cocotb/test_runner.py
+2026-06-11T00:11:36 sim=FAIL stage=compile

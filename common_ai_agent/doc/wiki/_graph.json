@@ -1,13 +1,16 @@
 {
   "schema_version": "wiki_graph.v1",
-  "generated_at": "2026-06-08T03:50:54Z",
+  "generated_at": "2026-06-12T19:55:57Z",
   "root": "doc/wiki",
-  "node_count": 152,
-  "edge_count": 738,
+  "node_count": 166,
+  "edge_count": 796,
   "tags": {
     "admin": [
       "admin-operational-dashboard-db-snapshot-20260603",
       "session-flow-dashboard-20260604"
+    ],
+    "agents": [
+      "codex-rocev-agent-pack-20260611"
     ],
     "assume-assert-cover": [
       "formal-verification-evidence"
@@ -27,6 +30,7 @@
       "atlas-dag-ip-flow-runbook",
       "atlas-db-router-runtime-sharding-20260602",
       "atlas-e2e-validation-20260519",
+      "atlas-input-latency-perf-20260610",
       "orchestrator-singleworker-e2e-20260526",
       "session-flow-dashboard-20260604",
       "sim-debug-feature-review-2026-05-31",
@@ -74,6 +78,9 @@
       "atcwdt200-flow-debugging-lessons",
       "evidence-contract-obligation-traceability"
     ],
+    "codex": [
+      "codex-rocev-agent-pack-20260611"
+    ],
     "contract": [
       "llm-contract-repair-loop",
       "locked-truth-concept",
@@ -87,6 +94,11 @@
     ],
     "cosim": [
       "multi-cycle-production-wiring-20260520"
+    ],
+    "cursor": [
+      "codex-rocev-agent-pack-20260611",
+      "cursor-agent-pack",
+      "cursor-rocev-workflow-slim-20260611"
     ],
     "cycle-model": [
       "atlas-dag-ip-flow-runbook",
@@ -120,6 +132,9 @@
     "design-spec": [
       "locked-truth-design-spec-workflow"
     ],
+    "dev-units": [
+      "platform-ontology"
+    ],
     "direction": [
       "formal-verification-evidence",
       "llm-contract-repair-loop",
@@ -152,6 +167,7 @@
     ],
     "evidence": [
       "atcdmac100-document-flow-ui-honesty-20260518",
+      "codex-rocev-agent-pack-20260611",
       "contract-reflection-workflow",
       "evidence-contract-obligation-traceability",
       "formal-verification-evidence",
@@ -182,6 +198,9 @@
     "fl": [
       "contract-reflection-workflow"
     ],
+    "fl-model": [
+      "cursor-rocev-workflow-slim-20260611"
+    ],
     "formal": [
       "formal-verification-evidence",
       "general-ip-flow-trial-and-error-20260601",
@@ -193,6 +212,7 @@
       "verification-contract-model"
     ],
     "frontend": [
+      "atlas-input-latency-perf-20260610",
       "project_ts_vite_tauri_cutover",
       "project_vite_env_stale_build",
       "sim-debug-waveform-renderer-2026-05-31",
@@ -204,6 +224,9 @@
     "general-ip": [
       "general-ip-flow-trial-and-error-20260601"
     ],
+    "generated": [
+      "platform-ontology-graph"
+    ],
     "grill-me": [
       "ssot-conversion-flow-20260519"
     ],
@@ -214,11 +237,18 @@
       "atcdmac100-document-flow-ui-honesty-20260518",
       "hardcoded-strip-honest-baseline-20260520"
     ],
+    "hooks": [
+      "codex-rocev-agent-pack-20260611",
+      "cursor-agent-pack"
+    ],
     "implementation": [
       "orchestrator-llm-loop-phase3"
     ],
     "import": [
       "ssot-conversion-flow-20260519"
+    ],
+    "input-latency": [
+      "atlas-input-latency-perf-20260610"
     ],
     "ip-flow": [
       "atlas-dag-ip-flow-runbook",
@@ -259,6 +289,9 @@
     "maintainability": [
       "workspace-jsx-decomposition-plan"
     ],
+    "maturity": [
+      "platform-ontology"
+    ],
     "mctp": [
       "contract-reflection-workflow",
       "formal-verification-evidence",
@@ -271,6 +304,9 @@
       "mctp-contract-slice-trial-and-error-20260606",
       "ssot-as-design-truth-graph",
       "verification-contract-model"
+    ],
+    "meta": [
+      "platform-ontology"
     ],
     "multi-user": [
       "atlas-db-router-runtime-sharding-20260602"
@@ -295,7 +331,12 @@
       "req-obligation-contract-evidence-validation",
       "ssot-as-design-truth-graph"
     ],
+    "ontology": [
+      "platform-ontology",
+      "platform-ontology-graph"
+    ],
     "oracle": [
+      "cursor-rocev-workflow-slim-20260611",
       "ssot-as-design-truth-graph"
     ],
     "orchestrator": [
@@ -323,6 +364,7 @@
       "atcdmac100-document-flow-ui-honesty-20260518"
     ],
     "performance": [
+      "atlas-input-latency-perf-20260610",
       "sim-debug-waveform-renderer-2026-05-31"
     ],
     "phase3": [
@@ -356,6 +398,9 @@
     "pyslang": [
       "sim-debug-feature-review-2026-05-31",
       "sim-debug-requirements-2026-06-01"
+    ],
+    "ratchet": [
+      "platform-ontology"
     ],
     "react-loop": [
       "orchestrator-loop-on-react-loop-plan"
@@ -391,6 +436,11 @@
     "reviewed": [
       "orchestrator-loop-on-react-loop-plan"
     ],
+    "rocev": [
+      "codex-rocev-agent-pack-20260611",
+      "cursor-agent-pack",
+      "cursor-rocev-workflow-slim-20260611"
+    ],
     "rollup": [
       "session-flow-dashboard-20260604"
     ],
@@ -416,6 +466,9 @@
     "rtl-repair": [
       "llm-contract-repair-loop"
     ],
+    "rules": [
+      "cursor-agent-pack"
+    ],
     "runtime": [
       "session-flow-dashboard-20260604"
     ],
@@ -435,6 +488,9 @@
     ],
     "sec": [
       "spec-loop-and-equivalence-check"
+    ],
+    "seminar": [
+      "codex-rocev-agent-pack-20260611"
     ],
     "session-flow": [
       "session-flow-dashboard-20260604"
@@ -471,6 +527,13 @@
     "single-worker": [
       "orchestrator-singleworker-e2e-20260526"
     ],
+    "skills": [
+      "codex-rocev-agent-pack-20260611",
+      "cursor-agent-pack"
+    ],
+    "slimming": [
+      "cursor-rocev-workflow-slim-20260611"
+    ],
     "spec-loop": [
       "spec-loop-and-equivalence-check"
     ],
@@ -498,11 +561,17 @@
       "orchestrator-singleworker-e2e-20260526",
       "ssot-conversion-flow-20260519"
     ],
+    "stage-engine": [
+      "cursor-rocev-workflow-slim-20260611"
+    ],
     "stale-build": [
       "project_vite_env_stale_build"
     ],
     "stimulus": [
       "silent-pass-exposure-tb-stimulus-gap-20260520"
+    ],
+    "subagents": [
+      "cursor-agent-pack"
     ],
     "sva": [
       "formal-verification-evidence",
@@ -535,7 +604,12 @@
     "todo": [
       "locked-truth-design-spec-workflow"
     ],
+    "todo-loop": [
+      "cursor-agent-pack",
+      "cursor-rocev-workflow-slim-20260611"
+    ],
     "traceability": [
+      "platform-ontology-graph",
       "req-obligation-contract-evidence-validation"
     ],
     "trial-and-error": [
@@ -617,12 +691,14 @@
     ],
     "workflow": [
       "atlas-pipeline-worker-workspace-jump",
+      "cursor-rocev-workflow-slim-20260611",
       "ssot-conversion-flow-20260519"
     ],
     "workflow-runs": [
       "admin-operational-dashboard-db-snapshot-20260603"
     ],
     "workspace": [
+      "atlas-input-latency-perf-20260610",
       "atlas-pipeline-worker-workspace-jump",
       "workspace-jsx-decomposition-plan"
     ],
@@ -662,6 +738,7 @@
       "atlas-context-root-model-20260603",
       "atlas-dag-ip-flow-runbook",
       "atlas-db-router-runtime-sharding-20260602",
+      "atlas-input-latency-perf-20260610",
       "atlas-modular-refactor-status-20260528",
       "atlas-new-ip-recipe",
       "atlas-pipeline-db-state",
@@ -676,12 +753,16 @@
       "atlas-test-hardening-2026-05-23",
       "atlas-ui-playwright-screenshot-recipe-2026-05-23",
       "atlas-vite-e2e-verification",
+      "atlas-worker-workflow-ui-sync-20260610",
       "auth-cookie-expiry-20260519",
       "babel-retirement-cutover-20260529",
       "codex-engine-atlas-ui-integration",
+      "codex-rocev-agent-pack-20260611",
       "common-ai-agent-map",
       "concurrent-dispatch-queue-20260519",
       "cross-user-permission-20260519",
+      "cursor-agent-pack",
+      "cursor-rocev-workflow-slim-20260611",
       "db-concurrent-write-race-20260519",
       "db-fk-audit-20260519",
       "default-agent-ip-flow",
@@ -703,6 +784,7 @@
       "gpio-serial-pipeline-run",
       "guide-tab-and-architect-my-ips-20260527",
       "hardcoded-strip-honest-baseline-20260520",
+      "headless-stage-validation-phase2-20260610",
       "human-review-and-escalation",
       "hw-agent-ip-experiment-batch-20260530",
       "index",
@@ -711,6 +793,7 @@
       "ip-edge-inputs-20260519",
       "karpathy-llm-wiki-pattern",
       "large-file-decomposition-plan-20260530",
+      "llm-authored-oracle-architecture",
       "llm-contract-repair-loop",
       "llm-wiki-knowledge-graph-discussion-20260602",
       "local-iproot-thin-llm-server-arch-20260529",
@@ -726,6 +809,7 @@
       "multi-user-worker-isolation",
       "mutation-baseline-2026-05-23",
       "octa-ddr-spi-orch-run-20260517",
+      "orchestrator-campaign-10ip-20260610",
       "orchestrator-chat-ux",
       "orchestrator-new-ip-to-pnr-recipe-2026-05-23",
       "orchestrator-pnr-run-issues-2026-05-23",
@@ -737,6 +821,8 @@
       "parallel-todo-sub-agent-workers",
       "perforce-integration-20260530",
       "pipeline-progress-debugging",
+      "platform-ontology",
+      "platform-ontology-graph",
       "project_classify_survivors_clobber",
       "project_merge_broke_prompt_delivery",
       "project_silent_pass_exposure",
@@ -751,6 +837,7 @@
       "run-mode-and-provenance-policy",
       "session-flow-dashboard-20260604",
       "silent-pass-exposure-tb-stimulus-gap-20260520",
+      "silent-pass-gate-hardening-20260609",
       "sim-debug-agent-tool-2026-05-31",
       "sim-debug-feature-review-2026-05-31",
       "sim-debug-module-signals-2026-05-30",
@@ -766,9 +853,12 @@
       "ssot-qa-workbench",
       "ssot-rtl-flow-verify-20260519",
       "stage-gate-strictness-20260519",
+      "stage-validation-pulse-counter-20260610",
+      "stage-validation-reflections-20260610",
       "systematic-quality-gates-20260521",
       "tauri-desktop-shell",
       "tech-direction-recommendation-20260529",
+      "ten-ip-flow-campaign",
       "testing-methodology",
       "todo-loop-verification-hardening-20260608",
       "triple-llm-rv32i-experiment",
@@ -1215,6 +1305,7 @@
       "outgoing": [],
       "incoming": [
         "atlas-context-root-deep-test-plan-20260604",
+        "atlas-worker-workflow-ui-sync-20260610",
         "desktop-local-tool-execution-plan-20260603",
         "index",
         "log"
@@ -1326,6 +1417,31 @@
       "size_bytes": 7130
     },
     {
+      "id": "atlas-input-latency-perf-20260610",
+      "title": "ATLAS chat input latency — analysis + round-2 optimization + live perf HUD",
+      "type": "reference",
+      "tags": [
+        "atlas",
+        "frontend",
+        "performance",
+        "input-latency",
+        "workspace"
+      ],
+      "related": [],
+      "outgoing": [
+        "project_vite_env_stale_build",
+        "atlas-modular-refactor-status-20260528"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Typing in the workspace chat input visibly stutters, especially with large sessions / while orchestrator jobs run. (Reported as \"worktree 나눠서 input prompt가 느린 느낌\" — the worktree split itself is unrelated; it correlates via stale bundles and machine CPU contention.)",
+      "path": "doc/wiki/atlas-input-latency-perf-20260610.md",
+      "size_bytes": 5565
+    },
+    {
       "id": "atlas-modular-refactor-status-20260528",
       "title": "Atlas modular refactor — status & verification rig (2026-05-28)",
       "type": "reference",
@@ -1333,6 +1449,7 @@
       "related": [],
       "outgoing": [],
       "incoming": [
+        "atlas-input-latency-perf-20260610",
         "atlas-refactoring-exceptions",
         "index",
         "large-file-decomposition-plan-20260530",
@@ -1576,13 +1693,14 @@
       "related": [],
       "outgoing": [],
       "incoming": [
+        "atlas-worker-workflow-ui-sync-20260610",
         "index"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "New Atlas UI session state should use one canonical filesystem layout:",
       "path": "doc/wiki/atlas-session-canonicalization-backlog-20260606.md",
-      "size_bytes": 2938
+      "size_bytes": 6666
     },
     {
       "id": "atlas-single-active-orchestrator-subworkers-20260603",
@@ -1714,6 +1832,26 @@
       "size_bytes": 2648
     },
     {
+      "id": "atlas-worker-workflow-ui-sync-20260610",
+      "title": "Worker→UI Workflow Sync 2026-06-10",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "atlas-session-canonicalization-backlog-20260606",
+        "atlas-context-root-model-20260603"
+      ],
+      "incoming": [
+        "index",
+        "stage-validation-pulse-counter-20260610"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Inside a worker, `/to-ssot` (or any in-agent `/wf` switch) printed \"✅ Workflow switched to 'ssot-gen'\" and did the work under the ssot-gen system prompt — but `/wf` still reported `default`, the UI workflow dropdown never moved, `/healthz active_workflow` stayed `default`, and a respawned worker booted WITHOUT the ssot-gen system prompt.",
+      "path": "doc/wiki/atlas-worker-workflow-ui-sync-20260610.md",
+      "size_bytes": 3553
+    },
+    {
       "id": "auth-cookie-expiry-20260519",
       "title": "Auth Cookie Expiry & Multi-Session Policy",
       "type": "reference",
@@ -1769,6 +1907,45 @@
       "summary": "Status: concept note only. No implementation is implied by this page.",
       "path": "doc/wiki/codex-engine-atlas-ui-integration.md",
       "size_bytes": 4923
+    },
+    {
+      "id": "codex-rocev-agent-pack-20260611",
+      "title": "Codex ROCEV Agent Pack (2026-06-11)",
+      "type": "reference",
+      "tags": [
+        "codex",
+        "cursor",
+        "skills",
+        "hooks",
+        "agents",
+        "rocev",
+        "evidence",
+        "seminar"
+      ],
+      "related": [
+        "cursor-agent-pack",
+        "cursor-rocev-workflow-slim-20260611",
+        "req-obligation-contract-evidence-validation",
+        "evidence-contract-obligation-traceability",
+        "formal-verification-evidence",
+        "mctp-assembler-contract-breakdown"
+      ],
+      "outgoing": [
+        "cursor-agent-pack",
+        "cursor-rocev-workflow-slim-20260611",
+        "req-obligation-contract-evidence-validation",
+        "evidence-contract-obligation-traceability",
+        "formal-verification-evidence",
+        "mctp-assembler-contract-breakdown"
+      ],
+      "incoming": [
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-11",
+      "summary": "This is the Codex-side version of the seminar pack.",
+      "path": "doc/wiki/codex-rocev-agent-pack-20260611.md",
+      "size_bytes": 5362
     },
     {
       "id": "common-ai-agent-map",
@@ -1845,9 +2022,11 @@
         "truth-coverage-gate",
         "general-ip-flow-trial-and-error-20260601",
         "mctp-assembler-scratch-flow-20260531",
-        "workflow-ownership-and-boundaries"
+        "workflow-ownership-and-boundaries",
+        "verification-contract-model"
       ],
       "incoming": [
+        "cursor-rocev-workflow-slim-20260611",
         "evidence-contract-obligation-traceability",
         "formal-verification-evidence",
         "index",
@@ -1859,13 +2038,14 @@
         "req-obligation-contract-evidence-validation",
         "spec-loop-and-equivalence-check",
         "ssot-as-design-truth-graph",
+        "stage-validation-pulse-counter-20260610",
         "verification-contract-model"
       ],
       "broken_refs": [],
       "updated": "2026-06-04",
       "summary": "This page captures the next design layer after `truth_coverage` and `evidence_contract`: every important contract item must be reflected through FL, CL, RTL, TB, and simulation evidence with the same stable ID.",
       "path": "doc/wiki/contract-reflection-workflow.md",
-      "size_bytes": 52639
+      "size_bytes": 54840
     },
     {
       "id": "cross-user-permission-20260519",
@@ -1880,6 +2060,76 @@
       "summary": "Deep test #39 (`deep #42`): cross-user permission escalation against atlas_ui on port 62196. Test users: `perm_alpha_test` (owner), `perm_beta_test` (attacker). IP under test: `cmux_perm_alpha` — created and dispatched by alpha.",
       "path": "doc/wiki/cross-user-permission-20260519.md",
       "size_bytes": 8050
+    },
+    {
+      "id": "cursor-agent-pack",
+      "title": "Cursor Agent Pack — rules/hooks/subagents/skills + todo-loop + ROCEV chain",
+      "type": "reference",
+      "tags": [
+        "cursor",
+        "hooks",
+        "subagents",
+        "skills",
+        "rules",
+        "todo-loop",
+        "rocev"
+      ],
+      "related": [],
+      "outgoing": [
+        "cursor-rocev-workflow-slim-20260611"
+      ],
+      "incoming": [
+        "codex-rocev-agent-pack-20260611",
+        "cursor-rocev-workflow-slim-20260611",
+        "index",
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`common_ai_agent/.cursor/`는 Cursor가 이 repo의 workflow를 Claude Code와 같은 권위 모델로 구동하기 위한 팩이다. 규약 원문은 repo 루트 `AGENTS.md`(공통)이며, 이 팩은 그것을 Cursor 네이티브 표면(rule/hook/subagent/skill)으로 구체화한다.",
+      "path": "doc/wiki/cursor-agent-pack.md",
+      "size_bytes": 6388
+    },
+    {
+      "id": "cursor-rocev-workflow-slim-20260611",
+      "title": "Cursor Pack — ROCEV Workflow Slim & Deliberations (2026-06-11)",
+      "type": "reference",
+      "tags": [
+        "cursor",
+        "workflow",
+        "rocev",
+        "slimming",
+        "stage-engine",
+        "fl-model",
+        "oracle",
+        "todo-loop"
+      ],
+      "related": [
+        "cursor-agent-pack",
+        "req-obligation-contract-evidence-validation",
+        "workflow-ownership-and-boundaries",
+        "verification-contract-model",
+        "contract-reflection-workflow",
+        "workflow-improvement-candidates"
+      ],
+      "outgoing": [
+        "cursor-agent-pack",
+        "req-obligation-contract-evidence-validation",
+        "workflow-ownership-and-boundaries",
+        "verification-contract-model",
+        "contract-reflection-workflow",
+        "workflow-improvement-candidates"
+      ],
+      "incoming": [
+        "codex-rocev-agent-pack-20260611",
+        "cursor-agent-pack",
+        "index"
+      ],
+      "broken_refs": [],
+      "updated": "2026-06-11",
+      "summary": "이 페이지는 `.cursor` 팩을 **ROCEV `req → rtl → tb → sim` 워크플로 골격만** 남기도록 슬림화하면서 내린 결정과 그 *근거*를 workflow 관점에서 기록한다. 팩의 as-built 구성(rules/hooks/agents/skills 목록)은 [[cursor-agent-pack]]에 있고, 이 문서는 그 위에서 **\"무엇을 왜 남기고 왜 잘랐나\"**를 다룬다. ROCEV 척추의 정의는 [[req-obligation-contract-evidence-validation]], 산출물 소유 경계는 [[workflow-ownership-and-boundaries]] 참조.",
+      "path": "doc/wiki/cursor-rocev-workflow-slim-20260611.md",
+      "size_bytes": 8989
     },
     {
       "id": "db-concurrent-write-race-20260519",
@@ -2077,6 +2327,7 @@
         "workflow-ownership-and-boundaries"
       ],
       "incoming": [
+        "codex-rocev-agent-pack-20260611",
         "contract-reflection-workflow",
         "formal-verification-evidence",
         "general-ip-flow-trial-and-error-20260601",
@@ -2255,6 +2506,7 @@
         "mctp-assembler-scratch-flow-20260531"
       ],
       "incoming": [
+        "codex-rocev-agent-pack-20260611",
         "index",
         "llm-contract-repair-loop",
         "log",
@@ -2552,6 +2804,29 @@
       "size_bytes": 1177
     },
     {
+      "id": "headless-stage-validation-phase2-20260610",
+      "title": "Headless Stage Validation Phase 2 — pulse_counter_hx (2026-06-10)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "stage-validation-pulse-counter-20260610",
+        "stage-validation-reflections-20260610",
+        "workflow-improvement-candidates",
+        "orchestrator-worker-handoff-review",
+        "verification-contract-model"
+      ],
+      "incoming": [
+        "llm-authored-oracle-architecture",
+        "ten-ip-flow-campaign"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Phase-2 follow-up to [[stage-validation-pulse-counter-20260610]] and [[stage-validation-reflections-20260610]]: run the SAME workflow headlessly on a fresh IP (`pulse_counter_hx`, APB pulse counter authored from a new requirement md) with a real LLM worker, and fix every machinery gap the run exposes. Operator role = repair loop only (route gate rejections…",
+      "path": "doc/wiki/headless-stage-validation-phase2-20260610.md",
+      "size_bytes": 10430
+    },
+    {
       "id": "human-review-and-escalation",
       "title": "Human Review And Escalation",
       "type": "reference",
@@ -2627,6 +2902,11 @@
         "atlas-refactoring-review-20260528",
         "tech-direction-recommendation-20260529",
         "frontend-modernization-2026-05-29",
+        "atlas-input-latency-perf-20260610",
+        "platform-ontology",
+        "cursor-agent-pack",
+        "cursor-rocev-workflow-slim-20260611",
+        "codex-rocev-agent-pack-20260611",
         "testing-methodology",
         "uart-tx-end-to-end-findings-20260530",
         "mctp-assembler-scratch-flow-20260531",
@@ -2658,6 +2938,9 @@
         "atlas-context-root-model-20260603",
         "atlas-context-root-deep-test-plan-20260604",
         "atlas-session-canonicalization-backlog-20260606",
+        "stage-validation-pulse-counter-20260610",
+        "stage-validation-reflections-20260610",
+        "atlas-worker-workflow-ui-sync-20260610",
         "admin-operational-dashboard-db-snapshot-20260603",
         "session-flow-dashboard-20260604",
         "arm-m0-min-current-status",
@@ -2747,7 +3030,7 @@
       "updated": "",
       "summary": "This wiki is the cross-linked operating map for common_ai_agent. It is optimized for long-context LLMs and agent handoffs: read the linked pages in order, then follow the source docs for implementation detail.",
       "path": "doc/wiki/index.md",
-      "size_bytes": 40038
+      "size_bytes": 42029
     },
     {
       "id": "interactive-ask-user-ip-discovery",
@@ -2847,6 +3130,30 @@
       "summary": "Prioritized, behavior-preserving plan to break up the biggest single files in `common_ai_agent`. Companion pages: [[atlas-refactoring-exceptions]] (sub-1000-line policy + the ≥1000-line registry + extraction-pattern catalogue), [[atlas-modular-refactor-status-20260528]] (what's already been extracted from `src/atlas_ui.py` + the…",
       "path": "doc/wiki/large-file-decomposition-plan-20260530.md",
       "size_bytes": 11087
+    },
+    {
+      "id": "llm-authored-oracle-architecture",
+      "title": "LLM-Authored Oracles (FL/CL/TB) + Contract Validation — Design Direction (2026-06-10)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "stage-validation-reflections-20260610",
+        "headless-stage-validation-phase2-20260610",
+        "mctp-assembler-v3-ingress-fidelity-20260603",
+        "mctp-assembler-scratch-flow-20260531",
+        "mctp-contract-slice-trial-and-error-20260606",
+        "verification-contract-model",
+        "workflow-improvement-candidates"
+      ],
+      "incoming": [
+        "ten-ip-flow-campaign"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "User decision (2026-06-10): **FL, CL, and TB should be LLM-authored rather than deterministically compiled; honesty moves to contract validation.** The deterministic emitters stop absorbing ever-richer hardware semantics and demote to baseline/cross-check oracles.",
+      "path": "doc/wiki/llm-authored-oracle-architecture.md",
+      "size_bytes": 10093
     },
     {
       "id": "llm-contract-repair-loop",
@@ -3052,13 +3359,14 @@
         "locked-truth-concept",
         "log",
         "mctp-assembler-contract-breakdown",
-        "ssot-as-design-truth-graph"
+        "ssot-as-design-truth-graph",
+        "stage-validation-pulse-counter-20260610"
       ],
       "broken_refs": [],
       "updated": "2026-06-06",
       "summary": "This page captures the current ATLAS workflow direction from the APB timer and MCTP assembler discussions.",
       "path": "doc/wiki/locked-truth-design-spec-workflow.md",
-      "size_bytes": 13607
+      "size_bytes": 13897
     },
     {
       "id": "log",
@@ -3067,6 +3375,11 @@
       "tags": [],
       "related": [],
       "outgoing": [
+        "cursor-agent-pack",
+        "platform-ontology",
+        "contract-reflection-workflow",
+        "verification-contract-model",
+        "silent-pass-gate-hardening-20260609",
         "todo-loop-verification-hardening-20260608",
         "testing-methodology",
         "index",
@@ -3078,7 +3391,6 @@
         "mctp-assembler-contract-breakdown",
         "spec-loop-and-equivalence-check",
         "req-obligation-contract-evidence-validation",
-        "contract-reflection-workflow",
         "evidence-contract-obligation-traceability",
         "locked-truth-concept",
         "llm-contract-repair-loop",
@@ -3129,9 +3441,9 @@
       ],
       "broken_refs": [],
       "updated": "",
-      "summary": "- Added [[todo-loop-verification-hardening-20260608]] after the Atlas TODO loop incident where `todo_update(completed)` recovery depended on the LLM's tool-call order and Atlas/web stopped before rejected continuation prompt injection while Textual continued. The page defines the prevention policy: every tool error recovery instruction must have an…",
+      "summary": "- **10-IP 캠페인 + 자가포함 Cursor 팩**: *_cx1 IP 10종을 .cursor 문서만으로 req→rtl→tb→sim 제작 (9/10 sim PASS, 전부 <ip>/wiki 히스토리+check PASS). friction ~60건 → skills/rocev-chain/KNOWN_TRAPS.md 런북 + SKILL 보정 + 생성기 버그 4건 engine.stage known_gaps 등재. [[cursor-agent-pack]]",
       "path": "doc/wiki/log.md",
-      "size_bytes": 121911
+      "size_bytes": 131133
     },
     {
       "id": "mctp-assembler-contract-breakdown",
@@ -3174,6 +3486,7 @@
         "truth-coverage-gate"
       ],
       "incoming": [
+        "codex-rocev-agent-pack-20260611",
         "formal-verification-evidence",
         "index",
         "llm-contract-repair-loop",
@@ -3222,6 +3535,7 @@
         "formal-verification-evidence",
         "general-ip-flow-trial-and-error-20260601",
         "index",
+        "llm-authored-oracle-architecture",
         "llm-contract-repair-loop",
         "mctp-assembler-contract-breakdown",
         "mctp-assembler-v3-ingress-fidelity-20260603",
@@ -3251,6 +3565,7 @@
         "mctp-assembler-scratch-flow-20260531"
       ],
       "incoming": [
+        "llm-authored-oracle-architecture",
         "mctp-assembler-contract-breakdown"
       ],
       "broken_refs": [],
@@ -3292,6 +3607,7 @@
       "incoming": [
         "formal-verification-evidence",
         "index",
+        "llm-authored-oracle-architecture",
         "log",
         "mctp-assembler-contract-breakdown",
         "ssot-as-design-truth-graph"
@@ -3453,6 +3769,25 @@
       "size_bytes": 7446
     },
     {
+      "id": "orchestrator-campaign-10ip-20260610",
+      "title": "10-IP Orchestrating-System Validation Campaign (2026-06-10)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "orchestrator-chat-ux",
+        "verification-contract-model",
+        "orchestrator-verification-report",
+        "platform-ontology"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Goal (user): orchestrating system을 IP 10개 저작으로 검증. gpt-5.4. 막히면 사람이 직접 개입. chat 경로 전체 관통 + web UI + headless, 시행착오로 완성도 상승. **채점 기준: 사람이 locked truth를 만들어 줬을 때 Orchestrator가 Requirement 기반으로 얼마나 효율적으로 끝까지 가는가** (Track A), 또는 **truth 저작 과정까지 포함** (Track B).",
+      "path": "doc/wiki/orchestrator-campaign-10ip-20260610.md",
+      "size_bytes": 33526
+    },
+    {
       "id": "orchestrator-chat-only-product-plan",
       "title": "Orchestrator Chat Only Product Plan",
       "type": "process",
@@ -3515,13 +3850,14 @@
         "flow-fixes-r3-verify-20260519",
         "flow-fixes-verify-20260519",
         "index",
+        "orchestrator-campaign-10ip-20260610",
         "ui-resolution-matrix-20260519"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "ATLAS Pipeline 우측 trace 패널이 **외계어 JSON trace event** 만 출력하던 문제를 chat-style natural language 패널로 갈아엎는 라운드. 본 페이지는 변경 의도, 랜딩한 커밋, **worker-4 hardcore E2E 검증 증거**를 모아둔다. 검증 결과는 정직하게 mixed (backend PASS / endpoint contract bug / frontend hydrate regression) 임을 기록한다.",
       "path": "doc/wiki/orchestrator-chat-ux.md",
-      "size_bytes": 16915
+      "size_bytes": 19122
     },
     {
       "id": "orchestrator-llm-loop-phase3",
@@ -3704,7 +4040,8 @@
       ],
       "incoming": [
         "e2e-orchestrator-validation-plan",
-        "index"
+        "index",
+        "orchestrator-campaign-10ip-20260610"
       ],
       "broken_refs": [],
       "updated": "",
@@ -3771,11 +4108,13 @@
         "workflow-ownership-and-boundaries"
       ],
       "incoming": [
+        "headless-stage-validation-phase2-20260610",
         "index",
         "log",
         "multi-user-worker-conflicts",
         "orchestrator-verification-report",
-        "orchestrator-worker-handoff"
+        "orchestrator-worker-handoff",
+        "stage-validation-reflections-20260610"
       ],
       "broken_refs": [],
       "updated": "",
@@ -3880,7 +4219,7 @@
       "updated": "",
       "summary": "Wires ATLAS's provider-abstracted SCM layer to a real Perforce (Helix Core) server and adds a two-pane **Perforce Sync** tab. A developer can push IP folders to Perforce (add → submit) and pull them back (force-sync = overwrite). Built on a local dev server; design is site-portable. Related: [[common-ai-agent-map]] · [[atlas-pytest-hygiene]] (sibling…",
       "path": "doc/wiki/perforce-integration-20260530.md",
-      "size_bytes": 9292
+      "size_bytes": 13877
     },
     {
       "id": "pipeline-progress-debugging",
@@ -3968,6 +4307,53 @@
       "summary": "Real-use debugging record for the `pl330realverify` ATLAS UI run. This page captures the mistakes that only became visible when the user watched the UI and insisted on real Orchestrator + worker execution rather than headless shortcuts or mock progress.",
       "path": "doc/wiki/pl330-real-orchestrator-ui-lessons-20260517.md",
       "size_bytes": 11899
+    },
+    {
+      "id": "platform-ontology",
+      "title": "Platform Ontology — 개발 단위/테스트/완성도 DB",
+      "type": "reference",
+      "tags": [
+        "ontology",
+        "dev-units",
+        "maturity",
+        "ratchet",
+        "meta"
+      ],
+      "related": [],
+      "outgoing": [
+        "verification-contract-model",
+        "platform-ontology-graph"
+      ],
+      "incoming": [
+        "index",
+        "log",
+        "orchestrator-campaign-10ip-20260610"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "**목적**: Brian과 실제 구현 사이의 공용 언어층. common_ai_agent **플랫폼 자체** (엔진·런타임·DB·API·UI)의 개발 단위(DevUnit)를 선언하고, 각 단위의 테스트와 완성도를 **기계 측정**으로 추정한다. IP 검증용 VCM([[verification-contract-model]])과는 별개 장부 — workflow 게이트들의 명부는 GateSelfTest 레지스트리가 계속 담당한다.",
+      "path": "doc/wiki/platform-ontology.md",
+      "size_bytes": 5733
+    },
+    {
+      "id": "platform-ontology-graph",
+      "title": "Platform Ontology Graph (auto-generated)",
+      "type": "reference",
+      "tags": [
+        "ontology",
+        "traceability",
+        "generated"
+      ],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "platform-ontology"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "`ontology/platform_*.yaml` 실데이터에서 자동 생성. 손으로 고치지 말 것.",
+      "path": "doc/wiki/platform-ontology-graph.md",
+      "size_bytes": 15266
     },
     {
       "id": "project_classify_survivors_clobber",
@@ -4092,6 +4478,7 @@
         "sim-debug-module-signals-2026-05-30"
       ],
       "incoming": [
+        "atlas-input-latency-perf-20260610",
         "sim-debug-module-signals-2026-05-30",
         "testing-methodology"
       ],
@@ -4211,7 +4598,9 @@
         "golden-todo-evidence"
       ],
       "incoming": [
+        "codex-rocev-agent-pack-20260611",
         "contract-reflection-workflow",
+        "cursor-rocev-workflow-slim-20260611",
         "evidence-contract-obligation-traceability",
         "index",
         "log",
@@ -4395,6 +4784,22 @@
       "summary": "Historical context page for the testbench and stimulus gaps that could produce silent-green results.",
       "path": "doc/wiki/silent-pass-exposure-tb-stimulus-gap-20260520.md",
       "size_bytes": 1164
+    },
+    {
+      "id": "silent-pass-gate-hardening-20260609",
+      "title": "Silent-PASS Gate Hardening",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [],
+      "incoming": [
+        "log"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Date: 2026-06-09",
+      "path": "doc/wiki/silent-pass-gate-hardening-20260609.md",
+      "size_bytes": 6716
     },
     {
       "id": "sim-debug-agent-tool-2026-05-31",
@@ -4825,6 +5230,52 @@
       "size_bytes": 6481
     },
     {
+      "id": "stage-validation-pulse-counter-20260610",
+      "title": "Stage Validation Run — pulse_counter_v1 (2026-06-10)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "contract-reflection-workflow",
+        "locked-truth-design-spec-workflow",
+        "atlas-worker-workflow-ui-sync-20260610"
+      ],
+      "incoming": [
+        "headless-stage-validation-phase2-20260610",
+        "index",
+        "stage-validation-reflections-20260610",
+        "workflow-improvement-candidates"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Phase-1 manual walk of req → ssot → fl/cl → rtl → tb → sim on a fresh small IP (APB pulse counter), with the agent playing each stage's LLM role and every gate run for real. Scratch root: `.tmp/pc1/project` (worktree off main 67840407+). Goal: prove each stage's machinery/gates work and locate gaps before building the phase-2 headless worker.",
+      "path": "doc/wiki/stage-validation-pulse-counter-20260610.md",
+      "size_bytes": 7473
+    },
+    {
+      "id": "stage-validation-reflections-20260610",
+      "title": "Stage-Validation Reflections — Design Inputs for the Headless Worker (2026-06-10)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "stage-validation-pulse-counter-20260610",
+        "workflow-improvement-candidates",
+        "orchestrator-worker-handoff-review"
+      ],
+      "incoming": [
+        "headless-stage-validation-phase2-20260610",
+        "index",
+        "llm-authored-oracle-architecture",
+        "ten-ip-flow-campaign"
+      ],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "Personal retrospective from walking pulse_counter_v1 through req→ssot→fl/cl→ rtl→tb→sim by hand (every gate executed, [[stage-validation-pulse-counter-20260610]]) and then fixing the machinery to an honest 31/31 full-pipeline PASS. Written as design inputs for the phase-2 headless worker, not as a run log.",
+      "path": "doc/wiki/stage-validation-reflections-20260610.md",
+      "size_bytes": 5320
+    },
+    {
       "id": "systematic-quality-gates-20260521",
       "title": "Systematic Quality Gates — Manifest Hygiene + SSOT Validator",
       "type": "reference",
@@ -4897,6 +5348,24 @@
       "size_bytes": 7986
     },
     {
+      "id": "ten-ip-flow-campaign",
+      "title": "10-IP Flow Campaign — Make IP Development Practically Viable (2026-06-10)",
+      "type": "reference",
+      "tags": [],
+      "related": [],
+      "outgoing": [
+        "llm-authored-oracle-architecture",
+        "headless-stage-validation-phase2-20260610",
+        "stage-validation-reflections-20260610"
+      ],
+      "incoming": [],
+      "broken_refs": [],
+      "updated": "",
+      "summary": "User directive: build ~10 IPs through the standard flow (req-contracts → ssot-gen → fl/cl → dual-fcov → equiv-goals → rtl-gen → lint → tb-gen → sim), study where the GENERAL flow strains, and bake every needed fix into the workflow — the goal is practically viable IP development, not demos.",
+      "path": "doc/wiki/ten-ip-flow-campaign.md",
+      "size_bytes": 4039
+    },
+    {
       "id": "testing-methodology",
       "title": "ATLAS 테스트 방법론 — \"green-while-broken\"을 막는 4층 구조",
       "type": "reference",
@@ -4948,7 +5417,7 @@
       "updated": "",
       "summary": "Date: 2026-06-08",
       "path": "doc/wiki/todo-loop-verification-hardening-20260608.md",
-      "size_bytes": 6627
+      "size_bytes": 9029
     },
     {
       "id": "triple-llm-rv32i-experiment",
@@ -5098,6 +5567,13 @@
         "project_classify_survivors_clobber"
       ],
       "incoming": [
+        "contract-reflection-workflow",
+        "cursor-rocev-workflow-slim-20260611",
+        "headless-stage-validation-phase2-20260610",
+        "llm-authored-oracle-architecture",
+        "log",
+        "orchestrator-campaign-10ip-20260610",
+        "platform-ontology",
         "project_classify_survivors_clobber",
         "ssot-as-design-truth-graph"
       ],
@@ -5105,7 +5581,7 @@
       "updated": "",
       "summary": "Agreed design (2026-06-04) for how a `requirement` is proven against locked truth in the ATLAS workflow. Consolidates the contract-reflection + evidence-contract + semantic-freshness layers into one model. See [[contract-reflection-workflow]].",
       "path": "doc/wiki/verification-contract-model.md",
-      "size_bytes": 8523
+      "size_bytes": 10500
     },
     {
       "id": "wiki-curation-policy",
@@ -5202,16 +5678,21 @@
         "orchestrator-worker-handoff",
         "ssot-qa-workbench",
         "golden-todo-evidence",
-        "index"
+        "index",
+        "stage-validation-pulse-counter-20260610"
       ],
       "incoming": [
-        "index"
+        "cursor-rocev-workflow-slim-20260611",
+        "headless-stage-validation-phase2-20260610",
+        "index",
+        "llm-authored-oracle-architecture",
+        "stage-validation-reflections-20260610"
       ],
       "broken_refs": [],
       "updated": "",
       "summary": "Status: **open ideas, not decided design.** Captured 2026-05-17 after the [[atcuart100-pipeline-run]] and the discussion around what to change next. Each candidate below is a parking-lot entry: problem statement, proposed shape, use cases, and decision questions. None has been promoted to code or to a normative wiki page yet.",
       "path": "doc/wiki/workflow-improvement-candidates.md",
-      "size_bytes": 12709
+      "size_bytes": 17263
     },
     {
       "id": "workflow-ownership-and-boundaries",
@@ -5235,6 +5716,7 @@
         "atlas-pipeline-screen",
         "common-ai-agent-map",
         "contract-reflection-workflow",
+        "cursor-rocev-workflow-slim-20260611",
         "default-agent-ip-flow",
         "deterministic-emit-stages",
         "evidence-contract-obligation-traceability",

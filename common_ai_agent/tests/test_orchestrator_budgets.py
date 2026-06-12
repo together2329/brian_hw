@@ -201,3 +201,45 @@ class TestBridgeIntegration:
         )
         assert "exhausted" not in obs.lower()
         assert bridge.budgets.snapshot().get("sim_debug") == 1
+
+    def test_upstream_dispatch_resets_downstream_budget_automatically(self, db, ctx, monkeypatch):
+        """Finding 40: a fresh upstream dispatch invalidates downstream evidence.
+
+        The live cnt8 autonomy probe reran sim after sim_debug had already used
+        its only retry. That newer sim made sim-debug stale, but the second
+        sim_debug dispatch was refused as attempts=2 budget=1 because only the
+        optional mark_downstream_stale tool reset budgets. Dispatching the
+        upstream stage itself must reset downstream budgets deterministically.
+        """
+        monkeypatch.setattr(
+            orch_tools, "_dispatch_workflow_bridge",
+            lambda: lambda **kw: {"ok": True, "pipeline_run_id": "pr", "jobs": []},
+        )
+        monkeypatch.setattr(
+            orch_tools,
+            "_pipeline_stage_deps",
+            lambda: {
+                "sim": ("tb",),
+                "sim-debug": ("sim",),
+                "coverage": ("sim",),
+            },
+        )
+        bridge = build_orchestrator_deps(ctx=ctx, runner=ctx.runner, db=db)
+
+        for _ in range(default_budget_for("sim_debug") + 1):
+            obs = bridge.available_tools["dispatch_workflow"](
+                pre_parsed_kwargs={"workflow": "sim_debug", "ip": "ipA"}
+            )
+        assert "exhausted" in obs.lower()
+
+        obs = bridge.available_tools["dispatch_workflow"](
+            pre_parsed_kwargs={"workflow": "sim", "ip": "ipA"}
+        )
+        assert "exhausted" not in obs.lower()
+        assert "sim_debug" not in bridge.budgets.snapshot()
+
+        obs = bridge.available_tools["dispatch_workflow"](
+            pre_parsed_kwargs={"workflow": "sim_debug", "ip": "ipA"}
+        )
+        assert "exhausted" not in obs.lower()
+        assert bridge.budgets.snapshot().get("sim_debug") == 1

@@ -1,7 +1,0 @@
-{
-  "name": "mutation-guard",
-  "description": "Run deterministic RTL mutation guard and write mutation/mutation_report.{json,md}",
-  "aliases": ["mut"],
-  "handler": "bash:run_mutation_guard.sh",
-  "usage": "/mutation-guard <ip_name>"
-}

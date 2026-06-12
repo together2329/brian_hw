@@ -102,4 +102,4 @@ worker's charter, and the manual walk produced its blueprint.
 
 Related: [[stage-validation-pulse-counter-20260610]],
 [[workflow-improvement-candidates]] (CAND-06..11),
-[[orchestrator-headless-worker-feedback]].
+[[orchestrator-worker-handoff-review]].

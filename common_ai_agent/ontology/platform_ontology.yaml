@@ -31,6 +31,14 @@ units:
       - core/action_parser.py
       - core/chat_loop.py
 
+  - id: agent.prompt-builder
+    kind: engine
+    summary: 시스템 프롬프트 조립과 동적 컨텍스트 주입
+    owns:
+      - core/prompt_builder.py
+    content_tests:
+      - tests/test_core/test_prompt_builder.py
+
   - id: agent.tools
     kind: registry
     summary: 도구 레지스트리·스키마·실행 (tmux/cmux opt-in 포함)
@@ -98,8 +106,11 @@ units:
     kind: runtime
     summary: 에이전트 서버 엔트리·수명주기
     owns:
+      - run_server.csh
       - core/agent_server.py
       - src/main.py
+    content_tests:
+      - tests/test_run_server_launcher.py
 
   - id: data.db
     kind: store
@@ -266,6 +277,15 @@ units:
     content_tests:
       - tests/test_ip_dev_memory.py
       - tests/test_ip_wiki.py
+
+  - id: platform.wiki
+    kind: tooling
+    summary: 프로젝트/IP wiki 그래프 인덱스와 검색 전제 무결성 게이트
+    owns:
+      - workflow/wiki/build_graph.py
+    content_tests:
+      - tests/test_wiki_build_graph.py
+      - tests/test_wiki_query_tool.py
 
   - id: platform.ontology
     kind: meta

@@ -1,5 +1,0 @@
-{
-  "hooks": [
-    { "script": "auto_sta_post.sh", "trigger": "manual", "conditions": {} }
-  ]
-}

@@ -1,8 +1,0 @@
-{
-  "name": "syn-auto",
-  "description": "One-shot synthesis (no agent walkthrough) — runs auto_syn.sh end-to-end. For CI / scripted use",
-  "aliases": [],
-  "handler": "bash:auto_syn.sh",
-  "timeout_sec": 300,
-  "usage": "/syn-auto"
-}

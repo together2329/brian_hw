@@ -254,6 +254,20 @@ requirements:
         granularity: behavior
         status: open
 
+  - id: REQ_PLAT_SERVER_LAUNCHER_001
+    claim: "ATLAS 로컬 서버 런처는 재실행 전에 대상 포트의 LISTEN 프로세스를 확실히 종료한다"
+    design_anchor: doc/wiki/platform-ontology.md
+    obligations:
+      - id: OBL_RUN_SERVER_KILLS_LISTENERS_WHEN_SOURCED
+        owned_by: runtime.server
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_run_server_launcher.py::test_run_server_kills_only_listener_pids_line_by_line"
+            observed_at: e9142c20
+          - test: "tests/test_run_server_launcher.py::test_run_server_build_failures_do_not_fall_through_to_server_start"
+            observed_at: e9142c20
+
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
     design_anchor: doc/wiki/perforce-integration-20260530.md
@@ -621,6 +635,66 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_blocked_claim_passes_through_untouched"
             observed_at: 1d1edd4e
+      - id: OBL_ORCH_DEMOTE_REFUTED_OWNER_ON_SILENT_FAIL
+        owned_by: agent.react-loop
+        granularity: behavior
+        # f6d8a36c (finding 38): 라이브 cnt8 run 8cdebb3b가 자율 마감 실패 — sim FAIL→
+        # sim_debug가 FL-vs-RTL value mismatch를 분류했으나 키워드 없는 mismatch가
+        # compare_fl_rtl_results의 else:rtl_bug default로 떨어져 orchestrator가 rtl-gen을
+        # 3회 디스패치. 근본은 TB/FL(findings 33-37)이라 rtl-gen이 0 files(silent-fail)을
+        # 2회 쓰고 sim_debug budget 소진→ask_user. ~5 디스패치 낭비. 수정: 0-file 수리는
+        # 그 owner 도메인에 고칠 게 없다는 양성 증거 → classify_failure가 excluded_owners
+        # 수용 + error_text의 'silent-fail: workflow=<X>'를 자동 감지해, deterministic
+        # 라우트가 반증된 owner면 미해결 mismatch와 함께 human escalate(재디스패치 금지).
+        # 순수 가산(빈 제외=기존 라우팅 동일). tool/react_bridge/prompt schema 배선.
+        status: closed
+        evidence:
+          - test: "tests/test_orchestrator_classify.py::TestSilentFailDemotion::test_excluded_owner_route_escalates"
+            observed_at: f6d8a36c
+          - test: "tests/test_orchestrator_classify.py::TestSilentFailDemotion::test_silent_fail_in_error_text_auto_demotes"
+            observed_at: f6d8a36c
+          - test: "tests/test_orchestrator_classify.py::TestSilentFailDemotion::test_baseline_bare_mismatch_defaults_to_rtl_gen"
+            observed_at: f6d8a36c
+          - test: "tests/test_orchestrator_classify.py::TestSilentFailDemotion::test_unrelated_exclusion_does_not_change_route"
+            observed_at: f6d8a36c
+      - id: OBL_SIM_DEBUG_CLASSIFIES_ORACLE_AND_STIMULUS_SIGNATURES
+        owned_by: engine.stage
+        granularity: behavior
+        # finding 39: sim_debug의 bare FL-vs-RTL value mismatch default가 else:rtl_bug라
+        # TB/FL-rooted mismatch(findings 33-37)가 첫 라우팅부터 rtl-gen으로 오배송된다.
+        # classifier는 명시적 증거가 있을 때 FL oracle execution failure, reset-asserted
+        # non-reset stimulus, stimulus-kind contradiction(en/clr alias 포함)을 각각
+        # fl_model_bug(owner=fl-model-gen) 또는 tb_bug로 route해야 하며, 진짜 증거 없는
+        # bare mismatch만 rtl_bug fallback을 유지해야 한다. sim_debug prompt와 authority
+        # policy도 generated FL implementation repair와 locked-semantics 변경을 구분한다.
+        status: closed
+        evidence:
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_sim_debug_routes_en_clr_kind_contradiction_to_tb_gen"
+            observed_at: 3ee9cf2b
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_sim_debug_routes_reset_asserted_for_non_reset_goal_to_tb_gen"
+            observed_at: 3ee9cf2b
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_sim_debug_routes_fl_rule_evaluator_failure_to_fl_model_gen"
+            observed_at: 3ee9cf2b
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_sim_debug_bare_value_mismatch_still_routes_to_rtl_gen"
+            observed_at: 3ee9cf2b
+          - test: "tests/test_orchestrator_classify.py::TestExplicitOwner::test_fl_model_bug_owner_routes_to_fl_model_gen"
+            observed_at: 3ee9cf2b
+      - id: OBL_ORCH_REFRESHED_UPSTREAM_RESETS_DOWNSTREAM_RETRY_BUDGETS
+        owned_by: agent.react-loop
+        granularity: behavior
+        # e1c74ff0 (finding 40): live autonomy probe
+        # 0ce4cc07447c47a0b01ba69d983c533c reran sim and produced newer
+        # sim/results.xml + sim/scoreboard_events.jsonl, making sim-debug stale.
+        # The orchestrator correctly tried to rerun sim_debug, but
+        # dispatch_workflow refused with "sim_debug attempts=2 budget=1" because
+        # downstream retry budgets reset only when the LLM explicitly calls
+        # mark_downstream_stale. Fix: any accepted upstream dispatch walks the
+        # pipeline dependency graph and resets downstream budget keys (stage id,
+        # underscore alias, and workflow alias) deterministically.
+        status: closed
+        evidence:
+          - test: "tests/test_orchestrator_budgets.py::TestBridgeIntegration::test_upstream_dispatch_resets_downstream_budget_automatically"
+            observed_at: e1c74ff0
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
@@ -838,3 +912,108 @@ requirements:
             observed_at: f74961a4
           - test: "tests/test_emit_cycle_model_port_symbols.py::test_cl_self_check_passes_on_live_add8_ssot_copy"
             observed_at: f74961a4
+      - id: OBL_TB_RESET_STIMULUS_DEASSERTED_BY_DEFAULT
+        owned_by: engine.stage
+        granularity: content
+        # 776c5008 (findings 33/34): TB가 reset 핀을 stimulus에서 구동하기 시작하자
+        # (finding 33), _default_field_value의 polarity-blind reset=0 기본값이 폭로됨.
+        # active-low rst_n에서 0=ASSERTED이므로 모든 비-reset functional goal이 DUT를
+        # reset에 잡아 count=0으로 고정 — FL oracle은 그 spurious 필드를 무시해 우연히
+        # 일치(가려짐). _stimulus_value_for_field가 reset 핀을 DEASSERTED 기본값
+        # (active-low=1, active-high=0)으로 채움; 진짜 reset 자산은 _is_reset_goal
+        # 경로의 _reset_dut가 별도 시퀀싱.
+        status: closed
+        evidence:
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_defaults_to_deasserted_for_active_low"
+            observed_at: 776c5008
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_deasserted_is_zero_for_active_high"
+            observed_at: 776c5008
+      - id: OBL_TB_HONORS_GOAL_CONSTRAINT_FIELD_VALUES
+        owned_by: engine.stage
+        granularity: content
+        # 776c5008 (finding 35): _constraint_field_value가 reset/valid/enable/hready/
+        # hresp 고정 어휘만 파싱해, locked goal constraint "clr==1 at rising clk"가
+        # 무시되고 CLEAR 경로가 자산되지 않음(clr이 zero-fill 0으로 떨어짐). 임의
+        # scalar 제어 필드의 명시적 "<field> == <int>" constraint를 honor하도록 범용화;
+        # 공백 제거 전 text에서 좌측 단어경계로 매칭("len==5"가 "en"에 오매칭 금지,
+        # whitespace-strip이 "and"를 "clr"에 붙여 경계가 깨지는 것도 방지).
+        status: closed
+        evidence:
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_clear_constraint_asserts_clr"
+            observed_at: 776c5008
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_count_constraint_holds_clr_low"
+            observed_at: 776c5008
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_generic_constraint_does_not_overmatch_substring_field"
+            observed_at: 776c5008
+      - id: OBL_FL_ENUM_STATE_UPDATES_MODEL_RESOLVED
+        owned_by: engine.stage
+        granularity: content
+        # 49d76e22 (finding 36; silent-pass 가족, OBL_CL_COMBINATIONAL_RULE_SYMBOLS의
+        # 형제): LLM 저작 FunctionalModel이 enum-named state update("fsm_state = COUNT")를
+        # resolve 못 해 _eval_ast가 'unknown rule name COUNT'로 크래시 → FSM trace가
+        # RESET에 방치. 세 게이트(run_self_check / check_fl_contract._self_txn /
+        # equivalence_scoreboard._seed_rule_fields)가 enum 값 이름 COUNT를 stimulus
+        # placeholder(txn["COUNT"]=0)로 시드해 그 크래시를 은폐 — 게이트는 vacuous PASS,
+        # 스코어보드는 주입된 0이 모델 enum 바인딩을 덮어 모든 FSM expected를 RESET(0)으로.
+        # _eval_ast가 IP 간 byte-identical(공유 scaffold)이라 enum-FSM IP 전반의 인프라
+        # 결함. 수정: 선언된 enum 값 이름은 모델이 자기 인코딩에서 resolve하는 상수이며
+        # 절대 stimulus placeholder로 시드하지 않음 → enum 미해결 모델은 apply()가 터져
+        # 게이트가 잡음(vacuous PASS 불가). check_fl_contract/_seed_rule_fields가
+        # SSOT-선언 enum 이름(function_model.state_variables[].enum,
+        # registers.internal_state_registers[].enum)을 known에 추가.
+        status: closed
+        evidence:
+          - test: "tests/test_fl_enum_state_update_gate.py::test_check_fl_contract_declares_enum_names"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_check_fl_contract_self_txn_does_not_seed_enum_names"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_check_fl_contract_self_txn_still_seeds_real_unknown_fields"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_equivalence_scoreboard_enum_helper_excludes_from_seed"
+            observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_emit_fl_model_engine_binds_and_resolves_enum_names"
+            observed_at: 35599573
+      - id: OBL_EQUIVALENCE_TXN_RESOLVED_BY_STIMULUS_GUARD
+        owned_by: engine.stage
+        granularity: content
+        # da42662d (finding 37): _best_model_kind가 cycle_model rule-name goal
+        # (CM_PRIORITY_ENABLE/CM_NO_VALID_READY)과 bare scenario id(SC04)를 name/text
+        # 휴리스틱으로 transaction 매핑해, 실제 구동되는 en/clr/rst_n을 무시하고 잘못된
+        # 기본값(first-alias=reset, 또는 text keyword=count)으로 떨어짐 → FL expected가
+        # 같은 stimulus의 RTL과 발산(fsm RESET vs HOLD/COUNT, count 1 vs 0). 수정:
+        # _transaction_by_stimulus_guard가 각 transaction의 sample_condition을 stimulus
+        # 제어입력에 평가해 EXACTLY ONE non-reset txn이 매칭되면 그것을 반환(RTL이
+        # 디코드하는 priority와 동일, 휴리스틱보다 우선). explicit-alias 직후·text 직전
+        # 삽입, CSR/error/op는 더 앞서 return, reset-context goal은 제외(TB가 reset 자산),
+        # 모호(0/>1)면 None. cnt8 29/29, add8 12/12 무회귀.
+        status: closed
+        evidence:
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_resolves_unique_count"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_resolves_unique_hold"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_resolves_unique_clear"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_skips_reset_transaction"
+            observed_at: da42662d
+          - test: "tests/test_equivalence_transaction_guard.py::test_guard_returns_none_on_ambiguous_or_missing_control"
+            observed_at: da42662d
+
+  - id: REQ_PLAT_WIKI_READ_LOOP_001
+    claim: "프로젝트 위키는 신선한 그래프 게이트와 stage 기반 프롬프트 주입으로 에이전트 작업 전에 읽힌다"
+    design_anchor: doc/wiki/wiki-curation-policy.md
+    obligations:
+      - id: OBL_WIKI_GRAPH_FRESHNESS_GATE
+        owned_by: platform.wiki
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_wiki_build_graph.py::test_check_fails_when_existing_graph_markdown_inventory_is_stale"
+            observed_at: dc563f27
+      - id: OBL_WIKI_READ_LOOP_INJECTION
+        owned_by: agent.prompt-builder
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_core/test_prompt_builder.py::TestProjectWikiContext::test_stage_tagged_project_wiki_pages_are_injected"
+            observed_at: dc563f27

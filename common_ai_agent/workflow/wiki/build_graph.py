@@ -285,6 +285,29 @@ def _json_or_none(path: Path) -> Any:
         return None
 
 
+def _markdown_inventory(graph: dict[str, Any] | None) -> set[tuple[str, str]]:
+    """Return the markdown-backed node inventory used by --check freshness."""
+    if not isinstance(graph, dict):
+        return set()
+    inventory: set[tuple[str, str]] = set()
+    for node in graph.get("nodes") or []:
+        if not isinstance(node, dict):
+            continue
+        path = str(node.get("path") or "")
+        if path.endswith(".md"):
+            inventory.add((str(node.get("id") or ""), path))
+    return inventory
+
+
+def _inventory_delta(
+    existing_graph: dict[str, Any] | None,
+    fresh_graph: dict[str, Any],
+) -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+    existing = _markdown_inventory(existing_graph)
+    fresh = _markdown_inventory(fresh_graph)
+    return sorted(fresh - existing), sorted(existing - fresh)
+
+
 def _file_updated(path: Path, override: str = "") -> str:
     if override:
         return str(override)
@@ -716,6 +739,11 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         graph = build(wiki_root)
         output_path = Path(args.output).resolve() if args.output else wiki_root / "_graph.json"
+    existing_graph = _json_or_none(output_path) if args.check else None
+    stale_missing: list[tuple[str, str]] = []
+    stale_extra: list[tuple[str, str]] = []
+    if args.check:
+        stale_missing, stale_extra = _inventory_delta(existing_graph, graph)
     output_path.write_text(json.dumps(graph, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     broken: list[tuple[str, str]] = []
@@ -734,8 +762,22 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  broken: {src} → [[{missing}]]")
             if len(broken) > 12:
                 print(f"  … and {len(broken) - 12} more broken links")
+        if args.check and (stale_missing or stale_extra):
+            print(
+                f"  stale inventory: missing={len(stale_missing)} extra={len(stale_extra)} "
+                f"(regenerated {output_path})"
+            )
+            for node_id, path in stale_missing[:12]:
+                print(f"  missing from existing graph: {node_id} ({path})")
+            for node_id, path in stale_extra[:12]:
+                print(f"  extra in existing graph: {node_id} ({path})")
+            remaining = max(0, len(stale_missing) - 12) + max(0, len(stale_extra) - 12)
+            if remaining:
+                print(f"  … and {remaining} more stale inventory entries")
 
     if args.check and broken:
+        return 1
+    if args.check and (stale_missing or stale_extra):
         return 1
     return 0
 

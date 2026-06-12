@@ -333,6 +333,70 @@ def _bind_orchestrator_tools(
             include_jobs=bool(kw.get("include_jobs", True)),
         )
 
+    def _stage_id_for_budget_target(target: str) -> str:
+        token = str(target or "").strip()
+        aliases = {
+            "ssot-gen": "ssot",
+            "fl-model-gen": "fl-model",
+            "cl-model-gen": "cl-model",
+            "rtl-gen": "rtl",
+            "tb-gen": "tb",
+            "sim_debug": "sim-debug",
+            "contract-reflection": "contract-check",
+        }
+        return aliases.get(token, token.replace("_", "-"))
+
+    def _budget_keys_for_stage(stage: str) -> set[str]:
+        stage_id = str(stage or "").strip()
+        keys = {stage_id, stage_id.replace("-", "_")}
+        stage_workflows = {
+            "ssot": "ssot-gen",
+            "fl-model": "fl-model-gen",
+            "cl-model": "fl-model-gen",
+            "equivalence": "fl-model-gen",
+            "rtl": "rtl-gen",
+            "tb": "tb-gen",
+            "sim-debug": "sim_debug",
+            "contract-check": "contract-reflection",
+            "goal-audit": "sim_debug",
+        }
+        workflow = stage_workflows.get(stage_id)
+        if workflow:
+            keys.add(workflow)
+            keys.add(workflow.replace("-", "_"))
+        return {key for key in keys if key}
+
+    def _downstream_stages_for_targets(targets: list[str]) -> set[str]:
+        try:
+            deps = orch_tools._pipeline_stage_deps()
+        except Exception:
+            deps = {}
+        if not isinstance(deps, dict) or not deps:
+            return set()
+        frontier = {_stage_id_for_budget_target(target) for target in targets if target}
+        frontier.discard("")
+        seen: set[str] = set()
+        changed = True
+        while changed:
+            changed = False
+            for stage, parents in deps.items():
+                stage_id = str(stage)
+                parent_ids = {str(parent) for parent in (parents or ())}
+                if stage_id in seen or stage_id in frontier:
+                    continue
+                if parent_ids & (frontier | seen):
+                    seen.add(stage_id)
+                    changed = True
+        return seen
+
+    def _reset_downstream_budgets_for_targets(targets: list[str]) -> list[str]:
+        reset_keys: set[str] = set()
+        for stage in _downstream_stages_for_targets(targets):
+            reset_keys.update(_budget_keys_for_stage(stage))
+        for key in sorted(reset_keys):
+            budgets.reset(key)
+        return sorted(reset_keys)
+
     def _dispatch_workflow(**kw):
         workflow = kw.get("workflow", "")
         stages = kw.get("stages") or []
@@ -423,7 +487,7 @@ def _bind_orchestrator_tools(
             session_parts = [part for part in str(ctx_session_id).split("/") if part]
             if len(session_parts) >= 4:
                 payload_in["workspace_session"] = session_parts[1]
-        return orch_tools.dispatch_workflow(
+        result, summary = orch_tools.dispatch_workflow(
             workflow=workflow,
             ip=kw.get("ip", ctx.ip_name),
             stages=stages or None,
@@ -436,6 +500,12 @@ def _bind_orchestrator_tools(
             run_mode=kw.get("run_mode", ""),
             exec_mode=kw.get("exec_mode", ""),
         )
+        if isinstance(result, dict) and result.get("ok") is not False:
+            reset_keys = _reset_downstream_budgets_for_targets([str(t) for t in targets])
+            if reset_keys:
+                result = dict(result)
+                result["reset_downstream_budgets"] = reset_keys
+        return result, summary
 
     def _wait_job(**kw):
         return orch_tools.wait_job(kw.get("job_id", ""))
@@ -470,6 +540,7 @@ def _bind_orchestrator_tools(
             stage=kw.get("stage", ""),
             evidence=kw.get("evidence"),
             error_text=kw.get("error_text", ""),
+            excluded_owners=kw.get("excluded_owners") or (),
         )
 
     def _write_handoff(**kw):

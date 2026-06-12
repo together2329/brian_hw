@@ -1,7 +1,0 @@
-{
-  "name": "dft-run",
-  "description": "Run OpenROAD on existing run.tcl (no tcl regeneration)",
-  "aliases": [],
-  "handler": "bash:run_openroad_dft.sh",
-  "usage": "/dft-run"
-}

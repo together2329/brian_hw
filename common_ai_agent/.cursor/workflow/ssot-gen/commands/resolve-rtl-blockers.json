@@ -1,7 +1,0 @@
-{
-  "name": "resolve-rtl-blockers",
-  "description": "Apply rtl/rtl_blocked.json decisions back into the SSOT; use --use-recommended-defaults for orchestrator-approved default module-contract repair",
-  "aliases": ["rrb"],
-  "handler": "bash:resolve_rtl_blockers.py",
-  "usage": "/resolve-rtl-blockers <ip_name> [--use-recommended-defaults]"
-}

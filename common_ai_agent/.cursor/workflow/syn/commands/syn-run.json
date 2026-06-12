@@ -1,8 +1,0 @@
-{
-  "name": "syn-run",
-  "description": "Run yosys on existing <ip>/syn/run.ys (no script regeneration)",
-  "aliases": [],
-  "handler": "bash:run_yosys.sh",
-  "timeout_sec": 300,
-  "usage": "/syn-run"
-}

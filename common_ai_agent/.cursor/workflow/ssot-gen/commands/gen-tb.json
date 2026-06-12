@@ -1,7 +1,0 @@
-{
-  "name": "gen-tb",
-  "description": "Generate TB from the validated SSOT contract ledger via tb-gen",
-  "aliases": ["gt"],
-  "handler": "stage:ssot-tb-cocotb",
-  "usage": "/gen-tb <module_name>"
-}

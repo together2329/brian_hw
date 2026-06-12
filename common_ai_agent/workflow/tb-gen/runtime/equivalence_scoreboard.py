@@ -911,6 +911,24 @@ class EquivalenceScoreboard:
             if key in self.model_transaction_aliases:
                 return self.model_transaction_aliases[key]
 
+        # Ground-truth resolution for priority-decode / FSM goals: when the
+        # stimulus control inputs satisfy EXACTLY ONE transaction's guard, that
+        # is the transaction the RTL itself decodes — authoritative over the
+        # name/text heuristics below, which mis-map cycle_model rule names and
+        # bare scenario ids to the wrong transaction (campaign finding 37:
+        # SC04->reset, CM_PRIORITY_ENABLE->reset, CM_NO_VALID_READY->count while
+        # the driven en/clr say hold/count/hold). CSR/error/op goals already
+        # returned above, so this only catches the otherwise-misresolved ones.
+        # Reset-context goals are EXCLUDED: the TB drives reset asserted for them
+        # (_is_reset_stimulus -> _reset_dut) so the DUT sits in RESET regardless
+        # of the en/clr the goal also carries; the reset heuristic below owns
+        # them. ("reset" also covers "*_non_reset_*" state-transition ids, which
+        # the TB likewise runs under reset.)
+        if "reset" not in text and goal_kind != "reset":
+            guard_matched = self._transaction_by_stimulus_guard(stimulus)
+            if guard_matched:
+                return guard_matched
+
         for key, preferred in sorted(self.model_transaction_aliases.items(), key=lambda item: len(item[0]), reverse=True):
             if key and (key in text_norm or key.replace("_", " ") in text):
                 return preferred
@@ -975,6 +993,72 @@ class EquivalenceScoreboard:
         if self.model_transaction_aliases:
             return next(iter(self.model_transaction_aliases.values()))
         return str(contract.get("transaction_type") or goal.get("goal_id") or "unknown")
+
+    def _transaction_by_stimulus_guard(self, stimulus: dict[str, Any] | None) -> str | None:
+        """Resolve the transaction the stimulus actually satisfies by evaluating
+        each transaction's sample_condition/preconditions against the stimulus
+        control inputs — the same priority decode the RTL performs.
+
+        Returns the model-kind alias only when EXACTLY ONE non-reset transaction
+        matches (mutually-exclusive guards: the FSM / priority-decode case). An
+        ambiguous match (0 or >1) returns None so the name/text heuristics still
+        apply — this never overrides a genuinely ambiguous resolution, it only
+        rescues goals whose driven inputs unambiguously name one transaction.
+        """
+        model = getattr(self, "model", None)
+        eval_pre = getattr(model, "_eval_precondition", None)
+        if not callable(eval_pre):
+            return None
+        try:
+            txs = model._transactions()  # type: ignore[attr-defined]
+        except Exception:
+            return None
+        if not isinstance(txs, list):
+            return None
+        env: dict[str, Any] = {}
+        try:
+            if isinstance(model.state, dict):
+                env.update(model.state)
+            if isinstance(model.registers, dict):
+                env.update(model.registers)
+        except Exception:
+            pass
+        has_control = False
+        for key, value in (stimulus or {}).items():
+            if isinstance(value, bool):
+                env[str(key)] = int(value)
+                has_control = True
+            elif isinstance(value, (int, float)):
+                env[str(key)] = value
+                has_control = True
+        if not has_control:
+            return None
+        matched: list[dict[str, Any]] = []
+        for tx in txs:
+            if not isinstance(tx, dict):
+                continue
+            if _norm(tx.get("name")) == "reset" or _norm(tx.get("id")) in {"reset", "fm_reset"}:
+                continue
+            sample = tx.get("sample_condition")
+            if isinstance(sample, str) and sample.strip():
+                guards = [sample]
+            else:
+                guards = [p for p in (tx.get("preconditions") or []) if isinstance(p, str)]
+            if not guards:
+                continue
+            try:
+                if all(eval_pre(g, env) for g in guards):
+                    matched.append(tx)
+            except Exception:
+                continue
+        if len(matched) != 1:
+            return None
+        tx = matched[0]
+        return (
+            self.model_transaction_aliases.get(_norm(tx.get("id")))
+            or self.model_transaction_aliases.get(_norm(tx.get("name")))
+            or str(tx.get("id") or tx.get("name") or "")
+        ) or None
 
     def transaction_for_goal(
         self,
@@ -1072,6 +1156,17 @@ class EquivalenceScoreboard:
             except Exception:
                 pass
         known.update({"read_mux", "reduction_or"})
+        # Declared FSM/enum state value NAMES (e.g. RESET/HOLD/CLEAR/COUNT) are
+        # NOT stimulus fields: they are constants the FunctionalModel must
+        # resolve from its own enum encodings when it evaluates a state_update
+        # like ``fsm_state = COUNT``. Seeding them as txn placeholders (the old
+        # behavior) injected ``COUNT=0`` which, applied after the model's enum
+        # bindings in _rule_env, silently forced every FSM state expected back
+        # to RESET(0) — masking the real transition (campaign finding 36). Mark
+        # them known so they are left for the model to resolve; an FL that
+        # cannot resolve its own enum then raises in apply() and surfaces the
+        # defect instead of scoring a vacuous pass.
+        known.update(self._declared_enum_value_names())
         for name in sorted(names - known):
             if not name or name in txn:
                 continue
@@ -1084,6 +1179,29 @@ class EquivalenceScoreboard:
                 txn[name] = 1
             else:
                 txn[name] = 0
+
+    def _declared_enum_value_names(self) -> set[str]:
+        """Every FSM/enum state value NAME declared in the SSOT model.
+
+        Pulled from function_model.state_variables[].enum and
+        registers.internal_state_registers[].enum — the same enum lists the
+        FunctionalModel binds to integer encodings. Used to keep these names
+        out of the seeded-stimulus placeholders so the model resolves them."""
+        ssot_model = getattr(self.model_module, "SSOT_MODEL", {})
+        if not isinstance(ssot_model, dict):
+            return set()
+        sources: list[Any] = []
+        fm = ssot_model.get("function_model")
+        if isinstance(fm, dict):
+            sources += list(fm.get("state_variables") or [])
+        regs = ssot_model.get("registers")
+        if isinstance(regs, dict):
+            sources += list(regs.get("internal_state_registers") or [])
+        names: set[str] = set()
+        for item in sources:
+            if isinstance(item, dict) and isinstance(item.get("enum"), (list, tuple)):
+                names.update(str(v).strip() for v in item["enum"] if str(v).strip())
+        return names
 
     def reset_model(self) -> None:
         """Re-arm the FL oracle at reset state.

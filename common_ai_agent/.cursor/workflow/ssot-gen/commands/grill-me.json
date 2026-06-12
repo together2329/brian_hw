@@ -1,7 +1,0 @@
-{
-  "name": "grill-me",
-  "description": "Ask only missing or conflicting SSOT decisions for the active IP after /new-ip and optional /import",
-  "aliases": ["grill", "g"],
-  "handler": "skill:grill-me",
-  "usage": "/grill-me [<ip_name>]"
-}

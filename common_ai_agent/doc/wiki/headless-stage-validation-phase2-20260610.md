@@ -154,4 +154,4 @@ repair on hx1 — the projection brief works). What it took:
 Related: [[stage-validation-pulse-counter-20260610]],
 [[stage-validation-reflections-20260610]],
 [[workflow-improvement-candidates]],
-[[orchestrator-headless-worker-feedback]], [[verification-contract-model]].
+[[orchestrator-worker-handoff-review]], [[verification-contract-model]].

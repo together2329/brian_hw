@@ -1,8 +1,0 @@
-{
-  "name": "pnr-preflight",
-  "description": "Validate OpenROAD, bundled PDK files, SSOT physical constraints, netlist, and SDC before PnR",
-  "aliases": ["pnr-pf"],
-  "handler": "bash:preflight.sh",
-  "usage": "/pnr-preflight <ip>",
-  "timeout_sec": 120
-}

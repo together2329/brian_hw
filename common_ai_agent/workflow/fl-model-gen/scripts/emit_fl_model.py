@@ -1325,7 +1325,32 @@ class FunctionalModel:
         self.state = dict(self.state_defaults)
         self._declared_state_names = set(self.state_defaults)
         self.registers = self._register_defaults()
+        self._enum_bindings = self._enum_value_bindings()
         self.trace = []
+
+    def _enum_value_bindings(self):
+        """Map every declared FSM/enum state NAME to its integer encoding so
+        state_update exprs written as enum names (e.g. ``fsm_state = COUNT``)
+        resolve in the rule evaluator. The declared enum order IS the encoding
+        rtl-gen emits for the SystemVerilog localparams, so FL and RTL agree.
+        Without these bindings _eval_ast raises 'unknown rule name COUNT' and the
+        FSM trace state never advances past reset (campaign finding 36)."""
+        bindings = {{}}
+        fm = SSOT_MODEL.get("function_model") or {{}}
+        sources = list(fm.get("state_variables") or [])
+        regs = SSOT_MODEL.get("registers") or {{}}
+        sources += list(regs.get("internal_state_registers") or [])
+        for item in sources:
+            if not isinstance(item, dict):
+                continue
+            enum = item.get("enum")
+            if not isinstance(enum, (list, tuple)):
+                continue
+            for value, name in enumerate(enum):
+                key = str(name).strip()
+                if key and key not in bindings:
+                    bindings[key] = value
+        return bindings
 
     @staticmethod
     def _norm(value):
@@ -1552,6 +1577,7 @@ class FunctionalModel:
     def _rule_env(self, txn):
         env = {{}}
         env.update(_default_rule_helpers())
+        env.update(self._enum_bindings)
         env.update(self.params)
         env.update(self.state)
         env.update(self.registers)

@@ -2783,6 +2783,84 @@ def test_sim_debug_routes_missing_rtl_observable_to_tb_gen():
     assert classification["llm_loop_allowed"] is True
 
 
+def test_sim_debug_routes_en_clr_kind_contradiction_to_tb_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_en_clr_kind_under_test")
+
+    goal = {"goal_id": "EQ_TRANSACTION_COUNT", "ssot_refs": ["function_model.transactions.count"]}
+    row = {
+        "goal_id": "EQ_TRANSACTION_COUNT",
+        "mismatch": "count_reg: expected=1 observed=0",
+        "stimulus": {"kind": "count", "rst_n": 1, "en": 0, "clr": 0},
+        "fl_expected": {"model_result": {"transaction_id": "count", "transaction_name": "count"}},
+        "rtl_observed": {"count_reg": 0},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "tb_bug"
+    assert classification["owner"] == "tb-gen"
+    assert "en=0" in classification["reason"]
+
+
+def test_sim_debug_routes_reset_asserted_for_non_reset_goal_to_tb_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_reset_asserted_under_test")
+
+    goal = {"goal_id": "EQ_TRANSACTION_COUNT", "ssot_refs": ["function_model.transactions.count"]}
+    row = {
+        "goal_id": "EQ_TRANSACTION_COUNT",
+        "mismatch": "fsm_state: expected=COUNT observed=RESET",
+        "stimulus": {"kind": "count", "rst_n": 0, "en": 1, "clr": 0},
+        "fl_expected": {"model_result": {"transaction_id": "count", "transaction_name": "count"}},
+        "rtl_observed": {"fsm_state": 0},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "tb_bug"
+    assert classification["owner"] == "tb-gen"
+    assert "reset asserted in non-reset stimulus" in classification["reason"]
+
+
+def test_sim_debug_routes_fl_rule_evaluator_failure_to_fl_model_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_fl_rule_failure_under_test")
+
+    goal = {"goal_id": "EQ_TRANSACTION_COUNT", "ssot_refs": ["function_model.transactions.count"]}
+    row = {
+        "goal_id": "EQ_TRANSACTION_COUNT",
+        "mismatch": "FunctionalModel.apply failed: unknown rule name COUNT",
+        "stimulus": {"kind": "count", "rst_n": 1, "en": 1, "clr": 0},
+        "fl_expected": {"error": "unknown rule name COUNT"},
+        "rtl_observed": {"fsm_state": 3},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "fl_model_bug"
+    assert classification["owner"] == "fl-model-gen"
+    assert classification["llm_loop_allowed"] is True
+    assert "functional_model_implementation" in classification["authority_policy"]["llm_editable_artifacts"]
+    assert "functional_model" not in classification["authority_policy"]["locked_artifacts"]
+    assert "Repair FunctionalModel" in classification["repair_prompt"]
+
+
+def test_sim_debug_bare_value_mismatch_still_routes_to_rtl_gen():
+    comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_bare_value_under_test")
+
+    goal = {"goal_id": "EQ_OUTPUT", "ssot_refs": ["function_model.transactions.primary"]}
+    row = {
+        "goal_id": "EQ_OUTPUT",
+        "mismatch": "out: expected=1 observed=0",
+        "stimulus": {"value": 1},
+        "fl_expected": {"model_result": {"out": 1}},
+        "rtl_observed": {"out": 0},
+    }
+
+    classification = comparator_mod._classify_failure(goal, [row], row["mismatch"])
+
+    assert classification["classification"] == "rtl_bug"
+    assert classification["owner"] == "rtl-gen"
+
+
 def test_sim_debug_routes_undriven_abstract_required_fields_to_tb_gen():
     comparator_mod = _load_module(COMPARATOR_PATH, "compare_fl_rtl_results_abstract_required_fields_under_test")
 

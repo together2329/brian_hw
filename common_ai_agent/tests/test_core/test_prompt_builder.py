@@ -4,8 +4,11 @@ Written BEFORE the module exists (Red phase).
 """
 import sys
 import os
+import json
+import tempfile
 import unittest
 import types
+from pathlib import Path
 
 _tests_dir = os.path.dirname(os.path.abspath(__file__))
 _project_root = os.path.dirname(os.path.dirname(_tests_dir))
@@ -14,6 +17,7 @@ sys.path.insert(0, os.path.join(_project_root, 'src'))
 
 from prompt_builder import (
     MEMORY_OVERRIDE_START,
+    PROJECT_WIKI_CONTEXT_START,
     PromptContext,
     apply_memory_override,
     build_system_prompt,
@@ -219,6 +223,82 @@ class TestBuildSystemPromptStr(unittest.TestCase):
         self.assertTrue(result.startswith("# SSOT Generator"))
         self.assertLess(result.index("You write SSOT YAML."), result.index(MEMORY_OVERRIDE_START))
         self.assertLess(result.index(MEMORY_OVERRIDE_START), result.index("## ABSOLUTE RULES"))
+
+
+class TestProjectWikiContext(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self._env = {
+            key: os.environ.get(key)
+            for key in (
+                "COMMON_AI_AGENT_HOME",
+                "ACTIVE_WORKSPACE",
+                "ATLAS_ACTIVE_SESSION",
+                "ATLAS_ACTIVE_IP",
+                "ATLAS_IP_ROOT",
+                "ATLAS_PROJECT_WIKI_GRAPH",
+                "ATLAS_PROJECT_WIKI_ROOT",
+            )
+        }
+
+    def tearDown(self):
+        for key, value in self._env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+        self.tmp.cleanup()
+
+    def test_stage_tagged_project_wiki_pages_are_injected(self):
+        root = Path(self.tmp.name)
+        wiki = root / "doc" / "wiki"
+        wiki.mkdir(parents=True)
+        (wiki / "_graph.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "wiki_graph.v1",
+                    "node_count": 2,
+                    "edge_count": 0,
+                    "nodes": [
+                        {
+                            "id": "rtl-ownership",
+                            "title": "RTL Ownership",
+                            "type": "rule",
+                            "tags": ["rtl-ownership", "rtl-gen"],
+                            "path": "doc/wiki/rtl-ownership.md",
+                            "summary": "RTL ownership lesson for repair routing.",
+                        },
+                        {
+                            "id": "ssot-flags",
+                            "title": "SSOT Flags",
+                            "type": "reference",
+                            "tags": ["ssot-flags"],
+                            "path": "doc/wiki/ssot-flags.md",
+                            "summary": "SSOT flag reference.",
+                        },
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        os.environ["COMMON_AI_AGENT_HOME"] = str(root)
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
+        os.environ["ATLAS_ACTIVE_IP"] = "demo_ip"
+        cfg = _make_cfg(PROJECT_WIKI_CONTEXT_LIMIT=1)
+
+        result = build_system_prompt(
+            messages=[{"role": "user", "content": "fix rtl ownership"}],
+            cfg=cfg,
+            context=PromptContext(),
+            build_base_fn=_make_base_prompt_fn("BASE"),
+        )
+
+        self.assertIn(PROJECT_WIKI_CONTEXT_START, result)
+        self.assertIn("[[rtl-ownership]]", result)
+        self.assertIn("doc/wiki/rtl-ownership.md", result)
+        self.assertIn("RTL ownership lesson", result)
+        self.assertNotIn("[[ssot-flags]]", result)
 
 
 if __name__ == '__main__':

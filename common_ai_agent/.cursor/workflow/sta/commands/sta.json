@@ -1,7 +1,0 @@
-{
-  "name": "sta",
-  "description": "Full STA flow — agent walks handoff gate → SDC → tcl → OpenSTA → parse → report",
-  "aliases": ["timing"],
-  "handler": "todo:template:sta-default",
-  "usage": "/sta"
-}
