@@ -587,6 +587,17 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_repair_ssot_schema_cycle_waiver.py::test_repair_combinational_output_passes_verify_ssot"
             observed_at: 1d1edd4e
+      - id: OBL_SEMANTIC_JUDGE_CACHED_DETERMINISTIC
+        owned_by: engine.stage
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          FL/CL 의미 judge가 (1) 입력 불변이어도 매 재시도 전체 재판정(캐시 없음,
+          시도당 5-10분), (2) 동일 입력에 PASS/FAIL 비결정(cnt8 13:10 PASS vs
+          13:11 FAIL), (3) cl 단계가 fl judge까지 중복 실행, (4) LLM 호출 단위
+          타임아웃 부재(worker 1800s 행 2회) — cnt8 체인에서 ~2시간 소모의 주범
+          (campaign finding 29; 처방 = (ssot,contract) 해시 키 판정 캐시 +
+          호출 타임아웃 + cl의 fl-judge 중복 제거)
       - id: OBL_FL_GATE_REJECTS_UNRESOLVED_CONTRACT_REFS
         owned_by: engine.stage
         granularity: content
