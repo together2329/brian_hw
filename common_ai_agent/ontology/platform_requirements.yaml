@@ -856,8 +856,12 @@ requirements:
         # stale rtl_blocked.json, so orchestrator gate truth regressed RED after
         # a formal stage rerun. Pure combinational no_clock/no_reset contracts
         # must pass RTL preflight without synthetic harness clk/rst_n.
-        status: open
-        evidence: []
+        status: closed
+        evidence:
+          - test: "tests/test_ssot_to_rtl_contract_questions.py::test_signoff_preflight_accepts_clockless_resetless_combinational_contract"
+            observed_at: fdfeef95
+          - test: "tests/test_tb_clockless_dut.py::test_manifest_accepts_explicit_clockless_resetless_contract"
+            observed_at: fdfeef95
       - id: OBL_SSOT_DISK_CHECK_WAIVER_CONSISTENT
         owned_by: engine.stage
         granularity: content
