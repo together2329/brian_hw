@@ -332,6 +332,10 @@ requirements:
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_submit_debug_context_contract"
             observed_at: defccfea
+      - id: OBL_P4_SPLIT_LOCAL_WORKSPACE_SUBMIT_RESTAGES_LOCAL
+        owned_by: platform.scm
+        granularity: behavior
+        status: open   # local IP 와 P4 workspace 가 달라도 submit 직전 local 수정분이 workspace opened file 로 반영돼야 함
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
@@ -640,6 +644,19 @@ requirements:
           클로버로 간주해 원복 — cnt8 hold-row 재잠금이 1회 되돌려짐. 처방 =
           가드가 정식 재잠금 서명(manifest sha 체인)을 인식하면 원복 대신
           job-fail (finding 30)
+      - id: OBL_SCOREBOARD_FSM_ENUM_NORMALIZED
+        owned_by: engine.stage
+        granularity: content
+        status: closed   # 1a6a1398: FL 상태 이름('RESET') vs RTL 인코딩 값(0) raw 비교로 cnt8 13/29행 허위 실패 — 선언된 fsm states[].value 맵(rtl-gen 동일 의미론)으로 양측 정규화; 오인코딩은 name(value) 병기 실패 유지, 미선언 값 silent-pass 금지; 라이브 13→2 (잔여 2 = raw 비교가 가려온 진짜 FL/RTL 분기) (finding 32)
+        evidence:
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_normalizes_declared_fsm_state_name_against_rtl_value"
+            observed_at: 1a6a1398
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_fails_wrong_fsm_encoding_with_name_and_value"
+            observed_at: 1a6a1398
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_fails_undeclared_fsm_value_without_silent_pass"
+            observed_at: 1a6a1398
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_non_fsm_state_variable_comparison_unchanged"
+            observed_at: 1a6a1398
       - id: OBL_RTL_REFRESH_EMITS_PROVENANCE
         owned_by: engine.stage
         granularity: behavior
