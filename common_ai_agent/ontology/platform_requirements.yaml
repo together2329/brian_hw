@@ -629,6 +629,13 @@ requirements:
           silent-fail ×2, run 00ba672e) → provenance 게이트가 영구 미충족.
           처방 = 저작 루프 종료 조건에 provenance 작성 포함 + refresh 패스도
           현 todo_plan sha로 provenance 재서명 (finding 31)
+      - id: OBL_PIPELINE_LIVE_STATUS
+        owned_by: platform.ontology
+        granularity: behavior
+        status: closed   # 4664c2f6: scripts/orch_status.py — stage truth(게이트 동일 시각)+run 최근 step+in-flight/유령 job+실패분류별 next-action+블로커 artifact의 자체 치유책+judge cache 현황을 IP당 원샷 출력 ("어디서 막히고 뭘 해야 하는지" 라이브 가시화, finding 29 후속 사용자 요구)
+        evidence:
+          - test: "tests/test_orch_status_smoke.py::test_orch_status_runs_on_minimal_fixture"
+            observed_at: 4664c2f6
       - id: OBL_PIPELINE_COST_PROFILER
         owned_by: platform.ontology
         granularity: behavior
