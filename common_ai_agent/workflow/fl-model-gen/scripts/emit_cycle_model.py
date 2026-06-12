@@ -620,6 +620,19 @@ def _build_symbol_contract(ssot: dict[str, Any]) -> dict[str, Any]:
     global_declared.update(_declared_state_names(fm))
     global_declared.update(_declared_register_names(ssot))
     global_declared.update(_declared_io_names(ssot))
+    # Declared FSM enum state VALUES (fsm.<group>.states) are legal symbols:
+    # cycle/guard rules legitimately compare fsm_state against them
+    # (sequential cnt8 blocked on CLEAR/COUNT/HOLD/RESET — declared states,
+    # not invented names).
+    fsm_raw = ssot.get("fsm")
+    if isinstance(fsm_raw, dict):
+        for group_value in fsm_raw.values():
+            if not isinstance(group_value, dict):
+                continue
+            for state in group_value.get("states") or []:
+                name = str(state.get("name") if isinstance(state, dict) else state).strip()
+                if name:
+                    global_declared.add(name)
     rtl_contract_raw = ssot.get("rtl_contract")
     rtl_contract = rtl_contract_raw if isinstance(rtl_contract_raw, dict) else {}
     global_declared.update(_map_symbol_names(rtl_contract.get("input_map")))
@@ -779,7 +792,9 @@ def _cycle_model_source(
     self_check_kinds: list[str],
     cl_bins: dict[str, str],
     ssot_model_payload: dict[str, Any],
+    io_input_ports: list[str] | None = None,
 ) -> str:
+    io_input_ports = [str(p) for p in (io_input_ports or []) if str(p).strip()]
     return f'''#!/usr/bin/env python3
 """Executable SSOT cycle-level model for {ip}. Wraps FunctionalModel — FL is the only oracle."""
 
@@ -1023,6 +1038,14 @@ class CycleModel:
                 for name in _field_names(raw_name):
                     if name and name not in declared_fields:
                         declared_fields.append(name)
+        # Every declared io INPUT port is a legal rule symbol regardless of
+        # this transaction's own inputs list: guard expressions reference
+        # ports like rst_n/clr that belong to OTHER transactions (sequential
+        # cnt8 'unknown rule name rst_n', the sequential sibling of the
+        # combinational 'unknown rule name a' defect).
+        for name in {io_input_ports!r}:
+            if name and name not in declared_fields:
+                declared_fields.append(name)
 
         def _sample_value(name: str, field_idx: int):
             low = name.lower()
@@ -1252,6 +1275,7 @@ def main() -> int:
         self_check_kinds=_sanitize_for_cycle_source(self_check_kinds),
         cl_bins=_sanitize_for_cycle_source(cl_bins),
         ssot_model_payload=ssot_payload,
+        io_input_ports=sorted(_declared_io_names(ssot)),
     )
 
     # 5. Forbidden-substring guard
