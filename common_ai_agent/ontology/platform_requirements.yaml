@@ -344,7 +344,12 @@ requirements:
       - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_MAP
         owned_by: platform.scm
         granularity: behavior
-        status: open   # real p4d에서 local 파일 경로와 depot 파일 경로가 달라도 checkout/submit/revert가 정확해야 함
+        status: closed   # real p4d에서 local 파일 경로와 depot 파일 경로가 달라도 checkout/submit/revert가 정확해야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_submit_restages_source_map"
+            observed_at: 583ce223
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_revert_clears_source_map"
+            observed_at: 583ce223
       - id: OBL_P4_SUBMIT_FAILURE_DIAGNOSTICS
         owned_by: platform.scm
         granularity: behavior
