@@ -139,8 +139,154 @@ def _binary_string_to_int(value: Any) -> int | None:
     return int(text.replace("x", "0").replace("z", "0"), 2)
 
 
-def _dict_overlap_compare(expected: dict[str, Any], observed: dict[str, Any]) -> tuple[bool | None, str]:
+def _fsm_state_ident(value: Any) -> str:
+    """Upper-cased identifier for an FSM state name, matching rtl-gen's
+    ``_ident(name).upper()`` so the FL/RTL/scoreboard encodings agree."""
+    text = re.sub(r"\W+", "_", str(value or "")).strip("_")
+    if not text or not re.match(r"^[A-Za-z_]", text):
+        text = "sig_" + text
+    return text.upper()
+
+
+def _fsm_state_value_maps(ssot_doc: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Map each declared FSM state variable to its name<->value encoding.
+
+    Reuses rtl-gen's ``_fsm_state_encodings`` semantics: each
+    ``fsm.<group>.states[]`` entry contributes ``name`` and ``value`` (falling
+    back to declaration order when ``value`` is absent). The variable key is
+    ``fsm.<group>.state_variable`` (e.g. ``fsm_state``), which is what both the
+    FunctionalModel result and the RTL observation report. Returns
+    ``{state_variable: {"name_to_value": {NAME: int}, "value_to_name": {int: NAME}}}``.
+    """
+    out: dict[str, dict[str, Any]] = {}
+    if not isinstance(ssot_doc, dict):
+        return out
+    fsm = ssot_doc.get("fsm") if isinstance(ssot_doc.get("fsm"), dict) else {}
+    groups = [g for g in fsm.values() if isinstance(g, dict) and g.get("states")]
+    if not groups and fsm.get("states"):
+        groups = [fsm]
+    for group in groups:
+        state_var = str(group.get("state_variable") or "").strip()
+        if not state_var:
+            continue
+        name_to_value: dict[str, int] = {}
+        value_to_name: dict[int, str] = {}
+        fallback = 0
+        for item in group.get("states") or []:
+            if isinstance(item, dict):
+                raw = item.get("name") or item.get("state") or ""
+                value = item.get("value")
+            else:
+                raw, value = item, None
+            name = _fsm_state_ident(raw)
+            if not name or name in name_to_value:
+                continue
+            try:
+                enc = int(value)
+            except (TypeError, ValueError):
+                enc = fallback
+            name_to_value[name] = enc
+            value_to_name.setdefault(enc, name)
+            fallback = max(fallback, enc) + 1
+        if name_to_value:
+            out[state_var] = {"name_to_value": name_to_value, "value_to_name": value_to_name}
+    return out
+
+
+def _coerce_fsm_state_value(value: Any) -> int | None:
+    """Best-effort integer view of an RTL-observed FSM state encoding."""
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    as_bin = _binary_string_to_int(value)
+    if as_bin is not None:
+        return as_bin
+    if isinstance(value, str):
+        text = value.strip()
+        try:
+            return int(text, 0) if text.lower().startswith("0x") else int(text)
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+def _fsm_state_compare(
+    expected: dict[str, Any],
+    observed: dict[str, Any],
+    fsm_maps: dict[str, dict[str, Any]],
+) -> tuple[bool | None, str, set[str]]:
+    """Compare declared FSM state-variable keys through the name<->value map.
+
+    Canonical direction: both sides are normalized to the declared integer
+    VALUE before comparison so a correct RTL (FL name 'RESET' vs RTL value 0)
+    passes. A wrong encoding fails with a readable both-name-and-value message
+    (``expected=RESET(0) observed=HOLD(1)``). Unknown/undeclared encodings on
+    either side never silently pass: they fail showing the raw value.
+
+    Returns ``(verdict, mismatch, handled_keys)`` where ``verdict`` is None when
+    no FSM state-variable key overlapped (caller falls back to generic compare).
+    """
+    handled: set[str] = set()
+    if not fsm_maps:
+        return None, "", handled
+    mismatches: list[str] = []
+    any_pass = False
+    for key, enc_map in fsm_maps.items():
+        if key not in expected or key not in observed:
+            continue
+        handled.add(key)
+        name_to_value = enc_map["name_to_value"]
+        value_to_name = enc_map["value_to_name"]
+
+        exp_raw = expected[key]
+        exp_value: int | None
+        if isinstance(exp_raw, str):
+            exp_value = name_to_value.get(_fsm_state_ident(exp_raw))
+        else:
+            exp_value = _coerce_fsm_state_value(exp_raw)
+            if exp_value is not None and exp_value not in value_to_name:
+                exp_value = None
+
+        obs_value = _coerce_fsm_state_value(observed[key])
+        if isinstance(observed[key], str) and obs_value is None:
+            obs_value = name_to_value.get(_fsm_state_ident(observed[key]))
+
+        if exp_value is None:
+            mismatches.append(
+                f"{key}: expected={exp_raw!r} (undeclared FSM state) observed={observed[key]!r}"
+            )
+            continue
+        exp_name = value_to_name.get(exp_value, "?")
+        if obs_value is None or obs_value not in value_to_name:
+            mismatches.append(
+                f"{key}: expected={exp_name}({exp_value}) observed={observed[key]!r} (undeclared FSM encoding)"
+            )
+            continue
+        if obs_value != exp_value:
+            obs_name = value_to_name.get(obs_value, "?")
+            mismatches.append(
+                f"{key}: expected={exp_name}({exp_value}) observed={obs_name}({obs_value})"
+            )
+            continue
+        any_pass = True
+
+    if not handled:
+        return None, "", handled
+    if mismatches:
+        return False, "; ".join(mismatches[:8]), handled
+    return (True if any_pass else None), "", handled
+
+
+def _dict_overlap_compare(
+    expected: dict[str, Any],
+    observed: dict[str, Any],
+    *,
+    skip_keys: set[str] | None = None,
+) -> tuple[bool | None, str]:
     ignored = {"transaction_id", "transaction_name", "kind", "state", "state_updates", "reg", "addr"}
+    if skip_keys:
+        ignored = ignored | skip_keys
     compared = []
     mismatches = []
     for key, exp_value in expected.items():
@@ -1091,6 +1237,26 @@ class EquivalenceScoreboard:
         except Exception:
             return None
 
+    def _fsm_state_value_maps(self) -> dict[str, dict[str, Any]]:
+        """SSOT-declared FSM state-variable name<->value maps (cached)."""
+        cached = getattr(self, "_fsm_maps", None)
+        if cached is not None:
+            return cached
+        ssot_doc = getattr(self, "_ssot_doc", None)
+        if ssot_doc is None:
+            ssot_path = self.ip_dir / "yaml" / f"{self.ip}.ssot.yaml"
+            ssot_doc = {}
+            if ssot_path.is_file():
+                try:
+                    import yaml as _yaml
+                    ssot_doc = _yaml.safe_load(ssot_path.read_text(encoding="utf-8")) or {}
+                except Exception:
+                    ssot_doc = {}
+            self._ssot_doc = ssot_doc
+        maps = _fsm_state_value_maps(ssot_doc if isinstance(ssot_doc, dict) else {})
+        self._fsm_maps = maps
+        return maps
+
     def compare(self, fl_expected: dict[str, Any], rtl_observed: Any) -> tuple[bool, str]:
         if not isinstance(rtl_observed, dict):
             return False, "rtl_observed must be a dictionary of named observables"
@@ -1137,9 +1303,22 @@ class EquivalenceScoreboard:
             if hasattr(self, "_mirror_view_via_input_map"):
                 view = self._mirror_view_via_input_map(view)
             view = _filtered_expected_view(view, rtl_observed, fl_expected)
-            verdict, mismatch = _dict_overlap_compare(view, rtl_observed)
+            # FSM state variables are reported by the FunctionalModel as the
+            # declared enum NAME ('RESET') but by the RTL as the declared enum
+            # VALUE (0). Compare those keys through the SSOT name<->value map so
+            # a correct RTL passes while a wrong encoding fails with a readable
+            # both-name-and-value message. Other observables are unchanged.
+            fsm_maps = self._fsm_state_value_maps() if hasattr(self, "_fsm_state_value_maps") else {}
+            fsm_verdict, fsm_mismatch, fsm_keys = _fsm_state_compare(view, rtl_observed, fsm_maps)
+            if fsm_verdict is False:
+                return False, fsm_mismatch
+            verdict, mismatch = _dict_overlap_compare(view, rtl_observed, skip_keys=fsm_keys)
             if verdict is not None:
                 return verdict, mismatch
+            if fsm_verdict is True:
+                # No non-FSM observable overlapped, but the FSM state matched
+                # through the declared encoding — that is a real comparison.
+                return True, ""
         return False, "no comparable RTL observable for FunctionalModel result"
 
     def _mirror_view_via_input_map(self, view: dict[str, Any]) -> dict[str, Any]:

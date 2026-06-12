@@ -4132,3 +4132,145 @@ def test_live_atlas_server_5400_equivalence_smoke(tmp_path: Path, monkeypatch):
         server.should_exit = True
         thread.join(timeout=5)
         assert not thread.is_alive()
+
+
+def _write_fsm_state_fixture(tmp_path: Path, ip: str = "fsm_state_norm_ip") -> Path:
+    """Minimal IP with a declared FSM (name+value) so the runtime scoreboard
+    can normalize FL-reported enum names against RTL-observed enum values."""
+    ip_dir = tmp_path / ip
+    (ip_dir / "model").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "verify").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "yaml" / f"{ip}.ssot.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "top_module": {"name": ip},
+                "fsm": {
+                    "counter_control": {
+                        "state_variable": "fsm_state",
+                        "states": [
+                            {"name": "RESET", "value": 0},
+                            {"name": "HOLD", "value": 1},
+                            {"name": "CLEAR", "value": 2},
+                            {"name": "COUNT", "value": 3},
+                        ],
+                    }
+                },
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    (ip_dir / "model" / "functional_model.py").write_text(
+        """
+class FunctionalModel:
+    def _transactions(self):
+        return [{"id": "FM_PRIMARY", "name": "primary", "output_rules": [{"name": "fsm_state", "expr": "0"}]}]
+
+    def apply(self, txn):
+        return {"kind": "reset", "resp": 0, "state": {"fsm_state": "RESET"}}
+""".lstrip(),
+        encoding="utf-8",
+    )
+    (ip_dir / "verify" / "equivalence_goals.json").write_text(
+        json.dumps(
+            {
+                "goals": [
+                    {
+                        "goal_id": "EQ_TRANSACTION_RESET",
+                        "kind": "transaction",
+                        "title": "Reset state",
+                        "blocked": False,
+                    }
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return ip_dir.name
+
+
+def test_scoreboard_normalizes_declared_fsm_state_name_against_rtl_value(tmp_path: Path):
+    """Campaign finding 32: FL reports the FSM enum NAME ('RESET') while RTL
+    observes the declared VALUE (0). A correct RTL must PASS through the SSOT
+    name<->value map, not fail with a raw representation mismatch."""
+    ip = _write_fsm_state_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_fsm_state_pass_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    # Sanity: the SSOT-declared encoding is what rtl-gen would bind.
+    fsm_maps = scoreboard._fsm_state_value_maps()
+    assert fsm_maps["fsm_state"]["name_to_value"] == {"RESET": 0, "HOLD": 1, "CLEAR": 2, "COUNT": 3}
+
+    fl_expected = {
+        "goal_id": "EQ_TRANSACTION_RESET",
+        "goal_kind": "transaction",
+        "model_result": {"kind": "reset", "resp": 0, "state": {"fsm_state": "RESET"}},
+    }
+    passed, mismatch = scoreboard.compare(fl_expected, {"fsm_state": 0, "count_reg": 0})
+    assert passed is True
+    assert mismatch == ""
+
+
+def test_scoreboard_fails_wrong_fsm_encoding_with_name_and_value(tmp_path: Path):
+    """A wrong RTL encoding (observed=1 when RESET=0 expected) must still FAIL,
+    with a readable message that shows both the name and the value on each
+    side: expected=RESET(0) observed=HOLD(1)."""
+    ip = _write_fsm_state_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_fsm_state_fail_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    fl_expected = {
+        "goal_id": "EQ_TRANSACTION_RESET",
+        "goal_kind": "transaction",
+        "model_result": {"kind": "reset", "resp": 0, "state": {"fsm_state": "RESET"}},
+    }
+    passed, mismatch = scoreboard.compare(fl_expected, {"fsm_state": 1, "count_reg": 0})
+    assert passed is False
+    assert "fsm_state: expected=RESET(0) observed=HOLD(1)" == mismatch
+
+
+def test_scoreboard_fails_undeclared_fsm_value_without_silent_pass(tmp_path: Path):
+    """An RTL-observed encoding not in the declared map (7) must FAIL and show
+    the raw value — it must never silently pass."""
+    ip = _write_fsm_state_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_fsm_state_undecl_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    fl_expected = {
+        "goal_id": "EQ_TRANSACTION_RESET",
+        "goal_kind": "transaction",
+        "model_result": {"kind": "reset", "resp": 0, "state": {"fsm_state": "RESET"}},
+    }
+    passed, mismatch = scoreboard.compare(fl_expected, {"fsm_state": 7, "count_reg": 0})
+    assert passed is False
+    assert "fsm_state" in mismatch
+    assert "7" in mismatch
+    assert "undeclared" in mismatch
+
+
+def test_scoreboard_non_fsm_state_variable_comparison_unchanged(tmp_path: Path):
+    """Regression pin: a state variable that is NOT a declared SSOT FSM
+    state_variable is compared raw — the FSM normalization must not touch it.
+    Here ``status_reg`` is not an fsm.<group>.state_variable, so an int-vs-int
+    mismatch fails with the original raw message and an equal value passes."""
+    ip = _write_fsm_state_fixture(tmp_path)
+    scoreboard_mod = _load_module(SCOREBOARD_PATH, f"scoreboard_fsm_state_nonfsm_{time.time_ns()}")
+    scoreboard = scoreboard_mod.EquivalenceScoreboard(ip, tmp_path, reset_events=True)
+
+    fl_expected = {
+        "goal_id": "EQ_TRANSACTION_RESET",
+        "goal_kind": "transaction",
+        "model_result": {"kind": "reset", "resp": 0, "state": {"status_reg": 5}},
+    }
+    # Matching raw value -> pass, unchanged behavior.
+    passed_ok, mismatch_ok = scoreboard.compare(fl_expected, {"status_reg": 5})
+    assert passed_ok is True
+    assert mismatch_ok == ""
+    # Mismatched raw value -> fail with the original raw repr message (no
+    # name(value) FSM formatting applied to a non-FSM key).
+    passed_bad, mismatch_bad = scoreboard.compare(fl_expected, {"status_reg": 9})
+    assert passed_bad is False
+    assert "status_reg: expected=5 observed=9" == mismatch_bad
