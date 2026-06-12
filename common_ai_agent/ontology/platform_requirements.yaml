@@ -341,6 +341,10 @@ requirements:
             observed_at: f57f78f0
           - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_numbered_checkout_submit_clears_pending"
             observed_at: f57f78f0
+      - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_MAP
+        owned_by: platform.scm
+        granularity: behavior
+        status: open   # real p4d에서 local 파일 경로와 depot 파일 경로가 달라도 checkout/submit/revert가 정확해야 함
       - id: OBL_P4_SUBMIT_FAILURE_DIAGNOSTICS
         owned_by: platform.scm
         granularity: behavior

@@ -12,6 +12,7 @@ root; UI calls may pass a separate local IP root for the left pane.
 from __future__ import annotations
 
 import filecmp
+import json
 import os
 import re
 import shutil
@@ -56,6 +57,7 @@ _LOCAL_SCAN_SKIP_DIRS: Final[frozenset[str]] = frozenset({
     "node_modules",
 })
 _LOCAL_SCAN_SKIP_FILES: Final[frozenset[str]] = frozenset({".DS_Store"})
+_ATLAS_SOURCE_MAP: Final[str] = ".atlas/p4_source_map.json"
 _RECONCILE_LOCAL_STATES: Final[Mapping[str, str]] = {
     "add": "new",
     "edit": "modified",
@@ -529,6 +531,96 @@ class PerforceP4Adapter(SCMAdapter):
         values = [target_paths] if isinstance(target_paths, str) else target_paths
         return [str(value or "").strip() for value in values if str(value or "").strip()]
 
+    def _source_map_path(self) -> Path:
+        return self._workspace_root_path() / _ATLAS_SOURCE_MAP
+
+    def _load_source_map(self) -> dict[str, Any]:
+        path = self._source_map_path()
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {"sources": {}}
+        if not isinstance(data, dict):
+            return {"sources": {}}
+        sources = data.get("sources")
+        if not isinstance(sources, dict):
+            data["sources"] = {}
+        return data
+
+    def _save_source_map(self, data: dict[str, Any]) -> None:
+        path = self._source_map_path()
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        except OSError:
+            pass
+
+    def _depot_file_for_target(self, target_value: str, target: Path, source: Path) -> str:
+        text = str(target_value or "").strip()
+        if text.startswith("//"):
+            if not text.endswith("/"):
+                return self._clean_depot_key(text)
+            return self._clean_depot_key(f"{text.rstrip('/')}/{source.name}")
+        recs, result = self._records("fstat", "-T", "depotFile", target.as_posix(), timeout=10)
+        if self._soften(result).ok and recs:
+            return self._clean_depot_key(recs[0].get("depotFile", ""))
+        return ""
+
+    def _remember_local_source_mapping(
+        self,
+        depot_file: str,
+        source: Path,
+        local_root: str | Path | None,
+    ) -> None:
+        if local_root is None or not depot_file:
+            return
+        base = self._local_root_path(local_root)
+        try:
+            rel = source.resolve().relative_to(base)
+        except (OSError, RuntimeError, ValueError):
+            return
+        data = self._load_source_map()
+        sources = data.setdefault("sources", {})
+        if isinstance(sources, dict):
+            sources[self._clean_depot_key(depot_file)] = {
+                "localRoot": base.as_posix(),
+                "relativePath": rel.as_posix(),
+            }
+        self._save_source_map(data)
+
+    def _mapped_local_source(self, depot_file: str, local_root: str | Path | None) -> Path | None:
+        if local_root is None or not depot_file:
+            return None
+        data = self._load_source_map()
+        sources = data.get("sources")
+        if not isinstance(sources, dict):
+            return None
+        entry = sources.get(self._clean_depot_key(depot_file))
+        if not isinstance(entry, dict):
+            return None
+        rel = str(entry.get("relativePath") or "").strip()
+        if not rel:
+            return None
+        base = self._local_root_path(local_root)
+        try:
+            source = (base / rel).resolve()
+            source.relative_to(base)
+        except (OSError, RuntimeError, ValueError):
+            return None
+        return source
+
+    def _drop_local_source_mappings(self, depot_files: list[str]) -> None:
+        clean = {self._clean_depot_key(item) for item in depot_files if item}
+        if not clean:
+            return
+        data = self._load_source_map()
+        sources = data.get("sources")
+        if not isinstance(sources, dict):
+            return
+        for depot_file in clean:
+            sources.pop(depot_file, None)
+        self._save_source_map(data)
+
     def _client_path_for_depot(self, depot_file: str) -> Path | None:
         base = self._workspace_root_path()
         recs, result = self._records("fstat", "-T", "clientFile", depot_file, timeout=10)
@@ -730,10 +822,10 @@ class PerforceP4Adapter(SCMAdapter):
                 matched.add(depot_file)
             if action.endswith("delete"):
                 continue
-            source = None
+            source = self._mapped_local_source(depot_file, local_root)
             client_file = rec.get("clientFile", "")
             client_rel = self._client_file_rel(client_file)
-            if client_rel is not None:
+            if source is None and client_rel is not None:
                 try:
                     source = (self._local_root_path(local_root) / client_rel).resolve()
                 except (OSError, RuntimeError, ValueError):
@@ -1099,7 +1191,10 @@ class PerforceP4Adapter(SCMAdapter):
             updated = self._update_pending_changelist_description(target_change, message)
             if not updated.ok:
                 return updated
-            return self._combine_results([restaged, updated, self._run_p4("submit", "-c", target_change)])
+            result = self._run_p4("submit", "-c", target_change)
+            if result.ok:
+                self._drop_local_source_mappings(self._opened_depot_specs(opened))
+            return self._combine_results([restaged, updated, result])
         if add_all:
             self._run_p4("reconcile", self._workspace_scope())  # benign if nothing to reconcile
         scope = self._workspace_scope() if add_all else self._perforce_scope()
@@ -1113,6 +1208,8 @@ class PerforceP4Adapter(SCMAdapter):
         if not preflight.ok:
             return self._combine_results([restaged, preflight])
         result = self._run_p4("submit", "-d", message or "atlas: submit", scope)
+        if result.ok:
+            self._drop_local_source_mappings(self._opened_depot_specs(opened))
         if not result.ok:
             stranded = self._stranded_submit_change(result)
             if stranded:
@@ -1260,6 +1357,9 @@ class PerforceP4Adapter(SCMAdapter):
                     reconcile_specs.append(target.as_posix())
                 if source.resolve() != target.resolve():
                     shutil.copy2(source, target)
+                if target_value:
+                    depot_file = self._depot_file_for_target(target_value, target, source)
+                    self._remember_local_source_mapping(depot_file, source, local_root)
             except OSError as exc:
                 return self._result(ok=False, returncode=1, error=str(exc))
             specs.append(target.as_posix())
@@ -1353,6 +1453,7 @@ class PerforceP4Adapter(SCMAdapter):
                         ),
                     ])
             self._delete_emptied_changelists({c for c in touched if c.isdigit()})
+            self._drop_local_source_mappings(self._opened_depot_specs(opened) or specs)
         return self._combine_results(results)
 
     def delete_pending_changelist(self, changelist: str, stream: str = "") -> SCMCommandResult:
@@ -1371,7 +1472,10 @@ class PerforceP4Adapter(SCMAdapter):
                 return reverted
             results.append(reverted)
         results.append(self._run_p4("change", "-d", change))
-        return self._combine_results(results)
+        combined = self._combine_results(results)
+        if combined.ok:
+            self._drop_local_source_mappings(self._opened_depot_specs(opened))
+        return combined
 
     def sync_paths(
         self,
