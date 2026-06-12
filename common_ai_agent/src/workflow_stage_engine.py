@@ -771,7 +771,7 @@ def _rtl_manifest_progress(ip_dir: Path, doc: dict[str, Any]) -> dict[str, Any]:
 # LLM semantic judge (per-contract model calls) — 90s killed them mid-judge on
 # cnt8_en_v1 (finding 27, exit 999 timeout); deterministic scripts finish in
 # seconds so the higher ceiling is harmless.
-_STAGE_TOOL_TIMEOUT_S = max(60, int(os.environ.get("ATLAS_STAGE_TOOL_TIMEOUT_S", "300") or "300"))
+_STAGE_TOOL_TIMEOUT_S = max(60, int(os.environ.get("ATLAS_STAGE_TOOL_TIMEOUT_S", "600") or "600"))
 
 
 @dataclass
