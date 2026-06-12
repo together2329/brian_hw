@@ -788,6 +788,29 @@ def _generic_rule_contract(
         env_widths[_ident(field)] = port_widths.get(port_name, 32)
         sample_env_widths[_ident(field)] = port_widths.get(port_name, 32)
 
+    # Declared FSM enum state VALUES are legal rule-expression symbols (the
+    # FL/CL side already binds them): encode each fsm.<group>.states entry by
+    # its declaration index so `fsm_state := RESET` resolves to a constant
+    # instead of raising RTL_INPUT_MAP_RESET / unknown-name questions
+    # (sequential cnt8, the rtl-gen sibling of the CL enum-symbol defect).
+    fsm_state_enc = _fsm_state_encodings(doc)
+    if fsm_state_enc:
+        enum_width = max(max(fsm_state_enc.values()).bit_length(), 1)
+        for st_name, enc in fsm_state_enc.items():
+            ident = _ident(st_name)
+            if not ident or ident in env:
+                continue
+            env[ident] = f"{enum_width}'d{enc}"
+            sample_env[ident] = f"{enum_width}'d{enc}"
+            env_widths[ident] = enum_width
+            sample_env_widths[ident] = enum_width
+
+    def _state_reset_value(raw: Any) -> int:
+        token = _ident(str(raw or "").strip())
+        if token in fsm_state_enc:
+            return fsm_state_enc[token]
+        return _int_value(raw, 0)
+
     state_vars: dict[str, dict] = {}
     fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
     for idx, item in enumerate(fm.get("state_variables") or []):
@@ -797,7 +820,7 @@ def _generic_rule_contract(
         width = _port_width(by_name[name]) if name in by_name else max(_int_value(item.get("width"), 32), 1)
         state_vars[name] = {
             "width": width,
-            "reset": _int_value(item.get("reset"), 0),
+            "reset": _state_reset_value(item.get("reset")),
         }
         env[name] = _rtl_eval_ref(name, int(state_vars[name]["width"]))
         sample_env[name] = name
@@ -1369,24 +1392,62 @@ def _pipeline_stage_names(doc: dict) -> list[str]:
     return out
 
 
-def _fsm_state_names(doc: dict) -> list[str]:
+def _fsm_groups(doc: dict) -> list[dict]:
+    """Every fsm group that declares states — group names vary by SSOT
+    (control, counter_control, …); reading only 'control' silently dropped
+    every state of cnt8's counter_control group."""
     fsm = doc.get("fsm") if isinstance(doc.get("fsm"), dict) else {}
-    control = fsm.get("control") if isinstance(fsm.get("control"), dict) else fsm
+    groups = [g for g in fsm.values() if isinstance(g, dict) and g.get("states")]
+    if not groups and fsm.get("states"):
+        groups = [fsm]
+    return groups
+
+
+def _fsm_state_names(doc: dict) -> list[str]:
     out: list[str] = []
-    for idx, item in enumerate(control.get("states") or []):
-        if isinstance(item, dict):
-            raw = item.get("name") or item.get("state") or f"STATE_{idx}"
-        else:
-            raw = item or f"STATE_{idx}"
-        name = _ident(str(raw)).upper()
-        if name and name not in out:
-            out.append(name)
+    for group in _fsm_groups(doc):
+        for idx, item in enumerate(group.get("states") or []):
+            if isinstance(item, dict):
+                raw = item.get("name") or item.get("state") or f"STATE_{idx}"
+            else:
+                raw = item or f"STATE_{idx}"
+            name = _ident(str(raw)).upper()
+            if name and name not in out:
+                out.append(name)
+    return out
+
+
+def _fsm_state_encodings(doc: dict) -> dict[str, int]:
+    """Declared enum encodings (states[].value) keyed by upper-cased state
+    name; falls back to declaration order when no value is given."""
+    out: dict[str, int] = {}
+    fallback = 0
+    for group in _fsm_groups(doc):
+        for item in group.get("states") or []:
+            if isinstance(item, dict):
+                raw = item.get("name") or item.get("state") or ""
+                value = item.get("value")
+            else:
+                raw, value = item, None
+            name = _ident(str(raw)).upper()
+            if not name or name in out:
+                continue
+            try:
+                out[name] = int(value)
+            except (TypeError, ValueError):
+                out[name] = fallback
+            fallback = max(fallback, out[name]) + 1
     return out
 
 
 def _fsm_transition_items(doc: dict) -> list[dict[str, str]]:
-    fsm = doc.get("fsm") if isinstance(doc.get("fsm"), dict) else {}
-    control = fsm.get("control") if isinstance(fsm.get("control"), dict) else fsm
+    out: list[dict[str, str]] = []
+    for control in _fsm_groups(doc):
+        out.extend(_fsm_transition_items_for_group(control))
+    return out
+
+
+def _fsm_transition_items_for_group(control: dict) -> list[dict[str, str]]:
     out: list[dict[str, str]] = []
     for item in control.get("transitions") or []:
         if not isinstance(item, dict):
