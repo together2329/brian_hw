@@ -813,6 +813,7 @@ class PerforceP4Adapter(SCMAdapter):
         matched: set[str] = set()
         copied: list[str] = []
         diagnostics: list[str] = []
+        missing_mapped_sources: list[str] = []
         for rec in opened:
             action = rec.get("action", "")
             depot_file = self._clean_depot_key(rec.get("depotFile", ""))
@@ -823,6 +824,7 @@ class PerforceP4Adapter(SCMAdapter):
             if action.endswith("delete"):
                 continue
             source = self._mapped_local_source(depot_file, local_root)
+            source_from_map = source is not None
             client_file = rec.get("clientFile", "")
             client_rel = self._client_file_rel(client_file)
             if source is None and client_rel is not None:
@@ -837,6 +839,8 @@ class PerforceP4Adapter(SCMAdapter):
                     f"restage skipped: local source not found for {depot_file or client_file} "
                     f"under {self._local_root_path(local_root)}"
                 )
+                if source_from_map:
+                    missing_mapped_sources.append(depot_file or client_file)
                 continue
             target = self._workspace_path_from_client_file(client_file) if client_file else None
             if target is None:
@@ -863,6 +867,13 @@ class PerforceP4Adapter(SCMAdapter):
                     returncode=2,
                     error="selected submit path is not opened in this changelist: " + ", ".join(missing),
                 )
+        if missing_mapped_sources:
+            return self._result(
+                ok=False,
+                stdout="\n".join(diagnostics),
+                returncode=2,
+                error="mapped local source is missing for submit: " + ", ".join(missing_mapped_sources),
+            )
         stdout = "\n".join([*(f"restaged local edit: {path}" for path in copied), *diagnostics])
         return self._result(ok=True, stdout=stdout)
 

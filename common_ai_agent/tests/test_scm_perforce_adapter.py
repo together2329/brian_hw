@@ -96,6 +96,22 @@ def _source_map_has_key(client_root: Path, depot_file: str) -> bool:
     return isinstance(sources, dict) and depot_file in sources
 
 
+def _create_live_change(p4: str, env: dict[str, str], client_root: Path, description: str) -> str:
+    change_form = (
+        "Change:\tnew\n"
+        "Client:\tatlas_ws\n"
+        "User:\tatlas_pytest\n"
+        "Status:\tnew\n"
+        "Description:\n"
+        f"\t{description}\n"
+    )
+    change = _run_live_p4(p4, env, client_root, "change", "-i", input_text=change_form)
+    assert change.returncode == 0, change.stderr or change.stdout
+    match = re.search(r"Change (\d+) created", change.stdout)
+    assert match is not None, change.stdout
+    return match.group(1)
+
+
 @pytest.fixture
 def local_p4d(monkeypatch, tmp_path):
     p4 = shutil.which("p4")
@@ -1337,6 +1353,162 @@ def test_live_local_p4d_split_local_depot_path_submit_restages_source_map(local_
     printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
     assert printed.returncode == 0, printed.stderr or printed.stdout
     assert "module mapped_second; endmodule" in printed.stdout
+    assert not _source_map_has_key(client_root, "//depot/rtl/main.sv")
+
+
+def test_live_local_p4d_numbered_split_local_depot_path_submit_restages_source_map(local_p4d):
+    # Given: a numbered changelist where the local source relative path differs
+    # from the depot/client relative path.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    change_id = _create_live_change(p4, env, client_root, "numbered split path submit")
+    source = ip_root / "src" / "generated" / "pwm_numbered.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module numbered_mapped_first; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    opened = adapter.edit_paths(
+        ["src/generated/pwm_numbered.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist=change_id,
+    )
+    assert opened.ok, opened.error or opened.stderr
+    assert _source_map_has_key(client_root, "//depot/rtl/main.sv")
+    source.write_text("module numbered_mapped_second; endmodule\n", encoding="utf-8")
+
+    submitted = adapter.submit(
+        "numbered split path submit",
+        add_all=False,
+        changelist=change_id,
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv"],
+    )
+
+    assert submitted.ok, submitted.error or submitted.stderr
+    assert "restaged local edit: //depot/rtl/main.sv" in submitted.stdout
+    pending_changes = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert f"Change {change_id} " not in pending_changes.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module numbered_mapped_second; endmodule" in printed.stdout
+    assert not _source_map_has_key(client_root, "//depot/rtl/main.sv")
+
+
+def test_live_local_p4d_folder_target_add_restages_split_source_map(local_p4d):
+    # Given: a new local file outside the P4 workspace is added through a depot
+    # folder target. Its basename becomes the depot file name.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    source = ip_root / "src" / "generated" / "folder_added.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module folder_added_first; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+
+    opened = adapter.open_paths(
+        ["src/generated/folder_added.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    assert (client_root / "rtl" / "folder_added.sv").read_text(encoding="utf-8") == (
+        "module folder_added_first; endmodule\n"
+    )
+    assert _source_map_has_key(client_root, "//depot/rtl/folder_added.sv")
+    source.write_text("module folder_added_second; endmodule\n", encoding="utf-8")
+
+    submitted = adapter.submit(
+        "folder target split add",
+        add_all=False,
+        changelist="default",
+        local_root=ip_root,
+        paths=["//depot/rtl/folder_added.sv"],
+    )
+
+    assert submitted.ok, submitted.error or submitted.stderr
+    assert "restaged local edit: //depot/rtl/folder_added.sv" in submitted.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/folder_added.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module folder_added_second; endmodule" in printed.stdout
+    assert not _source_map_has_key(client_root, "//depot/rtl/folder_added.sv")
+
+
+def test_live_local_p4d_split_local_depot_path_delete_pending_clears_source_map(local_p4d):
+    # Given: a numbered pending changelist opened through a split local/depot
+    # mapping.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    change_id = _create_live_change(p4, env, client_root, "delete split path pending")
+    source = ip_root / "src" / "generated" / "delete_pending_impl.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module delete_pending_local; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    opened = adapter.edit_paths(
+        ["src/generated/delete_pending_impl.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist=change_id,
+    )
+    assert opened.ok, opened.error or opened.stderr
+    assert _source_map_has_key(client_root, "//depot/rtl/main.sv")
+
+    deleted = adapter.delete_pending_changelist(change_id)
+
+    assert deleted.ok, deleted.error or deleted.stderr
+    pending_changes = _run_live_p4(p4, env, client_root, "changes", "-s", "pending", "-c", "atlas_ws")
+    assert f"Change {change_id} " not in pending_changes.stdout
+    opened_after = _run_live_p4(p4, env, client_root, "opened", "-a")
+    assert "//depot/rtl/main.sv" not in opened_after.stdout
+    assert (client_root / "rtl" / "main.sv").read_text(encoding="utf-8") == "module delete_pending_local; endmodule\n"
+    assert source.read_text(encoding="utf-8") == "module delete_pending_local; endmodule\n"
+    assert not _source_map_has_key(client_root, "//depot/rtl/main.sv")
+
+
+def test_live_local_p4d_split_local_depot_path_missing_source_blocks_submit(local_p4d):
+    # Given: checkout created a source map, but the original local source was
+    # removed before Submit. Submitting the stale workspace copy would be wrong.
+    p4 = local_p4d["p4"]
+    env = local_p4d["env"]
+    client_root = local_p4d["client_root"]
+    ip_root = local_p4d["ip_root"]
+    source = ip_root / "src" / "generated" / "missing_before_submit.sv"
+    source.parent.mkdir(parents=True, exist_ok=True)
+    source.write_text("module stale_workspace_copy; endmodule\n", encoding="utf-8")
+    adapter = PerforceP4Adapter(client_root, executable=p4)
+    opened = adapter.edit_paths(
+        ["src/generated/missing_before_submit.sv"],
+        local_root=ip_root,
+        target_paths=["//depot/rtl/main.sv"],
+        changelist="default",
+    )
+    assert opened.ok, opened.error or opened.stderr
+    assert _source_map_has_key(client_root, "//depot/rtl/main.sv")
+    source.unlink()
+
+    submitted = adapter.submit(
+        "should block missing mapped source",
+        add_all=False,
+        changelist="default",
+        local_root=ip_root,
+        paths=["//depot/rtl/main.sv"],
+    )
+
+    assert not submitted.ok
+    assert submitted.returncode == 2
+    assert "mapped local source is missing for submit: //depot/rtl/main.sv" in submitted.error
+    assert "restage skipped: local source not found for //depot/rtl/main.sv" in submitted.stdout
+    printed = _run_live_p4(p4, env, client_root, "print", "-q", "//depot/rtl/main.sv")
+    assert printed.returncode == 0, printed.stderr or printed.stdout
+    assert "module seed; endmodule" in printed.stdout
+    reverted = adapter.revert_paths(["//depot/rtl/main.sv"], changelist="default")
+    assert reverted.ok, reverted.error or reverted.stderr
     assert not _source_map_has_key(client_root, "//depot/rtl/main.sv")
 
 
