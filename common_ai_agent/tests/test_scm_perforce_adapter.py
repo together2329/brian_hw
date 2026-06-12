@@ -270,6 +270,17 @@ def test_process_env_client_override_beats_dotenv_client(monkeypatch, tmp_path):
     )
 
 
+def test_perforce_sync_ui_reselects_opened_changelist_after_mutation():
+    source = (Path(PROJECT_ROOT) / "frontend" / "atlas" / "perforce-sync.tsx").read_text(
+        encoding="utf-8",
+    )
+
+    assert "selectOpenedChange?: boolean" in source
+    assert "nextPendingChangeSelection(current, nextPane)" in source
+    assert "{ selectOpenedChange: true }" in source
+    assert "paneWithPendingChangeOptions(d)" in source
+
+
 def test_safe_filespecs_rejects_escapes(tmp_path):
     a = PerforceP4Adapter(tmp_path)
     (tmp_path / "a.txt").write_text("x", encoding="utf-8")

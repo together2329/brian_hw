@@ -34,6 +34,8 @@ describe('PerforceSyncTab pane navigation', () => {
   const checkedOut: PendingFixture[] = [];
   let delayRootLocalPane = false;
   let releaseRootLocalPane: (() => void) | null = null;
+  let includeExistingPending = true;
+  let checkoutChangeOverride = '';
 
   const panePayload = (localDir: string, depotDir: string) => ({
     ok: true,
@@ -57,7 +59,7 @@ describe('PerforceSyncTab pane navigation', () => {
       { path: '//GOOD_SOC/GOOD_IP/docs/', rev: '', kind: 'folder' },
     ],
     pending: [
-      { path: '//GOOD_SOC/GOOD_IP/rtl/opened.sv', action: 'edit', change: '12' },
+      ...(includeExistingPending ? [{ path: '//GOOD_SOC/GOOD_IP/rtl/opened.sv', action: 'edit', change: '12' }] : []),
       ...checkedOut.map(row => ({ path: row.path, action: 'edit', change: row.change })),
     ],
     pendingChanges: [
@@ -73,6 +75,8 @@ describe('PerforceSyncTab pane navigation', () => {
     checkedOut.length = 0;
     delayRootLocalPane = false;
     releaseRootLocalPane = null;
+    includeExistingPending = true;
+    checkoutChangeOverride = '';
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = requestUrl(input);
       if (url.startsWith('/api/ip/list')) {
@@ -92,7 +96,7 @@ describe('PerforceSyncTab pane navigation', () => {
       if (url === '/api/scm/edit') {
         const body = readBody(init);
         editBodies.push(body);
-        const change = String(body.changelist || 'default');
+        const change = checkoutChangeOverride || String(body.changelist || 'default');
         const targetPaths = bodyStrings(body.targetPaths)
           .filter(path => path.startsWith('//') && !path.endsWith('/'));
         const pendingPaths = targetPaths.length ? targetPaths : bodyStrings(body.paths);
@@ -167,6 +171,23 @@ describe('PerforceSyncTab pane navigation', () => {
 
     await waitFor(() => expect(editBodies).toHaveLength(1));
     expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv')).toBeVisible();
+  });
+
+  it('selects the changelist that actually contains the checkout so submit stays enabled', async () => {
+    includeExistingPending = false;
+    checkoutChangeOverride = 'default';
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    const folders = await screen.findAllByText('rtl/');
+    fireEvent.click(folders[1]);
+    await screen.findByText('main.sv');
+    fireEvent.change(screen.getByLabelText('Pending changelist'), { target: { value: '12' } });
+
+    fireEvent.click(screen.getByText('main.sv'));
+    fireEvent.click(screen.getByRole('button', { name: /checkout/i }));
+
+    expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv')).toBeVisible();
+    expect((screen.getByLabelText('Pending changelist') as HTMLSelectElement).value).toBe('default');
+    expect(screen.getByRole('button', { name: /submit/i })).not.toBeDisabled();
   });
 
   it('checks out a selected local modification into a selected Perforce target file', async () => {

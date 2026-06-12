@@ -40,7 +40,7 @@ interface PendingChange { id: string; label?: string; description?: string }
 interface HistoryCommit { sha: string; short?: string; subject?: string; author?: string; date?: string }
 interface PaneLocation { localDir: string; depotDir: string }
 interface NavigationState { entries: PaneLocation[]; index: number }
-interface LoadPaneOptions { remember?: boolean; clearLocal?: boolean; clearDepot?: boolean }
+interface LoadPaneOptions { remember?: boolean; clearLocal?: boolean; clearDepot?: boolean; selectOpenedChange?: boolean }
 interface PaneState {
   ok: boolean;
   client?: string;
@@ -112,6 +112,37 @@ const historyCommitsFromPayload = (payload: unknown): HistoryCommit[] => {
       date: stringField(row, 'date'),
     }))
     .filter(row => Boolean(row.sha));
+};
+
+const pendingChangeId = (value: string | undefined): string => {
+  const clean = String(value || '').trim();
+  return clean || 'default';
+};
+
+const paneWithPendingChangeOptions = (payload: PaneState): PaneState => {
+  const pendingChanges = payload.pendingChanges?.length
+    ? payload.pendingChanges
+    : [{ id: 'default', label: 'default' }];
+  const seen = new Set(pendingChanges.map(change => change.id));
+  const merged = seen.has('default')
+    ? [...pendingChanges]
+    : [{ id: 'default', label: 'default' }, ...pendingChanges];
+  seen.add('default');
+  for (const row of payload.pending || []) {
+    const id = pendingChangeId(row.change);
+    if (seen.has(id)) continue;
+    seen.add(id);
+    merged.push({ id, label: id });
+  }
+  return { ...payload, pendingChanges: merged };
+};
+
+const nextPendingChangeSelection = (current: string, payload: PaneState): string => {
+  const optionIds = new Set((payload.pendingChanges || []).map(change => change.id));
+  const openedIds = (payload.pending || []).map(row => pendingChangeId(row.change));
+  if (openedIds.includes(current)) return current;
+  if (openedIds.length) return openedIds[0];
+  return optionIds.has(current) ? current : 'default';
 };
 
 const parentLocalDir = (dir: string): string => {
@@ -380,18 +411,24 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .then(r => r.json())
       .then((d: PaneState) => {
         if (!mounted.current || reqRef.current !== reqId) return;
-        setPane(d);
-        if (!targetStream && d.stream) setStream(d.stream);
-        if (!targetScmRoot && d.scmRoot) setScmRoot(d.scmRoot);
-        const changeIds = (d.pendingChanges || []).map(change => change.id);
-        setSelectedChange(current => (changeIds.includes(current) ? current : 'default'));
-        const nextStream = targetStream || d.stream || '';
+        const nextPane = paneWithPendingChangeOptions(d);
+        setPane(nextPane);
+        if (!targetStream && nextPane.stream) setStream(nextPane.stream);
+        if (!targetScmRoot && nextPane.scmRoot) setScmRoot(nextPane.scmRoot);
+        setSelectedChange(current => (
+          options.selectOpenedChange
+            ? nextPendingChangeSelection(current, nextPane)
+            : ((nextPane.pendingChanges || []).some(change => change.id === current)
+              ? current
+              : 'default')
+        ));
+        const nextStream = targetStream || nextPane.stream || '';
         const nextDepotRoot = nextStream ? `${nextStream.replace(/\/+$/, '')}/` : '';
-        setLocalDir(d.localDir ?? targetLocalDir);
-        const nextDepotDir = d.depotDir || targetDepotDir || nextDepotRoot;
+        setLocalDir(nextPane.localDir ?? targetLocalDir);
+        const nextDepotDir = nextPane.depotDir || targetDepotDir || nextDepotRoot;
         if (nextDepotDir) setDepotDir(nextDepotDir);
         if (options.remember) {
-          const nextLocation = { localDir: d.localDir ?? targetLocalDir, depotDir: nextDepotDir };
+          const nextLocation = { localDir: nextPane.localDir ?? targetLocalDir, depotDir: nextDepotDir };
           setNav(current => {
             const kept = current.index >= 0 ? current.entries.slice(0, current.index + 1) : [];
             const last = kept.length ? kept[kept.length - 1] : null;
@@ -409,11 +446,11 @@ function PerforceSyncTab(props: PerforceSyncProps) {
               localDir: nextLocation.localDir,
               depotDir: nextLocation.depotDir,
               stream: nextStream,
-              scmRoot: targetScmRoot || d.scmRoot || '',
+              scmRoot: targetScmRoot || nextPane.scmRoot || '',
             }),
           }).catch(() => {});
         }
-        if (!d.ok && d.error) setErr(d.error);
+        if (!nextPane.ok && nextPane.error) setErr(nextPane.error);
         setSelLocal(new Set()); setSelDepot(new Set()); setSelPend(new Set());
       })
       .catch(e => { if (mounted.current && reqRef.current === reqId) setErr(String(e)); })
@@ -540,7 +577,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .finally(() => {
         if (mounted.current) {
           setBusy(false);
-          loadPane(ip, activeStream, activeScmRoot, localDir, depotDir);
+          loadPane(ip, activeStream, activeScmRoot, localDir, depotDir, { selectOpenedChange: true });
           loadHistory(ip, activeStream, activeScmRoot);
         }
       });
