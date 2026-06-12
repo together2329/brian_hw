@@ -629,6 +629,13 @@ requirements:
           silent-fail ×2, run 00ba672e) → provenance 게이트가 영구 미충족.
           처방 = 저작 루프 종료 조건에 provenance 작성 포함 + refresh 패스도
           현 todo_plan sha로 provenance 재서명 (finding 31)
+      - id: OBL_PIPELINE_COST_PROFILER
+        owned_by: platform.ontology
+        granularity: behavior
+        status: closed   # scripts/orch_profile.py: llm_calls(지연/비용/롤) × workers-ipc job(벽시계/실패분류) × orchestrator_runs 통합 프로파일 — "어디서 LLM콜이 새는가"를 데이터로 답함 (cnt8 실측: 1008콜/7.0h/$142, fl judge 420콜이 55%; finding 29 디버깅 요구)
+        evidence:
+          - test: "tests/test_orch_profile_smoke.py::test_orch_profile_runs_on_minimal_fixture"
+            observed_at: dcb10dd2
       - id: OBL_SEMANTIC_JUDGE_CACHED_DETERMINISTIC
         owned_by: engine.stage
         granularity: behavior
