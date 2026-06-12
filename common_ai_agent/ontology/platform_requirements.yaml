@@ -463,6 +463,22 @@ requirements:
           - test: "tests/test_orchestrator_chat_visibility_frontend.py::test_behavioral_vitest_suite_present"
             observed_at: d3178b92
 
+  - id: REQ_PLAT_SESSION_TODO_FRESHNESS_001
+    claim: "세션 worker는 UI/slash plane이 갱신한 세션 todo.json을 다음 실행 turn에서 즉시 읽어, auto-start TODO가 prose-only turn으로 유실되지 않는다"
+    design_anchor: doc/wiki/atlas-context-root-model-20260603.md
+    obligations:
+      - id: OBL_SESSION_WORKER_RELOADS_TODO_AFTER_INPUT
+        owned_by: runtime.server
+        granularity: concurrent
+        status: closed   # /finalize-req auto-start race: input() 대기 중 UI/slash가 쓴 todo.json을 post-input reload로 같은 turn에 반영
+        evidence:
+          - test: "tests/test_todo_session_binding.py::test_main_todo_reload_helper_rebinds_stale_global"
+            observed_at: b6e97f30
+          - test: "tests/test_todo_session_binding.py::test_chat_loop_reloads_todo_after_input_before_dispatch"
+            observed_at: b6e97f30
+          - test: "tests/test_atlas_multiuser_session_scope.py::test_req_lifecycle_templates_auto_start_and_kick"
+            observed_at: b6e97f30
+
   - id: REQ_PLAT_ORCH_RESUME_001
     claim: "사람이 ask_user에 응답하면 paused orchestrator run은 그 응답을 소비해 재개한다 — 응답이 asking oneshot 종료와 레이스해도 좀비로 남지 않는다"
     design_anchor: doc/wiki/orchestrator-campaign-10ip-20260610.md
@@ -637,6 +653,20 @@ requirements:
             observed_at: 5365da60
           - test: "tests/test_orch_trace_smoke.py::test_atlas_trace_strip_consumes_shared_decision_trace_api"
             observed_at: b06b7a4f
+      - id: OBL_ORCH_TRACE_SURFACES_ACTIVE_WORKER_HEARTBEAT
+        owned_by: agent.react-loop
+        granularity: behavior
+        # finding 43: scratch_xor2_v1 live probe 294bfaaac6e3451db306457deefa38d5
+        # showed the shared decision trace correctly explained the TB->rtl-gen
+        # reroute, but then displayed only "yielded" while the active rtl-gen
+        # worker generated rtl_contract.json, resolved blockers, passed compile,
+        # and later stopped updating heartbeat/log without response.json. Atlas UI
+        # and CLI need the same active-worker overlay from workers-ipc metadata:
+        # job id, workflow/status, last_action, heartbeat/log age, response
+        # presence, and stale_worker flag. This must live in src/orchestrator/trace.py
+        # so CLI/API/UI remain one implementation.
+        status: open
+        evidence: []
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
