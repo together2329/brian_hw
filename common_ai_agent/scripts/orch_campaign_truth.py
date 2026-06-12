@@ -45,7 +45,11 @@ CAMPAIGN_SPECS: dict[str, dict] = {
              "statement": "count[7:0] +1 per enabled cycle, holds when en=0, wraps 255->0; FL-vs-RTL byte-exact.",
              "when_then": [["rst_n==0", "count==0 (async)"],
                             ["en==1 && clr==0 at rising clk", "count+=1; 255 wraps to 0"],
-                            ["en==0 && clr==0", "count holds"]]},
+                            # "at rising clk" stated explicitly: the FL judge
+                            # literally compares contract rows to transaction
+                            # guards, and a clockless hold row vs a clocked
+                            # hold guard reads as "narrowed" (finding 29).
+                            ["en==0 && clr==0 at rising clk", "count holds"]]},
             {"key": "CLR", "granularity": "structural",
              "statement": "clr=1 forces count to 0 on next edge even when en=1 (clr dominates en).",
              "when_then": [["clr==1 at rising clk (any en)", "count==0 next cycle"]]},
