@@ -146,8 +146,23 @@ def main() -> int:
                 failed.append((resp.stat().st_mtime, wf, _classify(blob), str(rs.get("error") or "")[:90], d.name))
     print("\n== in-flight worker jobs ==")
     for ts, wf, name in sorted(inflight, reverse=True):
-        note = "" if time.time() - ts < 1800 else "  <- POSSIBLY HUNG/GHOST (no response.json)"
-        print(f"  {wf:<16} started {_age(ts)}  {name}{note}")
+        line = f"  {wf:<16} started {_age(ts)}  {name}"
+        hb_path = jobs_dir / name / "heartbeat.json"
+        if hb_path.is_file():
+            try:
+                hb = json.loads(hb_path.read_text())
+                hb_age = time.time() - float(hb.get("updated_at") or 0)
+                pulse = "STALLED?" if hb_age > 150 else "alive"
+                line += (f"\n      [{pulse}] beat {_age(float(hb.get('updated_at') or 0))}"
+                         f" · actions={hb.get('actions')} events={hb.get('events')}"
+                         f"\n      doing: {str(hb.get('last_action'))[:110]}")
+            except Exception:
+                line += "\n      (heartbeat unreadable)"
+        elif time.time() - ts > 1800:
+            line += "  <- POSSIBLY HUNG/GHOST (no response.json, no heartbeat)"
+        else:
+            line += "  (no heartbeat yet — pre-heartbeat worker or just started)"
+        print(line)
     if not inflight:
         print("  (none)")
     print(f"\n== recent failed jobs (last {ns.recent}) ==")

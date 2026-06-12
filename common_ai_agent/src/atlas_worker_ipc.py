@@ -109,7 +109,53 @@ def _configure_env(request: dict[str, Any]) -> None:
         sys.path.insert(0, source_root)
 
 
-def run_request(request: dict[str, Any], *, run_id: str) -> dict[str, Any]:
+def _attach_heartbeat(entry: Any, path: Path, *, workflow: str, ip: str) -> None:
+    """Mirror the worker's LLM-loop progress into <job>/heartbeat.json.
+
+    The authoring loop used to be a 30-minute black box (campaign finding 29
+    follow-on): nothing said which step it was on or whether it was alive.
+    Every add_log event updates counters; the file is rewritten at most every
+    2s. orch_status reads it for in-flight jobs (a heartbeat older than ~2min
+    on a live job means the loop is stalled inside one LLM call/tool).
+    """
+    counts = {"events": 0, "actions": 0, "observations": 0}
+    state = {"last_write": 0.0, "last_action": "", "started_at": time.time()}
+    original_add_log = entry.add_log
+
+    def add_log(entry_type: str, content: str, role: str = "") -> None:
+        original_add_log(entry_type, content, role)
+        counts["events"] += 1
+        if entry_type == "action":
+            counts["actions"] += 1
+            state["last_action"] = str(content)[:160]
+        elif entry_type == "observation":
+            counts["observations"] += 1
+        now = time.time()
+        if now - state["last_write"] < 2.0:
+            return
+        state["last_write"] = now
+        try:
+            path.write_text(json.dumps({
+                "schema_version": 1,
+                "type": "worker_heartbeat",
+                "run_id": str(getattr(entry, "run_id", "")),
+                "workflow": workflow,
+                "ip": ip,
+                "status": str(getattr(entry, "status", "")),
+                "events": counts["events"],
+                "actions": counts["actions"],
+                "observations": counts["observations"],
+                "last_action": state["last_action"],
+                "elapsed_s": round(now - state["started_at"], 1),
+                "updated_at": now,
+            }, ensure_ascii=False) + "\n", encoding="utf-8")
+        except OSError:
+            pass
+
+    entry.add_log = add_log
+
+
+def run_request(request: dict[str, Any], *, run_id: str, heartbeat_path: Path | None = None) -> dict[str, Any]:
     _configure_env(request)
 
     agent_server = importlib.import_module("core.agent_server")
@@ -129,6 +175,11 @@ def run_request(request: dict[str, Any], *, run_id: str) -> dict[str, Any]:
         model=str(request.get("model") or ""),
         created_at=started_at,
     )
+    if heartbeat_path is not None:
+        _attach_heartbeat(
+            entry, heartbeat_path,
+            workflow=workflow, ip=str(request.get("ip") or ""),
+        )
     _run_react_task(
         entry,
         str(request.get("task") or ""),
@@ -179,7 +230,11 @@ def main(argv: list[str] | None = None) -> int:
         _validate_ipc_paths(request_path, response_path, request)
         response_path_validated = True
         run_id = run_id or str(request.get("run_id") or "").strip() or f"ipc-{int(time.time() * 1000)}"
-        response = run_request(request, run_id=run_id)
+        response = run_request(
+            request,
+            run_id=run_id,
+            heartbeat_path=response_path.parent / "heartbeat.json",
+        )
         _write_response(response_path, response)
         return 0 if response.get("status") == "completed" else 2
     except Exception as exc:
