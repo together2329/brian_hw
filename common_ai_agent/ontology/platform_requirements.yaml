@@ -353,7 +353,16 @@ requirements:
       - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_MATRIX
         owned_by: platform.scm
         granularity: behavior
-        status: open   # split local/depot 경로는 numbered CL, folder add, delete pending, stale local source까지 real p4d로 검증돼야 함
+        status: closed   # split local/depot 경로는 numbered CL, folder add, delete pending, stale local source까지 real p4d로 검증돼야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_numbered_split_local_depot_path_submit_restages_source_map"
+            observed_at: 1d138805
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_folder_target_add_restages_split_source_map"
+            observed_at: 1d138805
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_delete_pending_clears_source_map"
+            observed_at: 1d138805
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_missing_source_blocks_submit"
+            observed_at: 1d138805
       - id: OBL_P4_SUBMIT_FAILURE_DIAGNOSTICS
         owned_by: platform.scm
         granularity: behavior
