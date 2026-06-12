@@ -682,6 +682,15 @@ requirements:
             observed_at: 55ad3617
           - test: "tests/test_refresh_rtl_provenance_create.py::test_refuses_manual_rtl_without_fingerprints"
             observed_at: 55ad3617
+      - id: OBL_WORKER_LOOP_HEARTBEAT
+        owned_by: runtime.session-worker
+        granularity: behavior
+        status: closed   # 4fe50636: worker add_log 미러링으로 <job>/heartbeat.json(2s 스로틀) — 진행 카운터+last_action+elapsed; orch_status가 in-flight job에 [alive/STALLED?] 판정 렌더 (30분 블랙박스 해소, finding 29 관측 후속; 사용자 지시 "내부를 보자")
+        evidence:
+          - test: "tests/test_worker_heartbeat.py::test_heartbeat_mirrors_loop_progress"
+            observed_at: 4fe50636
+          - test: "tests/test_worker_heartbeat.py::test_heartbeat_write_failure_never_breaks_logging"
+            observed_at: 4fe50636
       - id: OBL_PIPELINE_LIVE_STATUS
         owned_by: platform.ontology
         granularity: behavior
