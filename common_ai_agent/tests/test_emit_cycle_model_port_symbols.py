@@ -257,7 +257,10 @@ def test_cl_self_check_passes_on_live_add8_ssot_copy(tmp_path: Path) -> None:
 
     report = _cl_report(ip, tmp_path)
     assert report["passed"] is True, json.dumps(report, indent=2)
-    assert report["self_check"]["fl_errors"] == []
+    # Since the finding-24 fix, a not-required CL writes {passed, cl_required:
+    # false} without a self_check section; the triggered path keeps it.
+    if report.get("cl_required") is not False:
+        assert report["self_check"]["fl_errors"] == []
     assert "unknown rule name" not in json.dumps(report)
 
 
