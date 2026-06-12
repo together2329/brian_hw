@@ -665,8 +665,14 @@ requirements:
         # job id, workflow/status, last_action, heartbeat/log age, response
         # presence, and stale_worker flag. This must live in src/orchestrator/trace.py
         # so CLI/API/UI remain one implementation.
-        status: open
-        evidence: []
+        status: closed
+        evidence:
+          - test: "tests/test_orch_trace_smoke.py::test_trace_surfaces_stale_active_worker_heartbeat"
+            observed_at: 583541ad
+          - test: "tests/test_orchestrator_route.py::test_orchestrator_run_trace_api_returns_shared_latest_decision_trace"
+            observed_at: 583541ad
+          - test: "tests/test_orch_trace_smoke.py::test_atlas_trace_strip_consumes_shared_decision_trace_api"
+            observed_at: 583541ad
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
@@ -822,15 +828,24 @@ requirements:
       - id: OBL_TB_SUPPORTS_CLOCKLESS_DUT
         owned_by: engine.stage
         granularity: behavior
-        status: refuted
-        refuted_by: >-
-          generic cocotb TB 에미터(emit_goal_scoreboard_cocotb.py:512
-          contract.get("clock") or "clk")가 클럭리스 DUT 모드를 갖지 않음 —
-          rtl_contract.clock=None이어도 'clk'로 폴백해 input port 선언을 요구
-          (TB_CLOCK_PORT/TB_RESET_PORT 블로커). 순수 조합 IP는 harness용
-          clk/rst_n 핀을 SSOT에 되살려야만 TB/sim에 도달 가능. 라이브 증거
-          2026-06-11 run 919806f5 job 58f0a90b6e87 (campaign finding 25;
-          doc/wiki/orchestrator-campaign-10ip-20260610.md)
+        status: closed
+        # 5760b62b (finding 44; refuted finding 25 closed): generic cocotb TB
+        # 에미터가 clock/reset "none"을 실제 포트명으로 정규화해
+        # TB_CLOCK_PORT/TB_RESET_PORT/TB_RESET_ACTIVE blocker를 냄. 순수 조합
+        # DUT는 no_clock/no_reset 또는 명시적 none/null/no_clock/no_reset
+        # contract일 때 clock/reset 포트를 요구하지 않아야 하며, generated TB는
+        # RisingEdge 대신 Timer settle로 goal/sample/sweep을 진행해야 한다. live
+        # scratch_xor2_v1 run 294bfaaac6e3451db306457deefa38d5에서 같은 blocker
+        # 재현 후 플랫폼 fix 적용; 수동 TB regen + iverilog/cocotb sim 11/11 PASS.
+        evidence:
+          - test: "tests/test_tb_clockless_dut.py::test_manifest_accepts_explicit_clockless_resetless_contract"
+            observed_at: 5760b62b
+          - test: "tests/test_tb_clockless_dut.py::test_emitted_tb_uses_timer_wait_for_clockless_dut"
+            observed_at: 5760b62b
+          - test: "tests/test_tb_gen_clock_domain_sync.py::test_goal_scoreboard_template_waits_on_clock_or_timer"
+            observed_at: 5760b62b
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_defaults_to_deasserted_for_active_low"
+            observed_at: 5760b62b
       - id: OBL_SSOT_DISK_CHECK_WAIVER_CONSISTENT
         owned_by: engine.stage
         granularity: content
