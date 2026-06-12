@@ -1069,6 +1069,19 @@ def _constraint_field_value(manifest: dict[str, Any], goal: dict[str, Any], fiel
             return 1
         if f"{low}==okay" in compact or f"{low}=okay" in compact or f"{low}==ok" in compact:
             return 0
+    # Generic fallback: honor an explicit "<field> (==|=) <int>" constraint for
+    # ANY scalar control input. The branches above only cover a fixed
+    # reset/valid/enable/hready/hresp vocabulary, so a locked goal whose
+    # constraint reads "clr==1 at rising clk" (or any custom mode/control bit)
+    # was silently dropped to its zero-fill default and diverged from the FL
+    # oracle, which evaluates the very same guard (campaign finding 33 sibling:
+    # clr never asserted on CLEAR goals, so the synchronous-clear path is never
+    # exercised). Match the spaced text (not `compact`) so a left word boundary
+    # survives: "len==5 and clr==1" must read clr (not match "en" inside "len",
+    # and not lose "clr" because whitespace-stripping glued "and" onto it).
+    m = re.search(rf"(?<![a-z0-9_]){re.escape(low)}\s*==?\s*(\d+)", text)
+    if m is not None:
+        return int(m.group(1))
     return None
 
 
@@ -1532,6 +1545,20 @@ def _stimulus_value_for_field(manifest: dict[str, Any], field: str, idx: int, go
         if goal_kind == "memory":
             return _infer_access_op(goal)
     value = _default_field_value(field, idx)
+    # Reset pin in a per-goal functional stimulus defaults to DEASSERTED
+    # (campaign finding 33 root cause). _default_field_value returns a
+    # polarity-blind 0; for an active-LOW reset 0 means ASSERTED, which silently
+    # holds the DUT in reset and masks every count/state behaviour while the FL
+    # oracle (which ignores the spurious field) still expects the active result.
+    # Genuine reset assertion is sequenced separately by _reset_dut for
+    # _is_reset_goal goals, so here the reset must mirror the FL's reset-inactive
+    # assumption: deassert it (1 for active-low rst_n, 0 for active-high rst).
+    _reset_port = str(manifest.get("reset") or "")
+    if _reset_port and (
+        field == _reset_port
+        or str((manifest.get("input_map") or {}).get(field) or "") == _reset_port
+    ):
+        return 0 if str(manifest.get("reset_active")).lower() == "high" else 1
     selected = _selected_window(manifest, goal)
     selected_prefix = str(selected["prefix"]).lower() if selected else ""
     selected_token = selected_prefix.split("_", 1)[0] if selected_prefix else ""
