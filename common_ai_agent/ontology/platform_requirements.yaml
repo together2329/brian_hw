@@ -622,13 +622,12 @@ requirements:
       - id: OBL_RTL_REFRESH_EMITS_PROVENANCE
         owned_by: engine.stage
         granularity: behavior
-        status: refuted
-        refuted_by: >-
-          rtl-gen worker가 refresh/no-change 패스에서 RTL은 그대로 두고
-          rtl_authoring_provenance.json을 쓰지 않음(60 tool calls, 0 writes
-          silent-fail ×2, run 00ba672e) → provenance 게이트가 영구 미충족.
-          처방 = 저작 루프 종료 조건에 provenance 작성 포함 + refresh 패스도
-          현 todo_plan sha로 provenance 재서명 (finding 31)
+        status: closed   # 55ad3617: refresh_rtl_provenance CREATE 모드 — 워크플로 저작 지문(rtl_authoring_plan/authoring_packets/status) 존재 시 기록 생성, 지문 없는 manual RTL은 hard 거부 유지; stage engine이 지문만으로도 호출. 라이브 cnt8 preflight PASS (finding 31)
+        evidence:
+          - test: "tests/test_refresh_rtl_provenance_create.py::test_create_with_authoring_fingerprints"
+            observed_at: 55ad3617
+          - test: "tests/test_refresh_rtl_provenance_create.py::test_refuses_manual_rtl_without_fingerprints"
+            observed_at: 55ad3617
       - id: OBL_PIPELINE_LIVE_STATUS
         owned_by: platform.ontology
         granularity: behavior
