@@ -4409,6 +4409,14 @@ body[data-resize-cursor="col"] {
 .pipe-trace-glyph { color: var(--cyan); }
 .pipe-trace-row[data-lens="result"] .pipe-trace-glyph { color: #76c893; }
 .pipe-trace-row[data-lens="intermediate"] .pipe-trace-glyph { color: #f2b632; }
+.pipe-trace-row[data-status="failed"] {
+  border-color: rgba(255, 94, 94, 0.42);
+  background: rgba(255, 94, 94, 0.08);
+}
+.pipe-trace-row[data-status="failed"] .pipe-trace-glyph,
+.pipe-trace-row[data-status="failed"] .pipe-trace-kind {
+  color: #ff8a8a;
+}
 .pipe-trace-step { color: var(--fg-mute); }
 .pipe-trace-kind { color: var(--fg); font-weight: 600; }
 .pipe-trace-actor { color: var(--fg-mute); overflow: hidden; text-overflow: ellipsis; }

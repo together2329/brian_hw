@@ -614,6 +614,18 @@ requirements:
             observed_at: 1d20b731
           - test: "tests/test_orch_trace_smoke.py::test_orch_trace_json_output"
             observed_at: 1d20b731
+      - id: OBL_ORCH_TRACE_SHARED_ACROSS_CLI_API_UI
+        owned_by: agent.react-loop
+        granularity: behavior
+        # finding 42: scripts/orch_trace.py proved the run_id trace shape, but
+        # the logic lived in a CLI-only script. Atlas UI needs the same view,
+        # and the live probe 5bb98205495e42b1b26030074d40b31f showed a
+        # tool_failed dispatch rendered too weakly while the supervisor
+        # response still said completed. Trace normalization must live in one
+        # reusable module consumed by CLI + /api/orchestrator/runs/{id}/trace +
+        # UI, and failed tools/no-job dispatches must be prominent enough that
+        # operators know not to wait.
+        status: open
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"

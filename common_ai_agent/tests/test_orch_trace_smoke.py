@@ -8,6 +8,8 @@ import sys
 import time
 from pathlib import Path
 
+from src.orchestrator.trace import terminal_blocker_from_steps
+
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -141,3 +143,59 @@ def test_orch_trace_json_output(tmp_path):
     doc = json.loads(r.stdout)
     assert doc["run_id"] == "run-json"
     assert doc["steps"][0]["detail"] == "read pipeline failed=0 running=0 passed=1"
+
+
+def test_orch_trace_marks_completed_after_tool_failed_as_blocked(tmp_path):
+    db = tmp_path / "atlas.db"
+    con = sqlite3.connect(db)
+    con.execute(
+        "CREATE TABLE orchestrator_runs (id TEXT PRIMARY KEY, model TEXT, status TEXT,"
+        " final_state TEXT, started_at REAL, ended_at REAL)"
+    )
+    con.execute(
+        "CREATE TABLE orchestrator_steps (id TEXT PRIMARY KEY, run_id TEXT NOT NULL,"
+        " step_index INT, tool_name TEXT, observed_state_json TEXT, decision_json TEXT,"
+        " dispatched_workflow TEXT, dispatched_job_id TEXT, evidence_read_json TEXT,"
+        " verdict TEXT, retry_budget_state_json TEXT, user_reply TEXT, created_at REAL)"
+    )
+    now = time.time()
+    con.execute("INSERT INTO orchestrator_runs VALUES (?,?,?,?,?,?)", ("bad-run", "m", "completed", "completed", now, now + 1))
+    _insert_step(
+        con,
+        "bad-run",
+        0,
+        "dispatch_workflow",
+        {"ip": "ipx", "workflow": "tb-gen", "reason": "repair coverage"},
+        {"ok": False, "error": "dispatch_workflow bridge timed out"},
+        "tool_failed",
+    )
+    con.commit()
+
+    r = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "orch_trace.py"), "bad-run", "--db", str(db)],
+        capture_output=True,
+        text=True,
+        timeout=30,
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "status=tool_failed" in r.stdout
+    assert "terminal anomaly: run recorded completed after tool_failed at step 0" in r.stdout
+    assert "dispatch tb-gen [NO JOB] [FAILED]" in r.stdout
+    assert "error: dispatch_workflow bridge timed out" in r.stdout
+
+
+def test_terminal_blocker_detects_nonfinal_dispatch_without_job():
+    rows = [
+        {
+            "step_index": 0,
+            "tool_name": "dispatch_workflow",
+            "decision_json": json.dumps({"args": {"workflow": "tb-gen"}}),
+            "evidence_read_json": json.dumps({"result": {"ok": True, "jobs": []}}),
+            "verdict": "ok",
+            "created_at": time.time(),
+        }
+    ]
+    blocker = terminal_blocker_from_steps(rows)
+    assert blocker is not None
+    assert blocker["kind"] == "dispatch_no_job"
+    assert blocker["workflow"] == "tb-gen"

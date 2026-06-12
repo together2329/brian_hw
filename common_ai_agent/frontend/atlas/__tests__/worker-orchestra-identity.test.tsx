@@ -98,8 +98,50 @@ describe('WorkerOrchestraBar worker identity', () => {
 
     await waitFor(() => {
       expect(String((global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] || '')).toBe(
-        '/api/orchestrator/trace?ip=pl330&limit=20&workspace_session=branch2',
+        '/api/orchestrator/runs/latest/trace?ip=pl330&limit=50&workspace_session=branch2',
       );
     });
+  });
+
+  it('renders latest decision trace before falling back to legacy trace events', async () => {
+    win.ATLAS_WORKSPACE_SESSION_ID = 'alt';
+    global.fetch = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.startsWith('/api/orchestrator/runs/latest/trace')) {
+        return new Response(JSON.stringify({
+          ok: true,
+          run_id: 'run-abc123456',
+          run: {
+            effective_final_state: 'tool_failed',
+            terminal_anomaly: 'run recorded completed after tool_failed at step 0',
+          },
+          steps: [
+            {
+              step: 0,
+              time: '10:00:00',
+              tool: 'dispatch_workflow',
+              status: 'failed',
+              detail: 'dispatch tb-gen [FAILED]',
+              error: 'bridge timed out',
+            },
+          ],
+        }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response(JSON.stringify({ events: [{ kind: 'legacy' }] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }) as unknown as typeof fetch;
+
+    const { container } = render(<OrchestratorTraceStrip ip="pl330" />);
+
+    await waitFor(() => expect(container.textContent || '').toContain('dispatch tb-gen [FAILED]'));
+    expect(container.textContent || '').toContain('tool_failed');
+    expect(container.textContent || '').toContain('bridge timed out');
+    expect(String((global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] || '')).toContain('/api/orchestrator/runs/latest/trace');
+    expect((global.fetch as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(1);
   });
 });

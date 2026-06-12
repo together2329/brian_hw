@@ -30,6 +30,7 @@ units:
       - core/react_loop.py
       - core/action_parser.py
       - core/chat_loop.py
+      - src/orchestrator/trace.py
 
   - id: agent.prompt-builder
     kind: engine

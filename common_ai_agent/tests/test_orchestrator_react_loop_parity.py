@@ -159,6 +159,35 @@ class TestToolErrorContinuesLoop:
         verdicts = [s["verdict"] for s in steps]
         assert "tool_error" in verdicts
 
+    def test_text_only_after_failed_dispatch_blocks_not_completed(self, db, ctx, monkeypatch):
+        """Finding 42: a failed/no-job dispatch is terminally unsafe.
+
+        If the LLM stops issuing tools after that failed dispatch, the natural
+        completion path must fail closed instead of recording a false
+        ``completed`` run.
+        """
+
+        def failed_dispatch(**kw):
+            return {"ok": False, "error": "dispatch bridge timed out"}, "dispatch bridge timed out"
+
+        monkeypatch.setattr(
+            orch_tools, "_dispatch_workflow_bridge", lambda: failed_dispatch
+        )
+        caller = _scripted(
+            _tool_call("dispatch_workflow", ip="ipA", workflow="tb-gen"),
+            {"content": "done"},
+        )
+
+        outcome = OrchestratorReactLoop(db, ctx, llm_caller=caller).run(max_steps=5)
+
+        assert outcome.status == "blocked"
+        assert outcome.final_state == "tool_failed"
+        run = db.get_orchestrator_run(ctx.run_id)
+        assert run["status"] == "blocked"
+        assert run["final_state"] == "tool_failed"
+        steps = db.list_orchestrator_steps(ctx.run_id)
+        assert steps[-1]["verdict"] == "tool_failed"
+
 
 class TestParallelToolCalls:
     def test_multiple_tool_calls_all_persist_steps(self, db, ctx, monkeypatch):

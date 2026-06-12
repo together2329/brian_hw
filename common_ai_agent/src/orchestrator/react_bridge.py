@@ -31,6 +31,7 @@ from src.orchestrator import tools as orch_tools
 from src.orchestrator.budgets import BudgetTracker
 from src.orchestrator.profile import ORCHESTRATOR_MODEL, ORCHESTRATOR_REASONING_EFFORT
 from src.orchestrator.prompts import SYSTEM_PROMPT, build_system_prompt, tool_schemas
+from src.orchestrator.trace import terminal_blocker_from_steps
 from src.orchestrator.ui_formatter import format_tool_call
 
 
@@ -1399,6 +1400,21 @@ class OrchestratorReactLoop:
                     })
                     continue
                 # LLM returned no more tool calls and no live workers remain.
+                # Do not mark a run completed if the last observable decision
+                # was a failed tool call or a dispatch that produced no job.
+                # The same shared trace helper powers the CLI/API/UI, so the
+                # persisted terminal state matches what operators see.
+                steps = self.db.list_orchestrator_steps(self.ctx.run_id, limit=1000) or []
+                blocker = terminal_blocker_from_steps(steps)
+                if blocker:
+                    self.db.update_orchestrator_run(
+                        self.ctx.run_id,
+                        status="blocked",
+                        final_state=str(blocker.get("kind") or "tool_failed"),
+                        ended=True,
+                    )
+                    run_row = self.db.get_orchestrator_run(self.ctx.run_id)
+                    break
                 self.db.update_orchestrator_run(
                     self.ctx.run_id, status="completed",
                     final_state="completed", ended=True,

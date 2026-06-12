@@ -7210,20 +7210,17 @@ def register_jobs_routes(
         visible_user_ids = {value for value in (request_user, db_user_id) if value}
         return bool(run_user_id and run_user_id in visible_user_ids)
 
-    @app.get("/api/orchestrator/runs/{run_id}")
-    async def api_orchestrator_run_detail(request: Request, run_id: str):
+    def _orchestrator_run_scope(request: Request, ip: str) -> tuple[JSONResponse | None, dict[str, Any]]:
         from core.atlas_db import AtlasDB
 
-        params = dict(request.query_params)
-        ip = (params.get("ip") or "").strip()
         if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
-            return JSONResponse({"error": "ip query param required"}, status_code=400)
+            return JSONResponse({"error": "ip query param required"}, status_code=400), {}
         if (
             _multi_user_enabled()
             and not _request_is_admin(request)
             and not (_request_db_user_id(request) or _request_username(request))
         ):
-            return JSONResponse({"error": "not authenticated"}, status_code=401)
+            return JSONResponse({"error": "not authenticated"}, status_code=401), {}
         pr = _request_project_root(request, ip)
         user = request.scope.get("user") or {}
         raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
@@ -7239,20 +7236,113 @@ def register_jobs_routes(
                 ip,
                 ssot_path=f"{ip}/yaml/{ip}.ssot.yaml",
             )
+        return None, {
+            "project_root": pr,
+            "db_path": _atlas_control_db_path(pr),
+            "db_user_id": db_user_id,
+            "request_user": _request_username(request),
+            "request_is_admin": _request_is_admin(request),
+            "workspace_id": str(workspace["id"] or ""),
+            "ip_id": str(ip_row["id"] or ""),
+        }
+
+    @app.get("/api/orchestrator/runs/{run_id}")
+    async def api_orchestrator_run_detail(request: Request, run_id: str):
+        from core.atlas_db import AtlasDB
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        error, scope = _orchestrator_run_scope(request, ip)
+        if error is not None:
+            return error
+        with AtlasDB(scope["db_path"]) as db:
             run = db.get_orchestrator_run(run_id)
             if run is None:
                 return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
             if not _orchestrator_run_visible_to_request(
                 run,
-                request_user=_request_username(request),
-                db_user_id=db_user_id,
-                request_is_admin=_request_is_admin(request),
-                workspace_id=str(workspace["id"] or ""),
-                ip_id=str(ip_row["id"] or ""),
+                request_user=scope["request_user"],
+                db_user_id=scope["db_user_id"],
+                request_is_admin=scope["request_is_admin"],
+                workspace_id=scope["workspace_id"],
+                ip_id=scope["ip_id"],
             ):
                 return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
             steps = db.list_orchestrator_steps(run_id)
         return JSONResponse({"ok": True, "run": run, "steps": steps})
+
+    @app.get("/api/orchestrator/runs/latest/trace")
+    async def api_orchestrator_latest_run_trace(request: Request):
+        from src.orchestrator.trace import build_latest_trace_for_scope
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        error, scope = _orchestrator_run_scope(request, ip)
+        if error is not None:
+            return error
+        try:
+            limit = int(params.get("limit") or "200")
+        except Exception:
+            limit = 200
+        try:
+            wake = int(params.get("wake") or "5")
+        except Exception:
+            wake = 5
+        user_ids: list[str] = []
+        if _multi_user_enabled() and not scope["request_is_admin"]:
+            user_ids = [scope["db_user_id"]]
+        trace = build_latest_trace_for_scope(
+            db_path=Path(scope["db_path"]),
+            workspace_id=scope["workspace_id"],
+            ip_id=scope["ip_id"],
+            user_ids=user_ids,
+            project_root=Path(scope["project_root"]),
+            limit=max(1, min(1000, limit)),
+            wake_limit=max(0, min(50, wake)),
+        )
+        if trace is None:
+            return JSONResponse({"ok": True, "ip": ip, "run_id": None, "run": None, "steps": [], "wake": []})
+        return JSONResponse({"ok": True, "ip": ip, **trace})
+
+    @app.get("/api/orchestrator/runs/{run_id}/trace")
+    async def api_orchestrator_run_trace(request: Request, run_id: str):
+        from core.atlas_db import AtlasDB
+        from src.orchestrator.trace import build_trace
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        error, scope = _orchestrator_run_scope(request, ip)
+        if error is not None:
+            return error
+        with AtlasDB(scope["db_path"]) as db:
+            run = db.get_orchestrator_run(run_id)
+            if run is None:
+                return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
+            if not _orchestrator_run_visible_to_request(
+                run,
+                request_user=scope["request_user"],
+                db_user_id=scope["db_user_id"],
+                request_is_admin=scope["request_is_admin"],
+                workspace_id=scope["workspace_id"],
+                ip_id=scope["ip_id"],
+            ):
+                return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
+        try:
+            limit = int(params.get("limit") or "200")
+        except Exception:
+            limit = 200
+        try:
+            wake = int(params.get("wake") or "5")
+        except Exception:
+            wake = 5
+        trace = build_trace(
+            run_id,
+            db_path=Path(scope["db_path"]),
+            project_root=Path(scope["project_root"]),
+            limit=max(1, min(1000, limit)),
+            wake_limit=max(0, min(50, wake)),
+        )
+        return JSONResponse({"ok": True, **trace})
 
     @app.get("/api/orchestrator/active_run")
     async def api_orchestrator_active_run(request: Request):
