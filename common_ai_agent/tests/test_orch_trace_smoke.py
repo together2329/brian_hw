@@ -199,3 +199,11 @@ def test_terminal_blocker_detects_nonfinal_dispatch_without_job():
     assert blocker is not None
     assert blocker["kind"] == "dispatch_no_job"
     assert blocker["workflow"] == "tb-gen"
+
+
+def test_atlas_trace_strip_consumes_shared_decision_trace_api():
+    src = (ROOT / "frontend" / "atlas" / "pipeline-trace-workers.tsx").read_text()
+    assert "/api/orchestrator/runs/latest/trace" in src
+    assert "setDecisionTrace(j)" in src
+    assert "data-status={status}" in src
+    assert "orchestratorTraceUrl(ip, 20)" in src  # legacy JSONL fallback remains
