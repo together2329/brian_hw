@@ -879,7 +879,20 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const pendingRows = (pane?.pending || []).filter(row => (row.change || 'default') === selectedChange);
     const paths = selPend.size ? [...selPend] : pendingRows.map(r => r.path);
     if (!paths.length) { setErr('nothing to revert'); return; }
-    post('/api/scm/revert', { paths }, `reverted ${paths.length} file(s)`);
+    const debugRows = pendingRows.filter(row => paths.includes(row.path));
+    setSubmitDebug(submitDebugText('Revert request sent.', selectedChange, debugRows.length ? debugRows : pendingRows));
+    post('/api/scm/revert', { paths }, `reverted ${paths.length} file(s)`, payload => {
+      setSubmitDebug(submitDebugText('Revert succeeded.', selectedChange, debugRows.length ? debugRows : pendingRows, payload));
+      setSelPend(new Set());
+    }, {
+      reload: {
+        selectOpenedChange: true,
+        preferPendingPaths: paths,
+      },
+      onError: payload => {
+        setSubmitDebug(submitDebugText('Revert failed.', selectedChange, debugRows.length ? debugRows : pendingRows, payload));
+      },
+    });
   };
   const onShowDiff = () => {
     const path = [...selPend][0] || '';

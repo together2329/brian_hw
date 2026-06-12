@@ -298,6 +298,19 @@ def test_perforce_sync_ui_submit_debug_context_contract():
     assert "stderr:" in source
 
 
+def test_perforce_sync_ui_revert_debug_context_contract():
+    source = (Path(PROJECT_ROOT) / "frontend" / "atlas" / "perforce-sync.tsx").read_text(
+        encoding="utf-8",
+    )
+
+    assert "Revert request sent." in source
+    assert "Revert succeeded." in source
+    assert "Revert failed." in source
+    assert "preferPendingPaths: paths" in source
+    assert "setSelPend(new Set())" in source
+    assert "submitDebugText('Revert failed.'" in source
+
+
 def test_submit_restage_reports_selected_path_not_opened(tmp_path):
     adapter = PerforceP4Adapter(tmp_path, executable="__missing_p4__")
     local_root = tmp_path / "ip"
@@ -1157,6 +1170,49 @@ def test_submit_numbered_changelist_updates_description_before_submit(tmp_path):
     ]
     assert "Description:\n\tship checkout fix\n" in adapter.input_texts[2]
     assert "\told description" not in adapter.input_texts[2]
+
+
+def test_revert_reports_remaining_resolve_state_after_fallback(tmp_path):
+    spec = "//GOOD_SOC/GOOD_IP/rtl/opened.sv"
+
+    class RecordingAdapter(PerforceP4Adapter):
+        def __init__(self, root: Union[str, Path], executable: str = "p4") -> None:
+            super().__init__(root, executable=executable)
+            self.calls: list[tuple[str, ...]] = []
+            self.resolve_checks = 0
+
+        def _records(self, *args: str, timeout: int = 60):
+            self.calls.append(args)
+            if args == ("opened", "-c", "12", spec):
+                return [
+                    {"depotFile": spec, "action": "edit", "change": "12"},
+                ], self._result(ok=True, command=("p4", "-ztag", *args))
+            return [], self._result(ok=True, command=("p4", "-ztag", *args))
+
+        def _run_p4(self, *args: str, timeout: int = 60, input_text: str = ""):
+            self.calls.append(args)
+            if args == ("revert", "-c", "12", spec):
+                return self._result(ok=True, stdout=f"{spec}#1 - was edit, reverted\n", command=("p4", *args))
+            if args == ("revert", "-k", "-c", "12", spec):
+                return self._result(ok=True, stdout=f"{spec}#1 - was edit, abandoned\n", command=("p4", *args))
+            if args == ("resolve", "-n", spec):
+                self.resolve_checks += 1
+                text = f"{spec} - must resolve #2\n"
+                return self._result(ok=True, stdout=text, command=("p4", *args))
+            return self._result(ok=True, command=("p4", *args))
+
+    adapter = RecordingAdapter(tmp_path)
+
+    result = adapter.revert_paths([spec], changelist="12")
+
+    assert result.ok is False
+    assert result.returncode == 3
+    assert result.error == "revert did not clear Perforce resolve state"
+    assert result.stdout.count("must resolve #2") == 2
+    assert result.command == ("p4", "resolve", "-n", spec)
+    assert adapter.resolve_checks == 2
+    assert ("revert", "-c", "12", spec) in adapter.calls
+    assert ("revert", "-k", "-c", "12", spec) in adapter.calls
 
 
 def test_live_local_p4d_checkout_copy_submit_roundtrip(local_p4d):

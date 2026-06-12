@@ -27,6 +27,8 @@ describe('PerforceSyncTab directory actions', () => {
   const addBodies: Body[] = [];
   const syncBodies: Body[] = [];
   const submitBodies: Body[] = [];
+  const revertBodies: Body[] = [];
+  let revertFailure: Body | null = null;
 
   beforeEach(() => {
     paneUrls.length = 0;
@@ -34,6 +36,8 @@ describe('PerforceSyncTab directory actions', () => {
     addBodies.length = 0;
     syncBodies.length = 0;
     submitBodies.length = 0;
+    revertBodies.length = 0;
+    revertFailure = null;
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = requestUrl(input);
       if (url.startsWith('/api/ip/list')) {
@@ -85,6 +89,11 @@ describe('PerforceSyncTab directory actions', () => {
       if (url === '/api/scm/submit') {
         submitBodies.push(readBody(init));
         return jsonResponse({ ok: true });
+      }
+      if (url === '/api/scm/revert') {
+        revertBodies.push(readBody(init));
+        if (revertFailure) return jsonResponse(revertFailure);
+        return jsonResponse({ ok: true, stdout: 'reverted //GOOD_SOC/GOOD_IP/rtl/opened.sv' });
       }
       return jsonResponse({ ok: true });
     }) as unknown as typeof fetch;
@@ -248,5 +257,60 @@ describe('PerforceSyncTab directory actions', () => {
         changelist: '12',
       });
     });
+  });
+
+  it('reverts the selected pending changelist and shows the executed command context', async () => {
+    // Given: CL 12 has an opened pending file.
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    fireEvent.change(await screen.findByLabelText('Pending changelist'), { target: { value: '12' } });
+    await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv');
+
+    // When: the user presses Revert without selecting a subset.
+    fireEvent.click(screen.getByRole('button', { name: /^revert$/i }));
+
+    // Then: Revert posts the selected changelist and all visible pending paths.
+    await waitFor(() => {
+      expect(revertBodies).toHaveLength(1);
+      expect(revertBodies[0]).toMatchObject({
+        provider: 'perforce',
+        ip: 'ulw_p4',
+        scmRoot: '/tmp/p4_workspace',
+        changelist: '12',
+        paths: ['//GOOD_SOC/GOOD_IP/rtl/opened.sv'],
+      });
+    });
+    expect(await screen.findByText(/Revert succeeded\./)).toBeVisible();
+    expect(screen.getByText(/stdout: reverted \/\/GOOD_SOC\/GOOD_IP\/rtl\/opened.sv/)).toBeVisible();
+  });
+
+  it('shows revert diagnostics when Perforce resolve state remains', async () => {
+    // Given: the backend reports a revert that did not clear resolve state.
+    revertFailure = {
+      ok: false,
+      returncode: 3,
+      error: 'revert did not clear Perforce resolve state',
+      stdout: '//GOOD_SOC/GOOD_IP/rtl/opened.sv - must resolve #2',
+      stderr: 'resolve still pending',
+      command: ['p4', 'resolve', '-n', '//GOOD_SOC/GOOD_IP/rtl/opened.sv'],
+      localRoot: '/tmp/local_ip',
+      scmRoot: '/tmp/p4_workspace',
+    };
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    fireEvent.change(await screen.findByLabelText('Pending changelist'), { target: { value: '12' } });
+    await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/opened.sv');
+
+    // When: the user presses Revert.
+    fireEvent.click(screen.getByRole('button', { name: /^revert$/i }));
+
+    // Then: the UI keeps enough context to debug why the workspace is still blocked.
+    expect(await screen.findByText(/Revert failed\./)).toBeVisible();
+    expect(screen.getByText(/selected CL: 12/)).toBeVisible();
+    expect(screen.getByText(/localRoot: \/tmp\/local_ip/)).toBeVisible();
+    expect(screen.getByText(/scmRoot: \/tmp\/p4_workspace/)).toBeVisible();
+    expect(screen.getByText(/command: p4 resolve -n \/\/GOOD_SOC\/GOOD_IP\/rtl\/opened.sv/)).toBeVisible();
+    expect(screen.getByText(/returncode: 3/)).toBeVisible();
+    expect(screen.getByText(/error: revert did not clear Perforce resolve state/)).toBeVisible();
+    expect(screen.getByText(/stderr: resolve still pending/)).toBeVisible();
+    expect(screen.getByText(/stdout: \/\/GOOD_SOC\/GOOD_IP\/rtl\/opened.sv - must resolve #2/)).toBeVisible();
   });
 });

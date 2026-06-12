@@ -491,6 +491,53 @@ def test_scm_revert_route_passes_selected_perforce_changelist(tmp_path: Path, mo
     }
 
 
+def test_scm_revert_route_preserves_perforce_failure_diagnostics(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def revert_paths(self, paths, *, stream="", changelist=""):
+            return SCMCommandResult(
+                ok=False,
+                provider=self.provider,
+                root=self.root,
+                stdout="//GOOD_SOC/GOOD_IP/rtl/foo.v - must resolve #2",
+                stderr="resolve still pending",
+                error="revert did not clear Perforce resolve state",
+                returncode=3,
+                command=("p4", "resolve", "-n", "//GOOD_SOC/GOOD_IP/rtl/foo.v"),
+            )
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", lambda root, provider=None: FakePerforceAdapter(root))
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/revert",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is False
+    assert payload["returncode"] == 3
+    assert payload["error"] == "revert did not clear Perforce resolve state"
+    assert payload["stderr"] == "resolve still pending"
+    assert payload["stdout"] == "//GOOD_SOC/GOOD_IP/rtl/foo.v - must resolve #2"
+    assert payload["command"] == ["p4", "resolve", "-n", "//GOOD_SOC/GOOD_IP/rtl/foo.v"]
+    assert payload["localRoot"] == str(tmp_path / "alpha")
+    assert payload["scmRoot"] == str(tmp_path / "p4_workspace")
+
+
 def test_scm_pane_route_passes_directory_scope_to_perforce_adapter(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
