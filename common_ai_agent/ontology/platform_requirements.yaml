@@ -314,7 +314,10 @@ requirements:
       - id: OBL_P4_UI_CHECKOUT_SUBMIT_SELECTS_OPENED_CL
         owned_by: platform.scm
         granularity: behavior
-        status: open   # checkout/edit 후 실제 opened 파일이 있는 CL 이 선택되어 Submit 이 활성화돼야 함
+        status: closed
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_reselects_opened_changelist_after_mutation"
+            observed_at: 0f98cca3
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
