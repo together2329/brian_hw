@@ -38,6 +38,7 @@ describe('PerforceSyncTab pane navigation', () => {
   let existingPendingChange = '12';
   let checkoutChangeOverride = '';
   let submitFailure: Body | null = null;
+  let submitHttpFailure = false;
 
   const panePayload = (localDir: string, depotDir: string) => ({
     ok: true,
@@ -82,6 +83,7 @@ describe('PerforceSyncTab pane navigation', () => {
     existingPendingChange = '12';
     checkoutChangeOverride = '';
     submitFailure = null;
+    submitHttpFailure = false;
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = requestUrl(input);
       if (url.startsWith('/api/ip/list')) {
@@ -112,6 +114,7 @@ describe('PerforceSyncTab pane navigation', () => {
       }
       if (url === '/api/scm/submit') {
         submitBodies.push(readBody(init));
+        if (submitHttpFailure) return new Response('proxy died before JSON', { status: 502, statusText: 'Bad Gateway' });
         if (submitFailure) return jsonResponse(submitFailure);
         return jsonResponse({ ok: true });
       }
@@ -199,7 +202,17 @@ describe('PerforceSyncTab pane navigation', () => {
   it('shows submit debug context when the backend rejects submit', async () => {
     includeExistingPending = false;
     checkoutChangeOverride = 'default';
-    submitFailure = { ok: false, returncode: 1, error: 'submit rejected', stderr: 'p4 submit failed' };
+    submitFailure = {
+      ok: false,
+      returncode: 1,
+      error: 'submit rejected',
+      stderr: 'p4 submit failed',
+      stdout: 'restage skipped: local source not found for //GOOD_SOC/GOOD_IP/rtl/main.sv under /tmp/local_ip',
+      ip: 'ulw_p4',
+      localRoot: '/tmp/local_ip',
+      scmRoot: '/tmp/p4_workspace',
+      command: ['p4', 'submit', '-d', 'submit with debug'],
+    };
     render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
     const folders = await screen.findAllByText('rtl/');
     fireEvent.click(folders[1]);
@@ -217,9 +230,38 @@ describe('PerforceSyncTab pane navigation', () => {
     expect(await screen.findByText(/Submit failed\./)).toBeVisible();
     expect(screen.getByText(/selected CL: default/)).toBeVisible();
     expect(screen.getByText(/files in selected CL: 1/)).toBeVisible();
+    expect(screen.getByText(/ip: ulw_p4/)).toBeVisible();
+    expect(screen.getByText(/localRoot: \/tmp\/local_ip/)).toBeVisible();
+    expect(screen.getByText(/scmRoot: \/tmp\/p4_workspace/)).toBeVisible();
+    expect(screen.getByText(/command: p4 submit -d submit with debug/)).toBeVisible();
     expect(screen.getByText(/returncode: 1/)).toBeVisible();
     expect(screen.getByText(/error: submit rejected/)).toBeVisible();
     expect(screen.getByText(/stderr: p4 submit failed/)).toBeVisible();
+    expect(screen.getByText(/stdout: restage skipped: local source not found/)).toBeVisible();
+  });
+
+  it('shows submit debug context when submit returns a non-json HTTP error', async () => {
+    includeExistingPending = false;
+    checkoutChangeOverride = 'default';
+    submitHttpFailure = true;
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    const folders = await screen.findAllByText('rtl/');
+    fireEvent.click(folders[1]);
+    await screen.findByText('main.sv');
+
+    fireEvent.click(screen.getByText('main.sv'));
+    fireEvent.click(screen.getByRole('button', { name: /checkout/i }));
+    expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv')).toBeVisible();
+
+    fireEvent.change(screen.getByPlaceholderText('changelist description…'), {
+      target: { value: 'submit through broken proxy' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+    expect(await screen.findByText(/Submit failed\./)).toBeVisible();
+    expect(screen.getByText(/returncode: 502/)).toBeVisible();
+    expect(screen.getByText(/error: HTTP 502 Bad Gateway: non-JSON response/)).toBeVisible();
+    expect(screen.getByText(/stderr: proxy died before JSON/)).toBeVisible();
   });
 
   it('shows local submit debug when the selected changelist has no opened files', async () => {

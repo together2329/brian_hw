@@ -715,13 +715,17 @@ class PerforceP4Adapter(SCMAdapter):
             for path in ([paths] if isinstance(paths, str) else list(paths or []))
             if str(path or "").strip()
         }
+        matched: set[str] = set()
         copied: list[str] = []
+        diagnostics: list[str] = []
         for rec in opened:
             action = rec.get("action", "")
-            if action.endswith("delete"):
-                continue
             depot_file = self._clean_depot_key(rec.get("depotFile", ""))
             if requested and depot_file not in requested:
+                continue
+            if depot_file:
+                matched.add(depot_file)
+            if action.endswith("delete"):
                 continue
             source = None
             client_file = rec.get("clientFile", "")
@@ -734,6 +738,10 @@ class PerforceP4Adapter(SCMAdapter):
             if source is None:
                 source = self._depot_output_path(depot_file, local_root)
             if source is None or not source.is_file():
+                diagnostics.append(
+                    f"restage skipped: local source not found for {depot_file or client_file} "
+                    f"under {self._local_root_path(local_root)}"
+                )
                 continue
             target = self._workspace_path_from_client_file(client_file) if client_file else None
             if target is None:
@@ -750,7 +758,17 @@ class PerforceP4Adapter(SCMAdapter):
                 copied.append(depot_file or target.as_posix())
             except OSError as exc:
                 return self._result(ok=False, returncode=1, error=str(exc))
-        stdout = "\n".join(f"restaged local edit: {path}" for path in copied)
+        if requested:
+            missing = sorted(path for path in requested - matched if path)
+            if missing:
+                stdout = "\n".join(diagnostics)
+                return self._result(
+                    ok=False,
+                    stdout=stdout,
+                    returncode=2,
+                    error="selected submit path is not opened in this changelist: " + ", ".join(missing),
+                )
+        stdout = "\n".join([*(f"restaged local edit: {path}" for path in copied), *diagnostics])
         return self._result(ok=True, stdout=stdout)
 
     def _delete_emptied_changelists(self, changes: set[str]) -> None:

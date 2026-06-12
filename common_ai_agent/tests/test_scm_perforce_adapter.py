@@ -291,8 +291,44 @@ def test_perforce_sync_ui_submit_debug_context_contract():
     assert "Submit failed." in source
     assert "selected CL:" in source
     assert "files in selected CL:" in source
+    assert "localRoot:" in source
+    assert "scmRoot:" in source
+    assert "command:" in source
     assert "returncode:" in source
     assert "stderr:" in source
+
+
+def test_submit_restage_reports_selected_path_not_opened(tmp_path):
+    adapter = PerforceP4Adapter(tmp_path, executable="__missing_p4__")
+    local_root = tmp_path / "ip"
+    local_root.mkdir()
+
+    result = adapter._restage_local_submit_paths(
+        [{"depotFile": "//depot/rtl/opened.sv", "clientFile": "//atlas_ws/rtl/opened.sv", "action": "edit"}],
+        local_root=local_root,
+        paths=["//depot/rtl/missing.sv"],
+    )
+
+    assert not result.ok
+    assert result.returncode == 2
+    assert "selected submit path is not opened in this changelist" in result.error
+    assert "//depot/rtl/missing.sv" in result.error
+
+
+def test_submit_restage_reports_missing_local_source(tmp_path):
+    adapter = PerforceP4Adapter(tmp_path, executable="__missing_p4__")
+    local_root = tmp_path / "ip"
+    local_root.mkdir()
+
+    result = adapter._restage_local_submit_paths(
+        [{"depotFile": "//depot/rtl/missing.sv", "clientFile": "//atlas_ws/rtl/missing.sv", "action": "edit"}],
+        local_root=local_root,
+        paths=["//depot/rtl/missing.sv"],
+    )
+
+    assert result.ok
+    assert "restage skipped: local source not found for //depot/rtl/missing.sv" in result.stdout
+    assert str(local_root) in result.stdout
 
 
 def test_safe_filespecs_rejects_escapes(tmp_path):

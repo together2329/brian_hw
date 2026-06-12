@@ -183,8 +183,38 @@ const nextPendingChangeSelection = (
   return optionIds.has(current) ? current : 'default';
 };
 
-const responseField = (payload: unknown, key: string): string =>
-  isRecord(payload) ? String(payload[key] || '') : '';
+const responseField = (payload: unknown, key: string): string => {
+  if (!isRecord(payload)) return '';
+  const value = payload[key];
+  if (Array.isArray(value)) return value.map(item => String(item)).join(' ');
+  if (value && typeof value === 'object') return JSON.stringify(value);
+  return String(value || '');
+};
+
+const responseErrorPayload = async (response: Response): Promise<unknown> => {
+  const text = await response.text();
+  let payload: unknown = {};
+  if (text) {
+    try {
+      payload = JSON.parse(text);
+    } catch {
+      return {
+        ok: false,
+        returncode: response.status,
+        error: `HTTP ${response.status} ${response.statusText || 'error'}: non-JSON response`,
+        stderr: text,
+      };
+    }
+  }
+  if (response.ok) return payload;
+  const base = isRecord(payload) ? payload : {};
+  return {
+    ...base,
+    ok: false,
+    returncode: response.status,
+    error: responseField(base, 'error') || responseField(base, 'detail') || `HTTP ${response.status} ${response.statusText || 'error'}`,
+  };
+};
 
 const submitDebugText = (
   title: string,
@@ -203,6 +233,14 @@ const submitDebugText = (
     const error = responseField(payload, 'error');
     const stderr = responseField(payload, 'stderr');
     const stdout = responseField(payload, 'stdout');
+    const ip = responseField(payload, 'ip');
+    const localRoot = responseField(payload, 'localRoot');
+    const scmRoot = responseField(payload, 'scmRoot');
+    const command = responseField(payload, 'command');
+    if (ip) lines.push(`ip: ${ip}`);
+    if (localRoot) lines.push(`localRoot: ${localRoot}`);
+    if (scmRoot) lines.push(`scmRoot: ${scmRoot}`);
+    if (command) lines.push(`command: ${command}`);
     if (returncode) lines.push(`returncode: ${returncode}`);
     if (error) lines.push(`error: ${error}`);
     if (stderr) lines.push(`stderr: ${stderr}`);
@@ -631,7 +669,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const changeBody = selectedChange ? { changelist: selectedChange } : {};
     const sessionBody = activeSessionId() ? { session_id: activeSessionId() } : {};
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...body, ip, provider: 'perforce', ...streamBody, ...rootBody, ...changeBody, ...sessionBody }) })
-      .then(r => r.json())
+      .then(responseErrorPayload)
       .then((d: unknown) => {
         if (!mounted.current) return;
         if (isRecord(d) && d.ok) {

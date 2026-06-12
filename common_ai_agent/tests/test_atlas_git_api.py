@@ -716,6 +716,7 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
     assert response.status_code == 200
     payload = response.json()
     assert payload["ok"] is True
+    assert payload["command"] == ["p4", "submit"]
     assert seen == {
         "root": str(tmp_path / "p4_workspace"),
         "provider": "perforce",

@@ -431,6 +431,7 @@ def register_git_routes(
             "returncode": result.returncode,
             "provider": result.provider,
             "ip": resolved_ip,
+            "command": list(result.command),
             **_root_fields(local_root, scm_root_path),
         })
 
