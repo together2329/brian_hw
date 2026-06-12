@@ -225,6 +225,92 @@ def test_git_provider_override_stays_git_when_default_scm_is_perforce(tmp_path: 
     assert missing_git.json()["error"] == "ip has no .git — create via /new-ip first"
 
 
+def test_scm_status_allows_perforce_root_inside_configured_external_workspace(tmp_path: Path, monkeypatch):
+    project_root = tmp_path / "project"
+    p4_workspace = tmp_path / "p4_workspace"
+    project_root.mkdir(parents=True)
+    p4_workspace.mkdir(parents=True)
+    monkeypatch.setenv("P4_WORKSPACE_ROOT", str(p4_workspace))
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def status(self, *, local_root=None):
+            seen["local_root"] = local_root
+            return {
+                "ok": True,
+                "provider": self.provider,
+                "branch": "",
+                "head": "",
+                "head_full": "",
+                "files": [],
+            }
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(project_root, monkeypatch))
+
+    response = client.get(
+        "/api/scm/status",
+        params={"provider": "perforce", "scm_root": str(p4_workspace)},
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["provider"] == "perforce"
+    assert payload["scmRoot"] == str(p4_workspace)
+    assert seen == {
+        "root": str(p4_workspace),
+        "provider": "perforce",
+        "local_root": str(project_root),
+    }
+
+
+def test_scm_status_rejects_external_perforce_root_without_configured_workspace(tmp_path: Path, monkeypatch):
+    project_root = tmp_path / "project"
+    p4_workspace = tmp_path / "p4_workspace"
+    project_root.mkdir(parents=True)
+    p4_workspace.mkdir(parents=True)
+
+    client = _authenticated_client(_create_app(project_root, monkeypatch))
+
+    response = client.get(
+        "/api/scm/status",
+        params={"provider": "perforce", "scm_root": str(p4_workspace)},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"] == (
+        "scmRoot escapes project root or configured Perforce workspace root"
+    )
+
+
+def test_scm_status_rejects_external_git_root_even_with_configured_perforce_workspace(tmp_path: Path, monkeypatch):
+    project_root = tmp_path / "project"
+    p4_workspace = tmp_path / "p4_workspace"
+    project_root.mkdir(parents=True)
+    p4_workspace.mkdir(parents=True)
+    monkeypatch.setenv("P4_WORKSPACE_ROOT", str(p4_workspace))
+
+    client = _authenticated_client(_create_app(project_root, monkeypatch))
+
+    response = client.get(
+        "/api/scm/status",
+        params={"provider": "git", "scm_root": str(p4_workspace)},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["error"] == "scmRoot escapes project root"
+
+
 def test_scm_edit_route_uses_perforce_adapter(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
