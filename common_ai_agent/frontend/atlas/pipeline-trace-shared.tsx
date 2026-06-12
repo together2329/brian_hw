@@ -154,6 +154,22 @@ export interface OrchestratorDecisionStep {
   [key: string]: unknown;
 }
 
+export interface OrchestratorWorkerStatus {
+  job_id?: string;
+  workflow?: string;
+  status?: string;
+  terminal?: boolean;
+  stale?: boolean;
+  response_present?: boolean;
+  heartbeat_present?: boolean;
+  log_present?: boolean;
+  heartbeat_age_s?: number | null;
+  log_age_s?: number | null;
+  last_action?: string;
+  reason?: string;
+  [key: string]: unknown;
+}
+
 export interface OrchestratorDecisionTrace {
   ok?: boolean;
   ip?: string;
@@ -168,6 +184,7 @@ export interface OrchestratorDecisionTrace {
     [key: string]: unknown;
   } | null;
   steps?: OrchestratorDecisionStep[];
+  workers?: OrchestratorWorkerStatus[];
   wake?: string[];
   [key: string]: unknown;
 }

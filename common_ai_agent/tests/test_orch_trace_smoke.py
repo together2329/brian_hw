@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import subprocess
 import sys
 import time
 from pathlib import Path
 
-from src.orchestrator.trace import terminal_blocker_from_steps
+from src.orchestrator.trace import build_trace_from_records, format_trace, terminal_blocker_from_steps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -201,9 +202,73 @@ def test_terminal_blocker_detects_nonfinal_dispatch_without_job():
     assert blocker["workflow"] == "tb-gen"
 
 
+def test_trace_surfaces_stale_active_worker_heartbeat(tmp_path):
+    run_id = "run-stale-worker"
+    job_id = "job-stale"
+    worker_dir = tmp_path / ".session" / "workers-ipc" / job_id
+    worker_dir.mkdir(parents=True)
+    (worker_dir / "request.json").write_text(
+        json.dumps({"workflow": "rtl-gen", "ip": "ipx"}) + "\n",
+        encoding="utf-8",
+    )
+    (worker_dir / "heartbeat.json").write_text(
+        json.dumps(
+            {
+                "workflow": "rtl-gen",
+                "status": "running",
+                "last_action": "Iter 22 / 60",
+                "elapsed_s": 191.4,
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (worker_dir / "worker.log").write_text("still thinking\n", encoding="utf-8")
+    old = time.time() - 240
+    os.utime(worker_dir / "heartbeat.json", (old, old))
+    os.utime(worker_dir / "worker.log", (old, old))
+    rows = [
+        {
+            "step_index": 0,
+            "tool_name": "dispatch_workflow",
+            "decision_json": json.dumps(
+                {"args": {"workflow": "rtl-gen", "reason": "repair missing RTL contract"}}
+            ),
+            "evidence_read_json": json.dumps({"result": {"ok": True, "jobs": [{"job_id": job_id}]}}),
+            "verdict": "ok",
+            "created_at": time.time(),
+        },
+        {
+            "step_index": 1,
+            "tool_name": "yield_run",
+            "decision_json": json.dumps({"args": {"reason": "wait for rtl-gen"}}),
+            "evidence_read_json": json.dumps({"result": {}}),
+            "verdict": "timer",
+            "created_at": time.time(),
+        },
+    ]
+    trace = build_trace_from_records(
+        run_id,
+        run={"id": run_id, "status": "yielded", "started_at": time.time(), "model": "gpt-test"},
+        raw_steps=rows,
+        project_root=tmp_path,
+    )
+
+    assert trace["workers"][0]["job_id"] == job_id
+    assert trace["workers"][0]["workflow"] == "rtl-gen"
+    assert trace["workers"][0]["response_present"] is False
+    assert trace["workers"][0]["stale"] is True
+    rendered = format_trace(trace)
+    assert "workers:" in rendered
+    assert "job-stale rtl-gen status=running STALE" in rendered
+    assert "last=Iter 22 / 60" in rendered
+
+
 def test_atlas_trace_strip_consumes_shared_decision_trace_api():
     src = (ROOT / "frontend" / "atlas" / "pipeline-trace-workers.tsx").read_text()
     assert "/api/orchestrator/runs/latest/trace" in src
     assert "setDecisionTrace(j)" in src
     assert "data-status={status}" in src
+    assert "decisionTrace?.workers" in src
+    assert "stale worker" in src
     assert "orchestratorTraceUrl(ip, 20)" in src  # legacy JSONL fallback remains

@@ -198,6 +198,91 @@ def dispatch_workflow(args: dict[str, Any], result: dict[str, Any]) -> str:
     return ""
 
 
+def _read_json_path(path: Path) -> dict[str, Any] | None:
+    if not path.is_file():
+        return None
+    data = load_json(path.read_text(errors="replace"))
+    return data if isinstance(data, dict) else None
+
+
+def _file_age_s(path: Path) -> float | None:
+    if not path.exists():
+        return None
+    try:
+        return max(0.0, time.time() - float(path.stat().st_mtime))
+    except OSError:
+        return None
+
+
+def _worker_status(
+    project_root: Path,
+    job_id: str,
+    *,
+    workflow_hint: str = "",
+    stale_after_s: float = 180.0,
+) -> dict[str, Any]:
+    worker_dir = project_root / ".session" / "workers-ipc" / job_id
+    request = _read_json_path(worker_dir / "request.json") or {}
+    heartbeat = _read_json_path(worker_dir / "heartbeat.json") or {}
+    response = _read_json_path(worker_dir / "response.json") or {}
+    log_path = worker_dir / "worker.log"
+    hb_age = _file_age_s(worker_dir / "heartbeat.json")
+    log_age = _file_age_s(log_path)
+    response_status = str(response.get("status") or response.get("final_state") or "").strip()
+    heartbeat_status = str(heartbeat.get("status") or "").strip()
+    workflow = (
+        workflow_hint
+        or str(heartbeat.get("workflow") or "").strip()
+        or str(request.get("workflow") or request.get("stage_id") or "").strip()
+    )
+    status = response_status or heartbeat_status or ("missing" if not worker_dir.exists() else "unknown")
+    terminal = status in {"completed", "blocked", "error", "cancelled"}
+    stale = False
+    if worker_dir.exists() and not response and not terminal:
+        observed_ages = [x for x in (hb_age, log_age) if x is not None]
+        stale = bool(observed_ages and min(observed_ages) >= stale_after_s)
+    return {
+        "job_id": job_id,
+        "workflow": workflow,
+        "status": status,
+        "terminal": terminal,
+        "stale": stale,
+        "worker_dir_exists": worker_dir.exists(),
+        "response_present": bool(response),
+        "heartbeat_present": bool(heartbeat),
+        "log_present": log_path.exists(),
+        "heartbeat_age_s": round(hb_age, 1) if hb_age is not None else None,
+        "log_age_s": round(log_age, 1) if log_age is not None else None,
+        "last_action": truncate(heartbeat.get("last_action") or "", 180),
+        "events": heartbeat.get("events"),
+        "actions": heartbeat.get("actions"),
+        "observations": heartbeat.get("observations"),
+        "elapsed_s": heartbeat.get("elapsed_s"),
+        "reason": truncate(response.get("reason") or response.get("message") or "", 220),
+    }
+
+
+def worker_statuses(
+    project_root: Path | None,
+    steps: Iterable[Mapping[str, Any]],
+    *,
+    stale_after_s: float = 180.0,
+) -> list[dict[str, Any]]:
+    if project_root is None:
+        return []
+    jobs: dict[str, str] = {}
+    for step in steps:
+        workflow = str(step.get("workflow") or "")
+        for job_id in step.get("jobs") or []:
+            if not job_id:
+                continue
+            jobs.setdefault(str(job_id), workflow)
+    return [
+        _worker_status(project_root, job_id, workflow_hint=workflow, stale_after_s=stale_after_s)
+        for job_id, workflow in jobs.items()
+    ]
+
+
 def _read_pipeline_summary(result: dict[str, Any]) -> str:
     failed = result.get("failed")
     running = result.get("running")
@@ -435,10 +520,12 @@ def build_trace_from_records(
     response = read_response(ctrl)
     doc = run_doc(run, response, step_rows)
     steps = [action_summary(row) for row in step_rows]
+    workers = worker_statuses(project_root, steps)
     return {
         "run_id": run_id,
         "run": doc,
         "steps": steps,
+        "workers": workers,
         "wake": wake_tail(ctrl, wake_limit),
     }
 
@@ -520,6 +607,34 @@ def format_trace(trace: Mapping[str, Any]) -> str:
         lines.append(f"terminal anomaly: {run['terminal_anomaly']}")
     if run.get("started_at"):
         lines.append(f"started={fmt_ts(run.get('started_at'))} age={age(run.get('started_at'))}")
+    workers = trace.get("workers") if isinstance(trace.get("workers"), list) else []
+    notable_workers = [
+        w
+        for w in workers
+        if isinstance(w, Mapping)
+        and (
+            w.get("stale")
+            or not w.get("response_present")
+            or w.get("status") in {"error", "blocked", "cancelled", "missing"}
+        )
+    ]
+    if notable_workers:
+        lines.append("workers:")
+        for worker in notable_workers:
+            bits = [
+                str(worker.get("job_id") or "?"),
+                str(worker.get("workflow") or "?"),
+                f"status={worker.get('status') or '?'}",
+            ]
+            if worker.get("stale"):
+                bits.append("STALE")
+            if worker.get("last_action"):
+                bits.append(f"last={worker.get('last_action')}")
+            if worker.get("heartbeat_age_s") is not None:
+                bits.append(f"hb_age={worker.get('heartbeat_age_s')}s")
+            if worker.get("log_age_s") is not None:
+                bits.append(f"log_age={worker.get('log_age_s')}s")
+            lines.append("  " + " ".join(bits))
     lines.append("")
 
     for item in steps:

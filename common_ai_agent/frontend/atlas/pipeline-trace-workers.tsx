@@ -238,6 +238,7 @@ export function OrchestratorTraceStrip({ ip }: OrchestratorTraceStripProps) {
   }, [events]);
   const lensGlyph: Record<string, string> = { interaction: '⇄', intermediate: '◐', result: '✓' };
   const decisionSteps = Array.isArray(decisionTrace?.steps) ? decisionTrace!.steps! : [];
+  const decisionWorkers = Array.isArray(decisionTrace?.workers) ? decisionTrace!.workers! : [];
   const run = decisionTrace?.run || null;
   const runStatus = run?.effective_final_state || run?.final_state || run?.effective_status || run?.status || '';
   const countText = decisionTrace && decisionTrace.run_id
@@ -276,6 +277,27 @@ export function OrchestratorTraceStrip({ ip }: OrchestratorTraceStripProps) {
                   <span className="pipe-trace-extra">{run.terminal_anomaly}</span>
                 </div>
               )}
+              {decisionWorkers.map((w, i) => {
+                const stale = Boolean(w.stale);
+                const status = stale ? 'failed' : (w.response_present ? String(w.status || 'ok') : 'waiting');
+                const ageBits = [
+                  w.heartbeat_age_s != null ? `hb ${w.heartbeat_age_s}s` : '',
+                  w.log_age_s != null ? `log ${w.log_age_s}s` : '',
+                ].filter(Boolean).join(' · ');
+                return (
+                  <div key={`${decisionTrace.run_id}-worker-${w.job_id || i}`} className="pipe-trace-row" data-status={status} data-lens={stale ? 'result' : 'intermediate'}>
+                    <span className="pipe-trace-glyph">{stale ? '!' : (w.response_present ? '✓' : '◐')}</span>
+                    <span className="pipe-trace-step">{String(w.job_id || '?').slice(-6)}</span>
+                    <span className="pipe-trace-kind">{w.workflow || 'worker'}</span>
+                    <span className="pipe-trace-actor">{w.status || '?'}</span>
+                    <span className="pipe-trace-extra">
+                      {stale ? 'stale worker · ' : ''}
+                      {w.last_action || w.reason || ''}
+                      {ageBits ? ` · ${ageBits}` : ''}
+                    </span>
+                  </div>
+                );
+              })}
               {decisionSteps.map((s, i) => {
                 const status = String(s.status || '');
                 const glyph = status === 'failed' ? '!' : (status === 'waiting' ? '◐' : '✓');
