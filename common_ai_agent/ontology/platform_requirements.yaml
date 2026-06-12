@@ -228,6 +228,7 @@ requirements:
           - test: "tests/test_platform_ontology.py::test_spine_killproof_ghost_evidence_node"
             observed_at: d3178b92
 
+<<<<<<< Updated upstream
   - id: REQ_PLAT_AGENT_PACK_ROCEV_001
     claim: "Cursor/Codex 에이전트 팩은 ROCEV 기준을 실제 IP evidence와 연결해 재사용 가능한 workflow로 제공한다"
     design_anchor: doc/wiki/req-obligation-contract-evidence-validation.md
@@ -253,6 +254,21 @@ requirements:
         owned_by: platform.ip-wiki
         granularity: behavior
         status: open
+=======
+  - id: REQ_PLAT_SERVER_LAUNCHER_001
+    claim: "ATLAS 로컬 서버 런처는 재실행 전에 대상 포트의 LISTEN 프로세스를 확실히 종료한다"
+    design_anchor: doc/wiki/platform-ontology.md
+    obligations:
+      - id: OBL_RUN_SERVER_KILLS_LISTENERS_WHEN_SOURCED
+        owned_by: runtime.server
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_run_server_launcher.py::test_run_server_kills_only_listener_pids_line_by_line"
+            observed_at: e9142c20
+          - test: "tests/test_run_server_launcher.py::test_run_server_build_failures_do_not_fall_through_to_server_start"
+            observed_at: e9142c20
+>>>>>>> Stashed changes
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"

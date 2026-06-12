@@ -1,22 +1,27 @@
 {
-  "schema_version": 1,
-  "type": "tb_blocker",
-  "status": "blocked",
-  "owner": "ssot-gen + rtl-gen + tb-gen",
-  "ip": "uart_tx",
-  "reason": "SSOT/RTL contract is not concrete enough for generic cocotb scoreboard generation.",
+  "next_action": "Repair SSOT function_model transaction rules or approve explicit observable mappings, then rerun /tb.",
   "questions": [
     {
-      "id": "TB_GENERATOR_INPUT",
-      "decision_needed": "Provide the missing source artifact required by generic TB generation.",
-      "evidence": "missing RTL contract: /Users/brian/Desktop/Project/brian_hw/common_ai_agent/uart_tx/rtl/rtl_contract.json",
-      "options": [
-        "Run the owning ATLAS stage shown in the evidence, then rerun /tb."
-      ],
-      "recommended_default": "Run the owning ATLAS stage shown in the evidence, then rerun /tb.",
-      "downstream_effect": "The generator must consume disk-truth SSOT, FL, equivalence-goal, and RTL-contract artifacts."
+      "decision_needed": "Provide structured output_rules/state_updates or an explicit observable mapping for EQ_STATE_TX_CONTROL_DATA_TO_STOP_3 (tx_control_DATA_to_STOP_3) so tb-gen can compare FL expected values against RTL signals.",
+      "downstream_effect": "Without this contract, the generated scoreboard can run cocotb but cannot prove FL-vs-RTL equivalence.",
+      "evidence": "FunctionalModel returned unsupported_transaction for a required equivalence goal",
+      "id": "TB_SELF_CHECK_001",
+      "recommended_default": "Update the SSOT function_model transaction with structured output_rules/state_updates, then rerun fl-model-gen, equiv-goals, tb-gen, and sim."
+    },
+    {
+      "decision_needed": "Provide structured output_rules/state_updates or an explicit observable mapping for EQ_STATE_TX_CONTROL_START_TO_DATA_1 (tx_control_START_to_DATA_1) so tb-gen can compare FL expected values against RTL signals.",
+      "downstream_effect": "Without this contract, the generated scoreboard can run cocotb but cannot prove FL-vs-RTL equivalence.",
+      "evidence": "FunctionalModel returned unsupported_transaction for a required equivalence goal",
+      "id": "TB_SELF_CHECK_002",
+      "recommended_default": "Update the SSOT function_model transaction with structured output_rules/state_updates, then rerun fl-model-gen, equiv-goals, tb-gen, and sim."
     }
   ],
-  "next_action": "Repair SSOT/RTL contract through ATLAS, rerun /ssot-rtl, then rerun /tb.",
-  "timestamp": "2026-05-30T10:33:58Z"
+  "reason": "SSOT/FunctionalModel contract is not concrete enough for FL-vs-RTL scoreboard comparison",
+  "self_check": {
+    "checked": 29,
+    "model_errors": 0,
+    "required_goals": 29,
+    "ssot_questions": 0,
+    "unsupported_transactions": 2
+  }
 }

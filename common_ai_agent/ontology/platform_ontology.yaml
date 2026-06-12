@@ -98,8 +98,11 @@ units:
     kind: runtime
     summary: 에이전트 서버 엔트리·수명주기
     owns:
+      - run_server.csh
       - core/agent_server.py
       - src/main.py
+    content_tests:
+      - tests/test_run_server_launcher.py
 
   - id: data.db
     kind: store

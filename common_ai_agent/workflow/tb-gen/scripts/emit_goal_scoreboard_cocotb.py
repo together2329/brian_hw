@@ -1829,6 +1829,23 @@ def _drive_inputs(dut, manifest: dict[str, Any], stimulus: dict[str, Any]) -> No
     input_map = manifest.get("input_map") or {}
     inout_ports = _inout_ports(manifest)
     driven = {clock, reset}
+    # Reset-bearing stimulus (campaign finding 33): goals derived from async
+    # reset truth rows (rst_n==0 -> ...) RECORD reset in the stimulus, but the
+    # harness used to skip the reset pin entirely — the DUT never saw the
+    # assertion while the FL model faithfully applied it, producing
+    # physically-impossible mismatches (observed count!=0 under recorded
+    # rst_n=0). When the stimulus explicitly carries the reset field, drive
+    # it; otherwise hold reset DEASSERTED so reset state never leaks across
+    # goals.
+    if reset:
+        reset_active = str(manifest.get("reset_active") or "low").lower()
+        deasserted = 0 if reset_active == "high" else 1
+        reset_fields = [reset] + [f for f, p in input_map.items() if str(p) == reset]
+        explicit = next((f for f in reset_fields if f in stimulus), None)
+        if explicit is not None:
+            _set_signal(dut, reset, 1 if int(stimulus.get(explicit) or 0) else 0)
+        else:
+            _set_signal(dut, reset, deasserted)
     for field, port in input_map.items():
         if port in {clock, reset}:
             continue
