@@ -49,6 +49,7 @@ from behavioral_contracts import (  # noqa: E402
     compare_behavioral_to_function_cycle,
     normalize_behavioral_contracts,
 )
+from judge_verdict_cache import judge_with_cache  # noqa: E402
 
 REPO_ROOT = WORKFLOW_ROOT.parent
 for candidate in (REPO_ROOT, REPO_ROOT / "src"):
@@ -348,6 +349,18 @@ def _parse_judge_response(raw: str) -> dict[str, Any] | None:
     return parsed if isinstance(parsed, dict) else None
 
 
+class _JudgeBlocked(Exception):
+    """Raised inside a per-contract judge closure to signal a hard block.
+
+    Used so the cache wrapper can run the judge closure transparently while the
+    caller still distinguishes "blocked" (never silent-pass) from a real verdict.
+    """
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
+
+
 def _run_llm_judge(
     *,
     contracts: dict[str, dict[str, Any]],
@@ -355,12 +368,18 @@ def _run_llm_judge(
     waived_ids: set[str],
     llm_provider: Any,
     model: str,
+    ip_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Run the per-contract LLM judge. Returns a structured block.
 
     ``status`` is one of: ``pass`` (all faithful), ``fail`` (a critical violation),
     ``warning`` (non-critical only), or ``not_run`` (LLM unavailable / errored —
     never a silent pass).
+
+    Each per-contract verdict is served from a content-keyed cache when available
+    (``judge_verdict_cache``): an unchanged contract+content reuses the stored
+    verdict and makes NO LLM call (``cache_hit=True``), so determinism is
+    structural and redundant re-judging is eliminated.
     """
     fm = _function_model(ssot)
     transactions = [tx for tx in _as_list(fm.get("transactions")) if isinstance(tx, dict)]
@@ -385,39 +404,55 @@ def _run_llm_judge(
             "ssot_state_variables": state_variables,
             "ssot_fsm_states": fsm_states,
         }
-        prompt = (
-            "Judge whether the FL transaction(s) faithfully implement the locked behavioral "
-            "contract below.\n\n" + json.dumps(prompt_obj, indent=2, sort_keys=True)
-        )
-        try:
-            response = llm_provider.complete(
-                stage="fl-model-gen",
-                model=model,
-                system_prompt=_JUDGE_SYSTEM_PROMPT,
-                prompt=prompt,
-                context={"ip": ssot.get("ip"), "contract": contract_id},
+
+        def judge_call(_cid: str = contract_id, _obj: dict[str, Any] = prompt_obj) -> dict[str, Any]:
+            prompt = (
+                "Judge whether the FL transaction(s) faithfully implement the locked behavioral "
+                "contract below.\n\n" + json.dumps(_obj, indent=2, sort_keys=True)
             )
-        except Exception as exc:  # provider plumbing failure — never silent-pass
-            blocked_reason = f"LLM judge raised {type(exc).__name__}: {exc}"
-            break
-        if getattr(response, "status", "") == "blocked" or getattr(response, "error", ""):
-            blocked_reason = getattr(response, "error", "") or "LLM provider blocked"
-            break
-        verdict = _parse_judge_response(getattr(response, "raw_response", ""))
-        if verdict is None:
-            blocked_reason = f"LLM judge returned unparseable verdict for {contract_id}"
+            try:
+                response = llm_provider.complete(
+                    stage="fl-model-gen",
+                    model=model,
+                    system_prompt=_JUDGE_SYSTEM_PROMPT,
+                    prompt=prompt,
+                    context={"ip": ssot.get("ip"), "contract": _cid},
+                )
+            except Exception as exc:  # provider plumbing failure — never silent-pass
+                raise _JudgeBlocked(f"LLM judge raised {type(exc).__name__}: {exc}") from exc
+            if getattr(response, "status", "") == "blocked" or getattr(response, "error", ""):
+                raise _JudgeBlocked(getattr(response, "error", "") or "LLM provider blocked")
+            parsed = _parse_judge_response(getattr(response, "raw_response", ""))
+            if parsed is None:
+                raise _JudgeBlocked(f"LLM judge returned unparseable verdict for {_cid}")
+            contract_violations = [v for v in _as_list(parsed.get("violations")) if isinstance(v, dict)]
+            for v in contract_violations:
+                v.setdefault("contract_refs", [_cid])
+            return {
+                "contract_id": _cid,
+                "faithful": bool(parsed.get("faithful")),
+                "violations": contract_violations,
+            }
+
+        try:
+            verdict = judge_with_cache(
+                ip_dir=ip_dir if ip_dir is not None else Path("."),
+                domain="fl",
+                contract_id=contract_id,
+                contract=contract,
+                judged_content=prompt_obj,
+                model=model,
+                judge_call=judge_call,
+            )
+        except _JudgeBlocked as blocked:
+            blocked_reason = blocked.reason
             break
         judged += 1
-        faithful = bool(verdict.get("faithful"))
-        contract_violations = [v for v in _as_list(verdict.get("violations")) if isinstance(v, dict)]
-        for v in contract_violations:
-            v.setdefault("contract_refs", [contract_id])
+        contract_violations = [
+            v for v in _as_list(verdict.get("violations")) if isinstance(v, dict)
+        ]
         violations.extend(contract_violations)
-        per_contract.append({
-            "contract_id": contract_id,
-            "faithful": faithful,
-            "violations": contract_violations,
-        })
+        per_contract.append(verdict)
 
     if blocked_reason:
         return {
@@ -465,7 +500,20 @@ def _default_provider() -> tuple[Any, str]:
             from headless_workflow import RealLLMProvider
     except Exception:
         return None, model
-    provider = RealLLMProvider(required_model=os.getenv("ATLAS_HEADLESS_REQUIRED_MODEL", ""))
+    # Per-judge-call timeout cap (default 120s) so a single hung judge call cannot
+    # wedge a worker for the full headless 600s budget. Falls back to the
+    # provider's own default when the knob is unset/invalid.
+    timeout_s: int | None = None
+    raw_timeout = os.getenv("ATLAS_JUDGE_CALL_TIMEOUT_S", "120").strip()
+    if raw_timeout:
+        try:
+            timeout_s = int(raw_timeout)
+        except ValueError:
+            timeout_s = None
+    provider = RealLLMProvider(
+        required_model=os.getenv("ATLAS_HEADLESS_REQUIRED_MODEL", ""),
+        timeout_s=timeout_s,
+    )
     return provider, model
 
 
@@ -555,6 +603,7 @@ def validate_fl_semantics(
             llm_block = _run_llm_judge(
                 contracts=contracts, ssot=ssot, waived_ids=waived_ids,
                 llm_provider=provider, model=str(judge_model or "gpt-5.4"),
+                ip_dir=ip_dir,
             )
 
     llm_critical = [
