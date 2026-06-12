@@ -223,26 +223,27 @@ def build_pack(ip: str, spec: dict) -> dict[str, object]:
     # every IP: one lint obligation
     lint_obl = f"OBL_{tag}_LINT_001"
     obl_refs.append(lint_obl)
+    # Lint is a STATIC property — it lives in the contract_refs layer with
+    # lint-stage evidence, NOT in behavioral_contracts. Emitting it as a
+    # behavioral contract (campaign findings 15/28 family) forced the
+    # locked-truth projection to attach it to a function_model transaction,
+    # where the FL gate then correctly rejected state updates "under a
+    # cycle-waived contract" — an unconvergeable loop on every sequential IP.
     obls.append({"obligation_id": lint_obl, "requirement_refs": [req_id],
                  "statement": "No inferred latches, single driver per register.",
                  "contract_refs": [f"C_{tag}_LINT"],
                  "structural_contract_refs": [f"SC_{tag}_PORTS"],
-                 "behavioral_contract_refs": [f"BC-{tag}-LINT"],
                  "required_stages": ["lint"],
                  "owned_by_stage": "lint", "closure_stage": "lint",
                  "granularity": "structural", "failure_owner": "rtl-gen"})
     contracts.append({"contract_ref_id": f"C_{tag}_LINT", "obligation_refs": [lint_obl],
                       "ssot_anchor": "coding_rules",
-                      "stage_contracts": [{"stage": "lint", "artifact": "lint/dut_lint.json"}]})
-    behaviorals.append({"id": f"BC-{tag}-LINT", "obligations": [lint_obl],
-                        "decision_table": [{"when": "static analysis runs", "then": "no latch, single driver"}],
-                        "cycle_model_waiver": True,
-                        "stage_contracts": [{"stage": "rtl", "check": "RTL is synthesizable + single-driver",
-                                              "pass_condition": "rtl_compile PASS, no inferred latch",
-                                              "validator": "rtl_compile_report.py"},
-                                             {"stage": "lint", "check": "lint clean",
-                                              "pass_condition": "no latch / multi-driver findings",
-                                              "validator": "dut_lint_report.py"}]})
+                      "stage_contracts": [{"stage": "rtl", "check": "RTL is synthesizable + single-driver",
+                                            "pass_condition": "rtl_compile PASS, no inferred latch",
+                                            "validator": "rtl_compile_report.py"},
+                                           {"stage": "lint", "check": "lint clean",
+                                            "pass_condition": "no latch / multi-driver findings",
+                                            "validator": "dut_lint_report.py"}]})
     evidence.append({"evidence_id": f"E_{tag}_LINT", "contract_ref": f"C_{tag}_LINT",
                      "artifact": "lint/dut_lint.json", "validator": "dut_lint_report.py",
                      "pass_condition": "no latch / single-driver findings"})
