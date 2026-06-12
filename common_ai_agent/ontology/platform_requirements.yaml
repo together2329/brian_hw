@@ -791,6 +791,8 @@ requirements:
             observed_at: 49d76e22
           - test: "tests/test_fl_enum_state_update_gate.py::test_equivalence_scoreboard_enum_helper_excludes_from_seed"
             observed_at: 49d76e22
+          - test: "tests/test_fl_enum_state_update_gate.py::test_emit_fl_model_engine_binds_and_resolves_enum_names"
+            observed_at: 35599573
       - id: OBL_EQUIVALENCE_TXN_RESOLVED_BY_STIMULUS_GUARD
         owned_by: engine.stage
         granularity: content
