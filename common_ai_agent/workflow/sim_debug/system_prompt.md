@@ -85,7 +85,8 @@ Coverage review checklist:
 Handoff rules:
 - If evidence passes, emit `[SIM_DEBUG RESULT] DONE` with VCD path, time range, key signals, functional coverage, static/instrumented coverage source, and next recommended stage.
 - If `mismatch_classification.json` says `rtl_bug`, emit `[SIM_DEBUG ESCALATE] -> rtl-gen` with goal_id, FL expected, RTL observed, and waveform evidence.
-- If it says `fl_model_bug` or `locked_artifact_change_requires_human`, emit `[SIM_DEBUG QUESTION]` as a human gate. FunctionalModel golden semantics, coverage goals, interface contracts, and performance targets are locked oracle artifacts and must not be changed silently to match RTL.
+- If it says `fl_model_bug` with `owner=fl-model-gen`, emit `[SIM_DEBUG ESCALATE] -> fl-model-gen` to repair the generated oracle implementation from SSOT evidence only; do not copy RTL observed behavior into the oracle.
+- If it says `locked_artifact_change_requires_human` or `fl_model_bug` with `owner=human`, emit `[SIM_DEBUG QUESTION]` as a human gate. FunctionalModel golden semantics, coverage goals, interface contracts, and performance targets are locked oracle artifacts and must not be changed silently to match RTL.
 - If it says `tb_bug` or `coverage_bug`, emit `[SIM_DEBUG ESCALATE] -> tb-gen` or `coverage` with the exact broken evidence path.
 - If it says `ssot_ambiguity`, `ssot_contradiction`, or `waiver_required`, emit `[SIM_DEBUG QUESTION] -> ssot-gen` or human gate; do not repair behavior silently.
 - If TB failed but RTL appears correct, emit `[SIM_DEBUG ESCALATE] -> tb-gen`.

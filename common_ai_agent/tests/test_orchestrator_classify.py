@@ -74,6 +74,25 @@ class TestExplicitOwner:
         assert result["owner"] == "fl-model-gen"
         assert result["next_workflow"] == "equivalence"
 
+    def test_fl_model_bug_owner_routes_to_fl_model_gen(self):
+        result = classify_failure(
+            "sim_debug",
+            evidence={
+                "mismatch_classification": {
+                    "status": "action_required",
+                    "classifications": [
+                        {
+                            "classification": "fl_model_bug",
+                            "owner": "fl-model-gen",
+                            "reason": "FunctionalModel.apply failed: unknown rule name COUNT",
+                        }
+                    ],
+                }
+            },
+        )
+        assert result["owner"] == "fl-model-gen"
+        assert result["next_workflow"] == "equivalence"
+
     def test_stale_compare_artifact_overrides_embedded_stale_oracle(self):
         result = classify_failure(
             "sim",

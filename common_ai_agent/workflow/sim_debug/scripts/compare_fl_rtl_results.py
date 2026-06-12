@@ -254,6 +254,20 @@ _KIND_STIMULUS_PATTERNS = (
     ("request", {"enable": 1, "clear": 0}),
 )
 
+_SIGNAL_ALIASES = {
+    "enable": ("enable", "en"),
+    "clear": ("clear", "clr"),
+    "rst_n": ("rst_n", "reset_n"),
+    "reset": ("reset", "rst"),
+}
+
+
+def _stimulus_value(stimulus: dict[str, Any], signal: str) -> tuple[str, Any] | None:
+    for key in _SIGNAL_ALIASES.get(signal, (signal,)):
+        if key in stimulus:
+            return key, stimulus.get(key)
+    return None
+
 
 def _stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
     """Return a non-empty reason when the TB stimulus contradicts the named transaction kind."""
@@ -289,16 +303,71 @@ def _stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
             if token not in kind:
                 continue
             for signal, expected in signals.items():
-                if signal not in stimulus:
+                found = _stimulus_value(stimulus, signal)
+                if found is None:
                     continue
-                actual = stimulus.get(signal)
+                field, actual = found
                 if isinstance(actual, bool):
                     actual = int(actual)
                 if isinstance(actual, (int, float)) and int(actual) != int(expected):
-                    violations.append(f"{signal}={int(actual)} (kind '{kind}' requires {signal}={int(expected)})")
+                    violations.append(f"{field}={int(actual)} (kind '{kind}' requires {field}={int(expected)})")
         if violations:
             return "stimulus contradicts transaction kind: " + "; ".join(violations)
     return ""
+
+
+def _reset_asserted(stimulus: dict[str, Any]) -> str:
+    for signal, asserted in (("rst_n", 0), ("reset_n", 0), ("reset", 1), ("rst", 1)):
+        if signal not in stimulus:
+            continue
+        value = stimulus.get(signal)
+        if isinstance(value, bool):
+            value = int(value)
+        if isinstance(value, (int, float)) and int(value) == asserted:
+            return f"{signal}={int(value)}"
+    return ""
+
+
+def _non_reset_stimulus_reset_violation(goal: dict[str, Any], rows: list[dict[str, Any]]) -> str:
+    non_reset_tokens = {"clear", "hold", "idle", "advance", "run", "step", "count", "accept", "transfer", "request"}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        stimulus = row.get("stimulus") if isinstance(row.get("stimulus"), dict) else {}
+        if not stimulus:
+            continue
+        field = _reset_asserted(stimulus)
+        if not field:
+            continue
+        kind_text = " ".join(
+            str(item or "").lower()
+            for item in (
+                stimulus.get("kind"),
+                goal.get("kind"),
+                goal.get("goal_id"),
+                goal.get("title"),
+            )
+        )
+        if any(token in kind_text for token in non_reset_tokens):
+            return f"reset asserted in non-reset stimulus: {field}"
+    return ""
+
+
+def _fl_oracle_execution_failure(text: str) -> bool:
+    return any(
+        token in text
+        for token in (
+            "unknown rule name",
+            "unknown rule",
+            "_eval_ast",
+            "rule evaluator",
+            "functionalmodel.apply failed",
+            "functionalmodel apply failed",
+            "functional model apply failed",
+            "model api exception",
+            "model api failed",
+        )
+    )
 
 
 def _apb_stimulus_contract_violation(rows: list[dict[str, Any]]) -> str:
@@ -428,6 +497,10 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
     if stimulus_violation:
         text = text + " " + stimulus_violation.lower() + " driver"
         repair_reason = f"{repair_reason}; {stimulus_violation}" if repair_reason else stimulus_violation
+    reset_violation = _non_reset_stimulus_reset_violation(goal, rows)
+    if reset_violation:
+        text = text + " " + reset_violation.lower() + " driver"
+        repair_reason = f"{repair_reason}; {reset_violation}" if repair_reason else reset_violation
     apb_stimulus_violation = _apb_stimulus_contract_violation(rows)
     if apb_stimulus_violation:
         text = text + " " + apb_stimulus_violation.lower() + " driver"
@@ -474,6 +547,10 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
         classification = "tb_bug"
         owner = "tb-gen"
         loop = True
+    elif _fl_oracle_execution_failure(text):
+        classification = "fl_model_bug"
+        owner = "fl-model-gen"
+        loop = True
     elif "fl_model" in text or "functional model" in text or "model api" in text:
         classification = "fl_model_bug"
         owner = "human"
@@ -504,6 +581,21 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
         loop = True
 
     first = rows[0] if rows else {}
+    if owner == "fl-model-gen":
+        authority_policy = {
+            "locked_artifacts": ["requirement", "ssot_spec", "interface_contract", "performance_target"],
+            "llm_editable_artifacts": ["functional_model_implementation", "equivalence_goals", "coverage_plan"],
+            "rule": (
+                "Repair generated oracle implementation from SSOT evidence only. "
+                "Do not copy RTL observed behavior or change locked semantics from sim-debug."
+            ),
+        }
+    else:
+        authority_policy = {
+            "locked_artifacts": ["requirement", "ssot_spec", "functional_model", "coverage_plan", "interface_contract", "performance_target"],
+            "llm_editable_artifacts": ["rtl", "tb", "test_vector", "scoreboard_implementation", "lint_fix", "report"],
+            "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead.",
+        }
     return {
         "goal_id": goal.get("goal_id"),
         "classification": classification,
@@ -517,11 +609,7 @@ def _classify_failure(goal: dict[str, Any], rows: list[dict[str, Any]], reason: 
             "rtl_observed": first.get("rtl_observed") if isinstance(first, dict) else {},
             "sim_result": "failed",
         },
-        "authority_policy": {
-            "locked_artifacts": ["requirement", "ssot_spec", "functional_model", "coverage_plan", "interface_contract", "performance_target"],
-            "llm_editable_artifacts": ["rtl", "tb", "test_vector", "scoreboard_implementation", "lint_fix", "report"],
-            "rule": "Do not change locked oracle artifacts from sim-debug; open a human gate instead.",
-        },
+        "authority_policy": authority_policy,
         "repair_prompt": _repair_prompt(goal, classification, owner, repair_reason) if loop else "",
         "human_question": _human_question(goal, repair_reason) if not loop else "",
     }

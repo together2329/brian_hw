@@ -559,6 +559,15 @@ requirements:
             observed_at: f6d8a36c
           - test: "tests/test_orchestrator_classify.py::TestSilentFailDemotion::test_unrelated_exclusion_does_not_change_route"
             observed_at: f6d8a36c
+      - id: OBL_SIM_DEBUG_CLASSIFIES_ORACLE_AND_STIMULUS_SIGNATURES
+        owned_by: engine.stage
+        granularity: behavior
+        # finding 39: sim_debug의 bare FL-vs-RTL value mismatch default가 else:rtl_bug라
+        # TB/FL-rooted mismatch(findings 33-37)가 첫 라우팅부터 rtl-gen으로 오배송된다.
+        # classifier는 명시적 증거가 있을 때 FL oracle execution failure / degenerate
+        # FL expected trace / stimulus-kind contradiction을 각각 fl_model_bug 또는 tb_bug로
+        # route해야 하며, 진짜 증거 없는 bare mismatch만 rtl_bug fallback을 유지해야 한다.
+        status: open
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
