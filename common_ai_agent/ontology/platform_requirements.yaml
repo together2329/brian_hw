@@ -318,6 +318,14 @@ requirements:
         evidence:
           - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_reselects_opened_changelist_after_mutation"
             observed_at: 0f98cca3
+      - id: OBL_P4_UI_CHECKOUT_SUBMIT_PREFERS_TOUCHED_CL
+        owned_by: platform.scm
+        granularity: behavior
+        status: open   # checkout/edit 후 unrelated opened CL 이 있어도 방금 열린 file 의 CL 을 선택해야 함
+      - id: OBL_P4_UI_SUBMIT_DEBUG_CONTEXT
+        owned_by: platform.scm
+        granularity: behavior
+        status: open   # Submit 이 막히거나 실패하면 selected CL/pending/backend 응답을 UI 에 남겨야 함
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"

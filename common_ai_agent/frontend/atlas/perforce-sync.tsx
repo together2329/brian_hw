@@ -40,7 +40,17 @@ interface PendingChange { id: string; label?: string; description?: string }
 interface HistoryCommit { sha: string; short?: string; subject?: string; author?: string; date?: string }
 interface PaneLocation { localDir: string; depotDir: string }
 interface NavigationState { entries: PaneLocation[]; index: number }
-interface LoadPaneOptions { remember?: boolean; clearLocal?: boolean; clearDepot?: boolean; selectOpenedChange?: boolean }
+interface LoadPaneOptions {
+  remember?: boolean;
+  clearLocal?: boolean;
+  clearDepot?: boolean;
+  selectOpenedChange?: boolean;
+  preferPendingPaths?: string[];
+}
+interface PostOptions {
+  reload?: LoadPaneOptions;
+  onError?: (payload: unknown, message: string) => void;
+}
 interface PaneState {
   ok: boolean;
   client?: string;
@@ -119,6 +129,24 @@ const pendingChangeId = (value: string | undefined): string => {
   return clean || 'default';
 };
 
+const normalizedPendingPath = (value: string): string =>
+  String(value || '').replace(/\/+$/, '');
+
+const basename = (path: string): string =>
+  String(path || '').replace(/\/+$/, '').split('/').pop() || '';
+
+const pendingPathsForTargets = (paths: string[], targetPaths: string[]): string[] => {
+  const targets = targetPaths.filter(Boolean);
+  if (targets.length === paths.length && targets.every(path => !path.endsWith('/'))) {
+    return targets;
+  }
+  if (targets.length === 1 && targets[0].startsWith('//') && targets[0].endsWith('/')) {
+    const dir = targets[0].replace(/\/+$/, '');
+    return paths.map(path => `${dir}/${basename(path)}`).filter(path => !path.endsWith('/'));
+  }
+  return paths;
+};
+
 const paneWithPendingChangeOptions = (payload: PaneState): PaneState => {
   const pendingChanges = payload.pendingChanges?.length
     ? payload.pendingChanges
@@ -137,12 +165,50 @@ const paneWithPendingChangeOptions = (payload: PaneState): PaneState => {
   return { ...payload, pendingChanges: merged };
 };
 
-const nextPendingChangeSelection = (current: string, payload: PaneState): string => {
+const nextPendingChangeSelection = (
+  current: string,
+  payload: PaneState,
+  preferPendingPaths: string[] = [],
+): string => {
   const optionIds = new Set((payload.pendingChanges || []).map(change => change.id));
+  const preferredPaths = new Set(preferPendingPaths.map(normalizedPendingPath).filter(Boolean));
+  if (preferredPaths.size) {
+    const touched = (payload.pending || [])
+      .find(row => preferredPaths.has(normalizedPendingPath(row.path)));
+    if (touched) return pendingChangeId(touched.change);
+  }
   const openedIds = (payload.pending || []).map(row => pendingChangeId(row.change));
   if (openedIds.includes(current)) return current;
   if (openedIds.length) return openedIds[0];
   return optionIds.has(current) ? current : 'default';
+};
+
+const responseField = (payload: unknown, key: string): string =>
+  isRecord(payload) ? String(payload[key] || '') : '';
+
+const submitDebugText = (
+  title: string,
+  selectedChange: string,
+  pendingRows: PendRow[],
+  payload?: unknown,
+): string => {
+  const lines = [
+    title,
+    `selected CL: ${selectedChange || 'default'}`,
+    `files in selected CL: ${pendingRows.length}`,
+    ...pendingRows.map(row => `- ${row.change || 'default'} ${row.action || ''} ${row.path}`),
+  ];
+  if (payload !== undefined) {
+    const returncode = responseField(payload, 'returncode');
+    const error = responseField(payload, 'error');
+    const stderr = responseField(payload, 'stderr');
+    const stdout = responseField(payload, 'stdout');
+    if (returncode) lines.push(`returncode: ${returncode}`);
+    if (error) lines.push(`error: ${error}`);
+    if (stderr) lines.push(`stderr: ${stderr}`);
+    if (stdout) lines.push(`stdout: ${stdout}`);
+  }
+  return lines.filter(Boolean).join('\n');
 };
 
 const parentLocalDir = (dir: string): string => {
@@ -305,6 +371,7 @@ const sx: Record<string, CSSProperties> = {
   historyList: { overflow: 'auto', flex: 1, minHeight: 0, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', minWidth: 0 },
   pendingBody: { display: 'flex', flexDirection: 'column', gap: 6, flex: 1, minHeight: 0, minWidth: 0 },
   pendList: { overflow: 'auto', flex: 1, minHeight: 0, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)' },
+  debugBox: { margin: 0, maxHeight: 96, overflow: 'auto', border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', color: 'var(--fg-dim)', padding: '6px 8px', fontFamily: 'var(--mono, monospace)', fontSize: 11, whiteSpace: 'pre-wrap' },
   diffPane: { overflow: 'hidden', flex: 1, minHeight: 0, border: '1px solid var(--line)', borderRadius: 4, background: 'var(--bg)', display: 'flex', flexDirection: 'column', minWidth: 0 },
   diffPre: { margin: 0, padding: '8px 10px', overflow: 'auto', flex: 1, minHeight: 0, whiteSpace: 'pre', fontFamily: 'var(--mono, monospace)', fontSize: 11, color: 'var(--fg)' },
   btn: { background: 'transparent', color: 'var(--accent)', border: '1px solid var(--accent)', borderRadius: 4, padding: '5px 12px', font: 'inherit', fontSize: 11, cursor: 'pointer', whiteSpace: 'nowrap' },
@@ -329,6 +396,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
+  const [submitDebug, setSubmitDebug] = useState('');
   const [desc, setDesc] = useState('');
   const [selectedChange, setSelectedChange] = useState('default');
   const [localDir, setLocalDir] = useState('');
@@ -417,7 +485,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         if (!targetScmRoot && nextPane.scmRoot) setScmRoot(nextPane.scmRoot);
         setSelectedChange(current => (
           options.selectOpenedChange
-            ? nextPendingChangeSelection(current, nextPane)
+            ? nextPendingChangeSelection(current, nextPane, options.preferPendingPaths)
             : ((nextPane.pendingChanges || []).some(change => change.id === current)
               ? current
               : 'default')
@@ -553,6 +621,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     body: Record<string, unknown>,
     okMsg: string,
     afterOk?: (payload: Record<string, unknown>) => void,
+    options: PostOptions = { reload: { selectOpenedChange: true } },
   ) => {
     setBusy(true); setErr(''); setMsg('');
     const activeStream = stream || pane?.stream || '';
@@ -571,13 +640,20 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         } else {
           const message = isRecord(d) ? String(d.error || d.stderr || 'operation failed') : 'operation failed';
           setErr(message);
+          options.onError?.(d, message);
         }
       })
-      .catch(e => { if (mounted.current) setErr(String(e)); })
+      .catch(e => {
+        if (mounted.current) {
+          const message = String(e);
+          setErr(message);
+          options.onError?.(e, message);
+        }
+      })
       .finally(() => {
         if (mounted.current) {
           setBusy(false);
-          loadPane(ip, activeStream, activeScmRoot, localDir, depotDir, { selectOpenedChange: true });
+          loadPane(ip, activeStream, activeScmRoot, localDir, depotDir, options.reload ?? { selectOpenedChange: true });
           loadHistory(ip, activeStream, activeScmRoot);
         }
       });
@@ -667,7 +743,13 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const localFiles = localFileRowsInDir(local, localDir);
     const paths = selLocal.size ? [...selLocal] : localFiles.filter(r => r.state !== 'same').map(r => r.path);
     if (!paths.length) { setErr('no local changes to add'); return; }
-    post('/api/scm/add', { paths, targetPaths: depotDir ? [depotDir] : [] }, `opened ${paths.length} file(s)`);
+    const targetPaths = depotDir ? [depotDir] : [];
+    post('/api/scm/add', { paths, targetPaths }, `opened ${paths.length} file(s)`, undefined, {
+      reload: {
+        selectOpenedChange: true,
+        preferPendingPaths: pendingPathsForTargets(paths, targetPaths),
+      },
+    });
   };
   // Pair selections by the VISIBLE list order of both panes (top-to-bottom):
   // the backend zips sources/targets positionally, and Set click-order must
@@ -686,16 +768,39 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         return;
       }
       const targetPaths = selectedDepotFiles.length ? selectedDepotFiles : [depotDir || depotRoot];
-      post('/api/scm/edit', { paths: localPaths, targetPaths }, `checked out ${localPaths.length} file(s)`);
+      post('/api/scm/edit', { paths: localPaths, targetPaths }, `checked out ${localPaths.length} file(s)`, undefined, {
+        reload: {
+          selectOpenedChange: true,
+          preferPendingPaths: pendingPathsForTargets(localPaths, targetPaths),
+        },
+      });
       return;
     }
     if (!selectedDepotFiles.length) { setErr('select Perforce files to checkout'); return; }
-    post('/api/scm/edit', { paths: selectedDepotFiles, sourceRoot: 'scm' }, `checked out ${selectedDepotFiles.length} file(s)`);
+    post('/api/scm/edit', { paths: selectedDepotFiles, sourceRoot: 'scm' }, `checked out ${selectedDepotFiles.length} file(s)`, undefined, {
+      reload: {
+        selectOpenedChange: true,
+        preferPendingPaths: selectedDepotFiles,
+      },
+    });
   };
   const onSubmit = () => {
-    if (!desc.trim()) { setErr('description required'); return; }
+    setBottomTab('pending');
+    if (!desc.trim()) {
+      setErr('description required');
+      setSubmitDebug(submitDebugText('Submit blocked before request: description required.', selectedChange, visiblePending));
+      return;
+    }
+    if (!visiblePending.length) {
+      const message = `no files opened in selected CL ${selectedChange || 'default'}`;
+      setErr(message);
+      setSubmitDebug(submitDebugText(`Submit blocked before request: ${message}.`, selectedChange, visiblePending));
+      return;
+    }
     const submittedChange = selectedChange;
-    post('/api/scm/submit', { message: desc.trim(), add_all: false }, 'submitted', () => {
+    setSubmitDebug(submitDebugText('Submit request sent.', selectedChange, visiblePending));
+    post('/api/scm/submit', { message: desc.trim(), add_all: false }, 'submitted', payload => {
+      setSubmitDebug(submitDebugText('Submit succeeded.', selectedChange, visiblePending, payload));
       setDesc('');
       setSelPend(new Set());
       setDiffPath('');
@@ -708,6 +813,14 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       // pendingChanges untouched) could contradict/mask the live result, so a
       // just-submitted changelist kept showing in the pending list.
       if (submittedChange !== 'default') setSelectedChange('default');
+    }, {
+      reload: {
+        selectOpenedChange: true,
+        preferPendingPaths: visiblePending.map(row => row.path),
+      },
+      onError: payload => {
+        setSubmitDebug(submitDebugText('Submit failed.', selectedChange, visiblePending, payload));
+      },
     });
   };
   const onSync = () => {
@@ -716,7 +829,9 @@ function PerforceSyncTab(props: PerforceSyncProps) {
     const paths = selectedFiles.length ? selectedFiles : depotFiles.map(r => r.path);
     if (!paths.length) { setErr('no Perforce files to sync'); return; }
     const targetPaths = localDir ? [`${localDir.replace(/\/+$/, '')}/`] : [];
-    post('/api/scm/sync', { paths, targetPaths }, `copied ${paths.length} file(s) to local`);
+    post('/api/scm/sync', { paths, targetPaths }, `copied ${paths.length} file(s) to local`, undefined, {
+      reload: { selectOpenedChange: false },
+    });
   };
   const onRevert = () => {
     const pendingRows = (pane?.pending || []).filter(row => (row.change || 'default') === selectedChange);
@@ -951,6 +1066,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
                     );
                   })}
               </div>
+              {submitDebug ? <pre style={sx.debugBox}>{submitDebug}</pre> : null}
             </div>
           ) : null}
         </div>
@@ -958,7 +1074,14 @@ function PerforceSyncTab(props: PerforceSyncProps) {
           <input style={sx.input} placeholder="changelist description…" value={desc}
                  onChange={e => setDesc(e.target.value)}
                  onKeyDown={e => { if (e.key === 'Enter') onSubmit(); }} />
-          <button style={sx.btnPrimary} onClick={onSubmit} disabled={busy || !ip || !visiblePending.length}>✔ Submit</button>
+          <button
+            style={sx.btnPrimary}
+            onClick={onSubmit}
+            disabled={busy || !ip || !visiblePending.length}
+            title={!visiblePending.length ? `No opened files in selected CL ${selectedChange || 'default'}` : 'Submit selected pending changelist'}
+          >
+            ✔ Submit
+          </button>
         </div>
       </div>
     </div>

@@ -276,9 +276,23 @@ def test_perforce_sync_ui_reselects_opened_changelist_after_mutation():
     )
 
     assert "selectOpenedChange?: boolean" in source
-    assert "nextPendingChangeSelection(current, nextPane)" in source
+    assert "preferPendingPaths?: string[]" in source
+    assert "nextPendingChangeSelection(current, nextPane, options.preferPendingPaths)" in source
     assert "{ selectOpenedChange: true }" in source
     assert "paneWithPendingChangeOptions(d)" in source
+
+
+def test_perforce_sync_ui_submit_debug_context_contract():
+    source = (Path(PROJECT_ROOT) / "frontend" / "atlas" / "perforce-sync.tsx").read_text(
+        encoding="utf-8",
+    )
+
+    assert "Submit blocked before request" in source
+    assert "Submit failed." in source
+    assert "selected CL:" in source
+    assert "files in selected CL:" in source
+    assert "returncode:" in source
+    assert "stderr:" in source
 
 
 def test_safe_filespecs_rejects_escapes(tmp_path):

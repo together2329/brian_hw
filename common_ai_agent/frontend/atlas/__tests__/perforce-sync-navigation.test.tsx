@@ -35,7 +35,9 @@ describe('PerforceSyncTab pane navigation', () => {
   let delayRootLocalPane = false;
   let releaseRootLocalPane: (() => void) | null = null;
   let includeExistingPending = true;
+  let existingPendingChange = '12';
   let checkoutChangeOverride = '';
+  let submitFailure: Body | null = null;
 
   const panePayload = (localDir: string, depotDir: string) => ({
     ok: true,
@@ -59,12 +61,13 @@ describe('PerforceSyncTab pane navigation', () => {
       { path: '//GOOD_SOC/GOOD_IP/docs/', rev: '', kind: 'folder' },
     ],
     pending: [
-      ...(includeExistingPending ? [{ path: '//GOOD_SOC/GOOD_IP/rtl/opened.sv', action: 'edit', change: '12' }] : []),
+      ...(includeExistingPending ? [{ path: '//GOOD_SOC/GOOD_IP/rtl/opened.sv', action: 'edit', change: existingPendingChange }] : []),
       ...checkedOut.map(row => ({ path: row.path, action: 'edit', change: row.change })),
     ],
     pendingChanges: [
       { id: 'default', label: 'default' },
       { id: '12', label: '12 existing pending' },
+      ...(existingPendingChange !== '12' ? [{ id: existingPendingChange, label: `${existingPendingChange} existing pending` }] : []),
     ],
   });
 
@@ -76,7 +79,9 @@ describe('PerforceSyncTab pane navigation', () => {
     delayRootLocalPane = false;
     releaseRootLocalPane = null;
     includeExistingPending = true;
+    existingPendingChange = '12';
     checkoutChangeOverride = '';
+    submitFailure = null;
     global.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = requestUrl(input);
       if (url.startsWith('/api/ip/list')) {
@@ -107,6 +112,7 @@ describe('PerforceSyncTab pane navigation', () => {
       }
       if (url === '/api/scm/submit') {
         submitBodies.push(readBody(init));
+        if (submitFailure) return jsonResponse(submitFailure);
         return jsonResponse({ ok: true });
       }
       if (url.startsWith('/api/scm/diff')) {
@@ -174,7 +180,7 @@ describe('PerforceSyncTab pane navigation', () => {
   });
 
   it('selects the changelist that actually contains the checkout so submit stays enabled', async () => {
-    includeExistingPending = false;
+    existingPendingChange = '13';
     checkoutChangeOverride = 'default';
     render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
     const folders = await screen.findAllByText('rtl/');
@@ -188,6 +194,47 @@ describe('PerforceSyncTab pane navigation', () => {
     expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv')).toBeVisible();
     expect((screen.getByLabelText('Pending changelist') as HTMLSelectElement).value).toBe('default');
     expect(screen.getByRole('button', { name: /submit/i })).not.toBeDisabled();
+  });
+
+  it('shows submit debug context when the backend rejects submit', async () => {
+    includeExistingPending = false;
+    checkoutChangeOverride = 'default';
+    submitFailure = { ok: false, returncode: 1, error: 'submit rejected', stderr: 'p4 submit failed' };
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    const folders = await screen.findAllByText('rtl/');
+    fireEvent.click(folders[1]);
+    await screen.findByText('main.sv');
+
+    fireEvent.click(screen.getByText('main.sv'));
+    fireEvent.click(screen.getByRole('button', { name: /checkout/i }));
+    expect(await screen.findByText('//GOOD_SOC/GOOD_IP/rtl/main.sv')).toBeVisible();
+
+    fireEvent.change(screen.getByPlaceholderText('changelist description…'), {
+      target: { value: 'submit with debug' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
+
+    expect(await screen.findByText(/Submit failed\./)).toBeVisible();
+    expect(screen.getByText(/selected CL: default/)).toBeVisible();
+    expect(screen.getByText(/files in selected CL: 1/)).toBeVisible();
+    expect(screen.getByText(/returncode: 1/)).toBeVisible();
+    expect(screen.getByText(/error: submit rejected/)).toBeVisible();
+    expect(screen.getByText(/stderr: p4 submit failed/)).toBeVisible();
+  });
+
+  it('shows local submit debug when the selected changelist has no opened files', async () => {
+    includeExistingPending = false;
+    render(<PerforceSyncTab initialIp="ulw_p4" provider="perforce" />);
+    expect(await screen.findByText('PENDING')).toBeVisible();
+
+    const message = screen.getByPlaceholderText('changelist description…');
+    fireEvent.change(message, { target: { value: 'submit empty cl' } });
+    fireEvent.keyDown(message, { key: 'Enter', code: 'Enter' });
+
+    expect(submitBodies).toHaveLength(0);
+    expect(await screen.findByText(/Submit blocked before request/)).toBeVisible();
+    expect(screen.getAllByText(/no files opened in selected CL default/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/files in selected CL: 0/)).toBeVisible();
   });
 
   it('checks out a selected local modification into a selected Perforce target file', async () => {
