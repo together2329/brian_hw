@@ -314,13 +314,18 @@ def tool_schemas() -> List[Dict[str, Any]]:
             "type": "function",
             "function": {
                 "name": "classify_failure",
-                "description": "Classify a failed stage and route it to the owner stage to re-run (e.g. lint -> rtl-gen).",
+                "description": "Classify a failed stage and route it to the owner stage to re-run (e.g. lint -> rtl-gen). If a prior repair already ran but wrote 0 files (silent-fail) for this same failure, pass that workflow in excluded_owners so it is not re-dispatched — a 0-file repair proves that owner's domain has nothing to fix.",
                 "parameters": {
                     "type": "object",
                     "properties": {
                         "stage": {"type": "string"},
                         "evidence": {"type": "object"},
                         "error_text": {"type": "string"},
+                        "excluded_owners": {
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "Owners/workflows whose own repair already wrote 0 files for this failure (refuted). The classifier will not route back to them; it escalates with the unresolved evidence instead.",
+                        },
                     },
                     "required": ["stage"],
                 },

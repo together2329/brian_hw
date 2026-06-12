@@ -7,6 +7,7 @@ owner -> next-workflow mappings from prose.
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, Optional
 
 
@@ -294,6 +295,7 @@ def classify_failure(
     stage_id: str,
     evidence: Optional[Dict[str, Any]] = None,
     error_text: str = "",
+    excluded_owners: Any = (),
 ) -> Dict[str, Any]:
     """Map a failed stage + evidence to a repair workflow.
 
@@ -301,7 +303,49 @@ def classify_failure(
     ``confidence``. ``confidence`` is ``high`` when the classification comes
     from explicit evidence (sim_debug owner, lint violation), ``medium`` when
     a stage-specific rule fires, ``low`` when defaulting to human review.
+
+    ``excluded_owners`` is the set of owners/workflows whose own repair already
+    produced a NO-OP for this same failure (e.g. an rtl-gen run that wrote 0
+    files — silent-fail). A 0-file repair is positive evidence that the owner's
+    domain has nothing to change, so re-dispatching it only burns the retry
+    budget. When the deterministic route lands on a refuted owner, escalate with
+    the unresolved evidence instead of looping (campaign finding 38: the live
+    cnt8 run spent 3 rtl-gen dispatches + 2 silent-fails on FL/TB-rooted
+    mismatches the classifier defaulted to ``rtl_bug``).
     """
+    decision = _classify_failure_core(stage_id, evidence=evidence, error_text=error_text)
+    excluded = {str(o).strip().lower() for o in (excluded_owners or ()) if str(o).strip()}
+    # Auto-detect a refuted owner from a silent-fail signal carried in the error
+    # text/evidence ("silent-fail: workflow=rtl-gen ran N tool calls but wrote 0
+    # files"), so the demotion fires even when the caller does not thread
+    # excluded_owners explicitly.
+    _silent_text = " ".join(p for p in (error_text, _flatten_text(evidence)) if p)
+    for m in re.finditer(r"silent-fail:\s*workflow=([a-z0-9_\-]+)", _silent_text, re.I):
+        excluded.add(m.group(1).strip().lower())
+    if excluded:
+        owner = str(decision.get("owner") or "").strip().lower()
+        nxt = str(decision.get("next_workflow") or "").strip().lower()
+        if (owner and owner in excluded) or (nxt and nxt in excluded):
+            return {
+                "owner": "frontier",
+                "next_workflow": HUMAN_ESCALATION,
+                "reason": (
+                    f"owner={decision.get('owner')} (route {decision.get('next_workflow')}) "
+                    "is refuted: its own repair already wrote 0 files for this failure. "
+                    "Escalate with the unresolved mismatch instead of re-dispatching it."
+                ),
+                "confidence": "low",
+                "refuted_owner": decision.get("owner"),
+                "refuted_route": decision.get("next_workflow"),
+            }
+    return decision
+
+
+def _classify_failure_core(
+    stage_id: str,
+    evidence: Optional[Dict[str, Any]] = None,
+    error_text: str = "",
+) -> Dict[str, Any]:
     evidence = evidence or {}
     stage = (stage_id or "").lower()
     combined_error_text = " ".join(

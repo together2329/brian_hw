@@ -470,6 +470,7 @@ def _bind_orchestrator_tools(
             stage=kw.get("stage", ""),
             evidence=kw.get("evidence"),
             error_text=kw.get("error_text", ""),
+            excluded_owners=kw.get("excluded_owners") or (),
         )
 
     def _write_handoff(**kw):

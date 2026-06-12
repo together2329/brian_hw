@@ -1059,8 +1059,14 @@ def classify_failure_tool(
     stage: str,
     evidence: Optional[Dict[str, Any]] = None,
     error_text: str = "",
+    excluded_owners: Any = (),
 ) -> ToolResult:
-    decision = classify_failure(stage, evidence=evidence, error_text=error_text)
+    decision = classify_failure(
+        stage,
+        evidence=evidence,
+        error_text=error_text,
+        excluded_owners=excluded_owners,
+    )
     summary = _safe_json(decision)
     return decision, summary
 

@@ -360,3 +360,55 @@ class TestDefault:
         result = classify_failure("sim_debug")
         assert result["next_workflow"] == HUMAN_ESCALATION
         assert result["owner"] == "frontier"
+
+
+class TestSilentFailDemotion:
+    """Finding 38: a repair that wrote 0 files refutes its owner — don't loop."""
+
+    def test_baseline_bare_mismatch_defaults_to_rtl_gen(self):
+        # A pure value mismatch with no keyword still routes to rtl-gen by
+        # default (unchanged behavior when nothing is excluded).
+        result = classify_failure(
+            "sim_debug",
+            evidence={"mismatch_classification": {"owner": "rtl_bug"}},
+        )
+        assert result["next_workflow"] == "rtl-gen"
+
+    def test_excluded_owner_route_escalates(self):
+        result = classify_failure(
+            "sim_debug",
+            evidence={"mismatch_classification": {"owner": "rtl_bug"}},
+            excluded_owners=["rtl-gen"],
+        )
+        assert result["next_workflow"] == HUMAN_ESCALATION
+        assert result["owner"] == "frontier"
+        assert result["refuted_owner"] == "rtl_bug"
+
+    def test_excluded_owner_by_owner_name_escalates(self):
+        # Excluding by the owner token (rtl_bug) also demotes.
+        result = classify_failure(
+            "sim_debug",
+            evidence={"mismatch_classification": {"owner": "rtl_bug"}},
+            excluded_owners=["rtl_bug"],
+        )
+        assert result["next_workflow"] == HUMAN_ESCALATION
+
+    def test_silent_fail_in_error_text_auto_demotes(self):
+        # No explicit excluded_owners: the silent-fail signal in error_text is
+        # parsed and the named workflow is demoted automatically.
+        result = classify_failure(
+            "sim",
+            evidence={"mismatch_classification": {"owner": "rtl_bug"}},
+            error_text="silent-fail: workflow=rtl-gen ran 60 tool calls but wrote 0 files",
+        )
+        assert result["next_workflow"] == HUMAN_ESCALATION
+        assert result["refuted_route"] == "rtl-gen"
+
+    def test_unrelated_exclusion_does_not_change_route(self):
+        # Excluding a workflow that is not the chosen route leaves it intact.
+        result = classify_failure(
+            "sim_debug",
+            evidence={"mismatch_classification": {"owner": "rtl_bug"}},
+            excluded_owners=["tb-gen"],
+        )
+        assert result["next_workflow"] == "rtl-gen"
