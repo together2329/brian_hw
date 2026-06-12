@@ -1,4 +1,5 @@
 import json
+import importlib
 import sys
 import types
 from pathlib import Path
@@ -64,3 +65,37 @@ def test_interactive_tool_dispatch_binds_todo_runtime():
     assert "def execute_tool(" in source
     assert "with tools.scoped_todo_runtime(" in source
     assert 'getattr(config, "TODO_FILE", None)' in source
+
+
+def test_main_todo_reload_helper_rebinds_stale_global(monkeypatch, tmp_path):
+    main_mod = importlib.import_module("src.main")
+    stale_path = tmp_path / "old" / "todo.json"
+    session_path = tmp_path / ".session" / "brian" / "default" / "ip" / "default" / "todo.json"
+    stale_tracker = _write_tracker(stale_path, "stale todo")
+    session_tracker = _write_tracker(session_path, "fresh session todo")
+    session_tracker.mark_in_progress(0)
+
+    monkeypatch.setattr(main_mod.config, "ENABLE_TODO_TRACKING", True, raising=False)
+    monkeypatch.setattr(main_mod.config, "TODO_FILE", str(session_path), raising=False)
+    monkeypatch.setattr(main_mod, "todo_tracker", stale_tracker, raising=False)
+
+    fresh = main_mod._reload_todo_tracker_from_config()
+
+    assert fresh is main_mod.todo_tracker
+    assert Path(fresh._persist_path) == session_path
+    assert fresh.todos[0].content == "fresh session todo"
+    assert fresh.todos[0].status == "in_progress"
+
+
+def test_chat_loop_reloads_todo_after_input_before_dispatch():
+    source = Path("src/main.py").read_text(encoding="utf-8")
+
+    input_idx = source.index("user_input = _input_fn(")
+    reload_idx = source.index("# Refresh TODO after input returns.")
+    bang_idx = source.index('if user_input.startswith("!"):')
+    slash_idx = source.index("# Handle slash commands", bang_idx)
+    llm_idx = source.index("_process_chat_turn(user_input, _loop_state, _loop_deps)")
+
+    assert input_idx < reload_idx < bang_idx < slash_idx < llm_idx
+    reload_block = source[reload_idx:bang_idx]
+    assert "todo_tracker_main = _reload_todo_tracker_from_config()" in reload_block
