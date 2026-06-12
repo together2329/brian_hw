@@ -124,8 +124,15 @@ requirements:
       - id: OBL_SCM_PERFORCE_EXTERNAL_ROOT_ALLOWLIST
         owned_by: platform.scm
         granularity: behavior
-        status: open   # request scmRoot 의 PROJECT_ROOT 탈출은 기본 차단하되,
-                       # Perforce 는 명시 설정된 workspace root 안에서만 허용
+        status: closed   # request scmRoot 의 PROJECT_ROOT 탈출은 기본 차단하되,
+                         # Perforce 는 명시 설정된 workspace root 안에서만 허용
+        evidence:
+          - test: "tests/test_atlas_git_api.py::test_scm_status_allows_perforce_root_inside_configured_external_workspace"
+            observed_at: 545e6a97
+          - test: "tests/test_atlas_git_api.py::test_scm_status_rejects_external_perforce_root_without_configured_workspace"
+            observed_at: 545e6a97
+          - test: "tests/test_atlas_git_api.py::test_scm_status_rejects_external_git_root_even_with_configured_perforce_workspace"
+            observed_at: 545e6a97
       - id: OBL_CONVERSATION_SSOT_IMPORT_OWNER_SCOPED
         owned_by: runtime.authz
         granularity: behavior
