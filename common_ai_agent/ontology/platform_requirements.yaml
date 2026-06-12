@@ -581,6 +581,22 @@ requirements:
             observed_at: 3ee9cf2b
           - test: "tests/test_orchestrator_classify.py::TestExplicitOwner::test_fl_model_bug_owner_routes_to_fl_model_gen"
             observed_at: 3ee9cf2b
+      - id: OBL_ORCH_REFRESHED_UPSTREAM_RESETS_DOWNSTREAM_RETRY_BUDGETS
+        owned_by: agent.react-loop
+        granularity: behavior
+        # e1c74ff0 (finding 40): live autonomy probe
+        # 0ce4cc07447c47a0b01ba69d983c533c reran sim and produced newer
+        # sim/results.xml + sim/scoreboard_events.jsonl, making sim-debug stale.
+        # The orchestrator correctly tried to rerun sim_debug, but
+        # dispatch_workflow refused with "sim_debug attempts=2 budget=1" because
+        # downstream retry budgets reset only when the LLM explicitly calls
+        # mark_downstream_stale. Fix: any accepted upstream dispatch walks the
+        # pipeline dependency graph and resets downstream budget keys (stage id,
+        # underscore alias, and workflow alias) deterministically.
+        status: closed
+        evidence:
+          - test: "tests/test_orchestrator_budgets.py::TestBridgeIntegration::test_upstream_dispatch_resets_downstream_budget_automatically"
+            observed_at: e1c74ff0
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
@@ -862,3 +878,22 @@ requirements:
             observed_at: da42662d
           - test: "tests/test_equivalence_transaction_guard.py::test_guard_returns_none_on_ambiguous_or_missing_control"
             observed_at: da42662d
+
+  - id: REQ_PLAT_WIKI_READ_LOOP_001
+    claim: "프로젝트 위키는 신선한 그래프 게이트와 stage 기반 프롬프트 주입으로 에이전트 작업 전에 읽힌다"
+    design_anchor: doc/wiki/wiki-curation-policy.md
+    obligations:
+      - id: OBL_WIKI_GRAPH_FRESHNESS_GATE
+        owned_by: platform.wiki
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_wiki_build_graph.py::test_check_fails_when_existing_graph_markdown_inventory_is_stale"
+            observed_at: 58c28c5e
+      - id: OBL_WIKI_READ_LOOP_INJECTION
+        owned_by: agent.react-loop
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_core/test_prompt_builder.py::TestProjectWikiContext::test_stage_tagged_project_wiki_pages_are_injected"
+            observed_at: 58c28c5e
