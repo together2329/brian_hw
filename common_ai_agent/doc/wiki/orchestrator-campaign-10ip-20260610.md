@@ -465,3 +465,44 @@ rigorous-verification phase queue, in that order.
 Session totals (06-11 afternoon→night): findings 14-25; 11 fixed same-day in
 general machinery (never IP patches), 2 declared open (clockless TB, random
 sweep). Spine 30→34/57 closed with the open declarations counted.
+
+---
+
+## 06-12 — cnt8_en_v1 (SEQUENTIAL) gpt-5.5/xhigh autonomy test: model layer closed, rtl one artifact short
+
+Switched the orchestrator to gpt-5.5/xhigh and drove cnt8 (sequential counter,
+the untouched path) with long multi-step instructions. **Autonomy clearly
+improved over gpt-5.4**: it self-routed cl failures upstream to ssot-gen,
+used mark_downstream_stale unprompted, obeyed the 3-identical-failures
+escalation rule, and consumed precise human answers correctly. Human
+interventions were almost all TOOL/TRUTH defects, not model weakness.
+
+Sequential-path findings (26-31), each from live evidence:
+- 26 (refuted): worker repair loop validates with verify_ssot but the
+  evidence gate runs check_ssot_disk — worker can't see why evidence fails.
+- 27 (FIXED 895634e4/3cbe4cdb): stage tool timeout 90s killed judge-bearing
+  emitters mid-run; now env-tunable (default 600s).
+- 28 (refuted + root fixed eb7012b9/415edd32): lint property was modeled as a
+  behavioral contract (projection forced it onto transactions; FL gate
+  rightly rejected) — now contract_refs-layer only; AND the campaign tool
+  stamped cycle_model_waiver:True on sequential contracts — now derived from
+  clocked rows (cycle_rules).
+- 29 (refuted): FL/CL judge is slow (5-10min), nondeterministic (same input
+  PASS 13:10 / FAIL 13:11), uncached, and re-runs the FL judge inside cl —
+  the single biggest wall-clock sink. Queue: verdict caching keyed by
+  (ssot,contract) hash + per-call timeouts.
+- 30 (refuted): locked-truth guard reverted a legitimate human re-lock that
+  landed while a worker job was in flight.
+- 19-siblings (FIXED e8ec6c03/e1dadf02): CL self-check now binds all io input
+  ports (rst_n in guards) + declared FSM enum states; rtl preflight reads
+  EVERY fsm group (counter_control was silently dropped) and binds enum
+  states to their declared value encodings.
+- 24-extension (FIXED 74199624/3a7e176e): not-required CL refreshes its check
+  artifact; fresh passing checks outrank stale failed stage records.
+- 31 (refuted): rtl-gen refresh pass authors no provenance artifact (60 tool
+  calls / 0 writes, silent-fail ×2) — the last item between cnt8 and tb/sim.
+
+State at close: cnt8 ssot/fl/cl/equivalence GREEN (sequential state preserved
+— combinational gates zero false positives), RTL authored + compile PASS,
+rtl gate awaiting worker provenance (finding 31). Next queue: 31 fix →
+cnt8 tb/sim closure → judge caching (29) → remaining 8 IPs.
