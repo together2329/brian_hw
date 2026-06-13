@@ -862,6 +862,32 @@ requirements:
             observed_at: 9c18cf17
           - test: "tests/test_headless_llm_contracts.py::test_repair_ssot_schema_normalizes_verilog_rule_expressions"
             observed_at: 9c18cf17
+      - id: OBL_SSOT_DEFAULT_FLOW_LLM_AUTHORS_SCRIPTS_VALIDATE
+        owned_by: engine.stage
+        granularity: behavior
+        status: closed
+        # Operator feedback 2026-06-13: the default SSOT path had drifted into
+        # "script authors, LLM watches" because prompts/todos told workers to
+        # run repair_ssot_schema.py before verify_ssot.py. That lets a broad
+        # schema-repair script inject placeholders and reshape function_model,
+        # as seen in the APB timer probe. Default flow must be: LLM writes and
+        # repairs YAML; scripts perform contract validation/reporting only.
+        # Manual /repair-ssot can remain an explicit rescue tool.
+        evidence:
+          - test: "tests/test_ssot_authoring_flow_contract.py::test_default_ssot_authoring_flow_uses_llm_edits_and_validator_checks_only"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_workflow_runner.py::test_fake_llm_headless_flow_repairs_missing_cycle_model"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_llm_contracts.py::test_headless_ssot_generation_uses_llm_repair_before_pass"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_llm_contracts.py::test_cached_glm51_ssot_response_blocks_missing_cycle_without_script_authoring"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_llm_contracts.py::test_ssot_gen_uses_llm_schema_repair_before_human_gate"
+            observed_at: 96207c4a
+          - test: "tests/test_atlas_pipeline_contract.py::test_ssot_starter_prompt_strengthens_axi_apb_packet_contracts"
+            observed_at: 96207c4a
+          - test: "tests/test_atlas_pipeline_contract.py::test_ssot_gen_rtl_blocker_prompt_uses_resolver_driver"
+            observed_at: 96207c4a
       - id: OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET
         owned_by: engine.stage
         granularity: content
