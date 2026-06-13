@@ -772,6 +772,23 @@ requirements:
             observed_at: 7f912a27
           - test: "tests/test_validate_cl_semantics.py::test_emit_cycle_model_blocks_on_fictional_timing"
             observed_at: 7f912a27
+      - id: OBL_ENGINEERING_CL_EMIT_WARNING_NOT_HARD_GATE
+        owned_by: engine.stage
+        granularity: behavior
+        # Operator feedback 2026-06-13: APB timer no-gate autonomy probe
+        # reached SSOT/FL, then cl-model failed only because ssot-cycle-model
+        # force-ran emit_fl_model from draft SSOT before the authored FL/CL path
+        # could continue. The generated-FL self-check hit natural-language rule
+        # prose ("write_mask_apply(...); CTRL.start...") and made CL a hard
+        # stop. In engineering/starter scratch runs this should be warning
+        # metadata plus expected CL artifact notes, not a dispatch blocker;
+        # signoff keeps the hard gate.
+        status: closed
+        evidence:
+          - test: "tests/test_workflow_stage_engine.py::test_engineering_cycle_model_warns_when_generated_fl_fails_after_authored_fl_exists"
+            observed_at: bc4f1ce2
+          - test: "tests/test_workflow_stage_engine.py::test_signoff_cycle_model_still_fails_when_generated_fl_fails"
+            observed_at: bc4f1ce2
       - id: OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET
         owned_by: engine.stage
         granularity: content
