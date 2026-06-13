@@ -846,6 +846,22 @@ requirements:
             observed_at: bc4f1ce2
           - test: "tests/test_workflow_stage_engine.py::test_signoff_cycle_model_still_fails_when_generated_fl_fails"
             observed_at: bc4f1ce2
+      - id: OBL_SSOT_RULE_EXPR_SOFT_NORMALIZES_SV_SYNTAX
+        owned_by: engine.stage
+        granularity: content
+        status: closed
+        # APB timer autonomy probe 2026-06-13: ssot-gen emitted SystemVerilog-ish
+        # rule expressions (8'h00 literals, &&/!, ternary, "addr inside {...}")
+        # into function_model/cycle_model expressions. FL/CL evaluators consume
+        # the Python-evaluable SSOT expression DSL, so these should be repaired
+        # by the existing soft repair normalizer, not turned into another hard
+        # dispatch gate. Non-normalizable expressions may still fail later at
+        # self-check with concrete evidence.
+        evidence:
+          - test: "tests/test_headless_llm_contracts.py::test_repair_ssot_schema_soft_normalizes_apb_style_sv_rule_expressions"
+            observed_at: 9c18cf17
+          - test: "tests/test_headless_llm_contracts.py::test_repair_ssot_schema_normalizes_verilog_rule_expressions"
+            observed_at: 9c18cf17
       - id: OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET
         owned_by: engine.stage
         granularity: content
