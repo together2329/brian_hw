@@ -486,6 +486,20 @@ requirements:
           - test: "tests/test_orchestrator_chat_visibility_frontend.py::test_behavioral_vitest_suite_present"
             observed_at: d3178b92
 
+  - id: REQ_PLAT_SIM_DEBUG_WAVEFORM_UI_001
+    claim: "Sim-debug waveform UI renders user-requested signal radix labels from semantic state-like parameters without polluting bus values with width/size/config constants"
+    design_anchor: doc/wiki/orchestrator-campaign-10ip-20260610.md
+    obligations:
+      - id: OBL_SIM_DEBUG_PARAM_RADIX_EXCLUDES_CONFIG_CONSTANTS
+        owned_by: ui.workspace
+        granularity: behavior
+        # frontend .tsx is outside ontology freshness scope; the vitest node is the
+        # executable contract that catches PARAM/FSM false-positive labels.
+        status: closed
+        evidence:
+          - test: "tests/test_sim_debug_frontend_param_radix.py::test_param_radix_excludes_width_size_config_constants"
+            observed_at: 88bb7c95
+
   - id: REQ_PLAT_SESSION_TODO_FRESHNESS_001
     claim: "세션 worker는 UI/slash plane이 갱신한 세션 todo.json을 다음 실행 turn에서 즉시 읽어, auto-start TODO가 prose-only turn으로 유실되지 않는다"
     design_anchor: doc/wiki/atlas-context-root-model-20260603.md
