@@ -7211,6 +7211,7 @@ def _dispatch_workflow_direct_fallback(
     run_mode="",
     exec_mode="",
     reason="",
+    force=False,
 ):
     target, reject_reason = _direct_dispatch_target(workflow, stages)
     if not target:
@@ -7387,6 +7388,7 @@ def dispatch_workflow(
     run_mode="",
     exec_mode="",
     reason="",
+    force=False,
 ):
     """Hand a focused task to an ATLAS pipeline worker workflow.
 
@@ -7407,6 +7409,9 @@ def dispatch_workflow(
     """
     if not workflow and not stages:
         return "[dispatch_workflow: 'workflow' is required]"
+    dispatch_payload = dict(payload) if isinstance(payload, dict) else {}
+    if force:
+        dispatch_payload["force"] = True
     if _dispatch_workflow_callback is not None:
         try:
             result = _dispatch_workflow_callback(
@@ -7415,7 +7420,7 @@ def dispatch_workflow(
                 prompt=prompt or "",
                 ip=ip or "",
                 stages=stages,
-                payload=payload,
+                payload=dispatch_payload,
                 schedule=schedule or "auto",
                 model=model or "",
                 run_mode=run_mode or "",
@@ -7434,7 +7439,7 @@ def dispatch_workflow(
         prompt=prompt or "",
         ip=ip or "",
         stages=stages,
-        payload=payload,
+        payload=dispatch_payload,
         schedule=schedule or "auto",
         model=model or "",
         run_mode=run_mode or "",

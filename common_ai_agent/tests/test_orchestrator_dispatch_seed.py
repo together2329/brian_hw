@@ -173,6 +173,39 @@ def test_react_bridge_preserves_caller_supplied_user_seed(monkeypatch):
     assert captured["payload"]["user_seed"] == "explicit-caller-seed"
 
 
+def test_react_bridge_maps_force_flag_to_dispatch_payload(monkeypatch):
+    """When the orchestrator explicitly chooses relaxed progress-over-blocking
+    dispatch, the bridge must carry that intent as payload.force=true so the
+    existing upstream-red gate's documented escape hatch is actually used."""
+    from src.orchestrator import react_bridge
+
+    ctx = _StubCtx(ip_name="apb_timer")
+    captured: Dict[str, Any] = {}
+    _capture_dispatch_call(monkeypatch, captured)
+
+    bound = react_bridge._bind_orchestrator_tools(
+        ctx=ctx,
+        runner=None,
+        db=None,
+        collector=_StubCollector(),
+        budgets=_StubBudgetTracker(),
+    )
+
+    bound["dispatch_workflow"](
+        "",
+        pre_parsed_kwargs={
+            "workflow": "rtl-gen",
+            "ip": "apb_timer",
+            "force": True,
+            "reason": "Proceed despite red cl-model under relaxed policy.",
+        },
+    )
+
+    payload = captured.get("payload") or {}
+    assert payload["force"] is True
+    assert captured["force"] is True
+
+
 def test_react_bridge_uses_context_user_and_workspace_session_as_authority(monkeypatch):
     from src.orchestrator import react_bridge
 

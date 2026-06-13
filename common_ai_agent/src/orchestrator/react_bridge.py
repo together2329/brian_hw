@@ -479,6 +479,8 @@ def _bind_orchestrator_tools(
         user_seed = getattr(ctx, "user_seed", "") or ""
         if user_seed and not payload_in.get("user_seed"):
             payload_in["user_seed"] = user_seed
+        if bool(kw.get("force", False)):
+            payload_in["force"] = True
         ctx_user_id = getattr(ctx, "user_id", "") or ""
         ctx_session_id = getattr(ctx, "session_id", "") or ""
         if ctx_user_id:
@@ -500,6 +502,7 @@ def _bind_orchestrator_tools(
             model=kw.get("model", ""),
             run_mode=kw.get("run_mode", ""),
             exec_mode=kw.get("exec_mode", ""),
+            force=bool(kw.get("force", False)),
         )
         if isinstance(result, dict) and result.get("ok") is not False:
             reset_keys = _reset_downstream_budgets_for_targets([str(t) for t in targets])

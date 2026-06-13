@@ -187,6 +187,14 @@ def tool_schemas() -> List[Dict[str, Any]]:
                         },
                         "ip": {"type": "string"},
                         "payload": {"type": "object"},
+                        "force": {
+                            "type": "boolean",
+                            "default": False,
+                            "description": (
+                                "Set true only when intentionally proceeding despite a red upstream stage "
+                                "under a relaxed progress-over-blocking policy; this maps to payload.force."
+                            ),
+                        },
                         "prompt": {
                             "type": "string",
                             "description": "Optional worker-visible requirement/task text. Include the user's concrete goal when dispatching SSOT or repair workers.",

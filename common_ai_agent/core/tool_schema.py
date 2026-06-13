@@ -544,6 +544,14 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "run_mode": {"type": "string", "description": "starter, engineering, or signoff", "default": ""},
             "exec_mode": {"type": "string", "description": "single-worker or orchestrator", "default": ""},
             "payload": {"type": "object", "description": "Optional structured dispatch context", "default": {}},
+            "force": {
+                "type": "boolean",
+                "description": (
+                    "Bypass the upstream-red dispatch guard only when the orchestrator explicitly "
+                    "chooses relaxed progress-over-blocking behavior; maps to payload.force."
+                ),
+                "default": False,
+            },
         },
         required=[],
     ),

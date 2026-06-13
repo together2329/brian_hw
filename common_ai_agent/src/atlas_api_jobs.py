@@ -7414,6 +7414,7 @@ def register_jobs_routes(
         run_mode: str = "",
         exec_mode: str = "",
         reason: str = "",
+        force: bool = False,
     ) -> dict[str, Any]:
         """Bridge the orchestrator LLM tool to the pipeline job creator.
 
@@ -7421,7 +7422,9 @@ def register_jobs_routes(
         the Atlas UI process, so it can use the live job registry without a
         browser cookie while still keeping the same session/pipeline identity.
         """
-        body = payload if isinstance(payload, dict) else {}
+        body = dict(payload) if isinstance(payload, dict) else {}
+        if force:
+            body["force"] = True
         ip_name = (
             str(ip or body.get("ip") or "").strip()
             or os.environ.get("ATLAS_ACTIVE_IP", "").strip()
