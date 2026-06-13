@@ -9,6 +9,7 @@ import {
   formatTimeDeltaDisplay,
   parseVerilogParamValueMap,
   parseWaveCommand,
+  removedSignalsAfterReAdd,
   reorderWaveKeys,
   resolveTimeDisplayUnit,
   sourceLineIdentifiers,
@@ -287,5 +288,33 @@ describe('sim debug signal requirements', () => {
     expect(paddrRow!.scope).toBe('tb.dut');        // top-level scope preferred
     const irqRow = rows.find(r => (r.name || '').toLowerCase() === 'irq');
     expect(irqRow && irqRow.notInVcd).toBeFalsy();
+  });
+
+  it('SDR-021 re-adding a removed signal un-hides it even under a different hierarchy', () => {
+    // Regression: a signal removed via keep/clear is stored as its VCD row
+    // (leaf psel @ apb_timer_pwm_irq_v1). A chat/source re-add arrives fully
+    // qualified under the TB hierarchy (tb_apb_timer_pwm_irq_v1.psel). The strict
+    // string compare missed that, so "add" did nothing. It must come back.
+    const allRows: VcdSignal[] = [
+      scalar('psel', 'apb_timer_pwm_irq_v1', 'psel'),
+      scalar('irq', 'apb_timer_pwm_irq_v1', 'irq'),
+    ];
+    const removed = [{ name: 'psel', scope: 'apb_timer_pwm_irq_v1' }];
+
+    // re-add under a DIFFERENT hierarchy -> the psel removal is dropped
+    expect(
+      removedSignalsAfterReAdd(allRows, removed, [{ name: 'tb_apb_timer_pwm_irq_v1.psel', scope: '' }]),
+    ).toEqual([]);
+
+    // re-adding an unrelated signal leaves psel removed
+    expect(
+      removedSignalsAfterReAdd(allRows, removed, [{ name: 'irq', scope: '' }]),
+    ).toEqual(removed);
+
+    // not-in-VCD placeholder is un-removed by the string fallback (no row to resolve)
+    const removedPh = [{ name: 'pclk', scope: 'tb' }];
+    expect(
+      removedSignalsAfterReAdd(allRows, removedPh, [{ name: 'pclk', scope: 'tb' }]),
+    ).toEqual([]);
   });
 });

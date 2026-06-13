@@ -30,6 +30,8 @@ import {
   vcdPathBelongsToIp,
   waveSignalMatches,
   waveSignalKey,
+  removedSignalsAfterReAdd,
+  waveRowFromVcdSignal,
 } from './sim-debug-helpers';
 import type { ModuleSignal, VcdData, VcdSignal, PinnedSignal, WaveGroupState } from './sim-debug-helpers';
 import { SimSummaryPanel, Splitter } from './sim-debug-panels';
@@ -777,20 +779,14 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
       }
       return out;
     });
-    // Re-adding a previously-removed signal should bring it back.
-    const scopeMatches = (a: string, b: string) => {
-      const aa = String(a || '').trim().toLowerCase();
-      const bb = String(b || '').trim().toLowerCase();
-      if (!aa && !bb) return true;
-      if (!aa || !bb) return false;
-      return aa === bb || aa.endsWith(`.${bb}`) || bb.endsWith(`.${aa}`);
-    };
-    setRemovedSignals(prev => prev.filter(rm => !clean.some(it =>
-      stripSignalRange(it.name).toLowerCase() === stripSignalRange(rm.name).toLowerCase()
-      && signalRangeOf(it.name).toLowerCase() === signalRangeOf(rm.name).toLowerCase()
-      && scopeMatches(String(it.scope || '').trim(), String(rm.scope || '').trim()))));
+    // Re-adding a previously-removed signal must bring it back even when the
+    // re-add name form differs from how it was removed (keep/clear store the VCD
+    // leaf+scope; chat/source re-add a fully-qualified path under a different
+    // hierarchy). See removedSignalsAfterReAdd.
+    const allRows = (vcdData?.signals || []).map(s => waveRowFromVcdSignal(vcdData!, s));
+    setRemovedSignals(prev => removedSignalsAfterReAdd(allRows, prev, clean));
     setTopTab('wave');
-  }, [sameSignalSpec]);
+  }, [sameSignalSpec, vcdData]);
 
   const pinSignalToWave = useCallback((rawName: string, rawScope = '') => {
     pinSignalsToWave([{ name: rawName, scope: rawScope }]);

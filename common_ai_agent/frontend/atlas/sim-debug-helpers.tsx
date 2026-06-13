@@ -453,6 +453,38 @@ export const resolvePinnedWaveSignal = (
     signalAliasKeys(row).some(alias => (alias.split('.').pop() || '') === leaf)));
 };
 
+// Given the signals being (re-)added to the wave, return the removedSignals list
+// with any entry that should come back DROPPED. A signal removed via keep/clear
+// is stored by its VCD row (leaf + concrete scope, e.g. psel@apb_timer_pwm_irq_v1),
+// but a chat/source re-add can arrive fully-qualified under a DIFFERENT hierarchy
+// (tb_apb_timer_pwm_irq_v1.psel). A strict string compare missed that, so the row
+// stayed hidden ("add does nothing"). Resolve each re-added pin to its actual VCD
+// row and drop any removal that would hide THAT row (the same match the wave
+// traceList filter uses), with a string fallback for not-in-VCD placeholders.
+export const removedSignalsAfterReAdd = (
+  allRows: VcdSignal[],
+  removed: PinnedSignal[],
+  reAddedPins: PinnedSignal[],
+): PinnedSignal[] => {
+  const scopeMatches = (a: unknown, b: unknown): boolean => {
+    const aa = String(a || '').trim().toLowerCase();
+    const bb = String(b || '').trim().toLowerCase();
+    if (!aa && !bb) return true;
+    if (!aa || !bb) return false;
+    return aa === bb || aa.endsWith(`.${bb}`) || bb.endsWith(`.${aa}`);
+  };
+  const reAddedRows = (reAddedPins || [])
+    .map(pin => resolvePinnedWaveSignal(allRows, pin))
+    .filter((r): r is VcdSignal => !!r);
+  return (removed || []).filter(rm => {
+    if (reAddedRows.some(row => waveSignalMatches(row, rm.name, rm.scope))) return false;
+    return !(reAddedPins || []).some(it =>
+      stripSignalRange(it.name).toLowerCase() === stripSignalRange(rm.name).toLowerCase()
+      && signalRangeOf(it.name).toLowerCase() === signalRangeOf(rm.name).toLowerCase()
+      && scopeMatches(it.scope, rm.scope));
+  });
+};
+
 // Normalized signal identity used to key per-signal decoration (color, group
 // tag). Same lowercasing/range-strip as the alias keys, scope-qualified when a
 // scope is present so it's unique across the design. UI writes use this; agent
