@@ -674,6 +674,8 @@ export const WaveBand = ({
                      onDrop={e => onWaveDrop(e, keys)}
                      onDragEnd={() => { dragItemRef.current = null; setDropHint(null); }}
                      style={{ ['--wgh-color' as string]: gcolor } as CSSProperties}
+                     title="double-click to collapse / expand"
+                     onDoubleClick={() => decor.toggleFold(item.tag)}
                      onContextMenu={e => { e.preventDefault(); e.stopPropagation(); setCtx({ x: e.clientX, y: e.clientY, kind: 'group', tag: item.tag }); }}>
                   <button className="wgh-caret" title={item.folded ? 'expand group' : 'collapse group'}
                           onMouseDown={e => e.stopPropagation()}
@@ -689,7 +691,7 @@ export const WaveBand = ({
                            }}
                            onBlur={e => { decor.renameGroup(item.tag, e.target.value); setRenaming(null); }} />
                   ) : (
-                    <span className="wgh-name" title="double-click to rename" onDoubleClick={() => setRenaming(item.tag)}>{item.tag}</span>
+                    <span className="wgh-name" title="double-click to rename" onDoubleClick={e => { e.stopPropagation(); setRenaming(item.tag); }}>{item.tag}</span>
                   )}
                   <span className="wgh-count">{item.count}</span>
                   <span style={{ flex: 1 }} />
