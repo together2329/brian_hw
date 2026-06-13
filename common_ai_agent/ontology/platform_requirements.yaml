@@ -594,11 +594,11 @@ requirements:
         status: closed   # /finalize-req auto-start race: input() 대기 중 UI/slash가 쓴 todo.json을 post-input reload로 같은 turn에 반영
         evidence:
           - test: "tests/test_todo_session_binding.py::test_main_todo_reload_helper_rebinds_stale_global"
-            observed_at: b6e97f30
+            observed_at: 5ff41137
           - test: "tests/test_todo_session_binding.py::test_chat_loop_reloads_todo_after_input_before_dispatch"
-            observed_at: b6e97f30
+            observed_at: 5ff41137
           - test: "tests/test_atlas_multiuser_session_scope.py::test_req_lifecycle_templates_auto_start_and_kick"
-            observed_at: b6e97f30
+            observed_at: 5ff41137
       - id: OBL_WORKER_RUN_TODO_IS_SESSION_ISOLATED
         owned_by: runtime.server
         granularity: concurrent
