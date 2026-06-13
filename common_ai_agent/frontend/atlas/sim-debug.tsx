@@ -1206,7 +1206,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     setWaveCursor, setWaveCursorB, runSignalTrace, zoomFit,
     reorderByNames, setSignalColorByNames, setSignalRadixByNames, removeSignalsFromWave,
     keepOnlySignals, clearWaveSignals,
-    assignGroupByNames, ungroupByNames, toggleGroupFold,
+    assignGroupByNames, ungroupByNames, renameGroup, toggleGroupFold,
   });
 
   return (

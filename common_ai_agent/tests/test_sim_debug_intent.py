@@ -195,6 +195,15 @@ def test_sim_debug_reorder_group_ungroup_color_actions(tmp_path, monkeypatch):
     sim_debug(action="reorder", signals="a, b", scope="tb.dut.u_core")
     assert sdi.get_intent("IPG")["scope"] == "tb.dut.u_core"
 
+    # rename a group (old -> new)
+    sim_debug(action="group", group="apb", signals="psel")
+    rn = sim_debug(action="rename", group="apb", to="apb_if")
+    assert "apb_if" in rn
+    r = sdi.get_intent("IPG")
+    assert r["action"] == "rename" and r["group"] == "apb" and r["to"] == "apb_if"
+    assert "old name" in sim_debug(action="rename", group="apb")   # guard: needs `to`
+    assert "old name" in sim_debug(action="rename", to="x")         # guard: needs group
+
 
 def test_sim_debug_fold_unfold_actions(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))

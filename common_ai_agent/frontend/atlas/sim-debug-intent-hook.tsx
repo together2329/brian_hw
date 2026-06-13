@@ -29,6 +29,7 @@ export interface SimDebugIntentDeps {
   clearWaveSignals: () => void;
   assignGroupByNames: (names: string[], tag: string, color?: string | null) => void;
   ungroupByNames: (names: string[]) => void;
+  renameGroup: (oldTag: string, newTag: string) => void;
   toggleGroupFold: (tag: string, folded?: boolean) => void;
 }
 
@@ -116,6 +117,8 @@ export const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     if (intent.group) d.assignGroupByNames(sigNames, String(intent.group), intent.color ? String(intent.color) : null);
   } else if (action === 'ungroup') {
     if (sigNames.length) d.ungroupByNames(sigNames);
+  } else if (action === 'rename') {
+    if (intent.group && intent.to) d.renameGroup(String(intent.group), String(intent.to));
   } else if (action === 'color') {
     if (intent.color) d.setSignalColorByNames(sigNames, String(intent.color));
   } else if (action === 'radix') {

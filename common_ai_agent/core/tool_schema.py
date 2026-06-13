@@ -563,7 +563,8 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "Actions: 'show' add signal(s); 'goto' zoom the view to [t_start,t_end] ns; "
             "'cursor' place cursor A/B; 'fit' reset view; 'reorder' set top-to-bottom row order (signals=desired order); "
             "'group' tag signals into a named foldable group above them (group=name, signals, optional color); "
-            "'ungroup' remove signals from their group; 'color' recolor signals (color=#rrggbb, signals); "
+            "'ungroup' remove signals from their group; 'rename' rename a group (group=old, to=new); "
+            "'color' recolor signals (color=#rrggbb, signals); "
             "'radix' set bus rendering (radix=hex|dec|bin|fsm|off, signals; fsm shows the parameter/enum NAME for matching values); "
             "'remove' remove signal(s) from the waveform (signals); "
             "'keep' show ONLY the listed signals, removing every other displayed row (signals; use for 'I need only X'); "
@@ -576,14 +577,15 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         ),
         {
             "action": {"type": "string",
-                       "enum": ["show", "goto", "cursor", "fit", "reorder", "group", "ungroup",
+                       "enum": ["show", "goto", "cursor", "fit", "reorder", "group", "ungroup", "rename",
                                 "color", "radix", "remove", "keep", "clear", "fold", "unfold", "trace", "find", "value"],
                        "description": "What to do"},
             "ip": {"type": "string", "description": "IP id (defaults to the active IP)", "default": ""},
             "signals": {"type": "string", "description": "Comma/space separated signal names (show/reorder/group/ungroup/color/radix/remove/keep)", "default": ""},
             "signal": {"type": "string", "description": "Single signal name (show/trace/find/value)", "default": ""},
             "scope": {"type": "string", "description": "Optional VCD/instance scope, e.g. tb.dut.u_core; disambiguates duplicate leaf signal names", "default": ""},
-            "group": {"type": "string", "description": "Group/tag name (group/ungroup/fold/unfold)", "default": ""},
+            "group": {"type": "string", "description": "Group/tag name (group/fold/unfold; rename: the OLD name)", "default": ""},
+            "to": {"type": "string", "description": "rename: the NEW group name", "default": ""},
             "color": {"type": "string", "description": "Hex color like #4dd0e1 (group/color)", "default": ""},
             "radix": {"type": "string", "enum": ["hex", "dec", "bin", "fsm", "off"], "description": "radix: bus rendering (fsm=show parameter/enum name; off=clear override)", "default": ""},
             "t_start": {"type": "integer", "description": "goto: window start (ns)"},

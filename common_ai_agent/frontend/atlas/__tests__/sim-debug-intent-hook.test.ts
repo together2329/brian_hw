@@ -21,6 +21,7 @@ const makeDeps = () => ({
   clearWaveSignals: vi.fn(),
   assignGroupByNames: vi.fn(),
   ungroupByNames: vi.fn(),
+  renameGroup: vi.fn(),
   toggleGroupFold: vi.fn(),
 });
 
@@ -154,6 +155,12 @@ describe('applyIntent dispatch for chat waveform actions', () => {
     applyIntent(d, { action: 'color', signals: ['irq'], color: '#ff0000' });
     expect(d.pinSignalsToWave).toHaveBeenCalledTimes(1);
     expect(d.setSignalColorByNames).toHaveBeenCalledWith(['irq'], '#ff0000');
+  });
+
+  it('rename changes a group name (old → new)', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'rename', group: 'apb', to: 'apb_if' });
+    expect(d.renameGroup).toHaveBeenCalledWith('apb', 'apb_if');
   });
 
   it('fold/unfold toggle a group with the right folded flag', () => {

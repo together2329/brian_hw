@@ -8311,7 +8311,7 @@ def _sim_debug_siglist(signals, signal):
 
 def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
               cursor_a=None, cursor_b=None, edge="rising", nth=1, at=None,
-              group="", color="", scope="", radix=""):
+              group="", color="", scope="", radix="", to=""):
     """Drive and query the ATLAS Sim Debug waveform panel from chat.
 
     The action both (a) returns analysis text to you and (b) updates the open
@@ -8329,6 +8329,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
       group   — tag signals into a named, foldable group ABOVE them.
                 group="name", signals="a,b", optional color="#rrggbb".
       ungroup — remove signal(s) from their group. signals="a,b".
+      rename  — rename a group. group="old name", to="new name".
       color   — recolor signal(s). color="#rrggbb", signals="a,b".
       radix   — set how a bus is rendered. radix=hex|dec|bin|fsm|off, signals="a,b".
                 radix=fsm shows the parameter/enum NAME for matching values (the
@@ -8447,6 +8448,14 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
         push_intent(ip, "ungroup", signals=sigs, scope=(sig_scope or None))
         return f"✓ Sim Debug: ungrouped {', '.join(sigs)} ({where})."
 
+    if act == "rename":
+        old = str(group or "").strip()
+        new = str(to or "").strip()
+        if not old or not new:
+            return "[sim_debug rename: pass group=\"old name\" and to=\"new name\"]"
+        push_intent(ip, "rename", group=old, to=new)
+        return f"✓ Sim Debug: renamed group '{old}' → '{new}' ({where})."
+
     if act == "color":
         sigs = _sim_debug_siglist(signals, signal)
         col = str(color or "").strip()
@@ -8516,7 +8525,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
             push_intent=push_intent, scope=sig_scope)
 
     return ("[sim_debug: unknown action '" + act + "'. "
-            "Use: show, goto, cursor, fit, reorder, group, ungroup, color, "
+            "Use: show, goto, cursor, fit, reorder, group, ungroup, rename, color, "
             "radix, remove, keep, clear, fold, unfold, trace, find, value]")
 
 
