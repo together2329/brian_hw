@@ -1329,6 +1329,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
               onAddSignal={onSourceAddSignal}
               onSelectSignals={onSourceSelectSignals}
               onDropToWave={onSourceDropToWave}
+              onDropSignalFromWave={goToDriver}
               onSignalContextMenu={onSourceSignalContextMenu}
             />
           )}

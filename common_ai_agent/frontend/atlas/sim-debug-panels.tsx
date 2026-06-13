@@ -791,13 +791,15 @@ interface SourceViewerProps {
   onSelectSignals?: (names: string[]) => void;
   // Drag identifiers from the source and release over the waveform → add them.
   onDropToWave?: (names: string[]) => void;
+  // Drop a waveform signal onto the source → jump to its driver (the reverse).
+  onDropSignalFromWave?: (name: string, scope: string) => void;
   // selSignals = identifiers found in the current text selection (drag-select a
   // code region → bulk-add all its signals).
   onSignalContextMenu?: (name: string, x: number, y: number, selSignals?: string[]) => void;
 }
 const SourceViewer = ({
   lines, cursor, path, selectedSig, vcdAnnotations = {}, vcdAnnotationAxis = 'both',
-  onPickSignal, onAddSignal, onSelectSignals, onDropToWave, onSignalContextMenu,
+  onPickSignal, onAddSignal, onSelectSignals, onDropToWave, onDropSignalFromWave, onSignalContextMenu,
 }: SourceViewerProps) => {
   // A click/right-click on an identifier resolves the word under the cursor and
   // routes it to the matching handler. Keywords are ignored. Single-click only
@@ -945,6 +947,22 @@ const SourceViewer = ({
       }}
       onDragStart={e => {
         if (!textSelectModeRef.current) e.preventDefault();
+      }}
+      onDragOver={e => {
+        // Accept a waveform signal being dragged in → jump to its source.
+        if (onDropSignalFromWave && e.dataTransfer.types.includes('application/x-sim-signal-jump')) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'link';
+        }
+      }}
+      onDrop={e => {
+        const raw = e.dataTransfer.getData('application/x-sim-signal-jump');
+        if (!raw || !onDropSignalFromWave) return;
+        e.preventDefault();
+        try {
+          const { name, scope } = JSON.parse(raw) as { name?: string; scope?: string };
+          if (name) onDropSignalFromWave(String(name), String(scope || ''));
+        } catch { /* ignore malformed payload */ }
       }}
       onClick={e => {
         if (!onPickSignal) return;

@@ -731,8 +731,11 @@ export const WaveBand = ({
                   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                   if (e.clientX - rect.left > nameW + 90) { e.preventDefault(); return; }
                   dragItemRef.current = { kind: 'sig', keys: [rowKey], label: t.name || rowKey };
-                  e.dataTransfer.effectAllowed = 'move';
+                  e.dataTransfer.effectAllowed = 'all';
                   e.dataTransfer.setData('text/plain', t.name || rowKey);
+                  // Dropping this row on the source pane jumps there (see SourceViewer).
+                  e.dataTransfer.setData('application/x-sim-signal-jump',
+                    JSON.stringify({ name: t.name || rowKey, scope: t.scope || '' }));
                   setWaveDragPreview(e, t.name || rowKey);
                 }}
                 onDragOver={e => onWaveDragOver(e, dropId, [rowKey])}

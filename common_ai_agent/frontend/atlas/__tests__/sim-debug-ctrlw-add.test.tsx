@@ -286,6 +286,31 @@ describe('SimDebug Ctrl+W signal add', () => {
     }
   });
 
+  it('dropping a waveform signal on the source jumps to it (reverse drag)', async () => {
+    const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
+    await openModuleSignals(container);
+
+    const viewer = container.querySelector('.src-viewer')!;
+    const dataTransfer = {
+      types: ['application/x-sim-signal-jump'],
+      getData: (t: string) =>
+        t === 'application/x-sim-signal-jump'
+          ? JSON.stringify({ name: 'irq', scope: 'demo_tb.u_dut' })
+          : '',
+      dropEffect: '',
+    };
+    fireEvent.drop(viewer, { dataTransfer });
+
+    // the source jumps by tracing the dropped signal's driver
+    await waitFor(() =>
+      expect(
+        (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls.some(
+          c => String(c[0]).startsWith('/api/trace') && String(c[0]).includes('signal=irq'),
+        ),
+      ).toBe(true),
+    );
+  });
+
   it('adds source-dragged bus declarations with their RTL width range', async () => {
     const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
 

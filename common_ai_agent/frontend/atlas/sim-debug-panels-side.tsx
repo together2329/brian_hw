@@ -658,13 +658,14 @@ interface SourceBandProps {
   onAddSignal?: (name: string) => void;
   onSelectSignals?: (names: string[]) => void;
   onDropToWave?: (names: string[]) => void;
+  onDropSignalFromWave?: (name: string, scope: string) => void;
   onSignalContextMenu?: (name: string, x: number, y: number, selSignals?: string[]) => void;
 }
 
 export const SourceBand = ({
   eff, srcPath, srcLoading, srcCursor, showVcdAnnotations, setShowVcdAnnotations,
   waveCursor, waveCursorB, vcdData, vcdAnnotationAxis, setVcdAnnotationAxis,
-  srcLines, selectedSig, sourceVcdAnnotations, onPickSignal, onAddSignal, onSelectSignals, onDropToWave, onSignalContextMenu,
+  srcLines, selectedSig, sourceVcdAnnotations, onPickSignal, onAddSignal, onSelectSignals, onDropToWave, onDropSignalFromWave, onSignalContextMenu,
 }: SourceBandProps): ReactNode => {
   return (
     <div style={{
@@ -735,6 +736,7 @@ export const SourceBand = ({
         onAddSignal={onAddSignal}
         onSelectSignals={onSelectSignals}
         onDropToWave={onDropToWave}
+        onDropSignalFromWave={onDropSignalFromWave}
         onSignalContextMenu={onSignalContextMenu}
       />
     </div>
