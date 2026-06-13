@@ -31,7 +31,7 @@ import {
   waveSignalMatches,
   waveSignalKey,
 } from './sim-debug-helpers';
-import type { ModuleSignal, VcdData, PinnedSignal, WaveGroupState } from './sim-debug-helpers';
+import type { ModuleSignal, VcdData, VcdSignal, PinnedSignal, WaveGroupState } from './sim-debug-helpers';
 import { SimSummaryPanel, Splitter } from './sim-debug-panels';
 import { useModuleSignals } from './sim-debug-module-signals';
 import { useSimDebugIntent } from './sim-debug-intent-hook';
@@ -796,6 +796,30 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     pinSignalsToWave([{ name: rawName, scope: rawScope }]);
   }, [pinSignalsToWave]);
 
+  // "keep only these" — the agent can't enumerate what's currently displayed
+  // (default VCD rows it never added), so removal happens HERE against the live
+  // traceList: pin the kept signals, then drop every other displayed row.
+  const rowToSpec = useCallback((r: VcdSignal): PinnedSignal => ({
+    name: String(r.name || r.signalName || '').trim(),
+    scope: String(r.scope || '').trim(),
+  }), []);
+  const keepOnlySignals = useCallback((keep: PinnedSignal[]) => {
+    const keepClean = (keep || [])
+      .map(it => ({ name: String(it.name || '').trim(), scope: String(it.scope || '').trim() }))
+      .filter(it => it.name);
+    if (!keepClean.length) return;
+    pinSignalsToWave(keepClean);  // reveal the kept signals if not already shown
+    const drop = traceList
+      .filter(r => !keepClean.some(k => waveSignalMatches(r, k.name, k.scope)))
+      .map(rowToSpec)
+      .filter(it => it.name);
+    if (drop.length) removeSignalsFromWave(drop);
+  }, [traceList, pinSignalsToWave, removeSignalsFromWave, rowToSpec]);
+  const clearWaveSignals = useCallback(() => {
+    const drop = traceList.map(rowToSpec).filter(it => it.name);
+    if (drop.length) removeSignalsFromWave(drop);
+  }, [traceList, removeSignalsFromWave, rowToSpec]);
+
   // Ctrl+W: add the whole multi-selection when there is one, else the single
   // focused signal.
   const addSelectedSignalToWave = useCallback(() => {
@@ -1178,6 +1202,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     ipName, active, vcdData, pinSignalsToWave, setViewRange, setTopTab, setExpand,
     setWaveCursor, setWaveCursorB, runSignalTrace, zoomFit,
     reorderByNames, setSignalColorByNames, setSignalRadixByNames, removeSignalsFromWave,
+    keepOnlySignals, clearWaveSignals,
     assignGroupByNames, ungroupByNames, toggleGroupFold,
   });
 

@@ -8334,6 +8334,9 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                 radix=fsm shows the parameter/enum NAME for matching values (the
                 FSM/parameter-value display); radix=off clears the override.
       remove  — remove signal(s) from the waveform. signals="a,b".
+      keep    — show ONLY the listed signals, removing every other currently
+                displayed row (use for "I need only X"). signals="a,b".
+      clear   — remove ALL signals from the waveform.
       fold / unfold — collapse / expand a group. group="name".
       trace   — pyslang: report a signal's driver + load sites (file:line) and
                 show the trace in the panel. (signal=…)
@@ -8351,7 +8354,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
         sigs = _sim_debug_siglist(signals, signal)
         if not sigs:
             return "[sim_debug show: no signals given — pass signals=\"a,b\" or signal=\"a\"]"
-        shown, notes = [], []
+        shown, not_dumped, notes = [], [], []
         try:
             from core.sim_debug_analyze import resolve_wave_signal
         except Exception:
@@ -8364,8 +8367,10 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                 if r.get("resolved_signal") and r.get("resolved_signal") != s:
                     notes.append(f"{s}→{r.get('resolved_signal')}")
             elif status == "rtl_not_dumped":
-                shown.append(r.get("resolved_signal") or s)
-                notes.append(f"{s}: real RTL pin/signal, not dumped in VCD")
+                # Exists in RTL but is NOT in the VCD, so it CANNOT appear on the
+                # waveform. Do not push it (a phantom pin the panel silently drops)
+                # or count it as shown — report it honestly instead.
+                not_dumped.append(r.get("resolved_signal") or s)
             elif status == "ambiguous":
                 cands = [c.get("resolved_signal", "") for c in r.get("candidates", []) if c.get("resolved_signal")]
                 notes.append(f"{s}: ambiguous ({', '.join(cands[:4])})")
@@ -8375,8 +8380,11 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                     notes.append(f"{s}: not resolved; candidates {', '.join(hints[:4])}")
                 else:
                     notes.append(f"{s}: not resolved")
+        if not_dumped:
+            notes.append("not dumped in this VCD, so cannot be shown — re-run /sim "
+                         f"with these in the dump scope: {', '.join(not_dumped)}")
         if not shown:
-            return f"[sim_debug show: no unambiguous signal resolved ({'; '.join(notes)})]"
+            return f"[sim_debug show: no signal could be shown ({'; '.join(notes)})]"
         push_intent(ip, "show", signals=shown, scope=(sig_scope or None))
         scoped = f" @ {sig_scope}" if sig_scope else ""
         suffix = f" ({'; '.join(notes)})" if notes else ""
@@ -8468,6 +8476,20 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
         push_intent(ip, "remove", signals=sigs, scope=(sig_scope or None))
         return f"✓ Sim Debug: removed {', '.join(sigs)} from the waveform ({where})."
 
+    if act in ("keep", "only", "isolate", "keeponly"):
+        # "show ONLY these" — the panel removes every other CURRENTLY-DISPLAYED
+        # row (incl. the default rows the agent never explicitly added and can't
+        # enumerate), so "I need only X" actually clears the rest.
+        sigs = _sim_debug_siglist(signals, signal)
+        if not sigs:
+            return "[sim_debug keep: pass signals=\"a,b\" to keep ONLY those]"
+        push_intent(ip, "keep", signals=sigs, scope=(sig_scope or None))
+        return f"✓ Sim Debug: keeping only {', '.join(sigs)} ({where})."
+
+    if act in ("clear", "clearall", "remove_all", "removeall"):
+        push_intent(ip, "clear")
+        return f"✓ Sim Debug: cleared all signals from the waveform ({where})."
+
     if act in ("fold", "unfold"):
         grp = str(group or "").strip()
         if not grp:
@@ -8487,7 +8509,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
 
     return ("[sim_debug: unknown action '" + act + "'. "
             "Use: show, goto, cursor, fit, reorder, group, ungroup, color, "
-            "radix, remove, fold, unfold, trace, find, value]")
+            "radix, remove, keep, clear, fold, unfold, trace, find, value]")
 
 
 # Registry of available tools

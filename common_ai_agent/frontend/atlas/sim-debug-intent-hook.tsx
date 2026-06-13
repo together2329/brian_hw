@@ -25,6 +25,8 @@ export interface SimDebugIntentDeps {
   setSignalColorByNames: (names: string[], color: string | null) => void;
   setSignalRadixByNames: (names: string[], radix: string | null) => void;
   removeSignalsFromWave: (items: PinnedSignal[]) => void;
+  keepOnlySignals: (items: PinnedSignal[]) => void;
+  clearWaveSignals: () => void;
   assignGroupByNames: (names: string[], tag: string, color?: string | null) => void;
   ungroupByNames: (names: string[]) => void;
   toggleGroupFold: (tag: string, folded?: boolean) => void;
@@ -88,7 +90,7 @@ const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
   // Pin the signals first for actions that act ON shown signals, so the
   // group/color/radix/order lands with them visible. trace/ungroup/fold don't
   // add, and remove must obviously not re-pin what it's about to drop.
-  if (sigs.length && action !== 'trace' && action !== 'ungroup' && action !== 'remove') {
+  if (sigs.length && action !== 'trace' && action !== 'ungroup' && action !== 'remove' && action !== 'keep') {
     d.pinSignalsToWave(sigs);
   }
 
@@ -122,6 +124,10 @@ const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     if (sigNames.length) d.setSignalRadixByNames(sigNames, intent.radix ? String(intent.radix) : null);
   } else if (action === 'remove') {
     if (sigs.length) d.removeSignalsFromWave(sigs);
+  } else if (action === 'keep') {
+    if (sigs.length) d.keepOnlySignals(sigs);
+  } else if (action === 'clear') {
+    d.clearWaveSignals();
   } else if (action === 'fold' || action === 'unfold') {
     if (intent.group) d.toggleGroupFold(String(intent.group), action === 'fold');
   }

@@ -89,6 +89,54 @@ def test_sim_debug_radix_and_remove_actions(tmp_path, monkeypatch):
     assert "signals" in sim_debug(action="remove")
 
 
+def test_sim_debug_keep_and_clear_actions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPK")
+    from core.tools import sim_debug
+
+    msg = sim_debug(action="keep", signals="irq")
+    assert "only" in msg.lower()
+    got = sdi.get_intent("IPK")
+    assert got["action"] == "keep" and got["signals"] == ["irq"]
+
+    cmsg = sim_debug(action="clear")
+    assert "cleared" in cmsg.lower()
+    assert sdi.get_intent("IPK")["action"] == "clear"
+
+    assert "signals" in sim_debug(action="keep")  # guard: keep needs signals
+
+
+def test_sim_debug_show_excludes_not_dumped_signals(tmp_path, monkeypatch):
+    """A signal that resolves in RTL but is NOT in the VCD (rtl_not_dumped)
+    cannot appear on the waveform — show must NOT push it or claim it was added,
+    only report it honestly. Regression for the 'added but not visible' bug."""
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPD")
+
+    import core.sim_debug_analyze as sda
+
+    def fake_resolve(ip, sig, scope=""):
+        if sig == "psel":
+            return {"status": "resolved", "resolved_signal": "tb.psel"}
+        if sig == "clk":
+            return {"status": "rtl_not_dumped", "resolved_signal": "tb.pclk"}
+        return {"status": "unresolved", "candidates": []}
+
+    monkeypatch.setattr(sda, "resolve_wave_signal", fake_resolve)
+    from core.tools import sim_debug
+
+    msg = sim_debug(action="show", signals="psel, clk")
+    # only the dumped signal is pushed to the panel
+    got = sdi.get_intent("IPD")
+    assert got["action"] == "show" and got["signals"] == ["tb.psel"]
+    # the not-dumped one is surfaced, not silently "added"
+    assert "tb.pclk" in msg and "not dumped" in msg
+
+    # when EVERY requested signal is not dumped, nothing is shown (no phantom push)
+    msg2 = sim_debug(action="show", signals="clk")
+    assert "no signal could be shown" in msg2 and "not dumped" in msg2
+
+
 def test_sim_debug_registered_and_schema():
     from core.tools import AVAILABLE_TOOLS
     from core.tool_schema import TOOL_SCHEMAS
