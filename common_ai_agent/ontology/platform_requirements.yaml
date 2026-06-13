@@ -276,9 +276,20 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_run_server_launcher.py::test_run_server_kills_only_listener_pids_line_by_line"
-            observed_at: e9142c20
+            observed_at: 30fa9ff3
           - test: "tests/test_run_server_launcher.py::test_run_server_build_failures_do_not_fall_through_to_server_start"
-            observed_at: e9142c20
+            observed_at: 30fa9ff3
+      - id: OBL_RUN_SERVER_KILLS_STRAY_ADMIN_BEFORE_START
+        owned_by: runtime.server
+        granularity: behavior
+        status: closed   # admin은 subprocess(_launch_admin_server)라 LISTEN 스윕을 빠져나가
+                         # :3002 점유 가능 → 이름 기반 stray kill(atlas_admin.py --port) +
+                         # 빌드 전/후 2회 포트 해제로 "address already in use" 재발 차단
+        evidence:
+          - test: "tests/test_run_server_launcher.py::test_run_server_kills_stray_admin_subprocess_not_just_listeners"
+            observed_at: 30fa9ff3
+          - test: "tests/test_run_server_launcher.py::test_run_server_frees_ports_before_and_after_build"
+            observed_at: 30fa9ff3
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
