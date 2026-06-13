@@ -789,13 +789,15 @@ interface SourceViewerProps {
   onPickSignal?: (name: string) => void;
   onAddSignal?: (name: string) => void;
   onSelectSignals?: (names: string[]) => void;
+  // Drag identifiers from the source and release over the waveform → add them.
+  onDropToWave?: (names: string[]) => void;
   // selSignals = identifiers found in the current text selection (drag-select a
   // code region → bulk-add all its signals).
   onSignalContextMenu?: (name: string, x: number, y: number, selSignals?: string[]) => void;
 }
 const SourceViewer = ({
   lines, cursor, path, selectedSig, vcdAnnotations = {}, vcdAnnotationAxis = 'both',
-  onPickSignal, onAddSignal, onSelectSignals, onSignalContextMenu,
+  onPickSignal, onAddSignal, onSelectSignals, onDropToWave, onSignalContextMenu,
 }: SourceViewerProps) => {
   // A click/right-click on an identifier resolves the word under the cursor and
   // routes it to the matching handler. Keywords are ignored. Single-click only
@@ -906,7 +908,7 @@ const SourceViewer = ({
             setSourceDragSignals(sourceSignalsBetween(lines, drag.start, next));
           }
         };
-        const onUp = () => {
+        const onUp = (ev: MouseEvent) => {
           window.removeEventListener('mousemove', onMove);
           window.removeEventListener('mouseup', onUp);
           const drag = sourceDragRef.current;
@@ -915,7 +917,16 @@ const SourceViewer = ({
             semanticDragJustSelectedRef.current = true;
             const picked = sourceSignalsBetween(lines, drag.start, drag.current);
             setSourceDragSignals(picked);
-            if (picked.length && onSelectSignals) onSelectSignals(picked);
+            // Released over the waveform → ADD the dragged signals there instead
+            // of merely selecting them in the source.
+            const overWave = typeof document !== 'undefined'
+              && typeof document.elementFromPoint === 'function'
+              && !!(document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest('.wave-panel');
+            if (picked.length && overWave && onDropToWave) {
+              onDropToWave(picked);
+            } else if (picked.length && onSelectSignals) {
+              onSelectSignals(picked);
+            }
             setTimeout(() => { semanticDragJustSelectedRef.current = false; }, 0);
           }
         };

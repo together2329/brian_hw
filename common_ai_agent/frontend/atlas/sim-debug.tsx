@@ -1119,6 +1119,13 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
       .filter(item => item.name);
     setWaveSel(items);
   }, [sourceSignalScope]);
+  // Drag identifiers from the source and release over the waveform → add them.
+  const onSourceDropToWave = useCallback((names: string[]) => {
+    const items = (names || [])
+      .map(name => ({ name: String(name || '').trim(), scope: sourceSignalScope }))
+      .filter(item => item.name);
+    if (items.length) pinSignalsToWave(items);
+  }, [pinSignalsToWave, sourceSignalScope]);
   const onSourceSignalContextMenu = useCallback((name: string, x: number, y: number, selSignals?: string[]) => {
     if (name) { setSelectedSig(name); setSelectedSigScope(sourceSignalScope); }
     if (selSignals && selSignals.length) {
@@ -1321,6 +1328,7 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
               onPickSignal={onSourcePickSignal}
               onAddSignal={onSourceAddSignal}
               onSelectSignals={onSourceSelectSignals}
+              onDropToWave={onSourceDropToWave}
               onSignalContextMenu={onSourceSignalContextMenu}
             />
           )}

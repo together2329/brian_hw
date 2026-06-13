@@ -231,6 +231,32 @@ describe('SimDebug Ctrl+W signal add', () => {
     await expectResolvedWaveSignal(container, 'irq');
   });
 
+  it('adds source-dragged signals when released over the waveform (drag & drop)', async () => {
+    const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
+
+    await openModuleSignals(container);
+    installSourceDragCaret(container);
+
+    // Drop target detection uses document.elementFromPoint (absent in jsdom) —
+    // mock it to report the release landed inside the wave panel.
+    const wavePanel = container.querySelector('.wave-panel')!;
+    const orig = (document as unknown as { elementFromPoint?: unknown }).elementFromPoint;
+    (document as unknown as { elementFromPoint: unknown }).elementFromPoint = vi.fn(() => wavePanel);
+    try {
+      const viewer = container.querySelector('.src-viewer')!;
+      fireEvent.mouseDown(viewer, { button: 0, clientX: 1, clientY: 10 });
+      fireEvent.mouseMove(window, { clientX: 100, clientY: 10 });
+      // Released over the waveform → signals are ADDED without Ctrl+W.
+      fireEvent.mouseUp(window, { clientX: 100, clientY: 400 });
+
+      await expectResolvedWaveSignal(container, 'clk');
+      await expectResolvedWaveSignal(container, 'rst');
+      await expectResolvedWaveSignal(container, 'irq');
+    } finally {
+      (document as unknown as { elementFromPoint?: unknown }).elementFromPoint = orig;
+    }
+  });
+
   it('adds source-dragged bus declarations with their RTL width range', async () => {
     const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
 
