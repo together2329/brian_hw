@@ -673,6 +673,33 @@ requirements:
             observed_at: 583541ad
           - test: "tests/test_orch_trace_smoke.py::test_atlas_trace_strip_consumes_shared_decision_trace_api"
             observed_at: 583541ad
+      - id: OBL_ORCH_STANDALONE_BRIDGE_DISPATCHES_WITHOUT_ATLAS_CALLBACKS
+        owned_by: agent.react-loop
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          APB timer autonomy probe 2026-06-13
+          (doc/wiki/apb-timer-orchestrator-autonomy-probe-20260613.md):
+          standalone supervisor run 3f01f5e112ff4446b05820dc7984617e
+          reached the LLM but both read_pipeline_state and dispatch_workflow
+          failed with "parent ... bridge unavailable"; no ssot-gen job was
+          created. Atlas API/server mode registers the parent callbacks, but
+          the standalone launcher does not. Fix should reuse existing
+          core.tools dispatch/read fallbacks or register the same callbacks,
+          not duplicate dispatch logic.
+      - id: OBL_HEADLESS_LLM_CALL_STALENESS_PROMOTED_TO_RUN_STATE
+        owned_by: engine.stage
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          APB timer autonomy probe 2026-06-13
+          (doc/wiki/apb-timer-orchestrator-autonomy-probe-20260613.md):
+          direct headless ssot-gen attempts with gpt-5.5 and gpt-5.4 wrote
+          llm_call_start and one heartbeat before entering
+          llm_provider.complete(), then produced no llm_call_end or LLM log.
+          src.progress_debug can diagnose stuck_llm_call, but that diagnosis is
+          not promoted into the orchestrator/API/UI run state; operators see
+          "running" while the only SSOT artifact is a one-line stub.
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
