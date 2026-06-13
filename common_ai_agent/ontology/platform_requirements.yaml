@@ -683,7 +683,16 @@ requirements:
         # should expose a small callable tool surface, leave ordering/recovery
         # decisions to the model, and keep hard enforcement at evidence
         # boundaries (tool results, worker validators, final completed gate).
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_orchestrator_autonomy_prompt.py::test_orchestrator_prompt_treats_tools_as_capabilities_not_a_script"
+            observed_at: f98eda56
+          - test: "tests/test_orchestrator_autonomy_prompt.py::test_orchestrator_prompt_keeps_hardness_at_evidence_boundaries"
+            observed_at: f98eda56
+          - test: "tests/test_orchestrator_autonomy_prompt.py::test_orchestrator_tool_surface_is_shared_and_not_duplicated"
+            observed_at: f98eda56
+          - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_completed_downgraded_to_blocked_on_red_stage"
+            observed_at: f98eda56
       - id: OBL_ORCH_STANDALONE_BRIDGE_DISPATCHES_WITHOUT_ATLAS_CALLBACKS
         owned_by: agent.react-loop
         granularity: behavior
