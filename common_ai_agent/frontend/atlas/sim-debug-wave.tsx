@@ -397,6 +397,12 @@ export const WaveBand = ({
   const ctxDeleteItems = ctx?.kind === 'sig' && ctx.sig && ctxSigSelected && (waveRowSel || []).length > 1
     ? waveRowSel
     : (ctx?.kind === 'sig' && ctx.sig ? [rowItem(ctx.sig)] : []);
+  // Decoration actions (colour / radix / grouping) apply to the SAME target set
+  // as delete: the full multi-selection when the right-clicked row is part of
+  // it, otherwise just the clicked row. Without this, colour/radix changed only
+  // the single right-clicked signal even with many rows selected.
+  const ctxTargetNames = ctxDeleteItems.map(sigIdent);
+  const ctxTargetCount = ctxTargetNames.length;
 
   return (
     <div className="wave-panel" style={{
@@ -813,30 +819,30 @@ export const WaveBand = ({
               <button key={c} className="wcm-swatch" style={{ background: c }} title={c}
                 onClick={() => {
                   if (ctx.kind === 'group' && ctx.tag) decor.setGroupColor(ctx.tag, c);
-                  else if (ctx.sig) decor.setSignalColor([sigIdent(ctx.sig)], c);
+                  else if (ctx.sig) decor.setSignalColor(ctxTargetNames, c);
                   setCtx(null);
                 }} />
             ))}
           </div>
           <button className="wcm-item" onClick={() => {
             if (ctx.kind === 'group' && ctx.tag) decor.setGroupColor(ctx.tag, null);
-            else if (ctx.sig) decor.setSignalColor([sigIdent(ctx.sig)], null);
+            else if (ctx.sig) decor.setSignalColor(ctxTargetNames, null);
             setCtx(null);
-          }}>reset colour</button>
+          }}>reset colour{ctx.kind === 'sig' && ctxTargetCount > 1 ? ` · ${ctxTargetCount} selected` : ''}</button>
 
           {ctx.kind === 'sig' && ctx.sig && (
             <>
               <div className="wcm-sep" />
-              <div className="wcm-label">radix</div>
+              <div className="wcm-label">radix{ctxTargetCount > 1 ? ` · ${ctxTargetCount} selected` : ''}</div>
               <div className="wcm-radices">
                 {['HEX', 'DEC', 'BIN', 'PARAM'].map(radix => (
                   <button key={radix} className="wcm-radix" onClick={() => {
-                    decor.setSignalRadix([sigIdent(ctx.sig!)], radix === 'PARAM' ? 'FSM' : radix);
+                    decor.setSignalRadix(ctxTargetNames, radix === 'PARAM' ? 'FSM' : radix);
                     setCtx(null);
                   }}>{radix}</button>
                 ))}
               </div>
-              <button className="wcm-item" onClick={() => { decor.setSignalRadix([sigIdent(ctx.sig!)], null); setCtx(null); }}>reset radix</button>
+              <button className="wcm-item" onClick={() => { decor.setSignalRadix(ctxTargetNames, null); setCtx(null); }}>reset radix</button>
 
               <div className="wcm-sep" />
               <button className="wcm-item" onClick={() => { decor.moveSignal(waveSignalKey(ctx.sig!), -1); setCtx(null); }}>↑ move up</button>
@@ -848,14 +854,14 @@ export const WaveBand = ({
               <div className="wcm-sep" />
               <button className="wcm-item" onClick={() => {
                 const name = 'group ' + (Object.keys(decor.groups).length + 1);
-                decor.assignGroup([sigIdent(ctx.sig!)], name);
+                decor.assignGroup(ctxTargetNames, name);
                 setCtx(null); setRenaming(name);
-              }}>＋ new group</button>
+              }}>＋ new group{ctxTargetCount > 1 ? ` · ${ctxTargetCount} selected` : ''}</button>
               {Object.keys(decor.groups).map(tag => (
-                <button key={tag} className="wcm-item" onClick={() => { decor.assignGroup([sigIdent(ctx.sig!)], tag); setCtx(null); }}>→ add to “{tag}”</button>
+                <button key={tag} className="wcm-item" onClick={() => { decor.assignGroup(ctxTargetNames, tag); setCtx(null); }}>→ add to “{tag}”</button>
               ))}
               {ctxIsGrouped && (
-                <button className="wcm-item" onClick={() => { decor.ungroup([sigIdent(ctx.sig!)]); setCtx(null); }}>✕ remove from group</button>
+                <button className="wcm-item" onClick={() => { decor.ungroup(ctxTargetNames); setCtx(null); }}>✕ remove from group</button>
               )}
             </>
           )}
