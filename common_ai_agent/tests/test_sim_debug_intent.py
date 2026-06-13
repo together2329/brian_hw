@@ -153,6 +153,127 @@ def test_sim_debug_show_flags_not_dumped_as_placeholder(tmp_path, monkeypatch):
     assert "no signal could be shown" in msg3
 
 
+def test_sim_debug_reorder_group_ungroup_color_actions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPG")
+    from core.tools import sim_debug
+
+    # reorder — exact top-to-bottom order, no resolution needed
+    msg = sim_debug(action="reorder", signals="psel, penable, irq")
+    assert "reorder" in msg.lower()
+    got = sdi.get_intent("IPG")
+    assert got["action"] == "reorder" and got["signals"] == ["psel", "penable", "irq"]
+    assert "reorder" in sim_debug(action="reorder")  # guard
+
+    # group with colour
+    sim_debug(action="group", group="apb", signals="psel, penable", color="#4dd0e1")
+    g = sdi.get_intent("IPG")
+    assert g["action"] == "group" and g["group"] == "apb"
+    assert g["signals"] == ["psel", "penable"] and g["color"] == "#4dd0e1"
+    # group without colour (colour is optional → dropped)
+    sim_debug(action="group", group="ctl", signals="pwrite")
+    g2 = sdi.get_intent("IPG")
+    assert g2["group"] == "ctl" and "color" not in g2
+    # group guards
+    assert "group" in sim_debug(action="group", signals="psel")    # missing group name
+    assert "group" in sim_debug(action="group", group="apb")        # missing signals
+
+    # ungroup
+    sim_debug(action="ungroup", signals="psel, penable")
+    u = sdi.get_intent("IPG")
+    assert u["action"] == "ungroup" and u["signals"] == ["psel", "penable"]
+    assert "signals" in sim_debug(action="ungroup")  # guard
+
+    # color
+    sim_debug(action="color", signals="irq", color="#ff0000")
+    c = sdi.get_intent("IPG")
+    assert c["action"] == "color" and c["color"] == "#ff0000" and c["signals"] == ["irq"]
+    assert "color" in sim_debug(action="color", signals="irq")   # missing colour
+    assert "color" in sim_debug(action="color", color="#fff")    # missing signals
+
+    # scope is carried through for actions that take it
+    sim_debug(action="reorder", signals="a, b", scope="tb.dut.u_core")
+    assert sdi.get_intent("IPG")["scope"] == "tb.dut.u_core"
+
+
+def test_sim_debug_fold_unfold_actions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPF")
+    from core.tools import sim_debug
+
+    sim_debug(action="fold", group="apb")
+    f = sdi.get_intent("IPF")
+    assert f["action"] == "fold" and f["group"] == "apb"
+
+    sim_debug(action="unfold", group="apb")
+    assert sdi.get_intent("IPF")["action"] == "unfold"
+
+    assert "group" in sim_debug(action="fold")    # guard
+    assert "group" in sim_debug(action="unfold")  # guard
+
+
+def test_sim_debug_trace_find_value_dispatch(tmp_path, monkeypatch):
+    """trace/find/value delegate to run_sim_debug_analysis (pyslang/VCD). Verify
+    the tool routes the right action + args to it (analysis itself needs a real
+    design, exercised by test_sim_debug_analyze.py)."""
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPA")
+
+    import core.sim_debug_analyze as sda
+    calls = []
+
+    def fake_analysis(action, ip="", signal="", edge="rising", nth=1, at=None,
+                      push_intent=None, scope=""):
+        calls.append((action, ip, signal, edge, nth, at, scope))
+        return f"[analysis {action} {signal}]"
+
+    monkeypatch.setattr(sda, "run_sim_debug_analysis", fake_analysis)
+    from core.tools import sim_debug
+
+    assert "analysis trace" in sim_debug(action="trace", signal="irq")
+    assert "analysis find" in sim_debug(action="find", signal="psel", edge="falling", nth=2)
+    assert "analysis value" in sim_debug(action="value", signal="prdata", at=500)
+    assert [c[0] for c in calls] == ["trace", "find", "value"]
+    assert calls[1][3] == "falling" and calls[1][4] == 2   # edge, nth threaded
+    assert calls[2][5] == 500                                # at threaded
+
+
+def test_sim_debug_unknown_action_lists_all_actions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPU")
+    from core.tools import sim_debug
+    msg = sim_debug(action="nonsense")
+    assert "unknown action" in msg
+    # every supported action is advertised so the agent can self-correct
+    for act in ("show", "goto", "cursor", "fit", "reorder", "group", "ungroup",
+                "color", "radix", "remove", "keep", "clear", "fold", "unfold",
+                "trace", "find", "value"):
+        assert act in msg, f"{act} missing from help"
+
+
+def test_sim_debug_show_ambiguous_not_pushed(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPAMB")
+    import core.sim_debug_analyze as sda
+    monkeypatch.setattr(sda, "resolve_wave_signal", lambda ip, sig, scope="": {
+        "status": "ambiguous",
+        "candidates": [{"resolved_signal": "tb.u_a.clk"}, {"resolved_signal": "tb.u_b.clk"}],
+    })
+    from core.tools import sim_debug
+    msg = sim_debug(action="show", signals="clk")
+    assert "ambiguous" in msg and "no signal could be shown" in msg
+    # nothing pushed for a purely-ambiguous request
+    assert sdi.get_intent("IPAMB") == {"seq": 0}
+
+
+def test_sim_debug_every_action_in_valid_actions():
+    """The VALID_ACTIONS set the panel trusts must list every action the tool
+    can push, so no tool intent is silently rejected by the channel."""
+    pushable = {"show", "goto", "cursor", "trace", "fit", "reorder", "group",
+                "ungroup", "color", "radix", "remove", "keep", "clear", "fold", "unfold"}
+    assert pushable <= sdi.VALID_ACTIONS
+
+
 def test_sim_debug_registered_and_schema():
     from core.tools import AVAILABLE_TOOLS
     from core.tool_schema import TOOL_SCHEMAS

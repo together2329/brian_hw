@@ -94,4 +94,82 @@ describe('applyIntent dispatch for chat waveform actions', () => {
     applyIntent(d, { action: 'show', signals: ['clk'] });
     expect(d.pinSignalsToWave).toHaveBeenCalledTimes(1);
   });
+
+  it('goto sets the view window, switches to wave/split, and places cursors', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'goto', t_start: 1000, t_end: 8000, cursor_a: 500, cursor_b: 600 });
+    expect(d.setViewRange).toHaveBeenCalledWith([1000, 8000]);
+    expect(d.setTopTab).toHaveBeenCalledWith('wave');
+    expect(d.setExpand).toHaveBeenCalledWith('split');
+    expect(d.setWaveCursor).toHaveBeenCalledWith(500);
+    expect(d.setWaveCursorB).toHaveBeenCalledWith(600);
+  });
+
+  it('cursor places A/B and switches to the wave tab', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'cursor', cursor_a: 100, cursor_b: 200 });
+    expect(d.setWaveCursor).toHaveBeenCalledWith(100);
+    expect(d.setWaveCursorB).toHaveBeenCalledWith(200);
+    expect(d.setTopTab).toHaveBeenCalledWith('wave');
+    expect(d.setViewRange).not.toHaveBeenCalled();  // cursor never re-zooms
+  });
+
+  it('fit resets the view', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'fit' });
+    expect(d.zoomFit).toHaveBeenCalledTimes(1);
+  });
+
+  it('trace runs a signal trace WITHOUT pinning the signal', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'trace', signal: 'irq', scope: 'tb.dut' });
+    expect(d.runSignalTrace).toHaveBeenCalledWith('irq', 'tb.dut');
+    expect(d.setTopTab).toHaveBeenCalledWith('wave');
+    expect(d.pinSignalsToWave).not.toHaveBeenCalled();
+  });
+
+  it('reorder pins then sets the row order', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'reorder', signals: ['psel', 'penable', 'irq'] });
+    expect(d.pinSignalsToWave).toHaveBeenCalledTimes(1);  // reorder reveals them first
+    expect(d.reorderByNames).toHaveBeenCalledWith(['psel', 'penable', 'irq']);
+  });
+
+  it('group tags the signals (with optional colour) after pinning', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'group', signals: ['psel', 'penable'], group: 'apb', color: '#4dd0e1' });
+    expect(d.pinSignalsToWave).toHaveBeenCalledTimes(1);
+    expect(d.assignGroupByNames).toHaveBeenCalledWith(['psel', 'penable'], 'apb', '#4dd0e1');
+  });
+
+  it('ungroup removes signals from their group WITHOUT pinning', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'ungroup', signals: ['psel'] });
+    expect(d.ungroupByNames).toHaveBeenCalledWith(['psel']);
+    expect(d.pinSignalsToWave).not.toHaveBeenCalled();
+  });
+
+  it('color recolours the signals (after pinning)', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'color', signals: ['irq'], color: '#ff0000' });
+    expect(d.pinSignalsToWave).toHaveBeenCalledTimes(1);
+    expect(d.setSignalColorByNames).toHaveBeenCalledWith(['irq'], '#ff0000');
+  });
+
+  it('fold/unfold toggle a group with the right folded flag', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'fold', group: 'apb' });
+    expect(d.toggleGroupFold).toHaveBeenCalledWith('apb', true);
+
+    const d2 = makeDeps();
+    applyIntent(d2, { action: 'unfold', group: 'apb' });
+    expect(d2.toggleGroupFold).toHaveBeenCalledWith('apb', false);
+  });
+
+  it('scope-qualifies bare signal names when a scope is supplied', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'color', signals: ['psel'], scope: 'tb.dut', color: '#fff' });
+    // the leaf is qualified with the scope before reaching the dep
+    expect(d.setSignalColorByNames).toHaveBeenCalledWith(['tb.dut.psel'], '#fff');
+  });
 });
