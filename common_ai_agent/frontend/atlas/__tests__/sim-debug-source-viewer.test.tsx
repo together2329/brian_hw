@@ -223,4 +223,26 @@ describe('sim debug source viewer', () => {
 
     expect(onPickSignal).toHaveBeenCalledWith('irq_status_o[5:0]');
   });
+
+  it('in-panel find reports a match count and advances with Enter', () => {
+    const { container } = render(
+      <SourceViewer lines={[
+        'always_ff @(posedge clk) begin',
+        '  if (wrap_next) count_q <= 0;',
+        '  else count_q <= count_q + 1;',
+        'end',
+      ]} />,
+    );
+    const input = container.querySelector('input[placeholder="find in source (regex)…"]') as HTMLInputElement;
+    expect(input).toBeTruthy();
+
+    fireEvent.change(input, { target: { value: 'count_q' } });
+    expect(container.textContent).toContain('1/2');   // two lines contain count_q
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(container.textContent).toContain('2/2');    // Enter advances
+
+    fireEvent.change(input, { target: { value: 'zzz_nope' } });
+    expect(container.textContent).toContain('0/0');    // no match
+  });
 });

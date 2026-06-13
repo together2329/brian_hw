@@ -822,6 +822,34 @@ const SourceViewer = ({
   const [grammarTick, setGrammarTick] = useState(0);
   const [textSelectMode, setTextSelectMode] = useState(false);
   const [sourceDragSignals, setSourceDragSignals] = useState<string[]>([]);
+
+  // ── In-panel find (Ctrl+F): search THIS source file, like the signal search.
+  const [findQuery, setFindQuery] = useState('');
+  const [findIdx, setFindIdx] = useState(0);
+  const findInputRef = useRef<HTMLInputElement | null>(null);
+  const findMatches = useMemo<number[]>(() => {
+    const q = findQuery.trim();
+    if (!q) return [];
+    let rx: RegExp;
+    try { rx = new RegExp(q, 'i'); }
+    catch { rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i'); }
+    const out: number[] = [];
+    (lines || []).forEach((ln, i) => { if (rx.test(String(ln))) out.push(i + 1); });
+    return out;
+  }, [findQuery, lines]);
+  const findSet = useMemo(() => new Set(findMatches), [findMatches]);
+  useEffect(() => { if (findIdx >= findMatches.length) setFindIdx(0); }, [findMatches, findIdx]);
+  const findLine = findMatches.length ? findMatches[Math.min(findIdx, findMatches.length - 1)] : 0;
+  useEffect(() => {
+    if (findLine > 0 && ref.current) {
+      const el = ref.current.querySelector(`[data-ln="${findLine}"]`) as HTMLElement | null;
+      if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  }, [findLine]);
+  const findStep = (dir: number) => {
+    if (!findMatches.length) return;
+    setFindIdx(i => (i + dir + findMatches.length) % findMatches.length);
+  };
   const annotationAxes = useMemo(
     () => annotationAxesForMode(vcdAnnotationAxis),
     [vcdAnnotationAxis],
@@ -889,6 +917,8 @@ const SourceViewer = ({
       className="src-viewer"
       onMouseDownCapture={e => {
         if (e.button !== 0) return;
+        // Clicks in the find bar must not start a source drag-select.
+        if ((e.target as HTMLElement)?.closest?.('[data-src-find]')) return;
         const allowNativeSelection = e.altKey;
         textSelectModeRef.current = allowNativeSelection;
         setTextSelectMode(allowNativeSelection);
@@ -1010,9 +1040,47 @@ const SourceViewer = ({
       background: 'var(--panel)',
       userSelect: textSelectMode ? 'text' : 'none',
     }}>
+      {/* In-panel find (like the signal search) — search THIS source file. */}
+      <div data-src-find
+           style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', alignItems: 'center', gap: 4,
+                    padding: '2px 8px 3px', margin: '-6px 0 4px',
+                    background: 'color-mix(in oklch, var(--panel) 94%, transparent)',
+                    borderBottom: '1px solid var(--line)' }}
+           onMouseDown={e => e.stopPropagation()}>
+        <span style={{ color: 'var(--fg-mute)', fontSize: 11 }} title="find in source">⌕</span>
+        <input
+          ref={findInputRef}
+          value={findQuery}
+          onChange={e => { setFindQuery(e.target.value); setFindIdx(0); }}
+          onKeyDown={e => {
+            e.stopPropagation();
+            if (e.key === 'Enter') { e.preventDefault(); findStep(e.shiftKey ? -1 : 1); }
+            else if (e.key === 'Escape') setFindQuery('');
+          }}
+          placeholder="find in source (regex)…"
+          spellCheck={false}
+          style={{ flex: 1, minWidth: 0, background: 'var(--bg)', color: 'var(--fg)',
+                   border: '1px solid var(--line)', borderRadius: 3, padding: '1px 6px',
+                   fontSize: 10, fontFamily: 'var(--mono)' }}
+        />
+        {findQuery.trim() !== '' && (
+          <span style={{ color: 'var(--fg-mute)', fontSize: 10, whiteSpace: 'nowrap', minWidth: 34, textAlign: 'right' }}>
+            {findMatches.length ? `${Math.min(findIdx, findMatches.length - 1) + 1}/${findMatches.length}` : '0/0'}
+          </span>
+        )}
+        {([['▲', -1, 'previous (Shift+Enter)'], ['▼', 1, 'next (Enter)']] as Array<[string, number, string]>).map(([g2, dir, ttl]) => (
+          <button key={ttl} title={ttl} disabled={!findMatches.length}
+                  onClick={() => findStep(dir)}
+                  style={{ background: 'transparent', color: findMatches.length ? 'var(--fg)' : 'var(--fg-dim)',
+                           border: '1px solid var(--line)', borderRadius: 3, fontSize: 9,
+                           padding: '0 4px', cursor: findMatches.length ? 'pointer' : 'default' }}>{g2}</button>
+        ))}
+      </div>
       {lineHTMLs.map((html, i) => {
         const lineNo = i + 1;
         const isCur = cursor === lineNo;
+        const isFindCur = lineNo === findLine;
+        const isFindHit = findSet.has(lineNo);
         const ann = vcdAnnotations[lineNo] || [];
         return (
           <Fragment key={i}>
@@ -1022,8 +1090,13 @@ const SourceViewer = ({
                 display: 'grid',
                 gridTemplateColumns: '46px 1fr',
                 padding: '0 8px',
-                background: isCur ? 'color-mix(in oklch, var(--accent) 18%, transparent)' : 'transparent',
-                borderLeft: isCur ? '2px solid var(--accent)' : '2px solid transparent',
+                background: isCur ? 'color-mix(in oklch, var(--accent) 18%, transparent)'
+                          : isFindCur ? 'color-mix(in oklch, var(--ok) 30%, transparent)'
+                          : isFindHit ? 'color-mix(in oklch, var(--ok) 12%, transparent)'
+                          : 'transparent',
+                borderLeft: isCur ? '2px solid var(--accent)'
+                          : isFindCur ? '2px solid var(--ok)'
+                          : '2px solid transparent',
               }}
             >
               <span style={{
