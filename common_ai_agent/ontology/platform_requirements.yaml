@@ -673,6 +673,17 @@ requirements:
             observed_at: 583541ad
           - test: "tests/test_orch_trace_smoke.py::test_atlas_trace_strip_consumes_shared_decision_trace_api"
             observed_at: 583541ad
+      - id: OBL_ORCH_FREE_PROCESS_FINAL_EVIDENCE_GATE
+        owned_by: agent.react-loop
+        granularity: behavior
+        # Operator feedback 2026-06-13: the orchestrator harness had become too
+        # prescriptive for strong models — strict per-turn tool-call recipes and
+        # guardrail prose pushed the model into fixed repair flows instead of
+        # letting it choose the cheapest evidence path. The orchestrator prompt
+        # should expose a small callable tool surface, leave ordering/recovery
+        # decisions to the model, and keep hard enforcement at evidence
+        # boundaries (tool results, worker validators, final completed gate).
+        status: open
       - id: OBL_ORCH_STANDALONE_BRIDGE_DISPATCHES_WITHOUT_ATLAS_CALLBACKS
         owned_by: agent.react-loop
         granularity: behavior
