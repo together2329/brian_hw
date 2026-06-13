@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import importlib.util
 import subprocess
@@ -1095,6 +1096,66 @@ def test_repair_ssot_schema_normalizes_verilog_rule_expressions(tmp_path: Path):
     assert rules[2]["expr"] == "(1 if load_value != 0 else 0)"
     assert rules[3]["expr"] == "((count - 1) if count > 0 else 0)"
     assert loaded["rtl_contract"]["output_rules"][0]["expr"] == "data_in << 1"
+
+
+def test_repair_ssot_schema_soft_normalizes_apb_style_sv_rule_expressions(tmp_path: Path):
+    ip = "repair_apb_sv_expr_ip"
+    doc = _base_ssot_doc(ip)
+    fm = doc["function_model"]
+    doc["io_list"]["interfaces"][0]["ports"].extend(
+        [
+            {"name": "addr_bad", "direction": "output", "width": 1},
+            {"name": "prdata", "direction": "output", "width": 32},
+            {"name": "irq_o", "direction": "output", "width": 1},
+        ]
+    )
+    fm["state_variables"].extend(
+        [
+            {"name": "ctrl", "reset": 0, "width": 32},
+            {"name": "prescale", "reset": 0, "width": 32},
+            {"name": "period", "reset": 0, "width": 32},
+            {"name": "duty", "reset": 0, "width": 32},
+            {"name": "status_tc", "reset": 0, "width": 1},
+            {"name": "timer_count", "reset": 0, "width": 32},
+        ]
+    )
+    tx = fm["transactions"][0]
+    tx["sample_condition"] = "psel && penable && !pwrite"
+    tx["state_updates"] = [
+        {"name": "ctrl", "expr": "addr==8'h00 ? (pwdata & 32'h0000_0007) : ctrl", "width": 32},
+        {"name": "timer_count", "expr": "terminal ? 32'h0 : timer_count + 32'h1", "width": 32},
+    ]
+    tx["output_rules"] = [
+        {"name": "addr_bad", "port": "addr_bad", "expr": "!(addr inside {8'h00,8'h04,8'h08,8'h0C,8'h10})", "width": 1},
+        {
+            "name": "prdata",
+            "port": "prdata",
+            "expr": "addr==8'h00 ? ctrl : addr==8'h04 ? prescale : addr==8'h08 ? period : addr==8'h0C ? duty : addr==8'h10 ? {30'h0,ctrl[0],status_tc} : 32'h0",
+            "width": 32,
+        },
+        {"name": "irq_o", "port": "irq_o", "expr": "ctrl[1] && status_tc", "width": 1},
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    tx = loaded["function_model"]["transactions"][0]
+    exprs = [tx["sample_condition"]]
+    exprs.extend(rule["expr"] for rule in tx["state_updates"])
+    exprs.extend(rule["expr"] for rule in tx["output_rules"])
+    joined = "\n".join(exprs)
+    for forbidden in ("8'h", "32'h", "1'b", "&&", "||", " inside ", "?", "{"):
+        assert forbidden not in joined
+    by_port = {rule["port"]: rule["expr"] for rule in tx["output_rules"]}
+    assert "addr == 0" in by_port["addr_bad"]
+    assert "or addr == 16" in by_port["addr_bad"]
+    assert "not" in by_port["addr_bad"]
+    assert "ctrl[0]" in by_port["prdata"]
+    assert "status_tc" in by_port["prdata"]
+    for expr in exprs:
+        ast.parse(str(expr), mode="eval")
 
 
 def test_repair_ssot_schema_assigns_decomposition_refs_to_monolithic_top(tmp_path: Path):
