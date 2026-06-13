@@ -257,6 +257,115 @@ def _trace_payload(backend: str, drivers: list[dict], sinks: list[dict], **extra
     }
 
 
+def _balanced_paren(s: str, search_from: int) -> "str | None":
+    """Text inside the first balanced (...) at/after `search_from`; the rest of
+    the line when the parens span lines (best-effort)."""
+    i = s.find("(", search_from)
+    if i < 0:
+        return None
+    d = 0
+    for j in range(i, len(s)):
+        c = s[j]
+        if c == "(":
+            d += 1
+        elif c == ")":
+            d -= 1
+            if d == 0:
+                return s[i + 1:j].strip()
+    return s[i + 1:].strip()
+
+
+_IF_RE = re.compile(r"(?<![\w.$])if\s*\(")
+_ELSEIF_RE = re.compile(r"\belse\s+if\s*\(")
+_CASE_RE = re.compile(r"\b(?:unique0?\s+|priority\s+)?case[zx]?\s*\(")
+
+
+def enclosing_conditions(block_text: str) -> dict:
+    """Map each 0-based line offset of an always-block's text to the list of
+    enclosing if / else-if / else / case conditions (outer → inner).
+
+    Text-structural heuristic that matches the line-based driver scanner (the
+    block is ``str(syntax)``), NOT a full AST — multi-line conditions and exotic
+    styles may be approximate. Tuned for the synthesizable RTL this pipeline
+    emits (consistent begin/end). `else` renders as ``!(<sibling-if>)`` when the
+    sibling is known. Used to annotate each driver with the condition it fires
+    under, so the user can find "where is X assigned under condition Y".
+    """
+    out: dict = {}
+    # frames: {"kind": "block"|"case", "depth": int, "cond": str|None,
+    #          "sel": str|None, "item": str|None}
+    frames: list = []
+    depth = 0
+    last_popped = None  # cond of the just-closed if-BLOCK a following `else` negates
+    last_if = None      # most recent if-cond (block OR one-line) for else negation
+    for off, raw in enumerate(block_text.split("\n")):
+        s = re.sub(r"//.*$", "", raw)
+        stripped = s.strip()
+
+        # 1) leading `end`/`endcase` close blocks opened above this line.
+        lead = re.match(r"^((?:end\b|endcase\b|\s)*)", stripped)
+        for _ in range(len(re.findall(r"\bend\b|\bendcase\b", lead.group(1))) if lead else 0):
+            if frames:
+                d = frames[-1]["depth"]
+                popped = [f for f in frames if f["depth"] == d]
+                if popped and popped[-1]["kind"] == "block":
+                    last_popped = popped[-1]["cond"]
+                frames[:] = [f for f in frames if f["depth"] < d]
+                depth = max(0, depth - 1)
+
+        # 2) conditions active for THIS line = open block conds + case-item conds.
+        line_conds = []
+        for f in frames:
+            if f["kind"] == "block" and f["cond"]:
+                line_conds.append(f["cond"])
+            elif f["kind"] == "case" and f["item"]:
+                line_conds.append(f["item"])
+
+        # 3) the control header (if any) on this line.
+        cond = None
+        m_elif = _ELSEIF_RE.search(stripped)
+        if m_elif:
+            cond = _balanced_paren(stripped, m_elif.end() - 1)
+            last_if = cond
+        elif re.match(r"^(?:end\s+)?else\b", stripped):
+            base = last_popped if last_popped is not None else last_if
+            cond = f"!({base})" if base else "(else)"
+        elif _IF_RE.search(stripped):
+            m = _IF_RE.search(stripped)
+            cond = _balanced_paren(stripped, m.end() - 1)
+            last_if = cond
+        elif _CASE_RE.search(stripped):
+            m = _CASE_RE.search(stripped)
+            sel = _balanced_paren(stripped, m.end() - 1)
+            depth += 1
+            frames.append({"kind": "case", "depth": depth, "cond": None, "sel": sel, "item": None})
+        else:
+            # a case item label (`IDLE:` / `A, B:` / `default:`) when inside a case.
+            inner = frames[-1] if frames else None
+            if inner and inner["kind"] == "case":
+                mi = re.match(r"^(default|[A-Za-z_]\w[\w\s,]*?)\s*:(?!:)", stripped)
+                if mi:
+                    label = mi.group(1).strip()
+                    sel = inner["sel"] or "case"
+                    inner["item"] = "default" if label == "default" else f"{sel} == {label}"
+                    line_conds = line_conds + ([inner["item"]] if inner["item"] else [])
+
+        has_begin = re.search(r"\bbegin\b", s) is not None
+        is_stmt = ("<=" in s or re.search(r"(?<![<>=!])=(?!=)", s)) and not has_begin
+        # one-line body `if (C) stmt;` → C applies to this line only.
+        if cond is not None and is_stmt:
+            line_conds = line_conds + [cond]
+        out[off] = line_conds
+
+        # 4) `begin` opens a block carrying the header condition (first begin only).
+        for k in range(len(re.findall(r"\bbegin\b", s))):
+            depth += 1
+            frames.append({"kind": "block", "depth": depth, "cond": cond if k == 0 else None,
+                           "sel": None, "item": None})
+            cond = None
+    return out
+
+
 def _static_trace_driver(signal: str, sources: list[Path], reason: str) -> dict:
     bare = signal.rsplit(".", 1)[-1]
     bare = re.sub(r"\s*\[[^\]]+\]\s*$", "", bare).strip()
@@ -1110,13 +1219,19 @@ class PyslangElab(ElabBackend):
                     except Exception:
                         fname0, base_line = _resolve_loc(m.location)
                     base_line -= (len(txt) - len(txt.lstrip("\n")))
+                    cond_map = enclosing_conditions(txt)
                     for off, raw_line in enumerate(txt.split("\n")):
                         is_w, is_r = _classify_line(raw_line)
                         if not (is_w or is_r):
                             continue
                         fl = f"{fname0}:{base_line + off}" if fname0 else ""
                         if is_w:
-                            drivers.append({"file_line": fl, "kind": kind})
+                            conds = cond_map.get(off, [])
+                            drivers.append({
+                                "file_line": fl, "kind": kind,
+                                "condition": " & ".join(conds),
+                                "conditions": conds,
+                            })
                         if is_r and not is_w:
                             sinks.append({"file_line": fl, "context": bare, "access": "RD"})
                         elif is_r and is_w:

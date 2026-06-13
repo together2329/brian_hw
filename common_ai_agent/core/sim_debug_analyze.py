@@ -352,9 +352,18 @@ def run_sim_debug_analysis(action: str, ip: str = "", signal: str = "",
         if push_intent:
             push_intent(ip, "trace", signal=sig, scope=(sig_scope or None))
         drv = r.get("driver") or {}
+        drivers = r.get("drivers") or ([drv] if drv else [])
         sinks = r.get("sinks") or []
         lines = [f"Sim Debug trace of '{sig}' (top {r.get('top','?')}, {where}):"]
-        lines.append(f"  driver: {drv.get('file_line') or '(none)'} [{drv.get('kind','')}]")
+        # Every place the signal is assigned, WITH the condition it fires under
+        # (find "where is X set under condition Y"). The structural driving view.
+        lines.append(f"  drivers ({r.get('driver_count', len(drivers))}):")
+        for d in drivers[:12]:
+            cond = str(d.get("condition") or "").strip()
+            cond_s = f"  ⟵ when {cond}" if cond else ""
+            lines.append(f"    {d.get('file_line','?')}{cond_s}  [{d.get('kind','')}]")
+        if not drivers:
+            lines.append("    (none)")
         if sinks:
             lines.append(f"  loads ({r.get('sink_count', len(sinks))}):")
             for s in sinks[:10]:
