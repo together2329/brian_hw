@@ -228,7 +228,8 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     let cancelled = false;
     (async () => {
       try {
-        const r = await fetch('/api/cocotb?ip=' + encodeURIComponent(ipName));
+        const cocotbParams = appendActiveSessionParam(new URLSearchParams({ ip: ipName }));
+        const r = await fetch('/api/cocotb?' + cocotbParams.toString());
         const d = await r.json();
         if (!cancelled) setCocotbData(d);
       } catch (_) { if (!cancelled) setCocotbData(null); }
@@ -251,7 +252,8 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     setSimSummaryLoading(true);
     (async () => {
       try {
-        const r = await fetch('/api/debug/scenarios?ip=' + encodeURIComponent(ipName), { cache: 'no-store' });
+        const scParams = appendActiveSessionParam(new URLSearchParams({ ip: ipName }));
+        const r = await fetch('/api/debug/scenarios?' + scParams.toString(), { cache: 'no-store' });
         const d = await r.json();
         if (cancelled) return;
         setSimSummary(d);

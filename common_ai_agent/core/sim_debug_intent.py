@@ -36,15 +36,18 @@ def _project_root() -> Path:
     return Path(os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd())
 
 
-def _intent_path() -> Path:
-    return _project_root() / ".session" / "sim_debug_intent.json"
+def _intent_path(base_root: "str | Path | None" = None) -> Path:
+    root = Path(base_root) if base_root else _project_root()
+    return root / ".session" / "sim_debug_intent.json"
 
 
-def push_intent(ip: str, action: str, **fields: Any) -> int:
+def push_intent(ip: str, action: str, base_root: "str | Path | None" = None, **fields: Any) -> int:
     """Write the latest Sim Debug intent and return its monotonic `seq`.
 
     `fields` may include: signals(list[str]), signal(str), t_start, t_end,
-    cursor_a, cursor_b, note. Unknown/None fields are dropped.
+    cursor_a, cursor_b, note. Unknown/None fields are dropped. ``base_root``
+    overrides the project root (defaults to ATLAS_PROJECT_ROOT/cwd, which under
+    process_per_session is already the worker's session workspace root).
     """
     seq = time.time_ns()
     intent: Dict[str, Any] = {
@@ -56,7 +59,7 @@ def push_intent(ip: str, action: str, **fields: Any) -> int:
     for k, v in fields.items():
         if v is not None:
             intent[k] = v
-    path = _intent_path()
+    path = _intent_path(base_root)
     with _LOCK:
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -78,10 +81,14 @@ def push_intent(ip: str, action: str, **fields: Any) -> int:
     return seq
 
 
-def get_intent(ip: str = "") -> Dict[str, Any]:
+def get_intent(ip: str = "", base_root: "str | Path | None" = None) -> Dict[str, Any]:
     """Return the latest intent (any ip — the UI filters by ip itself), or
-    {"seq": 0} when none has been pushed."""
-    path = _intent_path()
+    {"seq": 0} when none has been pushed.
+
+    ``base_root`` overrides the project root so the web API can read the intent
+    from the requesting session's workspace root (the agent worker, running
+    process_per_session, writes it there — not under the web process root)."""
+    path = _intent_path(base_root)
     with _LOCK:
         if not path.is_file():
             return {"seq": 0}

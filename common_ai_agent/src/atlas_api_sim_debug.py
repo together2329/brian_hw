@@ -22,6 +22,8 @@ from typing import Any, Callable, FrozenSet, Optional
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from src.atlas_api_files import AtlasContext
+
 
 # Whitelist of source-file extensions /api/source accepts.
 _SOURCE_EXTS: FrozenSet[str] = frozenset({
@@ -117,9 +119,71 @@ def register_sim_debug_routes(
                 return denied
         return None
 
+    # ── Per-session root resolution. In process_per_session mode the agent
+    # worker writes IP artifacts (and the sim_debug intent file) under its
+    # session WORKSPACE root (<owner>/<workspace>/...), not the web process's
+    # global PROJECT_ROOT. Endpoints that take a bare `ip` must resolve it
+    # against the requesting session's workspace root or they 404 ("ip not
+    # found") and read a stale/empty intent. Mirrors src/atlas_api_vcd.py. ────
+    def _context_for_session(session_id):
+        raw = str(session_id or "").strip()
+        if not raw:
+            return None
+        try:
+            return AtlasContext.from_session_key(
+                raw, atlas_root=os.environ.get("ATLAS_ROOT") or str(PROJECT_ROOT)
+            )
+        except Exception:
+            return None
+
+    def _context_root(context):
+        if context is not None and not context.legacy:
+            return context.workspace_root
+        return PROJECT_ROOT
+
+    def _deny_session_owner(request, context):
+        """Reject a request whose caller does not own the supplied session
+        context. The intent file is per-workspace-root (not per-IP), so without
+        this a caller could read another tenant's intent by passing their
+        session_id. Mirrors src/atlas_api_vcd.py::_deny_context_request."""
+        if context is None or context.legacy:
+            return None
+        try:
+            user = request.scope.get("user") or {}
+        except Exception:
+            user = {}
+        user_id = str((user or {}).get("id") or "").strip()
+        if not user_id or user_id == "default":
+            return JSONResponse({"error": "login required"}, status_code=401)
+        if str((user or {}).get("role") or "").strip().lower() == "admin":
+            return None
+        username = str((user or {}).get("username") or "").strip().strip("/")
+        if username == context.user_name:
+            return None
+        return JSONResponse({"error": "session owner mismatch"}, status_code=403)
+
+    def _ip_dir_for_session(ip, session_id):
+        """Resolve the `<ip>` directory under the caller's session workspace
+        root, fail-closed on escape; fall back to the global `_safe(ip)` when
+        there is no (non-legacy) session context."""
+        context = _context_for_session(session_id)
+        if context is not None and not context.legacy:
+            root = context.workspace_root
+            rel = str(ip or "").replace("\\", "/").lstrip("/")
+            try:
+                target = (root / rel).resolve()
+                target.relative_to(root.resolve())
+                return target
+            except (OSError, ValueError):
+                return None
+        return _safe(ip)
+
     @app.get("/api/debug/scenarios")
-    async def api_debug_scenarios(request: Request, ip: str):
+    async def api_debug_scenarios(request: Request, ip: str, session_id: str = "", session: str = ""):
         denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
+        denied = _deny_session_owner(request, _context_for_session(session_id or session))
         if denied is not None:
             return denied
         """Resolve `<ip>/yaml/<ip>.ssot.yaml` test_requirements.scenarios
@@ -130,11 +194,18 @@ def register_sim_debug_routes(
         truth (SSOT), status comes from the latest sim run. No cross-IP
         leakage — only the requested IP's directory is read.
         """
-        ip_dir = _safe(ip)
+        ip_dir = _ip_dir_for_session(ip, session_id or session)
         if ip_dir is None or not ip_dir.is_dir():
             return JSONResponse({"error": "ip not found", "tests": []}, status_code=404)
+        scen_root = _context_root(_context_for_session(session_id or session)).resolve()
         ssot_path = ip_dir / "yaml" / f"{ip_dir.name}.ssot.yaml"
         sb_path   = ip_dir / "sim"  / "scoreboard_events.jsonl"
+
+        def _rel_to_root(p):
+            try:
+                return str(p.resolve().relative_to(scen_root))
+            except (OSError, ValueError):
+                return p.name
 
         # Disk reads moved off the event loop. Reading SSOT YAML +
         # scoreboard JSONL synchronously inside the coroutine pinned
@@ -234,8 +305,8 @@ def register_sim_debug_routes(
         }
         return JSONResponse({
             "ip": ip,
-            "ssot_path": str(ssot_path.relative_to(PROJECT_ROOT)) if ssot_path.is_file() else "",
-            "sb_path":   str(sb_path.relative_to(PROJECT_ROOT))   if sb_path.is_file()   else "",
+            "ssot_path": _rel_to_root(ssot_path) if ssot_path.is_file() else "",
+            "sb_path":   _rel_to_root(sb_path)   if sb_path.is_file()   else "",
             "tests":   tests,
             "summary": summary,
         })
@@ -367,19 +438,27 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/sim_debug/intent")
-    async def api_sim_debug_intent(request: Request, ip: str = ""):
+    async def api_sim_debug_intent(request: Request, ip: str = "", session_id: str = "", session: str = ""):
         """Return the latest Sim Debug UI intent pushed by the agent `sim_debug`
         tool (navigate / show signals / place cursor / trace / fit). The panel
         polls this and applies it when `seq` increases. Read-only, no side
-        effects; `{"seq": 0}` means nothing pending."""
+        effects; `{"seq": 0}` means nothing pending.
+
+        The agent worker writes the intent under its session workspace root
+        (process_per_session), so read it from the caller's session root — not
+        the web process's global PROJECT_ROOT — or the panel never sees it."""
         denied = _gate_ip(request, ip)
+        if denied is not None:
+            return denied
+        context = _context_for_session(session_id or session)
+        denied = _deny_session_owner(request, context)
         if denied is not None:
             return denied
         try:
             from core.sim_debug_intent import get_intent
         except Exception as e:
             return JSONResponse({"seq": 0, "error": str(e)})
-        return JSONResponse(get_intent(ip))
+        return JSONResponse(get_intent(ip, base_root=_context_root(context)))
 
 
     @app.get("/api/module/signals")
@@ -427,7 +506,7 @@ def register_sim_debug_routes(
 
 
     @app.get("/api/cocotb")
-    async def api_cocotb(request: Request, ip: str = ""):
+    async def api_cocotb(request: Request, ip: str = "", session_id: str = "", session: str = ""):
         """Inspect a cocotb testbench environment under <ip>/cocotb/ or <ip>/tb/cocotb/.
         Returns a categorised file tree + parsed results.xml summary
         so the sim_debug UI can show 'TB' alongside the RTL hierarchy.
@@ -437,9 +516,13 @@ def register_sim_debug_routes(
         denied = _gate_ip(request, ip)
         if denied is not None:
             return denied
-        base = _safe(ip + "/cocotb")
+        denied = _deny_session_owner(request, _context_for_session(session_id or session))
+        if denied is not None:
+            return denied
+        ip_dir = _ip_dir_for_session(ip, session_id or session)
+        base = (ip_dir / "cocotb") if ip_dir is not None else None
         if base is None or not base.is_dir():
-            base = _safe(ip + "/tb/cocotb")
+            base = (ip_dir / "tb" / "cocotb") if ip_dir is not None else None
         if base is None or not base.is_dir():
             return JSONResponse({"error": f"no cocotb dir under {ip}/ or {ip}/tb/", "exists": False})
         out = {

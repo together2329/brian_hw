@@ -20,6 +20,7 @@
 // through a narrow cast since their owners are still .jsx and they are not
 // yet declared in types/atlas-window.d.ts.
 import { useState, useCallback, useEffect, type ReactNode } from 'react';
+import { appendActiveSessionParam } from './active-session-query';
 
 const STATUS_COLOR: Record<string, string> = {
   pass: 'var(--green, #22c55e)',
@@ -156,7 +157,7 @@ export function DebugTab({ ip, onOpenSource }: DebugTabProps) {
     setErr('');
     try {
       const [scResp, lsResp] = await Promise.all([
-        fetch(`/api/debug/scenarios?ip=${encodeURIComponent(ip)}`, { cache: 'no-store' }),
+        fetch('/api/debug/scenarios?' + appendActiveSessionParam(new URLSearchParams({ ip })).toString(), { cache: 'no-store' }),
         fetch(`/api/files?path=${encodeURIComponent(ip + '/sim')}`, { cache: 'no-store' }).catch(() => null),
       ]);
       if (scResp && scResp.ok) {

@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'react';
 import type { VcdData, PinnedSignal } from './sim-debug-helpers';
 import type { ViewRange } from './sim-debug-root-shared';
+import { appendActiveSessionParam } from './active-session-query';
 
 export interface SimDebugIntentDeps {
   ipName: string;
@@ -125,7 +126,8 @@ export const useSimDebugIntent = (deps: SimDebugIntentDeps): void => {
     let cancelled = false;
     const tick = async () => {
       try {
-        const r = await fetch('/api/sim_debug/intent?ip=' + encodeURIComponent(ipName), { cache: 'no-store' });
+        const intentParams = appendActiveSessionParam(new URLSearchParams({ ip: ipName }));
+        const r = await fetch('/api/sim_debug/intent?' + intentParams.toString(), { cache: 'no-store' });
         const d = await r.json();
         if (cancelled || !d || typeof d.seq !== 'number') return;
         const decision = shouldApplySimDebugIntent(ipName, d, intentSeqRef.current);
