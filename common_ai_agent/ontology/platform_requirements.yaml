@@ -128,11 +128,11 @@ requirements:
                          # Perforce 는 명시 설정된 workspace root 안에서만 허용
         evidence:
           - test: "tests/test_atlas_git_api.py::test_scm_status_allows_perforce_root_inside_configured_external_workspace"
-            observed_at: 545e6a97
+            observed_at: da286f0b
           - test: "tests/test_atlas_git_api.py::test_scm_status_rejects_external_perforce_root_without_configured_workspace"
-            observed_at: 545e6a97
+            observed_at: da286f0b
           - test: "tests/test_atlas_git_api.py::test_scm_status_rejects_external_git_root_even_with_configured_perforce_workspace"
-            observed_at: 545e6a97
+            observed_at: da286f0b
       - id: OBL_CONVERSATION_SSOT_IMPORT_OWNER_SCOPED
         owned_by: runtime.authz
         granularity: behavior
@@ -348,6 +348,104 @@ requirements:
           - test: "tests/test_atlas_git_api.py::test_scm_change_delete_route_uses_perforce_adapter"
             observed_at: 41f19077
         repro: scripts/repro_perforce_pending.py
+      - id: OBL_P4_UI_CHECKOUT_SUBMIT_SELECTS_OPENED_CL
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_reselects_opened_changelist_after_mutation"
+            observed_at: defccfea
+      - id: OBL_P4_UI_CHECKOUT_SUBMIT_PREFERS_TOUCHED_CL
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_reselects_opened_changelist_after_mutation"
+            observed_at: defccfea
+      - id: OBL_P4_UI_SUBMIT_DEBUG_CONTEXT
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_submit_debug_context_contract"
+            observed_at: defccfea
+      - id: OBL_P4_SPLIT_LOCAL_WORKSPACE_SUBMIT_RESTAGES_LOCAL
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # local IP 와 P4 workspace 가 달라도 submit 직전 local 수정분이 workspace opened file 로 반영돼야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_submit_restages_split_local_workspace_edit"
+            observed_at: f57f78f0
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_numbered_checkout_submit_clears_pending"
+            observed_at: f57f78f0
+      - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_MAP
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # real p4d에서 local 파일 경로와 depot 파일 경로가 달라도 checkout/submit/revert가 정확해야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_submit_restages_source_map"
+            observed_at: 583ce223
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_revert_clears_source_map"
+            observed_at: 583ce223
+      - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_MATRIX
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # split local/depot 경로는 numbered CL, folder add, delete pending, stale local source까지 real p4d로 검증돼야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_numbered_split_local_depot_path_submit_restages_source_map"
+            observed_at: 1d138805
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_folder_target_add_restages_split_source_map"
+            observed_at: 1d138805
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_delete_pending_clears_source_map"
+            observed_at: 1d138805
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_missing_source_blocks_submit"
+            observed_at: 1d138805
+      - id: OBL_P4_SPLIT_LOCAL_DEPOT_PATH_EXCEPTIONS
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # corrupt source map, multi-file split mapping, revision-qualified paths 같은 예외도 stale submit을 만들면 안 됨
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_submit_restage_blocks_corrupt_source_map_for_selected_paths"
+            observed_at: 01c879b8
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_multi_split_local_depot_paths_submit_restages_all"
+            observed_at: 01c879b8
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_revision_spec_restages"
+            observed_at: 01c879b8
+          - test: "tests/test_scm_perforce_adapter.py::test_live_local_p4d_split_local_depot_path_corrupt_source_map_blocks_submit"
+            observed_at: 01c879b8
+      - id: OBL_P4_SUBMIT_FAILURE_DIAGNOSTICS
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # submit 실패/skip 시 localRoot/scmRoot/paths와 restage 사유를 UI에서 볼 수 있어야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_submit_restage_reports_selected_path_not_opened"
+            observed_at: 771cfbf8
+          - test: "tests/test_scm_perforce_adapter.py::test_submit_restage_reports_missing_local_source"
+            observed_at: 771cfbf8
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_submit_debug_context_contract"
+            observed_at: 771cfbf8
+      - id: OBL_P4_REVERT_CLEARS_RESOLVE_STATE
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # revert는 선택 CL의 P4 opened/resolve 상태를 실제로 해제해야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_live_revert_clears_out_of_date_resolve_state"
+            observed_at: 46132d8a
+          - test: "tests/test_scm_perforce_adapter.py::test_live_revert_paths_deletes_emptied_numbered_changelist"
+            observed_at: 46132d8a
+          - test: "tests/test_atlas_git_api.py::test_scm_revert_route_passes_selected_perforce_changelist"
+            observed_at: 46132d8a
+      - id: OBL_P4_REVERT_DIAGNOSTIC_MATRIX
+        owned_by: platform.scm
+        granularity: behavior
+        status: closed   # UI/API/adapter가 selected CL revert와 실패 진단을 여러 경로에서 보존해야 함
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_revert_debug_context_contract"
+            observed_at: df838f79
+          - test: "tests/test_scm_perforce_adapter.py::test_revert_reports_remaining_resolve_state_after_fallback"
+            observed_at: df838f79
+          - test: "tests/test_atlas_git_api.py::test_scm_revert_route_preserves_perforce_failure_diagnostics"
+            observed_at: df838f79
 
   - id: REQ_PLAT_CURSOR_PARITY_001
     claim: "Cursor 에이전트는 .cursor 팩(rule/hook/subagent/skill)으로 이 repo workflow를 Claude Code와 같은 규율(todo-loop, 증거 우선, ROCEV req→rtl→tb→sim)로 구동할 수 있다"
@@ -510,11 +608,11 @@ requirements:
         status: closed   # /finalize-req auto-start race: input() 대기 중 UI/slash가 쓴 todo.json을 post-input reload로 같은 turn에 반영
         evidence:
           - test: "tests/test_todo_session_binding.py::test_main_todo_reload_helper_rebinds_stale_global"
-            observed_at: b6e97f30
+            observed_at: 5ff41137
           - test: "tests/test_todo_session_binding.py::test_chat_loop_reloads_todo_after_input_before_dispatch"
-            observed_at: b6e97f30
+            observed_at: 5ff41137
           - test: "tests/test_atlas_multiuser_session_scope.py::test_req_lifecycle_templates_auto_start_and_kick"
-            observed_at: b6e97f30
+            observed_at: 5ff41137
       - id: OBL_WORKER_RUN_TODO_IS_SESSION_ISOLATED
         owned_by: runtime.server
         granularity: concurrent
@@ -962,6 +1060,19 @@ requirements:
           클로버로 간주해 원복 — cnt8 hold-row 재잠금이 1회 되돌려짐. 처방 =
           가드가 정식 재잠금 서명(manifest sha 체인)을 인식하면 원복 대신
           job-fail (finding 30)
+      - id: OBL_SCOREBOARD_FSM_ENUM_NORMALIZED
+        owned_by: engine.stage
+        granularity: content
+        status: closed   # 1a6a1398: FL 상태 이름('RESET') vs RTL 인코딩 값(0) raw 비교로 cnt8 13/29행 허위 실패 — 선언된 fsm states[].value 맵(rtl-gen 동일 의미론)으로 양측 정규화; 오인코딩은 name(value) 병기 실패 유지, 미선언 값 silent-pass 금지; 라이브 13→2 (잔여 2 = raw 비교가 가려온 진짜 FL/RTL 분기) (finding 32)
+        evidence:
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_normalizes_declared_fsm_state_name_against_rtl_value"
+            observed_at: 1a6a1398
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_fails_wrong_fsm_encoding_with_name_and_value"
+            observed_at: 1a6a1398
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_fails_undeclared_fsm_value_without_silent_pass"
+            observed_at: 1a6a1398
+          - test: "tests/test_fl_rtl_equivalence_loop.py::test_scoreboard_non_fsm_state_variable_comparison_unchanged"
+            observed_at: 1a6a1398
       - id: OBL_RTL_REFRESH_EMITS_PROVENANCE
         owned_by: engine.stage
         granularity: behavior
@@ -971,6 +1082,15 @@ requirements:
             observed_at: 55ad3617
           - test: "tests/test_refresh_rtl_provenance_create.py::test_refuses_manual_rtl_without_fingerprints"
             observed_at: 55ad3617
+      - id: OBL_WORKER_LOOP_HEARTBEAT
+        owned_by: runtime.session-worker
+        granularity: behavior
+        status: closed   # 4fe50636: worker add_log 미러링으로 <job>/heartbeat.json(2s 스로틀) — 진행 카운터+last_action+elapsed; orch_status가 in-flight job에 [alive/STALLED?] 판정 렌더 (30분 블랙박스 해소, finding 29 관측 후속; 사용자 지시 "내부를 보자")
+        evidence:
+          - test: "tests/test_worker_heartbeat.py::test_heartbeat_mirrors_loop_progress"
+            observed_at: 4fe50636
+          - test: "tests/test_worker_heartbeat.py::test_heartbeat_write_failure_never_breaks_logging"
+            observed_at: 4fe50636
       - id: OBL_PIPELINE_LIVE_STATUS
         owned_by: platform.ontology
         granularity: behavior

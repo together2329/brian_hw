@@ -12,6 +12,7 @@ root; UI calls may pass a separate local IP root for the left pane.
 from __future__ import annotations
 
 import filecmp
+import json
 import os
 import re
 import shutil
@@ -56,6 +57,7 @@ _LOCAL_SCAN_SKIP_DIRS: Final[frozenset[str]] = frozenset({
     "node_modules",
 })
 _LOCAL_SCAN_SKIP_FILES: Final[frozenset[str]] = frozenset({".DS_Store"})
+_ATLAS_SOURCE_MAP: Final[str] = ".atlas/p4_source_map.json"
 _RECONCILE_LOCAL_STATES: Final[Mapping[str, str]] = {
     "add": "new",
     "edit": "modified",
@@ -477,6 +479,30 @@ class PerforceP4Adapter(SCMAdapter):
             return None
         return resolved
 
+    def _client_file_rel(self, client_file: str) -> Path | None:
+        text = str(client_file or "").strip()
+        if not text:
+            return None
+        if text.startswith("//"):
+            parts = [part for part in text.strip("/").split("/") if part]
+            if len(parts) < 2:
+                return None
+            configured = self._configured_client() or self._info().get("clientName", "")
+            if configured and parts[0] != configured:
+                return None
+            return Path(*parts[1:])
+        try:
+            return Path(text).resolve().relative_to(self._workspace_root_path().resolve())
+        except (OSError, RuntimeError, ValueError):
+            return None
+
+    def _workspace_path_from_client_file(self, client_file: str) -> Path | None:
+        rel = self._client_file_rel(client_file)
+        if rel is None:
+            return None
+        filespec = self._workspace_filespec(self._workspace_root_path() / rel)
+        return Path(filespec) if filespec is not None else None
+
     def _copy_depot_to_local(
         self,
         depot_spec: str,
@@ -505,14 +531,115 @@ class PerforceP4Adapter(SCMAdapter):
         values = [target_paths] if isinstance(target_paths, str) else target_paths
         return [str(value or "").strip() for value in values if str(value or "").strip()]
 
+    def _source_map_path(self) -> Path:
+        return self._workspace_root_path() / _ATLAS_SOURCE_MAP
+
+    def _load_source_map(self) -> dict[str, Any]:
+        path = self._source_map_path()
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {"sources": {}}
+        if not isinstance(data, dict):
+            return {"sources": {}}
+        sources = data.get("sources")
+        if not isinstance(sources, dict):
+            data["sources"] = {}
+        return data
+
+    def _source_map_error(self) -> str:
+        path = self._source_map_path()
+        if not path.exists():
+            return ""
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            return f"invalid Perforce source map: {path} ({exc})"
+        if not isinstance(data, dict) or not isinstance(data.get("sources"), dict):
+            return f"invalid Perforce source map: {path} (missing sources object)"
+        return ""
+
+    def _save_source_map(self, data: dict[str, Any]) -> None:
+        path = self._source_map_path()
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        except OSError:
+            pass
+
+    def _depot_file_for_target(self, target_value: str, target: Path, source: Path) -> str:
+        text = str(target_value or "").strip()
+        if text.startswith("//"):
+            if not text.endswith("/"):
+                return self._clean_depot_key(text)
+            return self._clean_depot_key(f"{text.rstrip('/')}/{source.name}")
+        recs, result = self._records("fstat", "-T", "depotFile", target.as_posix(), timeout=10)
+        if self._soften(result).ok and recs:
+            return self._clean_depot_key(recs[0].get("depotFile", ""))
+        return ""
+
+    def _remember_local_source_mapping(
+        self,
+        depot_file: str,
+        source: Path,
+        local_root: str | Path | None,
+    ) -> None:
+        if local_root is None or not depot_file:
+            return
+        base = self._local_root_path(local_root)
+        try:
+            rel = source.resolve().relative_to(base)
+        except (OSError, RuntimeError, ValueError):
+            return
+        data = self._load_source_map()
+        sources = data.setdefault("sources", {})
+        if isinstance(sources, dict):
+            sources[self._clean_depot_key(depot_file)] = {
+                "localRoot": base.as_posix(),
+                "relativePath": rel.as_posix(),
+            }
+        self._save_source_map(data)
+
+    def _mapped_local_source(self, depot_file: str, local_root: str | Path | None) -> Path | None:
+        if local_root is None or not depot_file:
+            return None
+        data = self._load_source_map()
+        sources = data.get("sources")
+        if not isinstance(sources, dict):
+            return None
+        entry = sources.get(self._clean_depot_key(depot_file))
+        if not isinstance(entry, dict):
+            return None
+        rel = str(entry.get("relativePath") or "").strip()
+        if not rel:
+            return None
+        base = self._local_root_path(local_root)
+        try:
+            source = (base / rel).resolve()
+            source.relative_to(base)
+        except (OSError, RuntimeError, ValueError):
+            return None
+        return source
+
+    def _drop_local_source_mappings(self, depot_files: list[str]) -> None:
+        clean = {self._clean_depot_key(item) for item in depot_files if item}
+        if not clean:
+            return
+        data = self._load_source_map()
+        sources = data.get("sources")
+        if not isinstance(sources, dict):
+            return
+        for depot_file in clean:
+            sources.pop(depot_file, None)
+        self._save_source_map(data)
+
     def _client_path_for_depot(self, depot_file: str) -> Path | None:
         base = self._workspace_root_path()
         recs, result = self._records("fstat", "-T", "clientFile", depot_file, timeout=10)
         if self._soften(result).ok and recs and recs[0].get("clientFile"):
-            filespec = self._workspace_filespec(Path(recs[0]["clientFile"]))
-            if filespec is None:
-                return None
-            return Path(filespec)
+            mapped = self._workspace_path_from_client_file(recs[0]["clientFile"])
+            if mapped is not None:
+                return mapped
         rel = self._depot_output_rel(depot_file)
         if not rel:
             return None
@@ -599,13 +726,16 @@ class PerforceP4Adapter(SCMAdapter):
         failures = [result for result in results if not result.ok]
         stdout = "\n".join(result.stdout.strip() for result in results if result.stdout.strip())
         stderr = "\n".join(result.stderr.strip() for result in results if result.stderr.strip())
+        command = next((result.command for result in failures if result.command), ())
+        if not command:
+            command = next((result.command for result in reversed(results) if result.command), ())
         if failures:
             first = failures[0]
             return self._result(
                 ok=False, stdout=stdout, stderr=stderr,
-                returncode=first.returncode, error=first.error or first.stderr.strip(),
+                returncode=first.returncode, error=first.error or first.stderr.strip(), command=command,
             )
-        return self._result(ok=True, stdout=stdout, stderr=stderr)
+        return self._result(ok=True, stdout=stdout, stderr=stderr, command=command)
 
     @staticmethod
     def _pending_changelist_id(changelist: str = "") -> str:
@@ -668,6 +798,172 @@ class PerforceP4Adapter(SCMAdapter):
         if files:
             self._soften(self._run_p4("reopen", "-c", "default", *files))
         self._soften(self._run_p4("change", "-d", change))
+
+    @staticmethod
+    def _clean_depot_key(value: str) -> str:
+        clean = str(value or "").strip()
+        for marker in ("#", "@"):
+            idx = clean.find(marker)
+            if idx >= 0:
+                clean = clean[:idx]
+                break
+        return clean.rstrip("/")
+
+    def _restage_local_submit_paths(
+        self,
+        opened: list[dict[str, str]],
+        local_root: str | Path | None = None,
+        paths: Any = None,
+    ) -> SCMCommandResult:
+        if local_root is None:
+            return self._result(ok=True)
+        requested = {
+            self._clean_depot_key(str(path))
+            for path in ([paths] if isinstance(paths, str) else list(paths or []))
+            if str(path or "").strip()
+        }
+        source_map_error = self._source_map_error()
+        if requested and source_map_error:
+            return self._result(ok=False, returncode=2, error=source_map_error)
+        matched: set[str] = set()
+        copied: list[str] = []
+        diagnostics: list[str] = []
+        missing_mapped_sources: list[str] = []
+        for rec in opened:
+            action = rec.get("action", "")
+            depot_file = self._clean_depot_key(rec.get("depotFile", ""))
+            if requested and depot_file not in requested:
+                continue
+            if depot_file:
+                matched.add(depot_file)
+            if action.endswith("delete"):
+                continue
+            source = self._mapped_local_source(depot_file, local_root)
+            source_from_map = source is not None
+            client_file = rec.get("clientFile", "")
+            client_rel = self._client_file_rel(client_file)
+            if source is None and client_rel is not None:
+                try:
+                    source = (self._local_root_path(local_root) / client_rel).resolve()
+                except (OSError, RuntimeError, ValueError):
+                    source = None
+            if source is None:
+                source = self._depot_output_path(depot_file, local_root)
+            if source is None or not source.is_file():
+                diagnostics.append(
+                    f"restage skipped: local source not found for {depot_file or client_file} "
+                    f"under {self._local_root_path(local_root)}"
+                )
+                if source_from_map:
+                    missing_mapped_sources.append(depot_file or client_file)
+                continue
+            target = self._workspace_path_from_client_file(client_file) if client_file else None
+            if target is None:
+                target = self._client_path_for_depot(depot_file)
+            if target is None:
+                return self._result(ok=False, returncode=2, error=f"cannot map opened file to workspace path: {depot_file}")
+            try:
+                if source.resolve() == target.resolve():
+                    continue
+                target.parent.mkdir(parents=True, exist_ok=True)
+                if target.exists() and filecmp.cmp(source, target, shallow=False):
+                    continue
+                shutil.copy2(source, target)
+                copied.append(depot_file or target.as_posix())
+            except OSError as exc:
+                return self._result(ok=False, returncode=1, error=str(exc))
+        if requested:
+            missing = sorted(path for path in requested - matched if path)
+            if missing:
+                stdout = "\n".join(diagnostics)
+                return self._result(
+                    ok=False,
+                    stdout=stdout,
+                    returncode=2,
+                    error="selected submit path is not opened in this changelist: " + ", ".join(missing),
+                )
+        if missing_mapped_sources:
+            return self._result(
+                ok=False,
+                stdout="\n".join(diagnostics),
+                returncode=2,
+                error="mapped local source is missing for submit: " + ", ".join(missing_mapped_sources),
+            )
+        stdout = "\n".join([*(f"restaged local edit: {path}" for path in copied), *diagnostics])
+        return self._result(ok=True, stdout=stdout)
+
+    @staticmethod
+    def _opened_depot_specs(opened: list[dict[str, str]]) -> list[str]:
+        specs: list[str] = []
+        for rec in opened:
+            depot_file = PerforceP4Adapter._clean_depot_key(rec.get("depotFile", ""))
+            if depot_file:
+                specs.append(depot_file)
+        return specs
+
+    def _pending_resolve(self, specs: list[str]) -> tuple[bool, SCMCommandResult]:
+        preview = self._run_p4("resolve", "-n", *(specs or [self._perforce_scope()]))
+        checked = self._soften(preview)
+        text = f"{preview.stdout}\n{preview.stderr}\n{preview.error}".strip()
+        low = text.lower()
+        pending = checked.ok and bool(text) and "no file(s) to resolve" not in low
+        return pending, preview
+
+    def _resolve_required_result(self, preview: SCMCommandResult, action: str) -> SCMCommandResult:
+        text = "\n".join(part.strip() for part in (preview.stdout, preview.stderr, preview.error) if part.strip())
+        return self._result(
+            ok=False,
+            stdout=text,
+            stderr=preview.stderr,
+            returncode=3,
+            command=preview.command,
+            error=(
+                f"Perforce resolve required before {action}. "
+                "Resolve the file in P4, or use Revert to discard the pending workspace edit."
+            ),
+        )
+
+    def _out_of_date_opened(self, opened: list[dict[str, str]]) -> SCMCommandResult:
+        specs = self._opened_depot_specs(opened)
+        if not specs:
+            return self._result(ok=True)
+        recs, result = self._records("fstat", "-T", "depotFile,haveRev,headRev,headAction", *specs, timeout=10)
+        checked = self._soften(result)
+        if not checked.ok:
+            return checked
+        stale: list[str] = []
+        for rec in recs:
+            head_action = rec.get("headAction", "")
+            if head_action.endswith("delete"):
+                continue
+            try:
+                have = int(rec.get("haveRev", "") or 0)
+                head = int(rec.get("headRev", "") or 0)
+            except ValueError:
+                continue
+            if have > 0 and head > have:
+                stale.append(f"{rec.get('depotFile', '')} haveRev={have} headRev={head}")
+        if not stale:
+            return self._result(ok=True)
+        return self._result(
+            ok=False,
+            stdout="\n".join(stale),
+            returncode=3,
+            command=result.command,
+            error=(
+                "Perforce resolve required before submit. "
+                "Opened file is out of date; sync/resolve it in P4, or use Revert to discard the pending workspace edit."
+            ),
+        )
+
+    def _submit_resolve_preflight(self, opened: list[dict[str, str]]) -> SCMCommandResult:
+        out_of_date = self._out_of_date_opened(opened)
+        if not out_of_date.ok:
+            return out_of_date
+        resolve_pending, resolve_preview = self._pending_resolve(self._opened_depot_specs(opened))
+        if resolve_pending:
+            return self._resolve_required_result(resolve_preview, "submit")
+        return self._result(ok=True)
 
     def _delete_emptied_changelists(self, changes: set[str]) -> None:
         for change in sorted(changes):
@@ -898,6 +1194,8 @@ class PerforceP4Adapter(SCMAdapter):
         allow_empty: bool = False,
         stream: str = "",
         changelist: str = "",
+        local_root: str | Path | None = None,
+        paths: Any = None,
     ) -> SCMCommandResult:
         self._select_stream(stream)
         if self._is_client_root() and add_all:
@@ -910,22 +1208,39 @@ class PerforceP4Adapter(SCMAdapter):
             opened, _ = self._records("opened", "-c", target_change, self._perforce_scope())
             if not opened and not allow_empty:
                 return self._result(ok=False, returncode=0, stdout="no files opened", error="no changes to submit")
+            restaged = self._restage_local_submit_paths(opened, local_root, paths)
+            if not restaged.ok:
+                return restaged
+            preflight = self._submit_resolve_preflight(opened)
+            if not preflight.ok:
+                return self._combine_results([restaged, preflight])
             updated = self._update_pending_changelist_description(target_change, message)
             if not updated.ok:
                 return updated
-            return self._run_p4("submit", "-c", target_change)
+            result = self._run_p4("submit", "-c", target_change)
+            if result.ok:
+                self._drop_local_source_mappings(self._opened_depot_specs(opened))
+            return self._combine_results([restaged, updated, result])
         if add_all:
             self._run_p4("reconcile", self._workspace_scope())  # benign if nothing to reconcile
         scope = self._workspace_scope() if add_all else self._perforce_scope()
         opened, _ = self._records("opened", scope)
         if not opened and not allow_empty:
             return self._result(ok=False, returncode=0, stdout="no files opened", error="no changes to submit")
+        restaged = self._restage_local_submit_paths(opened, local_root, paths)
+        if not restaged.ok:
+            return restaged
+        preflight = self._submit_resolve_preflight(opened)
+        if not preflight.ok:
+            return self._combine_results([restaged, preflight])
         result = self._run_p4("submit", "-d", message or "atlas: submit", scope)
+        if result.ok:
+            self._drop_local_source_mappings(self._opened_depot_specs(opened))
         if not result.ok:
             stranded = self._stranded_submit_change(result)
             if stranded:
                 self._restore_failed_submit_to_default(stranded)
-        return result
+        return self._combine_results([restaged, result])
 
     def push(self, branch: str = "", remote: str = "origin") -> SCMCommandResult:
         _ = branch, remote
@@ -1068,6 +1383,9 @@ class PerforceP4Adapter(SCMAdapter):
                     reconcile_specs.append(target.as_posix())
                 if source.resolve() != target.resolve():
                     shutil.copy2(source, target)
+                if target_value:
+                    depot_file = self._depot_file_for_target(target_value, target, source)
+                    self._remember_local_source_mapping(depot_file, source, local_root)
             except OSError as exc:
                 return self._result(ok=False, returncode=1, error=str(exc))
             specs.append(target.as_posix())
@@ -1116,17 +1434,53 @@ class PerforceP4Adapter(SCMAdapter):
             return result
         return self._combine_results([result, self._move_to_changelist(changelist, specs)])
 
-    def revert_paths(self, paths: Any, stream: str = "") -> SCMCommandResult:
+    def revert_paths(self, paths: Any, stream: str = "", changelist: str = "") -> SCMCommandResult:
         self._select_stream(stream)
         specs = self._filespecs_for_perforce_selection(paths)
         if not specs:
             return self._result(ok=False, returncode=2, error="no valid paths to revert")
-        opened, _ = self._records("opened", *specs)
+        change = self._pending_changelist_id(changelist)
+        opened_args = ["opened", *specs] if not change else ["opened", "-c", change, *specs]
+        opened, _ = self._records(*opened_args)
         touched = {rec.get("change", "") for rec in opened}
-        result = self._soften(self._run_p4("revert", *specs))
+        if change:
+            touched.add(change)
+        revert_args = ["revert", *specs] if not change else ["revert", "-c", change, *specs]
+        result = self._soften(self._run_p4(*revert_args))
+        results = [result]
         if result.ok:
+            resolve_pending, resolve_preview = self._pending_resolve(specs)
+            if resolve_pending:
+                fallback_args = ["revert", "-k", *specs] if not change else ["revert", "-k", "-c", change, *specs]
+                fallback = self._soften(self._run_p4(*fallback_args))
+                results.append(fallback)
+                still_pending, still_preview = self._pending_resolve(specs)
+                if still_pending:
+                    diagnostics = "\n".join(
+                        part.strip()
+                        for part in (
+                            resolve_preview.stdout,
+                            resolve_preview.stderr,
+                            fallback.stdout,
+                            fallback.stderr,
+                            still_preview.stdout,
+                            still_preview.stderr,
+                        )
+                        if part.strip()
+                    )
+                    return self._combine_results([
+                        *results,
+                        self._result(
+                            ok=False,
+                            stdout=diagnostics,
+                            returncode=3,
+                            command=still_preview.command,
+                            error="revert did not clear Perforce resolve state",
+                        ),
+                    ])
             self._delete_emptied_changelists({c for c in touched if c.isdigit()})
-        return result
+            self._drop_local_source_mappings(self._opened_depot_specs(opened) or specs)
+        return self._combine_results(results)
 
     def delete_pending_changelist(self, changelist: str, stream: str = "") -> SCMCommandResult:
         """Drop a numbered pending changelist. Opened files are reverted with
@@ -1144,7 +1498,10 @@ class PerforceP4Adapter(SCMAdapter):
                 return reverted
             results.append(reverted)
         results.append(self._run_p4("change", "-d", change))
-        return self._combine_results(results)
+        combined = self._combine_results(results)
+        if combined.ok:
+            self._drop_local_source_mappings(self._opened_depot_specs(opened))
+        return combined
 
     def sync_paths(
         self,

@@ -403,6 +403,7 @@ def register_git_routes(
         provider = str(body.get("provider") or "")
         stream = str(body.get("stream") or "")
         changelist = str(body.get("changelist") or body.get("change") or "")
+        paths = body.get("paths") or []
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         if not message:
@@ -413,9 +414,14 @@ def register_git_routes(
         )
         if error is not None:
             return error
-        kwargs = {"stream": stream} if stream and _request_provider(provider) == "perforce" else {}
-        if changelist and _request_provider(provider) == "perforce":
-            kwargs["changelist"] = changelist
+        kwargs = {}
+        if _request_provider(provider) == "perforce":
+            kwargs["local_root"] = local_root
+            kwargs["paths"] = paths
+            if stream:
+                kwargs["stream"] = stream
+            if changelist:
+                kwargs["changelist"] = changelist
         result = await _scm_call(scm_root_path, "submit", message, add_all=add_all, provider=provider, **kwargs)
         return JSONResponse({
             "ok": result.ok,
@@ -425,6 +431,7 @@ def register_git_routes(
             "returncode": result.returncode,
             "provider": result.provider,
             "ip": resolved_ip,
+            "command": list(result.command),
             **_root_fields(local_root, scm_root_path),
         })
 
@@ -479,6 +486,7 @@ def register_git_routes(
             "returncode": result.returncode,
             "provider": result.provider,
             "ip": resolved_ip,
+            "command": list(result.command),
             **_root_fields(local_root, scm_root),
         })
 
@@ -597,6 +605,7 @@ def register_git_routes(
         provider = str(body.get("provider") or "")
         stream = str(body.get("stream") or "")
         paths = body.get("paths") or []
+        changelist = str(body.get("changelist") or body.get("change") or "")
         scm_root_value = str(body.get("scmRoot") or body.get("scm_root") or "")
         session_id = str(body.get("session_id") or body.get("sessionId") or body.get("active_session") or "")
         local_root, scm_root_path, error, resolved_ip = _route_roots(
@@ -604,7 +613,11 @@ def register_git_routes(
         )
         if error is not None:
             return error
-        kwargs = {"stream": stream} if stream else {}
+        kwargs = {}
+        if stream:
+            kwargs["stream"] = stream
+        if changelist:
+            kwargs["changelist"] = changelist
         result, prov, supported = await _scm_optional(scm_root_path, "revert_paths", paths, provider=provider, **kwargs)
         if not supported:
             return JSONResponse({

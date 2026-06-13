@@ -435,6 +435,109 @@ def test_scm_edit_route_can_checkout_perforce_target_without_local_root(tmp_path
     }
 
 
+def test_scm_revert_route_passes_selected_perforce_changelist(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+    seen: dict[str, object] = {}
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def revert_paths(self, paths, *, stream="", changelist=""):
+            seen["paths"] = list(paths)
+            seen["stream"] = stream
+            seen["changelist"] = changelist
+            return SCMCommandResult(
+                ok=True,
+                provider=self.provider,
+                root=self.root,
+                stdout="revert ok",
+                returncode=0,
+                command=("p4", "revert", "-c", changelist, "//GOOD_SOC/GOOD_IP/rtl/foo.v"),
+            )
+
+    def fake_resolve_scm_adapter(root: str, provider=None):
+        seen["root"] = root
+        seen["provider"] = provider
+        return FakePerforceAdapter(root)
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", fake_resolve_scm_adapter)
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/revert",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "stream": "//GOOD_SOC/GOOD_IP",
+            "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is True
+    assert payload["command"] == ["p4", "revert", "-c", "12", "//GOOD_SOC/GOOD_IP/rtl/foo.v"]
+    assert seen == {
+        "root": str(tmp_path / "p4_workspace"),
+        "provider": "perforce",
+        "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        "stream": "//GOOD_SOC/GOOD_IP",
+        "changelist": "12",
+    }
+
+
+def test_scm_revert_route_preserves_perforce_failure_diagnostics(tmp_path: Path, monkeypatch):
+    (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
+    (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
+
+    class FakePerforceAdapter:
+        provider = "perforce"
+
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def revert_paths(self, paths, *, stream="", changelist=""):
+            return SCMCommandResult(
+                ok=False,
+                provider=self.provider,
+                root=self.root,
+                stdout="//GOOD_SOC/GOOD_IP/rtl/foo.v - must resolve #2",
+                stderr="resolve still pending",
+                error="revert did not clear Perforce resolve state",
+                returncode=3,
+                command=("p4", "resolve", "-n", "//GOOD_SOC/GOOD_IP/rtl/foo.v"),
+            )
+
+    monkeypatch.setattr("atlas_api_git.resolve_scm_adapter", lambda root, provider=None: FakePerforceAdapter(root))
+    client = _authenticated_client(_create_app(tmp_path, monkeypatch))
+    response = client.post(
+        "/api/scm/revert",
+        json={
+            "ip": "alpha",
+            "provider": "perforce",
+            "scmRoot": str(tmp_path / "p4_workspace"),
+            "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/foo.v"],
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["ok"] is False
+    assert payload["returncode"] == 3
+    assert payload["error"] == "revert did not clear Perforce resolve state"
+    assert payload["stderr"] == "resolve still pending"
+    assert payload["stdout"] == "//GOOD_SOC/GOOD_IP/rtl/foo.v - must resolve #2"
+    assert payload["command"] == ["p4", "resolve", "-n", "//GOOD_SOC/GOOD_IP/rtl/foo.v"]
+    assert payload["localRoot"] == str(tmp_path / "alpha")
+    assert payload["scmRoot"] == str(tmp_path / "p4_workspace")
+
+
 def test_scm_pane_route_passes_directory_scope_to_perforce_adapter(tmp_path: Path, monkeypatch):
     (tmp_path / "alpha").mkdir(parents=True, exist_ok=True)
     (tmp_path / "p4_workspace").mkdir(parents=True, exist_ok=True)
@@ -677,11 +780,13 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
         def __init__(self, root: str) -> None:
             self.root = root
 
-        def submit(self, message: str, *, add_all=True, stream="", changelist=""):
+        def submit(self, message: str, *, add_all=True, stream="", changelist="", local_root=None, paths=None):
             seen["message"] = message
             seen["add_all"] = add_all
             seen["stream"] = stream
             seen["changelist"] = changelist
+            seen["local_root"] = local_root
+            seen["paths"] = list(paths or [])
             return SCMCommandResult(
                 ok=True,
                 provider=self.provider,
@@ -708,11 +813,13 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
             "message": "submit selected pending",
             "add_all": False,
             "changelist": "12",
+            "paths": ["//GOOD_SOC/GOOD_IP/rtl/opened.sv"],
         },
     )
     assert response.status_code == 200
     payload = response.json()
     assert payload["ok"] is True
+    assert payload["command"] == ["p4", "submit"]
     assert seen == {
         "root": str(tmp_path / "p4_workspace"),
         "provider": "perforce",
@@ -720,4 +827,6 @@ def test_scm_submit_route_passes_selected_perforce_changelist(tmp_path: Path, mo
         "add_all": False,
         "stream": "//GOOD_SOC/GOOD_IP",
         "changelist": "12",
+        "local_root": str(tmp_path / "alpha"),
+        "paths": ["//GOOD_SOC/GOOD_IP/rtl/opened.sv"],
     }
