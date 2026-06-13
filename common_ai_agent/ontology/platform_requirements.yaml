@@ -1036,12 +1036,12 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_disabled_prompt_injection_keeps_base_but_suppresses_memory_and_wiki"
-            observed_at: 96758073
+            observed_at: 8a0e3fe9
           - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_prompt_injection_enabled_accepts_env_alias"
-            observed_at: 96758073
+            observed_at: 8a0e3fe9
           - test: "tests/test_prompt_injection_toggle.py::test_prompt_injection_slash_command_toggles_runtime"
-            observed_at: 96758073
+            observed_at: 8a0e3fe9
           - test: "tests/test_prompt_injection_toggle.py::test_workspace_prompt_patch_respects_prompt_injection_toggle"
-            observed_at: 96758073
+            observed_at: 8a0e3fe9
           - test: "tests/test_prompt_injection_toggle.py::test_live_orchestrator_context_injector_noops_when_disabled"
-            observed_at: 96758073
+            observed_at: 8a0e3fe9
