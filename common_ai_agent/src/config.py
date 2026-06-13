@@ -237,7 +237,7 @@ def _env_bool(name: str, default: str = "false") -> bool:
 
 
 def _prompt_injection_env_enabled() -> bool:
-    raw = os.getenv("ATLAS_PROMPT_INJECTION", os.getenv("ENABLE_PROMPT_INJECTION", "true"))
+    raw = os.getenv("ATLAS_PROMPT_INJECTION", os.getenv("ENABLE_PROMPT_INJECTION", "false"))
     return str(raw).strip().lower() in ("true", "1", "yes", "on", "enable", "enabled")
 
 
@@ -1482,7 +1482,7 @@ FULL_PROMPT_DEBUG_LINE_LIMIT_COUNT = int(os.getenv("FULL_PROMPT_DEBUG_LINE_LIMIT
 # When enabled, loads detailed tool descriptions from .txt files
 ENABLE_TOOL_DESCRIPTIONS = os.getenv("ENABLE_TOOL_DESCRIPTIONS", "true").lower() in ("true", "1", "yes")
 
-# Optional prompt-injection layers: workspace/default system_prompt overlays,
+# Optional prompt-injection layers, disabled by default: workspace/default system_prompt overlays,
 # memory rules, project wiki, graph/RAG/skill/procedural context, and live
 # orchestrator context. Base system prompt and tool schemas remain enabled.
 ENABLE_PROMPT_INJECTION = _prompt_injection_env_enabled()

@@ -97,11 +97,11 @@ def prompt_injection_enabled(cfg: Any = None) -> bool:
     """
     for attr in ("ENABLE_PROMPT_INJECTION", "ATLAS_PROMPT_INJECTION"):
         if cfg is not None and hasattr(cfg, attr):
-            return _coerce_bool(getattr(cfg, attr), default=True)
+            return _coerce_bool(getattr(cfg, attr), default=False)
     for env_name in ("ATLAS_PROMPT_INJECTION", "ENABLE_PROMPT_INJECTION"):
         if env_name in os.environ:
-            return _coerce_bool(os.environ.get(env_name), default=True)
-    return True
+            return _coerce_bool(os.environ.get(env_name), default=False)
+    return False
 
 
 def active_workflow_name() -> Optional[str]:

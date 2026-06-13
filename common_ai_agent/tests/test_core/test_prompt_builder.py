@@ -179,7 +179,7 @@ class TestBuildSystemPromptStr(unittest.TestCase):
 
         ctx = PromptContext(memory_system=MockMemory())
         result = build_system_prompt(
-            cfg=self.cfg,
+            cfg=_make_cfg(ENABLE_PROMPT_INJECTION=True),
             context=ctx,
             build_base_fn=self.base_fn,
             messages=[{"role": "user", "content": "hello"}],
@@ -286,7 +286,7 @@ class TestProjectWikiContext(unittest.TestCase):
         os.environ["COMMON_AI_AGENT_HOME"] = str(root)
         os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
         os.environ["ATLAS_ACTIVE_IP"] = "demo_ip"
-        cfg = _make_cfg(PROJECT_WIKI_CONTEXT_LIMIT=1)
+        cfg = _make_cfg(ENABLE_PROMPT_INJECTION=True, PROJECT_WIKI_CONTEXT_LIMIT=1)
 
         result = build_system_prompt(
             messages=[{"role": "user", "content": "fix rtl ownership"}],
@@ -375,6 +375,11 @@ class TestPromptInjectionToggle(unittest.TestCase):
 
         os.environ["ATLAS_PROMPT_INJECTION"] = "on"
         self.assertTrue(prompt_injection_enabled())
+
+    def test_prompt_injection_default_is_disabled(self):
+        os.environ.pop("ATLAS_PROMPT_INJECTION", None)
+        os.environ.pop("ENABLE_PROMPT_INJECTION", None)
+        self.assertFalse(prompt_injection_enabled())
 
 
 if __name__ == '__main__':
