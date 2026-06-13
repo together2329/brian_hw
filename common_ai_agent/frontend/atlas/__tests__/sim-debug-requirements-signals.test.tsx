@@ -200,6 +200,24 @@ describe('sim debug signal requirements', () => {
     expect(Array.from(view.container.querySelectorAll('.bus-flag-text')).map(el => el.textContent)).toContain('IDLE');
   });
 
+  it('SDR-015b excludes width/size/config params from the FSM/PARAM value map', () => {
+    // A bus value that happens to equal a width param (paddr==8, ADDR_WIDTH=8)
+    // must NOT render as "ADDR_WIDTH" — those are dimensions, not FSM states.
+    const valueMap = parseVerilogParamValueMap([
+      'parameter int ADDR_WIDTH = 8,',
+      'parameter int DATA_WIDTH = 32,',
+      'localparam FIFO_DEPTH = 16;',
+      'localparam NUM_PORTS = 4;',
+      "localparam [1:0] IDLE = 2'd0, BUSY = 2'd1;",  // real FSM states stay
+    ]);
+    expect(valueMap[8]).toBeUndefined();    // ADDR_WIDTH excluded
+    expect(valueMap[32]).toBeUndefined();   // DATA_WIDTH excluded
+    expect(valueMap[16]).toBeUndefined();   // FIFO_DEPTH excluded
+    expect(valueMap[4]).toBeUndefined();    // NUM_PORTS excluded
+    expect(valueMap[0]).toBe('IDLE');       // FSM state kept
+    expect(valueMap[1]).toBe('BUSY');       // FSM state kept
+  });
+
   it('renders scalar and bus transitions on the same snapped pixel grid', () => {
     window.WAVE_TIME_START = 0;
     window.WAVE_TIME_END = 20;

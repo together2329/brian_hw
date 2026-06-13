@@ -280,6 +280,15 @@ export const vcdTraceValueKey = (value: unknown, isBus: unknown): string => {
   }
 };
 
+// Dimension/config parameters (widths, sizes, counts, addr/data sizing) are NOT
+// FSM-state encodings. Mapping a bus value to them — e.g. paddr==8 rendered as
+// "ADDR_WIDTH" because `parameter ADDR_WIDTH = 8` — is noise that pollutes the
+// PARAM/FSM radix. Skip these by name so PARAM only surfaces state-like names.
+// (A full fix would bind a param group to the specific FSM register; this name
+// heuristic removes the common false positives without that RTL analysis.)
+const CONFIG_PARAM_RE =
+  /(?:^|_)(?:WIDTH|WID|SIZE|DEPTH|LEN|LENGTH|BITS?|BYTES?|WORDS?|MSB|LSB|COUNT|CNT|NUM|STAGES?|ENTRIES|SLOTS?)(?:$|_|\d)/i;
+
 export const parseVerilogParamValueMap = (lines: unknown): Record<string, string> => {
   const text = Array.isArray(lines) ? lines.join('\n') : String(lines || '');
   const cleaned = text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
@@ -296,6 +305,7 @@ export const parseVerilogParamValueMap = (lines: unknown): Record<string, string
     while ((m = assignRe.exec(body))) {
       const name = m[1];
       if (VERILOG_KEYWORDS.has(name.toLowerCase())) continue;
+      if (CONFIG_PARAM_RE.test(name)) continue;  // width/size/config, not an FSM state
       const key = numericValueKey(m[2]);
       if (key && !out[key]) out[key] = name;
     }
