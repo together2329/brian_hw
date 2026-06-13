@@ -260,4 +260,32 @@ describe('sim debug signal requirements', () => {
     expect(parseWaveCommand('zoom 1000 8000')).toEqual({ view: [1000, 8000] });
     expect(parseWaveCommand('a..b')).toEqual({ zoomCursors: true });
   });
+
+  it('SDR-020 resolves an ambiguous bus leaf to a real row, not a "not in VCD" placeholder', () => {
+    // paddr is dumped under several scopes (a bus fanning tb → dut → sub-block).
+    // Adding the bare leaf "paddr" must show a REAL row (top-level scope), not a
+    // misleading "⚠ not in VCD" placeholder. Regression for the bus-add bug.
+    const rows = buildWaveTraceList(
+      {
+        signals: [
+          bus('paddr', '[7:0]', 'tb.dut', 'paddr_top'),
+          bus('paddr', '[7:0]', 'tb.dut.u_reg', 'paddr_sub'),
+          scalar('irq', 'tb.dut', 'irq'),
+        ],
+        samples: {
+          paddr_top: [[0, '00000001']],
+          paddr_sub: [[0, '00000001']],
+          irq: [[0, '1']],
+        },
+      },
+      [{ name: 'paddr', scope: '' }, { name: 'irq', scope: '' }],
+      0,  // no default rows — only the pinned signals
+    );
+    const paddrRow = rows.find(r => (r.name || '').toLowerCase().startsWith('paddr'));
+    expect(paddrRow).toBeTruthy();
+    expect(paddrRow!.notInVcd).toBeFalsy();        // NOT flagged "not in VCD"
+    expect(paddrRow!.scope).toBe('tb.dut');        // top-level scope preferred
+    const irqRow = rows.find(r => (r.name || '').toLowerCase() === 'irq');
+    expect(irqRow && irqRow.notInVcd).toBeFalsy();
+  });
 });

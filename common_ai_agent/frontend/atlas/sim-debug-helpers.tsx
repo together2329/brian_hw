@@ -400,40 +400,57 @@ export const resolvePinnedWaveSignal = (
   const wanted = stripSignalRange(pin?.name).toLowerCase();
   if (!wanted) return null;
   const wantedScope = String(pin?.scope || '').trim();
+  const scopeKey = wantedScope.toLowerCase();
 
-  const exactMatches = uniqueWaveRows(allRows.filter(row => waveSignalMatches(row, wanted, wantedScope)));
-  if (exactMatches.length === 1) return exactMatches[0];
-  if (exactMatches.length > 1) return null;
+  // Collapse a candidate set to ONE row. An ambiguous match resolves ONLY when
+  // there is a UNIQUE shortest (top-level) scope — the canonical instance of a
+  // bus (paddr/pwdata/prdata) fanned out to descendant scopes (tb → dut →
+  // sub-block) carrying the SAME value. Returning null there made
+  // buildWaveTraceList mislabel a DUMPED signal as "⚠ not in VCD". A TIE for the
+  // shortest scope means genuinely different sibling nets (e.g. u_a.ready vs
+  // u_b.ready) — stay unresolved so the UI never picks the wrong net (SDR-022/023).
+  const depth = (r: VcdSignal) => String(r?.scope || '').split('.').filter(Boolean).length;
+  const pickBest = (cands: VcdSignal[]): VcdSignal | null => {
+    const uniq = uniqueWaveRows(cands);
+    if (uniq.length <= 1) return uniq[0] || null;
+    const scoped = scopeKey
+      ? uniq.filter(r => {
+          const rs = String(r?.scope || '').trim().toLowerCase();
+          return rs === scopeKey || rs.endsWith(`.${scopeKey}`) || scopeKey.endsWith(`.${rs}`);
+        })
+      : [];
+    const pool = scoped.length ? scoped : uniq;
+    if (pool.length === 1) return pool[0];
+    const sorted = [...pool].sort((a, b) => depth(a) - depth(b));
+    return depth(sorted[0]) < depth(sorted[1]) ? sorted[0] : null;
+  };
+
+  const exact = pickBest(allRows.filter(row => waveSignalMatches(row, wanted, wantedScope)));
+  if (exact) return exact;
   if (wantedScope) {
-    const scopeKey = wantedScope.toLowerCase();
-    const scopedMatches = uniqueWaveRows(allRows.filter(row => {
+    const scoped = pickBest(allRows.filter(row => {
       const rowScope = String(row?.scope || '').trim().toLowerCase();
       const scopeOk = rowScope === scopeKey || rowScope.endsWith(`.${scopeKey}`);
       return scopeOk && signalAliasKeys(row).some(alias =>
         alias === wanted || alias.endsWith(`.${wanted}`));
     }));
-    if (scopedMatches.length === 1) return scopedMatches[0];
-    if (scopedMatches.length > 1) return null;
+    if (scoped) return scoped;
   }
 
   // Tool calls commonly send RTL-ish paths without the VCD top/testbench prefix
-  // (e.g. "u_core.done" for "tb.dut.u_core.done"). Treat suffix matches as
-  // valid only when they resolve to one concrete VCD row.
+  // (e.g. "u_core.done" for "tb.dut.u_core.done").
   if (wanted.includes('.')) {
-    const suffixMatches = uniqueWaveRows(allRows.filter(row =>
+    const suffix = pickBest(allRows.filter(row =>
       signalAliasKeys(row).some(alias => alias === wanted || alias.endsWith(`.${wanted}`))));
-    if (suffixMatches.length === 1) return suffixMatches[0];
-    if (suffixMatches.length > 1) return null;
+    if (suffix) return suffix;
   }
 
-  // Last resort for module-port style tool calls: a unique leaf may identify the
-  // row even when the prefix is a module name rather than VCD hierarchy. Ambiguous
-  // leaves intentionally stay unresolved so the UI does not pick the wrong net.
+  // Last resort: match by bare leaf even when the prefix is a module name rather
+  // than VCD hierarchy.
   const leaf = wanted.split('.').pop() || '';
   if (!leaf) return null;
-  const leafMatches = uniqueWaveRows(allRows.filter(row =>
+  return pickBest(allRows.filter(row =>
     signalAliasKeys(row).some(alias => (alias.split('.').pop() || '') === leaf)));
-  return leafMatches.length === 1 ? leafMatches[0] : null;
 };
 
 // Normalized signal identity used to key per-signal decoration (color, group
