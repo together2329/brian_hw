@@ -553,6 +553,23 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_pipeline_orchestrator_worker_integration.py::test_non_orchestrator_dispatch_unaffected_by_upstream_red_gate"
             observed_at: 1d1edd4e
+      - id: OBL_ORCH_RELAXED_RED_BYPASS_CARRIES_FORCE
+        owned_by: agent.react-loop
+        granularity: behavior
+        status: closed
+        # APB timer autonomy probe 2026-06-13: orchestrator decided to proceed
+        # with rtl-gen despite red cl-model under relaxed progress-over-blocking
+        # policy, but dispatched without force=true. api.jobs correctly refused
+        # with upstream_stage_red: cl-model is red. The ReAct bridge/tool schema
+        # must let the orchestrator express that explicit relaxed override and
+        # carry it as payload.force=true into the existing dispatch gate.
+        evidence:
+          - test: "tests/test_orchestrator_dispatch_seed.py::test_react_bridge_maps_force_flag_to_dispatch_payload"
+            observed_at: 68512706
+          - test: "tests/test_orchestrator_tools.py::TestDispatchWorkflow::test_force_flag_is_carried_in_payload"
+            observed_at: 68512706
+          - test: "tests/test_orchestrator_tools.py::TestDispatchWorkflow::test_core_tool_force_flag_is_carried_in_payload"
+            observed_at: 68512706
       - id: OBL_ORCH_JOB_WAKE_CARRIES_REASON
         owned_by: api.jobs
         granularity: behavior
