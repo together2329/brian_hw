@@ -287,8 +287,34 @@ def test_sim_debug_unknown_action_lists_all_actions(tmp_path, monkeypatch):
     # every supported action is advertised so the agent can self-correct
     for act in ("show", "goto", "cursor", "fit", "reorder", "group", "ungroup",
                 "rename", "color", "radix", "remove", "keep", "clear", "fold", "unfold",
-                "search", "source", "trace", "find", "value"):
+                "search", "source", "fsm", "trace", "find", "value"):
         assert act in msg, f"{act} missing from help"
+
+
+def test_sim_debug_fsm_action(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPFSM")
+    rtl = tmp_path / "IPFSM" / "rtl"
+    rtl.mkdir(parents=True)
+    (rtl / "fsm.sv").write_text(
+        "module fsm;\n"
+        "  localparam IDLE = 0, RUN = 1;\n"
+        "  always_ff @(posedge clk) begin\n"
+        "    case (state_q)\n"
+        "      IDLE: if (start) state_q <= RUN;\n"
+        "      RUN:  state_q <= IDLE;\n"
+        "    endcase\n"
+        "  end\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    from core.tools import sim_debug
+
+    msg = sim_debug(action="fsm", signal="state_q")
+    assert "FSM" in msg
+    # the case-decode usage is found by grep regardless of pyslang availability
+    assert "case (state_q)" in msg and "state usage" in msg
+    assert "state register" in sim_debug(action="fsm")   # guard
 
 
 def test_sim_debug_show_ambiguous_not_pushed(tmp_path, monkeypatch):

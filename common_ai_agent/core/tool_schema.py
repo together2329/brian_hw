@@ -572,7 +572,8 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "'fold'/'unfold' collapse/expand a group (group=name); "
             "'search' grep the IP's RTL/TB source (text) for pattern=<regex> and jump the source pane to the top hit (find a condition, FSM state, or where a signal is used) — returns ranked file:line matches; "
             "'source' open a source file in the panel (path=<file>, optional line=N); "
-            "'trace' (pyslang) report a signal's driver + load sites with file:line and show the trace (structural driving/loading); "
+            "'fsm' (signal=<state reg>) FSM view: each state<=value transition WITH its guard condition + where the state is decoded (case/compare), jumps to the first; "
+            "'trace' (pyslang) report a signal's driver + load sites with file:line, each driver annotated with the condition it fires under (structural driving/loading); "
             "'find' (VCD) get the time of a signal edge (edge=rising|falling|any, nth) then jump the panel there; "
             "'value' (VCD) value of a signal at time `at` ns. "
             "Use `scope` when a leaf signal name may appear in multiple VCD scopes."
@@ -581,7 +582,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
             "action": {"type": "string",
                        "enum": ["show", "goto", "cursor", "fit", "reorder", "group", "ungroup", "rename",
                                 "color", "radix", "remove", "keep", "clear", "fold", "unfold",
-                                "search", "source", "trace", "find", "value"],
+                                "search", "source", "fsm", "trace", "find", "value"],
                        "description": "What to do"},
             "ip": {"type": "string", "description": "IP id (defaults to the active IP)", "default": ""},
             "signals": {"type": "string", "description": "Comma/space separated signal names (show/reorder/group/ungroup/color/radix/remove/keep)", "default": ""},

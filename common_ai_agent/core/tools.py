@@ -8384,8 +8384,12 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                 jump the source pane to the top hit (find a condition, an FSM
                 state, where a signal is used). Returns ranked file:line matches.
       source  — open a source file in the panel. path="<file>", optional line=N.
-      trace   — pyslang: report a signal's driver + load sites (file:line) and
-                show the trace in the panel — the structural driving/loading view. (signal=…)
+      fsm     — FSM view of a state register: every `state <= VALUE` transition
+                WITH its guard condition, plus where the state is decoded
+                (case(state)/state==X), and jumps to the first transition. (signal=…)
+      trace   — pyslang: report a signal's driver + load sites (file:line), each
+                driver annotated with the condition it fires under — the
+                structural driving/loading view. (signal=…)
       find    — VCD: time of a signal's edge (edge=rising|falling|any, nth=1),
                 then jump the panel there with the signal shown. (signal=…, optional scope=…)
       value   — VCD: value of a signal at time `at` ns. (signal=…, at=…, optional scope=…)
@@ -8590,6 +8594,43 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
         push_intent(ip, "source", path=p, line=ln)
         return f"✓ Sim Debug: opened {p}{(':' + str(ln)) if ln else ''} in the source pane ({where})."
 
+    if act == "fsm":
+        s = str(signal or pattern or "").strip()
+        if not s:
+            return "[sim_debug fsm: pass signal=\"<state register>\"]"
+        try:
+            from core.sim_debug_analyze import trace_signal
+        except Exception:
+            trace_signal = None
+        out = [f"✓ Sim Debug FSM '{s}' ({where}):"]
+        drivers = []
+        if trace_signal:
+            r = trace_signal(ip, s)
+            if not r.get("error"):
+                drivers = r.get("drivers") or []
+        # Transitions: each `state <= VALUE`, with the guard condition it fires
+        # under (from the condition-aware driver trace).
+        if drivers:
+            out.append("  transitions (state <= value):")
+            for d in drivers[:20]:
+                cond = str(d.get("condition") or "").strip()
+                out.append(f"    {d.get('file_line','?')}{('  ⟵ when ' + cond) if cond else ''}")
+        # Usage: where the state is decoded — case(state) / state == X.
+        hits, _ = _sim_debug_search_source(
+            ip, rf"(?:case[zx]?\s*\(\s*{re.escape(s)}\b|{re.escape(s)}\s*==)")
+        if hits:
+            out.append("  state usage (case / compare):")
+            for h in hits[:20]:
+                out.append(f"    {h['rel']}:{h['line']}: {h['text']}")
+        # Jump the source pane to the first transition so the user lands on it.
+        first = drivers[0].get("file_line") if drivers else (f"{hits[0]['abs']}:{hits[0]['line']}" if hits else "")
+        m = re.match(r"^(.*):(\d+)$", str(first or ""))
+        if m:
+            push_intent(ip, "source", path=m.group(1), line=int(m.group(2)))
+        if len(out) == 1:
+            out.append("  (no transitions or case/compare usage found — is it an FSM state register?)")
+        return "\n".join(out)
+
     if act in ("trace", "find", "value"):
         # Implemented in Phase B/C via core.sim_debug_analyze.
         try:
@@ -8602,7 +8643,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
 
     return ("[sim_debug: unknown action '" + act + "'. "
             "Use: show, goto, cursor, fit, reorder, group, ungroup, rename, color, "
-            "radix, remove, keep, clear, fold, unfold, search, source, trace, find, value]")
+            "radix, remove, keep, clear, fold, unfold, search, source, fsm, trace, find, value]")
 
 
 # Registry of available tools
