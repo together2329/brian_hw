@@ -498,7 +498,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_sim_debug_frontend_param_radix.py::test_param_radix_excludes_width_size_config_constants"
-            observed_at: 88bb7c95
+            observed_at: bd74441d
 
   - id: REQ_PLAT_SESSION_TODO_FRESHNESS_001
     claim: "세션 worker는 UI/slash plane이 갱신한 세션 todo.json을 다음 실행 turn에서 즉시 읽어, auto-start TODO가 prose-only turn으로 유실되지 않는다"
