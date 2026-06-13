@@ -693,6 +693,22 @@ requirements:
             observed_at: f98eda56
           - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_completed_downgraded_to_blocked_on_red_stage"
             observed_at: f98eda56
+      - id: OBL_ORCH_TRUTH_LOCK_WARNING_NOT_DISPATCH_GATE
+        owned_by: api.jobs
+        granularity: behavior
+        # Operator feedback 2026-06-13: APB timer autonomy probes showed the
+        # truth_not_locked dispatch hard gate prevents scratch IP creation from
+        # even starting. For autonomy tests, dispatch should create worker jobs
+        # and surface missing locked truth as warning metadata; downstream
+        # requirement, SSOT, worker, and final-evidence validators remain the
+        # authority for correctness. This keeps the pipeline flowing while
+        # preserving observability.
+        status: open
+        evidence:
+          - test: "tests/test_dispatch_seed_direct.py::test_direct_dispatch_warns_but_runs_before_locked_truth"
+            observed_at: TBD
+          - test: "tests/test_dispatch_seed_direct.py::test_dispatch_workflow_tool_warns_but_runs_before_locked_truth"
+            observed_at: TBD
       - id: OBL_ORCH_STANDALONE_BRIDGE_DISPATCHES_WITHOUT_ATLAS_CALLBACKS
         owned_by: agent.react-loop
         granularity: behavior
