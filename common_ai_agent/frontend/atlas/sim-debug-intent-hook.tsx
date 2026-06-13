@@ -57,7 +57,7 @@ export const shouldApplySimDebugIntent = (
   return { apply: seq > (seenSeqByKey[key] || 0), key, seq };
 };
 
-const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
+export const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
   const action = String(intent?.action || '');
   const defaultScope = String(intent?.scope || '').trim();
   const clampT = (n: number) => {
