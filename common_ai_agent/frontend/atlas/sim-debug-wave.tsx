@@ -730,13 +730,19 @@ export const WaveBand = ({
                   // started over the plot is a zoom/cursor gesture → cancel it.
                   const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
                   if (e.clientX - rect.left > nameW + 90) { e.preventDefault(); return; }
-                  dragItemRef.current = { kind: 'sig', keys: [rowKey], label: t.name || rowKey };
+                  // Drag the WHOLE multi-selection together when this row is part
+                  // of it — otherwise reordering moved only the grabbed row even
+                  // with several selected.
+                  const selectedKeys = traceList.filter(isRowSelected).map(waveSignalKey);
+                  const keys = (isRowSelected(t) && selectedKeys.length > 1) ? selectedKeys : [rowKey];
+                  const label = keys.length > 1 ? `${keys.length} signals` : (t.name || rowKey);
+                  dragItemRef.current = { kind: 'sig', keys, label };
                   e.dataTransfer.effectAllowed = 'all';
                   e.dataTransfer.setData('text/plain', t.name || rowKey);
                   // Dropping this row on the source pane jumps there (see SourceViewer).
                   e.dataTransfer.setData('application/x-sim-signal-jump',
                     JSON.stringify({ name: t.name || rowKey, scope: t.scope || '' }));
-                  setWaveDragPreview(e, t.name || rowKey);
+                  setWaveDragPreview(e, label);
                 }}
                 onDragOver={e => onWaveDragOver(e, dropId, [rowKey])}
                 onDragLeave={() => setDropHint(null)}
