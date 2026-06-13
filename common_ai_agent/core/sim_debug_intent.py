@@ -26,7 +26,7 @@ _LOCK = threading.Lock()
 # (see frontend/atlas/sim-debug-intent-hook.tsx).
 VALID_ACTIONS = frozenset({
     "show", "goto", "cursor", "trace", "fit", "reorder", "group", "ungroup",
-    "color", "fold", "unfold",
+    "color", "radix", "remove", "fold", "unfold",
 })
 
 

@@ -56,6 +56,39 @@ def test_sim_debug_tool_actions(tmp_path, monkeypatch):
     assert "unknown action" in sim_debug(action="bogus")     # guard
 
 
+def test_sim_debug_radix_and_remove_actions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPR")
+    from core.tools import sim_debug
+
+    # radix=fsm -> FSM (the parameter/enum-name display the user wants on/off)
+    msg = sim_debug(action="radix", signals="prdata, addr", radix="fsm")
+    assert "FSM" in msg
+    got = sdi.get_intent("IPR")
+    assert got["action"] == "radix" and got["radix"] == "FSM"
+    assert got["signals"] == ["prdata", "addr"]
+
+    # hex/dec/bin normalize
+    sim_debug(action="radix", signals="prdata", radix="dec")
+    assert sdi.get_intent("IPR")["radix"] == "DEC"
+
+    # off -> the radix field is dropped, so the panel clears the override
+    sim_debug(action="radix", signals="prdata", radix="off")
+    cleared = sdi.get_intent("IPR")
+    assert cleared["action"] == "radix" and "radix" not in cleared
+
+    # remove
+    rmsg = sim_debug(action="remove", signals="prdata, addr")
+    assert "removed" in rmsg
+    rem = sdi.get_intent("IPR")
+    assert rem["action"] == "remove" and rem["signals"] == ["prdata", "addr"]
+
+    # guards
+    assert "radix" in sim_debug(action="radix", signals="prdata", radix="bogus").lower()
+    assert "signals" in sim_debug(action="radix", radix="hex")
+    assert "signals" in sim_debug(action="remove")
+
+
 def test_sim_debug_registered_and_schema():
     from core.tools import AVAILABLE_TOOLS
     from core.tool_schema import TOOL_SCHEMAS

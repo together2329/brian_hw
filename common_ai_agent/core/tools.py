@@ -8311,7 +8311,7 @@ def _sim_debug_siglist(signals, signal):
 
 def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
               cursor_a=None, cursor_b=None, edge="rising", nth=1, at=None,
-              group="", color="", scope=""):
+              group="", color="", scope="", radix=""):
     """Drive and query the ATLAS Sim Debug waveform panel from chat.
 
     The action both (a) returns analysis text to you and (b) updates the open
@@ -8330,6 +8330,10 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                 group="name", signals="a,b", optional color="#rrggbb".
       ungroup — remove signal(s) from their group. signals="a,b".
       color   — recolor signal(s). color="#rrggbb", signals="a,b".
+      radix   — set how a bus is rendered. radix=hex|dec|bin|fsm|off, signals="a,b".
+                radix=fsm shows the parameter/enum NAME for matching values (the
+                FSM/parameter-value display); radix=off clears the override.
+      remove  — remove signal(s) from the waveform. signals="a,b".
       fold / unfold — collapse / expand a group. group="name".
       trace   — pyslang: report a signal's driver + load sites (file:line) and
                 show the trace in the panel. (signal=…)
@@ -8435,6 +8439,35 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
         push_intent(ip, "color", signals=sigs, scope=(sig_scope or None), color=col)
         return f"✓ Sim Debug: colored {', '.join(sigs)} {col} ({where})."
 
+    if act == "radix":
+        sigs = _sim_debug_siglist(signals, signal)
+        if not sigs:
+            return "[sim_debug radix: pass signals=\"a,b\" and radix=hex|dec|bin|fsm|off]"
+        # fsm/param → show the parameter/enum NAME for matching values.
+        # off/none/reset/default → clear the override (frontend default render).
+        radix_map = {
+            "hex": "HEX", "h": "HEX", "dec": "DEC", "d": "DEC", "decimal": "DEC",
+            "bin": "BIN", "b": "BIN", "binary": "BIN",
+            "fsm": "FSM", "param": "FSM", "parameter": "FSM", "enum": "FSM",
+            "off": None, "none": None, "reset": None, "default": None, "raw": None,
+        }
+        rv = str(radix or "").strip().lower()
+        if rv not in radix_map:
+            return ("[sim_debug radix: radix must be hex|dec|bin|fsm|off "
+                    f"(got {radix!r})]")
+        norm = radix_map[rv]
+        # None is dropped by push_intent, so the panel sees no radix → reset.
+        push_intent(ip, "radix", signals=sigs, scope=(sig_scope or None), radix=norm)
+        return (f"✓ Sim Debug: set radix {norm or 'default'} on "
+                f"{', '.join(sigs)} ({where}).")
+
+    if act in ("remove", "delete", "rm"):
+        sigs = _sim_debug_siglist(signals, signal)
+        if not sigs:
+            return "[sim_debug remove: pass signals=\"a,b\"]"
+        push_intent(ip, "remove", signals=sigs, scope=(sig_scope or None))
+        return f"✓ Sim Debug: removed {', '.join(sigs)} from the waveform ({where})."
+
     if act in ("fold", "unfold"):
         grp = str(group or "").strip()
         if not grp:
@@ -8454,7 +8487,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
 
     return ("[sim_debug: unknown action '" + act + "'. "
             "Use: show, goto, cursor, fit, reorder, group, ungroup, color, "
-            "fold, unfold, trace, find, value]")
+            "radix, remove, fold, unfold, trace, find, value]")
 
 
 # Registry of available tools

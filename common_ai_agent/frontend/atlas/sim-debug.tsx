@@ -1177,7 +1177,8 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
   useSimDebugIntent({
     ipName, active, vcdData, pinSignalsToWave, setViewRange, setTopTab, setExpand,
     setWaveCursor, setWaveCursorB, runSignalTrace, zoomFit,
-    reorderByNames, setSignalColorByNames, assignGroupByNames, ungroupByNames, toggleGroupFold,
+    reorderByNames, setSignalColorByNames, setSignalRadixByNames, removeSignalsFromWave,
+    assignGroupByNames, ungroupByNames, toggleGroupFold,
   });
 
   return (

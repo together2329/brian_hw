@@ -23,6 +23,8 @@ export interface SimDebugIntentDeps {
   zoomFit: () => void;
   reorderByNames: (names: string[]) => void;
   setSignalColorByNames: (names: string[], color: string | null) => void;
+  setSignalRadixByNames: (names: string[], radix: string | null) => void;
+  removeSignalsFromWave: (items: PinnedSignal[]) => void;
   assignGroupByNames: (names: string[], tag: string, color?: string | null) => void;
   ungroupByNames: (names: string[]) => void;
   toggleGroupFold: (tag: string, folded?: boolean) => void;
@@ -84,8 +86,11 @@ const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     return scope && !name.toLowerCase().startsWith(scope.toLowerCase() + '.') ? `${scope}.${name}` : name;
   });
   // Pin the signals first for actions that act ON shown signals, so the
-  // group/color/order lands with them visible. trace/ungroup/fold don't add.
-  if (sigs.length && action !== 'trace' && action !== 'ungroup') d.pinSignalsToWave(sigs);
+  // group/color/radix/order lands with them visible. trace/ungroup/fold don't
+  // add, and remove must obviously not re-pin what it's about to drop.
+  if (sigs.length && action !== 'trace' && action !== 'ungroup' && action !== 'remove') {
+    d.pinSignalsToWave(sigs);
+  }
 
   if (action === 'goto') {
     if (intent.t_start != null && intent.t_end != null) {
@@ -111,6 +116,12 @@ const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     if (sigNames.length) d.ungroupByNames(sigNames);
   } else if (action === 'color') {
     if (intent.color) d.setSignalColorByNames(sigNames, String(intent.color));
+  } else if (action === 'radix') {
+    // intent.radix HEX|DEC|BIN|FSM sets the override; missing/empty clears it
+    // (the 'off' case the agent tool sends as a dropped field).
+    if (sigNames.length) d.setSignalRadixByNames(sigNames, intent.radix ? String(intent.radix) : null);
+  } else if (action === 'remove') {
+    if (sigs.length) d.removeSignalsFromWave(sigs);
   } else if (action === 'fold' || action === 'unfold') {
     if (intent.group) d.toggleGroupFold(String(intent.group), action === 'fold');
   }
