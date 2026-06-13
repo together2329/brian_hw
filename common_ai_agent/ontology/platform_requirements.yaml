@@ -51,18 +51,18 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_fs_authz.py::test_unregistered_ip_denied_fail_closed"
-            observed_at: d3178b92
+            observed_at: 24e9b626
           - test: "tests/test_fs_authz.py::test_db_error_denies"
-            observed_at: d3178b92
+            observed_at: 24e9b626
       - id: OBL_PATH_TRAVERSAL_DENIED
         owned_by: runtime.authz
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_fs_authz.py::test_traversal_denied"
-            observed_at: d3178b92
+            observed_at: 24e9b626
           - test: "tests/test_api_sessions_content.py::test_session_history_path_traversal_rejected"
-            observed_at: d3178b92
+            observed_at: 24e9b626
       - id: OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
         owned_by: api.sessions
         granularity: concurrent
@@ -86,35 +86,35 @@ requirements:
         status: closed   # 196b4b53: per-IP git REST(commit/log/graph/revert) _fs_authz 게이트
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_ip_git_rest_endpoints_cross_user_denied"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_IP_REPORTS_CROSS_TENANT_GATED
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: lint/coverage/ssot-gates per-IP authz
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_ip_report_endpoints_cross_user_denied"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_WORKSPACE_DOWNLOAD_GATED
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: /api/workspace/download.zip subpath authz + whole-tree 거부
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_workspace_download_blocks_cross_tenant_and_whole_tree"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_SETTINGS_ADMIN_ONLY_MULTIUSER
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: /api/settings/* 글로벌 .env 변조 → 멀티유저 admin-only
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_settings_endpoints_admin_only_in_multiuser"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: 익명 git fetch/clone 멀티유저 기본 OFF
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_git_default_blocks_anon_clone_in_multiuser"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       # ── DEFERRED (리뷰 confirmed, 별도 Perforce-aware 패스 필요) ──
       - id: OBL_SCM_JSON_API_CROSS_TENANT_GATED
         owned_by: runtime.authz
@@ -138,6 +138,18 @@ requirements:
         granularity: behavior
         status: open   # 196b4b53 에서 fix는 반영(/api/conversation own-session, ssot-import
                        # owner gate)되었으나 전용 cross-tenant 테스트 미작성 → 테스트 추가 후 closed 승급
+      - id: OBL_WORKSPACE_OWN_PATH_NOT_OVERBLOCKED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # authorize_path 가 멀티유저 워크스페이스 레이아웃
+                         # (<owner>/<workspace>/<ip>/...) 의 첫 세그먼트를 IP 이름으로 오분류 →
+                         # 소유자 본인 소스도 "no access to <owner>" 로 거부 (sim_debug 소스 패널).
+                         # owner-alias 매치를 추가해 본인 워크스페이스는 허용, 타 owner 는 여전히 fail-closed.
+        evidence:
+          - test: "tests/test_fs_authz.py::test_own_workspace_rooted_path_allowed"
+            observed_at: 24e9b626
+          - test: "tests/test_fs_authz.py::test_cross_user_workspace_rooted_path_denied"
+            observed_at: 24e9b626
 
   - id: REQ_PLAT_MEMORY_DURABILITY_001
     claim: "에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다"
