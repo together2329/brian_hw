@@ -260,6 +260,57 @@ def test_common_stage_engine_runs_cycle_model_and_dual_fcov_stages(tmp_path: Pat
     assert (tmp_path / ip / "cov" / "fcov_plan.json").is_file()
 
 
+def _write_authored_fl_artifacts(root: Path, ip: str) -> None:
+    ip_dir = root / ip
+    (ip_dir / "model").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "cov").mkdir(parents=True, exist_ok=True)
+    (ip_dir / "model" / "functional_model.py").write_text("class FunctionalModel: pass\n", encoding="utf-8")
+    (ip_dir / "model" / "decomposition.json").write_text("{}\n", encoding="utf-8")
+    (ip_dir / "model" / "fl_model_check.json").write_text('{"passed": true}\n', encoding="utf-8")
+    (ip_dir / "cov" / "fcov_plan.json").write_text("{}\n", encoding="utf-8")
+
+
+def test_engineering_cycle_model_warns_when_generated_fl_fails_after_authored_fl_exists(tmp_path: Path, monkeypatch):
+    ip = "common_engine_relaxed_cl_probe"
+    _write_ssot(tmp_path, ip)
+    _write_authored_fl_artifacts(tmp_path, ip)
+    engine = WorkflowStageEngine(tmp_path, run_mode="engineering")
+
+    def fake_run_tool(label, command, timeout_s=None):
+        if label == "emit_fl_model":
+            return ToolRun(label, command, 1, stderr="SyntaxError: prose rule expression")
+        raise AssertionError(f"unexpected tool call: {label}")
+
+    monkeypatch.setattr(engine, "_run_tool", fake_run_tool)
+    result = engine.run_stage("ssot-cycle-model", ip)
+
+    assert result.status == "pass"
+    assert "engineering warning" in result.headline
+    assert result.metadata["engineering_relaxed_gate"]["strict_status"] == "fail"
+    log = json.loads((tmp_path / ip / "logs" / "stage_engine" / "ssot-cycle-model.json").read_text(encoding="utf-8"))
+    assert log["status"] == "pass"
+    assert log["metadata"]["engineering_relaxed_gate"]["gate"] == "generated_fl_precheck"
+
+
+def test_signoff_cycle_model_still_fails_when_generated_fl_fails(tmp_path: Path, monkeypatch):
+    ip = "common_engine_strict_cl_probe"
+    _write_ssot(tmp_path, ip)
+    _write_authored_fl_artifacts(tmp_path, ip)
+    engine = WorkflowStageEngine(tmp_path, run_mode="signoff")
+
+    def fake_run_tool(label, command, timeout_s=None):
+        if label == "emit_fl_model":
+            return ToolRun(label, command, 1, stderr="SyntaxError: prose rule expression")
+        raise AssertionError(f"unexpected tool call: {label}")
+
+    monkeypatch.setattr(engine, "_run_tool", fake_run_tool)
+    result = engine.run_stage("ssot-cycle-model", ip)
+
+    assert result.status == "fail"
+    assert "FAIL" in result.headline
+    assert "engineering_relaxed_gate" not in result.metadata
+
+
 def test_rtl_manifest_progress_rejects_flattened_top_when_ssot_submodules_missing(tmp_path: Path):
     ip = "manifest_probe"
     ip_dir = tmp_path / ip

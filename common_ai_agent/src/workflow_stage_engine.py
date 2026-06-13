@@ -1012,6 +1012,16 @@ class WorkflowStageEngine:
         self._append_expected(lines, artifacts)
         return self._result("ssot-fl-model", ip, status, lines[0], lines, runs=[run], artifacts=artifacts)
 
+    def _authored_fl_artifacts_exist(self, ip: str) -> bool:
+        ip_dir = self.ip_dir(ip)
+        check = _read_json(ip_dir / "model" / "fl_model_check.json")
+        return (
+            (ip_dir / "model" / "functional_model.py").is_file()
+            and (ip_dir / "model" / "decomposition.json").is_file()
+            and (ip_dir / "cov" / "fcov_plan.json").is_file()
+            and (check.get("passed") is True or str(check.get("status") or "").lower() in {"pass", "passed", "ok"})
+        )
+
     def _run_cycle_model(self, ip: str) -> StageEngineResult:
         fl_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_fl_model.py"
         cl_script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_cycle_model.py"
@@ -1042,9 +1052,19 @@ class WorkflowStageEngine:
 
         skipped = "CL not required" in (runs[-1].stdout or "")
         status = "pass" if runs[-1].returncode == 0 else "fail"
+        relaxed_generated_fl_failure = (
+            status == "fail"
+            and self.run_mode in {"starter", "engineering"}
+            and runs[0].returncode != 0
+            and self._authored_fl_artifacts_exist(ip)
+        )
+        if relaxed_generated_fl_failure:
+            status = "pass"
         headline = "[ssot-cycle-model] PASS"
         if skipped:
             headline = "[ssot-cycle-model] PASS - executable CL not required"
+        elif relaxed_generated_fl_failure:
+            headline = "[ssot-cycle-model] PASS - engineering warning: generated FL precheck failed"
         elif status != "pass":
             headline = "[ssot-cycle-model] FAIL"
         lines = [
@@ -1053,6 +1073,14 @@ class WorkflowStageEngine:
             f"module: {ip}",
             f"source: {ip}/yaml/{ip}.ssot.yaml",
         ]
+        if relaxed_generated_fl_failure:
+            lines.extend([
+                "",
+                "engineering_warning: generated SSOT->FL precheck failed before CL emit,",
+                "but worker-authored FL artifacts already exist and passed their artifact gate.",
+                "This is non-blocking in starter/engineering runs so scratch IPs can continue;",
+                "signoff keeps this as a hard failure.",
+            ])
         self._append_runs(lines, runs)
         artifacts = [
             f"{ip}/model/functional_model.py",
@@ -1060,7 +1088,16 @@ class WorkflowStageEngine:
             f"{ip}/model/cl_model_check.json when executable CL is required",
         ]
         self._append_expected(lines, artifacts)
-        return self._result("ssot-cycle-model", ip, status, headline, lines, runs=runs, artifacts=artifacts)
+        metadata = {}
+        if relaxed_generated_fl_failure:
+            metadata["engineering_relaxed_gate"] = {
+                "gate": "generated_fl_precheck",
+                "run_mode": self.run_mode,
+                "strict_status": "fail",
+                "relaxed_status": "pass",
+                "reason": "authored FL artifacts passed; defer strict generated-FL/CL check to signoff",
+            }
+        return self._result("ssot-cycle-model", ip, status, headline, lines, runs=runs, artifacts=artifacts, metadata=metadata)
 
     def _run_dual_fcov(self, ip: str) -> StageEngineResult:
         script = self.workflow_root / "fl-model-gen" / "scripts" / "emit_dual_fcov.py"
