@@ -8367,9 +8367,10 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                 if r.get("resolved_signal") and r.get("resolved_signal") != s:
                     notes.append(f"{s}→{r.get('resolved_signal')}")
             elif status == "rtl_not_dumped":
-                # Exists in RTL but is NOT in the VCD, so it CANNOT appear on the
-                # waveform. Do not push it (a phantom pin the panel silently drops)
-                # or count it as shown — report it honestly instead.
+                # Resolved in RTL but absent from the VCD. We still PUSH it: the
+                # panel renders a "⚠ not in VCD" placeholder row (buildWaveTraceList)
+                # so the user gets visible feedback instead of a silent no-op —
+                # the message below says clearly it is a placeholder, not real data.
                 not_dumped.append(r.get("resolved_signal") or s)
             elif status == "ambiguous":
                 cands = [c.get("resolved_signal", "") for c in r.get("candidates", []) if c.get("resolved_signal")]
@@ -8380,15 +8381,22 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                     notes.append(f"{s}: not resolved; candidates {', '.join(hints[:4])}")
                 else:
                     notes.append(f"{s}: not resolved")
-        if not_dumped:
-            notes.append("not dumped in this VCD, so cannot be shown — re-run /sim "
-                         f"with these in the dump scope: {', '.join(not_dumped)}")
-        if not shown:
+        # Push real + not-dumped so not-dumped pins render as "⚠ not in VCD"
+        # placeholders (visible feedback); only ambiguous/unresolved are dropped.
+        to_push = shown + not_dumped
+        if not to_push:
             return f"[sim_debug show: no signal could be shown ({'; '.join(notes)})]"
-        push_intent(ip, "show", signals=shown, scope=(sig_scope or None))
+        push_intent(ip, "show", signals=to_push, scope=(sig_scope or None))
         scoped = f" @ {sig_scope}" if sig_scope else ""
-        suffix = f" ({'; '.join(notes)})" if notes else ""
-        return f"✓ Sim Debug: added {', '.join(shown)}{scoped} to the waveform ({where}).{suffix}"
+        parts = []
+        if shown:
+            parts.append(f"added {', '.join(shown)}{scoped}")
+        if not_dumped:
+            parts.append(f"⚠ {', '.join(not_dumped)} not dumped in this VCD "
+                         "(shown as placeholder — re-run /sim to dump for real data)")
+        if notes:
+            parts.append("; ".join(notes))
+        return f"✓ Sim Debug ({where}): " + "; ".join(parts) + "."
 
     if act in ("goto", "zoom", "view"):
         if t_start is None or t_end is None:

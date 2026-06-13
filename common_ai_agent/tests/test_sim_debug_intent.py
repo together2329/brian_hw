@@ -36,6 +36,14 @@ def test_push_get_roundtrip_and_monotonic_seq(tmp_path, monkeypatch):
 def test_sim_debug_tool_actions(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPX")
+
+    # Resolution needs a real VCD; mock it so this exercises the tool's action
+    # dispatch (intent push) deterministically rather than a live waveform DB.
+    import core.sim_debug_analyze as sda
+    monkeypatch.setattr(
+        sda, "resolve_wave_signal",
+        lambda ip, sig, scope="": {"status": "resolved", "resolved_signal": sig},
+    )
     from core.tools import sim_debug
 
     msg = sim_debug(action="show", signals="clk, rst, dout")
@@ -106,10 +114,11 @@ def test_sim_debug_keep_and_clear_actions(tmp_path, monkeypatch):
     assert "signals" in sim_debug(action="keep")  # guard: keep needs signals
 
 
-def test_sim_debug_show_excludes_not_dumped_signals(tmp_path, monkeypatch):
-    """A signal that resolves in RTL but is NOT in the VCD (rtl_not_dumped)
-    cannot appear on the waveform — show must NOT push it or claim it was added,
-    only report it honestly. Regression for the 'added but not visible' bug."""
+def test_sim_debug_show_flags_not_dumped_as_placeholder(tmp_path, monkeypatch):
+    """A signal that resolves in RTL but is NOT in the VCD (rtl_not_dumped) is
+    pushed so the panel renders a '⚠ not in VCD' placeholder (visible feedback),
+    and the message says clearly it is a placeholder — not a silent no-op and not
+    a false 'added'. Regression for the 'added but not visible' confusion."""
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPD")
 
@@ -126,15 +135,22 @@ def test_sim_debug_show_excludes_not_dumped_signals(tmp_path, monkeypatch):
     from core.tools import sim_debug
 
     msg = sim_debug(action="show", signals="psel, clk")
-    # only the dumped signal is pushed to the panel
+    # both are pushed: real signal + the placeholder so the user SEES feedback
     got = sdi.get_intent("IPD")
-    assert got["action"] == "show" and got["signals"] == ["tb.psel"]
-    # the not-dumped one is surfaced, not silently "added"
-    assert "tb.pclk" in msg and "not dumped" in msg
+    assert got["action"] == "show" and got["signals"] == ["tb.psel", "tb.pclk"]
+    # the message distinguishes the real add from the not-dumped placeholder
+    assert "added tb.psel" in msg
+    assert "tb.pclk" in msg and "not dumped" in msg and "placeholder" in msg
 
-    # when EVERY requested signal is not dumped, nothing is shown (no phantom push)
+    # even when EVERY requested signal is not dumped, it is still pushed as a
+    # placeholder (feedback) — not dropped — with the honest caveat.
     msg2 = sim_debug(action="show", signals="clk")
-    assert "no signal could be shown" in msg2 and "not dumped" in msg2
+    assert sdi.get_intent("IPD")["signals"] == ["tb.pclk"]
+    assert "not dumped" in msg2 and "placeholder" in msg2
+
+    # truly unresolvable names still produce nothing (no phantom push)
+    msg3 = sim_debug(action="show", signals="zzz_nope")
+    assert "no signal could be shown" in msg3
 
 
 def test_sim_debug_registered_and_schema():
