@@ -136,6 +136,7 @@ export const DebugHeader = ({
           color: 'var(--ok)',
           border: '1px solid color-mix(in oklch, var(--ok) 30%, var(--line))',
           borderRadius: 3,
+          whiteSpace: 'nowrap', flexShrink: 0,
         }}>
           ✓ {vcdData.signals!.length} sig · t={vcdData.timeRange![0]}–{vcdData.timeRange![1]} {vcdData.timescale}
         </span>
