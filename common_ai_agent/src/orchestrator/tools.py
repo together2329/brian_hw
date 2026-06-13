@@ -270,6 +270,7 @@ def dispatch_workflow(
     model: str = "",
     run_mode: str = "",
     exec_mode: str = "",
+    force: bool = False,
 ) -> ToolResult:
     """Dispatch one or many workers in a single call.
 
@@ -279,6 +280,8 @@ def dispatch_workflow(
     independent stages (e.g. lint / tb-gen / syn after rtl-gen) in parallel.
     """
     body = dict(payload or {})
+    if force:
+        body["force"] = True
     if orchestrator_run_id:
         body.setdefault("orchestrator_run_id", orchestrator_run_id)
         body.setdefault("trigger_source", "orchestrator_chat")

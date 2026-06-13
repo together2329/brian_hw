@@ -741,3 +741,54 @@ def test_orchestrator_run_surfaces_use_control_db_when_trace_db_is_separate(
     assert run_detail.json()["steps"][0]["tool_name"] == "dispatch_workflow"
     assert active_run.status_code == 200, active_run.text
     assert active_run.json()["run"]["id"] == run["id"]
+
+
+def test_orchestrator_run_trace_api_returns_shared_latest_decision_trace(
+    tmp_path,
+    monkeypatch,
+    stub_runner,
+):
+    AtlasDB = _atlas_db_cls()
+    control_db_path = tmp_path / "atlas.db"
+
+    client = _make_client(tmp_path, monkeypatch)
+    with AtlasDB(str(control_db_path)) as db:
+        user = db.get_user_by_username("u")
+        assert user is not None
+        workspace = db.upsert_workspace(
+            "default",
+            owner_user_id=user["id"],
+            local_path=str(tmp_path / "u" / "default"),
+        )
+        ip_row = db.upsert_ip_block(workspace["id"], "ipA")
+        run = db.create_orchestrator_run(
+            user_id=user["id"],
+            ip_id=ip_row["id"],
+            workspace_id=workspace["id"],
+            session_id="u/default/ipA/orchestrator",
+        )
+        db.update_orchestrator_run(run["id"], status="completed", final_state="completed", ended=True)
+        db.append_orchestrator_step(
+            run["id"],
+            tool_name="dispatch_workflow",
+            decision={"args": {"workflow": "tb-gen", "reason": "repair coverage"}},
+            evidence_read={"result": {"ok": False, "error": "dispatch bridge timed out"}},
+            verdict="tool_failed",
+        )
+
+    trace = client.get(
+        "/api/orchestrator/runs/latest/trace?ip=ipA&workspace_session=default"
+    )
+    by_id = client.get(
+        f"/api/orchestrator/runs/{run['id']}/trace?ip=ipA&workspace_session=default"
+    )
+
+    assert trace.status_code == 200, trace.text
+    body = trace.json()
+    assert body["run_id"] == run["id"]
+    assert body["run"]["effective_status"] == "blocked"
+    assert body["run"]["effective_final_state"] == "tool_failed"
+    assert body["steps"][0]["status"] == "failed"
+    assert body["steps"][0]["detail"] == "dispatch tb-gen [NO JOB] [FAILED]"
+    assert by_id.status_code == 200, by_id.text
+    assert by_id.json()["run_id"] == run["id"]

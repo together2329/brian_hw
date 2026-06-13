@@ -267,6 +267,12 @@ def _setup_workspace(name: str) -> None:
                 base = _orig(ctx, **kwargs) if ctx is not None else _orig(**kwargs)
                 if isinstance(base, dict):
                     base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
+                try:
+                    import config as _cfg
+                    if not _pb.prompt_injection_enabled(_cfg):
+                        return base
+                except Exception:
+                    pass
                 merged = merge_prompt(base, _ws_text, _ws_mode)
                 # Surface incremental-write directives at the top of
                 # the system prompt so the active workspace prompt can
@@ -580,6 +586,19 @@ from lib.iteration_control import IterationTracker, detect_completion_signal, sh
 
 # Global Todo Tracker state (synced with tools)
 todo_tracker = None
+
+
+def _reload_todo_tracker_from_config():
+    """Reload the active session todo file and rebind the tools-visible global."""
+    global todo_tracker
+    if not config.ENABLE_TODO_TRACKING:
+        todo_tracker = None
+        return None
+    todo_path = Path(config.TODO_FILE)
+    fresh = TodoTracker.load(todo_path) if todo_path.exists() else TodoTracker(todo_path)
+    todo_tracker = fresh
+    return fresh
+
 
 def _parse_todo_markdown(text: str) -> List[Dict]:
     """
@@ -1642,10 +1661,7 @@ def chat_loop():
     # ACE Credit Assignment: Track conversation count for periodic curation
     conversation_count = 0
     # Todo tracker for UI confirmation checks
-    todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE)) if config.ENABLE_TODO_TRACKING else None
-    # Sync global so _get_todo_tracker() in tools.py returns the same instance
-    if todo_tracker_main is not None:
-        todo_tracker = todo_tracker_main
+    todo_tracker_main = _reload_todo_tracker_from_config()
 
     # Auto RAG Indexing on startup
     if config.ENABLE_RAG_AUTO_INDEX:
@@ -1849,9 +1865,7 @@ def chat_loop():
     while True:
         try:
             if config.ENABLE_TODO_TRACKING:
-                todo_tracker_main = TodoTracker.load(Path(config.TODO_FILE))
-                # Sync global so _get_todo_tracker() in tools.py returns the same instance
-                todo_tracker = todo_tracker_main
+                todo_tracker_main = _reload_todo_tracker_from_config()
 
             try:
                 if _multiline_prompt:
@@ -2030,6 +2044,13 @@ def chat_loop():
                                 _textual_emit_flush_fn()
                         except Exception:
                             pass
+
+            # Refresh TODO after input returns. Atlas slash commands such as
+            # /finalize-req can write this session's todo.json while the worker
+            # is blocked in input(); the turn that consumes the auto-start prompt
+            # must see that fresh tracker, not the pre-input snapshot.
+            if config.ENABLE_TODO_TRACKING:
+                todo_tracker_main = _reload_todo_tracker_from_config()
 
             if user_input.startswith("!"):
                 _shell_command = user_input[1:].strip()

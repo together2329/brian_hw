@@ -3082,14 +3082,13 @@ def _default_workflow_prompt(workflow: str, ip: str, stage_id: str = "") -> str:
             "error/interrupt/status behavior, reset semantics, function_model transactions, cycle_model latency "
             "or ready/valid rules, scoreboard checks, coverage goals, and traceable verification goals. "
             "Do not default to APB/register-only behavior unless the user goal says APB/register-only. "
-            f"Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering "
-            f"and python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
-            "Use scripts as schema repair/validation/measurement gates only; do not rely on scripts to invent "
-            "or silently rewrite the IP behavior that the worker should author from the goal. "
+            f"Then run python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
+            "Use scripts as contract validation/measurement gates only; do not rely on scripts to invent "
+            "or silently rewrite the IP behavior that the worker should author and repair from the goal. "
             "Do not leave live `custom.tbd` or TBD-key sections in the final SSOT; convert out-of-scope ideas "
             "to `custom.future_considerations` or concrete assumptions. "
             f"If {ip}/rtl/rtl_blocked.json exists, answer each blocker inline so SSOT-gen can incorporate "
-            "the decisions, then rerun /repair-ssot and validation before handing back to rtl-gen. "
+            "the decisions, then rerun validation before handing back to rtl-gen. "
             "Finish with an [SSOT HANDOFF] summarizing assumptions, remaining TBDs, validation evidence, "
             "and downstream RTL/TB obligations."
         ),
@@ -3206,7 +3205,6 @@ def _workflow_prompt_with_stage_driver(
         return (
             f"answer the {ip}/rtl/rtl_blocked.json questions inline so SSOT-gen records them; "
             f"then run /resolve-rtl-blockers {ip} --use-recommended-defaults; "
-            f"then run /repair-ssot {ip}; "
             f"then python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering. "
             "This is an RTL blocker repair pass; do not rewrite the IP from scratch.\n\n"
             "[Orchestrator worker instruction]\n"
@@ -5425,30 +5423,42 @@ def register_jobs_routes(
             from locked_truth_guard import is_locked_truth_active  # type: ignore
         return is_locked_truth_active(root, ip)
 
-    def _truth_not_locked_payload(ip: str, *, source: str = "pipeline_dispatch") -> dict[str, Any]:
-        return {
-            "ok": False,
-            "error": "truth_not_locked",
-            "source": source,
-            "ip": ip,
-            "message": (
-                "Lock requirement truth before running workflow stages. "
-                "Use the default agent to draft requirement, obligation, "
-                "contract_ref, structural/behavioral contracts, and evidence first."
-            ),
-        }
-
-    def _locked_truth_dispatch_block(
+    def _locked_truth_dispatch_status(
         root: Path,
         ip: str,
         *,
         source: str = "pipeline_dispatch",
-    ) -> dict[str, Any] | None:
-        if not _locked_truth_guard_ip(ip):
-            return None
-        if _locked_truth_active_for_dispatch(root, ip):
-            return None
-        return _truth_not_locked_payload(ip, source=source)
+    ) -> dict[str, Any]:
+        required = _locked_truth_guard_ip(ip)
+        status: dict[str, Any] = {
+            "required": required,
+            "active": False,
+            "blocking": False,
+            "warning": "",
+            "source": source,
+            "ip": ip,
+        }
+        if not required:
+            return status
+        try:
+            active = _locked_truth_active_for_dispatch(root, ip)
+        except Exception as exc:
+            status.update({
+                "warning": "truth_lock_status_unavailable",
+                "message": f"Could not inspect locked truth status; dispatch proceeds anyway: {exc}",
+            })
+            return status
+        status["active"] = bool(active)
+        if not active:
+            status.update({
+                "warning": "truth_not_locked",
+                "message": (
+                    "Locked requirement truth is not active yet; dispatch proceeds "
+                    "so scratch IPs can make progress. Downstream worker validators "
+                    "and final evidence checks remain authoritative."
+                ),
+            })
+        return status
 
     def _trace_event_visible_to_request(
         event: dict[str, Any],
@@ -6778,9 +6788,7 @@ def register_jobs_routes(
         request_project_root = _request_project_root(request, ip, body)
         if ip and not _assert_ip_access(db_user_id or owner_user_id, ip, request_is_admin, request_project_root):
             return JSONResponse({"error": "forbidden"}, status_code=403)
-        locked_truth_block = _locked_truth_dispatch_block(request_project_root, ip)
-        if locked_truth_block is not None:
-            return JSONResponse(locked_truth_block, status_code=409)
+        locked_truth_status = _locked_truth_dispatch_status(request_project_root, ip)
         _, _ = _refresh_tracked_jobs(
             request_project_root,
             job_filter=lambda job: _job_visible_to_request(job, owner_user_id, db_user_id, request_is_admin, request_project_root),
@@ -6833,6 +6841,13 @@ def register_jobs_routes(
             # always emit this section when a seed is present.
             if user_seed_text:
                 stage_prompt += f"\n\n[USER REQUIREMENT]\n{user_seed_text}"
+            if locked_truth_status.get("warning"):
+                stage_prompt += (
+                    "\n\n[ATLAS TRUTH LOCK STATUS]\n"
+                    f"- warning: {locked_truth_status.get('warning')}\n"
+                    f"- blocking: {locked_truth_status.get('blocking')}\n"
+                    f"- message: {locked_truth_status.get('message')}"
+                )
             session = f"{_pipeline_session_prefix(request, ip, pipeline_id, body)}/{idx + 1:02d}-{workflow}"
             dep_stage_ids = _pipeline_stage_dependencies(
                 stage["id"], selected_stage_ids, schedule=schedule,
@@ -6864,6 +6879,7 @@ def register_jobs_routes(
             "run_mode":    run_mode,
             "exec_mode":   exec_mode,
             "ip":          ip,
+            "locked_truth": locked_truth_status,
             "stages":      resolved,
             "jobs":        jobs,
         })
@@ -7210,20 +7226,17 @@ def register_jobs_routes(
         visible_user_ids = {value for value in (request_user, db_user_id) if value}
         return bool(run_user_id and run_user_id in visible_user_ids)
 
-    @app.get("/api/orchestrator/runs/{run_id}")
-    async def api_orchestrator_run_detail(request: Request, run_id: str):
+    def _orchestrator_run_scope(request: Request, ip: str) -> tuple[JSONResponse | None, dict[str, Any]]:
         from core.atlas_db import AtlasDB
 
-        params = dict(request.query_params)
-        ip = (params.get("ip") or "").strip()
         if not ip or len(ip) > 64 or not re.match(r"^[A-Za-z][A-Za-z0-9_]*$", ip):
-            return JSONResponse({"error": "ip query param required"}, status_code=400)
+            return JSONResponse({"error": "ip query param required"}, status_code=400), {}
         if (
             _multi_user_enabled()
             and not _request_is_admin(request)
             and not (_request_db_user_id(request) or _request_username(request))
         ):
-            return JSONResponse({"error": "not authenticated"}, status_code=401)
+            return JSONResponse({"error": "not authenticated"}, status_code=401), {}
         pr = _request_project_root(request, ip)
         user = request.scope.get("user") or {}
         raw_user_id = _request_db_user_id(request) or str(user.get("username") or "local-admin")
@@ -7239,20 +7252,113 @@ def register_jobs_routes(
                 ip,
                 ssot_path=f"{ip}/yaml/{ip}.ssot.yaml",
             )
+        return None, {
+            "project_root": pr,
+            "db_path": _atlas_control_db_path(pr),
+            "db_user_id": db_user_id,
+            "request_user": _request_username(request),
+            "request_is_admin": _request_is_admin(request),
+            "workspace_id": str(workspace["id"] or ""),
+            "ip_id": str(ip_row["id"] or ""),
+        }
+
+    @app.get("/api/orchestrator/runs/{run_id}")
+    async def api_orchestrator_run_detail(request: Request, run_id: str):
+        from core.atlas_db import AtlasDB
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        error, scope = _orchestrator_run_scope(request, ip)
+        if error is not None:
+            return error
+        with AtlasDB(scope["db_path"]) as db:
             run = db.get_orchestrator_run(run_id)
             if run is None:
                 return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
             if not _orchestrator_run_visible_to_request(
                 run,
-                request_user=_request_username(request),
-                db_user_id=db_user_id,
-                request_is_admin=_request_is_admin(request),
-                workspace_id=str(workspace["id"] or ""),
-                ip_id=str(ip_row["id"] or ""),
+                request_user=scope["request_user"],
+                db_user_id=scope["db_user_id"],
+                request_is_admin=scope["request_is_admin"],
+                workspace_id=scope["workspace_id"],
+                ip_id=scope["ip_id"],
             ):
                 return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
             steps = db.list_orchestrator_steps(run_id)
         return JSONResponse({"ok": True, "run": run, "steps": steps})
+
+    @app.get("/api/orchestrator/runs/latest/trace")
+    async def api_orchestrator_latest_run_trace(request: Request):
+        from src.orchestrator.trace import build_latest_trace_for_scope
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        error, scope = _orchestrator_run_scope(request, ip)
+        if error is not None:
+            return error
+        try:
+            limit = int(params.get("limit") or "200")
+        except Exception:
+            limit = 200
+        try:
+            wake = int(params.get("wake") or "5")
+        except Exception:
+            wake = 5
+        user_ids: list[str] = []
+        if _multi_user_enabled() and not scope["request_is_admin"]:
+            user_ids = [scope["db_user_id"]]
+        trace = build_latest_trace_for_scope(
+            db_path=Path(scope["db_path"]),
+            workspace_id=scope["workspace_id"],
+            ip_id=scope["ip_id"],
+            user_ids=user_ids,
+            project_root=Path(scope["project_root"]),
+            limit=max(1, min(1000, limit)),
+            wake_limit=max(0, min(50, wake)),
+        )
+        if trace is None:
+            return JSONResponse({"ok": True, "ip": ip, "run_id": None, "run": None, "steps": [], "wake": []})
+        return JSONResponse({"ok": True, "ip": ip, **trace})
+
+    @app.get("/api/orchestrator/runs/{run_id}/trace")
+    async def api_orchestrator_run_trace(request: Request, run_id: str):
+        from core.atlas_db import AtlasDB
+        from src.orchestrator.trace import build_trace
+
+        params = dict(request.query_params)
+        ip = (params.get("ip") or "").strip()
+        error, scope = _orchestrator_run_scope(request, ip)
+        if error is not None:
+            return error
+        with AtlasDB(scope["db_path"]) as db:
+            run = db.get_orchestrator_run(run_id)
+            if run is None:
+                return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
+            if not _orchestrator_run_visible_to_request(
+                run,
+                request_user=scope["request_user"],
+                db_user_id=scope["db_user_id"],
+                request_is_admin=scope["request_is_admin"],
+                workspace_id=scope["workspace_id"],
+                ip_id=scope["ip_id"],
+            ):
+                return JSONResponse({"error": f"unknown run {run_id!r}"}, status_code=404)
+        try:
+            limit = int(params.get("limit") or "200")
+        except Exception:
+            limit = 200
+        try:
+            wake = int(params.get("wake") or "5")
+        except Exception:
+            wake = 5
+        trace = build_trace(
+            run_id,
+            db_path=Path(scope["db_path"]),
+            project_root=Path(scope["project_root"]),
+            limit=max(1, min(1000, limit)),
+            wake_limit=max(0, min(50, wake)),
+        )
+        return JSONResponse({"ok": True, **trace})
 
     @app.get("/api/orchestrator/active_run")
     async def api_orchestrator_active_run(request: Request):
@@ -7306,6 +7412,7 @@ def register_jobs_routes(
         run_mode: str = "",
         exec_mode: str = "",
         reason: str = "",
+        force: bool = False,
     ) -> dict[str, Any]:
         """Bridge the orchestrator LLM tool to the pipeline job creator.
 
@@ -7313,7 +7420,9 @@ def register_jobs_routes(
         the Atlas UI process, so it can use the live job registry without a
         browser cookie while still keeping the same session/pipeline identity.
         """
-        body = payload if isinstance(payload, dict) else {}
+        body = dict(payload) if isinstance(payload, dict) else {}
+        if force:
+            body["force"] = True
         ip_name = (
             str(ip or body.get("ip") or "").strip()
             or os.environ.get("ATLAS_ACTIVE_IP", "").strip()
@@ -7519,13 +7628,11 @@ def register_jobs_routes(
         tool_project_root = _project_root_for_owner(owner_display_id, ip_name, context_payload)
         if ip_name and not _assert_ip_access(owner_user_id or owner_display_id, ip_name, False, tool_project_root):
             return {"ok": False, "error": "forbidden", "source": "dispatch_workflow_tool", "ip": ip_name}
-        locked_truth_block = _locked_truth_dispatch_block(
+        locked_truth_status = _locked_truth_dispatch_status(
             tool_project_root,
             ip_name,
             source="dispatch_workflow_tool",
         )
-        if locked_truth_block is not None:
-            return locked_truth_block
         # Campaign finding 20: refuse dispatching a DOWNSTREAM stage while an
         # upstream dependency is red (guaranteed-failure worker runs). Only
         # applies to orchestrator-triggered dispatches; force=true bypasses for
@@ -7592,6 +7699,13 @@ def register_jobs_routes(
             # the user typed into the orchestrator chat.
             if user_seed_text and user_seed_text not in stage_prompt:
                 stage_prompt += f"\n\n[USER REQUIREMENT]\n{user_seed_text}"
+            if locked_truth_status.get("warning"):
+                stage_prompt += (
+                    "\n\n[ATLAS TRUTH LOCK STATUS]\n"
+                    f"- warning: {locked_truth_status.get('warning')}\n"
+                    f"- blocking: {locked_truth_status.get('blocking')}\n"
+                    f"- message: {locked_truth_status.get('message')}"
+                )
             stage_prompt += (
                 "\n\n[ATLAS RUN POLICY]\n"
                 f"- run_mode: {run_mode_resolved}\n"
@@ -7640,6 +7754,7 @@ def register_jobs_routes(
             "user_id": owner_display_id,
             "db_user_id": owner_user_id,
             "ip": ip_name,
+            "locked_truth": locked_truth_status,
             "schedule": dispatch_schedule,
             "requested_schedule": req_schedule,
             "run_mode": run_mode_resolved,

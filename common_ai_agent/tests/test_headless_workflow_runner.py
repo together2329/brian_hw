@@ -1978,7 +1978,9 @@ def test_fake_llm_headless_flow_repairs_missing_cycle_model(tmp_path: Path):
     ip_dir = tmp_path / "work" / ip
     ssot = yaml.safe_load((ip_dir / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
     assert "cycle_model" in ssot
-    assert (ip_dir / "logs" / "validators" / "repair_ssot_schema.log").is_file()
+    assert len(runner.llm_provider.calls) == 2
+    assert (ip_dir / "logs" / "llm" / "ssot-gen-repair-1.json").is_file()
+    assert not (ip_dir / "logs" / "validators" / "repair_ssot_schema.log").exists()
     assert (ip_dir / "model" / "functional_model.py").is_file()
 
 

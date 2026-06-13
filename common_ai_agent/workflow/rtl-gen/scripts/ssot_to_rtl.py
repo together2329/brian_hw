@@ -55,6 +55,81 @@ def _ident(s: str) -> str:
     return s
 
 
+_NO_PORT_TOKENS = {
+    "",
+    "none",
+    "null",
+    "nil",
+    "na",
+    "n_a",
+    "not_applicable",
+    "no_clock",
+    "no_reset",
+    "clockless",
+    "resetless",
+}
+
+_CLOCKLESS_ALWAYS_SAMPLE_TOKENS = {
+    "1",
+    "1_b1",
+    "true",
+    "always",
+    "always_true",
+    "comb",
+    "comb_eval",
+    "combinational",
+    "combinational_eval",
+    "continuous_comb",
+    "continuous_comb_eval",
+    "continuous_comb_evaluation",
+}
+
+
+def _token(value: object) -> str:
+    return re.sub(r"\W+", "_", str(value or "").strip().lower()).strip("_")
+
+
+def _is_no_port_token(value: object) -> bool:
+    if value is None:
+        return False
+    return _token(value) in _NO_PORT_TOKENS
+
+
+def _is_combinational_contract(contract: dict) -> bool:
+    fields = [
+        contract.get("type"),
+        contract.get("kind"),
+        contract.get("mode"),
+        contract.get("contract_type"),
+    ]
+    return any("comb" in _token(field) for field in fields)
+
+
+def _declares_clockless(contract: dict) -> bool:
+    if bool(contract.get("no_clock") or contract.get("clockless")):
+        return True
+    return any(
+        key in contract and _is_no_port_token(contract.get(key))
+        for key in ("clock", "clk", "clock_port")
+    )
+
+
+def _declares_resetless(contract: dict) -> bool:
+    if bool(contract.get("no_reset") or contract.get("resetless")):
+        return True
+    if any(key in contract and _is_no_port_token(contract.get(key)) for key in ("reset", "rst", "reset_port")):
+        return True
+    return _declares_clockless(contract) and _is_combinational_contract(contract)
+
+
+def _is_clockless_always_sample(value: object) -> bool:
+    if value is True:
+        return True
+    if isinstance(value, int) and value == 1:
+        return True
+    return _token(value) in _CLOCKLESS_ALWAYS_SAMPLE_TOKENS
+
+
 def _as_ports(doc: dict) -> list[dict]:
     ports = []
     for p in doc.get("ports") or []:
@@ -588,15 +663,17 @@ def _port_width(port: dict) -> int:
 
 def _find_clock_reset(ports: list[dict], contract: dict) -> tuple[str, str, str, list[dict]]:
     by_name = {p["name"]: p for p in ports}
-    clock = _ident(contract.get("clock") or contract.get("clk") or "")
-    if not clock:
+    clockless = _declares_clockless(contract)
+    resetless = _declares_resetless(contract)
+    clock = "" if clockless else _ident(contract.get("clock") or contract.get("clk") or "")
+    if not clock and not clockless:
         clock = next((p["name"] for p in ports if p["name"].lower() in {"clk", "clock", "pclk"}), "")
-    reset = _ident(contract.get("reset") or contract.get("rst") or "")
-    if not reset:
+    reset = "" if resetless else _ident(contract.get("reset") or contract.get("rst") or "")
+    if not reset and not resetless:
         reset = next((p["name"] for p in ports if p["name"].lower() in {"rst_n", "resetn", "presetn", "rst", "reset"}), "")
-    reset_active = str(contract.get("reset_active") or ("low" if reset.endswith("_n") or reset.endswith("n") else "high")).lower()
+    reset_active = "none" if resetless else str(contract.get("reset_active") or ("low" if reset.endswith("_n") or reset.endswith("n") else "high")).lower()
     questions = []
-    if not clock or clock not in by_name or by_name[clock].get("direction") != "input":
+    if not clockless and (not clock or clock not in by_name or by_name[clock].get("direction") != "input"):
         questions.append(_question(
             "RTL_CLOCK_PORT",
             "Define a concrete input clock port for generated sequential RTL.",
@@ -605,7 +682,7 @@ def _find_clock_reset(ports: list[dict], contract: dict) -> tuple[str, str, str,
             "Declare the clock explicitly under rtl_contract.clock.",
             "rtl-gen can hand precise clocking context to the LLM author and compile/lint evidence.",
         ))
-    if not reset or reset not in by_name or by_name[reset].get("direction") != "input":
+    if not resetless and (not reset or reset not in by_name or by_name[reset].get("direction") != "input"):
         questions.append(_question(
             "RTL_RESET_PORT",
             "Define a concrete input reset port and active level.",
@@ -614,7 +691,7 @@ def _find_clock_reset(ports: list[dict], contract: dict) -> tuple[str, str, str,
             "Declare reset and active level explicitly under rtl_contract.",
             "LLM-authored RTL, FL reset behavior, and TB reset sequence share the same contract.",
         ))
-    if reset_active not in {"low", "high"}:
+    if not resetless and reset_active not in {"low", "high"}:
         questions.append(_question(
             "RTL_RESET_ACTIVE_LEVEL",
             "Choose reset active level.",
@@ -913,7 +990,13 @@ def _generic_rule_contract(
         ]
         return wide_inputs[0] if wide_inputs else "0"
 
-    sample_condition = contract.get("sample_condition") or _default_sample_condition()
+    clockless = not bool(clock)
+    resetless = not bool(reset)
+    sample_condition = contract.get("sample_condition")
+    if sample_condition is None or str(sample_condition).strip() == "":
+        sample_condition = "true" if clockless else _default_sample_condition()
+    if clockless and _is_clockless_always_sample(sample_condition):
+        sample_condition = "true"
     needed_names |= _expr_names(sample_condition)
     for name in sorted(needed_names):
         if name in env or name in {"true", "false", "True", "False"}:
@@ -1164,8 +1247,8 @@ def _generic_rule_contract(
     return {
         "top": top,
         "transaction": tx.get("id") or tx.get("name"),
-        "clock": clock,
-        "reset": reset,
+        "clock": "none" if clockless else clock,
+        "reset": "none" if resetless else reset,
         "reset_active": reset_active,
         "sample_condition": sample_expr,
         "outputs": resolved_outputs,
@@ -1177,6 +1260,9 @@ def _generic_rule_contract(
         "fsm_transitions": _fsm_transition_items(doc),
         "input_map": {str(k): _ident(v) for k, v in input_map.items()},
         "apb_registers": apb_registers,
+        "no_clock": clockless,
+        "no_reset": resetless,
+        "no_state": not bool(state_vars or resolved_updates),
         "source": "rtl_contract + function_model.output_rules",
     }, []
 

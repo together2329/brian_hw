@@ -140,6 +140,55 @@ export interface TraceEvent {
   [key: string]: unknown;
 }
 
+export interface OrchestratorDecisionStep {
+  step?: number;
+  time?: string;
+  tool?: string;
+  verdict?: string;
+  status?: string;
+  detail?: string;
+  why?: string;
+  error?: string;
+  workflow?: string;
+  jobs?: string[];
+  [key: string]: unknown;
+}
+
+export interface OrchestratorWorkerStatus {
+  job_id?: string;
+  workflow?: string;
+  status?: string;
+  terminal?: boolean;
+  stale?: boolean;
+  response_present?: boolean;
+  heartbeat_present?: boolean;
+  log_present?: boolean;
+  heartbeat_age_s?: number | null;
+  log_age_s?: number | null;
+  last_action?: string;
+  reason?: string;
+  [key: string]: unknown;
+}
+
+export interface OrchestratorDecisionTrace {
+  ok?: boolean;
+  ip?: string;
+  run_id?: string | null;
+  run?: {
+    status?: string;
+    final_state?: string;
+    effective_status?: string;
+    effective_final_state?: string;
+    terminal_anomaly?: string;
+    model?: string;
+    [key: string]: unknown;
+  } | null;
+  steps?: OrchestratorDecisionStep[];
+  workers?: OrchestratorWorkerStatus[];
+  wake?: string[];
+  [key: string]: unknown;
+}
+
 export interface WorkerInfo {
   workflow: string;
   status?: string;

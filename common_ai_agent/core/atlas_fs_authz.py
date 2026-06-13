@@ -291,7 +291,22 @@ def authorize_path(
         return AuthzDecision(False, 403, "session owner mismatch", "session")
     if kind == "shared":
         return AuthzDecision(True, 200, "", "shared")
-    # kind == "ip": first segment is the candidate IP dir name.
+    # kind == "ip": the leading segment is EITHER a top-level (legacy) IP dir
+    # name, OR — in the multi-user workspace layout — the OWNER of a
+    # workspace-rooted path ``<owner>/<workspace>/<ip>/...`` (the on-disk shape
+    # produced by ``AtlasContext.ip_root`` = ``atlas_root/user_name/
+    # workspace_session/ip_name``). A path under the caller's OWN owner segment
+    # is their workspace; allow it — mirroring the ``.session/<owner>``
+    # owner-match above. Without this, the gate misreads the owner segment as an
+    # IP name, finds no ``ip_blocks`` row and fail-closes, so the owner cannot
+    # read their own RTL source (e.g. the sim_debug source panel). A foreign
+    # owner segment is NOT in ``valid_owners`` and still falls through to the IP
+    # ACL, so cross-tenant access stays fail-closed.
+    valid_owners = set(owner_aliases) if owner_aliases else set()
+    if username:
+        valid_owners.add(username)
+    if parts[0] in valid_owners:
+        return AuthzDecision(True, 200, "", "workspace")
     return _ip_decision(
         parts[0], user_id=user_id, db=db, permission=permission, owned_ips=owned_ips
     )

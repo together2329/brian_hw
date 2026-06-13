@@ -986,12 +986,12 @@ workflow_todos:
       detail: "Use import manifest, extracted decisions, wiki import evidence, and approved Q&A as the only behavior sources; the template is schema/order only."
       command: "/to-ssot <ip>"
       script: "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py"
-      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
       instructions:
         - "Read <ip>/req/import_manifest.json, <ip>/req/extracted_decisions.json, <ip>/wiki/import-evidence.md, and approved SSOT Q&A before writing."
         - "Populate canonical sections only from source-backed evidence or explicit no-feature policy."
         - "Do not copy example IP behavior from this template; preserve only the schema/order contract."
-        - "Run repair_ssot_schema.py and verify_ssot.py after the YAML edit and keep blockers open until fixed."
+        - "Run verify_ssot.py after each YAML edit and keep blockers open until you fix them in the YAML."
       criteria:
         - "SSOT YAML exists at <ip>/yaml/<ip>.ssot.yaml and uses the canonical top-level keys."
         - "Every imported numeric/register/interface fact traces to import manifest, import evidence, or approved Q&A."

@@ -211,6 +211,10 @@ class SlashCommandRegistry:
                      '권한 설정: /permission rm|mv on|off  (run_command 내 rm/mv 허용 여부)',
                      aliases=['perm'])
 
+        self.register('prompt-injection', self._cmd_prompt_injection,
+                     '프롬프트 주입 토글: /prompt-injection on|off|status',
+                     aliases=['pinject', 'promptinject'])
+
         self.register('model', self._cmd_model,
                      '모델 전환: /model 1|2|<name>, /model (현재)')
 
@@ -1682,6 +1686,45 @@ class SlashCommandRegistry:
         except Exception as e:
             status = "✅ enabled" if enabled else "❌ disabled"
             return f"{target}  {status} (runtime only — could not write {_config_path}: {e})\n"
+
+    def _cmd_prompt_injection(self, args: str) -> str:
+        """Toggle optional prompt-injection layers at runtime."""
+        import sys as _sys
+
+        parts = args.strip().lower().split()
+        _cfg = _sys.modules.get('config') or _sys.modules.get('src.config')
+
+        def _current_enabled() -> bool:
+            try:
+                from core.prompt_builder import prompt_injection_enabled
+                return prompt_injection_enabled(_cfg)
+            except Exception:
+                return True
+
+        if not parts or parts[0] in ('status', 'show', '?'):
+            status = "enabled" if _current_enabled() else "disabled"
+            return (
+                f"Prompt injection: {status}\n"
+                "Controls workspace/default system_prompt overlays, memory rules, "
+                "project wiki, graph/RAG/skill/procedural context, and live "
+                "orchestrator context.\n"
+                "Usage: /prompt-injection on|off|status\n"
+            )
+
+        value = parts[0]
+        if value not in ('on', 'off', 'enable', 'disable', 'enabled', 'disabled', 'true', 'false', '1', '0'):
+            return "Usage: /prompt-injection on|off|status\n"
+
+        enabled = value in ('on', 'enable', 'enabled', 'true', '1')
+        raw = 'true' if enabled else 'false'
+        os.environ['ATLAS_PROMPT_INJECTION'] = raw
+        os.environ['ENABLE_PROMPT_INJECTION'] = raw
+        if _cfg is not None:
+            setattr(_cfg, 'ENABLE_PROMPT_INJECTION', enabled)
+            setattr(_cfg, 'ATLAS_PROMPT_INJECTION', enabled)
+
+        status = "enabled" if enabled else "disabled"
+        return f"Prompt injection {status} for this runtime (ATLAS_PROMPT_INJECTION={raw}).\n"
 
     def _cmd_todo(self, args: str) -> str:
         """Show/manage current todo list status."""
@@ -3453,6 +3496,7 @@ class SlashCommandRegistry:
             output.append(f"  • Smart RAG: {'✅' if config.ENABLE_SMART_RAG else '❌'}")
             output.append(f"  • Memory System: {'✅' if config.ENABLE_MEMORY else '❌'}")
             output.append(f"  • Skill System: {'✅' if config.ENABLE_SKILL_SYSTEM else '❌'}")
+            output.append(f"  • Prompt Injection: {'✅' if getattr(config, 'ENABLE_PROMPT_INJECTION', True) else '❌'}")
             output.append(f"  • Sub-Agents: {'✅' if config.ENABLE_SUB_AGENTS else '❌'}")
 
             # Linter tools

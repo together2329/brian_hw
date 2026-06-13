@@ -71,6 +71,38 @@ PROJECT_WIKI_STOPWORDS = {
     "had", "not", "but", "all", "any", "use", "using", "fix",
 }
 
+TRUE_STRINGS = {"1", "true", "yes", "on", "enable", "enabled"}
+FALSE_STRINGS = {"0", "false", "no", "off", "disable", "disabled"}
+
+
+def _coerce_bool(value: Any, *, default: bool) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    text = str(value).strip().lower()
+    if text in TRUE_STRINGS:
+        return True
+    if text in FALSE_STRINGS:
+        return False
+    return default
+
+
+def prompt_injection_enabled(cfg: Any = None) -> bool:
+    """Return whether optional prompt-injection layers should be applied.
+
+    The base system prompt and tool schemas are not controlled by this flag.
+    It gates workspace/default system prompt overlays, memory/project-wiki/RAG
+    context, skills, graph/procedural guidance, and live orchestrator context.
+    """
+    for attr in ("ENABLE_PROMPT_INJECTION", "ATLAS_PROMPT_INJECTION"):
+        if cfg is not None and hasattr(cfg, attr):
+            return _coerce_bool(getattr(cfg, attr), default=False)
+    for env_name in ("ATLAS_PROMPT_INJECTION", "ENABLE_PROMPT_INJECTION"):
+        if env_name in os.environ:
+            return _coerce_bool(os.environ.get(env_name), default=False)
+    return False
+
 
 def active_workflow_name() -> Optional[str]:
     """Resolve the active workflow name from Atlas/workspace environment."""
@@ -262,6 +294,7 @@ def build_system_prompt(
         plan_mode=is_plan,
         todo_active=todo_active,
     )
+    injection_enabled = prompt_injection_enabled(cfg)
 
     # ── cursor-agent Active Mode injection ──
     if getattr(cfg, 'CURSOR_AGENT_ACTIVE_MODE', False):
@@ -305,11 +338,14 @@ Write detailed tasks — include file paths, what to change, and expected outcom
     ctx = context
 
     has_optional = (
-        ctx.memory_system is not None
-        or ctx.graph_lite is not None
-        or ctx.procedural_memory is not None
-        or getattr(cfg, 'ENABLE_SKILL_SYSTEM', False)
-        or getattr(cfg, 'ENABLE_PROJECT_WIKI_CONTEXT', True)
+        injection_enabled
+        and (
+            ctx.memory_system is not None
+            or ctx.graph_lite is not None
+            or ctx.procedural_memory is not None
+            or getattr(cfg, 'ENABLE_SKILL_SYSTEM', False)
+            or getattr(cfg, 'ENABLE_PROJECT_WIKI_CONTEXT', True)
+        )
     )
 
     if has_optional:
@@ -362,7 +398,7 @@ Write detailed tasks — include file paths, what to change, and expected outcom
                 _debug_summary(cfg, base_prompt, dynamic_context, context_parts)
 
     # ── Return format ──
-    if ctx.memory_system is not None:
+    if injection_enabled and ctx.memory_system is not None:
         base_prompt = apply_memory_override(base_prompt, ctx.memory_system)
 
     if getattr(cfg, 'CACHE_OPTIMIZATION_MODE', 'legacy') == "optimized":

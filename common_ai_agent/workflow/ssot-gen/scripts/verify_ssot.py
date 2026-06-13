@@ -314,7 +314,7 @@ def _top_level_shape_issues(doc: Any, mode: str) -> tuple[list[dict[str, str]], 
             "ssot.canonical_order",
             "$",
             "Canonical sections are present but not in the standard order.",
-            "Run repair_ssot_schema.py <ip> --mode engineering or reorder sections to match ssot-template.yaml.",
+            "Reorder sections to match ssot-template.yaml. /repair-ssot is an explicit rescue command, not the default authoring loop.",
         ))
 
     extra = [str(key) for key in keys if str(key) not in CANONICAL_ORDER]

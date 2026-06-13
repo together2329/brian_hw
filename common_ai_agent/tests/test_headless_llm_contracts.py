@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import json
 import importlib.util
 import subprocess
@@ -1097,6 +1098,66 @@ def test_repair_ssot_schema_normalizes_verilog_rule_expressions(tmp_path: Path):
     assert loaded["rtl_contract"]["output_rules"][0]["expr"] == "data_in << 1"
 
 
+def test_repair_ssot_schema_soft_normalizes_apb_style_sv_rule_expressions(tmp_path: Path):
+    ip = "repair_apb_sv_expr_ip"
+    doc = _base_ssot_doc(ip)
+    fm = doc["function_model"]
+    doc["io_list"]["interfaces"][0]["ports"].extend(
+        [
+            {"name": "addr_bad", "direction": "output", "width": 1},
+            {"name": "prdata", "direction": "output", "width": 32},
+            {"name": "irq_o", "direction": "output", "width": 1},
+        ]
+    )
+    fm["state_variables"].extend(
+        [
+            {"name": "ctrl", "reset": 0, "width": 32},
+            {"name": "prescale", "reset": 0, "width": 32},
+            {"name": "period", "reset": 0, "width": 32},
+            {"name": "duty", "reset": 0, "width": 32},
+            {"name": "status_tc", "reset": 0, "width": 1},
+            {"name": "timer_count", "reset": 0, "width": 32},
+        ]
+    )
+    tx = fm["transactions"][0]
+    tx["sample_condition"] = "psel && penable && !pwrite"
+    tx["state_updates"] = [
+        {"name": "ctrl", "expr": "addr==8'h00 ? (pwdata & 32'h0000_0007) : ctrl", "width": 32},
+        {"name": "timer_count", "expr": "terminal ? 32'h0 : timer_count + 32'h1", "width": 32},
+    ]
+    tx["output_rules"] = [
+        {"name": "addr_bad", "port": "addr_bad", "expr": "!(addr inside {8'h00,8'h04,8'h08,8'h0C,8'h10})", "width": 1},
+        {
+            "name": "prdata",
+            "port": "prdata",
+            "expr": "addr==8'h00 ? ctrl : addr==8'h04 ? prescale : addr==8'h08 ? period : addr==8'h0C ? duty : addr==8'h10 ? {30'h0,ctrl[0],status_tc} : 32'h0",
+            "width": 32,
+        },
+        {"name": "irq_o", "port": "irq_o", "expr": "ctrl[1] && status_tc", "width": 1},
+    ]
+    _write_ssot_doc(tmp_path, ip, doc)
+
+    repaired = _run_repair_ssot(tmp_path, ip)
+
+    assert repaired.returncode == 0, repaired.stdout + repaired.stderr
+    loaded = yaml.safe_load((tmp_path / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
+    tx = loaded["function_model"]["transactions"][0]
+    exprs = [tx["sample_condition"]]
+    exprs.extend(rule["expr"] for rule in tx["state_updates"])
+    exprs.extend(rule["expr"] for rule in tx["output_rules"])
+    joined = "\n".join(exprs)
+    for forbidden in ("8'h", "32'h", "1'b", "&&", "||", " inside ", "?", "{"):
+        assert forbidden not in joined
+    by_port = {rule["port"]: rule["expr"] for rule in tx["output_rules"]}
+    assert "addr == 0" in by_port["addr_bad"]
+    assert "or addr == 16" in by_port["addr_bad"]
+    assert "not" in by_port["addr_bad"]
+    assert "ctrl[0]" in by_port["prdata"]
+    assert "status_tc" in by_port["prdata"]
+    for expr in exprs:
+        ast.parse(str(expr), mode="eval")
+
+
 def test_repair_ssot_schema_assigns_decomposition_refs_to_monolithic_top(tmp_path: Path):
     ip = "repair_top_decomp_owner_ip"
     doc = _base_ssot_doc(ip)
@@ -1780,8 +1841,8 @@ def test_repair_ssot_schema_backfills_ports_and_output_rules_for_ui_generated_ss
     assert check.returncode == 0, check.stdout + check.stderr
 
 
-def test_headless_ssot_generation_canonicalizes_llm_ssot_before_pass(tmp_path: Path):
-    ip = "headless_canonical_repair_ip"
+def test_headless_ssot_generation_uses_llm_repair_before_pass(tmp_path: Path):
+    ip = "headless_llm_repair_ip"
     req = _write_req(tmp_path, ip)
     doc = _base_ssot_doc(ip)
     doc["sub_modules"] = [
@@ -1798,8 +1859,20 @@ def test_headless_ssot_generation_canonicalizes_llm_ssot_before_pass(tmp_path: P
         "modules": [{"name": ip, "role": "monolithic behavior owner"}],
         "internal_state": [{"name": "accepted_count"}],
     }
+    repaired_doc = yaml.safe_load(yaml.safe_dump(doc, sort_keys=False))
+    repaired_doc["sub_modules"][0].update(
+        {
+            "wiring_only": True,
+            "decomposition_refs": ["decomposition.modules"],
+            "function_model_refs": ["function_model.transactions"],
+            "cycle_model_refs": ["cycle_model.pipeline"],
+        }
+    )
     provider = SequencedArtifactProvider(
-        [[{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": yaml.safe_dump(doc, sort_keys=False)}]]
+        [
+            [{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": yaml.safe_dump(doc, sort_keys=False)}],
+            [{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": yaml.safe_dump(repaired_doc, sort_keys=False)}],
+        ]
     )
     runner = HeadlessWorkflowRunner(
         root=tmp_path / "work",
@@ -1810,14 +1883,18 @@ def test_headless_ssot_generation_canonicalizes_llm_ssot_before_pass(tmp_path: P
     result = runner.run(ip=ip, requirement_path=req, stages=["ssot-gen"])
 
     assert result.status == "pass"
+    assert len(provider.calls) == 2
+    assert (tmp_path / "work" / ip / "logs" / "llm" / "ssot-gen-repair-1.json").is_file()
+    assert not (tmp_path / "work" / ip / "logs" / "validators" / "repair_ssot_schema.log").exists()
     loaded = yaml.safe_load((tmp_path / "work" / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
     top_row = next(row for row in loaded["sub_modules"] if row["name"] == ip)
-    assert "decomposition" in top_row["decomposition_refs"]
+    assert top_row["wiring_only"] is True
+    assert any("decomposition" in ref for ref in top_row["decomposition_refs"])
     progress = (tmp_path / "work" / ip / "logs" / "run_progress.jsonl").read_text(encoding="utf-8")
-    assert "canonicalize_llm_ssot" in progress
+    assert "deterministic_repair_start" not in progress
 
 
-def test_cached_glm51_ssot_response_repairs_missing_cycle_before_downstream(tmp_path: Path):
+def test_cached_glm51_ssot_response_blocks_missing_cycle_without_script_authoring(tmp_path: Path):
     ip = "cached_missing_cycle_ip"
     req = _write_req(tmp_path, ip)
     fixture = tmp_path / "fixtures" / "glm_5_1" / "missing_cycle"
@@ -1849,10 +1926,11 @@ def test_cached_glm51_ssot_response_repairs_missing_cycle_before_downstream(tmp_
     )
     result = runner.run(ip=ip, requirement_path=req, stages=["ssot-gen", "fl-model-gen"])
 
-    assert result.status == "pass"
+    assert result.status == "blocked"
     ssot = yaml.safe_load((tmp_path / "work" / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
-    assert "cycle_model" in ssot
-    assert (tmp_path / "work" / ip / "logs" / "validators" / "repair_ssot_schema.log").is_file()
+    assert "cycle_model" not in ssot
+    assert not (tmp_path / "work" / ip / "logs" / "validators" / "repair_ssot_schema.log").exists()
+    assert (tmp_path / "work" / ip / "logs" / "llm" / "ssot-gen-repair-1.json").is_file()
 
 
 def test_ssot_gen_repairs_invalid_yaml_before_human_gate(tmp_path: Path):
@@ -1927,8 +2005,8 @@ def test_ssot_gen_canonicalizes_unquoted_expression_after_llm_repair(tmp_path: P
     assert "!enable && !clear && !start" in set(values(loaded))
 
 
-def test_ssot_gen_uses_deterministic_schema_repair_before_llm_retry(tmp_path: Path):
-    ip = "ssot_deterministic_repair_ip"
+def test_ssot_gen_uses_llm_schema_repair_before_human_gate(tmp_path: Path):
+    ip = "ssot_llm_repair_ip"
     req = _write_req(tmp_path, ip)
     doc = _base_ssot_doc(ip)
     doc["function_model"]["transactions"].append(
@@ -1950,10 +2028,30 @@ def test_ssot_gen_uses_deterministic_schema_repair_before_llm_retry(tmp_path: Pa
         {"id": "CCOV_BAD_TIMING_REF", "source_ref": "timing.latency_budget", "class": "timing", "description": "bad ref"}
     )
     bad_yaml = yaml.safe_dump(doc, sort_keys=False)
+    repair_doc = yaml.safe_load(bad_yaml)
+    tx = next(item for item in repair_doc["function_model"]["transactions"] if item["id"] == "FM_STATUS_POLL")
+    tx["preconditions"] = ["valid == 1"]
+    tx["outputs"] = ["status read is accepted and current accepted_count remains observable"]
+    tx["side_effects"] = ["accepted_count preserves its previous value"]
+    tx.setdefault("output_rules", []).append({"name": "ready", "port": "ready", "expr": "1", "width": 1})
+    repair_doc["cycle_model"]["performance"] = {
+        "latency_cycles": 1,
+        "throughput": "one transfer per cycle when valid and ready are asserted",
+    }
+    repair_doc["rtl_contract"]["transaction"] = "FM_SAMPLE"
+    for item in repair_doc["test_requirements"]["coverage_goals"]["function"]["bins"]:
+        if item["id"] == "FCOV_BAD_FEATURE_REF":
+            item["source_ref"] = "function_model.transactions.FM_STATUS_POLL"
+    for item in repair_doc["test_requirements"]["coverage_goals"]["cycle"]["bins"]:
+        if item["id"] == "CCOV_BAD_TIMING_REF":
+            item["source_ref"] = "cycle_model.pipeline.sample_to_result"
     _write_ssot_doc(tmp_path, ip, doc)
     assert _run_check_ssot(tmp_path, ip).returncode != 0
     provider = SequencedArtifactProvider(
-        [[{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": bad_yaml}]]
+        [
+            [{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": bad_yaml}],
+            [{"path": f"{ip}/yaml/{ip}.ssot.yaml", "kind": "ssot", "content": yaml.safe_dump(repair_doc, sort_keys=False)}],
+        ]
     )
     runner = HeadlessWorkflowRunner(
         root=tmp_path / "work",
@@ -1964,9 +2062,9 @@ def test_ssot_gen_uses_deterministic_schema_repair_before_llm_retry(tmp_path: Pa
     result = runner.run(ip=ip, requirement_path=req, stages=["ssot-gen"])
 
     assert result.status == "pass", json.dumps(result.to_dict(), indent=2)
-    assert len(provider.calls) == 1
-    assert (tmp_path / "work" / ip / "logs" / "validators" / "repair_ssot_schema.log").is_file()
-    assert not (tmp_path / "work" / ip / "logs" / "llm" / "ssot-gen-repair-1.json").exists()
+    assert len(provider.calls) == 2
+    assert not (tmp_path / "work" / ip / "logs" / "validators" / "repair_ssot_schema.log").exists()
+    assert (tmp_path / "work" / ip / "logs" / "llm" / "ssot-gen-repair-1.json").is_file()
     repaired = yaml.safe_load((tmp_path / "work" / ip / "yaml" / f"{ip}.ssot.yaml").read_text(encoding="utf-8"))
     tx = next(item for item in repaired["function_model"]["transactions"] if item["id"] == "FM_STATUS_POLL")
     assert tx["side_effects"]

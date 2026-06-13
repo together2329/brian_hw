@@ -7,6 +7,7 @@
 import { useEffect, useRef } from 'react';
 import type { VcdData, PinnedSignal } from './sim-debug-helpers';
 import type { ViewRange } from './sim-debug-root-shared';
+import { appendActiveSessionParam } from './active-session-query';
 
 export interface SimDebugIntentDeps {
   ipName: string;
@@ -22,6 +23,10 @@ export interface SimDebugIntentDeps {
   zoomFit: () => void;
   reorderByNames: (names: string[]) => void;
   setSignalColorByNames: (names: string[], color: string | null) => void;
+  setSignalRadixByNames: (names: string[], radix: string | null) => void;
+  removeSignalsFromWave: (items: PinnedSignal[]) => void;
+  keepOnlySignals: (items: PinnedSignal[]) => void;
+  clearWaveSignals: () => void;
   assignGroupByNames: (names: string[], tag: string, color?: string | null) => void;
   ungroupByNames: (names: string[]) => void;
   toggleGroupFold: (tag: string, folded?: boolean) => void;
@@ -83,8 +88,11 @@ const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     return scope && !name.toLowerCase().startsWith(scope.toLowerCase() + '.') ? `${scope}.${name}` : name;
   });
   // Pin the signals first for actions that act ON shown signals, so the
-  // group/color/order lands with them visible. trace/ungroup/fold don't add.
-  if (sigs.length && action !== 'trace' && action !== 'ungroup') d.pinSignalsToWave(sigs);
+  // group/color/radix/order lands with them visible. trace/ungroup/fold don't
+  // add, and remove must obviously not re-pin what it's about to drop.
+  if (sigs.length && action !== 'trace' && action !== 'ungroup' && action !== 'remove' && action !== 'keep') {
+    d.pinSignalsToWave(sigs);
+  }
 
   if (action === 'goto') {
     if (intent.t_start != null && intent.t_end != null) {
@@ -110,6 +118,16 @@ const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     if (sigNames.length) d.ungroupByNames(sigNames);
   } else if (action === 'color') {
     if (intent.color) d.setSignalColorByNames(sigNames, String(intent.color));
+  } else if (action === 'radix') {
+    // intent.radix HEX|DEC|BIN|FSM sets the override; missing/empty clears it
+    // (the 'off' case the agent tool sends as a dropped field).
+    if (sigNames.length) d.setSignalRadixByNames(sigNames, intent.radix ? String(intent.radix) : null);
+  } else if (action === 'remove') {
+    if (sigs.length) d.removeSignalsFromWave(sigs);
+  } else if (action === 'keep') {
+    if (sigs.length) d.keepOnlySignals(sigs);
+  } else if (action === 'clear') {
+    d.clearWaveSignals();
   } else if (action === 'fold' || action === 'unfold') {
     if (intent.group) d.toggleGroupFold(String(intent.group), action === 'fold');
   }
@@ -125,7 +143,8 @@ export const useSimDebugIntent = (deps: SimDebugIntentDeps): void => {
     let cancelled = false;
     const tick = async () => {
       try {
-        const r = await fetch('/api/sim_debug/intent?ip=' + encodeURIComponent(ipName), { cache: 'no-store' });
+        const intentParams = appendActiveSessionParam(new URLSearchParams({ ip: ipName }));
+        const r = await fetch('/api/sim_debug/intent?' + intentParams.toString(), { cache: 'no-store' });
         const d = await r.json();
         if (cancelled || !d || typeof d.seq !== 'number') return;
         const decision = shouldApplySimDebugIntent(ipName, d, intentSeqRef.current);

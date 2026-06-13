@@ -51,18 +51,18 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_fs_authz.py::test_unregistered_ip_denied_fail_closed"
-            observed_at: d3178b92
+            observed_at: 24e9b626
           - test: "tests/test_fs_authz.py::test_db_error_denies"
-            observed_at: d3178b92
+            observed_at: 24e9b626
       - id: OBL_PATH_TRAVERSAL_DENIED
         owned_by: runtime.authz
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_fs_authz.py::test_traversal_denied"
-            observed_at: d3178b92
+            observed_at: 24e9b626
           - test: "tests/test_api_sessions_content.py::test_session_history_path_traversal_rejected"
-            observed_at: d3178b92
+            observed_at: 24e9b626
       - id: OBL_SESS_AUTHORIZE_NO_FAIL_OPEN
         owned_by: api.sessions
         granularity: concurrent
@@ -86,35 +86,35 @@ requirements:
         status: closed   # 196b4b53: per-IP git REST(commit/log/graph/revert) _fs_authz 게이트
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_ip_git_rest_endpoints_cross_user_denied"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_IP_REPORTS_CROSS_TENANT_GATED
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: lint/coverage/ssot-gates per-IP authz
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_ip_report_endpoints_cross_user_denied"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_WORKSPACE_DOWNLOAD_GATED
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: /api/workspace/download.zip subpath authz + whole-tree 거부
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_workspace_download_blocks_cross_tenant_and_whole_tree"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_SETTINGS_ADMIN_ONLY_MULTIUSER
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: /api/settings/* 글로벌 .env 변조 → 멀티유저 admin-only
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_settings_endpoints_admin_only_in_multiuser"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       - id: OBL_GIT_ANON_READ_DEFAULT_OFF_MULTIUSER
         owned_by: runtime.authz
         granularity: behavior
         status: closed   # 196b4b53: 익명 git fetch/clone 멀티유저 기본 OFF
         evidence:
           - test: "tests/test_atlas_authz_e2e.py::test_git_default_blocks_anon_clone_in_multiuser"
-            observed_at: 41f19077
+            observed_at: 24e9b626
       # ── DEFERRED (리뷰 confirmed, 별도 Perforce-aware 패스 필요) ──
       - id: OBL_SCM_JSON_API_CROSS_TENANT_GATED
         owned_by: runtime.authz
@@ -138,6 +138,18 @@ requirements:
         granularity: behavior
         status: open   # 196b4b53 에서 fix는 반영(/api/conversation own-session, ssot-import
                        # owner gate)되었으나 전용 cross-tenant 테스트 미작성 → 테스트 추가 후 closed 승급
+      - id: OBL_WORKSPACE_OWN_PATH_NOT_OVERBLOCKED
+        owned_by: runtime.authz
+        granularity: behavior
+        status: closed   # authorize_path 가 멀티유저 워크스페이스 레이아웃
+                         # (<owner>/<workspace>/<ip>/...) 의 첫 세그먼트를 IP 이름으로 오분류 →
+                         # 소유자 본인 소스도 "no access to <owner>" 로 거부 (sim_debug 소스 패널).
+                         # owner-alias 매치를 추가해 본인 워크스페이스는 허용, 타 owner 는 여전히 fail-closed.
+        evidence:
+          - test: "tests/test_fs_authz.py::test_own_workspace_rooted_path_allowed"
+            observed_at: 24e9b626
+          - test: "tests/test_fs_authz.py::test_cross_user_workspace_rooted_path_denied"
+            observed_at: 24e9b626
 
   - id: REQ_PLAT_MEMORY_DURABILITY_001
     claim: "에이전트 메모리는 재시작·파손에도 보존/복구되고 사용자별로 격리된다"
@@ -264,9 +276,20 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_run_server_launcher.py::test_run_server_kills_only_listener_pids_line_by_line"
-            observed_at: e9142c20
+            observed_at: 30fa9ff3
           - test: "tests/test_run_server_launcher.py::test_run_server_build_failures_do_not_fall_through_to_server_start"
-            observed_at: e9142c20
+            observed_at: 30fa9ff3
+      - id: OBL_RUN_SERVER_KILLS_STRAY_ADMIN_BEFORE_START
+        owned_by: runtime.server
+        granularity: behavior
+        status: closed   # admin은 subprocess(_launch_admin_server)라 LISTEN 스윕을 빠져나가
+                         # :3002 점유 가능 → 이름 기반 stray kill(atlas_admin.py --port) +
+                         # 빌드 전/후 2회 포트 해제로 "address already in use" 재발 차단
+        evidence:
+          - test: "tests/test_run_server_launcher.py::test_run_server_kills_stray_admin_subprocess_not_just_listeners"
+            observed_at: 30fa9ff3
+          - test: "tests/test_run_server_launcher.py::test_run_server_frees_ports_before_and_after_build"
+            observed_at: 30fa9ff3
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
@@ -561,6 +584,39 @@ requirements:
           - test: "tests/test_orchestrator_chat_visibility_frontend.py::test_behavioral_vitest_suite_present"
             observed_at: d3178b92
 
+  - id: REQ_PLAT_SESSION_TODO_FRESHNESS_001
+    claim: "세션 worker는 UI/slash plane이 갱신한 세션 todo.json을 다음 실행 turn에서 즉시 읽어, auto-start TODO가 prose-only turn으로 유실되지 않는다"
+    design_anchor: doc/wiki/atlas-context-root-model-20260603.md
+    obligations:
+      - id: OBL_SESSION_WORKER_RELOADS_TODO_AFTER_INPUT
+        owned_by: runtime.server
+        granularity: concurrent
+        status: closed   # /finalize-req auto-start race: input() 대기 중 UI/slash가 쓴 todo.json을 post-input reload로 같은 turn에 반영
+        evidence:
+          - test: "tests/test_todo_session_binding.py::test_main_todo_reload_helper_rebinds_stale_global"
+            observed_at: b6e97f30
+          - test: "tests/test_todo_session_binding.py::test_chat_loop_reloads_todo_after_input_before_dispatch"
+            observed_at: b6e97f30
+          - test: "tests/test_atlas_multiuser_session_scope.py::test_req_lifecycle_templates_auto_start_and_kick"
+            observed_at: b6e97f30
+      - id: OBL_WORKER_RUN_TODO_IS_SESSION_ISOLATED
+        owned_by: runtime.server
+        granularity: concurrent
+        # 6765903f (APB timer relaxed-gate autonomy probe 2026-06-13):
+        # fl-model-gen worker was correctly scoped to apb_timer_pwm_irq_relaxed_v1,
+        # but its ReAct todo queue contained stale rtl-gen todos for
+        # apb_timer_pwm_irq_nogate_v1. The worker approved its new FL todo, then
+        # advanced to the stale cross-IP RTL todo under the relaxed_v1 write
+        # boundary. Fix: at each worker run, replace any TodoTracker whose
+        # persist path differs from the dispatched session todo.json, and bind
+        # config/lib/main todo globals to that tracker until finally-restore.
+        status: closed
+        evidence:
+          - test: "tests/test_todo_session_binding.py::test_worker_todo_tracker_for_session_replaces_stale_tracker"
+            observed_at: 6765903f
+          - test: "tests/test_todo_session_binding.py::test_worker_run_todo_binding_repoints_globals_then_restores"
+            observed_at: 6765903f
+
   - id: REQ_PLAT_ORCH_RESUME_001
     claim: "사람이 ask_user에 응답하면 paused orchestrator run은 그 응답을 소비해 재개한다 — 응답이 asking oneshot 종료와 레이스해도 좀비로 남지 않는다"
     design_anchor: doc/wiki/orchestrator-campaign-10ip-20260610.md
@@ -606,6 +662,23 @@ requirements:
             observed_at: 1d1edd4e
           - test: "tests/test_pipeline_orchestrator_worker_integration.py::test_non_orchestrator_dispatch_unaffected_by_upstream_red_gate"
             observed_at: 1d1edd4e
+      - id: OBL_ORCH_RELAXED_RED_BYPASS_CARRIES_FORCE
+        owned_by: agent.react-loop
+        granularity: behavior
+        status: closed
+        # APB timer autonomy probe 2026-06-13: orchestrator decided to proceed
+        # with rtl-gen despite red cl-model under relaxed progress-over-blocking
+        # policy, but dispatched without force=true. api.jobs correctly refused
+        # with upstream_stage_red: cl-model is red. The ReAct bridge/tool schema
+        # must let the orchestrator express that explicit relaxed override and
+        # carry it as payload.force=true into the existing dispatch gate.
+        evidence:
+          - test: "tests/test_orchestrator_dispatch_seed.py::test_react_bridge_maps_force_flag_to_dispatch_payload"
+            observed_at: 68512706
+          - test: "tests/test_orchestrator_tools.py::TestDispatchWorkflow::test_force_flag_is_carried_in_payload"
+            observed_at: 68512706
+          - test: "tests/test_orchestrator_tools.py::TestDispatchWorkflow::test_core_tool_force_flag_is_carried_in_payload"
+            observed_at: 68512706
       - id: OBL_ORCH_JOB_WAKE_CARRIES_REASON
         owned_by: api.jobs
         granularity: behavior
@@ -695,6 +768,129 @@ requirements:
         evidence:
           - test: "tests/test_orchestrator_budgets.py::TestBridgeIntegration::test_upstream_dispatch_resets_downstream_budget_automatically"
             observed_at: e1c74ff0
+      - id: OBL_ORCH_RUN_DECISION_TRACE_REPLAYABLE
+        owned_by: agent.react-loop
+        granularity: behavior
+        # 1d20b731 (finding 41): live autonomy probes are now persisted in
+        # orchestrator_steps/supervisor.log/wake.jsonl/stage artifacts, but a
+        # human still has to manually join those sources to answer "why did the
+        # orchestrator dispatch this workflow, wait on that job, or stop?"
+        # Provide a deterministic run_id trace CLI that replays step_index,
+        # tool/action args, dispatch workflow/job ids, verdicts, retry-budget
+        # snapshots, and optional supervisor/wake excerpts from the persisted
+        # evidence without requiring archaeology across four files.
+        status: closed
+        evidence:
+          - test: "tests/test_orch_trace_smoke.py::test_orch_trace_replays_dispatch_classify_and_final"
+            observed_at: 1d20b731
+          - test: "tests/test_orch_trace_smoke.py::test_orch_trace_json_output"
+            observed_at: 1d20b731
+      - id: OBL_ORCH_TRACE_SHARED_ACROSS_CLI_API_UI
+        owned_by: agent.react-loop
+        granularity: behavior
+        # finding 42: scripts/orch_trace.py proved the run_id trace shape, but
+        # the logic lived in a CLI-only script. Atlas UI needs the same view,
+        # and the live probe 5bb98205495e42b1b26030074d40b31f showed a
+        # tool_failed dispatch rendered too weakly while the supervisor
+        # response still said completed. Trace normalization must live in one
+        # reusable module consumed by CLI + /api/orchestrator/runs/{id}/trace +
+        # UI, and failed tools/no-job dispatches must be prominent enough that
+        # operators know not to wait.
+        status: closed
+        evidence:
+          - test: "tests/test_orch_trace_smoke.py::test_orch_trace_marks_completed_after_tool_failed_as_blocked"
+            observed_at: b06b7a4f
+          - test: "tests/test_orch_trace_smoke.py::test_terminal_blocker_detects_nonfinal_dispatch_without_job"
+            observed_at: b06b7a4f
+          - test: "tests/test_orchestrator_route.py::test_orchestrator_run_trace_api_returns_shared_latest_decision_trace"
+            observed_at: 5365da60
+          - test: "tests/test_orchestrator_react_loop_parity.py::TestToolErrorContinuesLoop::test_text_only_after_failed_dispatch_blocks_not_completed"
+            observed_at: 5365da60
+          - test: "tests/test_orch_trace_smoke.py::test_atlas_trace_strip_consumes_shared_decision_trace_api"
+            observed_at: b06b7a4f
+      - id: OBL_ORCH_TRACE_SURFACES_ACTIVE_WORKER_HEARTBEAT
+        owned_by: agent.react-loop
+        granularity: behavior
+        # finding 43: scratch_xor2_v1 live probe 294bfaaac6e3451db306457deefa38d5
+        # showed the shared decision trace correctly explained the TB->rtl-gen
+        # reroute, but then displayed only "yielded" while the active rtl-gen
+        # worker generated rtl_contract.json, resolved blockers, passed compile,
+        # and later stopped updating heartbeat/log without response.json. Atlas UI
+        # and CLI need the same active-worker overlay from workers-ipc metadata:
+        # job id, workflow/status, last_action, heartbeat/log age, response
+        # presence, and stale_worker flag. This must live in src/orchestrator/trace.py
+        # so CLI/API/UI remain one implementation.
+        status: closed
+        evidence:
+          - test: "tests/test_orch_trace_smoke.py::test_trace_surfaces_stale_active_worker_heartbeat"
+            observed_at: 583541ad
+          - test: "tests/test_orchestrator_route.py::test_orchestrator_run_trace_api_returns_shared_latest_decision_trace"
+            observed_at: 583541ad
+          - test: "tests/test_orch_trace_smoke.py::test_atlas_trace_strip_consumes_shared_decision_trace_api"
+            observed_at: 583541ad
+      - id: OBL_ORCH_FREE_PROCESS_FINAL_EVIDENCE_GATE
+        owned_by: agent.react-loop
+        granularity: behavior
+        # Operator feedback 2026-06-13: the orchestrator harness had become too
+        # prescriptive for strong models — strict per-turn tool-call recipes and
+        # guardrail prose pushed the model into fixed repair flows instead of
+        # letting it choose the cheapest evidence path. The orchestrator prompt
+        # should expose a small callable tool surface, leave ordering/recovery
+        # decisions to the model, and keep hard enforcement at evidence
+        # boundaries (tool results, worker validators, final completed gate).
+        status: closed
+        evidence:
+          - test: "tests/test_orchestrator_autonomy_prompt.py::test_orchestrator_prompt_treats_tools_as_capabilities_not_a_script"
+            observed_at: f98eda56
+          - test: "tests/test_orchestrator_autonomy_prompt.py::test_orchestrator_prompt_keeps_hardness_at_evidence_boundaries"
+            observed_at: f98eda56
+          - test: "tests/test_orchestrator_autonomy_prompt.py::test_orchestrator_tool_surface_is_shared_and_not_duplicated"
+            observed_at: f98eda56
+          - test: "tests/test_orchestrator_react_loop_parity.py::TestFinalizeEvidenceGate::test_final_completed_downgraded_to_blocked_on_red_stage"
+            observed_at: f98eda56
+      - id: OBL_ORCH_TRUTH_LOCK_WARNING_NOT_DISPATCH_GATE
+        owned_by: api.jobs
+        granularity: behavior
+        # Operator feedback 2026-06-13: APB timer autonomy probes showed the
+        # truth_not_locked dispatch hard gate prevents scratch IP creation from
+        # even starting. For autonomy tests, dispatch should create worker jobs
+        # and surface missing locked truth as warning metadata; downstream
+        # requirement, SSOT, worker, and final-evidence validators remain the
+        # authority for correctness. This keeps the pipeline flowing while
+        # preserving observability.
+        status: closed
+        evidence:
+          - test: "tests/test_dispatch_seed_direct.py::test_direct_dispatch_warns_but_runs_before_locked_truth"
+            observed_at: c99b88b5
+          - test: "tests/test_dispatch_seed_direct.py::test_dispatch_workflow_tool_warns_but_runs_before_locked_truth"
+            observed_at: c99b88b5
+      - id: OBL_ORCH_STANDALONE_BRIDGE_DISPATCHES_WITHOUT_ATLAS_CALLBACKS
+        owned_by: agent.react-loop
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          APB timer autonomy probe 2026-06-13
+          (doc/wiki/apb-timer-orchestrator-autonomy-probe-20260613.md):
+          standalone supervisor run 3f01f5e112ff4446b05820dc7984617e
+          reached the LLM but both read_pipeline_state and dispatch_workflow
+          failed with "parent ... bridge unavailable"; no ssot-gen job was
+          created. Atlas API/server mode registers the parent callbacks, but
+          the standalone launcher does not. Fix should reuse existing
+          core.tools dispatch/read fallbacks or register the same callbacks,
+          not duplicate dispatch logic.
+      - id: OBL_HEADLESS_LLM_CALL_STALENESS_PROMOTED_TO_RUN_STATE
+        owned_by: engine.stage
+        granularity: behavior
+        status: refuted
+        refuted_by: >-
+          APB timer autonomy probe 2026-06-13
+          (doc/wiki/apb-timer-orchestrator-autonomy-probe-20260613.md):
+          direct headless ssot-gen attempts with gpt-5.5 and gpt-5.4 wrote
+          llm_call_start and one heartbeat before entering
+          llm_provider.complete(), then produced no llm_call_end or LLM log.
+          src.progress_debug can diagnose stuck_llm_call, but that diagnosis is
+          not promoted into the orchestrator/API/UI run state; operators see
+          "running" while the only SSOT artifact is a one-line stub.
 
   - id: REQ_PLAT_MODEL_FIDELITY_001
     claim: "LLM/템플릿이 저작한 모델(FL, CL)은 하류로 흐르기 전 locked behavioral contract 대비 의미검증된다 — 허구 state/timing은 model 단계에서 차단되고 sim까지 조용히 새지 않는다 (Locked Truth → LLM 저작 → Evidence Validation)"
@@ -731,6 +927,65 @@ requirements:
             observed_at: 7f912a27
           - test: "tests/test_validate_cl_semantics.py::test_emit_cycle_model_blocks_on_fictional_timing"
             observed_at: 7f912a27
+      - id: OBL_ENGINEERING_CL_EMIT_WARNING_NOT_HARD_GATE
+        owned_by: engine.stage
+        granularity: behavior
+        # Operator feedback 2026-06-13: APB timer no-gate autonomy probe
+        # reached SSOT/FL, then cl-model failed only because ssot-cycle-model
+        # force-ran emit_fl_model from draft SSOT before the authored FL/CL path
+        # could continue. The generated-FL self-check hit natural-language rule
+        # prose ("write_mask_apply(...); CTRL.start...") and made CL a hard
+        # stop. In engineering/starter scratch runs this should be warning
+        # metadata plus expected CL artifact notes, not a dispatch blocker;
+        # signoff keeps the hard gate.
+        status: closed
+        evidence:
+          - test: "tests/test_workflow_stage_engine.py::test_engineering_cycle_model_warns_when_generated_fl_fails_after_authored_fl_exists"
+            observed_at: bc4f1ce2
+          - test: "tests/test_workflow_stage_engine.py::test_signoff_cycle_model_still_fails_when_generated_fl_fails"
+            observed_at: bc4f1ce2
+      - id: OBL_SSOT_RULE_EXPR_SOFT_NORMALIZES_SV_SYNTAX
+        owned_by: engine.stage
+        granularity: content
+        status: closed
+        # APB timer autonomy probe 2026-06-13: ssot-gen emitted SystemVerilog-ish
+        # rule expressions (8'h00 literals, &&/!, ternary, "addr inside {...}")
+        # into function_model/cycle_model expressions. FL/CL evaluators consume
+        # the Python-evaluable SSOT expression DSL, so these should be repaired
+        # by the existing soft repair normalizer, not turned into another hard
+        # dispatch gate. Non-normalizable expressions may still fail later at
+        # self-check with concrete evidence.
+        evidence:
+          - test: "tests/test_headless_llm_contracts.py::test_repair_ssot_schema_soft_normalizes_apb_style_sv_rule_expressions"
+            observed_at: 9c18cf17
+          - test: "tests/test_headless_llm_contracts.py::test_repair_ssot_schema_normalizes_verilog_rule_expressions"
+            observed_at: 9c18cf17
+      - id: OBL_SSOT_DEFAULT_FLOW_LLM_AUTHORS_SCRIPTS_VALIDATE
+        owned_by: engine.stage
+        granularity: behavior
+        status: closed
+        # Operator feedback 2026-06-13: the default SSOT path had drifted into
+        # "script authors, LLM watches" because prompts/todos told workers to
+        # run repair_ssot_schema.py before verify_ssot.py. That lets a broad
+        # schema-repair script inject placeholders and reshape function_model,
+        # as seen in the APB timer probe. Default flow must be: LLM writes and
+        # repairs YAML; scripts perform contract validation/reporting only.
+        # Manual /repair-ssot can remain an explicit rescue tool.
+        evidence:
+          - test: "tests/test_ssot_authoring_flow_contract.py::test_default_ssot_authoring_flow_uses_llm_edits_and_validator_checks_only"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_workflow_runner.py::test_fake_llm_headless_flow_repairs_missing_cycle_model"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_llm_contracts.py::test_headless_ssot_generation_uses_llm_repair_before_pass"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_llm_contracts.py::test_cached_glm51_ssot_response_blocks_missing_cycle_without_script_authoring"
+            observed_at: 96207c4a
+          - test: "tests/test_headless_llm_contracts.py::test_ssot_gen_uses_llm_schema_repair_before_human_gate"
+            observed_at: 96207c4a
+          - test: "tests/test_atlas_pipeline_contract.py::test_ssot_starter_prompt_strengthens_axi_apb_packet_contracts"
+            observed_at: 96207c4a
+          - test: "tests/test_atlas_pipeline_contract.py::test_ssot_gen_rtl_blocker_prompt_uses_resolver_driver"
+            observed_at: 96207c4a
       - id: OBL_TRUTH_COMBINATIONAL_WAIVER_AUTOSET
         owned_by: engine.stage
         granularity: content
@@ -872,15 +1127,40 @@ requirements:
       - id: OBL_TB_SUPPORTS_CLOCKLESS_DUT
         owned_by: engine.stage
         granularity: behavior
-        status: refuted
-        refuted_by: >-
-          generic cocotb TB 에미터(emit_goal_scoreboard_cocotb.py:512
-          contract.get("clock") or "clk")가 클럭리스 DUT 모드를 갖지 않음 —
-          rtl_contract.clock=None이어도 'clk'로 폴백해 input port 선언을 요구
-          (TB_CLOCK_PORT/TB_RESET_PORT 블로커). 순수 조합 IP는 harness용
-          clk/rst_n 핀을 SSOT에 되살려야만 TB/sim에 도달 가능. 라이브 증거
-          2026-06-11 run 919806f5 job 58f0a90b6e87 (campaign finding 25;
-          doc/wiki/orchestrator-campaign-10ip-20260610.md)
+        status: closed
+        # 5760b62b (finding 44; refuted finding 25 closed): generic cocotb TB
+        # 에미터가 clock/reset "none"을 실제 포트명으로 정규화해
+        # TB_CLOCK_PORT/TB_RESET_PORT/TB_RESET_ACTIVE blocker를 냄. 순수 조합
+        # DUT는 no_clock/no_reset 또는 명시적 none/null/no_clock/no_reset
+        # contract일 때 clock/reset 포트를 요구하지 않아야 하며, generated TB는
+        # RisingEdge 대신 Timer settle로 goal/sample/sweep을 진행해야 한다. live
+        # scratch_xor2_v1 run 294bfaaac6e3451db306457deefa38d5에서 같은 blocker
+        # 재현 후 플랫폼 fix 적용; 수동 TB regen + iverilog/cocotb sim 11/11 PASS.
+        evidence:
+          - test: "tests/test_tb_clockless_dut.py::test_manifest_accepts_explicit_clockless_resetless_contract"
+            observed_at: 5760b62b
+          - test: "tests/test_tb_clockless_dut.py::test_emitted_tb_uses_timer_wait_for_clockless_dut"
+            observed_at: 5760b62b
+          - test: "tests/test_tb_gen_clock_domain_sync.py::test_goal_scoreboard_template_waits_on_clock_or_timer"
+            observed_at: 5760b62b
+          - test: "tests/test_tb_stimulus_reset_and_constraint.py::test_reset_field_defaults_to_deasserted_for_active_low"
+            observed_at: 5760b62b
+      - id: OBL_RTL_PREFLIGHT_SUPPORTS_CLOCKLESS_DUT
+        owned_by: engine.stage
+        granularity: behavior
+        # finding 45: scratch_xor2_v1 proved TB clockless support alone is
+        # insufficient. The live worker could hand-author clockless RTL and
+        # rtl_contract.json, but the official ssot-rtl stage still blocked in
+        # ssot_to_rtl._find_clock_reset on RTL_CLOCK_PORT/RTL_RESET_PORT and
+        # stale rtl_blocked.json, so orchestrator gate truth regressed RED after
+        # a formal stage rerun. Pure combinational no_clock/no_reset contracts
+        # must pass RTL preflight without synthetic harness clk/rst_n.
+        status: closed
+        evidence:
+          - test: "tests/test_ssot_to_rtl_contract_questions.py::test_signoff_preflight_accepts_clockless_resetless_combinational_contract"
+            observed_at: fdfeef95
+          - test: "tests/test_tb_clockless_dut.py::test_manifest_accepts_explicit_clockless_resetless_contract"
+            observed_at: fdfeef95
       - id: OBL_SSOT_DISK_CHECK_WAIVER_CONSISTENT
         owned_by: engine.stage
         granularity: content
@@ -1017,3 +1297,25 @@ requirements:
         evidence:
           - test: "tests/test_core/test_prompt_builder.py::TestProjectWikiContext::test_stage_tagged_project_wiki_pages_are_injected"
             observed_at: dc563f27
+
+  - id: REQ_PLAT_PROMPT_INJECTION_TOGGLE_001
+    claim: "default/workflow prompt injection layers are operator-toggleable at runtime without disabling the base agent prompt or tool schema"
+    design_anchor: doc/wiki/atlas-context-root-model-20260603.md
+    obligations:
+      - id: OBL_PROMPT_INJECTION_RUNTIME_TOGGLE
+        owned_by: agent.prompt-builder
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_disabled_prompt_injection_keeps_base_but_suppresses_memory_and_wiki"
+            observed_at: 02f508ab
+          - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_prompt_injection_enabled_accepts_env_alias"
+            observed_at: 02f508ab
+          - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_prompt_injection_default_is_disabled"
+            observed_at: 02f508ab
+          - test: "tests/test_prompt_injection_toggle.py::test_prompt_injection_slash_command_toggles_runtime"
+            observed_at: 02f508ab
+          - test: "tests/test_prompt_injection_toggle.py::test_workspace_prompt_patch_respects_prompt_injection_toggle"
+            observed_at: 02f508ab
+          - test: "tests/test_prompt_injection_toggle.py::test_live_orchestrator_context_injector_noops_when_disabled"
+            observed_at: 02f508ab

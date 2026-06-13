@@ -121,7 +121,7 @@ def _jobs_from_response(response) -> list[dict[str, Any]]:
     return data.get("jobs") or []
 
 
-def test_direct_dispatch_blocks_before_locked_truth(tmp_path, monkeypatch):
+def test_direct_dispatch_warns_but_runs_before_locked_truth(tmp_path, monkeypatch):
     app, api_jobs = _install_dispatch_route(tmp_path, monkeypatch, approve_truth=False)
     handler = app.routes[("post", "/api/pipeline/dispatch")]
 
@@ -133,23 +133,33 @@ def test_direct_dispatch_blocks_before_locked_truth(tmp_path, monkeypatch):
     response = asyncio.get_event_loop().run_until_complete(handler(request))
     body = json.loads(response.body.decode("utf-8"))
 
-    assert response.status_code == 409
-    assert body["ok"] is False
-    assert body["error"] == "truth_not_locked"
+    assert response.status_code == 200
+    assert body["ok"] is True
     assert body["ip"] == "gray"
-    assert api_jobs._jobs == {}
+    assert body["locked_truth"]["warning"] == "truth_not_locked"
+    assert body["locked_truth"]["blocking"] is False
+    jobs = body.get("jobs") or []
+    assert jobs, "truth lock warning must not prevent job creation"
+    job = api_jobs._jobs[jobs[0]["job_id"]]
+    assert "[ATLAS TRUTH LOCK STATUS]" in job["prompt"]
+    assert "truth_not_locked" in job["prompt"]
 
 
-def test_dispatch_workflow_tool_blocks_before_locked_truth(tmp_path, monkeypatch):
+def test_dispatch_workflow_tool_warns_but_runs_before_locked_truth(tmp_path, monkeypatch):
     app, api_jobs = _install_dispatch_route(tmp_path, monkeypatch, approve_truth=False)
     callback = getattr(app, "dispatch_workflow_callback")
 
     result = callback(workflow="ssot-gen", ip="gray", payload={"session_id": "local-admin/default/gray/orchestrator"})
 
-    assert result["ok"] is False
-    assert result["error"] == "truth_not_locked"
+    assert result["ok"] is True
     assert result["source"] == "dispatch_workflow_tool"
-    assert api_jobs._jobs == {}
+    assert result["locked_truth"]["warning"] == "truth_not_locked"
+    assert result["locked_truth"]["blocking"] is False
+    jobs = result.get("jobs") or []
+    assert jobs, "truth lock warning must not prevent tool dispatch"
+    job = api_jobs._jobs[jobs[0]["job_id"]]
+    assert "[ATLAS TRUTH LOCK STATUS]" in job["prompt"]
+    assert "truth_not_locked" in job["prompt"]
 
 
 def test_direct_dispatch_user_seed_lands_in_worker_prompt(tmp_path, monkeypatch):

@@ -307,6 +307,46 @@ def test_per_model_session_without_alias_denied():
     assert not d.allow and d.status == 403
 
 
+# --------------------------------------------------------------------------- #
+# multi-user workspace-rooted layout — <owner>/<workspace>/<ip>/...
+# (AtlasContext.ip_root = atlas_root/user_name/workspace_session/ip_name).
+# The PROJECT_ROOT-relative path the gate sees leads with the OWNER segment,
+# not the IP name — the gate must not misread it as an unregistered IP and
+# fail-close the owner out of their own source (the sim_debug source panel bug).
+# --------------------------------------------------------------------------- #
+
+def test_own_workspace_rooted_path_allowed():
+    # alice reads her own workspace-rooted RTL: <alice>/<default>/<ip>/rtl/...
+    # The IP ("apb_timer_pwm_irq_v1") has no ip_blocks row here on purpose —
+    # ownership comes from the owner segment, exactly like /api/source serves it.
+    d = authorize_path(
+        "alice/default/apb_timer_pwm_irq_v1/rtl/pwm_irq_outputs.sv",
+        user_id="uid_alice", username="alice", db=_db(),
+    )
+    assert d.allow and d.kind == "workspace"
+
+
+def test_own_workspace_rooted_path_allowed_via_per_model_alias():
+    # Per-model isolation: on-disk owner segment is "alice__gpt5".
+    d = authorize_path(
+        "alice__gpt5/default/myip/rtl/top.sv",
+        user_id="uid_alice", username="alice",
+        owner_aliases={"alice", "alice__gpt5"}, db=_db(),
+    )
+    assert d.allow and d.kind == "workspace"
+
+
+def test_cross_user_workspace_rooted_path_denied():
+    # alice tries to read bob's workspace-rooted source. bob's owner segment is
+    # not one of alice's aliases, and "bob" is not a registered IP -> fail-closed.
+    d = authorize_path(
+        "bob/default/beta/rtl/top.sv",
+        user_id="uid_alice", username="alice",
+        owner_aliases={"alice"}, db=_db(),
+    )
+    assert not d.allow and d.status == 403
+
+
 def test_decision_truthiness():
     assert bool(AuthzDecision(True))
     assert not bool(AuthzDecision(False))

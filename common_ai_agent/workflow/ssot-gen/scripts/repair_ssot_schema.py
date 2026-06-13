@@ -1214,6 +1214,38 @@ def _find_top_level_char(text: str, target: str, start: int = 0) -> int:
     return -1
 
 
+def _split_top_level_commas(text: str) -> list[str]:
+    parts: list[str] = []
+    depth = 0
+    quote = ""
+    escaped = False
+    start = 0
+    for idx, ch in enumerate(text):
+        if escaped:
+            escaped = False
+            continue
+        if quote:
+            if ch == "\\":
+                escaped = True
+            elif ch == quote:
+                quote = ""
+            continue
+        if ch in {"'", '"'}:
+            quote = ch
+            continue
+        if ch in "([{":
+            depth += 1
+            continue
+        if ch in ")]}":
+            depth = max(depth - 1, 0)
+            continue
+        if ch == "," and depth == 0:
+            parts.append(text[start:idx].strip())
+            start = idx + 1
+    parts.append(text[start:].strip())
+    return [part for part in parts if part]
+
+
 def _convert_c_ternary_expr(text: str) -> str:
     q_idx = _find_top_level_char(text, "?")
     if q_idx < 0:
@@ -1229,15 +1261,98 @@ def _convert_c_ternary_expr(text: str) -> str:
     return f"({when_true} if {cond} else {when_false})"
 
 
-def _normalize_rule_expr(expr: Any) -> Any:
+_SV_INSIDE_RE = re.compile(
+    r"(?P<lhs>\b[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]+\])?)\s+inside\s*\{(?P<items>[^{}]+)\}"
+)
+
+
+def _convert_sv_inside_expr(text: str) -> str:
+    def repl(match: re.Match[str]) -> str:
+        lhs = match.group("lhs").strip()
+        items = _split_top_level_commas(match.group("items"))
+        if not lhs or not items:
+            return match.group(0)
+        return "(" + " or ".join(f"{lhs} == {item}" for item in items) + ")"
+
+    return _SV_INSIDE_RE.sub(repl, text)
+
+
+def _is_scalar_concat_part(part: str, scalar_names: set[str]) -> bool:
+    part = _strip_outer_parens(part.strip())
+    if re.fullmatch(r"[01]", part):
+        return True
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*\[[^\]]+\]", part):
+        return True
+    return part in scalar_names
+
+
+def _convert_zero_prefixed_concat(text: str, scalar_names: set[str]) -> str:
+    def repl(match: re.Match[str]) -> str:
+        parts = _split_top_level_commas(match.group(1))
+        if len(parts) < 2:
+            return match.group(0)
+        while parts and _strip_outer_parens(parts[0]) == "0":
+            parts.pop(0)
+        if not parts:
+            return "0"
+        if len(parts) == 1:
+            return parts[0]
+        if not all(_is_scalar_concat_part(part, scalar_names) for part in parts):
+            return match.group(0)
+        expr = parts[0]
+        for part in parts[1:]:
+            expr = f"(({expr}) << 1) | ({part})"
+        return f"({expr})"
+
+    return re.sub(r"\{([^{}]+)\}", repl, text)
+
+
+def _scalar_rule_symbols(doc: dict[str, Any]) -> set[str]:
+    names: set[str] = set()
+
+    def consider(item: Any) -> None:
+        if not isinstance(item, dict):
+            return
+        name = str(item.get("name") or item.get("port") or item.get("state") or "").strip()
+        try:
+            width = int(str(item.get("width", "")).strip())
+        except Exception:
+            width = 0
+        if name and width == 1:
+            names.add(name)
+
+    fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
+    for item in fm.get("state_variables") or []:
+        consider(item)
+    for tx in fm.get("transactions") or []:
+        if not isinstance(tx, dict):
+            continue
+        for key in ("output_rules", "state_updates"):
+            for rule in tx.get(key) or []:
+                consider(rule)
+    ports = ((doc.get("io_list") or {}).get("interfaces") or []) if isinstance(doc.get("io_list"), dict) else []
+    for interface in ports:
+        if not isinstance(interface, dict):
+            continue
+        for port in interface.get("ports") or []:
+            consider(port)
+    return names
+
+
+def _normalize_rule_expr(expr: Any, *, scalar_names: set[str] | None = None) -> Any:
     if not isinstance(expr, str):
         return expr
     text = expr.strip()
     if not text:
         return expr
+    scalar_names = scalar_names or set()
     text = re.sub(r"\b(\d+)?'[sS]?([bBoOdDhH])([0-9a-fA-F_xXzZ?]+)\b", _verilog_literal_to_int, text)
     text = re.sub(r"(?<![0-9A-Za-z_])'([01])(?![0-9A-Za-z_])", r"\1", text)
     text = re.sub(r"(?<![0-9A-Za-z_])'[xXzZ?](?![0-9A-Za-z_])", "0", text)
+    text = _convert_sv_inside_expr(text)
+    text = text.replace("&&", " and ").replace("||", " or ")
+    text = re.sub(r"(?<![=!<>])!(?!=)", " not ", text)
+    text = text.strip()
     text = _convert_c_ternary_expr(text)
     concat_shift = re.fullmatch(r"\(?\s*\{\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\s*<<\s*(\d+)\s*\)?", text)
     if concat_shift:
@@ -1248,30 +1363,32 @@ def _normalize_rule_expr(expr: Any) -> Any:
     zero_extend = re.fullmatch(r"\{?\s*0\s*,\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}?", text)
     if zero_extend:
         return zero_extend.group(1)
+    text = _convert_zero_prefixed_concat(text, scalar_names)
     return text
 
 
 def _normalize_machine_rule_exprs(doc: dict[str, Any]) -> None:
+    scalar_names = _scalar_rule_symbols(doc)
     fm = doc.get("function_model") if isinstance(doc.get("function_model"), dict) else {}
     for tx in fm.get("transactions") or []:
         if not isinstance(tx, dict):
             continue
         if "sample_condition" in tx:
-            tx["sample_condition"] = _normalize_rule_expr(tx.get("sample_condition"))
+            tx["sample_condition"] = _normalize_rule_expr(tx.get("sample_condition"), scalar_names=scalar_names)
         for key in ("output_rules", "state_updates"):
             for rule in tx.get(key) or []:
                 if not isinstance(rule, dict):
                     continue
                 for expr_key in ("expr", "expression", "value"):
                     if expr_key in rule:
-                        rule[expr_key] = _normalize_rule_expr(rule.get(expr_key))
+                        rule[expr_key] = _normalize_rule_expr(rule.get(expr_key), scalar_names=scalar_names)
     contract = doc.get("rtl_contract") if isinstance(doc.get("rtl_contract"), dict) else {}
     for rule in contract.get("output_rules") or []:
         if not isinstance(rule, dict):
             continue
         for expr_key in ("expr", "expression", "value"):
             if expr_key in rule:
-                rule[expr_key] = _normalize_rule_expr(rule.get(expr_key))
+                rule[expr_key] = _normalize_rule_expr(rule.get(expr_key), scalar_names=scalar_names)
 
 
 def _fm_list(fm: dict[str, Any], key: str) -> list[Any]:

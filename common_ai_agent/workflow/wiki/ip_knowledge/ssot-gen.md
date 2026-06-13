@@ -15,24 +15,24 @@ Transform requirements (or imported docs/RTL) into a complete, machine-parsable 
 
 ## How to run
 
-Run from the project root (the directory containing `<ip>/`). SSOT authoring is LLM-driven via `/new-ip <ip>`, `/import`, `/grill-me`, and `/to-ssot`; the deterministic scripts are repair/validation gates:
+Run from the project root (the directory containing `<ip>/`). SSOT authoring is LLM-driven via `/new-ip <ip>`, `/import`, `/grill-me`, and `/to-ssot`; deterministic scripts are contract checkers by default:
 
 ```bash
-# canonicalize the schema (writes ssot_downstream_blockers.json + .provenance.json)
-python3 workflow/ssot-gen/scripts/repair_ssot_schema.py <ip> --root . --mode engineering
 # validate shape + ATLAS Preview anchors + run check_ssot_disk.sh (writes req/ssot_validation.json)
 python3 workflow/ssot-gen/scripts/verify_ssot.py <ip> --root . --mode engineering
 # disk-truth pass/fail authority
 bash workflow/ssot-gen/scripts/check_ssot_disk.sh <ip> --root . --mode engineering
+# explicit rescue only: canonicalize an existing SSOT and write downstream blockers/provenance
+python3 workflow/ssot-gen/scripts/repair_ssot_schema.py <ip> --root . --mode engineering
 ```
 
-Modes are `starter` (3 sections), `engineering` (all except `dft`/`pnr`), and `signoff` (all 36). Keep `ssot_downstream_blockers.json` and `verify_ssot` blockers at zero before advancing to `/to-ssot` signoff or [[fl-model-gen]].
+Modes are `starter` (3 sections), `engineering` (all except `dft`/`pnr`), and `signoff` (all 36). Keep `verify_ssot` blockers at zero before advancing to `/to-ssot` signoff or [[fl-model-gen]]. When `/repair-ssot` is used explicitly, also inspect and clear `ssot_downstream_blockers.json`; do not treat repair output as a substitute for LLM-owned YAML semantics.
 
 ## Scripts
 
 | script | does |
 | --- | --- |
-| `repair_ssot_schema.py` | Upgrade an existing SSOT to canonical section order; derive missing model/sign-off sections from existing facts + approved Q&A; quote expression scalars; expand bracketed flow-mappings; write `req/ssot_downstream_blockers.json` and `<ip>.ssot.provenance.json`. Structure repair, not an IP generator. |
+| `repair_ssot_schema.py` | Explicit rescue tool: upgrade an existing SSOT to canonical section order; derive missing model/sign-off sections from existing facts + approved Q&A; quote expression scalars; expand bracketed flow-mappings; write `req/ssot_downstream_blockers.json` and `<ip>.ssot.provenance.json`. Structure repair, not the default authoring loop and not an IP generator. |
 | `verify_ssot.py` | Read-mostly validator: checks top-level shape (no `ssot:`/`sections:` wrapper, no legacy aliases), required-by-mode sections, ATLAS Preview anchors, and runs `check_ssot_disk.sh` internally; writes `req/ssot_validation.json` with `blockers`/`warnings`. |
 | `check_ssot_disk.sh` | Disk-truth pass/fail authority (file ≥ size threshold, all required section keys, parses as YAML, substantive function/cycle models, ≤5 live `<TBD>` markers). |
 | `validate_yaml.sh` | Cerberus schema validation across YAML SSOT files. |

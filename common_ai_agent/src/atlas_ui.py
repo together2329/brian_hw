@@ -7892,14 +7892,13 @@ def create_app():
                 "command": f"/to-ssot {ip}",
                 "script": "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py",
                 "run_command": (
-                    f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && "
                     f"python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" {ip} --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
                 ),
                 "instructions": [
                     f"Read `{ip}/req/import_manifest.json`, `{ip}/req/extracted_decisions.json`, `{ip}/wiki/import-evidence.md`, and every `source_refs` file before editing this section.",
                     f"Write only canonical `{section}` fields supported by imported evidence, approved Q&A, or explicit no-feature policy.",
                     "If source evidence is silent or contradictory, record a precise SSOT QA card instead of filling template defaults.",
-                    "After the YAML write, run repair_ssot_schema.py and verify_ssot.py with --root pointing at the active project root.",
+                    "After the YAML write, run verify_ssot.py with --root pointing at the active project root; fix any blockers by editing YAML.",
                 ],
                 "priority": "high" if evidence_keys else "normal",
                 "required": True,

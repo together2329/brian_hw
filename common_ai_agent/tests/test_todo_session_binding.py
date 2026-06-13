@@ -1,4 +1,5 @@
 import json
+import importlib
 import sys
 import types
 from pathlib import Path
@@ -58,9 +59,101 @@ def test_worker_tool_dispatch_binds_todo_runtime():
     assert 'session_overrides.get("TODO_FILE")' in source
 
 
+def test_worker_todo_tracker_for_session_replaces_stale_tracker(tmp_path):
+    from core import agent_server
+
+    old_path = tmp_path / "old_ip" / "todo.json"
+    new_path = tmp_path / "new_ip" / ".session" / "pipeline" / "todo.json"
+    old_tracker = _write_tracker(old_path, "old IP todo")
+
+    tracker = agent_server._worker_todo_tracker_for_session(old_tracker, str(new_path))
+
+    assert tracker is not old_tracker
+    assert Path(tracker._persist_path) == new_path
+    assert tracker.todos == []
+
+
+def test_worker_run_todo_binding_repoints_globals_then_restores(monkeypatch, tmp_path):
+    from core import agent_server
+    import lib.todo_tracker as todo_mod
+
+    old_path = tmp_path / "old" / "todo.json"
+    new_path = tmp_path / "new" / ".session" / "ip" / "fl-model" / "todo.json"
+    old_tracker = _write_tracker(old_path, "stale todo")
+    fresh_tracker = _write_tracker(new_path, "fresh session todo")
+    fake_main = types.ModuleType("main")
+    fake_src_main = types.ModuleType("src.main")
+    fake_main.todo_tracker = old_tracker
+    fake_src_main.todo_tracker = old_tracker
+
+    monkeypatch.setitem(sys.modules, "main", fake_main)
+    monkeypatch.setitem(sys.modules, "src.main", fake_src_main)
+    monkeypatch.setattr(config, "TODO_FILE", str(old_path), raising=False)
+    monkeypatch.setattr(todo_mod, "TODO_FILE", old_path, raising=False)
+
+    restore = agent_server._bind_worker_run_todo_state(
+        fresh_tracker,
+        {
+            "TODO_FILE": str(new_path),
+            "HISTORY_FILE": str(new_path.parent / "conversation.json"),
+            "TODO_ERROR_FILE": str(new_path.parent / "todo_error.json"),
+            "COST_FILE": str(new_path.parent / "cost.json"),
+            "SESSION_DIR": str(new_path.parent),
+            "ACTIVE_PROJECT": "new/ip/fl-model",
+        },
+    )
+    assert restore is not None
+    try:
+        assert Path(config.TODO_FILE) == new_path
+        assert Path(todo_mod.TODO_FILE) == new_path
+        assert fake_main.todo_tracker is fresh_tracker
+        assert fake_src_main.todo_tracker is fresh_tracker
+    finally:
+        restore()
+
+    assert Path(config.TODO_FILE) == old_path
+    assert Path(todo_mod.TODO_FILE) == old_path
+    assert fake_main.todo_tracker is old_tracker
+    assert fake_src_main.todo_tracker is old_tracker
+
+
 def test_interactive_tool_dispatch_binds_todo_runtime():
     source = Path("src/main.py").read_text(encoding="utf-8")
 
     assert "def execute_tool(" in source
     assert "with tools.scoped_todo_runtime(" in source
     assert 'getattr(config, "TODO_FILE", None)' in source
+
+
+def test_main_todo_reload_helper_rebinds_stale_global(monkeypatch, tmp_path):
+    main_mod = importlib.import_module("src.main")
+    stale_path = tmp_path / "old" / "todo.json"
+    session_path = tmp_path / ".session" / "brian" / "default" / "ip" / "default" / "todo.json"
+    stale_tracker = _write_tracker(stale_path, "stale todo")
+    session_tracker = _write_tracker(session_path, "fresh session todo")
+    session_tracker.mark_in_progress(0)
+
+    monkeypatch.setattr(main_mod.config, "ENABLE_TODO_TRACKING", True, raising=False)
+    monkeypatch.setattr(main_mod.config, "TODO_FILE", str(session_path), raising=False)
+    monkeypatch.setattr(main_mod, "todo_tracker", stale_tracker, raising=False)
+
+    fresh = main_mod._reload_todo_tracker_from_config()
+
+    assert fresh is main_mod.todo_tracker
+    assert Path(fresh._persist_path) == session_path
+    assert fresh.todos[0].content == "fresh session todo"
+    assert fresh.todos[0].status == "in_progress"
+
+
+def test_chat_loop_reloads_todo_after_input_before_dispatch():
+    source = Path("src/main.py").read_text(encoding="utf-8")
+
+    input_idx = source.index("user_input = _input_fn(")
+    reload_idx = source.index("# Refresh TODO after input returns.")
+    bang_idx = source.index('if user_input.startswith("!"):')
+    slash_idx = source.index("# Handle slash commands", bang_idx)
+    llm_idx = source.index("_process_chat_turn(user_input, _loop_state, _loop_deps)")
+
+    assert input_idx < reload_idx < bang_idx < slash_idx < llm_idx
+    reload_block = source[reload_idx:bang_idx]
+    assert "todo_tracker_main = _reload_todo_tracker_from_config()" in reload_block

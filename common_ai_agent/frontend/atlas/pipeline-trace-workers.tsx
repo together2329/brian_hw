@@ -4,6 +4,7 @@
 // worker snapshot helper. They own their own window bridges.
 import { useState, useEffect, useMemo } from 'react';
 import {
+  type OrchestratorDecisionTrace,
   type TraceEvent,
   type WorkerInfo,
   type WorkerSnapshot,
@@ -32,6 +33,13 @@ const orchestratorTraceUrl = (ip: string, limit: number): string => {
   const workspaceSession = activeWorkspaceSession();
   if (workspaceSession) params.set('workspace_session', workspaceSession);
   return `/api/orchestrator/trace?${params.toString()}`;
+};
+
+const orchestratorRunTraceUrl = (ip: string, limit: number): string => {
+  const params = new URLSearchParams({ ip, limit: String(limit) });
+  const workspaceSession = activeWorkspaceSession();
+  if (workspaceSession) params.set('workspace_session', workspaceSession);
+  return `/api/orchestrator/runs/latest/trace?${params.toString()}`;
 };
 
 export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: WorkerOrchestraBarProps) {
@@ -183,12 +191,30 @@ export function WorkerOrchestraBar({ ip, onSelectTarget, currentTarget }: Worker
 
 export function OrchestratorTraceStrip({ ip }: OrchestratorTraceStripProps) {
   const [events, setEvents] = useState<TraceEvent[]>([]);
+  const [decisionTrace, setDecisionTrace] = useState<OrchestratorDecisionTrace | null>(null);
   const [open, setOpen] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(true);
   useEffect(() => {
-    if (!ip) { setEvents([]); return; }
+    if (!ip) { setEvents([]); setDecisionTrace(null); return; }
     let dead = false;
     const fetchOnce = async () => {
+      let hasDecisionTrace = false;
+      try {
+        const r = await fetch(orchestratorRunTraceUrl(ip, 50));
+        if (r.ok) {
+          const j = await r.json();
+          if (!dead && j && j.run_id && Array.isArray(j.steps)) {
+            setDecisionTrace(j);
+            setEvents([]);
+            hasDecisionTrace = true;
+          } else if (!dead) {
+            setDecisionTrace(null);
+          }
+        }
+      } catch (_) {
+        if (!dead) setDecisionTrace(null);
+      }
+      if (hasDecisionTrace) return;
       try {
         const r = await fetch(orchestratorTraceUrl(ip, 20));
         if (!r.ok) return;
@@ -211,12 +237,19 @@ export function OrchestratorTraceStrip({ ip }: OrchestratorTraceStripProps) {
     return [...grouped.entries()].slice(0, 6);
   }, [events]);
   const lensGlyph: Record<string, string> = { interaction: '⇄', intermediate: '◐', result: '✓' };
+  const decisionSteps = Array.isArray(decisionTrace?.steps) ? decisionTrace!.steps! : [];
+  const decisionWorkers = Array.isArray(decisionTrace?.workers) ? decisionTrace!.workers! : [];
+  const run = decisionTrace?.run || null;
+  const runStatus = run?.effective_final_state || run?.final_state || run?.effective_status || run?.status || '';
+  const countText = decisionTrace && decisionTrace.run_id
+    ? `${decisionSteps.length} decisions`
+    : `${events.length} events`;
   return (
     <div className="pipe-trace-strip" data-open={open ? 'yes' : 'no'}>
       <div className="pipe-trace-head">
         <button className="pipe-trace-toggle" onClick={() => setOpen(v => !v)} aria-expanded={open}>
           <span>ORCHESTRATOR TRACE</span>
-          <span className="pipe-trace-count">{events.length} events</span>
+          <span className="pipe-trace-count">{countText}{runStatus ? ` · ${runStatus}` : ''}</span>
           <span className="pipe-trace-chev">{open ? '▾' : '▸'}</span>
         </button>
         {open && (
@@ -229,7 +262,61 @@ export function OrchestratorTraceStrip({ ip }: OrchestratorTraceStripProps) {
       </div>
       {open && (
         <div className="pipe-trace-body">
-          {events.length === 0 ? (
+          {decisionTrace && decisionTrace.run_id ? (
+            <div className="pipe-trace-group">
+              <div className="pipe-trace-corr">
+                run #{String(decisionTrace.run_id).slice(-8)}
+                {run?.model ? ` · ${run.model}` : ''}
+              </div>
+              {run?.terminal_anomaly && (
+                <div className="pipe-trace-row" data-status="failed" data-lens="result">
+                  <span className="pipe-trace-glyph">!</span>
+                  <span className="pipe-trace-step">!</span>
+                  <span className="pipe-trace-kind">terminal</span>
+                  <span className="pipe-trace-actor">orchestrator</span>
+                  <span className="pipe-trace-extra">{run.terminal_anomaly}</span>
+                </div>
+              )}
+              {decisionWorkers.map((w, i) => {
+                const stale = Boolean(w.stale);
+                const status = stale ? 'failed' : (w.response_present ? String(w.status || 'ok') : 'waiting');
+                const ageBits = [
+                  w.heartbeat_age_s != null ? `hb ${w.heartbeat_age_s}s` : '',
+                  w.log_age_s != null ? `log ${w.log_age_s}s` : '',
+                ].filter(Boolean).join(' · ');
+                return (
+                  <div key={`${decisionTrace.run_id}-worker-${w.job_id || i}`} className="pipe-trace-row" data-status={status} data-lens={stale ? 'result' : 'intermediate'}>
+                    <span className="pipe-trace-glyph">{stale ? '!' : (w.response_present ? '✓' : '◐')}</span>
+                    <span className="pipe-trace-step">{String(w.job_id || '?').slice(-6)}</span>
+                    <span className="pipe-trace-kind">{w.workflow || 'worker'}</span>
+                    <span className="pipe-trace-actor">{w.status || '?'}</span>
+                    <span className="pipe-trace-extra">
+                      {stale ? 'stale worker · ' : ''}
+                      {w.last_action || w.reason || ''}
+                      {ageBits ? ` · ${ageBits}` : ''}
+                    </span>
+                  </div>
+                );
+              })}
+              {decisionSteps.map((s, i) => {
+                const status = String(s.status || '');
+                const glyph = status === 'failed' ? '!' : (status === 'waiting' ? '◐' : '✓');
+                return (
+                  <div key={`${decisionTrace.run_id}-${s.step ?? i}`} className="pipe-trace-row" data-status={status} data-lens={status === 'waiting' ? 'intermediate' : 'result'}>
+                    <span className="pipe-trace-glyph">{glyph}</span>
+                    <span className="pipe-trace-step">#{s.step ?? i}</span>
+                    <span className="pipe-trace-kind">{s.tool || '?'}</span>
+                    <span className="pipe-trace-actor">{s.time || ''}</span>
+                    <span className="pipe-trace-extra">
+                      {s.detail || s.verdict || ''}
+                      {s.error ? ` · ${s.error}` : ''}
+                      {!s.error && s.why ? ` · ${s.why}` : ''}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : events.length === 0 ? (
             <div className="pipe-trace-empty">No trace events yet for <b>{ip}</b>. Dispatch a worker to populate.</div>
           ) : corrGroups.map(([corr, group]) => (
             <div className="pipe-trace-group" key={corr}>

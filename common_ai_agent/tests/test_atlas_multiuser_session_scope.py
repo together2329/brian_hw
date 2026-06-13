@@ -2510,9 +2510,9 @@ def test_req_lifecycle_templates_auto_start_and_kick(tmp_path, monkeypatch):
 
     # All three req-lifecycle templates seed task 1 → in_progress (runtime owns
     # the first transition, not the LLM) AND kick exactly one worker turn so the
-    # loop drives without a user message. lock-req drives too: invoking /lock-req
-    # is itself the explicit human approval.
-    cases = [("/draft-req", "ip_draft", 2), ("/finalize-req", "ip_final", 3), ("/lock-req", "ip_lock", 4)]
+    # loop drives without a user message. lock-req is approval + stamp/validate;
+    # invoking /lock-req is itself the explicit human approval.
+    cases = [("/draft-req", "ip_draft", 2), ("/finalize-req", "ip_final", 3), ("/lock-req", "ip_lock", 2)]
     for command, ip, n_tasks in cases:
         session_id = f"alice/default/{ip}/default"
         app.state.bridge._ensure_session(session_id)

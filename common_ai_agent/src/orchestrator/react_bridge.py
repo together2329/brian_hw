@@ -31,6 +31,7 @@ from src.orchestrator import tools as orch_tools
 from src.orchestrator.budgets import BudgetTracker
 from src.orchestrator.profile import ORCHESTRATOR_MODEL, ORCHESTRATOR_REASONING_EFFORT
 from src.orchestrator.prompts import SYSTEM_PROMPT, build_system_prompt, tool_schemas
+from src.orchestrator.trace import terminal_blocker_from_steps
 from src.orchestrator.ui_formatter import format_tool_call
 
 
@@ -478,6 +479,8 @@ def _bind_orchestrator_tools(
         user_seed = getattr(ctx, "user_seed", "") or ""
         if user_seed and not payload_in.get("user_seed"):
             payload_in["user_seed"] = user_seed
+        if bool(kw.get("force", False)):
+            payload_in["force"] = True
         ctx_user_id = getattr(ctx, "user_id", "") or ""
         ctx_session_id = getattr(ctx, "session_id", "") or ""
         if ctx_user_id:
@@ -499,6 +502,7 @@ def _bind_orchestrator_tools(
             model=kw.get("model", ""),
             run_mode=kw.get("run_mode", ""),
             exec_mode=kw.get("exec_mode", ""),
+            force=bool(kw.get("force", False)),
         )
         if isinstance(result, dict) and result.get("ok") is not False:
             reset_keys = _reset_downstream_budgets_for_targets([str(t) for t in targets])
@@ -1399,6 +1403,21 @@ class OrchestratorReactLoop:
                     })
                     continue
                 # LLM returned no more tool calls and no live workers remain.
+                # Do not mark a run completed if the last observable decision
+                # was a failed tool call or a dispatch that produced no job.
+                # The same shared trace helper powers the CLI/API/UI, so the
+                # persisted terminal state matches what operators see.
+                steps = self.db.list_orchestrator_steps(self.ctx.run_id, limit=1000) or []
+                blocker = terminal_blocker_from_steps(steps)
+                if blocker:
+                    self.db.update_orchestrator_run(
+                        self.ctx.run_id,
+                        status="blocked",
+                        final_state=str(blocker.get("kind") or "tool_failed"),
+                        ended=True,
+                    )
+                    run_row = self.db.get_orchestrator_run(self.ctx.run_id)
+                    break
                 self.db.update_orchestrator_run(
                     self.ctx.run_id, status="completed",
                     final_state="completed", ended=True,

@@ -213,6 +213,101 @@ _SERVER_ACCEPT_ANY_WORKFLOW: bool = False  # When True (--all-workflows), each /
 _SERVER_SESSION: str = ""
 _worker_todo_tracker = None   # TodoTracker instance shared across all runs on this worker
 
+
+def _paths_equal(left: Any, right: Any) -> bool:
+    try:
+        return Path(left).expanduser().resolve(strict=False) == Path(right).expanduser().resolve(strict=False)
+    except Exception:
+        return str(left or "") == str(right or "")
+
+
+def _worker_todo_tracker_for_session(existing: Any, todo_file: str):
+    """Return a TodoTracker bound to this run's session todo file.
+
+    A worker process can keep module-global todo state from a prior run. For
+    orchestrated pipeline jobs that is poison: a fl-model worker for IP B must
+    never continue an rtl-gen todo list from IP A. The per-run session path is
+    the authority; if the current tracker points anywhere else, replace it.
+    """
+    if not todo_file:
+        return existing
+    try:
+        if existing is not None and _paths_equal(getattr(existing, "_persist_path", None), todo_file):
+            return existing
+        from lib.todo_tracker import TodoTracker
+        return TodoTracker.load(Path(todo_file))
+    except Exception:
+        return existing
+
+
+def _bind_worker_run_todo_state(todo_tracker: Any, session_overrides: Dict[str, str]):
+    """Bind process globals to the per-run TodoTracker until restored.
+
+    ``run_cfg`` is passed to the ReAct loop, but some legacy paths still consult
+    ``config.TODO_FILE`` or ``main.todo_tracker`` directly. Keep those globals
+    session-scoped for the whole worker run so tool calls, prompt rendering, and
+    loop display all see one queue.
+    """
+    if todo_tracker is None or not session_overrides:
+        return None
+
+    previous_config: Dict[str, tuple[bool, Any]] = {}
+    previous_modules: Dict[Any, Any] = {}
+    previous_lib_todo: tuple[bool, Any] | None = None
+
+    try:
+        import config as _cfg
+        for key in ("HISTORY_FILE", "TODO_FILE", "TODO_ERROR_FILE", "COST_FILE", "SESSION_DIR", "ACTIVE_PROJECT"):
+            if key not in session_overrides:
+                continue
+            previous_config[key] = (hasattr(_cfg, key), getattr(_cfg, key, None))
+            setattr(_cfg, key, session_overrides[key])
+    except Exception:
+        pass
+
+    try:
+        import lib.todo_tracker as _tt
+        previous_lib_todo = (hasattr(_tt, "TODO_FILE"), getattr(_tt, "TODO_FILE", None))
+        if session_overrides.get("TODO_FILE"):
+            _tt.TODO_FILE = Path(session_overrides["TODO_FILE"])
+    except Exception:
+        previous_lib_todo = None
+
+    for module_name in ("main", "src.main", "__main__"):
+        module = sys.modules.get(module_name)
+        if module is None or not hasattr(module, "todo_tracker"):
+            continue
+        previous_modules[module] = getattr(module, "todo_tracker", None)
+        module.todo_tracker = todo_tracker
+
+    def _restore() -> None:
+        try:
+            import config as _cfg_restore
+            for key, (had_value, value) in previous_config.items():
+                if had_value:
+                    setattr(_cfg_restore, key, value)
+                elif hasattr(_cfg_restore, key):
+                    delattr(_cfg_restore, key)
+        except Exception:
+            pass
+        if previous_lib_todo is not None:
+            try:
+                import lib.todo_tracker as _tt_restore
+                had_value, value = previous_lib_todo
+                if had_value:
+                    _tt_restore.TODO_FILE = value
+                elif hasattr(_tt_restore, "TODO_FILE"):
+                    delattr(_tt_restore, "TODO_FILE")
+            except Exception:
+                pass
+        for module, value in previous_modules.items():
+            try:
+                module.todo_tracker = value
+            except Exception:
+                pass
+
+    return _restore
+
 # Log directory for persistent audit trail
 _LOG_DIR = os.getenv("AGENT_SERVER_LOG_DIR", "")
 
@@ -809,6 +904,7 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
     run_project_root = project_root or os.environ.get("ATLAS_PROJECT_ROOT") or _project_root
     locked_truth_snapshot = snapshot_locked_truth(run_project_root, ip)
     _trace_runtime_prev = None
+    _todo_binding_restore = None
     custom_system_prompt = str(system_prompt or "").strip()
     custom_agent_name = str(custom_agent or "").strip()
     custom_allowed_tools = allowed_tools
@@ -1081,6 +1177,11 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
                 run_todo_tracker = TodoTracker.load(session_dir / "todo.json") if config.ENABLE_TODO_TRACKING else None
             except Exception:
                 run_todo_tracker = _worker_todo_tracker
+            run_todo_tracker = _worker_todo_tracker_for_session(
+                run_todo_tracker,
+                session_overrides.get("TODO_FILE", ""),
+            )
+            _todo_binding_restore = _bind_worker_run_todo_state(run_todo_tracker, session_overrides)
             entry.add_log("system", f"Session '.session/{active_session}' active", role="system")
 
         # ── Build config mirror (all .config values + run overrides) ──
@@ -1888,6 +1989,11 @@ def _run_react_task(entry: RunEntry, task: str, model: str = "",
         _fire_callback(entry)
         _write_run_log(entry)
     finally:
+        if _todo_binding_restore is not None:
+            try:
+                _todo_binding_restore()
+            except Exception:
+                pass
         if _trace_runtime_prev is not None:
             try:
                 from core.atlas_trace import pop_trace_runtime as _pop_trace_runtime

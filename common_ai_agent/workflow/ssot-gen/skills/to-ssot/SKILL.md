@@ -243,15 +243,15 @@ enrichment instead of rewriting the whole SSOT:
    complete canonical SSOT. For a substantive existing SSOT, read it first
    and preserve user-authored facts while completing missing sections.
 8. **Validate before final handoff.** Use the workflow validators:
-  first run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`,
-   then run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
+   run `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
    `verify_ssot.py` also runs `check_ssot_disk.sh` and writes
    `<ip>/req/ssot_validation.json`. When Locked Truth is active, this verifier
    also gates that every req/obligation/contract/structural-contract ID appears in
    `traceability.locked_truth_projection` and that
    `custom.locked_truth_authority.bundle_sha256` matches the manifest.
-   If validation fails, fix the YAML and rerun. Do not run RTL/TB generators
-   from ssot-gen.
+   If validation fails, fix the YAML yourself and rerun. Do not run broad repair
+   scripts as the default authoring loop; `/repair-ssot` is a manual rescue
+   command. Do not run RTL/TB generators from ssot-gen.
 9. **Summary.** After writing, list:
   - the path written
   - whether it was generated from Locked Truth or unlocked chat context

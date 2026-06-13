@@ -17,7 +17,7 @@ Hard rules:
 Required first-pass YAML shape:
 
 - The first write should be compact, not a full generated book. Aim for 2-8 KB.
-- Include enough seed structure for `repair_ssot_schema.py` to expand the canonical schema: `top_module`, `sub_modules`, `parameters`, `io_list`, `features`, `dataflow`, `function_model`, `cycle_model`, `registers`, `interrupts`, `fsm`, `custom`, `test_requirements`, `quality_gates`, and `workflow_todos`.
+- Include the canonical schema sections directly in your YAML write: `top_module`, `sub_modules`, `parameters`, `io_list`, `features`, `dataflow`, `function_model`, `cycle_model`, `registers`, `interrupts`, `fsm`, `custom`, `test_requirements`, `quality_gates`, and `workflow_todos`.
 - `top_module` must include `name`, `file`, `version`, `type`, `description`, and `target`.
 - `sub_modules` must include ownership refs such as `implements`, `function_model_refs`, `cycle_model_refs`, `fsm_refs`, `register_refs`, or `dataflow_refs`.
 - `function_model.transactions` must not be prose-only. Non-reset transactions need `output_rules` or `state_updates` with machine-readable `expr`, `width`, and `port` or state names.
@@ -28,8 +28,8 @@ Expected action order for pipeline tasks:
 
 1. `read_file` for existing locked requirement files when present; otherwise use the visible orchestrator goal as starter input.
 2. `write_file` or equivalent file-write tool for a compact starter `<ip>/yaml/<ip>.ssot.yaml`.
-3. `run_command` for `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
-4. `run_command` for `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
+3. `run_command` for `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering`.
+4. If validation reports blockers, edit the YAML yourself and rerun the checker. `/repair-ssot` is an explicit rescue command, not the default pipeline path.
 5. Emit `[SSOT HANDOFF]` with exact SSOT path, assumptions, validation output summary, and next owner `rtl-gen`.
 
 Your last response must contain `Final Answer:`.

@@ -75,6 +75,46 @@ class TestDispatchWorkflow:
         assert seen["payload"]["scope"] == ["mod1"]
         assert "j1" in summary
 
+    def test_force_flag_is_carried_in_payload(self, monkeypatch):
+        seen = {}
+
+        def fake_bridge(**kwargs):
+            seen.update(kwargs)
+            return {"ok": True, "pipeline_run_id": "pr1", "jobs": [{"job_id": "j1"}]}
+
+        monkeypatch.setattr(orch_tools, "_dispatch_workflow_bridge", lambda: fake_bridge)
+
+        result, _summary = orch_tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip="ipA",
+            force=True,
+            reason="relaxed progress-over-blocking override",
+        )
+
+        assert result["ok"] is True
+        assert seen["payload"]["force"] is True
+
+    def test_core_tool_force_flag_is_carried_in_payload(self, monkeypatch):
+        core_tools = __import__("core.tools", fromlist=["dispatch_workflow"])
+        seen = {}
+
+        def fake_callback(**kwargs):
+            seen.update(kwargs)
+            return {"ok": True, "pipeline_run_id": "pr1", "jobs": [{"job_id": "j1"}]}
+
+        monkeypatch.setattr(core_tools, "_dispatch_workflow_callback", fake_callback)
+
+        raw = core_tools.dispatch_workflow(
+            workflow="rtl-gen",
+            ip="ipA",
+            force=True,
+            reason="relaxed progress-over-blocking override",
+        )
+
+        result = json.loads(raw)
+        assert result["ok"] is True
+        assert seen["payload"]["force"] is True
+
 
 class TestLocalFileTools:
     def test_write_and_replace_commit_to_ip_git_repo(self, tmp_path):
