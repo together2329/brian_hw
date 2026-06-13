@@ -490,6 +490,23 @@ requirements:
             observed_at: b6e97f30
           - test: "tests/test_atlas_multiuser_session_scope.py::test_req_lifecycle_templates_auto_start_and_kick"
             observed_at: b6e97f30
+      - id: OBL_WORKER_RUN_TODO_IS_SESSION_ISOLATED
+        owned_by: runtime.server
+        granularity: concurrent
+        # 6765903f (APB timer relaxed-gate autonomy probe 2026-06-13):
+        # fl-model-gen worker was correctly scoped to apb_timer_pwm_irq_relaxed_v1,
+        # but its ReAct todo queue contained stale rtl-gen todos for
+        # apb_timer_pwm_irq_nogate_v1. The worker approved its new FL todo, then
+        # advanced to the stale cross-IP RTL todo under the relaxed_v1 write
+        # boundary. Fix: at each worker run, replace any TodoTracker whose
+        # persist path differs from the dispatched session todo.json, and bind
+        # config/lib/main todo globals to that tracker until finally-restore.
+        status: closed
+        evidence:
+          - test: "tests/test_todo_session_binding.py::test_worker_todo_tracker_for_session_replaces_stale_tracker"
+            observed_at: 6765903f
+          - test: "tests/test_todo_session_binding.py::test_worker_run_todo_binding_repoints_globals_then_restores"
+            observed_at: 6765903f
 
   - id: REQ_PLAT_ORCH_RESUME_001
     claim: "사람이 ask_user에 응답하면 paused orchestrator run은 그 응답을 소비해 재개한다 — 응답이 asking oneshot 종료와 레이스해도 좀비로 남지 않는다"
