@@ -89,7 +89,8 @@ def test_ssot_starter_prompt_strengthens_axi_apb_packet_contracts() -> None:
     assert "buffering/backpressure behavior" in prompt
     assert "scoreboard checks" in prompt
     assert "Do not default to APB/register-only behavior" in prompt
-    assert "scripts as schema repair/validation/measurement gates only" in prompt
+    assert "scripts as contract validation/measurement gates only" in prompt
+    assert "repair_ssot_schema.py" not in prompt
     assert "Do not write or update locked truth files" in prompt
     assert f"Also write mctp_axi/req/mctp_axi_requirements.md" not in prompt
 
@@ -112,7 +113,8 @@ def test_ssot_gen_rtl_blocker_prompt_uses_resolver_driver() -> None:
     )
 
     assert "/resolve-rtl-blockers demo_ip --use-recommended-defaults" in prompt
-    assert "/repair-ssot demo_ip" in prompt
+    assert "/repair-ssot demo_ip" not in prompt
+    assert "verify_ssot.py" in prompt
     assert "do not rewrite the IP from scratch" in prompt
 
 

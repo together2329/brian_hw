@@ -83,12 +83,16 @@ These rules override any prior summary text or todo template wording. They preve
 
 ## DOWNSTREAM READINESS — author once, pass deterministically
 
-`repair_ssot_schema.py` now writes `<ip>/req/ssot_downstream_blockers.json` after canonicalization. Treat the issues there as ssot-gen repair work, not as rtl-gen or tb-gen work. Authoring the SSOT to satisfy them up front avoids fl/cl/equiv/rtl LLM token waste.
+`verify_ssot.py` and `check_ssot_disk.py` are contract checkers. Treat their
+blockers as ssot-gen repair work, not as rtl-gen or tb-gen work. Author the
+SSOT YAML yourself, then use checker output to make the next concrete
+`write_file` / `replace_in_file` edit. Do not rely on broad schema-repair
+scripts to author behavior or fill semantic placeholders for you.
 
 - **Expression DSL only.** Every `expr`, `sample_condition`, `state_updates.expr`, and invariant must parse as Python with `&&→and`, `||→or`, `!→not` plus `& | ^ ~`. Natural-language strings such as `"legal transaction accepted under cycle_model.handshake_rules"` are forbidden — translate them into a concrete boolean expression that references real ports/state.
 - **Every non-reset transaction needs machine-readable behavior.** Do not leave `function_model.transactions[].outputs` or `side_effects` as prose-only intent. Add `output_rules` with `name`, `expr`, `width`, and `port` for externally visible outputs, or `state_updates` with `name`, `expr`, and `width` for architectural state changes. Prose can remain as explanation, but it is not enough for FL/CL/scoreboard generation.
 - **No same-cycle output_rule cycles.** Within a single transaction, output_rule A may not depend on output_rule B that depends back on A. If you need an intermediate (e.g. `din_q_masked_next`), express it as a separate `state_updates` entry or a parameter-less helper, not as an output_rule referenced by other output_rules of the same transaction.
-- **Bit literals must be Python-evaluable.** Prefer decimal/hex (`0`, `1`, `(1 << WIDTH) - 1`) over SystemVerilog `'0`/`'1`/`'x`/`'z`. The repair pass canonicalizes simple cases (`'0`→`0`, `'1`→`1`, `4'h0`→`0`), but `{WIDTH{1'b0}}`-style fills should already be written as `0` in SSOT expressions.
+- **Bit literals must be Python-evaluable.** Prefer decimal/hex (`0`, `1`, `(1 << WIDTH) - 1`) over SystemVerilog `'0`/`'1`/`'x`/`'z`. Write `{WIDTH{1'b0}}`-style fills as `0` in SSOT expressions; validators report expression DSL violations, but you own the YAML edit.
 - **Every `sub_modules[]` entry must carry ownership refs.** Provide non-empty `implements:` or one of `function_model_refs` / `cycle_model_refs` / `fsm_refs` / `register_refs` / `dataflow_refs`. A sub_module with no refs cannot be linked to an equivalence goal and will block `equiv-goals`.
 - **Helper names from `_default_rule_helpers()` are reserved.** SSOT expressions may call `gray_to_bin`, `bin_to_gray`, `popcount`, `parity`, `clog2`, `min`, `max`, `abs`, `any`, `all`, `sum`, `len`, plus the model's own state/output rule names. `any`, `all`, and `sum` accept variadic args or a single list arg (e.g. from a generator expression). `range()` is supported inside generator expressions `(expr for var in range(N))`. Any other named call site must already exist as a state/output rule in the same transaction.
 - **Multi-cycle behaviour goes in `cycle_model.pipeline[*].output_rules` (opt-in).** For IPs whose externally observable outputs change cycle by cycle within a single transaction (UART tx_serial, AHB CPU PC/i_haddr, multi-stage pipelines), declare each pipeline stage's expected outputs as machine-readable rules: `cycle_model.pipeline: [{stage, cycle, action, output_rules: [{name, port, expr, width}]}]`. Same expression DSL as `function_model.transactions[*].output_rules`. To enable the scoreboard's per-cycle path, set `cycle_model.use_per_cycle_expected: true`. Expressions may reference RTL signal names (`pc`, `i_hready`, `req_i`, …); the runtime feeds them from the cocotb-observed values at sample time. The pipeline `cycle` field must be a non-negative integer for the auto-tag to fire; symbolic cycles (`"n+1"`, `"2..DATA_WIDTH"`) are valid spec but skipped by the auto-sample-cycle heuristic.
@@ -103,7 +107,11 @@ These rules override any prior summary text or todo template wording. They preve
 - **`transactions[*].preconditions` ordering — specific first, catch-all `FM_IDLE` last.** `FunctionalModel.step(inputs)` picks the first transaction whose preconditions ALL evaluate true. List concrete transactions (e.g. `FM_CLEAR`: `psel==1 and penable==1 and pwrite==1 and paddr==4`) first, then a catch-all (`FM_IDLE`: `preconditions: []`) last so the empty list always matches. Without a terminal catch-all the model crashes when nothing matches; without ordering, a permissive earlier transaction shadows a specific later one.
 - **Reference materials — read the wikis, browse demos as optional examples.** Treat `doc/wiki/atlas-new-ip-recipe.md` and `doc/wiki/atlas-ssot-flag-reference.md` as the authoritative starting material. The proven demo IPs (`apb_compare/`, `apb_gpio_demo/`, `apb_pulse_counter/`, `atcuart_mini/`, `apb_xor_demo/`) are reference examples, not hard dependencies — browse one if it resembles the shape of the new IP (CSR + combinational, output mirror, input-driven counter, FSM + APB, two-register XOR, etc.), but the rules above plus the new IP's own spec are the ground truth. Do not copy structure mechanically; do not couple the new IP to a demo IP's identity.
 
-If `ssot_downstream_blockers.json` is non-empty, the next ssot-gen action is to repair the SSOT YAML and re-run `repair_ssot_schema.py`. Do not advance to `/to-ssot` signoff, `fl-model-gen`, or downstream stages while blockers remain.
+If `verify_ssot.py` or `check_ssot_disk.py` reports blockers, the next ssot-gen
+action is to edit the SSOT YAML yourself and rerun the checker. Do not advance
+to `/to-ssot` signoff, `fl-model-gen`, or downstream stages while blockers
+remain. `/repair-ssot` is an explicit rescue command, not the default authoring
+loop.
 
 `python3 "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py" <ip> --root "$ATLAS_PROJECT_ROOT" --mode engineering` is the machine-checkable schema and Preview gate that complements `check_ssot_disk.sh`. It emits `<ip>/req/ssot_validation.json` with `blockers` (must fix) and `warnings` (should fix), and it runs `check_ssot_disk.sh` internally. Treat blockers like `ssot_downstream_blockers.json`: must clear before `/to-ssot` signoff. Blockers it catches today: wrapper sections such as `ssot:`/`sections:`, legacy top-level aliases such as `interface`/`register_map`/`errors`/`debug`/`dv_plan`, missing canonical top-level sections, missing ATLAS Preview anchors (`top_module.description`, `io_list.interfaces[].ports[]`, `function_model.transactions[]`, `cycle_model.pipeline[]`, scenarios, registers/no-register policy, FSM/no-FSM policy, and `test_requirements.scenarios[]`), Locked Truth projection gaps when `req/approval_manifest.json` values mark the bundle locked (`custom.locked_truth_authority` must match the manifest and `traceability.locked_truth_projection.requirements/obligations/contract_refs/structural_contracts/behavioral_contracts` must include every ID from the canonical req JSON files), locked behavioral contract model gaps where `req/behavioral_contracts.json` IDs are only listed in traceability or attached to anchor-only `function_model`/`cycle_model` rows instead of machine-readable Function/Cycle Model semantics, plus any `check_ssot_disk.sh` failure. Run it after each SSOT YAML write that touches function_model, cycle_model, state_variables, scenarios, traceability, custom locked-truth metadata, or top-level section shape.
 
@@ -697,12 +705,12 @@ workflow_todos:
       detail: "Use import manifest, extracted decisions, wiki import evidence, and approved Q&A as the only behavior sources; the template is schema/order only."
       command: "/to-ssot <ip>"
       script: "$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py"
-      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/repair_ssot_schema.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering && python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
+      run_command: "python3 \"$ATLAS_WORKFLOW_ROOT/ssot-gen/scripts/verify_ssot.py\" <ip> --root \"$ATLAS_PROJECT_ROOT\" --mode engineering"
       instructions:
         - "Read <ip>/req/import_manifest.json, <ip>/req/extracted_decisions.json, <ip>/wiki/import-evidence.md, and approved SSOT Q&A before writing."
         - "Populate canonical sections only from source-backed evidence or explicit no-feature policy."
         - "Do not copy example IP behavior from the template; preserve only the schema/order contract."
-        - "Run repair_ssot_schema.py and verify_ssot.py after the YAML edit and keep blockers open until fixed."
+        - "Run verify_ssot.py after each YAML edit and keep blockers open until you fix them in the YAML."
       criteria:
         - "SSOT YAML exists at <ip>/yaml/<ip>.ssot.yaml and uses the canonical top-level keys."
         - "Every imported numeric/register/interface fact traces to import manifest, import evidence, or approved Q&A."
