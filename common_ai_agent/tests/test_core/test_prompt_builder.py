@@ -21,6 +21,7 @@ from prompt_builder import (
     PromptContext,
     apply_memory_override,
     build_system_prompt,
+    prompt_injection_enabled,
     _build_system_prompt_str,
 )
 
@@ -299,6 +300,81 @@ class TestProjectWikiContext(unittest.TestCase):
         self.assertIn("doc/wiki/rtl-ownership.md", result)
         self.assertIn("RTL ownership lesson", result)
         self.assertNotIn("[[ssot-flags]]", result)
+
+
+class TestPromptInjectionToggle(unittest.TestCase):
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self._env = {
+            key: os.environ.get(key)
+            for key in (
+                "ATLAS_PROMPT_INJECTION",
+                "ENABLE_PROMPT_INJECTION",
+                "COMMON_AI_AGENT_HOME",
+                "ACTIVE_WORKSPACE",
+                "ATLAS_ACTIVE_IP",
+            )
+        }
+
+    def tearDown(self):
+        for key, value in self._env.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
+        self.tmp.cleanup()
+
+    def test_disabled_prompt_injection_keeps_base_but_suppresses_memory_and_wiki(self):
+        class MockMemory:
+            def format_all_for_prompt(self, workflow=None):
+                return "Stored rule should not appear"
+
+        root = Path(self.tmp.name)
+        wiki = root / "doc" / "wiki"
+        wiki.mkdir(parents=True)
+        (wiki / "_graph.json").write_text(
+            json.dumps(
+                {
+                    "schema_version": "wiki_graph.v1",
+                    "nodes": [
+                        {
+                            "id": "rtl-ownership",
+                            "title": "RTL Ownership",
+                            "tags": ["rtl-gen"],
+                            "path": "doc/wiki/rtl-ownership.md",
+                            "summary": "Wiki rule should not appear.",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        os.environ["COMMON_AI_AGENT_HOME"] = str(root)
+        os.environ["ACTIVE_WORKSPACE"] = "rtl-gen"
+        os.environ["ATLAS_ACTIVE_IP"] = "demo_ip"
+        cfg = _make_cfg(ENABLE_PROMPT_INJECTION=False, PROJECT_WIKI_CONTEXT_LIMIT=1)
+
+        result = build_system_prompt(
+            messages=[{"role": "user", "content": "fix rtl ownership"}],
+            cfg=cfg,
+            context=PromptContext(memory_system=MockMemory()),
+            build_base_fn=_make_base_prompt_fn("BASE\n\nRULES:\n- base"),
+        )
+
+        self.assertEqual(result, "BASE\n\nRULES:\n- base")
+        self.assertNotIn(MEMORY_OVERRIDE_START, result)
+        self.assertNotIn(PROJECT_WIKI_CONTEXT_START, result)
+        self.assertNotIn("Stored rule should not appear", result)
+        self.assertNotIn("Wiki rule should not appear", result)
+
+    def test_prompt_injection_enabled_accepts_env_alias(self):
+        os.environ["ENABLE_PROMPT_INJECTION"] = "false"
+        os.environ.pop("ATLAS_PROMPT_INJECTION", None)
+        self.assertFalse(prompt_injection_enabled())
+
+        os.environ["ATLAS_PROMPT_INJECTION"] = "on"
+        self.assertTrue(prompt_injection_enabled())
 
 
 if __name__ == '__main__':

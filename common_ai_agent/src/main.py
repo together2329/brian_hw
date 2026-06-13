@@ -267,6 +267,12 @@ def _setup_workspace(name: str) -> None:
                 base = _orig(ctx, **kwargs) if ctx is not None else _orig(**kwargs)
                 if isinstance(base, dict):
                     base = (base.get("static", "") + "\n\n" + base.get("dynamic", "")).strip()
+                try:
+                    import config as _cfg
+                    if not _pb.prompt_injection_enabled(_cfg):
+                        return base
+                except Exception:
+                    pass
                 merged = merge_prompt(base, _ws_text, _ws_mode)
                 # Surface incremental-write directives at the top of
                 # the system prompt so the active workspace prompt can

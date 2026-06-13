@@ -1025,3 +1025,23 @@ requirements:
         evidence:
           - test: "tests/test_core/test_prompt_builder.py::TestProjectWikiContext::test_stage_tagged_project_wiki_pages_are_injected"
             observed_at: dc563f27
+
+  - id: REQ_PLAT_PROMPT_INJECTION_TOGGLE_001
+    claim: "default/workflow prompt injection layers are operator-toggleable at runtime without disabling the base agent prompt or tool schema"
+    design_anchor: doc/wiki/atlas-context-root-model-20260603.md
+    obligations:
+      - id: OBL_PROMPT_INJECTION_RUNTIME_TOGGLE
+        owned_by: agent.prompt-builder
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_disabled_prompt_injection_keeps_base_but_suppresses_memory_and_wiki"
+            observed_at: 96758073
+          - test: "tests/test_core/test_prompt_builder.py::TestPromptInjectionToggle::test_prompt_injection_enabled_accepts_env_alias"
+            observed_at: 96758073
+          - test: "tests/test_prompt_injection_toggle.py::test_prompt_injection_slash_command_toggles_runtime"
+            observed_at: 96758073
+          - test: "tests/test_prompt_injection_toggle.py::test_workspace_prompt_patch_respects_prompt_injection_toggle"
+            observed_at: 96758073
+          - test: "tests/test_prompt_injection_toggle.py::test_live_orchestrator_context_injector_noops_when_disabled"
+            observed_at: 96758073

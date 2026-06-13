@@ -153,6 +153,15 @@ def _append_to_system_message(messages: List[dict], block: str) -> None:
         content.append({"type": "text", "text": sep})
 
 
+def _prompt_injection_enabled() -> bool:
+    try:
+        import config  # type: ignore
+        from core.prompt_builder import prompt_injection_enabled
+        return prompt_injection_enabled(config)
+    except Exception:
+        return True
+
+
 def build_orchestrator_inject_fn(db: Any, bridge: Any) -> Callable[[List[dict], str], None]:
     """Return a callable suitable for ReactLoopDeps.orchestrator_inject_fn.
 
@@ -186,6 +195,8 @@ def build_orchestrator_inject_fn(db: Any, bridge: Any) -> Callable[[List[dict], 
 
     def _inject(messages: List[dict], agent_mode: str) -> None:
         if not messages or messages[0].get("role") != "system":
+            return
+        if not _prompt_injection_enabled():
             return
 
         session = _resolve_session()
