@@ -247,6 +247,37 @@ def test_sim_debug_trace_find_value_dispatch(tmp_path, monkeypatch):
     assert calls[2][5] == 500                                # at threaded
 
 
+def test_sim_debug_search_and_source_actions(tmp_path, monkeypatch):
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPS2")
+    rtl = tmp_path / "IPS2" / "rtl"
+    rtl.mkdir(parents=True)
+    (rtl / "timer_core.sv").write_text(
+        "module timer_core;\n"
+        "  always_ff @(posedge clk) if (wrap_next) count_q <= '0;\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    from core.tools import sim_debug
+
+    # text search of the IP source ("actually read it") jumps to the top hit
+    msg = sim_debug(action="search", pattern="wrap_next")
+    assert "wrap_next" in msg and "timer_core.sv:2" in msg
+    intent = sdi.get_intent("IPS2")
+    assert intent["action"] == "source" and intent["line"] == 2
+    assert intent["path"].endswith("timer_core.sv")
+
+    assert "no source match" in sim_debug(action="search", pattern="zzz_nomatch_xyz")
+    assert "pattern" in sim_debug(action="search")          # guard
+
+    # explicit open of a source file:line
+    o = sim_debug(action="source", path="IPS2/rtl/timer_core.sv", line=2)
+    assert "opened" in o
+    op = sdi.get_intent("IPS2")
+    assert op["action"] == "source" and op["line"] == 2
+    assert "path" in sim_debug(action="source")             # guard
+
+
 def test_sim_debug_unknown_action_lists_all_actions(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPU")
@@ -255,8 +286,8 @@ def test_sim_debug_unknown_action_lists_all_actions(tmp_path, monkeypatch):
     assert "unknown action" in msg
     # every supported action is advertised so the agent can self-correct
     for act in ("show", "goto", "cursor", "fit", "reorder", "group", "ungroup",
-                "color", "radix", "remove", "keep", "clear", "fold", "unfold",
-                "trace", "find", "value"):
+                "rename", "color", "radix", "remove", "keep", "clear", "fold", "unfold",
+                "search", "source", "trace", "find", "value"):
         assert act in msg, f"{act} missing from help"
 
 

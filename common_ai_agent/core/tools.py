@@ -8294,6 +8294,47 @@ def verify_ssot(ip: str = "", mode: str = "engineering", root: str = "", preview
     return out or f"[verify_ssot] verifier exited {proc.returncode} with no output"
 
 
+_SIM_DEBUG_SRC_EXTS = (".sv", ".v", ".svh", ".vh")
+
+
+def _sim_debug_search_source(ip, pattern, max_hits=40):
+    """Grep the active IP's RTL/TB source (text — 'actually read it') for a regex.
+
+    Returns (hits, error) where hits = [{abs, rel, line, text}] sorted by file
+    then line. `rel` is the /common_ai_agent-relative path the source viewer
+    opens. Scoped to the IP dir so it finds the design's relevant parts (a
+    condition, an FSM state, a signal use) without scanning the whole tree.
+    """
+    root = Path(os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd())
+    ip_dir = (root / str(ip or "").strip()) if ip else root
+    if not ip_dir.is_dir():
+        return [], f"ip dir not found: {ip_dir}"
+    try:
+        rx = re.compile(pattern, re.IGNORECASE)
+    except re.error as e:
+        return [], f"bad regex {pattern!r}: {e}"
+    marker = "/common_ai_agent/"
+    hits = []
+    for fp in sorted(ip_dir.rglob("*")):
+        if len(hits) >= max_hits:
+            break
+        if fp.suffix.lower() not in _SIM_DEBUG_SRC_EXTS or not fp.is_file():
+            continue
+        try:
+            text = fp.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        ap = str(fp.resolve())
+        idx = ap.find(marker)
+        rel = ap[idx + len(marker):] if idx >= 0 else ap
+        for n, ln in enumerate(text.splitlines(), 1):
+            if rx.search(ln):
+                hits.append({"abs": ap, "rel": rel, "line": n, "text": ln.strip()[:160]})
+                if len(hits) >= max_hits:
+                    break
+    return hits, ""
+
+
 def _sim_debug_siglist(signals, signal):
     """Normalize signals="a, b" + signal="c" into an ordered, deduped list."""
     out = []
@@ -8311,7 +8352,7 @@ def _sim_debug_siglist(signals, signal):
 
 def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
               cursor_a=None, cursor_b=None, edge="rising", nth=1, at=None,
-              group="", color="", scope="", radix="", to=""):
+              group="", color="", scope="", radix="", to="", pattern="", path="", line=None):
     """Drive and query the ATLAS Sim Debug waveform panel from chat.
 
     The action both (a) returns analysis text to you and (b) updates the open
@@ -8339,8 +8380,12 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
                 displayed row (use for "I need only X"). signals="a,b".
       clear   — remove ALL signals from the waveform.
       fold / unfold — collapse / expand a group. group="name".
+      search  — grep the IP's RTL/TB source (text) for pattern="<regex>" and
+                jump the source pane to the top hit (find a condition, an FSM
+                state, where a signal is used). Returns ranked file:line matches.
+      source  — open a source file in the panel. path="<file>", optional line=N.
       trace   — pyslang: report a signal's driver + load sites (file:line) and
-                show the trace in the panel. (signal=…)
+                show the trace in the panel — the structural driving/loading view. (signal=…)
       find    — VCD: time of a signal's edge (edge=rising|falling|any, nth=1),
                 then jump the panel there with the signal shown. (signal=…, optional scope=…)
       value   — VCD: value of a signal at time `at` ns. (signal=…, at=…, optional scope=…)
@@ -8514,6 +8559,37 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
         push_intent(ip, act, group=grp)
         return f"✓ Sim Debug: {act}ed group '{grp}' ({where})."
 
+    if act in ("search", "grep"):
+        pat = str(pattern or signal or "").strip()
+        if not pat:
+            return "[sim_debug search: pass pattern=\"regex or text\" to find in the IP source]"
+        hits, err = _sim_debug_search_source(ip, pat)
+        if err:
+            return f"[sim_debug search: {err}]"
+        if not hits:
+            return f"✓ Sim Debug: no source match for /{pat}/ in {where}."
+        # Jump the source pane to the top hit so the user lands on it.
+        top = hits[0]
+        push_intent(ip, "source", path=top["abs"], line=top["line"])
+        lines = [f"✓ Sim Debug: {len(hits)} source match(es) for /{pat}/ ({where}) — opened {top['rel']}:{top['line']}:"]
+        for h in hits[:20]:
+            lines.append(f"  {h['rel']}:{h['line']}: {h['text']}")
+        if len(hits) > 20:
+            lines.append(f"  …(+{len(hits) - 20} more)")
+        return "\n".join(lines)
+
+    if act in ("source", "open"):
+        p = str(path or "").strip()
+        if not p:
+            return "[sim_debug source: pass path=\"<src file>\" and optional line=N]"
+        ln = None
+        try:
+            ln = int(line) if line is not None else None
+        except (TypeError, ValueError):
+            ln = None
+        push_intent(ip, "source", path=p, line=ln)
+        return f"✓ Sim Debug: opened {p}{(':' + str(ln)) if ln else ''} in the source pane ({where})."
+
     if act in ("trace", "find", "value"):
         # Implemented in Phase B/C via core.sim_debug_analyze.
         try:
@@ -8526,7 +8602,7 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
 
     return ("[sim_debug: unknown action '" + act + "'. "
             "Use: show, goto, cursor, fit, reorder, group, ungroup, rename, color, "
-            "radix, remove, keep, clear, fold, unfold, trace, find, value]")
+            "radix, remove, keep, clear, fold, unfold, search, source, trace, find, value]")
 
 
 # Registry of available tools

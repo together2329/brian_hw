@@ -23,6 +23,7 @@ const makeDeps = () => ({
   ungroupByNames: vi.fn(),
   renameGroup: vi.fn(),
   toggleGroupFold: vi.fn(),
+  loadSourceFile: vi.fn(),
 });
 
 describe('sim debug intent polling decisions', () => {
@@ -155,6 +156,13 @@ describe('applyIntent dispatch for chat waveform actions', () => {
     applyIntent(d, { action: 'color', signals: ['irq'], color: '#ff0000' });
     expect(d.pinSignalsToWave).toHaveBeenCalledTimes(1);
     expect(d.setSignalColorByNames).toHaveBeenCalledWith(['irq'], '#ff0000');
+  });
+
+  it('source opens a file at a line (search jump), normalizing the path', () => {
+    const d = makeDeps();
+    applyIntent(d, { action: 'source', path: '/x/common_ai_agent/owner/ws/ip/rtl/timer_core.sv', line: 34 });
+    expect(d.loadSourceFile).toHaveBeenCalledWith('owner/ws/ip/rtl/timer_core.sv', 34);
+    expect(d.setTopTab).toHaveBeenCalledWith('wave');
   });
 
   it('rename changes a group name (old → new)', () => {

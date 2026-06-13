@@ -27,6 +27,7 @@ _LOCK = threading.Lock()
 VALID_ACTIONS = frozenset({
     "show", "goto", "cursor", "trace", "fit", "reorder", "group", "ungroup",
     "rename", "color", "radix", "remove", "keep", "clear", "fold", "unfold",
+    "source",
 })
 
 

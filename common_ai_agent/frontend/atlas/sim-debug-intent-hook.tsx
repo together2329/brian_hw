@@ -6,6 +6,7 @@
 // poll always calls the freshest handlers without resetting the interval.
 import { useEffect, useRef } from 'react';
 import type { VcdData, PinnedSignal } from './sim-debug-helpers';
+import { normalizeProjectSourcePath } from './sim-debug-helpers';
 import type { ViewRange } from './sim-debug-root-shared';
 import { appendActiveSessionParam } from './active-session-query';
 
@@ -31,6 +32,7 @@ export interface SimDebugIntentDeps {
   ungroupByNames: (names: string[]) => void;
   renameGroup: (oldTag: string, newTag: string) => void;
   toggleGroupFold: (tag: string, folded?: boolean) => void;
+  loadSourceFile: (path: string, cursorLine?: number) => void;
 }
 
 export interface SimDebugIntentDecision {
@@ -109,6 +111,12 @@ export const applyIntent = (d: SimDebugIntentDeps, intent: any): void => {
     d.setTopTab('wave');
   } else if (action === 'trace') {
     if (sigs.length) { d.setTopTab('wave'); d.runSignalTrace(String(sigs[0].name), String(sigs[0].scope || '')); }
+  } else if (action === 'source') {
+    // Open a source file (e.g. a `search` hit) in the panel at the given line.
+    if (intent.path) {
+      d.setTopTab('wave'); d.setExpand('split');
+      d.loadSourceFile(normalizeProjectSourcePath(String(intent.path)), Number(intent.line) || 0);
+    }
   } else if (action === 'fit') {
     d.zoomFit();
   } else if (action === 'reorder') {
