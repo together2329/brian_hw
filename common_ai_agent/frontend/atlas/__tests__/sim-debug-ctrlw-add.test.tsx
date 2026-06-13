@@ -257,6 +257,35 @@ describe('SimDebug Ctrl+W signal add', () => {
     }
   });
 
+  it('grabbing a single source identifier and dropping on the wave adds just it', async () => {
+    const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
+    await openModuleSignals(container);
+
+    // caret always resolves to "clk" in the ports line (the grabbed token).
+    const code = Array.from(container.querySelectorAll<HTMLElement>('[data-src-code]'))
+      .find(el => el.textContent?.includes('clk, rst, irq'))!;
+    const textNode = code.firstChild as Text;
+    const clkOffset = (textNode.textContent || '').indexOf('clk');
+    Object.defineProperty(document, 'caretRangeFromPoint', {
+      configurable: true,
+      value: vi.fn(() => { const r = document.createRange(); r.setStart(textNode, clkOffset); return r; }),
+    });
+
+    const wavePanel = container.querySelector('.wave-panel')!;
+    const orig = (document as unknown as { elementFromPoint?: unknown }).elementFromPoint;
+    (document as unknown as { elementFromPoint: unknown }).elementFromPoint = vi.fn(() => wavePanel);
+    try {
+      const viewer = container.querySelector('.src-viewer')!;
+      // vertical grab-and-drop: press on clk, drag straight down onto the wave
+      fireEvent.mouseDown(viewer, { button: 0, clientX: 120, clientY: 10 });
+      fireEvent.mouseMove(window, { clientX: 120, clientY: 200 });
+      fireEvent.mouseUp(window, { clientX: 120, clientY: 400 });
+      await expectResolvedWaveSignal(container, 'clk');
+    } finally {
+      (document as unknown as { elementFromPoint?: unknown }).elementFromPoint = orig;
+    }
+  });
+
   it('adds source-dragged bus declarations with their RTL width range', async () => {
     const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
 

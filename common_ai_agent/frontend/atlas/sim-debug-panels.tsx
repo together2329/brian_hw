@@ -915,19 +915,22 @@ const SourceViewer = ({
           sourceDragRef.current = null;
           if (drag?.moved) {
             semanticDragJustSelectedRef.current = true;
-            const picked = sourceSignalsBetween(lines, drag.start, drag.current);
-            setSourceDragSignals(picked);
-            // Released over the waveform → ADD the dragged signals there instead
-            // of merely selecting them in the source.
+            setTimeout(() => { semanticDragJustSelectedRef.current = false; }, 0);
             const overWave = typeof document !== 'undefined'
               && typeof document.elementFromPoint === 'function'
               && !!(document.elementFromPoint(ev.clientX, ev.clientY) as HTMLElement | null)?.closest('.wave-panel');
-            if (picked.length && overWave && onDropToWave) {
-              onDropToWave(picked);
-            } else if (picked.length && onSelectSignals) {
-              onSelectSignals(picked);
+            if (overWave && onDropToWave) {
+              // "grab this signal and drop it on the wave" — a drag toward the
+              // wave is vertical and sweeps no horizontal range, so add the
+              // identifier under the drag START, not sourceSignalsBetween.
+              const grabbed = pickFromEvent(drag.startX, drag.startY);
+              const names = grabbed ? [grabbed] : sourceSignalsBetween(lines, drag.start, drag.current);
+              if (names.length) onDropToWave(names);
+              return;
             }
-            setTimeout(() => { semanticDragJustSelectedRef.current = false; }, 0);
+            const picked = sourceSignalsBetween(lines, drag.start, drag.current);
+            setSourceDragSignals(picked);
+            if (picked.length && onSelectSignals) onSelectSignals(picked);
           }
         };
         window.addEventListener('mousemove', onMove);
