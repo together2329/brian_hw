@@ -97,9 +97,10 @@ def _item_result(item: dict) -> "tuple[str, str] | None":
 class _CodexConn:
     """A persistent `codex app-server` stdio connection + one thread."""
 
-    def __init__(self) -> None:
+    def __init__(self, cwd: "str | None" = None) -> None:
         self.proc: "asyncio.subprocess.Process | None" = None
         self.thread_id: "str | None" = None
+        self.cwd = cwd
         self._next_id = 0
         self._pending: "dict[str, asyncio.Future]" = {}
         self._turn_lock = asyncio.Lock()
@@ -130,6 +131,8 @@ class _CodexConn:
         params: "dict[str, Any]" = {}
         if CODEX_MODEL:
             params["model"] = CODEX_MODEL
+        if self.cwd:
+            params["cwd"] = self.cwd  # scope codex to the active IP's workspace dir
         res = await self._call("thread/start", params)
         self.thread_id = (
             (res.get("thread") or {}).get("id") or res.get("threadId") or res.get("id")
@@ -261,12 +264,12 @@ class _CodexConn:
                 emit("done")
 
 
-async def _get_conn(session_id: str) -> _CodexConn:
+async def _get_conn(session_id: str, cwd: "str | None" = None) -> _CodexConn:
     async with _conns_lock:
         conn = _conns.get(session_id)
         if conn is not None and conn.alive():
             return conn
-        conn = _CodexConn()
+        conn = _CodexConn(cwd)
         _conns[session_id] = conn  # reserve; start() (handshake) runs OUTSIDE
         # the global lock so a slow/stuck session can't block every other one.
     try:
@@ -279,16 +282,17 @@ async def _get_conn(session_id: str) -> _CodexConn:
     return conn
 
 
-async def run_codex_turn(session: Any, text: str) -> None:
+async def run_codex_turn(session: Any, text: str, cwd: "str | None" = None) -> None:
     """Run one chat turn through codex app-server for the given atlas session,
-    emitting the existing atlas envelope events via session.emit(...)."""
+    emitting the existing atlas envelope events via session.emit(...). `cwd`
+    scopes the session's codex thread to the active IP's workspace directory."""
     def emit(msg_type: str, **payload: Any) -> None:
         try:
             session.emit(msg_type, **payload)
         except Exception:
             pass
     try:
-        conn = await _get_conn(session.session_id)
+        conn = await _get_conn(session.session_id, cwd)
         await conn.run_turn(text, emit)
     except Exception as exc:  # never strand the frontend
         emit("error", message=f"codex bridge error: {exc}")
