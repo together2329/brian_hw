@@ -56,7 +56,9 @@ def _item_started_text(item: dict) -> "str | None":
         return None
     if itype == "commandExecution":
         cmd = (item.get("command") or "").strip()
-        return f"$ {cmd}" if cmd else "$ (command)"
+        cwd = item.get("cwd") or ""
+        base = f"$ {cmd}" if cmd else "$ (command)"
+        return f"{base}   ·cwd {cwd}" if cwd else base  # surface where codex runs it
     if itype == "webSearch":
         action = item.get("action") or {}
         atype = action.get("type")
