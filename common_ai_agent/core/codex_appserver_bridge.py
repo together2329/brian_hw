@@ -122,13 +122,48 @@ def _item_result(item: dict) -> "tuple[str, str] | None":
     return (str(itype or "activity"), body if extra else "(done)")
 
 
+def _thread_store_path() -> str:
+    home = CODEX_HOME or os.path.expanduser("~/.codex")
+    return os.path.join(home, "atlas_bridge_threads.json")
+
+
+def _load_threads() -> dict:
+    try:
+        with open(_thread_store_path()) as f:
+            return json.load(f) or {}
+    except Exception:
+        return {}
+
+
+def _save_thread(session_id: str, thread_id: str) -> None:
+    """Persist atlas session_id -> codex thread_id so a respawned codex (or a
+    restarted backend) resumes the SAME conversation instead of forgetting."""
+    if not session_id or not thread_id:
+        return
+    try:
+        data = _load_threads()
+        if data.get(session_id) == thread_id:
+            return
+        data[session_id] = thread_id
+        path = _thread_store_path()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        tmp = path + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(data, f)
+        os.replace(tmp, path)
+    except Exception:
+        pass
+
+
 class _CodexConn:
     """A persistent `codex app-server` stdio connection + one thread."""
 
-    def __init__(self, cwd: "str | None" = None) -> None:
+    def __init__(self, cwd: "str | None" = None,
+                 resume_thread_id: "str | None" = None) -> None:
         self.proc: "asyncio.subprocess.Process | None" = None
         self.thread_id: "str | None" = None
         self.cwd = cwd
+        self._resume_thread_id = resume_thread_id
         self._next_id = 0
         self._pending: "dict[str, asyncio.Future]" = {}
         self._turn_lock = asyncio.Lock()
@@ -155,6 +190,19 @@ class _CodexConn:
             "capabilities": {"experimentalApi": True},
         })
         self._notify("initialized")
+
+        # Resume the prior conversation for this session if we have its thread
+        # id (codex loads the rollout from disk); fall back to a fresh thread.
+        if self._resume_thread_id:
+            try:
+                res = await self._call("thread/resume",
+                                       {"threadId": self._resume_thread_id})
+                self.thread_id = (
+                    (res.get("thread") or {}).get("id") or self._resume_thread_id
+                )
+                return
+            except Exception:
+                pass  # rollout missing/stale -> start fresh below
 
         params: "dict[str, Any]" = {}
         if CODEX_MODEL:
@@ -297,7 +345,8 @@ async def _get_conn(session_id: str, cwd: "str | None" = None) -> _CodexConn:
         conn = _conns.get(session_id)
         if conn is not None and conn.alive():
             return conn
-        conn = _CodexConn(cwd)
+        resume_id = _load_threads().get(session_id)  # prior thread for this session
+        conn = _CodexConn(cwd, resume_thread_id=resume_id)
         _conns[session_id] = conn  # reserve; start() (handshake) runs OUTSIDE
         # the global lock so a slow/stuck session can't block every other one.
     try:
@@ -307,6 +356,8 @@ async def _get_conn(session_id: str, cwd: "str | None" = None) -> _CodexConn:
             if _conns.get(session_id) is conn:
                 del _conns[session_id]
         raise
+    if conn.thread_id:
+        _save_thread(session_id, conn.thread_id)  # remember for resume after a respawn
     return conn
 
 
