@@ -298,7 +298,10 @@ requirements:
       - id: OBL_ATLAS_REPO_CONFIG_DEFAULTS_SINGLE_WORKER
         owned_by: ui.tui
         granularity: behavior
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_atlas_exec_policy.py::test_repo_config_defaults_to_single_worker_profile"
+            observed_at: 3e40cfe3
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
@@ -1320,6 +1323,20 @@ requirements:
         evidence:
           - test: "tests/test_core/test_prompt_builder.py::TestProjectWikiContext::test_stage_tagged_project_wiki_pages_are_injected"
             observed_at: dc563f27
+
+  - id: REQ_PLAT_RTL_LANGUAGE_SUBSET_001
+    claim: "Generated RTL uses a narrow, tool-portable `.sv` subset: `logic` and Verilog generate are allowed, while procedural loops remain forbidden"
+    design_anchor: doc/wiki/rtl-gen-ssot-contract.md
+    obligations:
+      - id: OBL_RTL_COMPILE_ALLOWS_GENERATE_FOR_ONLY
+        owned_by: engine.stage
+        granularity: content
+        status: open
+        # Operator decision 2026-06-14: keep `input/output logic` and allow
+        # Verilog generate constructs for parameterized static replication.
+        # General procedural `for`/`while` loops outside generate blocks remain
+        # outside the generated RTL subset and must be rejected by the compile
+        # policy scanner.
 
   - id: REQ_PLAT_PROMPT_INJECTION_TOGGLE_001
     claim: "default/workflow prompt injection layers are operator-toggleable at runtime without disabling the base agent prompt or tool schema"
