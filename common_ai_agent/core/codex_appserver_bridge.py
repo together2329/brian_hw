@@ -30,6 +30,16 @@ CODEX_BIN = os.environ.get("CODEX_BRIDGE_BIN", "codex")
 CODEX_HOME = os.environ.get("CODEX_BRIDGE_HOME") or os.environ.get("CODEX_HOME")
 CODEX_MODEL = os.environ.get("CODEX_BRIDGE_MODEL")
 
+# A single JSON-RPC notification line can be large (e.g. a command's full
+# aggregatedOutput). asyncio's StreamReader defaults to a 64KB line limit and
+# RAISES on overflow, which would otherwise crash the read loop and hang the
+# turn forever. Give it a generous buffer.
+_STREAM_LIMIT = int(os.environ.get("CODEX_BRIDGE_STREAM_LIMIT", str(64 * 1024 * 1024)))
+# Control-RPC timeout (initialize / thread.start / turn.start ack).
+_CALL_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_CALL_TIMEOUT", "60"))
+# Whole-turn timeout: never leave the frontend stuck on "running" forever.
+_TURN_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_TURN_TIMEOUT", "180"))
+
 _conns: "dict[str, _CodexConn]" = {}
 _conns_lock = asyncio.Lock()
 
@@ -94,6 +104,7 @@ class _CodexConn:
         self._pending: "dict[str, asyncio.Future]" = {}
         self._turn_lock = asyncio.Lock()
         self._on_note: "Callable[[str, dict], None] | None" = None
+        self._broken = False
 
     async def start(self) -> None:
         env = dict(os.environ)
@@ -104,6 +115,7 @@ class _CodexConn:
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+            limit=_STREAM_LIMIT,
             env=env,
         )
         asyncio.create_task(self._read_loop())
@@ -124,7 +136,19 @@ class _CodexConn:
         )
 
     def alive(self) -> bool:
-        return self.proc is not None and self.proc.returncode is None
+        return (
+            self.proc is not None
+            and self.proc.returncode is None
+            and not self._broken
+        )
+
+    def _fail_pending(self, exc: BaseException) -> None:
+        """Mark the connection broken and unblock every in-flight `_call`."""
+        self._broken = True
+        for fut in list(self._pending.values()):
+            if not fut.done():
+                fut.set_exception(exc)
+        self._pending.clear()
 
     # ---- transport ----
     def _send(self, obj: dict) -> None:
@@ -134,39 +158,57 @@ class _CodexConn:
     def _notify(self, method: str, params: "dict | None" = None) -> None:
         self._send({"method": method, **({"params": params} if params else {})})
 
-    async def _call(self, method: str, params: "dict | None" = None) -> dict:
+    async def _call(self, method: str, params: "dict | None" = None,
+                    timeout: float = _CALL_TIMEOUT) -> dict:
         self._next_id += 1
         rid = str(self._next_id)
         fut = asyncio.get_running_loop().create_future()
         self._pending[rid] = fut
         self._send({"id": rid, "method": method,
                     **({"params": params} if params is not None else {})})
-        return await fut
+        try:
+            return await asyncio.wait_for(fut, timeout)
+        except asyncio.TimeoutError:
+            self._pending.pop(rid, None)
+            raise RuntimeError(f"codex app-server '{method}' timed out after {timeout}s")
 
     async def _read_loop(self) -> None:
         assert self.proc and self.proc.stdout
-        while True:
-            line = await self.proc.stdout.readline()
-            if not line:
-                break
-            try:
-                msg = json.loads(line)
-            except Exception:
-                continue
-            if "id" in msg and ("result" in msg or "error" in msg):
-                fut = self._pending.pop(str(msg["id"]), None)
-                if fut and not fut.done():
-                    if "error" in msg:
-                        fut.set_exception(RuntimeError(json.dumps(msg["error"])))
-                    else:
-                        fut.set_result(msg.get("result") or {})
-                continue
-            method = msg.get("method")
-            if method and self._on_note:
+        try:
+            while True:
                 try:
-                    self._on_note(method, msg.get("params") or {})
+                    line = await self.proc.stdout.readline()
+                except (ValueError, asyncio.LimitOverrunError,
+                        asyncio.IncompleteReadError) as exc:
+                    # An oversized line blew the stream buffer; the reader is
+                    # now desynced. Mark broken so the next turn respawns
+                    # instead of hanging on never-resolved futures.
+                    self._fail_pending(RuntimeError(f"codex stream overflow: {exc}"))
+                    return
+                if not line:
+                    break
+                try:
+                    msg = json.loads(line)
                 except Exception:
-                    pass
+                    continue
+                if "id" in msg and ("result" in msg or "error" in msg):
+                    fut = self._pending.pop(str(msg["id"]), None)
+                    if fut and not fut.done():
+                        if "error" in msg:
+                            fut.set_exception(RuntimeError(json.dumps(msg["error"])))
+                        else:
+                            fut.set_result(msg.get("result") or {})
+                    continue
+                method = msg.get("method")
+                if method and self._on_note:
+                    try:
+                        self._on_note(method, msg.get("params") or {})
+                    except Exception:
+                        pass
+        finally:
+            # EOF or error: unblock any in-flight calls so the turn errors out
+            # cleanly rather than hanging.
+            self._fail_pending(RuntimeError("codex app-server connection closed"))
 
     async def _drain_stderr(self) -> None:
         assert self.proc and self.proc.stderr
@@ -208,7 +250,10 @@ class _CodexConn:
                     "threadId": self.thread_id,
                     "input": [{"type": "text", "text": text}],
                 })
-                await done.wait()
+                try:
+                    await asyncio.wait_for(done.wait(), timeout=_TURN_TIMEOUT)
+                except asyncio.TimeoutError:
+                    emit("error", message=f"codex turn timed out after {_TURN_TIMEOUT:.0f}s")
             finally:
                 self._on_note = None
                 emit("flush")
@@ -219,11 +264,19 @@ class _CodexConn:
 async def _get_conn(session_id: str) -> _CodexConn:
     async with _conns_lock:
         conn = _conns.get(session_id)
-        if conn is None or not conn.alive():
-            conn = _CodexConn()
-            await conn.start()
-            _conns[session_id] = conn
-        return conn
+        if conn is not None and conn.alive():
+            return conn
+        conn = _CodexConn()
+        _conns[session_id] = conn  # reserve; start() (handshake) runs OUTSIDE
+        # the global lock so a slow/stuck session can't block every other one.
+    try:
+        await conn.start()
+    except Exception:
+        async with _conns_lock:
+            if _conns.get(session_id) is conn:
+                del _conns[session_id]
+        raise
+    return conn
 
 
 async def run_codex_turn(session: Any, text: str) -> None:
