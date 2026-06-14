@@ -64,6 +64,17 @@ def _item_started_text(item: dict) -> "str | None":
         return f"apply_patch — {n} file(s)"
     if itype == "dynamicToolCall":
         return str(item.get("tool") or "tool")
+    if itype == "webSearch":
+        action = item.get("action") or {}
+        atype = action.get("type")
+        if atype == "openPage":
+            return f"🌐 open: {action.get('url') or ''}"
+        if atype == "findInPage":
+            return f"🔎 find '{action.get('pattern') or ''}' in {action.get('url') or ''}"
+        q = item.get("query") or action.get("query") or ""
+        return f"🔎 web search: {q}"
+    if itype == "imageView":
+        return f"🖼 {item.get('path') or ''}"
     return None
 
 
