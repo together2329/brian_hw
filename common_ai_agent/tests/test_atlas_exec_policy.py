@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from core.atlas_exec_policy import (
     EXEC_MODE_LOCKED,
     EXEC_MODE_ORCHESTRATOR,
@@ -9,6 +11,18 @@ from core.atlas_exec_policy import (
     normalize_exec_mode,
     schedule_for_exec_mode,
 )
+
+
+def _repo_config_values() -> dict[str, str]:
+    config = Path(__file__).resolve().parents[1] / ".config"
+    values: dict[str, str] = {}
+    for raw in config.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip()
+    return values
 
 
 def test_normalize_exec_mode_accepts_cli_and_ui_aliases() -> None:
@@ -62,3 +76,13 @@ def test_exec_policy_payload_and_env_application() -> None:
     assert payload["initial_workflow"] == "default"
     assert payload["worker_strategy"] == "single-main-loop"
     assert payload["preserve_running_on_workflow_switch"] is False
+
+
+def test_repo_config_defaults_to_single_worker_profile() -> None:
+    values = _repo_config_values()
+
+    assert current_exec_mode(values) == EXEC_MODE_SINGLE
+    assert values["ATLAS_EXEC_MODE"] == EXEC_MODE_SINGLE
+    assert values["ATLAS_DEFAULT_EXEC_MODE"] == EXEC_MODE_SINGLE
+    assert values["ATLAS_ORCHESTRATOR_MODE"] == "0"
+    assert values["ATLAS_SINGLE_MAIN_LOOP"] == "1"
