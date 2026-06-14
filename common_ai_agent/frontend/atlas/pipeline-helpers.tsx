@@ -13,6 +13,7 @@
 // `window` so the access type-checks without editing the shared ambient .d.ts.
 import { useMemo, useState, useEffect, useRef, useCallback, type MouseEvent, type CSSProperties } from 'react';
 import { PipelineFlowGraph } from './workspace-pipeline-flow';
+import { ATLAS_EXEC_MODE_LOCKED } from './app-helpers';
 
 // ── Local typed view of the legacy window-glue surface this file touches ──
 // (cross-file deps owned by other not-yet-migrated .jsx files). This is a
@@ -678,7 +679,7 @@ export function AtlasPipeline() {
               ▶ {runningCount} running
             </span>
           )}
-          {pipelineState && pipelineState.orchestrator && (
+          {!ATLAS_EXEC_MODE_LOCKED && pipelineState && pipelineState.orchestrator && (
             <button className={`rb-btn pipe-orch-chip${pipelineState.orchestrator.enabled ? ' pipe-orch-chip-on' : ''}`}
                     title={`Toggle orchestrator mode. ON = enable durable JSON handoff queue under <ip>/handoff/.\nCurrently: ${pipelineState.orchestrator.enabled ? pipelineState.orchestrator.mode || 'on' : 'off'}`}
                     onClick={async () => {
