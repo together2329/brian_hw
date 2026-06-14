@@ -301,7 +301,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_atlas_exec_policy.py::test_repo_config_defaults_to_single_worker_profile"
-            observed_at: 3e40cfe3
+            observed_at: 0eac80ff
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
