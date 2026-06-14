@@ -109,7 +109,20 @@ export const ATLAS_EXEC_MODE_OPTIONS = [
   { key: 'orchestrator', label: 'Orchestrator' },
 ];
 export const DEFAULT_ATLAS_EXEC_MODE = 'single-worker';
-export const ATLAS_EXEC_MODE_LOCKED = false;
+// Locked = orchestrator disabled / non-selectable. Driven by the backend
+// exec policy (exec_policy.locked, set when ATLAS_EXEC_MODE_LOCK=1) injected
+// into window.ATLAS_BOOT_CONFIG, so one env flag locks both backend and UI.
+export const ATLAS_EXEC_MODE_LOCKED = (() => {
+  try {
+    const bc: any = (typeof window !== 'undefined') ? (window as any).ATLAS_BOOT_CONFIG : null;
+    return !!(bc && bc.exec_policy && bc.exec_policy.locked);
+  } catch (_) { return false; }
+})();
+// Workflow pinned to 'default' / non-selectable (workflows are managed via
+// codex `.codex`, not the atlas workflow rail). Shares the exec-mode lock
+// signal for now — one ATLAS_EXEC_MODE_LOCK=1 locks both; split into its own
+// boot-config flag later if they ever need to diverge.
+export const ATLAS_WORKFLOW_LOCKED = ATLAS_EXEC_MODE_LOCKED;
 export const ATLAS_FONT_MODE_OPTIONS = [
   { key: 'windows', label: 'Windows' },
   { key: 'sans', label: 'Sans' },

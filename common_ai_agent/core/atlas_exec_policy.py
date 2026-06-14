@@ -48,6 +48,14 @@ def falsy_value(value: Any) -> bool:
     return str(value or "").strip().lower() in _FALSY
 
 
+def exec_mode_locked() -> bool:
+    """True when the execution mode is locked to single-worker (orchestrator
+    disabled and non-selectable). Driven by the ``EXEC_MODE_LOCKED`` constant
+    or the ``ATLAS_EXEC_MODE_LOCK`` environment flag, so a deployment can pin
+    single-worker without a rebuild."""
+    return EXEC_MODE_LOCKED or truthy_value(os.environ.get("ATLAS_EXEC_MODE_LOCK"))
+
+
 def normalize_exec_mode(value: Any) -> str:
     mode = str(value or "").strip().lower().replace("_", "-")
     return _EXEC_MODE_ALIASES.get(mode, mode if mode in EXEC_MODES else "")
@@ -67,6 +75,8 @@ def current_exec_mode(
     single-worker. A fresh launch with nothing set resolves to single-worker.
     """
 
+    if exec_mode_locked():
+        return LOCKED_EXEC_MODE
     source = os.environ if env is None else env
     if source.get("ATLAS_ORCHESTRATOR_MODE") is not None:
         return (
@@ -135,9 +145,14 @@ def exec_policy_payload(
     env: Mapping[str, str] | None = None,
     worker_urls: Sequence[str] = (),
 ) -> dict[str, Any]:
-    mode = normalize_exec_mode(exec_mode) or current_exec_mode(env)
+    mode = (
+        LOCKED_EXEC_MODE
+        if exec_mode_locked()
+        else (normalize_exec_mode(exec_mode) or current_exec_mode(env))
+    )
     return {
         "exec_mode": mode,
+        "locked": exec_mode_locked(),
         "initial_workflow": initial_workflow_for_exec_mode(mode),
         "dispatch_schedule": schedule_for_exec_mode(mode, "auto", worker_urls),
         "worker_strategy": worker_url_strategy(mode),
@@ -151,9 +166,12 @@ def apply_exec_mode_env(
     exec_mode: Any,
     env: MutableMapping[str, str] | None = None,
 ) -> dict[str, str]:
-    mode = normalize_exec_mode(exec_mode)
-    if not mode:
-        raise ValueError("exec_mode must be single-worker or orchestrator")
+    if exec_mode_locked():
+        mode = LOCKED_EXEC_MODE
+    else:
+        mode = normalize_exec_mode(exec_mode)
+        if not mode:
+            raise ValueError("exec_mode must be single-worker or orchestrator")
     target = os.environ if env is None else env
     values = {
         "ATLAS_EXEC_MODE": mode,

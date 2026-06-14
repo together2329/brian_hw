@@ -11787,11 +11787,22 @@ def create_app():
                             continue
                     if os.environ.get("CODEX_BRIDGE"):
                         # Route the conversational prompt through codex
-                        # app-server instead of the built-in Python engine.
-                        # Streams back via the same session.emit envelope.
+                        # app-server instead of the built-in Python engine,
+                        # scoped to the active IP's workspace dir so codex's
+                        # shell/file tools operate on that IP, not the backend cwd.
                         await _accept_handled("codex")
                         from core.codex_appserver_bridge import run_codex_turn
-                        asyncio.create_task(run_codex_turn(session, _txt))
+                        _cx_cwd = None
+                        try:
+                            _cx_parts = [p for p in session.session_id.split("/") if p]
+                            _cx_ip = _cx_parts[2] if len(_cx_parts) >= 3 else (_cx_parts[-1] if _cx_parts else "")
+                            if _cx_ip:
+                                _cx_dir = _ip_root_for_session(_cx_ip, session)
+                                if _cx_dir and Path(_cx_dir).is_dir():
+                                    _cx_cwd = str(_cx_dir)
+                        except Exception:
+                            _cx_cwd = None
+                        asyncio.create_task(run_codex_turn(session, _txt, cwd=_cx_cwd))
                     else:
                         await _accept_queued()
                 elif t == "interrupt":
