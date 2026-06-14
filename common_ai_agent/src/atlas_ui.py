@@ -11785,7 +11785,15 @@ def create_app():
                             #     ever telling main.py to flip — desync.
                             await _accept_queued("mode")
                             continue
-                    await _accept_queued()
+                    if os.environ.get("CODEX_BRIDGE"):
+                        # Route the conversational prompt through codex
+                        # app-server instead of the built-in Python engine.
+                        # Streams back via the same session.emit envelope.
+                        await _accept_handled("codex")
+                        from core.codex_appserver_bridge import run_codex_turn
+                        asyncio.create_task(run_codex_turn(session, _txt))
+                    else:
+                        await _accept_queued()
                 elif t == "interrupt":
                     bridge.submit_interrupt_for_session(session.session_id, msg.get("text", ""))
                 elif t == "answer" and msg.get("flow_id"):
