@@ -291,6 +291,15 @@ requirements:
           - test: "tests/test_run_server_launcher.py::test_run_server_frees_ports_before_and_after_build"
             observed_at: 30fa9ff3
 
+  - id: REQ_PLAT_ATLAS_EXEC_POLICY_001
+    claim: "ATLAS checked-in local config follows the product default: one single main-loop worker unless the operator explicitly opts into orchestrator workers"
+    design_anchor: doc/wiki/single-main-loop-restore-20260519.md
+    obligations:
+      - id: OBL_ATLAS_REPO_CONFIG_DEFAULTS_SINGLE_WORKER
+        owned_by: ui.tui
+        granularity: behavior
+        status: open
+
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
     design_anchor: doc/wiki/perforce-integration-20260530.md
