@@ -48,22 +48,15 @@ _NON_TOOL_ITEMS = {"userMessage", "agentMessage", "reasoning"}
 
 
 def _item_started_text(item: dict) -> "str | None":
-    """Human-readable label when a tool-ish ThreadItem starts; None to skip.
-    Reads the real per-type fields — codex command/exec items carry the command
-    in `command` (NOT `text`), so a plain item.text read renders empty."""
+    """Label when a tool-ish ThreadItem starts. None only for message/reasoning
+    items (rendered separately via deltas). Known types get a nice label; ANY
+    other type still shows generically so no codex activity is silently dropped."""
     itype = item.get("type")
+    if itype in _NON_TOOL_ITEMS:
+        return None
     if itype == "commandExecution":
         cmd = (item.get("command") or "").strip()
         return f"$ {cmd}" if cmd else "$ (command)"
-    if itype == "mcpToolCall":
-        server = item.get("server") or ""
-        tool = item.get("tool") or "tool"
-        return f"{server}.{tool}" if server else str(tool)
-    if itype == "fileChange":
-        n = len(item.get("changes") or [])
-        return f"apply_patch — {n} file(s)"
-    if itype == "dynamicToolCall":
-        return str(item.get("tool") or "tool")
     if itype == "webSearch":
         action = item.get("action") or {}
         atype = action.get("type")
@@ -71,38 +64,62 @@ def _item_started_text(item: dict) -> "str | None":
             return f"🌐 open: {action.get('url') or ''}"
         if atype == "findInPage":
             return f"🔎 find '{action.get('pattern') or ''}' in {action.get('url') or ''}"
-        q = item.get("query") or action.get("query") or ""
-        return f"🔎 web search: {q}"
+        return f"🔎 web search: {item.get('query') or action.get('query') or ''}"
+    if itype == "fileChange":
+        paths = ", ".join((c.get("path") or "") for c in (item.get("changes") or []))
+        return f"✎ edit: {paths}" if paths else "✎ edit"
+    if itype == "mcpToolCall":
+        server = item.get("server") or ""
+        tool = item.get("tool") or "tool"
+        return f"{server}.{tool}" if server else str(tool)
+    if itype == "dynamicToolCall":
+        return str(item.get("tool") or "tool")
     if itype == "imageView":
         return f"🖼 {item.get('path') or ''}"
-    return None
+    # generic: any other codex activity item still shows up
+    return f"⚙ {itype or 'activity'}"
 
 
 def _item_result(item: dict) -> "tuple[str, str] | None":
-    """(tool_label, result_text) for a completed tool-ish ThreadItem; None to
-    skip. Command output lives in `aggregatedOutput`, not `text`."""
+    """(tool_label, result_text) for a completed tool-ish ThreadItem. Known
+    types are formatted (command output, file diffs, ...); unknown types dump
+    their fields so nothing is invisible."""
     itype = item.get("type")
+    if itype in _NON_TOOL_ITEMS:
+        return None
     if itype == "commandExecution":
         out = item.get("aggregatedOutput")
         if not out:
             ec = item.get("exitCode")
             out = f"(exit {ec})" if ec is not None else f"({item.get('status') or 'no output'})"
         return ("command", str(out))
+    if itype == "fileChange":
+        diffs = "\n".join(
+            f"{c.get('path') or ''}\n{c.get('diff') or ''}"
+            for c in (item.get("changes") or [])
+        )
+        return ("apply_patch", diffs or f"status: {item.get('status')}")
     if itype == "mcpToolCall":
         tool = str(item.get("tool") or "mcp")
         if item.get("error"):
             return (tool, "error: " + json.dumps(item.get("error")))
         res = item.get("result")
         return (tool, json.dumps(res) if res is not None else "(ok)")
-    if itype == "fileChange":
-        return ("apply_patch", f"status: {item.get('status')}")
     if itype == "dynamicToolCall":
         ci = item.get("contentItems")
         return (
             str(item.get("tool") or "tool"),
             json.dumps(ci) if ci is not None else f"success={item.get('success')}",
         )
-    return None
+    if itype in ("webSearch", "imageView"):
+        return None  # the started label already showed it
+    # generic: dump remaining fields so any new/unknown item type stays visible
+    extra = {k: v for k, v in item.items() if k not in ("id", "type")}
+    try:
+        body = json.dumps(extra, ensure_ascii=False)
+    except Exception:
+        body = str(extra)
+    return (str(itype or "activity"), body if extra else "(done)")
 
 
 class _CodexConn:
