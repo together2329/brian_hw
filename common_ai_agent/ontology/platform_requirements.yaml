@@ -1359,3 +1359,16 @@ requirements:
             observed_at: 02f508ab
           - test: "tests/test_prompt_injection_toggle.py::test_live_orchestrator_context_injector_noops_when_disabled"
             observed_at: 02f508ab
+
+  - id: REQ_PLAT_SIM_DEBUG_SOURCE_TRACKING_001
+    claim: "Sim-debug chat이 '무엇이 신호 X를 만들어내는가' 류 요청에서 막다른 source no-op으로 빠지지 않고 driver+조건(trace) 또는 소스 grep(search)로 라우팅되며, 도구 스키마가 그 의도를 trace/search로 유도한다"
+    design_anchor: doc/wiki/sim-debug-agent-tool-2026-05-31.md
+    obligations:
+      - id: OBL_SIM_DEBUG_SOURCE_ACTION_SELF_CORRECTS_TO_TRACE_OR_SEARCH
+        owned_by: agent.tools
+        granularity: behavior
+        # finding: 모델이 "interrupt 만들어내는 소스" 요청에 action="source"(=경로 알고
+        # 파일 열기)를 골라 path 없이 호출 -> no-op 안내만 받고 trace/search를 버리고
+        # 생짜 grep으로 폴백. 수정: source가 path 없이 signal/pattern을 받으면
+        # trace/search로 self-correct, 둘 다 없으면 trace/search 라우팅 힌트 + 스키마 유도.
+        status: open

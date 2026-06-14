@@ -278,6 +278,40 @@ def test_sim_debug_search_and_source_actions(tmp_path, monkeypatch):
     assert "path" in sim_debug(action="source")             # guard
 
 
+def test_sim_debug_source_self_corrects_to_trace_or_search(tmp_path, monkeypatch):
+    """Regression (finding: 'interrupt 만들어내는 소스'): the model reaches for
+    action="source" when the user asks "find the source that drives/creates
+    signal X", but source needs a path and used to dead-end to a no-op hint —
+    so the model abandoned trace/search for raw grep. Now a path-less source
+    self-corrects: signal -> trace (driver + conditions), pattern -> search,
+    and nothing -> an actionable hint that routes to trace/search."""
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPSC")
+    rtl = tmp_path / "IPSC" / "rtl"
+    rtl.mkdir(parents=True)
+    (rtl / "irq.sv").write_text(
+        "module irq_gen;\n"
+        "  always_ff @(posedge clk) if (overflow) irq <= 1'b1;\n"
+        "endmodule\n",
+        encoding="utf-8",
+    )
+    from core.tools import sim_debug
+
+    # path-less source + signal -> routes to trace (driver + conditions)
+    by_sig = sim_debug(action="source", signal="irq")
+    assert "routing to trace" in by_sig
+
+    # path-less source + pattern -> routes to search and actually finds the text
+    by_pat = sim_debug(action="source", pattern="overflow")
+    assert "routing your pattern to search" in by_pat and "overflow" in by_pat
+    intent = sdi.get_intent("IPSC")
+    assert intent["action"] == "source"   # search jumped the source pane to the hit
+
+    # path-less source + no target -> actionable routing hint, not a dead end
+    hint = sim_debug(action="source")
+    assert "trace" in hint and "search" in hint
+
+
 def test_sim_debug_unknown_action_lists_all_actions(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPU")

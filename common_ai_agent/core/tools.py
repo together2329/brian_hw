@@ -8381,15 +8381,19 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
       clear   — remove ALL signals from the waveform.
       fold / unfold — collapse / expand a group. group="name".
       search  — grep the IP's RTL/TB source (text) for pattern="<regex>" and
-                jump the source pane to the top hit (find a condition, an FSM
-                state, where a signal is used). Returns ranked file:line matches.
-      source  — open a source file in the panel. path="<file>", optional line=N.
+                jump the source pane to the top hit. Use for "find where X is
+                used / find this condition / find the source that mentions X".
+                Returns ranked file:line matches.
+      source  — open a source file you ALREADY have the path for. path="<file>",
+                optional line=N. NOTE: to find WHICH source drives/creates a
+                signal, use `trace` or `search`, NOT this.
       fsm     — FSM view of a state register: every `state <= VALUE` transition
                 WITH its guard condition, plus where the state is decoded
                 (case(state)/state==X), and jumps to the first transition. (signal=…)
-      trace   — pyslang: report a signal's driver + load sites (file:line), each
-                driver annotated with the condition it fires under — the
-                structural driving/loading view. (signal=…)
+      trace   — pyslang: find what DRIVES/CREATES/GENERATES a signal — its
+                driver + load sites (file:line), each driver annotated with the
+                condition it fires under (the structural driving/loading view).
+                This is the right action for "where/how is signal X produced". (signal=…)
       find    — VCD: time of a signal's edge (edge=rising|falling|any, nth=1),
                 then jump the panel there with the signal shown. (signal=…, optional scope=…)
       value   — VCD: value of a signal at time `at` ns. (signal=…, at=…, optional scope=…)
@@ -8585,7 +8589,26 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
     if act in ("source", "open"):
         p = str(path or "").strip()
         if not p:
-            return "[sim_debug source: pass path=\"<src file>\" and optional line=N]"
+            # The model frequently reaches for "source" when the user asks to
+            # "find the source that drives/creates signal X" — but that intent is
+            # trace (driver + conditions) or search (text grep), NOT "open a file
+            # whose path I already know". Self-correct instead of dead-ending to a
+            # no-op hint (which makes the model abandon these tools for raw grep).
+            sig = str(signal or "").strip()
+            pat = str(pattern or "").strip()
+            if sig:
+                return (f"[sim_debug: 'source' opens a known file path; you asked "
+                        f"what drives '{sig}' — routing to trace]\n"
+                        + sim_debug(action="trace", ip=ip, signal=sig, scope=sig_scope))
+            if pat:
+                return ("[sim_debug: 'source' opens a known file path; routing your "
+                        f"pattern to search]\n"
+                        + sim_debug(action="search", ip=ip, pattern=pat))
+            return ("[sim_debug source: opens a source file you already have the "
+                    "PATH for. To FIND which source drives/creates/generates a "
+                    "signal, use action=\"trace\" signal=\"<name>\" (driver + the "
+                    "condition it fires under) or action=\"search\" "
+                    "pattern=\"<text>\". Otherwise pass path=\"<src file>\" (+line=N).]")
         ln = None
         try:
             ln = int(line) if line is not None else None
