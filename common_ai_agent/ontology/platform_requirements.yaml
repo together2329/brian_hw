@@ -1371,4 +1371,7 @@ requirements:
         # 파일 열기)를 골라 path 없이 호출 -> no-op 안내만 받고 trace/search를 버리고
         # 생짜 grep으로 폴백. 수정: source가 path 없이 signal/pattern을 받으면
         # trace/search로 self-correct, 둘 다 없으면 trace/search 라우팅 힌트 + 스키마 유도.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_sim_debug_intent.py::test_sim_debug_source_self_corrects_to_trace_or_search"
+            observed_at: 767cdf40
