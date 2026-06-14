@@ -312,6 +312,37 @@ def test_sim_debug_source_self_corrects_to_trace_or_search(tmp_path, monkeypatch
     assert "trace" in hint and "search" in hint
 
 
+def test_sim_debug_source_resolves_ip_relative_path(tmp_path, monkeypatch):
+    """Regression ('show reg block module' -> '// not found'): the model passes a
+    bare IP-relative path like 'rtl/apb_reg_block.sv' (no IP prefix). source must
+    resolve it to the ABSOLUTE file so /api/source can load it (a bare relative
+    path 404s as 'not found'). Resolves IP-relative, bare basename, and falls
+    back to search when nothing resolves."""
+    import os
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPR")
+    rtl = tmp_path / "IPR" / "rtl"
+    rtl.mkdir(parents=True)
+    (rtl / "apb_reg_block.sv").write_text("module apb_reg_block; endmodule\n", encoding="utf-8")
+    from core.tools import sim_debug
+
+    # IP-relative path (no IP prefix) -> resolved to an absolute, existing file
+    msg = sim_debug(action="source", path="rtl/apb_reg_block.sv", line=1)
+    assert "opened" in msg
+    it = sdi.get_intent("IPR")
+    assert it["action"] == "source"
+    assert os.path.isabs(it["path"]) and os.path.isfile(it["path"])
+    assert it["path"].endswith("IPR/rtl/apb_reg_block.sv")
+
+    # bare basename -> resolved by rglob within the IP
+    sim_debug(action="source", path="apb_reg_block.sv")
+    assert sdi.get_intent("IPR")["path"].endswith("IPR/rtl/apb_reg_block.sv")
+
+    # unresolvable -> graceful (routes to search), not a broken "not found" push
+    miss = sim_debug(action="source", path="rtl/does_not_exist.sv")
+    assert "did not resolve" in miss
+
+
 def test_sim_debug_unknown_action_lists_all_actions(tmp_path, monkeypatch):
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("ATLAS_ACTIVE_IP", "IPU")

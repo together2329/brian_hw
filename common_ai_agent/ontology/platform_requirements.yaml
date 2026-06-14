@@ -1375,3 +1375,12 @@ requirements:
         evidence:
           - test: "tests/test_sim_debug_intent.py::test_sim_debug_source_self_corrects_to_trace_or_search"
             observed_at: 767cdf40
+      - id: OBL_SIM_DEBUG_SOURCE_RESOLVES_IP_RELATIVE_PATH
+        owned_by: agent.tools
+        granularity: behavior
+        # finding ("show reg block module" -> source pane "// not found"): source가
+        # LLM이 준 IP-상대경로(rtl/apb_reg_block.sv, IP 접두어 없음)를 그대로 push ->
+        # /api/source가 PROJECT_ROOT 기준으로 못 찾아 404. 수정: source가 abs로 resolve
+        # (절대/IP-qualified/IP-상대/basename) 후 push (search와 동일), 실패 시 basename
+        # search로 폴백.
+        status: open

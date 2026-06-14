@@ -8335,6 +8335,53 @@ def _sim_debug_search_source(ip, pattern, max_hits=40):
     return hits, ""
 
 
+def _sim_debug_resolve_source_path(ip, path):
+    """Resolve an LLM-supplied source path to an ABSOLUTE file under the IP.
+
+    The frontend loads via /api/source, which resolves the path against the
+    project root — so a bare IP-relative path like "rtl/apb_reg_block.sv" (no IP
+    prefix) 404s as "not found". `search` works because it pushes the resolved
+    absolute path (normalizeProjectSourcePath then yields the IP-qualified form);
+    `source` must do the same. Accepts absolute, IP-qualified, IP-relative, or
+    bare-basename forms. Returns (abs_str, note) or (None, reason).
+    """
+    raw = str(path or "").strip().replace("\\", "/")
+    if not raw:
+        return None, "empty path"
+    root = Path(os.environ.get("ATLAS_PROJECT_ROOT") or os.getcwd())
+    ipn = str(ip or "").strip()
+    rel = raw
+    marker = "common_ai_agent/"
+    if marker in rel:
+        rel = rel.split(marker, 1)[1]
+    rel = rel.lstrip("/")
+    cands = []
+    p = Path(raw)
+    if p.is_absolute():
+        cands.append(p)
+    cands.append(root / rel)                                   # root/<as given>
+    if ipn and not rel.startswith(ipn + "/"):
+        cands.append(root / ipn / rel)                         # root/<ip>/<rel>
+    for c in cands:
+        try:
+            if c.is_file():
+                return str(c.resolve()), ""
+        except OSError:
+            continue
+    # Last resort: match by basename within the IP dir (handles a guessed path).
+    base = Path(rel).name
+    ip_dir = (root / ipn) if ipn else root
+    if base and ip_dir.is_dir():
+        matches = [fp for fp in sorted(ip_dir.rglob(base))
+                   if fp.is_file() and fp.suffix.lower() in _SIM_DEBUG_SRC_EXTS]
+        if len(matches) == 1:
+            return str(matches[0].resolve()), f"resolved by basename '{base}'"
+        if len(matches) > 1:
+            shown = ", ".join(str(m.resolve()).split(marker, 1)[-1] for m in matches[:5])
+            return None, f"ambiguous basename '{base}' ({shown})"
+    return None, f"not found under {ipn or 'project root'}: {raw}"
+
+
 def _sim_debug_siglist(signals, signal):
     """Normalize signals="a, b" + signal="c" into an ordered, deduped list."""
     out = []
@@ -8614,7 +8661,19 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
             ln = int(line) if line is not None else None
         except (TypeError, ValueError):
             ln = None
-        push_intent(ip, "source", path=p, line=ln)
+        # Resolve to an ABSOLUTE file so the panel can load it. A bare IP-relative
+        # path ("rtl/x.sv") would otherwise reach /api/source unresolved and show
+        # a "// not found" pane (same fix shape as `search`, which pushes abs).
+        abs_p, note = _sim_debug_resolve_source_path(ip, p)
+        if not abs_p:
+            # Didn't resolve — fall back to searching by basename so the user
+            # lands on the file instead of a dead "not found" pane.
+            base = re.sub(r"\.\w+$", "", Path(str(p).replace("\\", "/")).name)
+            if base:
+                return (f"[sim_debug: '{p}' did not resolve ({note}); searching '{base}']\n"
+                        + sim_debug(action="search", ip=ip, pattern=re.escape(base)))
+            return f"[sim_debug source: {note}]"
+        push_intent(ip, "source", path=abs_p, line=ln)
         return f"✓ Sim Debug: opened {p}{(':' + str(ln)) if ln else ''} in the source pane ({where})."
 
     if act == "fsm":
