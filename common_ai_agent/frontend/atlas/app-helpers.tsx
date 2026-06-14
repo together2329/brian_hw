@@ -118,6 +118,11 @@ export const ATLAS_EXEC_MODE_LOCKED = (() => {
     return !!(bc && bc.exec_policy && bc.exec_policy.locked);
   } catch (_) { return false; }
 })();
+// Workflow pinned to 'default' / non-selectable (workflows are managed via
+// codex `.codex`, not the atlas workflow rail). Shares the exec-mode lock
+// signal for now — one ATLAS_EXEC_MODE_LOCK=1 locks both; split into its own
+// boot-config flag later if they ever need to diverge.
+export const ATLAS_WORKFLOW_LOCKED = ATLAS_EXEC_MODE_LOCKED;
 export const ATLAS_FONT_MODE_OPTIONS = [
   { key: 'windows', label: 'Windows' },
   { key: 'sans', label: 'Sans' },

@@ -21,6 +21,7 @@ import { type ReactNode } from 'react';
 import { Splitter, HorizontalSplitter } from './workspace-resize-splitters';
 import { appendActiveSessionParam, isSsotYamlPath } from './workspace-session-routing';
 import { ConvModeSelector } from './workspace-git-diff';
+import { ATLAS_WORKFLOW_LOCKED } from './app-helpers';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
 // read it through window with a permissive cast + inline fallback so the
@@ -178,26 +179,32 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
           <div style={{ padding: '6px 12px 4px', fontSize: 10, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--fg-mute)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span>workflow</span>
             <span className="mute" style={{ fontSize: 9, textTransform: 'none', letterSpacing: 0 }}>
-              {ws.atlasUiOrchestratorMode?.() ? '· orchestrator first' : '· optional · click to toggle'}
+              {ATLAS_WORKFLOW_LOCKED
+                ? '· default · managed by codex'
+                : (ws.atlasUiOrchestratorMode?.() ? '· orchestrator first' : '· optional · click to toggle')}
             </span>
           </div>
           <div className="left-workflow-list">
-            {(w.FLOW_STAGES || []).map((s: any, i: number) => {
-              const active = (workflow || 'default') === s.id;
+            {(w.FLOW_STAGES || [])
+              .filter((s: any) => !ATLAS_WORKFLOW_LOCKED || s.id === 'default')
+              .map((s: any, i: number) => {
+              const active = ATLAS_WORKFLOW_LOCKED ? s.id === 'default' : (workflow || 'default') === s.id;
               return (
                 <button key={s.id}
                   type="button"
-                  onClick={() => switchWorkflow(s.id)}
+                  disabled={ATLAS_WORKFLOW_LOCKED}
+                  onClick={() => { if (!ATLAS_WORKFLOW_LOCKED) switchWorkflow(s.id); }}
                   style={{
                     display: 'grid', gridTemplateColumns: '14px 38px 1fr 14px',
-                    gap: 8, padding: '6px 12px', alignItems: 'center', fontSize: 12, cursor: 'pointer',
+                    gap: 8, padding: '6px 12px', alignItems: 'center', fontSize: 12,
+                    cursor: ATLAS_WORKFLOW_LOCKED ? 'default' : 'pointer',
                     background: active ? 'var(--select)' : 'transparent',
                     borderLeft: active ? `2px solid ${s.color}` : '2px solid transparent',
                     borderTop: 0, borderRight: 0, borderBottom: 0,
                     width: '100%', color: 'var(--fg)', textAlign: 'left', fontFamily: 'inherit',
                   }}
-                  onMouseEnter={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'var(--bg-2)'; }}
-                  onMouseLeave={(e) => { if (!active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  onMouseEnter={(e) => { if (!ATLAS_WORKFLOW_LOCKED && !active) (e.currentTarget as HTMLElement).style.background = 'var(--bg-2)'; }}
+                  onMouseLeave={(e) => { if (!ATLAS_WORKFLOW_LOCKED && !active) (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                 >
                   <span className="mute">{i + 1}</span>
                   <span style={{ color: s.color, fontWeight: 700, letterSpacing: '0.06em', fontSize: 10 }}>{s.glyph}</span>
