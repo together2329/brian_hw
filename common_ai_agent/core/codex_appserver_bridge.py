@@ -37,6 +37,53 @@ _conns_lock = asyncio.Lock()
 _NON_TOOL_ITEMS = {"userMessage", "agentMessage", "reasoning"}
 
 
+def _item_started_text(item: dict) -> "str | None":
+    """Human-readable label when a tool-ish ThreadItem starts; None to skip.
+    Reads the real per-type fields — codex command/exec items carry the command
+    in `command` (NOT `text`), so a plain item.text read renders empty."""
+    itype = item.get("type")
+    if itype == "commandExecution":
+        cmd = (item.get("command") or "").strip()
+        return f"$ {cmd}" if cmd else "$ (command)"
+    if itype == "mcpToolCall":
+        server = item.get("server") or ""
+        tool = item.get("tool") or "tool"
+        return f"{server}.{tool}" if server else str(tool)
+    if itype == "fileChange":
+        n = len(item.get("changes") or [])
+        return f"apply_patch — {n} file(s)"
+    if itype == "dynamicToolCall":
+        return str(item.get("tool") or "tool")
+    return None
+
+
+def _item_result(item: dict) -> "tuple[str, str] | None":
+    """(tool_label, result_text) for a completed tool-ish ThreadItem; None to
+    skip. Command output lives in `aggregatedOutput`, not `text`."""
+    itype = item.get("type")
+    if itype == "commandExecution":
+        out = item.get("aggregatedOutput")
+        if not out:
+            ec = item.get("exitCode")
+            out = f"(exit {ec})" if ec is not None else f"({item.get('status') or 'no output'})"
+        return ("command", str(out))
+    if itype == "mcpToolCall":
+        tool = str(item.get("tool") or "mcp")
+        if item.get("error"):
+            return (tool, "error: " + json.dumps(item.get("error")))
+        res = item.get("result")
+        return (tool, json.dumps(res) if res is not None else "(ok)")
+    if itype == "fileChange":
+        return ("apply_patch", f"status: {item.get('status')}")
+    if itype == "dynamicToolCall":
+        ci = item.get("contentItems")
+        return (
+            str(item.get("tool") or "tool"),
+            json.dumps(ci) if ci is not None else f"success={item.get('success')}",
+        )
+    return None
+
+
 class _CodexConn:
     """A persistent `codex app-server` stdio connection + one thread."""
 
@@ -140,16 +187,14 @@ class _CodexConn:
                                 "item/reasoning/summaryTextDelta"):
                     emit("reasoning", text=params.get("delta", ""))
                 elif method == "item/started":
-                    item = params.get("item") or {}
-                    if item.get("type") not in _NON_TOOL_ITEMS:
-                        emit("tool", text=str(item.get("type") or "tool"))
+                    label = _item_started_text(params.get("item") or {})
+                    if label is not None:
+                        emit("tool", text=label)
                 elif method == "item/completed":
-                    item = params.get("item") or {}
-                    itype = item.get("type")
-                    if itype not in _NON_TOOL_ITEMS:
-                        summary = item.get("text") or itype or ""
-                        emit("tool_result", text=str(summary)[:1200],
-                             tool=str(itype or "tool"))
+                    res = _item_result(params.get("item") or {})
+                    if res is not None:
+                        tool_label, result_text = res
+                        emit("tool_result", text=str(result_text)[:4000], tool=tool_label)
                 elif method == "turn/completed":
                     done.set()
                 elif method == "error":
