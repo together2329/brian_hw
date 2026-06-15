@@ -1,0 +1,13 @@
+schema_version: policies.v1
+closure_profile: development
+structure_policy:
+  allowed_profiles:
+    - small_leaf_single_file
+    - greenfield_modular
+    - legacy_preserve
+    - wrapper_adapter
+  current_profile: small_leaf_single_file
+  rationale_required: true
+protected_field_policy:
+  locked_truth_requires_decision: true
+  closure_policy_requires_decision: true
