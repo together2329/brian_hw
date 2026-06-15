@@ -117,6 +117,41 @@ def test_filtered_tools_gates_oag(monkeypatch):
     assert "oag" in T.filtered_available_tools()
 
 
+def test_oag_skill_activates_on_demand(monkeypatch):
+    """L2: the vendored oag-ip-workflow skill auto-activates for IP work in OAG
+    mode by keyword relevance — without the literal word 'skill' — and stays off
+    for unrelated messages (progressive disclosure, not always-dumped)."""
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(PROJECT_ROOT))   # vendored .codex lives here
+    monkeypatch.setenv("ENABLE_SKILL_SYSTEM", "true")
+
+    from core.skill_system import get_skill_registry
+    reg = get_skill_registry()
+    sk_dir = str(PROJECT_ROOT / ".codex" / "skills")
+    if sk_dir not in reg._loader.extra_dirs:
+        reg._loader.extra_dirs.append(sk_dir)
+    reg.reload_all_skills()
+
+    skill = reg.get_skill("oag-ip-workflow")
+    assert skill is not None                                   # discovered from .codex/skills
+    assert skill.activation.auto_detect is True
+    assert "rtl" in [k.lower() for k in skill.activation.keywords]
+
+    import config as cfg
+    monkeypatch.setattr(cfg, "ENABLE_SKILL_SYSTEM", True, raising=False)
+    import src.main as M
+    M.load_active_skills._active_skill = None
+
+    # IP-relevant message → oag skill activates (no "skill" word in it)
+    on = M.load_active_skills([{"role": "user", "content": "write the apb timer rtl and cocotb testbench"}])
+    assert any("OAG IP Workflow" in p for p in on)
+
+    # unrelated message → oag skill not activated
+    M.load_active_skills._active_skill = None
+    off = M.load_active_skills([{"role": "user", "content": "hello, tell me a joke"}])
+    assert not any("OAG IP Workflow" in p for p in off)
+
+
 def test_oag_pack_vendored_and_self_contained(monkeypatch, tmp_path):
     """The .codex OAG pack ships INSIDE common_ai_agent (vendored), so OAG mode is
     self-contained: oag_root falls back to the platform root even when the

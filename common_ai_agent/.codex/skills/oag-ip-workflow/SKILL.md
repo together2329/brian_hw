@@ -1,6 +1,11 @@
 ---
 name: oag-ip-workflow
 description: Use when working on hardware IP requirements, RTL, testbench, simulation, coverage, signoff, common design-rule review, or evidence review through the Ontology Agent Gateway. Calls OAG before acting, records ROCEV-backed findings with explicit validation status, checks closure matrix and completion decisions, keeps scoreboard evidence TB/simulator agnostic through scoreboard_rows.v1, protects locked truth fields, preserves append-only evidence ledger events, enforces monotonic closure and evidence freshness hashes, writes decision receipts, and applies common design rules such as same-cycle priority, event/state commit consistency, contract-to-proof coverage, fault-model coverage, verification role decomposition, and RTL language subset.
+priority: 80
+activation:
+  auto_detect: true
+  keywords: [oag, ip, rtl, testbench, tb, cocotb, simulation, sim, coverage, signoff, formal, lint, requirement, obligation, contract, evidence, scaffold, closure, rocev, apb, register, waveform, mutation, synthesis]
+  file_patterns: ["*.sv", "*.svh", "*.v", "tb/**", "rtl/**", "ontology/**"]
 ---
 
 # OAG IP Workflow

@@ -543,6 +543,21 @@ def _setup_workspace(name: str) -> None:
             ]
             if _ws_skill_dir and _ws_skill_dir not in _ss._loader.extra_dirs:
                 _ss._loader.extra_dirs.append(_ws_skill_dir)
+            # OAG mode: register the vendored .codex/skills dir so the
+            # oag-ip-workflow skill is discoverable and can activate on demand.
+            try:
+                from core.prompt_builder import (
+                    oag_mode_enabled as _oag_on, oag_root as _oag_root_fn)
+                if _oag_on():
+                    _oagr = _oag_root_fn()
+                    if _oagr:
+                        _oag_sk = str(Path(_oagr) / ".codex" / "skills")
+                        if Path(_oag_sk).is_dir() and _oag_sk not in _ss._loader.extra_dirs:
+                            _ss._loader.extra_dirs.append(_oag_sk)
+                            from core.skill_system import get_skill_registry as _gsr
+                            _gsr().reload_all_skills()
+            except Exception:
+                pass
     except Exception:
         pass
 
@@ -868,6 +883,36 @@ def _route_skill_via_llm(user_message: str, skills: list):
     return None
 
 
+def _oag_mode_on():
+    try:
+        from core.prompt_builder import oag_mode_enabled
+        return oag_mode_enabled()
+    except Exception:
+        return False
+
+
+def _oag_keyword_route(message, registry):
+    """OAG mode on-demand routing (no LLM call): pick the most keyword-relevant
+    auto-detect skill (e.g. oag-ip-workflow) for IP work, so the per-stage skill
+    activates without requiring the literal word 'skill'. Returns name or None."""
+    try:
+        from core.skill_system.activator import SkillActivator
+        act = SkillActivator()
+    except Exception:
+        return None
+    best, best_score = None, 0.0
+    for s in registry.get_all_skills():
+        try:
+            if not s.activation.auto_detect or not s.activation.keywords:
+                continue
+            score = act._keyword_match_score(s.activation.keywords, message or "")
+        except Exception:
+            continue
+        if score > best_score:
+            best, best_score = s.name, score
+    return best if best_score >= 0.6 else None
+
+
 def load_active_skills(messages, allowed_tools=None):
     """
     Load active skills based on recent conversation context
@@ -911,6 +956,12 @@ def load_active_skills(messages, allowed_tools=None):
         if "skill" not in cache_key.lower():
             # No "skill" keyword → reuse existing active skill only (no LLM routing)
             routed = getattr(load_active_skills, '_active_skill', None)
+            # OAG mode: activate a keyword-relevant auto-detect skill (e.g.
+            # oag-ip-workflow) on demand for IP work — no literal "skill" needed.
+            if _oag_mode_on():
+                _oag_routed = _oag_keyword_route(cache_key, registry)
+                if _oag_routed:
+                    routed = _oag_routed
         else:
             # "skill" keyword present → LLM routing (with cache)
             if cache_key == getattr(load_active_skills, '_cached_key', ""):
