@@ -1,0 +1,11 @@
+schema_version: stages.v1
+stages:
+  - id: implementation
+    contracts:
+      - CONTRACT_APB_PWM_SIM_SCOREBOARD
+    required_evidence:
+      - sim/results.xml
+      - sim/scoreboard_events.jsonl
+      - cov/reports/coverage.json
+      - lint/reports/rtl_compile.log
+      - lint/reports/lint.log
