@@ -895,10 +895,27 @@ def _oag_mode_on():
         return False
 
 
+_OAG_DEFAULT_SIGNALS = [
+    "oag", "ip", "rtl", "testbench", "tb", "cocotb", "simulation", "sim",
+    "coverage", "signoff", "formal", "lint", "requirement", "obligation",
+    "contract", "evidence", "scaffold", "closure", "rocev", "apb", "pwm",
+    "register", "waveform", "mutation", "synthesis",
+]
+
+
+def _looks_like_oag_skill(skill) -> bool:
+    name = str(getattr(skill, "name", "") or "").lower()
+    desc = str(getattr(skill, "description", "") or "").lower()
+    return ("oag" in name or "ip-workflow" in name
+            or "ontology agent" in desc or "oag" in desc)
+
+
 def _oag_keyword_route(message, registry):
-    """OAG mode on-demand routing (no LLM call): pick the most keyword-relevant
+    """OAG mode on-demand routing (no LLM call): pick the most relevant
     auto-detect skill (e.g. oag-ip-workflow) for IP work, so the per-stage skill
-    activates without requiring the literal word 'skill'. Returns name or None."""
+    activates without the literal word 'skill'. Uses the skill's declared
+    keywords; for an OAG-flavored skill with no keywords (e.g. an external .codex
+    pack), falls back to a default OAG/IP signal set. Returns name or None."""
     try:
         from core.skill_system.activator import SkillActivator
         act = SkillActivator()
@@ -907,9 +924,14 @@ def _oag_keyword_route(message, registry):
     best, best_score = None, 0.0
     for s in registry.get_all_skills():
         try:
-            if not s.activation.auto_detect or not s.activation.keywords:
+            if not s.activation.auto_detect:
                 continue
-            score = act._keyword_match_score(s.activation.keywords, message or "")
+            kws = list(s.activation.keywords or [])
+            if not kws and _looks_like_oag_skill(s):
+                kws = _OAG_DEFAULT_SIGNALS
+            if not kws:
+                continue
+            score = act._keyword_match_score(kws, message or "")
         except Exception:
             continue
         if score > best_score:
@@ -966,6 +988,9 @@ def load_active_skills(messages, allowed_tools=None):
                 _oag_routed = _oag_keyword_route(cache_key, registry)
                 if _oag_routed:
                     routed = _oag_routed
+                    if getattr(load_active_skills, '_oag_last', None) != _oag_routed:
+                        load_active_skills._oag_last = _oag_routed
+                        print(f"  \033[38;5;208m[skill] {_oag_routed}\033[0m \033[2m(oag-routed)\033[0m")
         else:
             # "skill" keyword present → LLM routing (with cache)
             if cache_key == getattr(load_active_skills, '_cached_key', ""):
