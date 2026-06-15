@@ -1,0 +1,18 @@
+schema_version: requirements.v1
+requirements:
+  - id: REQ_APB_PWM_APB4_SLAVE
+    title: APB4 slave register interface
+    text: Provide an APB4 slave with pclk, presetn, psel, penable, pwrite, paddr[7:0], pwdata[31:0], prdata[31:0], pready, and pslverr ports. CTRL bit0 controls enable; PERIOD and DUTY are 32-bit registers.
+    status: locked
+  - id: REQ_APB_PWM_RESET_KNOWN
+    title: Reset leaves known state
+    text: While presetn is low, CTRL, PERIOD, DUTY, counter, pwm_out, prdata, pready, and pslverr are driven to known zero/idle values.
+    status: locked
+  - id: REQ_APB_PWM_COUNTER_OUTPUT
+    title: PWM counter and output behavior
+    text: When enabled and PERIOD is nonzero, the counter runs 0 through PERIOD-1 and pwm_out is high while counter is less than DUTY. When disabled or PERIOD is zero, counter and pwm_out are zero.
+    status: locked
+  - id: REQ_APB_PWM_APB_ERRORS
+    title: APB error behavior
+    text: Legal word-aligned offsets are CTRL at 0x00, PERIOD at 0x04, and DUTY at 0x08. Other accesses return PSLVERR during the APB access phase.
+    status: locked
