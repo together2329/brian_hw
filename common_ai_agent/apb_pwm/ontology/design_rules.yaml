@@ -1,0 +1,36 @@
+schema_version: design_rules.v1
+design_rules:
+  - id: RULE_EVENT_STATE_COMMIT
+    kind: event_state_commit_consistency
+    description: Sequential state changes commit on pclk and are reset by presetn.
+  - id: RULE_SAME_CYCLE_PRIORITY
+    kind: same_cycle_priority_declared
+    description: Reset has priority over APB writes and PWM counting; APB writes and counter updates in the same cycle both commit deterministically.
+  - id: RULE_SCOREBOARD_SCHEMA
+    kind: scoreboard_evidence_schema
+    description: Scoreboard rows use scoreboard_rows.v1 with DUT-facing observed_source.
+  - id: RULE_CONTRACT_TO_PROOF
+    kind: contract_to_proof_coverage
+    description: Contracts cite concrete simulation, lint, compile, and coverage evidence.
+  - id: RULE_MODULE_FILE_BOUNDARY
+    kind: module_file_boundary
+    description: The small leaf top module apb_pwm is implemented in rtl/apb_pwm.sv.
+  - id: RULE_RTL_LANGUAGE_SUBSET
+    kind: rtl_language_subset
+    description: SystemVerilog logic and generate are allowed; procedural for/while loops outside generate are forbidden.
+instances:
+  - id: INST_APB_PWM_RTL_SUBSET
+    rule: RULE_RTL_LANGUAGE_SUBSET
+    module: apb_pwm
+    obligations:
+      - OBL_APB_PWM_RESET_KNOWN
+      - OBL_APB_PWM_APB4_REGS
+      - OBL_APB_PWM_COUNTER_OUTPUT
+      - OBL_APB_PWM_APB_ERRORS
+    status: open
+  - id: INST_APB_PWM_SCOREBOARD_SCHEMA
+    rule: RULE_SCOREBOARD_SCHEMA
+    contract: CONTRACT_APB_PWM_SIM_SCOREBOARD
+    evidence:
+      - sim/scoreboard_events.jsonl
+    status: open
