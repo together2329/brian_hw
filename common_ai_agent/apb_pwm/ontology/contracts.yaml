@@ -1,0 +1,21 @@
+schema_version: contracts.v1
+contracts:
+  - id: CONTRACT_APB_PWM_SIM_SCOREBOARD
+    type: simulation_scoreboard
+    obligations:
+      - OBL_APB_PWM_RESET_KNOWN
+      - OBL_APB_PWM_APB4_REGS
+      - OBL_APB_PWM_COUNTER_OUTPUT
+      - OBL_APB_PWM_APB_ERRORS
+    evidence:
+      - sim/results.xml
+      - sim/scoreboard_events.jsonl
+      - cov/reports/coverage.json
+      - lint/reports/rtl_compile.log
+      - lint/reports/lint.log
+    checks:
+      - reset_known
+      - apb_register_rw
+      - counter_wrap_pwm_compare
+      - invalid_address_pslverr
+    status: open
