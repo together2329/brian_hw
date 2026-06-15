@@ -477,17 +477,19 @@ Write detailed tasks — include file paths, what to change, and expected outcom
             if getattr(cfg, 'DEBUG_MODE', False) and messages:
                 _debug_summary(cfg, base_prompt, dynamic_context, context_parts)
 
-    # ── OAG mode: always inject the project's AGENTS.md (+ .codex/rules) ──
-    # Independent of prompt-injection — OAG mode means "follow this project's
-    # agent rules and drive its .codex OAG pack", so the rules ride every turn.
-    if oag_mode_enabled(cfg):
-        oag_ctx = _build_oag_agents_context(cfg)
-        if oag_ctx:
-            dynamic_context = (dynamic_context + "\n\n" + oag_ctx) if dynamic_context else oag_ctx
-
     # ── Return format ──
     if injection_enabled and ctx.memory_system is not None:
         base_prompt = apply_memory_override(base_prompt, ctx.memory_system)
+
+    # ── OAG mode: append the project's AGENTS.md (+ .codex/rules) to the STATIC
+    # system prompt as a one-time rule block — NOT the per-turn dynamic context.
+    # These are static project rules, so they belong in the cached system prompt
+    # (sent/cached once), not re-sent every turn. Independent of prompt-injection:
+    # OAG mode = follow this project's agent rules and drive its .codex pack.
+    if oag_mode_enabled(cfg):
+        oag_ctx = _build_oag_agents_context(cfg)
+        if oag_ctx:
+            base_prompt = base_prompt + "\n\n" + oag_ctx
 
     if getattr(cfg, 'CACHE_OPTIMIZATION_MODE', 'legacy') == "optimized":
         return {"static": base_prompt, "dynamic": dynamic_context}

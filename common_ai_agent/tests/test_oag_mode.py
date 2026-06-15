@@ -61,6 +61,30 @@ def test_oag_root_and_agents_context(monkeypatch, tmp_path):
     assert "oag(" in ctx                  # tells the agent to drive via the oag tool
 
 
+def test_oag_injected_into_static_system_prompt(monkeypatch, tmp_path):
+    """AGENTS.md rules belong in the STATIC (cached) system prompt as a one-time
+    rule block — NOT the per-turn dynamic context (they are static project rules,
+    sent/cached once, not re-sent every turn)."""
+    _make_oag_project(tmp_path)
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.delenv("ATLAS_PROMPT_INJECTION", raising=False)
+    monkeypatch.delenv("ENABLE_PROMPT_INJECTION", raising=False)
+
+    class _Cfg:
+        CACHE_OPTIMIZATION_MODE = "optimized"
+
+    out = pb.build_system_prompt(
+        messages=[{"role": "user", "content": "hi"}],
+        cfg=_Cfg(),
+        build_base_fn=lambda **kw: "BASE SYSTEM PROMPT",
+    )
+    assert isinstance(out, dict)
+    assert pb.OAG_CONTEXT_START in out["static"]        # cached, static
+    assert pb.OAG_CONTEXT_START not in out["dynamic"]   # not the per-turn dynamic
+    assert "Project Agent Rules" in out["static"]
+
+
 # ── native oag tool drives .codex (agent.tools) ──
 
 def test_oag_tool_off_when_mode_off(monkeypatch):

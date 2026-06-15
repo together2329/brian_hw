@@ -16,10 +16,12 @@ use the OAG tools — it registers a native `oag` tool and calls the project's o
 
 ## What OAG_MODE=1 does
 
-1. **Always reads the project's agent rules.** Every turn, the system prompt gets
-   an `=== OAG / AGENTS.md ===` block built from `<root>/AGENTS.md`,
-   `<root>/.codex/AGENTS.md`, and `<root>/.codex/rules/*.md`. This is **independent
-   of the prompt-injection toggle** — OAG mode means "follow this project's rules".
+1. **Always reads the project's agent rules.** An `=== OAG / AGENTS.md ===` block
+   built from `<root>/AGENTS.md`, `<root>/.codex/AGENTS.md`, and
+   `<root>/.codex/rules/*.md` is appended to the **static system prompt** as a
+   one-time rule block — it rides in the cached static layer (sent/cached once),
+   not the per-turn dynamic context. This is **independent of the prompt-injection
+   toggle** — OAG mode means "follow this project's rules".
 2. **Exposes the native `oag` tool.** All 16 OAG tools
    (`oag.scaffold/inspect/context/compile/record/draft/ticket/check/decide/review/
    run.start/run.next/run.record/run.checkpoint/stop_check/graph`) are reachable
