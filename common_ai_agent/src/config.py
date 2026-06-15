@@ -1280,6 +1280,16 @@ RATE_LIMIT_DELAY = float(os.getenv("RATE_LIMIT_DELAY", "5"))
 # Set ENABLE_MCP=true and configure servers in .mcp.json
 ENABLE_MCP      = os.getenv("ENABLE_MCP", "false").lower() in ("true", "1", "yes")
 MCP_CONFIG_PATH = os.getenv("MCP_CONFIG_PATH", ".mcp.json")
+
+# OAG_MODE: tightly fuse a project's `.codex` OAG (Ontology IP Agent) pack into
+# the default agent. When ON, the agent (1) injects the project's AGENTS.md +
+# `.codex/rules/*` into its system prompt every turn (independent of prompt
+# injection) and (2) exposes the native `oag` tool to drive the `.codex` OAG
+# tools/scripts directly — no MCP needed (this is our own custom agent).
+# Default OFF. OAG_ROOT points at the project holding `.codex/`
+# (default: ATLAS_PROJECT_ROOT, then cwd).
+OAG_MODE = os.getenv("OAG_MODE", "false").lower() in ("true", "1", "yes", "on", "enable", "enabled")
+OAG_ROOT = os.getenv("OAG_ROOT", "").strip()
 # Secrets for MCP servers — referenced as ${VAR} in .mcp.json env blocks
 MCP_Z_AI_API_KEY = os.getenv("MCP_Z_AI_API_KEY", "")
 

@@ -605,6 +605,29 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         },
         required=["action"],
     ),
+    "oag": _fn(
+        "oag",
+        (
+            "Drive the active project's .codex OAG (Ontology IP Agent) pack — available in OAG_MODE. "
+            "Native tool, no MCP: calls the project's own .codex/scripts/oag_cli.py gateway directly. "
+            "tool=<oag tool id> one of oag.scaffold/oag.inspect/oag.context/oag.compile/oag.record/"
+            "oag.draft/oag.ticket/oag.check/oag.decide/oag.review/oag.run.start/oag.run.next/"
+            "oag.run.record/oag.run.checkpoint/oag.stop_check/oag.graph; pass ip/stage/intent for the "
+            "common arguments or args_json='{...}' for the full set (args_json wins). "
+            "Or run a .codex script directly: script=\"oag_eval.py\" (+script_args). "
+            "ALWAYS read the injected AGENTS.md / .codex rules first to pick the right tool."
+        ),
+        {
+            "tool": {"type": "string", "description": "OAG tool id, e.g. oag.inspect / oag.run.next (omit when using script)", "default": ""},
+            "ip": {"type": "string", "description": "IP dir name (convenience -> arguments.ip_dir)", "default": ""},
+            "stage": {"type": "string", "description": "stage, e.g. rtl-gen (convenience -> arguments.stage)", "default": ""},
+            "intent": {"type": "string", "description": "task intent (convenience -> arguments.intent)", "default": ""},
+            "args_json": {"type": "string", "description": "full OAG arguments as a JSON object string; wins over ip/stage/intent", "default": ""},
+            "script": {"type": "string", "description": ".codex/scripts/<file>.py to run directly instead of a tool call", "default": ""},
+            "script_args": {"type": "string", "description": "argument string for script mode", "default": ""},
+        },
+        required=[],
+    ),
     "read_pipeline_state": _fn(
         "read_pipeline_state",
         (

@@ -104,6 +104,83 @@ def prompt_injection_enabled(cfg: Any = None) -> bool:
     return False
 
 
+OAG_CONTEXT_START = "=== OAG / AGENTS.md (project agent rules — read and follow before acting) ==="
+OAG_CONTEXT_END = "=== END OAG / AGENTS.md ==="
+_OAG_CONTEXT_MAX = 24000  # cap so a big AGENTS.md/rules set can't blow the prompt
+
+
+def oag_mode_enabled(cfg: Any = None) -> bool:
+    """Whether OAG mode is on — tightly fuse a project's `.codex` OAG pack into
+    the default agent (inject AGENTS.md + expose the native `oag` tool). Default
+    OFF; toggle with OAG_MODE=1 (cfg.OAG_MODE wins when present)."""
+    if cfg is not None and hasattr(cfg, "OAG_MODE"):
+        return _coerce_bool(getattr(cfg, "OAG_MODE"), default=False)
+    return _coerce_bool(os.environ.get("OAG_MODE", ""), default=False)
+
+
+def oag_root(cfg: Any = None) -> Optional[Path]:
+    """Resolve the OAG project root — the directory holding `.codex/` (and
+    usually AGENTS.md). Order: OAG_ROOT (env/cfg) -> ATLAS_PROJECT_ROOT -> cwd;
+    first candidate that actually has `.codex/` or `AGENTS.md` wins."""
+    candidates = [
+        os.environ.get("OAG_ROOT", "").strip(),
+        str(getattr(cfg, "OAG_ROOT", "") or "") if cfg is not None else "",
+        os.environ.get("ATLAS_PROJECT_ROOT", "").strip(),
+        os.getcwd(),
+    ]
+    for raw in candidates:
+        if not raw:
+            continue
+        try:
+            p = Path(os.path.expandvars(str(raw))).expanduser()
+        except (OSError, ValueError):
+            continue
+        if (p / ".codex").is_dir() or (p / "AGENTS.md").is_file():
+            return p
+    return None
+
+
+def _build_oag_agents_context(cfg: Any = None) -> str:
+    """Build the OAG context block: the project's AGENTS.md (+ `.codex/AGENTS.md`
+    and `.codex/rules/*.md`), so OAG mode 'always reads' the project agent rules.
+    Returns '' if no OAG project is resolvable."""
+    root = oag_root(cfg)
+    if root is None:
+        return ""
+    parts: List[str] = []
+    for rel in ("AGENTS.md", ".codex/AGENTS.md"):
+        f = root / rel
+        if f.is_file():
+            try:
+                txt = f.read_text(encoding="utf-8", errors="replace").strip()
+            except OSError:
+                continue
+            if txt:
+                parts.append(f"# {rel}\n{txt}")
+    rules_dir = root / ".codex" / "rules"
+    if rules_dir.is_dir():
+        for rf in sorted(rules_dir.glob("*.md")):
+            try:
+                txt = rf.read_text(encoding="utf-8", errors="replace").strip()
+            except OSError:
+                continue
+            if txt:
+                parts.append(f"# .codex/rules/{rf.name}\n{txt}")
+    if not parts:
+        return ""
+    body = "\n\n".join(parts)
+    if len(body) > _OAG_CONTEXT_MAX:
+        body = body[:_OAG_CONTEXT_MAX] + "\n…(truncated)"
+    header = (
+        f"(OAG_MODE active — project root: {root})\n"
+        "Drive this project's .codex OAG pack with the `oag` tool (no MCP needed): "
+        "oag(tool=\"oag.inspect|oag.compile|oag.context|oag.run.start|oag.run.next|"
+        "oag.record|oag.decide|oag.review|oag.scaffold|oag.graph|...\", ip=..., stage=..., "
+        "intent=...). Run a .codex script with oag(script=\"<file>.py\"). Follow the rules below."
+    )
+    return f"{OAG_CONTEXT_START}\n{header}\n\n{body}\n{OAG_CONTEXT_END}"
+
+
 def active_workflow_name() -> Optional[str]:
     """Resolve the active workflow name from Atlas/workspace environment."""
     session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
@@ -396,6 +473,14 @@ Write detailed tasks — include file paths, what to change, and expected outcom
             dynamic_context = "\n\n".join(context_parts)
             if getattr(cfg, 'DEBUG_MODE', False) and messages:
                 _debug_summary(cfg, base_prompt, dynamic_context, context_parts)
+
+    # ── OAG mode: always inject the project's AGENTS.md (+ .codex/rules) ──
+    # Independent of prompt-injection — OAG mode means "follow this project's
+    # agent rules and drive its .codex OAG pack", so the rules ride every turn.
+    if oag_mode_enabled(cfg):
+        oag_ctx = _build_oag_agents_context(cfg)
+        if oag_ctx:
+            dynamic_context = (dynamic_context + "\n\n" + oag_ctx) if dynamic_context else oag_ctx
 
     # ── Return format ──
     if injection_enabled and ctx.memory_system is not None:

@@ -8728,6 +8728,91 @@ def sim_debug(action="", ip="", signals="", signal="", t_start=None, t_end=None,
             "radix, remove, keep, clear, fold, unfold, search, source, fsm, trace, find, value]")
 
 
+def _oag_format_proc(r) -> str:
+    out = (r.stdout or "").strip()
+    err = (r.stderr or "").strip()
+    if r.returncode != 0:
+        return f"[oag exit {r.returncode}]\n{out}\n{err}".strip()
+    return out or err or "[oag: empty response]"
+
+
+def oag(tool="", ip="", stage="", intent="", args_json="", script="", script_args=""):
+    """Drive the active project's .codex OAG (Ontology IP Agent) pack — requires
+    OAG_MODE. This is a native tool (no MCP): it calls the project's own
+    `.codex/scripts/oag_cli.py` gateway directly.
+
+      tool=    an OAG tool id — oag.scaffold/inspect/context/compile/record/
+               draft/ticket/check/decide/review/run.start/run.next/run.record/
+               run.checkpoint/stop_check/graph. Pass ip=/stage=/intent= for the
+               common arguments, or args_json='{...}' for the full argument set
+               (args_json wins). e.g. oag(tool="oag.run.next", ip="timer").
+      script=  run a .codex/scripts/<file> directly (e.g. "oag_eval.py"),
+               with optional script_args="...".
+
+    Read the injected AGENTS.md / .codex rules first to know which tool to call.
+    """
+    import shlex
+    import subprocess
+    from core.prompt_builder import oag_mode_enabled, oag_root
+    if not oag_mode_enabled():
+        return ("[oag: OAG_MODE is off. Set OAG_MODE=1 (and OAG_ROOT to the project "
+                "holding .codex/) to drive the OAG pack.]")
+    root = oag_root()
+    if root is None:
+        return ("[oag: no OAG project found — no .codex/ or AGENTS.md under "
+                "OAG_ROOT / ATLAS_PROJECT_ROOT / cwd.]")
+    codex = Path(root) / ".codex"
+    env = dict(os.environ)
+    env.setdefault("OAG_ACTOR_SURFACE", "atlas-native")
+
+    s = str(script or "").strip()
+    if s:
+        sp = Path(s) if s.startswith("/") else (codex / "scripts" / s)
+        if not sp.is_file():
+            return f"[oag: script not found: {sp}]"
+        cmd = [sys.executable, str(sp)] + (shlex.split(script_args) if script_args else [])
+        try:
+            r = subprocess.run(cmd, cwd=str(root), capture_output=True,
+                               text=True, timeout=180, env=env)
+        except Exception as e:  # pragma: no cover - subprocess edge
+            return f"[oag script error: {e}]"
+        return _oag_format_proc(r)
+
+    t = str(tool or "").strip()
+    if not t:
+        return ("[oag: pass tool=\"oag.inspect\" (+ip/stage/intent or args_json), "
+                "or script=\"<file>.py\". Tools: oag.scaffold/inspect/context/compile/"
+                "record/draft/ticket/check/decide/review/run.start/run.next/run.record/"
+                "run.checkpoint/stop_check/graph]")
+    cli = codex / "scripts" / "oag_cli.py"
+    if not cli.is_file():
+        return f"[oag: gateway not found: {cli}]"
+    args: dict = {}
+    aj = str(args_json or "").strip()
+    if aj:
+        try:
+            parsed = json.loads(aj)
+        except json.JSONDecodeError as e:
+            return f"[oag: bad args_json: {e}]"
+        if not isinstance(parsed, dict):
+            return "[oag: args_json must be a JSON object]"
+        args = parsed
+    if ip and "ip_dir" not in args:
+        args["ip_dir"] = str(ip).strip()
+    if stage and "stage" not in args:
+        args["stage"] = str(stage).strip()
+    if intent and "intent" not in args:
+        args["intent"] = str(intent).strip()
+    payload = json.dumps({"tool": t, "arguments": args})
+    try:
+        r = subprocess.run([sys.executable, str(cli), "call", "--json", payload],
+                           cwd=str(root), capture_output=True, text=True,
+                           timeout=180, env=env)
+    except Exception as e:  # pragma: no cover - subprocess edge
+        return f"[oag {t} error: {e}]"
+    return _oag_format_proc(r)
+
+
 # Registry of available tools
 AVAILABLE_TOOLS = {
     "read_file": read_file,
@@ -8802,6 +8887,9 @@ AVAILABLE_TOOLS = {
     "read_pipeline_state": read_pipeline_state,
     # Sim Debug waveform panel driver/analysis (VCD + pyslang)
     "sim_debug": sim_debug,
+    # OAG (.codex Ontology IP Agent) pack driver — only visible in OAG_MODE
+    # (filtered_available_tools hides it otherwise).
+    "oag": oag,
 }
 
 
@@ -8820,6 +8908,14 @@ def filtered_available_tools(extra_disable=None):
     disabled = {x.strip() for x in raw.split(",") if x.strip()}
     if extra_disable:
         disabled.update(extra_disable)
+    # The native `oag` tool is exposed only in OAG_MODE (it drives a project's
+    # .codex pack); hide it from non-OAG agents.
+    try:
+        from core.prompt_builder import oag_mode_enabled as _oag_on
+        if not _oag_on():
+            disabled.add("oag")
+    except Exception:
+        disabled.add("oag")
     if not disabled:
         return AVAILABLE_TOOLS
     return {k: v for k, v in AVAILABLE_TOOLS.items() if k not in disabled}
