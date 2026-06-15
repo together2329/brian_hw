@@ -1059,6 +1059,22 @@ def _locked_truth_active_for_session(project_root: Path, session_id: str, ip: st
     )
 
 
+def _locked_truth_draft_overlay_enabled() -> bool:
+    """Whether the locked-truth-draft interview overlay may wrap chat messages.
+
+    Default OFF: the default agent stays a plain chat agent and does not keep
+    pushing /draft-req. Opt in with ATLAS_LOCKED_TRUTH_DRAFT_MODE=true (alias
+    ENABLE_LOCKED_TRUTH_DRAFT_MODE) to restore the requirement-interview mode.
+    (Codex mode disables the overlay separately at the call site: the .codex
+    extensions own the requirement flow there.)
+    """
+    raw = os.environ.get(
+        "ATLAS_LOCKED_TRUTH_DRAFT_MODE",
+        os.environ.get("ENABLE_LOCKED_TRUTH_DRAFT_MODE", "false"),
+    )
+    return str(raw).strip().lower() in ("true", "1", "yes", "on", "enable", "enabled")
+
+
 def _apply_locked_truth_draft_overlay(
     project_root: Path,
     session_id: str,
@@ -1066,6 +1082,8 @@ def _apply_locked_truth_draft_overlay(
     text: str,
 ) -> tuple[str, bool]:
     raw_text = str(text or "").strip()
+    if not _locked_truth_draft_overlay_enabled():
+        return raw_text, False
     if not raw_text or raw_text.startswith("/") or raw_text.startswith(_LOCKED_TRUTH_DRAFT_SENTINEL):
         return raw_text, False
     ip = _locked_truth_draft_ip(session_id, msg)
