@@ -152,6 +152,28 @@ def test_oag_skill_activates_on_demand(monkeypatch):
     assert not any("OAG IP Workflow" in p for p in off)
 
 
+def test_oag_platform_backend_runs_local_no_recursion(tmp_path):
+    """L4: scripts/oag.py is a platform-canonical OAG backend that runs the engine
+    LOCALLY and never re-delegates — even when OAG_COMMON_AI_AGENT points back at
+    the platform (which would otherwise loop). Returns oag_tool_response.v1."""
+    import json
+    import os
+    import subprocess
+    backend = PROJECT_ROOT / "scripts" / "oag.py"
+    assert backend.is_file()
+    env = dict(os.environ)
+    env["OAG_COMMON_AI_AGENT"] = str(PROJECT_ROOT)   # would infinite-loop if unguarded
+    env["COMMON_AI_AGENT_HOME"] = str(PROJECT_ROOT)
+    r = subprocess.run(
+        [sys.executable, str(backend), "call", "--json",
+         json.dumps({"tool": "oag.inspect", "arguments": {"ip_dir": "nope_ip"}})],
+        cwd=str(tmp_path), capture_output=True, text=True, timeout=60, env=env)
+    assert r.returncode == 0, r.stderr
+    d = json.loads(r.stdout)
+    assert d.get("schema_version") == "oag_tool_response.v1"
+    assert d.get("tool") == "oag.inspect"
+
+
 def _seed_active_run(tmp_path, status="in_progress", prompt_block="=== OAG NEXT ACTION ===\nnext=write the rtl\n=== END ==="):
     import json
     (tmp_path / ".codex").mkdir(exist_ok=True)
