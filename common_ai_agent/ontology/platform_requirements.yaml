@@ -1416,9 +1416,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_mode_default_off"
-            observed_at: c7f7911c
+            observed_at: e5bb3871
           - test: "tests/test_oag_mode.py::test_oag_mode_env_on"
-            observed_at: c7f7911c
+            observed_at: e5bb3871
       - id: OBL_OAG_AGENTS_MD_INJECTED
         owned_by: agent.prompt-builder
         granularity: behavior
@@ -1438,8 +1438,8 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_tool_calls_gateway"
-            observed_at: c7f7911c
+            observed_at: e5bb3871
           - test: "tests/test_oag_mode.py::test_oag_tool_script_mode"
-            observed_at: c7f7911c
+            observed_at: e5bb3871
           - test: "tests/test_oag_mode.py::test_filtered_tools_gates_oag"
-            observed_at: c7f7911c
+            observed_at: e5bb3871
