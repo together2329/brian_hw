@@ -184,6 +184,57 @@ def _build_oag_agents_context(cfg: Any = None) -> str:
     return f"{OAG_CONTEXT_START}\n{header}\n\n{body}\n{OAG_CONTEXT_END}"
 
 
+OAG_RUN_CONTEXT_START = "=== OAG ACTIVE RUN (keep driving this — do not stop until it is closed) ==="
+OAG_RUN_CONTEXT_END = "=== END OAG ACTIVE RUN ==="
+_OAG_RUN_DONE_STATUSES = {"complete", "completed", "closed", "done", "signoff", "promoted", "passed"}
+
+
+def _build_oag_run_context(cfg: Any = None) -> str:
+    """L3 (hook lifecycle, native): surface each incomplete OAG run's persisted
+    next-action prompt block every turn. This is the read-only equivalent of the
+    .codex UserPromptSubmit context-inject + Stop gate: the agent always sees the
+    active run + the single next action, so it keeps driving instead of stopping
+    after scaffold. DYNAMIC (run state changes each step) — never mutates state.
+    Returns '' when there is no incomplete active run."""
+    import json as _json
+    root = oag_root(cfg)
+    if root is None:
+        return ""
+    try:
+        actives = sorted(Path(root).glob("*/ontology/runs/active_run.json"))
+    except OSError:
+        return ""
+    blocks: List[str] = []
+    for active in actives:
+        try:
+            meta = _json.loads(active.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        run_id = str((meta or {}).get("run_id") or "").strip()
+        if not run_id:
+            continue
+        try:
+            ip = active.parents[2].name
+        except IndexError:
+            ip = ""
+        state_path = active.parent / run_id / "run_state.json"
+        try:
+            state = _json.loads(state_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        if str((state or {}).get("status") or "").lower() in _OAG_RUN_DONE_STATUSES:
+            continue
+        prompt_block = str(((state or {}).get("next_action") or {}).get("prompt_block") or "").strip()
+        if prompt_block:
+            blocks.append(f"[ip={ip}]\n{prompt_block}")
+    if not blocks:
+        return ""
+    body = "\n\n".join(blocks)
+    if len(body) > _OAG_CONTEXT_MAX:
+        body = body[:_OAG_CONTEXT_MAX] + "\n…(truncated)"
+    return f"{OAG_RUN_CONTEXT_START}\n{body}\n{OAG_RUN_CONTEXT_END}"
+
+
 def active_workflow_name() -> Optional[str]:
     """Resolve the active workflow name from Atlas/workspace environment."""
     session = (os.environ.get("ATLAS_ACTIVE_SESSION") or "").strip("/")
@@ -490,6 +541,12 @@ Write detailed tasks — include file paths, what to change, and expected outcom
         oag_ctx = _build_oag_agents_context(cfg)
         if oag_ctx:
             base_prompt = base_prompt + "\n\n" + oag_ctx
+        # L3: active-run next-action is DYNAMIC (changes each step) → goes in the
+        # per-turn dynamic context, not the cached static prompt. Drives the agent
+        # to keep following the OAG run (context-inject + soft stop-gate).
+        oag_run = _build_oag_run_context(cfg)
+        if oag_run:
+            dynamic_context = (dynamic_context + "\n\n" + oag_run) if dynamic_context else oag_run
 
     if getattr(cfg, 'CACHE_OPTIMIZATION_MODE', 'legacy') == "optimized":
         return {"static": base_prompt, "dynamic": dynamic_context}

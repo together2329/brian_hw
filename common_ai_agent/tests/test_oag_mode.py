@@ -152,6 +152,50 @@ def test_oag_skill_activates_on_demand(monkeypatch):
     assert not any("OAG IP Workflow" in p for p in off)
 
 
+def _seed_active_run(tmp_path, status="in_progress", prompt_block="=== OAG NEXT ACTION ===\nnext=write the rtl\n=== END ==="):
+    import json
+    (tmp_path / ".codex").mkdir(exist_ok=True)
+    runs = tmp_path / "myip" / "ontology" / "runs"
+    (runs / "RUN_X").mkdir(parents=True, exist_ok=True)
+    (runs / "active_run.json").write_text(json.dumps({"ip": "myip", "run_id": "RUN_X"}), encoding="utf-8")
+    (runs / "RUN_X" / "run_state.json").write_text(
+        json.dumps({"status": status, "next_action": {"prompt_block": prompt_block}}), encoding="utf-8")
+
+
+def test_oag_active_run_injected_and_gated(monkeypatch, tmp_path):
+    """L3: an incomplete OAG run's next-action block is surfaced every turn
+    (context-inject + soft stop-gate); a closed run injects nothing."""
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    _seed_active_run(tmp_path, status="in_progress")
+    ctx = pb._build_oag_run_context()
+    assert pb.OAG_RUN_CONTEXT_START in ctx
+    assert "write the rtl" in ctx and "ip=myip" in ctx
+
+    _seed_active_run(tmp_path, status="closed")
+    assert pb._build_oag_run_context() == ""
+
+
+def test_oag_active_run_goes_to_dynamic_not_static(monkeypatch, tmp_path):
+    """L3: the active-run block is DYNAMIC (changes each step) → per-turn dynamic
+    context, not the cached static system prompt."""
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.delenv("ATLAS_PROMPT_INJECTION", raising=False)
+    _seed_active_run(tmp_path, status="in_progress")
+
+    class _Cfg:
+        CACHE_OPTIMIZATION_MODE = "optimized"
+
+    out = pb.build_system_prompt(
+        messages=[{"role": "user", "content": "hi"}],
+        cfg=_Cfg(),
+        build_base_fn=lambda **kw: "BASE SYSTEM PROMPT",
+    )
+    assert pb.OAG_RUN_CONTEXT_START in out["dynamic"]
+    assert pb.OAG_RUN_CONTEXT_START not in out["static"]
+
+
 def test_oag_pack_vendored_and_self_contained(monkeypatch, tmp_path):
     """The .codex OAG pack ships INSIDE common_ai_agent (vendored), so OAG mode is
     self-contained: oag_root falls back to the platform root even when the
