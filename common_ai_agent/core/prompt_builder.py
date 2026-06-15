@@ -118,18 +118,15 @@ def oag_mode_enabled(cfg: Any = None) -> bool:
     return _coerce_bool(os.environ.get("OAG_MODE", ""), default=False)
 
 
-def oag_root(cfg: Any = None) -> Optional[Path]:
-    """Resolve the OAG project root — the directory holding `.codex/` (and
-    usually AGENTS.md). Order: OAG_ROOT (env/cfg) -> ATLAS_PROJECT_ROOT -> cwd;
-    first candidate that actually has `.codex/` or `AGENTS.md` wins."""
+def _oag_codex_dir(cfg: Any = None) -> Optional[Path]:
+    """The OAG `.codex` pack — the engine (scripts/oag_cli.py), rules, and
+    AGENTS.md. OAG ships as CORE inside common_ai_agent, so this defaults to the
+    platform's vendored `.codex`. OAG_ROOT (env/cfg) can override to an external
+    pack. Returns the `.codex` directory itself, or None."""
     candidates = [
         os.environ.get("OAG_ROOT", "").strip(),
         str(getattr(cfg, "OAG_ROOT", "") or "") if cfg is not None else "",
-        os.environ.get("ATLAS_PROJECT_ROOT", "").strip(),
-        os.getcwd(),
-        # platform root — the vendored .codex ships inside common_ai_agent, so OAG
-        # mode is self-contained even when the workspace/cwd has no .codex.
-        str(Path(__file__).resolve().parents[1]),
+        str(Path(__file__).resolve().parents[1]),  # platform (common_ai_agent) — core
     ]
     for raw in candidates:
         if not raw:
@@ -138,29 +135,50 @@ def oag_root(cfg: Any = None) -> Optional[Path]:
             p = Path(os.path.expandvars(str(raw))).expanduser()
         except (OSError, ValueError):
             continue
-        if (p / ".codex").is_dir() or (p / "AGENTS.md").is_file():
-            return p
+        if (p / ".codex").is_dir():
+            return p / ".codex"
     return None
+
+
+def _oag_ip_root(cfg: Any = None) -> Path:
+    """Where IPs and OAG runs live = the ACTIVE workspace (ATLAS_PROJECT_ROOT),
+    NOT where the `.codex` engine lives. Keeping this separate from the codex dir
+    is what lets the core OAG engine operate on the user's current workspace."""
+    raw = (
+        os.environ.get("ATLAS_PROJECT_ROOT", "").strip()
+        or (str(getattr(cfg, "ATLAS_PROJECT_ROOT", "") or "") if cfg is not None else "")
+        or os.getcwd()
+    )
+    try:
+        return Path(os.path.expandvars(str(raw))).expanduser()
+    except (OSError, ValueError):
+        return Path(os.getcwd())
+
+
+def oag_root(cfg: Any = None) -> Optional[Path]:
+    """Back-compat: the directory CONTAINING the OAG `.codex` pack (the platform
+    root by default, since OAG is core)."""
+    codex = _oag_codex_dir(cfg)
+    return codex.parent if codex is not None else None
 
 
 def _build_oag_agents_context(cfg: Any = None) -> str:
     """Build the OAG context block: the project's AGENTS.md (+ `.codex/AGENTS.md`
     and `.codex/rules/*.md`), so OAG mode 'always reads' the project agent rules.
     Returns '' if no OAG project is resolvable."""
-    root = oag_root(cfg)
-    if root is None:
+    codex = _oag_codex_dir(cfg)
+    if codex is None:
         return ""
     parts: List[str] = []
-    for rel in ("AGENTS.md", ".codex/AGENTS.md"):
-        f = root / rel
-        if f.is_file():
-            try:
-                txt = f.read_text(encoding="utf-8", errors="replace").strip()
-            except OSError:
-                continue
-            if txt:
-                parts.append(f"# {rel}\n{txt}")
-    rules_dir = root / ".codex" / "rules"
+    f = codex / "AGENTS.md"
+    if f.is_file():
+        try:
+            txt = f.read_text(encoding="utf-8", errors="replace").strip()
+        except OSError:
+            txt = ""
+        if txt:
+            parts.append(f"# AGENTS.md\n{txt}")
+    rules_dir = codex / "rules"
     if rules_dir.is_dir():
         for rf in sorted(rules_dir.glob("*.md")):
             try:
@@ -168,15 +186,15 @@ def _build_oag_agents_context(cfg: Any = None) -> str:
             except OSError:
                 continue
             if txt:
-                parts.append(f"# .codex/rules/{rf.name}\n{txt}")
+                parts.append(f"# rules/{rf.name}\n{txt}")
     if not parts:
         return ""
     body = "\n\n".join(parts)
     if len(body) > _OAG_CONTEXT_MAX:
         body = body[:_OAG_CONTEXT_MAX] + "\n…(truncated)"
     header = (
-        f"(OAG_MODE active — project root: {root})\n"
-        "Drive this project's .codex OAG pack with the `oag` tool (no MCP needed): "
+        "(OAG_MODE active — OAG is core in this platform. Operate on the ACTIVE "
+        "workspace's IPs via the native `oag` tool, no MCP needed): "
         "oag(tool=\"oag.inspect|oag.compile|oag.context|oag.run.start|oag.run.next|"
         "oag.record|oag.decide|oag.review|oag.scaffold|oag.graph|...\", ip=..., stage=..., "
         "intent=...). Run a .codex script with oag(script=\"<file>.py\"). Follow the rules below."
@@ -197,9 +215,7 @@ def _build_oag_run_context(cfg: Any = None) -> str:
     after scaffold. DYNAMIC (run state changes each step) — never mutates state.
     Returns '' when there is no incomplete active run."""
     import json as _json
-    root = oag_root(cfg)
-    if root is None:
-        return ""
+    root = _oag_ip_root(cfg)   # IPs/runs live in the active workspace, not the codex dir
     # Scope to the ACTIVE IP only when known — never dump every IP's open run
     # (that bloats the prompt with irrelevant runs and slows every turn). Fall
     # back to globbing all only when no active IP is resolvable (e.g. some

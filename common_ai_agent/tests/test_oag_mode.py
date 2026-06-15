@@ -25,6 +25,10 @@ def _make_oag_project(tmp_path):
     (tmp_path / "AGENTS.md").write_text(
         "# Project Agent Rules\nAlways run oag.inspect first.\n", encoding="utf-8")
     codex = tmp_path / ".codex"
+    codex.mkdir(parents=True, exist_ok=True)
+    # OAG is core: AGENTS.md / rules live INSIDE .codex (the vendored pack)
+    (codex / "AGENTS.md").write_text(
+        "# Project Agent Rules\nAlways run oag.inspect first.\n", encoding="utf-8")
     (codex / "rules").mkdir(parents=True)
     (codex / "rules" / "oag-rocev.rules.md").write_text(
         "# ROCEV\nDeclare before code.\n", encoding="utf-8")
@@ -189,6 +193,7 @@ def test_oag_active_run_injected_and_gated(monkeypatch, tmp_path):
     (context-inject + soft stop-gate); a closed run injects nothing."""
     monkeypatch.setenv("OAG_MODE", "1")
     monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))   # IPs/runs live in the workspace
     _seed_active_run(tmp_path, status="in_progress")
     ctx = pb._build_oag_run_context()
     assert pb.OAG_RUN_CONTEXT_START in ctx
@@ -203,6 +208,7 @@ def test_oag_active_run_scoped_to_active_ip(monkeypatch, tmp_path):
     not dumped into every prompt (prevents multi-IP prompt bloat)."""
     monkeypatch.setenv("OAG_MODE", "1")
     monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.delenv("ATLAS_IP_ROOT", raising=False)
     _seed_active_run(tmp_path, status="in_progress")   # seeds 'myip'
 
@@ -220,6 +226,7 @@ def test_oag_active_run_goes_to_dynamic_not_static(monkeypatch, tmp_path):
     context, not the cached static system prompt."""
     monkeypatch.setenv("OAG_MODE", "1")
     monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.delenv("ATLAS_PROMPT_INJECTION", raising=False)
     _seed_active_run(tmp_path, status="in_progress")
 

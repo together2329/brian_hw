@@ -8753,15 +8753,15 @@ def oag(tool="", ip="", stage="", intent="", args_json="", script="", script_arg
     """
     import shlex
     import subprocess
-    from core.prompt_builder import oag_mode_enabled, oag_root
+    from core.prompt_builder import oag_mode_enabled, _oag_codex_dir, _oag_ip_root
     if not oag_mode_enabled():
-        return ("[oag: OAG_MODE is off. Set OAG_MODE=1 (and OAG_ROOT to the project "
-                "holding .codex/) to drive the OAG pack.]")
-    root = oag_root()
-    if root is None:
-        return ("[oag: no OAG project found — no .codex/ or AGENTS.md under "
-                "OAG_ROOT / ATLAS_PROJECT_ROOT / cwd.]")
-    codex = Path(root) / ".codex"
+        return "[oag: OAG_MODE is off. Set OAG_MODE=1 to drive the OAG pack.]"
+    # OAG is CORE: the engine/.codex ships in the platform; it OPERATES on the
+    # active workspace's IPs (cwd=ip_root) — no per-workspace .codex needed.
+    codex = _oag_codex_dir()
+    if codex is None:
+        return "[oag: OAG .codex pack not found in the platform (common_ai_agent/.codex).]"
+    ip_root = _oag_ip_root()
     env = dict(os.environ)
     env.setdefault("OAG_ACTOR_SURFACE", "atlas-native")
 
@@ -8772,7 +8772,7 @@ def oag(tool="", ip="", stage="", intent="", args_json="", script="", script_arg
             return f"[oag: script not found: {sp}]"
         cmd = [sys.executable, str(sp)] + (shlex.split(script_args) if script_args else [])
         try:
-            r = subprocess.run(cmd, cwd=str(root), capture_output=True,
+            r = subprocess.run(cmd, cwd=str(ip_root), capture_output=True,
                                text=True, timeout=180, env=env)
         except Exception as e:  # pragma: no cover - subprocess edge
             return f"[oag script error: {e}]"
@@ -8806,7 +8806,7 @@ def oag(tool="", ip="", stage="", intent="", args_json="", script="", script_arg
     payload = json.dumps({"tool": t, "arguments": args})
     try:
         r = subprocess.run([sys.executable, str(cli), "call", "--json", payload],
-                           cwd=str(root), capture_output=True, text=True,
+                           cwd=str(ip_root), capture_output=True, text=True,
                            timeout=180, env=env)
     except Exception as e:  # pragma: no cover - subprocess edge
         return f"[oag {t} error: {e}]"
