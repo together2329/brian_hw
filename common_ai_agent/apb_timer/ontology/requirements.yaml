@@ -1,0 +1,11 @@
+schema: ontology_requirements.v1
+ip: apb_timer
+requirements:
+  - id: REQ_APB_TIMER_001
+    source: req/locked_truth.md
+    status: draft
+    text: APB4 slave timer exposes CTRL, LOAD, live COUNT, and W1C STATUS registers with single-cycle ready and deterministic reset/timer behavior.
+    obligations:
+      - OBL_APB_TIMER_RESET_KNOWN
+      - OBL_APB_TIMER_APB_REGISTER_ACCESS
+      - OBL_APB_TIMER_COUNT_WRAP
