@@ -4128,7 +4128,13 @@ def create_app():
                 if catalog_ip_names is not None:
                     for name in catalog_ip_names:
                         _add_item(name)
-                elif scan_root.is_dir():
+                # Single-user desktop: the workspace directory is authoritative, so
+                # ALWAYS also surface on-disk IP directories — even when the catalog
+                # is non-empty. Otherwise an IP created on disk but not (yet)
+                # registered in ip_blocks vanishes from the dropdown. _add_item dedups
+                # by name, so this merges cleanly with the catalog. No cross-tenant
+                # risk in single-user mode.
+                if scan_root.is_dir():
                     for entry in scan_root.iterdir():
                         if _looks_like_project_ip(entry):
                             _add_item(entry.name, mtime=entry.stat().st_mtime)
@@ -7327,6 +7333,10 @@ def create_app():
 
     def _ensure_new_ip_structure(ip: str, base_root: Path | None = None) -> list[str]:
         root = base_root or PROJECT_ROOT
+        # In codex mode the user owns structure via .codex (OAG scaffold), so atlas
+        # creates only the neutral base IP dirs — NO legacy workflow-engine copy and
+        # NO wiki scaffold/graph (the user drives those from .codex themselves).
+        _codex_mode = bool(os.environ.get("CODEX_BRIDGE"))
         dirs = [
             "doc",
             "req",
@@ -7338,27 +7348,29 @@ def create_app():
             "sim",
             "cov",
             "lint",
-            "wiki",
         ]
+        if not _codex_mode:
+            dirs.append("wiki")
         created: list[str] = []
         for rel in dirs:
             path = root / ip / rel
             path.mkdir(parents=True, exist_ok=True)
             created.append(f"{ip}/{rel}")
-        _scaffold_ip_wiki(ip, base_root=root)
-        # Copy the FULL workflow engine into <ip>/workflow/ (every stage's
-        # scripts, prompts, system_prompt.md, rules, todo templates, shared
-        # scripts/ + prompts/, flow guides) AND generate the wiki/_generated/
-        # runbook + ip_knowledge pages — the same scaffold the tool path runs.
-        # Without this a UI-created IP had no <ip>/workflow/ scripts on disk, so
-        # the runbook's `workflow/<stage>/scripts/...` commands had nothing to
-        # run. Then rebuild the wiki graph. Best-effort: never block creation.
-        try:
-            from core.tools import _scaffold_ip_workflow as _scaffold_wf
-            _scaffold_wf(str(root / ip), ip, [], [], [])
-        except Exception:
-            pass
-        _refresh_ip_wiki_graph(ip, base_root=root)
+        if not _codex_mode:
+            _scaffold_ip_wiki(ip, base_root=root)
+            # Copy the FULL workflow engine into <ip>/workflow/ (every stage's
+            # scripts, prompts, system_prompt.md, rules, todo templates, shared
+            # scripts/ + prompts/, flow guides) AND generate the wiki/_generated/
+            # runbook + ip_knowledge pages — the same scaffold the tool path runs.
+            # Without this a UI-created IP had no <ip>/workflow/ scripts on disk, so
+            # the runbook's `workflow/<stage>/scripts/...` commands had nothing to
+            # run. Then rebuild the wiki graph. Best-effort: never block creation.
+            try:
+                from core.tools import _scaffold_ip_workflow as _scaffold_wf
+                _scaffold_wf(str(root / ip), ip, [], [], [])
+            except Exception:
+                pass
+            _refresh_ip_wiki_graph(ip, base_root=root)
         # Per-IP git repo. Each IP gets its OWN .git so the agent's
         # write_file / replace_in_file calls can auto-commit and the
         # user has a per-IP history independent of the outer project
@@ -11670,12 +11682,16 @@ def create_app():
                                     session.emit("error", message=f"acceptance ack failed: {ack_exc}")
                             session.emit("error", message=f"session setup failed: {exc}")
                             continue
-                    _txt, _ = _apply_locked_truth_draft_overlay(
-                        PROJECT_ROOT,
-                        session.session_id,
-                        msg,
-                        _txt,
-                    )
+                    # In codex mode the .codex extensions (AGENTS.md / skills / OAG
+                    # MCP) own the requirement flow end-to-end, so atlas must NOT
+                    # inject its locked-truth draft overlay into the user's prompt.
+                    if not os.environ.get("CODEX_BRIDGE"):
+                        _txt, _ = _apply_locked_truth_draft_overlay(
+                            PROJECT_ROOT,
+                            session.session_id,
+                            msg,
+                            _txt,
+                        )
                     import os as _os
                     # ── Mode-flip slashes need to apply mid-loop ──
                     # `/mode normal` and `/plan` typed while the agent is
@@ -11693,48 +11709,54 @@ def create_app():
                         await _accept_handled("bang")
                         continue
                     if _txt.startswith("/"):
-                        if _handle_new_ip_command(_txt, client_session=session):
-                            await _accept_handled("new_ip")
-                            continue
-                        if _handle_ip_command(_txt, client_session=session):
-                            await _accept_handled("ip")
-                            continue
-                        if _handle_session_command(_txt, client_session=session):
-                            await _accept_handled("session")
-                            continue
-                        if _handle_import_command(_txt, client_session=session):
-                            await _accept_handled("import")
-                            continue
-                        if _handle_grill_me_command(_txt, client_session=session):
-                            await _accept_handled("grill")
-                            continue
-                        if _handle_approval_command(_txt, client_session=session):
-                            await _accept_handled("approval")
-                            continue
-                        if _handle_verify_ssot_command(_txt, client_session=session):
-                            await _accept_handled("verify_ssot")
-                            continue
-                        if _handle_repair_ssot_command(_txt, client_session=session):
-                            await _accept_handled("repair_ssot")
-                            continue
-                        if _handle_repair_rtl_command(_txt, client_session=session):
-                            await _accept_handled("repair_rtl")
-                            continue
-                        if _handle_repair_equiv_command(_txt, client_session=session):
-                            await _accept_handled("repair_equiv")
-                            continue
-                        if _handle_to_ssot_gate(_txt, client_session=session):
-                            await _accept_handled("to_ssot")
-                            continue
-                        if _run_stage_command(_txt, client_session=session):
-                            await _accept_handled("stage")
-                            continue
-                        if _handle_refresh_wiki_command(_txt, client_session=session):
-                            await _accept_handled("refresh_wiki")
-                            continue
-                        if _execute_generic_slash_command(_txt, session):
-                            await _accept_handled("slash")
-                            continue
+                        # Legacy atlas workflow slash-commands (draft/lock/stage/ssot/
+                        # wiki/import/repair/...) are DISABLED in codex mode: the user
+                        # drives the entire domain flow from .codex (skills + OAG MCP),
+                        # so every such slash falls through to the codex bridge as raw
+                        # input. Only the UI mode pills (/plan, /mode) remain below.
+                        if not os.environ.get("CODEX_BRIDGE"):
+                            if _handle_new_ip_command(_txt, client_session=session):
+                                await _accept_handled("new_ip")
+                                continue
+                            if _handle_ip_command(_txt, client_session=session):
+                                await _accept_handled("ip")
+                                continue
+                            if _handle_session_command(_txt, client_session=session):
+                                await _accept_handled("session")
+                                continue
+                            if _handle_import_command(_txt, client_session=session):
+                                await _accept_handled("import")
+                                continue
+                            if _handle_grill_me_command(_txt, client_session=session):
+                                await _accept_handled("grill")
+                                continue
+                            if _handle_approval_command(_txt, client_session=session):
+                                await _accept_handled("approval")
+                                continue
+                            if _handle_verify_ssot_command(_txt, client_session=session):
+                                await _accept_handled("verify_ssot")
+                                continue
+                            if _handle_repair_ssot_command(_txt, client_session=session):
+                                await _accept_handled("repair_ssot")
+                                continue
+                            if _handle_repair_rtl_command(_txt, client_session=session):
+                                await _accept_handled("repair_rtl")
+                                continue
+                            if _handle_repair_equiv_command(_txt, client_session=session):
+                                await _accept_handled("repair_equiv")
+                                continue
+                            if _handle_to_ssot_gate(_txt, client_session=session):
+                                await _accept_handled("to_ssot")
+                                continue
+                            if _run_stage_command(_txt, client_session=session):
+                                await _accept_handled("stage")
+                                continue
+                            if _handle_refresh_wiki_command(_txt, client_session=session):
+                                await _accept_handled("refresh_wiki")
+                                continue
+                            if _execute_generic_slash_command(_txt, session):
+                                await _accept_handled("slash")
+                                continue
                         if _low in ("/plan", "/mode plan", "/mode normal", "/normal"):
                             is_plan = _low in ("/plan", "/mode plan")
                             if is_plan:
@@ -11794,15 +11816,45 @@ def create_app():
                         from core.codex_appserver_bridge import run_codex_turn
                         _cx_cwd = None
                         try:
-                            _cx_parts = [p for p in session.session_id.split("/") if p]
-                            _cx_ip = _cx_parts[2] if len(_cx_parts) >= 3 else (_cx_parts[-1] if _cx_parts else "")
-                            if _cx_ip:
-                                _cx_dir = _ip_root_for_session(_cx_ip, session)
+                            # Scope codex to the prompt's RESOLVED namespace. `_session`
+                            # already folds in the selected ip from msg["ip"] (via
+                            # _prompt_target_session), whereas the connection-level
+                            # session.session_id can still read the stale default ip
+                            # (the browser holds a brief stale ACTIVE_SESSION while the
+                            # top IP control already shows the new target).
+                            _cx_sid = _session if isinstance(_session, str) and _session else getattr(session, "session_id", "")
+                            _cx_ctx = (
+                                AtlasContext.from_session_key(_cx_sid, atlas_root=PROJECT_ROOT)
+                                if _cx_sid else None
+                            )
+                            if _cx_ctx is not None and _cx_ctx.ip_name and _cx_ctx.ip_name != "default":
+                                _cx_dir = _cx_ctx.ip_root
                                 if _cx_dir and Path(_cx_dir).is_dir():
                                     _cx_cwd = str(_cx_dir)
+                                else:
+                                    # legacy bare-root IP: <atlas_root>/<ip> (mirrors
+                                    # the activate guard that adopts the bare layout).
+                                    _cx_bare = PROJECT_ROOT / _cx_ctx.ip_name
+                                    if _cx_bare.is_dir():
+                                        _cx_cwd = str(_cx_bare)
+                            _cx_conn_key = _cx_sid or getattr(session, "session_id", "")
+                            # Persist the codex turn to THIS session's conversation.json
+                            # (the file /api/conversation hydrates) so the chat feed
+                            # survives a re-render / next turn.
+                            _cx_hist = (
+                                str(_cx_ctx.session_dir / "conversation.json")
+                                if _cx_ctx is not None else ""
+                            )
                         except Exception:
                             _cx_cwd = None
-                        asyncio.create_task(run_codex_turn(session, _txt, cwd=_cx_cwd))
+                            _cx_conn_key = getattr(session, "session_id", "")
+                            _cx_hist = ""
+                        asyncio.create_task(
+                            run_codex_turn(
+                                session, _txt, cwd=_cx_cwd, conn_key=_cx_conn_key,
+                                transcript_path=_cx_hist,
+                            )
+                        )
                     else:
                         await _accept_queued()
                 elif t == "interrupt":

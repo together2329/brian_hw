@@ -294,19 +294,11 @@ def register_sessions_routes(
         # the UI (which shows `default`) from the backend. If the requested IP
         # is neither "default" nor a real project-IP directory, fall back to
         # default/default so the whole stale triple is dropped at the source.
-        if ip and ip != "default" and not multi_user_on:
-            try:
-                if not (project_root() / ip).is_dir():
-                    print(
-                        f"[Session] activate: IP {ip!r} not found on disk under "
-                        f"{project_root()} — falling back to default/default "
-                        f"(was workflow={wf!r})",
-                        flush=True,
-                    )
-                    ip = "default"
-                    wf = "default"
-            except Exception:
-                pass
+        # NOTE: the on-disk validation runs AFTER the AtlasContext is built, so it
+        # checks the session's workspace root (context.ip_root) instead of the bare
+        # project root. IPs created via /api/ip/create live under
+        # <atlas_root>/<user>/<session>/<ip>, so a bare project_root()/ip check
+        # would wrongly miss them. See [phantom-ip-disk-guard] below.
         # Sanitize — refuse exotic path chars to avoid traversal. Usernames
         # may be numeric account ids, so the first segment cannot require a
         # letter.
@@ -337,6 +329,45 @@ def register_sessions_routes(
             )
         else:
             context = AtlasContext.from_session_key(f"{sid}/{ip}/{wf}", atlas_root=project_root())
+        # [phantom-ip-disk-guard] Validate the requested IP against THIS session's
+        # workspace root, not the bare project root. IPs created via /api/ip/create
+        # live under context.workspace_root (<atlas_root>/<user>/<session>/<ip>), so
+        # a project_root()/ip check would wrongly miss them and fall back. Accept
+        # either the workspace-nested layout (context.ip_root) or a legacy bare-root
+        # IP (<atlas_root>/<ip>); only a genuinely absent IP falls back to default.
+        if ip != "default" and not multi_user_on:
+            try:
+                if not context.ip_root.is_dir():
+                    bare = AtlasContext.from_session_key(
+                        f"{sid}/{ip}/{wf}", atlas_root=project_root()
+                    )
+                    if bare.ip_root.is_dir():
+                        # IP physically lives at the legacy bare root — adopt it.
+                        context = bare
+                    else:
+                        print(
+                            f"[Session] activate: IP {ip!r} not found on disk under "
+                            f"{context.workspace_root} or {project_root()} — falling "
+                            f"back to default/default (was workflow={wf!r})",
+                            flush=True,
+                        )
+                        ip = "default"
+                        wf = "default"
+                        context = (
+                            AtlasContext(
+                                user_name=sid,
+                                workspace_session=workspace_session,
+                                ip_name=ip,
+                                workflow=wf,
+                                atlas_root=atlas_root,
+                            )
+                            if workspace_session
+                            else AtlasContext.from_session_key(
+                                f"{sid}/{ip}/{wf}", atlas_root=project_root()
+                            )
+                        )
+            except Exception:
+                pass
         canonical = context.active_session_key
         user_id = _request_user_id(req)
         # Side-door / phantom-IP guard. activate must not MINT a namespace for an
@@ -390,9 +421,13 @@ def register_sessions_routes(
                     # materialize; collapse to default so no ghost is minted.
                     downgrade = not owned and not allow_create
                 else:
-                    # Desktop/single-user keeps the legacy behavior (the on-disk
-                    # IP check above already validated existence).
-                    downgrade = catalog_ip_names is not None and not in_catalog
+                    # Desktop/single-user: the [phantom-ip-disk-guard] above already
+                    # validated that context.ip_root exists on disk, which is
+                    # sufficient ownership in a single-tenant deployment (no
+                    # cross-owner phantom risk). An IP that exists under the session's
+                    # own workspace is yours even if it predates the catalog (e.g.
+                    # created before catalog registration / by a different surface).
+                    downgrade = not context.ip_root.is_dir()
                 if downgrade:
                     print(
                         f"[Session] activate: IP {ip!r} not owned by {sid!r} and "

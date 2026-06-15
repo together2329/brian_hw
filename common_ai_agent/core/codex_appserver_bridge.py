@@ -68,8 +68,15 @@ def _item_started_text(item: dict) -> "str | None":
             return f"🔎 find '{action.get('pattern') or ''}' in {action.get('url') or ''}"
         return f"🔎 web search: {item.get('query') or action.get('query') or ''}"
     if itype == "fileChange":
-        paths = ", ".join((c.get("path") or "") for c in (item.get("changes") or []))
-        return f"✎ edit: {paths}" if paths else "✎ edit"
+        parts = []
+        for c in (item.get("changes") or []):
+            kind = c.get("kind")
+            kname = kind.get("type") if isinstance(kind, dict) else (str(kind) if kind else "")
+            mark = {"add": "＋add", "delete": "－del", "update": "~mod"}.get(
+                (kname or "").lower(), "✎"
+            )
+            parts.append(f"{mark} {c.get('path') or ''}".strip())
+        return "✎ apply_patch: " + ", ".join(parts) if parts else "✎ edit"
     if itype == "mcpToolCall":
         server = item.get("server") or ""
         tool = item.get("tool") or "tool"
@@ -96,11 +103,16 @@ def _item_result(item: dict) -> "tuple[str, str] | None":
             out = f"(exit {ec})" if ec is not None else f"({item.get('status') or 'no output'})"
         return ("command", str(out))
     if itype == "fileChange":
-        diffs = "\n".join(
-            f"{c.get('path') or ''}\n{c.get('diff') or ''}"
-            for c in (item.get("changes") or [])
-        )
-        return ("apply_patch", diffs or f"status: {item.get('status')}")
+        blocks = []
+        for c in (item.get("changes") or []):
+            kind = c.get("kind")
+            kname = kind.get("type") if isinstance(kind, dict) else (str(kind) if kind else "")
+            path = c.get("path") or ""
+            diff = c.get("diff") or ""
+            # ADD shows new content; UPDATE shows codex's unified +/- diff.
+            header = f"{(kname or 'edit').upper()}: {path}".rstrip()
+            blocks.append(f"{header}\n{diff}".rstrip())
+        return ("apply_patch", "\n\n".join(blocks) or f"status: {item.get('status')}")
     if itype == "mcpToolCall":
         tool = str(item.get("tool") or "mcp")
         if item.get("error"):
@@ -363,20 +375,71 @@ async def _get_conn(session_id: str, cwd: "str | None" = None) -> _CodexConn:
     return conn
 
 
-async def run_codex_turn(session: Any, text: str, cwd: "str | None" = None) -> None:
+def _append_conversation(path: str, user_text: str, assistant_text: str) -> None:
+    """Append one (user, assistant) turn to a session conversation.json — the same
+    ``[{role, content}, ...]`` file the atlas frontend hydrates via
+    /api/conversation. The codex bridge bypasses atlas's own history writer, so
+    without this the codex replies vanish on the next turn / re-render. Best-effort
+    and atomic; never raises into the turn."""
+    try:
+        from pathlib import Path
+        p = Path(path)
+        p.parent.mkdir(parents=True, exist_ok=True)
+        rows: list = []
+        if p.is_file():
+            try:
+                loaded = json.loads(p.read_text(encoding="utf-8"))
+                if isinstance(loaded, list):
+                    rows = loaded
+            except Exception:
+                rows = []
+        if user_text and str(user_text).strip():
+            rows.append({"role": "user", "content": str(user_text)})
+        if assistant_text and str(assistant_text).strip():
+            rows.append({"role": "assistant", "content": str(assistant_text)})
+        if len(rows) > 500:  # keep the file bounded
+            rows = rows[-500:]
+        tmp = p.with_name(p.name + ".tmp")
+        tmp.write_text(json.dumps(rows, ensure_ascii=False, indent=2), encoding="utf-8")
+        tmp.replace(p)
+    except Exception:
+        pass
+
+
+async def run_codex_turn(
+    session: Any, text: str, cwd: "str | None" = None, conn_key: "str | None" = None,
+    transcript_path: "str | None" = None,
+) -> None:
     """Run one chat turn through codex app-server for the given atlas session,
     emitting the existing atlas envelope events via session.emit(...). `cwd`
-    scopes the session's codex thread to the active IP's workspace directory."""
+    scopes the session's codex thread to the active IP's workspace directory.
+
+    `conn_key` selects the persistent codex connection. It must be the RESOLVED
+    per-IP namespace (e.g. ``user/session/ip/workflow``): the websocket
+    ``session.session_id`` can be a coarse connection-level ``'default'``, so
+    keying on it would force every IP under one shared codex process + cwd
+    (the first IP's cwd would stick for all later IPs). Falls back to the
+    session id when no key is supplied.
+
+    `transcript_path` is the session conversation.json: the user prompt and the
+    accumulated agent reply are appended there so the chat feed persists."""
+    _agent_buf: "list[str]" = []
     def emit(msg_type: str, **payload: Any) -> None:
+        if msg_type == "token":
+            _agent_buf.append(str(payload.get("text") or ""))
         try:
             session.emit(msg_type, **payload)
         except Exception:
             pass
     try:
-        conn = await _get_conn(session.session_id, cwd)
+        _key = conn_key or getattr(session, "session_id", "") or "default"
+        conn = await _get_conn(_key, cwd)
         await conn.run_turn(text, emit)
     except Exception as exc:  # never strand the frontend
         emit("error", message=f"codex bridge error: {exc}")
         emit("flush")
         emit("agent_state", running=False)
         emit("done")
+    finally:
+        if transcript_path:
+            _append_conversation(transcript_path, text, "".join(_agent_buf))
