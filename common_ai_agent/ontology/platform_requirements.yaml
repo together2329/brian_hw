@@ -1416,9 +1416,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_mode_default_off"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
           - test: "tests/test_oag_mode.py::test_oag_mode_env_on"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
       - id: OBL_OAG_AGENTS_MD_INJECTED
         owned_by: agent.prompt-builder
         granularity: behavior
@@ -1427,9 +1427,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_root_and_agents_context"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
           - test: "tests/test_oag_mode.py::test_oag_pack_vendored_and_self_contained"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
       - id: OBL_OAG_NATIVE_TOOL_DRIVES_CODEX
         owned_by: agent.tools
         granularity: behavior
@@ -1438,11 +1438,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_tool_calls_gateway"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
           - test: "tests/test_oag_mode.py::test_oag_tool_script_mode"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
           - test: "tests/test_oag_mode.py::test_filtered_tools_gates_oag"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
       - id: OBL_OAG_SKILL_ACTIVATES_ON_DEMAND
         owned_by: runtime.server
         granularity: behavior
@@ -1452,7 +1452,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_skill_activates_on_demand"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
       - id: OBL_OAG_ACTIVE_RUN_DRIVES_TURN
         owned_by: agent.prompt-builder
         granularity: behavior
@@ -1462,9 +1462,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_active_run_injected_and_gated"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
           - test: "tests/test_oag_mode.py::test_oag_active_run_goes_to_dynamic_not_static"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
       - id: OBL_OAG_PLATFORM_BACKEND
         owned_by: agent.tools
         granularity: behavior
@@ -1474,4 +1474,4 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_platform_backend_runs_local_no_recursion"
-            observed_at: 90790f42
+            observed_at: 1f84ba42
