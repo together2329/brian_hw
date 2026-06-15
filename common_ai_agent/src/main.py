@@ -543,21 +543,25 @@ def _setup_workspace(name: str) -> None:
             ]
             if _ws_skill_dir and _ws_skill_dir not in _ss._loader.extra_dirs:
                 _ss._loader.extra_dirs.append(_ws_skill_dir)
-            # OAG mode: register the vendored .codex/skills dir so the
-            # oag-ip-workflow skill is discoverable and can activate on demand.
-            try:
-                from core.prompt_builder import (
-                    oag_mode_enabled as _oag_on, oag_root as _oag_root_fn)
-                if _oag_on():
-                    _oagr = _oag_root_fn()
-                    if _oagr:
-                        _oag_sk = str(Path(_oagr) / ".codex" / "skills")
-                        if Path(_oag_sk).is_dir() and _oag_sk not in _ss._loader.extra_dirs:
-                            _ss._loader.extra_dirs.append(_oag_sk)
-                            from core.skill_system import get_skill_registry as _gsr
-                            _gsr().reload_all_skills()
-            except Exception:
-                pass
+    except Exception:
+        pass
+
+    # OAG mode: register the vendored .codex/skills dir on the skill REGISTRY's
+    # loader (registry._loader — core.skill_system has no module-level _loader,
+    # so the block above can no-op) so oag-ip-workflow is discoverable + can
+    # activate on demand. This is the wiring the integrated E2E exercises.
+    try:
+        from core.prompt_builder import oag_mode_enabled as _oag_on, oag_root as _oag_root_fn
+        if _oag_on():
+            _oagr = _oag_root_fn()
+            if _oagr:
+                _oag_sk = str(Path(_oagr) / ".codex" / "skills")
+                if Path(_oag_sk).is_dir():
+                    from core.skill_system import get_skill_registry as _gsr
+                    _reg = _gsr()
+                    if hasattr(_reg, "_loader") and _oag_sk not in _reg._loader.extra_dirs:
+                        _reg._loader.extra_dirs.append(_oag_sk)
+                        _reg.reload_all_skills()
     except Exception:
         pass
 
