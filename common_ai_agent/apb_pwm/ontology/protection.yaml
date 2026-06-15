@@ -1,0 +1,12 @@
+schema_version: protection.v1
+protected_paths:
+  - path: req/locked_truth.md
+    policy: human_decision_required
+  - path: ontology/policies.yaml:closure_profile
+    policy: human_decision_required
+locked_truth:
+  status: active
+  decision_required_for_semantic_edits: true
+closure_policy:
+  monotonic: true
+  decision_required_for_weakening: true
