@@ -61,14 +61,6 @@ def test_oag_root_and_agents_context(monkeypatch, tmp_path):
     assert "oag(" in ctx                  # tells the agent to drive via the oag tool
 
 
-def test_oag_root_none_when_no_codex(monkeypatch, tmp_path):
-    monkeypatch.delenv("OAG_ROOT", raising=False)
-    monkeypatch.delenv("ATLAS_PROJECT_ROOT", raising=False)
-    monkeypatch.chdir(tmp_path)           # empty cwd: no .codex / AGENTS.md
-    assert pb.oag_root() is None
-    assert pb._build_oag_agents_context() == ""
-
-
 # ── native oag tool drives .codex (agent.tools) ──
 
 def test_oag_tool_off_when_mode_off(monkeypatch):
@@ -99,3 +91,16 @@ def test_filtered_tools_gates_oag(monkeypatch):
     assert "oag" not in T.filtered_available_tools()
     monkeypatch.setenv("OAG_MODE", "1")
     assert "oag" in T.filtered_available_tools()
+
+
+def test_oag_pack_vendored_and_self_contained(monkeypatch, tmp_path):
+    """The .codex OAG pack ships INSIDE common_ai_agent (vendored), so OAG mode is
+    self-contained: oag_root falls back to the platform root even when the
+    cwd/workspace has no .codex (no external ontology_ip_agent needed)."""
+    repo = PROJECT_ROOT  # common_ai_agent
+    assert (repo / ".codex" / "scripts" / "oag_cli.py").is_file()   # vendored gateway
+    assert (repo / ".codex" / "AGENTS.md").is_file()                # vendored agent rules
+    monkeypatch.delenv("OAG_ROOT", raising=False)
+    monkeypatch.delenv("ATLAS_PROJECT_ROOT", raising=False)
+    monkeypatch.chdir(tmp_path)            # a workspace with no .codex
+    assert pb.oag_root() == repo           # resolves to the platform's vendored pack

@@ -1,0 +1,10 @@
+{
+  "tool": "oag.graph",
+  "arguments": {
+    "ip_dir": "pwm_gen_cx1",
+    "stage": "sim",
+    "intent": "coverage scoreboard",
+    "json_out": ".codex/assets/generated/pwm_gen_cx1_ontology_graph.json",
+    "html_out": ".codex/assets/generated/pwm_gen_cx1_ontology_graph.html"
+  }
+}

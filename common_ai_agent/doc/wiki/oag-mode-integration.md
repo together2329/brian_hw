@@ -31,10 +31,15 @@ AGENTS.md is injected — the default agent is unchanged.
 
 ## Config
 
+The `.codex` OAG pack is **vendored into common_ai_agent** (`common_ai_agent/.codex/`),
+so OAG mode is **self-contained** — no external project needed. `.codex/AGENTS.md`
+is the authoritative project agent doc (the ontology_ip_agent root AGENTS.md); the
+original codex stub is kept as `.codex/AGENTS.codex.md`.
+
 | env | meaning | default |
 |---|---|---|
 | `OAG_MODE` | master switch (`1/true/on`) | off |
-| `OAG_ROOT` | project holding `.codex/` | `ATLAS_PROJECT_ROOT` → cwd (first with `.codex/` or `AGENTS.md`) |
+| `OAG_ROOT` | project holding `.codex/` | `OAG_ROOT` → `ATLAS_PROJECT_ROOT` → cwd → **platform root** (`common_ai_agent`, the vendored `.codex/`); first with `.codex/` or `AGENTS.md` |
 
 ## The `oag` tool
 

@@ -1,0 +1,6 @@
+[mcp_servers.ontology-ip-agent-oag]
+command = "python3"
+args = [".codex/scripts/oag_mcp_server.py"]
+
+[mcp_servers.ontology-ip-agent-oag.env]
+OAG_ACTOR_SURFACE = "codex-mcp"

@@ -127,6 +127,9 @@ def oag_root(cfg: Any = None) -> Optional[Path]:
         str(getattr(cfg, "OAG_ROOT", "") or "") if cfg is not None else "",
         os.environ.get("ATLAS_PROJECT_ROOT", "").strip(),
         os.getcwd(),
+        # platform root — the vendored .codex ships inside common_ai_agent, so OAG
+        # mode is self-contained even when the workspace/cwd has no .codex.
+        str(Path(__file__).resolve().parents[1]),
     ]
     for raw in candidates:
         if not raw:

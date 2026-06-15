@@ -1,0 +1,1 @@
+{"coverage_refs":["COV_RESET"],"cycle":12,"expected":{"count":0},"expected_source":{"kind":"manual_spec","ref":"req/locked_truth.md"},"goal_id":"GOAL_RESET","mismatch":"","observed":{"count":0},"observed_source":{"kind":"dut_signal","path":"dut.count"},"passed":true,"scenario_id":"SC_RESET_001","stimulus":{"rst_n":0}}
