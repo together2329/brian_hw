@@ -1407,7 +1407,7 @@ requirements:
             observed_at: 610d2cb0
 
   - id: REQ_PLAT_OAG_MODE_001
-    claim: "OAG_MODE=1이면 default agent가 프로젝트 .codex OAG 팩에 1급으로 밀착된다 — AGENTS.md(+.codex/rules)를 매 턴 주입(prompt_injection과 무관)하고, MCP 없이 네이티브 oag 도구로 .codex/scripts/oag_cli.py 게이트웨이를 직접 호출한다. 기본 OFF."
+    claim: "OAG_MODE=1이면 default agent가 프로젝트 .codex OAG 팩에 1급으로 밀착된다 — AGENTS.md(+.codex/rules)를 static system prompt에 1회 rule로 주입(캐시; prompt_injection과 무관)하고, MCP 없이 네이티브 oag 도구로 .codex/scripts/oag_cli.py 게이트웨이를 직접 호출한다. 기본 OFF."
     design_anchor: doc/wiki/oag-mode-integration.md
     obligations:
       - id: OBL_OAG_MODE_FLAG_DEFAULT_OFF
@@ -1416,9 +1416,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_mode_default_off"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
           - test: "tests/test_oag_mode.py::test_oag_mode_env_on"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
       - id: OBL_OAG_AGENTS_MD_INJECTED
         owned_by: agent.prompt-builder
         granularity: behavior
@@ -1427,9 +1427,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_root_and_agents_context"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
           - test: "tests/test_oag_mode.py::test_oag_pack_vendored_and_self_contained"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
       - id: OBL_OAG_NATIVE_TOOL_DRIVES_CODEX
         owned_by: agent.tools
         granularity: behavior
@@ -1438,8 +1438,8 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_tool_calls_gateway"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
           - test: "tests/test_oag_mode.py::test_oag_tool_script_mode"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
           - test: "tests/test_oag_mode.py::test_filtered_tools_gates_oag"
-            observed_at: e5bb3871
+            observed_at: 9df74b76
