@@ -1443,3 +1443,13 @@ requirements:
             observed_at: 9df74b76
           - test: "tests/test_oag_mode.py::test_filtered_tools_gates_oag"
             observed_at: 9df74b76
+      - id: OBL_OAG_SKILL_ACTIVATES_ON_DEMAND
+        owned_by: runtime.server
+        granularity: behavior
+        # L2: vendored oag-ip-workflow skill 을 ATLAS skill 시스템에 등록(.codex/skills
+        # extra dir) + OAG_MODE에서 keyword relevance로 on-demand 활성("skill" 단어
+        # 불요). IP 작업엔 켜지고 무관 메시지엔 꺼짐(progressive disclosure).
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_oag_skill_activates_on_demand"
+            observed_at: 50b12596
