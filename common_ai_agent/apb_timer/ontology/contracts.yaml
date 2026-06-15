@@ -1,0 +1,17 @@
+schema: ontology_contracts.v1
+ip: apb_timer
+contracts:
+  - id: CONTRACT_APB_TIMER_SIM_SCOREBOARD
+    obligation: [OBL_APB_TIMER_RESET_KNOWN, OBL_APB_TIMER_APB_REGISTER_ACCESS, OBL_APB_TIMER_COUNT_WRAP]
+    method: scoreboard
+    pass_condition: cocotb APB scoreboard rows prove expected behavior versus DUT-observed APB reads and sampled outputs
+    evidence_kinds: [simulation, scoreboard]
+    evidence_schemas: [scoreboard_rows.v1]
+    implementation_policy: TB language and simulator are not fixed by this contract; this IP supplies a cocotb implementation.
+    proof_scope:
+      - reset defaults
+      - APB single-cycle pready and register map
+      - COUNT live reads and ignored COUNT writes
+      - STATUS.wrap W1C
+      - LOAD terminal wrap behavior
+      - auto_reload repeat versus one-shot disable behavior
