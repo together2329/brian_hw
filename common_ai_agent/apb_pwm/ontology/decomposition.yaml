@@ -1,0 +1,24 @@
+schema_version: decomposition.v1
+profile:
+  mode: small_leaf_single_file
+  rationale: APB PWM is a compact leaf controller with one APB register block and one PWM counter/output datapath.
+modules:
+  - name: apb_pwm
+    role: top
+    file: rtl/apb_pwm.sv
+    ownership: current_ip
+    edit_policy: editable
+    owns_obligations:
+      - OBL_APB_PWM_RESET_KNOWN
+      - OBL_APB_PWM_APB4_REGS
+      - OBL_APB_PWM_COUNTER_OUTPUT
+      - OBL_APB_PWM_APB_ERRORS
+    owns_contracts:
+      - CONTRACT_APB_PWM_SIM_SCOREBOARD
+    structure_refs:
+      - IF_APB4_SLAVE
+      - REG_CTRL
+      - REG_PERIOD
+      - REG_DUTY
+      - pwm_counter
+      - pwm_out
