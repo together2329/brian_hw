@@ -1427,9 +1427,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_root_and_agents_context"
-            observed_at: c7f7911c
-          - test: "tests/test_oag_mode.py::test_oag_root_none_when_no_codex"
-            observed_at: c7f7911c
+            observed_at: e5bb3871
+          - test: "tests/test_oag_mode.py::test_oag_pack_vendored_and_self_contained"
+            observed_at: e5bb3871
       - id: OBL_OAG_NATIVE_TOOL_DRIVES_CODEX
         owned_by: agent.tools
         granularity: behavior
