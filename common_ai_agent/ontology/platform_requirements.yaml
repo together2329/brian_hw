@@ -1413,16 +1413,33 @@ requirements:
       - id: OBL_OAG_MODE_FLAG_DEFAULT_OFF
         owned_by: platform.config
         granularity: behavior
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_oag_mode_default_off"
+            observed_at: c7f7911c
+          - test: "tests/test_oag_mode.py::test_oag_mode_env_on"
+            observed_at: c7f7911c
       - id: OBL_OAG_AGENTS_MD_INJECTED
         owned_by: agent.prompt-builder
         granularity: behavior
         # OAG_MODE면 oag_root의 AGENTS.md + .codex/rules/*를 컨텍스트로 주입(항상);
         # OAG_MODE 아니면 빈 문자열.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_oag_root_and_agents_context"
+            observed_at: c7f7911c
+          - test: "tests/test_oag_mode.py::test_oag_root_none_when_no_codex"
+            observed_at: c7f7911c
       - id: OBL_OAG_NATIVE_TOOL_DRIVES_CODEX
         owned_by: agent.tools
         granularity: behavior
         # 네이티브 oag 도구가 .codex/scripts/oag_cli.py를 직접 호출(tool)하고 .codex
         # 스크립트를 실행(script); OAG_MODE 아니면 거부 + filtered_available_tools 숨김.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_oag_tool_calls_gateway"
+            observed_at: c7f7911c
+          - test: "tests/test_oag_mode.py::test_oag_tool_script_mode"
+            observed_at: c7f7911c
+          - test: "tests/test_oag_mode.py::test_filtered_tools_gates_oag"
+            observed_at: c7f7911c
