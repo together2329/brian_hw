@@ -1,0 +1,40 @@
+schema_version: structure.v1
+structure_profile: small_leaf_single_file
+interfaces:
+  - id: IF_APB4_SLAVE
+    type: apb4_slave
+    clock: pclk
+    reset: presetn
+    signals:
+      - pclk
+      - presetn
+      - psel
+      - penable
+      - pwrite
+      - paddr
+      - pwdata
+      - prdata
+      - pready
+      - pslverr
+registers:
+  - id: REG_CTRL
+    address: 0x00
+    width: 32
+    fields:
+      - {name: enable, lsb: 0, msb: 0, reset: 0}
+  - id: REG_PERIOD
+    address: 0x04
+    width: 32
+    reset: 0
+  - id: REG_DUTY
+    address: 0x08
+    width: 32
+    reset: 0
+state:
+  - id: pwm_counter
+    type: counter
+    reset: 0
+outputs:
+  - id: pwm_out
+    width: 1
+    reset: 0
