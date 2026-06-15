@@ -198,6 +198,23 @@ def test_oag_active_run_injected_and_gated(monkeypatch, tmp_path):
     assert pb._build_oag_run_context() == ""
 
 
+def test_oag_active_run_scoped_to_active_ip(monkeypatch, tmp_path):
+    """L3 scope: only the ACTIVE IP's run is injected — other IPs' open runs are
+    not dumped into every prompt (prevents multi-IP prompt bloat)."""
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.delenv("ATLAS_IP_ROOT", raising=False)
+    _seed_active_run(tmp_path, status="in_progress")   # seeds 'myip'
+
+    # active IP is a different IP with no run -> nothing injected
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "other_ip_no_run")
+    assert pb._build_oag_run_context() == ""
+
+    # active IP == myip -> its run is injected
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "myip")
+    assert pb.OAG_RUN_CONTEXT_START in pb._build_oag_run_context()
+
+
 def test_oag_active_run_goes_to_dynamic_not_static(monkeypatch, tmp_path):
     """L3: the active-run block is DYNAMIC (changes each step) → per-turn dynamic
     context, not the cached static system prompt."""

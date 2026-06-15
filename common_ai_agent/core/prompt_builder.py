@@ -200,10 +200,19 @@ def _build_oag_run_context(cfg: Any = None) -> str:
     root = oag_root(cfg)
     if root is None:
         return ""
-    try:
-        actives = sorted(Path(root).glob("*/ontology/runs/active_run.json"))
-    except OSError:
-        return ""
+    # Scope to the ACTIVE IP only when known — never dump every IP's open run
+    # (that bloats the prompt with irrelevant runs and slows every turn). Fall
+    # back to globbing all only when no active IP is resolvable (e.g. some
+    # headless runs that do not set ATLAS_ACTIVE_IP).
+    active_ip = (active_ip_name() or "").strip()
+    if active_ip:
+        cand = Path(root) / active_ip / "ontology" / "runs" / "active_run.json"
+        actives = [cand] if cand.is_file() else []
+    else:
+        try:
+            actives = sorted(Path(root).glob("*/ontology/runs/active_run.json"))
+        except OSError:
+            return ""
     blocks: List[str] = []
     for active in actives:
         try:
