@@ -541,6 +541,14 @@ Write detailed tasks — include file paths, what to change, and expected outcom
         oag_ctx = _build_oag_agents_context(cfg)
         if oag_ctx:
             base_prompt = base_prompt + "\n\n" + oag_ctx
+        # L2: the normal skill block (above) is gated behind prompt-injection; in
+        # OAG mode (injection is usually off) activate the OAG workflow skill here
+        # too, on demand, so its per-stage flow rides along when relevant.
+        if (not injection_enabled and getattr(cfg, 'ENABLE_SKILL_SYSTEM', False)
+                and messages and load_skills_fn is not None):
+            oag_skill = _build_skill_context(cfg, load_skills_fn, messages, allowed_tools)
+            if oag_skill:
+                dynamic_context = (dynamic_context + "\n\n" + oag_skill) if dynamic_context else oag_skill
         # L3: active-run next-action is DYNAMIC (changes each step) → goes in the
         # per-turn dynamic context, not the cached static prompt. Drives the agent
         # to keep following the OAG run (context-inject + soft stop-gate).

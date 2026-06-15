@@ -218,6 +218,43 @@ def test_oag_active_run_goes_to_dynamic_not_static(monkeypatch, tmp_path):
     assert pb.OAG_RUN_CONTEXT_START not in out["static"]
 
 
+def test_oag_skill_injected_when_injection_off(monkeypatch):
+    """L2 integration: in OAG mode the workflow skill body is injected into the
+    prompt for IP work EVEN WHEN prompt-injection is OFF (the normal skill block
+    is injection-gated; OAG mode adds it independently). This is the headless gap
+    the E2E exposed."""
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(PROJECT_ROOT))   # vendored .codex skill (has keywords)
+    monkeypatch.delenv("ATLAS_PROMPT_INJECTION", raising=False)
+    monkeypatch.delenv("ENABLE_PROMPT_INJECTION", raising=False)
+
+    from core.skill_system import get_skill_registry
+    reg = get_skill_registry()
+    sk_dir = str(PROJECT_ROOT / ".codex" / "skills")
+    if sk_dir not in reg._loader.extra_dirs:
+        reg._loader.extra_dirs.append(sk_dir)
+    reg.reload_all_skills()
+
+    import config as cfg_mod
+    monkeypatch.setattr(cfg_mod, "ENABLE_SKILL_SYSTEM", True, raising=False)
+    import src.main as M
+    M.load_active_skills._active_skill = None
+    M.load_active_skills._oag_last = None
+
+    class _Cfg:
+        CACHE_OPTIMIZATION_MODE = "optimized"
+        ENABLE_SKILL_SYSTEM = True
+
+    out = pb.build_system_prompt(
+        messages=[{"role": "user", "content": "write the apb timer rtl and cocotb testbench"}],
+        cfg=_Cfg(),
+        build_base_fn=lambda **kw: "BASE",
+        load_skills_fn=M.load_active_skills,
+    )
+    assert isinstance(out, dict)
+    assert "OAG IP Workflow" in out["dynamic"]   # skill body injected despite injection OFF
+
+
 def test_oag_pack_vendored_and_self_contained(monkeypatch, tmp_path):
     """The .codex OAG pack ships INSIDE common_ai_agent (vendored), so OAG mode is
     self-contained: oag_root falls back to the platform root even when the
