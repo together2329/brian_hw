@@ -1,0 +1,18 @@
+schema: ontology_obligations.v1
+ip: apb_timer
+obligations:
+  - id: OBL_APB_TIMER_RESET_KNOWN
+    requirement: REQ_APB_TIMER_001
+    status: open
+    text: Reset/default observable state is known and mechanically checkable.
+    contracts: [CONTRACT_APB_TIMER_SIM_SCOREBOARD]
+  - id: OBL_APB_TIMER_APB_REGISTER_ACCESS
+    requirement: REQ_APB_TIMER_001
+    status: open
+    text: APB4 register reads and writes implement CTRL, LOAD, live COUNT, STATUS W1C, single-cycle pready, and address error response.
+    contracts: [CONTRACT_APB_TIMER_SIM_SCOREBOARD]
+  - id: OBL_APB_TIMER_COUNT_WRAP
+    requirement: REQ_APB_TIMER_001
+    status: open
+    text: Enabled timer increments, wraps on LOAD, sets STATUS.wrap, supports W1C, and applies auto_reload/no-auto_reload behavior.
+    contracts: [CONTRACT_APB_TIMER_SIM_SCOREBOARD]
