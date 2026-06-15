@@ -1,0 +1,22 @@
+schema_version: obligations.v1
+obligations:
+  - id: OBL_APB_PWM_RESET_KNOWN
+    requirement: REQ_APB_PWM_RESET_KNOWN
+    owner_module: apb_pwm
+    description: Implement and verify known reset values for APB-visible and PWM state.
+    status: open
+  - id: OBL_APB_PWM_APB4_REGS
+    requirement: REQ_APB_PWM_APB4_SLAVE
+    owner_module: apb_pwm
+    description: Implement APB4 register read/write behavior for CTRL, PERIOD, and DUTY.
+    status: open
+  - id: OBL_APB_PWM_COUNTER_OUTPUT
+    requirement: REQ_APB_PWM_COUNTER_OUTPUT
+    owner_module: apb_pwm
+    description: Implement counter wrap and pwm_out comparator behavior.
+    status: open
+  - id: OBL_APB_PWM_APB_ERRORS
+    requirement: REQ_APB_PWM_APB_ERRORS
+    owner_module: apb_pwm
+    description: Implement APB invalid-address error response.
+    status: open
