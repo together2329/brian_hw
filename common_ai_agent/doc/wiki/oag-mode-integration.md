@@ -63,6 +63,9 @@ oag(script="oag_eval.py")                                                      #
   (`agent.prompt-builder`).
 - `core/tools.py` — `oag()` tool + registry + `filtered_available_tools` gate;
   `core/tool_schema.py` — `oag` schema (`agent.tools`).
+- `core/react_loop.py` — default worker native tool-call loop; if chat-mode
+  iteration limits stop immediately after an OAG tool result, the tool tail is
+  promoted to visible assistant text (`agent.react-loop`).
 - `core/codex_appserver_bridge.py` — ATLAS web chat bridge for `CODEX_BRIDGE=1`;
   tool-only turns are promoted to visible assistant text if Codex emits tool
   output but no final `agentMessage` delta (`agent.codex-bridge`).
@@ -70,15 +73,18 @@ oag(script="oag_eval.py")                                                      #
 
 ## Web bridge visibility
 
-Observed 2026-06-16: with `OAG_MODE=1 CODEX_BRIDGE=1`, Codex can legally call
-`oag.inspect` and then end the turn without a natural-language final message.
-The OAG result exists in the native tool response (`oag_tool_response.v1`), but
-the ATLAS chat feed renders assistant text, so the turn can look blank.
+Observed 2026-06-16: with either `OAG_MODE=1` alone (default worker native
+tool-calls) or `OAG_MODE=1 CODEX_BRIDGE=1` (Codex app-server bridge), the model
+can legally call `oag.inspect` and then end the turn without a natural-language
+final message. The OAG result exists in the native tool response
+(`oag_tool_response.v1`), but the ATLAS chat feed renders assistant text, so the
+turn can look blank.
 
-The bridge therefore treats "tool output but no assistant delta" as a visible
-fallback: before `flush`/`done`, it emits a bounded assistant token containing
-the tool result and persists the same text to the session conversation. Normal
-turns with real assistant text are unchanged.
+Both paths therefore treat "tool output but no assistant text" as visible
+fallback. The default worker promotes the tail `role=tool` messages to a
+bounded assistant message before returning the conversation; the Codex bridge
+emits a bounded assistant token before `flush`/`done` and persists the same text
+to the session conversation. Normal turns with real assistant text are unchanged.
 
 ## Proven
 

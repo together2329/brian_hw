@@ -295,6 +295,58 @@ class TestRunReactAgentImpl(unittest.TestCase):
             for m in msgs
         ))
 
+    def test_native_tool_only_tail_is_visible(self):
+        """Native tool-call chat turns must not end as a blank assistant reply."""
+        emitted = []
+        flushes = []
+        tool_results = []
+
+        def native_tool_only(messages, stop=None, **kwargs):
+            yield ("native_tool_calls", [{
+                "id": "call_oag_1",
+                "name": "oag",
+                "arguments": "{\"tool\":\"oag.inspect\",\"ip\":\"timer_ip_codex\"}",
+            }])
+
+        def execute_tool(tool_name, args, pre_parsed_kwargs=None):
+            self.assertEqual(tool_name, "oag")
+            self.assertEqual(pre_parsed_kwargs["tool"], "oag.inspect")
+            return (
+                '{"schema_version":"oag_tool_response.v1","ok":true,'
+                '"tool":"oag.inspect","result":{"ip":"timer_ip_codex"}}'
+            )
+
+        cfg = _make_cfg(
+            ENABLE_NATIVE_TOOL_CALLS=True,
+            EXECUTION_MODE="chat",
+            CHAT_MAX_ITERATIONS=1,
+            LLM_RETRY_COUNT=0,
+            REACT_LOOP_STALL_SEC=0,
+        )
+        msgs, _ = self._call(
+            cfg=cfg,
+            llm_call_fn=native_tool_only,
+            execute_tool_fn=execute_tool,
+            detect_completion_fn=lambda _text: False,
+            emit_content_fn=lambda line: emitted.append(line),
+            emit_flush_fn=lambda: flushes.append(True),
+            emit_tool_result_fn=lambda text, tool: tool_results.append((tool, text)),
+        )
+
+        rendered = "\n".join(str(line) for line in emitted)
+        self.assertIn("Tool result (oag):", rendered)
+        self.assertIn("oag_tool_response.v1", rendered)
+        self.assertIn("timer_ip_codex", rendered)
+        self.assertTrue(flushes, "fallback assistant text should be flushed")
+        self.assertEqual(tool_results[0][0], "oag")
+        self.assertEqual(msgs[-1]["role"], "assistant")
+        self.assertIn("Tool result (oag):", msgs[-1]["content"])
+        self.assertTrue(any(m.get("role") == "tool" for m in msgs))
+        self.assertTrue(any(
+            m.get("role") == "assistant" and m.get("tool_calls")
+            for m in msgs
+        ))
+
     def test_malformed_action_reprompts_until_parseable_tool_call(self):
         """`Action:` prose must not be accepted as a completed no-tool reply."""
         calls = {"count": 0}

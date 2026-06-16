@@ -1485,6 +1485,16 @@ requirements:
         evidence:
           - test: "tests/test_codex_appserver_bridge.py::test_tool_only_turn_is_visible_and_persisted"
             observed_at: a9115b8c
+      - id: OBL_OAG_NATIVE_TOOL_ONLY_VISIBLE
+        owned_by: agent.react-loop
+        granularity: behavior
+        # OAG_MODE만 켠 기본 worker(native tool-call) 경로에서도 모델이
+        # oag tool_call 뒤 자연어 최종 assistant text 없이 종료하면, 마지막
+        # tool result를 assistant fallback으로 emit/persist해 빈 턴을 막는다.
+        status: open
+        evidence:
+          - test: "tests/test_core/test_react_loop.py::TestRunReactAgentImpl::test_native_tool_only_tail_is_visible"
+            observed_at: PENDING_SHA
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."

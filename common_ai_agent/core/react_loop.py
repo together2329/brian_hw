@@ -183,6 +183,62 @@ def _dedup_line(text: str) -> str:
     return text
 
 
+def _native_tool_tail_fallback_text(messages: List[Dict[str, Any]], max_chars: int = 4000) -> str:
+    """Return visible text when a native tool-call turn ended at tool output.
+
+    Chat-mode workers can stop after a successful native tool call because the
+    iteration budget is exhausted. If the model did not emit a final assistant
+    message after the tool role messages, ATLAS would persist the tool evidence
+    but show a blank assistant turn. This fallback promotes the tail tool output
+    to bounded assistant text without re-summarizing it.
+    """
+    if not messages:
+        return ""
+
+    tool_tail: List[Dict[str, Any]] = []
+    idx = len(messages) - 1
+    while idx >= 0 and messages[idx].get("role") == "tool":
+        tool_tail.append(messages[idx])
+        idx -= 1
+    if not tool_tail or idx < 0:
+        return ""
+
+    parent = messages[idx]
+    if parent.get("role") != "assistant" or not parent.get("tool_calls"):
+        return ""
+    if str(parent.get("content") or "").strip():
+        return ""
+
+    name_by_id: Dict[str, str] = {}
+    for call in parent.get("tool_calls") or []:
+        if not isinstance(call, dict):
+            continue
+        call_id = str(call.get("id") or "")
+        fn = call.get("function") if isinstance(call.get("function"), dict) else {}
+        name = str(fn.get("name") or call.get("name") or "tool")
+        if call_id:
+            name_by_id[call_id] = name
+
+    blocks: List[Tuple[str, str]] = []
+    for tool_msg in reversed(tool_tail):
+        body = str(tool_msg.get("content") or "").strip()
+        if not body:
+            continue
+        call_id = str(tool_msg.get("tool_call_id") or "")
+        label = name_by_id.get(call_id, "tool")
+        blocks.append((label, body[:max_chars]))
+    if not blocks:
+        return ""
+
+    if len(blocks) == 1:
+        label, body = blocks[0]
+        return f"Tool result ({label}):\n\n{body}"
+    parts = ["Tool results:"]
+    for label, body in blocks:
+        parts.append(f"\n[{label}]\n{body}")
+    return "\n".join(parts)
+
+
 def _make_is_dup() -> Tuple[Set[str], Callable[[str], bool]]:
     """Return *(seen, is_dup_fn)* sharing the same dedup set.
 
@@ -2820,5 +2876,30 @@ def run_react_agent_impl(
                 deps.graph_lite.save()
         except Exception:
             pass
+
+    _native_tail_fallback = _native_tool_tail_fallback_text(
+        messages,
+        max_chars=int(getattr(cfg, "NATIVE_TOOL_FALLBACK_MAX_CHARS", 4000)),
+    )
+    if _native_tail_fallback:
+        if deps.emit_content_fn:
+            try:
+                deps.emit_content_fn(_native_tail_fallback)
+            except Exception:
+                pass
+        else:
+            print(_native_tail_fallback)
+        if deps.emit_flush_fn:
+            try:
+                deps.emit_flush_fn()
+            except Exception:
+                pass
+        messages.append({
+            "role": "assistant",
+            "content": _native_tail_fallback,
+            "turn_id": deps.get_turn_id_fn(),
+            "iter_id": tracker.current,
+            "timestamp": time.time(),
+        })
 
     return messages, agent_mode
