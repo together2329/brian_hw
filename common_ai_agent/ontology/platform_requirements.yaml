@@ -1533,3 +1533,18 @@ requirements:
         evidence:
           - test: "tests/test_frontend_responding_reconcile.py::test_frontend_responding_reconciles_ready_idle_worker_status"
             observed_at: beee7f32
+
+  - id: REQ_PLAT_CONTEXT_VERBOSE_SYSTEM_PROMPT_001
+    claim: "/context -v는 ATLAS 워커에게 실제로 전달된 system prompt를 요약/은닉하지 않고 표시한다 — OAG_MODE가 AGENTS.md와 .codex/rules를 static system prompt에 주입할 때 사용자는 어떤 규칙 때문에 에이전트가 움직이는지 같은 화면에서 감사할 수 있어야 한다."
+    design_anchor: doc/wiki/oag-mode-integration.md
+    obligations:
+      - id: OBL_CONTEXT_VERBOSE_SHOWS_SYSTEM_PROMPT
+        owned_by: agent.slash
+        granularity: behavior
+        # 기존 요약은 "System prompt hidden (...)"만 보여 OAG rule injection을
+        # 감사할 수 없었다. /context -v와 /context -v -full은 local ATLAS
+        # conversation에 저장된 system prompt 본문을 그대로 보여준다.
+        status: open
+        evidence:
+          - test: "tests/test_core/test_context_command.py::test_context_verbose_shows_full_system_prompt"
+            observed_at: PENDING_SHA

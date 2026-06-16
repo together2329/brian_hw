@@ -94,6 +94,15 @@ bounded assistant message before returning the conversation; the Codex bridge
 emits a bounded assistant token before `flush`/`done` and persists the same text
 to the session conversation. Normal turns with real assistant text are unchanged.
 
+## Context visibility
+
+`/context -v` is the local audit surface for "why did the OAG worker behave that
+way?" In OAG mode, AGENTS.md and `.codex/rules/*.md` are part of the ATLAS
+worker's static system prompt, so the verbose context dump must show that local
+system prompt text instead of replacing it with `System prompt hidden (...)`.
+This exposes the ATLAS prompt that the app generated for its worker; it does not
+expose any outer Codex/runtime private instructions.
+
 ## Proven
 
 Live against `/Users/brian/Desktop/Project/ontology_ip_agent` (OAG_MODE=1):

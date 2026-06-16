@@ -194,5 +194,45 @@ def test_context_verbose_omits_non_verbose_footer_when_memory_empty(tmp_path, mo
     assert "Skills  (" not in result
     assert "Tip: Use /clear" not in result
 
+
+def test_context_verbose_shows_full_system_prompt(tmp_path, monkeypatch):
+    from core.context_tracker import reset_tracker
+    from core.slash_commands import SlashCommandRegistry
+
+    monkeypatch.setattr(config, "MEMORY_DIR", str(tmp_path / "memory"), raising=False)
+    monkeypatch.delenv("ATLAS_ACTIVE_SESSION", raising=False)
+    monkeypatch.delenv("ATLAS_SESSION_APPLIED", raising=False)
+    monkeypatch.delenv("ATLAS_SESSION_ID", raising=False)
+    monkeypatch.setenv("ACTIVE_WORKSPACE", "default")
+    reset_tracker(max_tokens=200000)
+
+    visible_marker = "OAG_FULL_SYSTEM_PROMPT_VISIBLE_MARKER"
+    active_skill_marker = "OAG_ACTIVE_SKILLS_BLOCK_VISIBLE_MARKER"
+    system_prompt = "\n".join(
+        [
+            "[ACTIVE_SESSION: local-admin/default/default/default]",
+            "ATLAS static system prompt audit start",
+            *[f"system rule line {i}" for i in range(20)],
+            visible_marker,
+            "=== ACTIVE SKILLS ===",
+            active_skill_marker,
+        ]
+    )
+    messages = [
+        {"role": "system", "content": [{"type": "text", "text": system_prompt}]},
+        {"role": "user", "content": "show context"},
+        {"role": "assistant", "content": "context shown"},
+    ]
+    tracker = get_tracker()
+    tracker.messages = messages
+    tracker.update_system_prompt(messages[0]["content"])
+    tracker.update_messages(messages, exclude_system=True)
+
+    result = SlashCommandRegistry().execute("/context -v")
+
+    assert visible_marker in result
+    assert active_skill_marker in result
+    assert "System prompt hidden" not in result
+
 if __name__ == "__main__":
     test_context_visualization()

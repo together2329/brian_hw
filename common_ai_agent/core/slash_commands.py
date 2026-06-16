@@ -2801,30 +2801,9 @@ class SlashCommandRegistry:
 
         return candidates
 
-    def _summarize_context_system_prompt(self, content: str) -> str:
-        """Show system-prompt identity without dumping the whole worker prompt."""
-        import re as _re
-        text = str(content or "")
-        fields = [
-            ("ACTIVE_SESSION", "Active session"),
-            ("ACTIVE_IP", "Active IP"),
-            ("ACTIVE_WORKSPACE", "Workflow"),
-            ("PROJECT_ROOT", "Project root"),
-            ("IP_ROOT", "IP root"),
-        ]
-        lines = []
-        for key, label in fields:
-            match = _re.search(rf"\[{key}:\s*([^\]\n]+)\]", text)
-            if match:
-                lines.append(f"{label}: {match.group(1).strip()}")
-        line_count = len(text.splitlines())
-        char_count = len(text)
-        if lines:
-            lines.append(f"System prompt hidden ({line_count} lines, {char_count} chars).")
-            return "\n".join(lines)
-        if char_count > 1000 or line_count > 12:
-            return f"System prompt hidden ({line_count} lines, {char_count} chars)."
-        return text.strip()
+    def _format_context_system_prompt(self, content: str) -> str:
+        """Return the exact local ATLAS system prompt for verbose context views."""
+        return str(content or "").strip()
 
     def _hydrate_active_context_tracker(self, tracker) -> Optional[Path]:
         """Bind /context output to the active Atlas local session, not stale globals."""
@@ -2922,17 +2901,13 @@ class SlashCommandRegistry:
             role = msg.get("role", "unknown").upper()
             raw_content = msg.get("content", "")
 
-            # Handle structured content — for SYSTEM, strip dynamic skill block
-            # (shown separately above as [SKILL]) and show only static base
+            # Handle structured content.
             if isinstance(raw_content, list):
                 content_parts = []
                 for block in raw_content:
                     if isinstance(block, dict):
                         if block.get("type") == "text":
                             text = block.get("text", "")
-                            # Skip the injected ACTIVE SKILLS section (shown as [SKILL] above)
-                            if role == "SYSTEM" and "=== ACTIVE SKILLS ===" in text:
-                                continue
                             content_parts.append(text)
                         elif block.get("type") == "tool_use":
                             content_parts.append(f"[Tool Use: {block.get('name')}]")
@@ -2945,7 +2920,7 @@ class SlashCommandRegistry:
                 content = str(raw_content).strip() if raw_content is not None else ""
 
             if role == "SYSTEM":
-                content = self._summarize_context_system_prompt(content)
+                content = self._format_context_system_prompt(content)
             else:
                 content, _ = self._truncate_verbose_content(content)
 
@@ -3068,15 +3043,17 @@ class SlashCommandRegistry:
             if not content:
                 continue
             if role == "SYSTEM":
-                content = self._summarize_context_system_prompt(content)
+                content = self._format_context_system_prompt(content)
             _role_colors = {"SYSTEM": "\033[2;33m", "USER": "\033[1;36m",
                             "ASSISTANT": "\033[1;32m", "TOOL": "\033[2;35m"}
             _rc = _role_colors.get(role, "\033[0m")
             lines.append(f"\n{_rc}[{i+1}] {role}\033[0m")
-            for line in content.splitlines()[:40]:
+            content_lines = content.splitlines()
+            line_limit = len(content_lines) if role == "SYSTEM" else 40
+            for line in content_lines[:line_limit]:
                 lines.append(f"  {line}")
-            if len(content.splitlines()) > 40:
-                lines.append(f"  \033[2m... ({len(content.splitlines())} lines total)\033[0m")
+            if len(content_lines) > line_limit:
+                lines.append(f"  \033[2m... ({len(content_lines)} lines total)\033[0m")
             lines.append("\033[2m" + "-" * 40 + "\033[0m")
 
         lines.append("\n\033[2m" + "=" * 60 + "\033[0m")
