@@ -1668,12 +1668,12 @@ requirements:
       - id: OBL_OAG_WORKSPACE_DEFAULT_AND_SIM_DEBUG_WORKFLOWS
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_oag_workspace_surface.py::test_oag_flow_stages_default_and_sim_debug"
-            observed_at: PENDING_SHA
+            observed_at: 8ec35c08
           - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow"
-            observed_at: PENDING_SHA
+            observed_at: 8ec35c08
       - id: OBL_WORKSPACE_RIGHT_RAIL_DEFAULT_FOLDED
         owned_by: ui.workspace
         granularity: behavior
@@ -1728,9 +1728,9 @@ requirements:
       - id: OBL_MARKDOWN_DARK_SURFACE_BLACK
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_surfaces_use_neutral_black"
-            observed_at: PENDING_SHA
+            observed_at: 8ec35c08
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_nested_surfaces_avoid_brown_tint"
-            observed_at: PENDING_SHA
+            observed_at: 8ec35c08
