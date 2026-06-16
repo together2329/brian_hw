@@ -533,6 +533,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const obsTextRaw = obs ? (summaryMode ? _cleanTodoToolText(obs.text || '', obs.tool) : cleanAtlasTerminalText(obs.text || '')) : '';
   const obsText = cleanAtlasTerminalText(obsTextRaw).replace(/\x1b\[[\d;]*m/g, '');
   const toolName = String(tool || '').toLowerCase();
+  const isOagTool = toolName === 'oag';
   const isStateRead = toolName === 'read_pipeline_state';
   const isArtifactRead = toolName === 'read_artifact' || toolName === 'read_evidence';
   const stateSummary = isStateRead && obs ? _pipelineStateSummary(obsText) : '';
@@ -567,8 +568,8 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const isDispatchTool = String(tool || '').toLowerCase() === 'dispatch_workflow';
   // Readable orchestrator tool-call summary (yield_run/wait_job/read_artifact/…)
   // shown instead of the raw `key={json}` args. Falls back to raw args.
-  const orchSummary = isDispatchTool ? '' : _orchToolArgsSummary(tool, rawArgsText);
-  const displayArgs = orchSummary || argsText;
+  const orchSummary = (isDispatchTool || isOagTool) ? '' : _orchToolArgsSummary(tool, rawArgsText);
+  const displayArgs = isOagTool ? rawArgsText : (orchSummary || argsText);
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
   // Tool results default to OPEN. The user needs to see the result/cost
   // trail without hunting through collapsed cards; large bodies remain
@@ -597,7 +598,9 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // are audit noise in the chat flow — default them COLLAPSED always, even
   // while the worker is live (entrySummaryMode passes summaryMode=false during
   // a live turn, which previously forced them open). Expand on demand via ▸.
-  const defaultObsOpen = defaultsClosed
+  const defaultObsOpen = isOagTool
+    ? false
+    : defaultsClosed
     ? false
     : isPreviewTool
     ? false
@@ -606,8 +609,8 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   useEffect(() => {
     setObsOpen(defaultObsOpen);
   }, [defaultObsOpen]);
-  const showArgsExpanded = obsOpen || showFullArgsByDefault;
-  const headClickable = (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
+  const showArgsExpanded = isOagTool || obsOpen || showFullArgsByDefault;
+  const headClickable = (isOagTool && !!obs) || (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
@@ -659,7 +662,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
         )}
         {status === 'err' && <span className="tool-card-status" style={{ color: '#f85149' }}>✗</span>}
         {status === 'ok'  && <span className="tool-card-status" style={{ color: '#3fb950' }}>✓</span>}
-        {(obsIsMulti || argsIsLong || (isCompactRead && !!obs) || obsIsLarge) ? (
+        {((isOagTool && !!obs) || obsIsMulti || argsIsLong || (isCompactRead && !!obs) || obsIsLarge) ? (
           <>
             {obsIsMulti && (
               <span className="mute" style={{ fontSize: 'var(--ui-small-font-size)', color: 'var(--fg)' }}>

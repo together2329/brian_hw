@@ -308,6 +308,19 @@ def test_perforce_sync_ui_reselects_opened_changelist_after_mutation():
     assert "paneWithPendingChangeOptions(d)" in source
 
 
+def test_perforce_sync_ui_prefetches_next_pane():
+    source = (Path(PROJECT_ROOT) / "frontend" / "atlas" / "perforce-sync.tsx").read_text(
+        encoding="utf-8",
+    )
+
+    assert "const panePrefetchCache = new Map<string, PaneCacheEntry>();" in source
+    assert "fetchPaneStateCached(url, key)" in source
+    assert "const prefetchPane = useCallback" in source
+    assert "requestIdleCallback" in source
+    assert "PANE_PREFETCH_VISIBLE_FOLDERS" in source
+    assert "panePrefetchCache.clear();" in source
+
+
 def test_perforce_sync_ui_submit_debug_context_contract():
     source = (Path(PROJECT_ROOT) / "frontend" / "atlas" / "perforce-sync.tsx").read_text(
         encoding="utf-8",

@@ -67,6 +67,11 @@ interface PaneState {
   pendingChanges?: PendingChange[];
   error?: string;
 }
+interface PaneCacheEntry {
+  promise?: Promise<PaneState>;
+  data?: PaneState;
+  at: number;
+}
 
 interface PerforceSyncProps {
   initialIp?: string;
@@ -91,6 +96,54 @@ const ACTION_COLOR: Record<string, string> = {
   delete: 'var(--err)',
   'move/add': 'var(--ok)',
   'move/delete': 'var(--err)',
+};
+const PANE_PREFETCH_TTL_MS = 15000;
+const PANE_PREFETCH_LIMIT = 16;
+const PANE_PREFETCH_VISIBLE_FOLDERS = 8;
+const panePrefetchCache = new Map<string, PaneCacheEntry>();
+
+const prunePanePrefetchCache = (): void => {
+  while (panePrefetchCache.size > PANE_PREFETCH_LIMIT) {
+    const first = panePrefetchCache.keys().next().value;
+    if (!first) break;
+    panePrefetchCache.delete(first);
+  }
+};
+
+const cachedPaneData = (key: string): PaneState | null => {
+  const cached = panePrefetchCache.get(key);
+  if (!cached?.data) return null;
+  if (Date.now() - cached.at > PANE_PREFETCH_TTL_MS) {
+    panePrefetchCache.delete(key);
+    return null;
+  }
+  return cached.data;
+};
+
+const fetchPaneStateCached = (url: string, key: string, force = false): Promise<PaneState> => {
+  const cached = panePrefetchCache.get(key);
+  if (!force) {
+    const data = cachedPaneData(key);
+    if (data) return Promise.resolve(data);
+    if (cached?.promise) return cached.promise;
+  }
+  const previous = cached?.data;
+  const previousAt = cached?.at || Date.now();
+  const promise = fetch(url, { cache: 'no-store' })
+    .then(r => r.json())
+    .then((d: PaneState) => {
+      panePrefetchCache.set(key, { data: d, at: Date.now() });
+      prunePanePrefetchCache();
+      return d;
+    })
+    .catch(err => {
+      if (previous) panePrefetchCache.set(key, { data: previous, at: previousAt });
+      else panePrefetchCache.delete(key);
+      throw err;
+    });
+  panePrefetchCache.set(key, { promise, data: previous, at: previousAt });
+  prunePanePrefetchCache();
+  return promise;
 };
 
 // unified-diff line coloring: green = added, red = removed
@@ -465,6 +518,36 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const activeScmRoot = scmRoot || pane?.scmRoot || '';
   const depotRoot = activeStream ? `${activeStream.replace(/\/+$/, '')}/` : '';
   const activeSessionId = () => String(w.ACTIVE_SESSION || '').trim();
+  const paneRequest = useCallback((
+    targetIp: string,
+    targetStream = '',
+    targetScmRoot = '',
+    targetLocalDir = '',
+    targetDepotDir = '',
+  ) => {
+    const params = new URLSearchParams({ ip: targetIp, provider: 'perforce' });
+    const sessionId = activeSessionId();
+    if (sessionId) params.set('session_id', sessionId);
+    if (targetStream) params.set('stream', targetStream);
+    if (targetScmRoot) params.set('scm_root', targetScmRoot);
+    if (targetLocalDir) params.set('local_dir', targetLocalDir);
+    if (targetDepotDir) params.set('depot_dir', targetDepotDir);
+    const query = params.toString();
+    return { url: `/api/scm/pane?${query}`, key: query };
+  }, []);
+
+  const prefetchPane = useCallback((
+    targetIp: string,
+    targetStream = activeStream,
+    targetScmRoot = activeScmRoot,
+    targetLocalDir = '',
+    targetDepotDir = '',
+  ) => {
+    if (!targetIp) return;
+    const { url, key } = paneRequest(targetIp, targetStream, targetScmRoot, targetLocalDir, targetDepotDir);
+    if (cachedPaneData(key) || panePrefetchCache.get(key)?.promise) return;
+    fetchPaneStateCached(url, key).catch(() => {});
+  }, [activeStream, activeScmRoot, paneRequest]);
 
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
@@ -498,7 +581,9 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   ) => {
     if (!targetIp) { setPane(null); return; }
     const reqId = ++reqRef.current;
-    setBusy(true); setErr('');
+    const { url, key } = paneRequest(targetIp, targetStream, targetScmRoot, targetLocalDir, targetDepotDir);
+    const hasCachedPane = !!cachedPaneData(key);
+    setBusy(!hasCachedPane); setErr('');
     if (options.clearLocal || options.clearDepot) {
       setPane(current => current ? {
         ...current,
@@ -506,15 +591,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
         depot: options.clearDepot ? [] : current.depot,
       } : current);
     }
-    const params = new URLSearchParams({ ip: targetIp, provider: 'perforce' });
-    const sessionId = activeSessionId();
-    if (sessionId) params.set('session_id', sessionId);
-    if (targetStream) params.set('stream', targetStream);
-    if (targetScmRoot) params.set('scm_root', targetScmRoot);
-    if (targetLocalDir) params.set('local_dir', targetLocalDir);
-    if (targetDepotDir) params.set('depot_dir', targetDepotDir);
-    fetch(`/api/scm/pane?${params.toString()}`, { cache: 'no-store' })
-      .then(r => r.json())
+    fetchPaneStateCached(url, key)
       .then((d: PaneState) => {
         if (!mounted.current || reqRef.current !== reqId) return;
         const nextPane = paneWithPendingChangeOptions(d);
@@ -561,7 +638,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       })
       .catch(e => { if (mounted.current && reqRef.current === reqId) setErr(String(e)); })
       .finally(() => { if (mounted.current && reqRef.current === reqId) setBusy(false); });
-  }, [stream, scmRoot]);
+  }, [stream, scmRoot, paneRequest]);
 
   // Restore the last-visited pane locations (saved server-side under the
   // user's home dir) so each visit does not restart at the roots.
@@ -691,6 +768,7 @@ function PerforceSyncTab(props: PerforceSyncProps) {
       .finally(() => {
         if (mounted.current) {
           setBusy(false);
+          panePrefetchCache.clear();
           loadPane(ip, activeStream, activeScmRoot, localDir, depotDir, options.reload ?? { selectOpenedChange: true });
           loadHistory(ip, activeStream, activeScmRoot);
         }
@@ -752,6 +830,29 @@ function PerforceSyncTab(props: PerforceSyncProps) {
   const streams = pane?.streams || (pane?.stream ? [pane.stream] : []);
   const canGoBack = nav.index > 0;
   const canGoForward = nav.index >= 0 && nav.index < nav.entries.length - 1;
+
+  useEffect(() => {
+    if (!ip || !pane?.ok) return undefined;
+    const localFolders = localRows
+      .filter(row => row.kind === 'folder')
+      .slice(0, PANE_PREFETCH_VISIBLE_FOLDERS)
+      .map(row => () => prefetchPane(ip, activeStream, activeScmRoot, row.path, depotDir));
+    const depotFolders = depotRows
+      .filter(row => row.kind === 'folder')
+      .slice(0, PANE_PREFETCH_VISIBLE_FOLDERS)
+      .map(row => () => prefetchPane(ip, activeStream, activeScmRoot, localDir, row.path));
+    const jobs = [...localFolders, ...depotFolders].slice(0, PANE_PREFETCH_VISIBLE_FOLDERS);
+    if (!jobs.length) return undefined;
+    const run = () => jobs.forEach(job => job());
+    const idle = (window as any).requestIdleCallback;
+    const cancelIdle = (window as any).cancelIdleCallback;
+    if (typeof idle === 'function') {
+      const id = idle(run, { timeout: 1000 });
+      return () => { if (typeof cancelIdle === 'function') cancelIdle(id); };
+    }
+    const timer = window.setTimeout(run, 120);
+    return () => window.clearTimeout(timer);
+  }, [ip, pane?.ok, localRows, depotRows, activeStream, activeScmRoot, localDir, depotDir, prefetchPane]);
 
   const onLocalRow = (row: TreeRow) => {
     if (row.kind === 'up' || row.kind === 'folder') {

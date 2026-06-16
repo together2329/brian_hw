@@ -370,6 +370,20 @@ const askQuestionFrom = (raw: any, index: number): any => {
   };
 };
 
+const atlasAskUserCardsEnabled = (): boolean => {
+  const truthy = (value: any): boolean => {
+    if (value === true) return true;
+    return /^(1|true|yes|on)$/i.test(String(value || '').trim());
+  };
+  const boot = w.ATLAS_BOOT_CONFIG || {};
+  if (truthy(boot.ask_user_cards_enabled ?? boot.enable_ask_user_tool)) return true;
+  if (truthy((w as any).ATLAS_ENABLE_ASK_USER_CARDS)) return true;
+  try {
+    if (truthy(localStorage.getItem('ATLAS_ENABLE_ASK_USER_CARDS'))) return true;
+  } catch (_) {}
+  return false;
+};
+
 const buildAskUserFlow = (message: any): any => {
   const flowId = askText(message?.flow_id ?? message?.flowId);
   if (!flowId) return null;
@@ -2137,9 +2151,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, [feedRef]);
 
   useEffect(() => {
-    if (!feedPinnedToBottomRef.current) return;
     requestFeedScrollToBottom();
-  }, [feed, streamText, mainTab, requestFeedScrollToBottom]);
+  }, [feed.length, streamText, mainTab, requestFeedScrollToBottom]);
 
   useEffect(() => {
     const el = feedRef.current;
@@ -2147,7 +2160,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const content = el.querySelector('[data-workspace-chat-content="true"]');
     if (!content) return undefined;
     const observer = new ResizeObserver(() => {
-      if (feedPinnedToBottomRef.current) requestFeedScrollToBottom();
+      requestFeedScrollToBottom();
     });
     observer.observe(content);
     return () => observer.disconnect();
@@ -2156,6 +2169,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   useEffect(() => {
     if (!w.backend || typeof w.backend.subscribe !== 'function') return undefined;
     const unsubAsk = w.backend.subscribe('ask_user', (message: any) => {
+      if (!atlasAskUserCardsEnabled()) return;
       const built = buildAskUserFlow(message);
       if (!built) return;
       const eventSession = normalizeUiSession(

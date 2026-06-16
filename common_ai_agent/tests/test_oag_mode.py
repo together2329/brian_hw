@@ -119,9 +119,35 @@ def test_oag_tool_calls_gateway(monkeypatch, tmp_path):
     _make_oag_project(tmp_path)
     monkeypatch.setenv("OAG_MODE", "1")
     monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+    monkeypatch.delenv("ATLAS_IP_ROOT", raising=False)
     out = T.oag(tool="oag.inspect", ip="timer", stage="rtl-gen", intent="check")
     # fake gateway echoes argv: ["call","--json","{...payload...}"]
     assert "call" in out and "oag.inspect" in out and "timer" in out
+
+
+def test_oag_tool_defaults_to_active_ip(monkeypatch, tmp_path):
+    import json
+
+    _make_oag_project(tmp_path)
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "apb_gpio")
+    out = T.oag(tool="oag.inspect", stage="rtl-gen")
+    echoed = json.loads(out)
+    payload = json.loads(echoed["echo"][2])
+    assert payload["tool"] == "oag.inspect"
+    assert payload["arguments"]["ip_dir"] == "apb_gpio"
+
+
+def test_oag_tool_rejects_mismatched_active_ip(monkeypatch, tmp_path):
+    _make_oag_project(tmp_path)
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.setenv("OAG_ROOT", str(tmp_path))
+    monkeypatch.setenv("ATLAS_ACTIVE_IP", "apb_gpio")
+    out = T.oag(tool="oag.scaffold", ip="timer")
+    assert "refusing oag.scaffold" in out
+    assert "active IP is 'apb_gpio'" in out
 
 
 def test_oag_tool_script_mode(monkeypatch, tmp_path):

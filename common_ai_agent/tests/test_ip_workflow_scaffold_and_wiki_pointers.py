@@ -1,7 +1,7 @@
-"""Per-IP workflow scaffold + configurable wiki pointers.
+"""Per-IP scaffold + configurable wiki pointers.
 
 Covers the .config-driven wiki pointing (ATLAS_WIKI_ROOT / ATLAS_RTL_DB_WIKI)
-and scaffold_ip's per-IP workflow-script copy + execution runbook.
+and scaffold_ip's minimal IP tree + execution runbook.
 """
 
 from pathlib import Path
@@ -54,8 +54,9 @@ def test_resolve_rtl_db_wiki_pointer(tmp_path, monkeypatch):
     assert resolve_rtl_db_wiki() == wiki
 
 
-def test_scaffold_ip_writes_per_ip_workflow_and_runbook(tmp_path, monkeypatch):
-    # Point the central workflow tree at the real repo so stages copy.
+def test_scaffold_ip_does_not_copy_workflow_tree(tmp_path, monkeypatch):
+    # Point the central workflow tree at the real repo so generated wiki pages
+    # are available without copying the workflow engine into the IP.
     monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(REPO_ROOT))
     monkeypatch.delenv("ATLAS_WORKFLOW_ROOT", raising=False)
     rtl_db = tmp_path / "prev_rtl.md"
@@ -66,16 +67,12 @@ def test_scaffold_ip_writes_per_ip_workflow_and_runbook(tmp_path, monkeypatch):
     assert "Scaffolded IP 'widget'" in out
 
     ip = tmp_path / "widget"
-    # The WHOLE workflow tree is copied so the IP runs on its own: stages,
-    # the shared scripts/+prompts/, and the flow guides.
-    for stage in ("ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim", "lint"):
-        assert (ip / "workflow" / stage).is_dir(), stage
-    assert (ip / "workflow" / "GUIDE.md").is_file()
-    assert (ip / "workflow" / "scripts").is_dir()
-    # Prompts / system prompts come along (usable standalone).
-    assert (ip / "workflow" / "tb-gen" / "system_prompt.md").is_file()
-    # __pycache__ is not copied.
-    assert not list((ip / "workflow").rglob("__pycache__"))
+    assert not (ip / "workflow").exists()
+    for subdir in (
+        "cov", "doc", "formal", "handoff", "knowledge", "lint", "list",
+        "ontology", "req", "rtl", "scripts", "sdc", "signoff", "sim", "syn", "tb",
+    ):
+        assert (ip / subdir).is_dir(), subdir
 
     generated_wiki = ip / "wiki" / "_generated"
     user_wiki = ip / "wiki" / "user"
@@ -89,8 +86,8 @@ def test_scaffold_ip_writes_per_ip_workflow_and_runbook(tmp_path, monkeypatch):
     assert "SSOT → FL-Model → RTL → TB → SIM → LINT" in text
     assert "wiki/_generated/" in text
     assert "wiki/user/" in text
-    # Self-contained: the runbook must NOT depend on the central doc/wiki.
-    assert "doc/wiki" not in text
+    assert "is not copied into `widget/workflow`" in text
+    assert "shared `workflow/GUIDE.md`" in text
     # The only external link is the previous-project RTL DB.
     assert str(rtl_db) in text
     # The runbook points into the per-IP knowledge graph.
@@ -105,8 +102,6 @@ def test_scaffold_ip_writes_per_ip_workflow_and_runbook(tmp_path, monkeypatch):
     # The knowledge index is workflow-stages.md, NOT index.md — so it can't
     # collide with the ssot-gen-seeded <ip>/wiki/index.md.
     assert not (generated_wiki / "index.md").exists()
-    # ip_knowledge is NOT duplicated inside the wholesale <ip>/workflow/ copy.
-    assert not (ip / "workflow" / "wiki" / "ip_knowledge").exists()
 
 
 def test_scaffold_ip_is_idempotent(tmp_path, monkeypatch):

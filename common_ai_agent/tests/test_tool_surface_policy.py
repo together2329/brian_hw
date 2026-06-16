@@ -20,6 +20,34 @@ def test_external_db_query_is_not_exposed_by_default(monkeypatch):
     assert "external_db_query" in exposed
 
 
+def test_external_db_wiki_aliases_are_disabled_by_default(monkeypatch):
+    from core import tools
+
+    monkeypatch.delenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", raising=False)
+    monkeypatch.delenv("ATLAS_EXTERNAL_DB_QUERY", raising=False)
+    monkeypatch.delenv("ATLAS_RTL_DB_QUERY", raising=False)
+    monkeypatch.delenv("ATLAS_EXTERNAL_DB_WIKI", raising=False)
+    monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
+
+    result = tools.wiki_query(ip="external-db", topic="uart")
+
+    assert "external DB lookup is disabled by default" in result
+    assert "ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL=1" in result
+
+
+def test_ask_user_is_not_exposed_by_default(monkeypatch):
+    from core import tools
+
+    monkeypatch.delenv("ATLAS_ENABLE_ASK_USER_TOOL", raising=False)
+    exposed = tools.filtered_available_tools()
+    assert "ask_user" not in exposed
+    assert "disabled by default" in tools.ask_user(question="pick one")
+
+    monkeypatch.setenv("ATLAS_ENABLE_ASK_USER_TOOL", "1")
+    exposed = tools.filtered_available_tools()
+    assert "ask_user" in exposed
+
+
 def test_todo_creation_tools_are_plan_mode_only(monkeypatch, tmp_path):
     from core import tools
     import src.config as config
@@ -54,6 +82,7 @@ def test_prompt_tool_table_matches_minimal_surface_policy(monkeypatch):
     monkeypatch.setattr(config, "UNLOCK_NORMAL_MODE_TOOLS", True, raising=False)
     monkeypatch.setattr(config, "DISABLE_TODO_TOOLS", False, raising=False)
     monkeypatch.setattr(config, "ENABLE_EXTERNAL_DB_QUERY_TOOL", False, raising=False)
+    monkeypatch.setattr(config, "ENABLE_ASK_USER_TOOL", False, raising=False)
     monkeypatch.setattr(
         config,
         "NORMAL_MODE_BLOCKED_TOOLS",
@@ -65,6 +94,7 @@ def test_prompt_tool_table_matches_minimal_surface_policy(monkeypatch):
     assert "todo_write" not in normal_prompt
     assert "todo_add" not in normal_prompt
     assert "- external_db_query(" not in normal_prompt
+    assert "- ask_user(" not in normal_prompt
     assert "only advance existing tasks with `todo_update`" in normal_prompt
 
     plan_prompt = config.build_base_system_prompt(plan_mode=True, todo_active=False)

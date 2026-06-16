@@ -483,7 +483,9 @@ def _refresh_runtime_globals():
     g['ATLAS_CHAT_FEED_SUMMARY'] = _env_bool("ATLAS_CHAT_FEED_SUMMARY", "true")
     g['ENABLE_PROMPT_INJECTION'] = _prompt_injection_env_enabled()
     g['ATLAS_PROMPT_INJECTION'] = g['ENABLE_PROMPT_INJECTION']
-    reasoning_mode = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "medium")).lower()
+    g['ENABLE_EXTERNAL_DB_QUERY_TOOL'] = _env_bool("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "false")
+    g['ENABLE_ASK_USER_TOOL'] = _env_bool("ATLAS_ENABLE_ASK_USER_TOOL", "false")
+    reasoning_mode = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "xhigh")).lower()
     g['REASONING_MODE'] = reasoning_mode
     g['REASONING_EFFORT'] = reasoning_mode
     _apply_model_dropdown_selection()
@@ -1378,13 +1380,13 @@ MAX_REASONING_TOKENS = int(os.getenv("MAX_REASONING_TOKENS", "0"))
 # Local env var name is REASONING_MODE, but the API field is reasoning.effort.
 # Controls how much compute the model spends "thinking" before responding.
 # Options: none | low | medium | high | xhigh
-# Default: medium (good balance of quality and speed/cost)
+# Default: xhigh (local ATLAS trusts the selected gpt-5.5-class model).
 # - none:   request no reasoning effort when the model supports it
 # - low:    fastest official reasoning tier
-# - medium: balanced (recommended for coding agents)
+# - medium: balanced speed/cost
 # - high:   deeper reasoning, slower, more expensive
 # - xhigh:  extra-high reasoning on supported models
-REASONING_MODE = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "medium")).lower()
+REASONING_MODE = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "xhigh")).lower()
 # Backward-compatible alias for older code/tests that still read REASONING_EFFORT.
 REASONING_EFFORT = REASONING_MODE
 
@@ -1515,6 +1517,7 @@ TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in (
 UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
 DISABLE_TODO_TOOLS = os.getenv("ATLAS_DISABLE_TODO_TOOLS", "false").lower() in ("true", "1", "yes", "on")
 ENABLE_EXTERNAL_DB_QUERY_TOOL = os.getenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "false").lower() in ("true", "1", "yes", "on")
+ENABLE_ASK_USER_TOOL = os.getenv("ATLAS_ENABLE_ASK_USER_TOOL", "false").lower() in ("true", "1", "yes", "on")
 
 # ============================================================
 # RTL dialect for the rtl-gen / ssot-gen workflows
@@ -2458,6 +2461,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         tool_list = tool_list - NORMAL_MODE_BLOCKED_TOOLS
     if not ENABLE_EXTERNAL_DB_QUERY_TOOL:
         tool_list.discard("external_db_query")
+    if not ENABLE_ASK_USER_TOOL:
+        tool_list.discard("ask_user")
 
     def _tool_line(name, sig, desc):
         """Format one tool line, only if available."""

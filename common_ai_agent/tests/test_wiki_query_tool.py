@@ -113,6 +113,7 @@ interrupt, baud-rate divider, and FIFO control are available in hdl/*.v.
     monkeypatch.setenv("ATLAS_PROJECT_ROOT", str(tmp_path))
     monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
     monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(rtl_root))
+    monkeypatch.setenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "1")
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
 
     from core.tools import wiki_query
@@ -156,6 +157,7 @@ def test_external_db_query_tool_wraps_external_wiki_lookup(tmp_path: Path, monke
     monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
     monkeypatch.setenv("ATLAS_EXTERNAL_DB_WIKI", str(rtl_root))
     monkeypatch.setenv("ATLAS_EXTERNAL_DB_NO_REBUILD", "1")
+    monkeypatch.setenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "1")
     monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
 
@@ -172,6 +174,7 @@ def test_external_db_query_tool_wraps_external_wiki_lookup(tmp_path: Path, monke
 def test_wiki_query_reports_missing_external_rtl_db_config(monkeypatch) -> None:
     monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
+    monkeypatch.setenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "1")
 
     from core.tools import wiki_query
 
@@ -335,6 +338,7 @@ def test_wiki_query_external_builder_override_for_foreign_wiki(tmp_path: Path, m
         "ATLAS_RTL_DB_BUILDER",
         str(PROJECT_ROOT / "scripts" / "example_external_rtl_db_builder.py"),
     )
+    monkeypatch.setenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "1")
     monkeypatch.delenv("ATLAS_RTL_DB_NO_REBUILD", raising=False)
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
 
@@ -388,6 +392,7 @@ def test_wiki_query_no_rebuild_trusts_shipped_graph(tmp_path: Path, monkeypatch)
     monkeypatch.setenv("COMMON_AI_AGENT_HOME", str(PROJECT_ROOT))
     monkeypatch.setenv("ATLAS_RTL_DB_WIKI", str(rtl_root))
     monkeypatch.setenv("ATLAS_RTL_DB_NO_REBUILD", "1")
+    monkeypatch.setenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "1")
     monkeypatch.delenv("ATLAS_RTL_DB_BUILDER", raising=False)
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
 
@@ -410,6 +415,7 @@ def test_wiki_query_external_query_adapter_owns_lookup(monkeypatch) -> None:
         "ATLAS_RTL_DB_QUERY",
         str(PROJECT_ROOT / "scripts" / "example_external_rtl_db_query.py"),
     )
+    monkeypatch.setenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "1")
     monkeypatch.delenv("ATLAS_RTL_DB_WIKI", raising=False)
     monkeypatch.delenv("ATLAS_ACTIVE_IP", raising=False)
 

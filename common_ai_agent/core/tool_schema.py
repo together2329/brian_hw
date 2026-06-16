@@ -610,6 +610,8 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         (
             "Drive the active project's .codex OAG (Ontology IP Agent) pack — available in OAG_MODE. "
             "Native tool, no MCP: calls the project's own .codex/scripts/oag_cli.py gateway directly. "
+            "When ATLAS_ACTIVE_IP/ATLAS_IP_ROOT identifies an active IP, omitted ip defaults to that IP "
+            "and any different ip/ip_dir leaf is rejected. "
             "tool=<oag tool id> one of oag.scaffold/oag.inspect/oag.context/oag.compile/oag.record/"
             "oag.draft/oag.ticket/oag.check/oag.decide/oag.review/oag.run.start/oag.run.next/"
             "oag.run.record/oag.run.checkpoint/oag.stop_check/oag.graph; pass ip/stage/intent for the "
@@ -619,7 +621,7 @@ TOOL_SCHEMAS: Dict[str, Dict] = {
         ),
         {
             "tool": {"type": "string", "description": "OAG tool id, e.g. oag.inspect / oag.run.next (omit when using script)", "default": ""},
-            "ip": {"type": "string", "description": "IP dir name (convenience -> arguments.ip_dir)", "default": ""},
+            "ip": {"type": "string", "description": "IP dir name (convenience -> arguments.ip_dir). Defaults to the active IP; if active IP is set, this leaf must match it.", "default": ""},
             "stage": {"type": "string", "description": "stage, e.g. rtl-gen (convenience -> arguments.stage)", "default": ""},
             "intent": {"type": "string", "description": "task intent (convenience -> arguments.intent)", "default": ""},
             "args_json": {"type": "string", "description": "full OAG arguments as a JSON object string; wins over ip/stage/intent", "default": ""},

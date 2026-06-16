@@ -59,6 +59,10 @@ def _tool_cfg(attr: str, default: int) -> int:
     return int(getattr(cfg, attr, default))
 
 
+def _env_enabled(name: str, default: str = "false") -> bool:
+    return os.environ.get(name, default).strip().lower() in ("1", "true", "yes", "on")
+
+
 _TODO_RUNTIME = threading.local()
 
 
@@ -6167,9 +6171,8 @@ def set_emit_user_notice_callback(cb):
     _emit_user_notice_callback = cb
 
 
-# Pipeline stages copied into each IP folder + documented in its runbook.
-# Order is the canonical SSOT→signoff flow. Only stages that exist in the
-# central workflow/ tree are copied; missing ones are silently skipped.
+# Pipeline stages documented in the IP runbook. The central workflow/ tree stays
+# shared and external; scaffold_ip must not copy it into each IP folder.
 _IP_WORKFLOW_STAGES = (
     "ssot-gen", "fl-model-gen", "rtl-gen", "tb-gen", "sim",
     "lint", "coverage", "syn", "sta", "pnr", "sta-post",
@@ -6193,9 +6196,9 @@ def _central_workflow_root():
 def _render_ip_workflow_runbook(name: str) -> str:
     """Executable per-IP runbook: SSOT→FL→RTL→TB→SIM→LINT→signoff.
 
-    Commands reference the IP-local copy under <ip>/workflow/<stage>/scripts/
-    and run from the project root with `<ip> --root .`. Cross-links the project
-    wiki and (when configured) the external previous-project RTL DB wiki.
+    Commands reference the shared workflow/<stage>/scripts/ tree and run from
+    the project root with `<ip> --root .`. Cross-links the generated IP wiki and
+    (when configured) the external previous-project RTL DB wiki.
     """
     rtl_db = resolve_rtl_db_wiki()
     if rtl_db is not None:
@@ -6229,20 +6232,18 @@ def _render_ip_workflow_runbook(name: str) -> str:
     lines = [
         f"# {name} — Workflow Runbook",
         "",
-        f"Self-contained, executable flow for IP `{name}`. The full workflow "
-        f"engine is copied into `../workflow/` at scaffold time — every stage's "
-        f"scripts, prompts, `system_prompt.md`, rules, and todo templates, plus "
-        f"the shared `scripts/`/`prompts/` and the flow guides. The IP runs "
-        f"on its own, with no dependency on the central checkout's project wiki. "
-        f"Run commands from the **project root** (the dir containing `{name}/`).",
+        f"Executable flow for IP `{name}`. The IP scaffold keeps only IP-owned "
+        f"artifacts under `{name}/`; the workflow engine remains a shared "
+        f"external tree and is not copied into `{name}/workflow`. Run commands "
+        f"from the **project root** (the dir containing `{name}/`).",
         "",
-        "## Pointers (all in-IP — only the RTL DB is an external link)",
+        "## Pointers",
         "- **Stage knowledge graph:** [[workflow-stages]] — per-stage how-to "
         "(SSOT structure, lint/sim method, scripts, prompts) as a queryable graph "
         "(`wiki_query(ip=\"" + name + "\")`).",
-        "- **Flow guides (copied):** [`../workflow/GUIDE.md`](../workflow/GUIDE.md) · "
-        "[`../workflow/COMMON_ENGINE_FLOW.md`](../workflow/COMMON_ENGINE_FLOW.md)",
-        "- **Per-stage system prompts (copied):** `../workflow/<stage>/system_prompt.md`",
+        "- **Flow guides:** shared `workflow/GUIDE.md` and "
+        "`workflow/COMMON_ENGINE_FLOW.md` from the ATLAS workflow checkout.",
+        "- **Per-stage system prompts:** shared `workflow/<stage>/system_prompt.md`.",
         f"- **This IP's wiki graph:** [`_graph.json`](./_graph.json) · "
         f"[`index.md`](./index.md)",
         rtl_db_line,
@@ -6259,15 +6260,15 @@ def _render_ip_workflow_runbook(name: str) -> str:
             f"### {label} · `{stage}`",
             f"{purpose}",
             "",
-            f"- **Scripts:** `workflow/{stage}/scripts/`",
+            f"- **Shared scripts:** `workflow/{stage}/scripts/`",
             f"- **Run:** `{cmd}`",
             f"- **Outputs:** {outputs}",
             "",
         ]
     lines += [
         "## Signoff stages",
-        "`coverage`, `syn`, `sta`, `pnr`, `sta-post` scripts are copied under "
-        "`workflow/<stage>/scripts/` as well; drive them after SIM/LINT pass.",
+        "`coverage`, `syn`, `sta`, `pnr`, `sta-post` are shared workflow stages; "
+        "drive them from the central `workflow/<stage>/scripts/` after SIM/LINT pass.",
         "",
         "## Provenance & versioning",
         "RTL/TB/SIM runs must reference immutable artifact versions "
@@ -6286,42 +6287,17 @@ def _render_ip_workflow_runbook(name: str) -> str:
 
 
 def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files):
-    """Copy pipeline-stage workflow scripts into <ip>/workflow/ and write the
-    per-IP execution runbook into <ip>/wiki/. Best-effort: missing central
-    stages are skipped; existing destinations are preserved (never overwritten).
-    Appends to the caller's created/skipped lists for the status report.
+    """Write per-IP workflow wiki/runbook pointers without copying workflow/.
+
+    The platform workflow engine stays shared and external. Existing
+    destinations are preserved (never overwritten). Appends to the caller's
+    created/skipped lists for the status report.
     """
-    import shutil as _shutil
     from pathlib import Path
 
     central = _central_workflow_root()
-    # ip_knowledge is copied FLAT into <ip>/wiki/ below (step 3), so keep it out
-    # of the wholesale <ip>/workflow/ copy to avoid a redundant second copy.
-    _ignore = _shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", "ip_knowledge")
 
-    # 1) Copy the WHOLE central workflow/ tree into <ip>/workflow/ so the IP is
-    #    runnable on its own — every stage's scripts, prompts, system_prompt.md,
-    #    rules, todo_templates, the shared scripts/ + prompts/, and the flow
-    #    guides (GUIDE.md, COMMON_ENGINE_FLOW.md). Copy per top-level item so an
-    #    existing destination is preserved rather than aborting the whole copy.
-    if central.is_dir():
-        dest_root = Path(base) / "workflow"
-        dest_root.mkdir(parents=True, exist_ok=True)
-        for item in sorted(central.iterdir()):
-            if item.name == "__pycache__" or item.name.endswith((".pyc", ".pyo")):
-                continue
-            dst = dest_root / item.name
-            if dst.exists():
-                skipped_files.append(os.path.relpath(dst))
-                continue
-            if item.is_dir():
-                _shutil.copytree(item, dst, ignore=_ignore)
-                created_dirs.append(os.path.relpath(dst))
-            else:
-                _shutil.copy2(item, dst)
-                created_files.append(os.path.relpath(dst))
-
-    # 2) Write generated workflow wiki pages into <ip>/wiki/_generated/.
+    # 1) Write generated workflow wiki pages into <ip>/wiki/_generated/.
     #    User-authored development wiki pages live separately under
     #    <ip>/wiki/user/ (or non-conflicting root wiki/*.md pages). Refreshes
     #    overwrite only _generated/ so user notes are never clobbered.
@@ -6343,7 +6319,7 @@ def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files
         runbook.write_text(_render_ip_workflow_runbook(name), encoding="utf-8")
         created_files.append(os.path.relpath(runbook))
 
-    # 3) Copy the workflow knowledge-graph pages into the generated wiki area.
+    # 2) Copy the workflow knowledge-graph pages into the generated wiki area.
     #    build_graph.py reads this subdir recursively for IP graphs. Only the
     #    .md pages are copied — the IP rebuilds its own _graph.json.
     knowledge_src = central / "wiki" / "ip_knowledge"
@@ -6353,7 +6329,7 @@ def _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files
             if dst.exists():
                 skipped_files.append(os.path.relpath(dst))
                 continue
-            _shutil.copy2(page, dst)
+            dst.write_text(page.read_text(encoding="utf-8"), encoding="utf-8")
             created_files.append(os.path.relpath(dst))
 
 
@@ -6453,16 +6429,24 @@ def scaffold_ip(name=None, root="."):
       • .sv files, `input wire clk` / `reg`
 
     Layout (under `<root>/<name>/`, ext = .sv unless RTL_FILE_EXT overrides):
+        cov/                          # coverage outputs
+        doc/<name>_mas.md             # micro-architecture spec
+        formal/                       # formal properties/results
+        handoff/                      # handoff/signoff notes
+        knowledge/                    # IP-local findings/records
+        lint/                         # lint reports
+        list/<name>.f                 # synthesis/sim filelist
+        ontology/                     # IP-local ROCEV truth
+        req/<name>_requirements.md    # requirements
         yaml/<name>.ssot.yaml         # Single Source of Truth
         rtl/<name>.<ext>              # top-level RTL
-        list/<name>.f                 # synthesis/sim filelist
+        scripts/                      # IP-owned helper scripts
         tb/cocotb/README.md           # tb-gen writes Python cocotb/pyuvm TB here
         tc/<name>_scenarios.py        # optional Python scenario notes
         sim/                          # simulation outputs (waves, logs)
         sdc/<name>.sdc                # synthesis constraints
-        lint/                         # lint reports
-        doc/<name>_mas.md             # micro-architecture spec
-        req/<name>_requirements.md    # requirements
+        signoff/                      # signoff evidence
+        syn/                          # synthesis outputs
 
     Files are created with TBD/placeholder content; existing files are
     NOT overwritten — you can call this safely on an in-progress IP.
@@ -6491,6 +6475,18 @@ def scaffold_ip(name=None, root="."):
 
     base = os.path.abspath(os.path.join(root, name))
     layout = {
+        "cov":  [],
+        "doc":  [(f"{name}_mas.md",
+                  f"# {name} — Micro-Architecture Spec\n\n## TBD\n")],
+        "formal": [],
+        "handoff": [],
+        "knowledge": [],
+        "lint": [],
+        "list": [(f"{name}.f",
+                  f"// {name}.f — filelist\nrtl/{name}{_ext}\n")],
+        "ontology": [],
+        "req":  [(f"{name}_requirements.md",
+                  f"# {name} — Requirements\n\n## TBD\n")],
         "yaml": [(f"{name}.ssot.yaml",
                   f"# {name}.ssot.yaml — Single Source of Truth\n"
                   f"top_module:\n  name: {name}\n  type: \"<TBD>\"  # TBD\n"
@@ -6500,8 +6496,7 @@ def scaffold_ip(name=None, root="."):
                   f"// TODO: replace with Jinja2 / LLM output\n"
                   f"module {name} (\n  input  {_port_kw} clk,\n  input  {_port_kw} rst_n\n);\n"
                   f"  // TBD\nendmodule\n")],
-        "list": [(f"{name}.f",
-                  f"// {name}.f — filelist\nrtl/{name}{_ext}\n")],
+        "scripts": [],
         "tb/cocotb": [(f"README.md",
                   f"# {name} cocotb/pyuvm TB\n\n"
                   f"tb-gen owns this directory. Run `/tb {name}` or `/ssot-tb-cocotb {name}` "
@@ -6517,11 +6512,8 @@ def scaffold_ip(name=None, root="."):
         "sdc":  [(f"{name}.sdc",
                   f"# {name}.sdc — timing constraints\n"
                   f"# TBD: create_clock, set_input_delay, ...\n")],
-        "lint": [],
-        "doc":  [(f"{name}_mas.md",
-                  f"# {name} — Micro-Architecture Spec\n\n## TBD\n")],
-        "req":  [(f"{name}_requirements.md",
-                  f"# {name} — Requirements\n\n## TBD\n")],
+        "signoff": [],
+        "syn": [],
     }
 
     created_dirs, created_files, skipped_files = [], [], []
@@ -6549,13 +6541,13 @@ def scaffold_ip(name=None, root="."):
     except OSError as e:
         return f"[scaffold_ip: filesystem error: {e}]"
 
-    # Per-IP workflow scripts + execution runbook wiki. Non-fatal: a failure
+    # Per-IP runbook/wiki pointers. Non-fatal: a failure
     # here must not lose the canonical layout already written above.
     workflow_warn = ""
     try:
         _scaffold_ip_workflow(base, name, created_dirs, created_files, skipped_files)
     except Exception as e:  # noqa: BLE001 — best-effort enrichment
-        workflow_warn = f"  ! workflow scripts/runbook skipped: {e}"
+        workflow_warn = f"  ! workflow runbook/wiki skipped: {e}"
 
     # Display paths relative to the IP base (not cwd) so the listing
     # stays readable even when the user runs from far away.
@@ -7646,6 +7638,12 @@ def ask_user(question=None, options=None, kind="single", subtitle="",
     Returns:
         Plain-text summary of the user's answer(s).
     """
+    if not _env_enabled("ATLAS_ENABLE_ASK_USER_TOOL"):
+        label = (subtitle or question or "ask_user").strip()
+        return (
+            f"[ask_user disabled by default: {label}. "
+            "Ask the requirement question in normal chat instead.]"
+        )
     _exec_mode = _ask_user_exec_mode()
     if _exec_mode == "auto-select" and _ask_user_callback is None:
         if questions:
@@ -7954,6 +7952,12 @@ def wiki_query(ip: str = "", topic: str = "", depth: int = 2, max_nodes: int = 1
     if ip.lower() in external_aliases:
         scope_kind = "rtl-db"
         scope_label = "scope=rtl-db"
+        if not _env_enabled("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL"):
+            return (
+                "[wiki_query] external DB lookup is disabled by default. "
+                "Set ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL=1 to enable "
+                'wiki_query(ip="external-db"/"rtl-db"/"andes").'
+            )
         # External query adapter (maximum freedom — everything handled outside).
         # ATLAS_RTL_DB_QUERY points at an executable that OWNS the entire lookup:
         # its own structure, search, and transport (local files, a DB, an HTTP
@@ -8748,6 +8752,38 @@ def _oag_format_proc(r) -> str:
     return out or err or "[oag: empty response]"
 
 
+def _oag_active_ip_leaf(ip_root=None) -> str:
+    for key in ("ATLAS_ACTIVE_IP", "IP_NAME"):
+        raw = os.environ.get(key, "").strip()
+        if raw and raw != "default":
+            return Path(raw).expanduser().name
+    raw_root = os.environ.get("ATLAS_IP_ROOT", "").strip()
+    if raw_root:
+        leaf = Path(raw_root).expanduser().name
+        if leaf and leaf != "default":
+            return leaf
+    return ""
+
+
+def _oag_apply_active_ip_sandbox(args: dict, ip_root: Path, tool_name: str) -> str:
+    active = _oag_active_ip_leaf(ip_root)
+    if not active:
+        return ""
+    raw = args.get("ip_dir") or args.get("ip") or args.get("ip_root") or ""
+    if not str(raw or "").strip():
+        args["ip_dir"] = active
+        return ""
+    supplied_leaf = Path(str(raw)).expanduser().name
+    if supplied_leaf != active:
+        return (
+            f"[oag: refusing {tool_name or 'tool'} for ip_dir={raw!r}; "
+            f"active IP is {active!r}. Use the active IP folder.]"
+        )
+    if "ip_dir" not in args:
+        args["ip_dir"] = str(raw).strip()
+    return ""
+
+
 def oag(tool="", ip="", stage="", intent="", args_json="", script="", script_args=""):
     """Drive the active project's .codex OAG (Ontology IP Agent) pack — requires
     OAG_MODE. This is a native tool (no MCP): it calls the project's own
@@ -8815,6 +8851,9 @@ def oag(tool="", ip="", stage="", intent="", args_json="", script="", script_arg
         args["stage"] = str(stage).strip()
     if intent and "intent" not in args:
         args["intent"] = str(intent).strip()
+    sandbox_error = _oag_apply_active_ip_sandbox(args, ip_root, t)
+    if sandbox_error:
+        return sandbox_error
     payload = json.dumps({"tool": t, "arguments": args})
     try:
         r = subprocess.run([sys.executable, str(cli), "call", "--json", payload],
@@ -8920,8 +8959,10 @@ def filtered_available_tools(extra_disable=None):
     disabled = {x.strip() for x in raw.split(",") if x.strip()}
     if extra_disable:
         disabled.update(extra_disable)
-    if _os.environ.get("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "").strip().lower() not in ("1", "true", "yes", "on"):
+    if not _env_enabled("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL"):
         disabled.add("external_db_query")
+    if not _env_enabled("ATLAS_ENABLE_ASK_USER_TOOL"):
+        disabled.add("ask_user")
     if _os.environ.get("PLAN_MODE", "false").strip().lower() != "true":
         disabled.update({"todo_write", "todo_add"})
     # The native `oag` tool is exposed only in OAG_MODE (it drives a project's

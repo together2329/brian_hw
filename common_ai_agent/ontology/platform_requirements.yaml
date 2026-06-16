@@ -1574,3 +1574,70 @@ requirements:
         evidence:
           - test: "tests/test_tool_surface_policy.py::test_prompt_tool_table_matches_minimal_surface_policy"
             observed_at: 2d98a522
+
+  - id: REQ_PLAT_AGENT_RUNTIME_DEFAULTS_20260616_001
+    claim: "로컬 ATLAS 기본값은 도구 표면을 작게 유지하고, OAG는 active IP 폴더에서만 움직이며, 채팅은 새 출력으로 자동 스크롤하고, gpt-5.5 기본 reasoning effort는 xhigh다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_AGENT_EXTERNAL_DB_WIKI_ALIASES_DEFAULT_OFF
+        owned_by: agent.tools
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_tool_surface_policy.py::test_external_db_wiki_aliases_are_disabled_by_default"
+            observed_at: PENDING_SHA
+      - id: OBL_AGENT_ASK_USER_DEFAULT_OFF
+        owned_by: agent.tools
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_tool_surface_policy.py::test_ask_user_is_not_exposed_by_default"
+            observed_at: PENDING_SHA
+          - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_ask_user_cards_are_default_disabled"
+            observed_at: PENDING_SHA
+      - id: OBL_OAG_NATIVE_TOOL_USES_ACTIVE_IP_SANDBOX
+        owned_by: agent.tools
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_oag_mode.py::test_oag_tool_defaults_to_active_ip"
+            observed_at: PENDING_SHA
+          - test: "tests/test_oag_mode.py::test_oag_tool_rejects_mismatched_active_ip"
+            observed_at: PENDING_SHA
+      - id: OBL_IP_SCAFFOLD_KEEPS_WORKFLOW_EXTERNAL
+        owned_by: agent.tools
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_ip_workflow_scaffold_and_wiki_pointers.py::test_scaffold_ip_does_not_copy_workflow_tree"
+            observed_at: PENDING_SHA
+      - id: OBL_WORKSPACE_CHAT_SCROLLS_TO_NEW_OUTPUT
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_chat_stream_updates_force_bottom_scroll"
+            observed_at: PENDING_SHA
+      - id: OBL_WORKSPACE_OAG_TOOL_CARDS_SHOW_COMMAND_FOLD_DETAILS
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_oag_tool_card_shows_header_and_folds_details"
+            observed_at: PENDING_SHA
+      - id: OBL_PERFORCE_SYNC_PREFETCHES_NEXT_PANE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_scm_perforce_adapter.py::test_perforce_sync_ui_prefetches_next_pane"
+            observed_at: PENDING_SHA
+      - id: OBL_REASONING_EFFORT_DEFAULT_XHIGH
+        owned_by: platform.config
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_reasoning_defaults.py::test_checked_in_reasoning_effort_defaults_to_xhigh"
+            observed_at: PENDING_SHA
+          - test: "tests/test_reasoning_defaults.py::test_config_code_fallback_reasoning_effort_is_xhigh"
+            observed_at: PENDING_SHA
