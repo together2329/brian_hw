@@ -1488,6 +1488,6 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_atlas_entry_cache_headers.py::test_index_entry_html_is_no_store"
-            observed_at: bb9f0c85
+            observed_at: c4eb890a
           - test: "tests/test_atlas_entry_cache_headers.py::test_lobby_entry_html_is_no_store"
-            observed_at: bb9f0c85
+            observed_at: c4eb890a
