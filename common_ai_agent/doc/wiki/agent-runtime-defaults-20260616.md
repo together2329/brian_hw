@@ -72,6 +72,15 @@ readable tables, callout-style blockquotes, code blocks, checklists, and images.
 This keeps README/OAG report artifacts readable without moving them into the
 heavier SSOT DOC iframe exporter.
 
+## Chat markdown reading surface
+
+Assistant chat output also uses the shared `md-agent` Markdown pipeline. It
+should read like a compact document card rather than terminal dump text:
+assistant entries get a quiet panel, clear label, stronger heading hierarchy,
+roomier paragraphs/lists, readable tables, callout blockquotes, and code blocks
+with enough padding for scanability. User messages remain visually distinct and
+tool-card internals keep their own compact affordances.
+
 ## Perforce pane responsiveness
 
 The Perforce Sync tab should not wait for a folder click before starting the

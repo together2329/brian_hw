@@ -1550,47 +1550,62 @@ html[data-platform="windows"] .app {
 .md-agent {
   color: var(--fg);
   font-size: var(--ui-agent-font-size);
-  line-height: var(--ui-agent-line-height);
+  line-height: 1.76;
   font-weight: var(--ui-text-weight);
+  letter-spacing: 0;
 }
 
 /* Paragraphs — generous breathing room */
-.md-agent > p { margin: 10px 0; }
+.md-agent > p { margin: 9px 0; }
 .md-agent > p:first-child { margin-top: 0; }
 .md-agent > p:last-child  { margin-bottom: 0; }
 
 /* Headings — clear hierarchy */
 .md-agent h1, .md-agent h2, .md-agent h3, .md-agent h4 {
-  color: var(--accent);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  margin: 18px 0 8px;
-  padding-bottom: 4px;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin: 22px 0 9px;
+  padding-bottom: 6px;
+  line-height: 1.3;
 }
-.md-agent h1 { font-size: 17px; border-bottom: 1px solid var(--line); }
-.md-agent h2 { font-size: 15px; border-bottom: 1px solid var(--line); }
-.md-agent h3 { font-size: 14px; }
-.md-agent h4 { font-size: 13px; color: var(--fg); }
+.md-agent h1 {
+  color: var(--fg);
+  font-size: 20px;
+  border-bottom: 1px solid color-mix(in oklch, var(--accent) 42%, var(--line));
+}
+.md-agent h2 {
+  color: color-mix(in oklch, var(--accent) 76%, var(--fg));
+  font-size: 17px;
+  border-bottom: 1px solid var(--line);
+}
+.md-agent h3 {
+  color: var(--cyan);
+  font-size: 15px;
+}
+.md-agent h4 {
+  color: var(--fg);
+  font-size: 14px;
+}
 
 /* Lists — vertical rhythm + nested indent */
 .md-agent ul, .md-agent ol {
   padding-left: 28px;
-  margin: 8px 0;
+  margin: 10px 0 13px;
 }
 .md-agent li {
-  margin: 4px 0;
+  margin: 5px 0;
 }
 .md-agent li > p { margin: 2px 0; }
 .md-agent ul ul, .md-agent ol ol, .md-agent ul ol, .md-agent ol ul {
-  margin: 4px 0;
+  margin: 5px 0;
   padding-left: 24px;
 }
 
 /* Strong / em */
 .md-agent strong {
   color: var(--fg);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 750;
+  letter-spacing: 0;
 }
 .md-agent em     { color: var(--fg); font-style: italic; }
 
@@ -1600,7 +1615,7 @@ html[data-platform="windows"] .app {
    chip-<kind> class on each inline <code>. */
 .md-agent code {
   background: color-mix(in oklch, var(--code-bg) 92%, transparent);
-  padding: 1px 6px;
+  padding: 1px 5px;
   border-radius: 3px;
   font-family: var(--code-font);
   font-size: var(--ui-code-font-size);
@@ -1673,11 +1688,11 @@ html[data-platform="windows"] .app {
    consistent across browsers. */
 .md-agent pre {
   background: var(--code-bg);
-  border: 1px solid var(--line);
+  border: 1px solid color-mix(in oklch, var(--line) 80%, var(--cyan));
   border-radius: 6px;
-  padding: 10px 14px;
+  padding: 12px 14px;
   overflow-x: auto;
-  margin: 10px 0;
+  margin: 14px 0 16px;
   font-family: var(--code-font);
   font-size: var(--ui-code-font-size);
   line-height: 1.55;
@@ -1701,22 +1716,32 @@ html[data-platform="windows"] .app {
 
 /* Tables */
 .md-agent table {
-  border-collapse: collapse;
-  margin: 10px 0;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 14px 0 18px;
   font-size: 13px;
   display: block;
   overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: color-mix(in oklch, var(--bg-2) 72%, transparent);
 }
 .md-agent th, .md-agent td {
-  border: 1px solid var(--line);
-  padding: 6px 12px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 7px 11px;
   text-align: left;
   vertical-align: top;
 }
+.md-agent th:last-child, .md-agent td:last-child { border-right: 0; }
+.md-agent tr:last-child td { border-bottom: 0; }
 .md-agent th {
-  background: var(--bg-2);
-  color: var(--accent);
-  font-weight: 700;
+  background: color-mix(in oklch, var(--accent) 10%, var(--bg-2));
+  color: color-mix(in oklch, var(--accent) 78%, var(--fg));
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: var(--ui-small-font-size);
 }
 .md-agent tr:nth-child(even) { background: color-mix(in oklch, var(--bg-2) 40%, transparent); }
 
@@ -1731,12 +1756,12 @@ html[data-platform="windows"] .app {
 /* Blockquotes — kind-tagged variants (rule / warn / hint / scope) come
    from _processBlockquoteKinds() inspecting the lead `[tag]` marker.   */
 .md-agent blockquote {
-  border-left: 3px solid var(--accent);
-  margin: 10px 0;
-  padding: 4px 14px;
-  color: var(--fg-mute);
-  background: color-mix(in oklch, var(--accent) 6%, transparent);
-  border-radius: 0 4px 4px 0;
+  border-left: 4px solid var(--accent);
+  margin: 14px 0;
+  padding: 9px 14px;
+  color: color-mix(in oklch, var(--fg) 84%, var(--fg-mute));
+  background: color-mix(in oklch, var(--accent) 7%, var(--bg-2));
+  border-radius: 0 6px 6px 0;
 }
 .md-agent blockquote p { margin: 4px 0; }
 .md-agent blockquote.quote-rule {
@@ -1764,13 +1789,55 @@ html[data-platform="windows"] .app {
 .md-agent hr {
   border: none;
   border-top: 1px solid var(--line);
-  margin: 14px 0;
+  margin: 18px 0;
 }
 
 /* Task list (GFM checkboxes) */
 .md-agent input[type="checkbox"] {
   margin-right: 6px;
   accent-color: var(--accent);
+}
+
+.feed-entry-agent {
+  padding: 14px 16px 18px !important;
+  margin: 0 0 12px !important;
+  border: 1px solid var(--line);
+  border-left: 3px solid color-mix(in oklch, var(--ok) 72%, var(--line));
+  border-radius: 8px;
+  background: color-mix(in oklch, var(--bg-2) 78%, var(--bg));
+  box-shadow: 0 1px 0 color-mix(in oklch, var(--fg) 4%, transparent);
+}
+.feed-entry-agent.feed-entry-live {
+  border-left-color: var(--ok);
+}
+.feed-entry-user {
+  padding: 12px 15px 14px !important;
+  margin: 0 0 14px !important;
+  border: 1px solid color-mix(in oklch, var(--accent) 30%, var(--line));
+  border-left: 3px solid var(--accent) !important;
+  border-radius: 8px !important;
+  background: color-mix(in oklch, var(--accent) 7%, var(--bg-2)) !important;
+}
+.feed-entry-label {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 6px;
+  font-size: var(--ui-control-font-size) !important;
+  letter-spacing: 0.04em !important;
+}
+.feed-entry-agent > .md-agent,
+.feed-entry-user > .md-agent {
+  display: block !important;
+  max-width: 88ch;
+  margin-top: 5px !important;
+}
+.feed-entry-agent > .md-agent > :first-child,
+.feed-entry-user > .md-agent > :first-child {
+  margin-top: 0;
+}
+.feed-entry-agent > .md-agent > :last-child,
+.feed-entry-user > .md-agent > :last-child {
+  margin-bottom: 0;
 }
 
 .atlas-terminal-transcript {

@@ -1706,3 +1706,17 @@ requirements:
             observed_at: 7ae1716e
           - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_styles_markdown_syntax_as_document"
             observed_at: 7ae1716e
+
+  - id: REQ_PLAT_CHAT_MARKDOWN_DOCUMENT_STYLE_20260617_001
+    claim: "Workspace chat의 assistant Markdown 출력은 조잡한 terminal dump가 아니라 compact document card로 렌더된다 — feed-entry-agent는 조용한 패널과 label rhythm을 갖고, md-agent 문법(heading/list/table/code/blockquote/checklist)은 채팅 폭 안에서 읽기 쉬운 hierarchy와 spacing을 유지한다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_CHAT_MARKDOWN_DOCUMENT_STYLE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_agent_chat_markdown_uses_document_card_surface"
+            observed_at: PENDING_SHA
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_syntax_has_readable_document_rules"
+            observed_at: PENDING_SHA
