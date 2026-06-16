@@ -2,7 +2,7 @@
 title: OAG_MODE — fuse a project's .codex OAG pack into the default agent
 type: design
 tags: [oag, codex, agents-md, default-agent, prompt-injection, tools, integration]
-updated: 2026-06-15
+updated: 2026-06-16
 related: [codex-rocev-agent-pack-20260611, cursor-agent-pack, platform-ontology, locked-truth-concept]
 ---
 
@@ -63,7 +63,22 @@ oag(script="oag_eval.py")                                                      #
   (`agent.prompt-builder`).
 - `core/tools.py` — `oag()` tool + registry + `filtered_available_tools` gate;
   `core/tool_schema.py` — `oag` schema (`agent.tools`).
+- `core/codex_appserver_bridge.py` — ATLAS web chat bridge for `CODEX_BRIDGE=1`;
+  tool-only turns are promoted to visible assistant text if Codex emits tool
+  output but no final `agentMessage` delta (`agent.codex-bridge`).
 - Tests: `tests/test_oag_mode.py`.
+
+## Web bridge visibility
+
+Observed 2026-06-16: with `OAG_MODE=1 CODEX_BRIDGE=1`, Codex can legally call
+`oag.inspect` and then end the turn without a natural-language final message.
+The OAG result exists in the native tool response (`oag_tool_response.v1`), but
+the ATLAS chat feed renders assistant text, so the turn can look blank.
+
+The bridge therefore treats "tool output but no assistant delta" as a visible
+fallback: before `flush`/`done`, it emits a bounded assistant token containing
+the tool result and persists the same text to the session conversation. Normal
+turns with real assistant text are unchanged.
 
 ## Proven
 

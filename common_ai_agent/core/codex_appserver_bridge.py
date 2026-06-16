@@ -39,6 +39,7 @@ _STREAM_LIMIT = int(os.environ.get("CODEX_BRIDGE_STREAM_LIMIT", str(64 * 1024 * 
 _CALL_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_CALL_TIMEOUT", "60"))
 # Whole-turn timeout: never leave the frontend stuck on "running" forever.
 _TURN_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_TURN_TIMEOUT", "180"))
+_TOOL_ONLY_FALLBACK_LIMIT = int(os.environ.get("CODEX_BRIDGE_TOOL_FALLBACK_LIMIT", "4000"))
 
 _conns: "dict[str, _CodexConn]" = {}
 _conns_lock = asyncio.Lock()
@@ -134,6 +135,32 @@ def _item_result(item: dict) -> "tuple[str, str] | None":
     except Exception:
         body = str(extra)
     return (str(itype or "activity"), body if extra else "(done)")
+
+
+def _tool_only_fallback_text(tool_results: "list[tuple[str, str]]") -> str:
+    """Make a visible assistant message when a turn produced only tool output.
+
+    Codex can legally finish a turn after a native tool call without emitting an
+    `agentMessage` delta. ATLAS chat only persists/renders assistant text, so a
+    tool-only turn would otherwise look blank even though useful evidence
+    arrived. Keep the fallback small and literal: this is a visibility bridge,
+    not a second summarizer.
+    """
+    cleaned: "list[tuple[str, str]]" = []
+    for label, body in tool_results:
+        text = str(body or "").strip()
+        if not text:
+            continue
+        cleaned.append((str(label or "tool"), text[:_TOOL_ONLY_FALLBACK_LIMIT]))
+    if not cleaned:
+        return ""
+    if len(cleaned) == 1:
+        label, body = cleaned[0]
+        return f"Tool result ({label}):\n\n{body}"
+    parts = ["Tool results:"]
+    for label, body in cleaned:
+        parts.append(f"\n[{label}]\n{body}")
+    return "\n".join(parts)
 
 
 def _thread_store_path() -> str:
@@ -314,10 +341,17 @@ class _CodexConn:
     async def run_turn(self, text: str, emit: "Callable[..., None]") -> None:
         async with self._turn_lock:
             done = asyncio.Event()
+            saw_agent_text = False
+            saw_error = False
+            tool_results: "list[tuple[str, str]]" = []
 
             def on_note(method: str, params: dict) -> None:
+                nonlocal saw_agent_text, saw_error
                 if method == "item/agentMessage/delta":
-                    emit("token", text=params.get("delta", ""))
+                    delta = str(params.get("delta", ""))
+                    if delta.strip():
+                        saw_agent_text = True
+                    emit("token", text=delta)
                 elif method in ("item/reasoning/textDelta",
                                 "item/reasoning/summaryTextDelta"):
                     emit("reasoning", text=params.get("delta", ""))
@@ -329,10 +363,14 @@ class _CodexConn:
                     res = _item_result(params.get("item") or {})
                     if res is not None:
                         tool_label, result_text = res
-                        emit("tool_result", text=str(result_text)[:4000], tool=tool_label)
+                        result_body = str(result_text)[:_TOOL_ONLY_FALLBACK_LIMIT]
+                        if result_body.strip():
+                            tool_results.append((str(tool_label), result_body))
+                        emit("tool_result", text=result_body, tool=tool_label)
                 elif method == "turn/completed":
                     done.set()
                 elif method == "error":
+                    saw_error = True
                     emit("error", message=json.dumps(params.get("error")))
                     done.set()
 
@@ -346,9 +384,14 @@ class _CodexConn:
                 try:
                     await asyncio.wait_for(done.wait(), timeout=_TURN_TIMEOUT)
                 except asyncio.TimeoutError:
+                    saw_error = True
                     emit("error", message=f"codex turn timed out after {_TURN_TIMEOUT:.0f}s")
             finally:
                 self._on_note = None
+                if not saw_agent_text and not saw_error:
+                    fallback = _tool_only_fallback_text(tool_results)
+                    if fallback:
+                        emit("token", text=fallback)
                 emit("flush")
                 emit("agent_state", running=False)
                 emit("done")

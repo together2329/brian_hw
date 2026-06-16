@@ -59,6 +59,14 @@ units:
     known_gaps:
       - glm/deepseek/kimi 경로에서 image 블록 flatten (이미지 입력 미전달)
 
+  - id: agent.codex-bridge
+    kind: adapter
+    summary: ATLAS 웹 채팅과 codex app-server 스트림 브리지
+    owns:
+      - core/codex_appserver_bridge.py
+    content_tests:
+      - tests/test_codex_appserver_bridge.py
+
   - id: agent.compression
     kind: engine
     summary: 컨텍스트 압축 (/compact)
