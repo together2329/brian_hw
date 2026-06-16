@@ -40,25 +40,28 @@ def test_atlas_boot_config_exposes_oag_mode(tmp_path, monkeypatch):
     assert payload["oag_mode"] is True
 
 
-def test_oag_flow_stages_default_only():
+def test_oag_flow_stages_default_and_sim_debug():
     source = _source("data-helpers.tsx")
     assert "import { atlasOagMode } from './runtime-flags';" in source
-    assert "if (atlasOagMode()) return [DEFAULT_FLOW_STAGE];" in source
+    assert "if (atlasOagMode()) return [DEFAULT_FLOW_STAGE].concat(DEFAULT_FLOW_STAGES.filter((s) => s.id === 'sim_debug'));" in source
 
 
-def test_oag_workspace_tabs_hide_ssot_doc_req_and_show_sim_debug():
+def test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow():
     data_hook = _source("workspace-root-data-hook.tsx")
     rail_tabs = _source("workspace-rootui-rail-tabs.tsx")
     routing = _source("workspace-session-routing.tsx")
+    app = _source("app.tsx")
 
-    assert "if (atlasOagMode()) return 'default';" in routing
-    assert "const oagMode = atlasOagMode();" in data_hook
-    assert "const showSsotImportExportTab = !oagMode && (workflow === 'ssot-gen' || workflow === 'default');" in data_hook
-    assert "const showSsotTab = !oagMode &&" in data_hook
-    assert "const showSsotDocTab = !oagMode && showSsotTab;" in data_hook
-    assert "const showReqTab = !oagMode &&" in data_hook
-    assert "const showDebugTab = workflow === 'sim_debug' || (oagMode && workflow === 'default');" in data_hook
-    assert ">{oagMode ? 'SIM_DEBUG' : 'debug'}</span>" in rail_tabs
+    assert "if (atlasOagMode()) return normalized === 'sim_debug' ? 'sim_debug' : 'default';" in routing
+    assert "if (atlasOagMode()) return [WORKFLOW_DEFAULT, 'sim_debug'];" in app
+    assert "if (atlasOagMode()) return wf === 'sim_debug' ? 'sim_debug' : WORKFLOW_DEFAULT;" in app
+    assert "if (atlasOagMode()) return;" not in app
+    assert "const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';" in data_hook
+    assert "const showSsotTab = workflow === 'ssot-gen' || workflow === 'default' ||" in data_hook
+    assert "const showSsotDocTab = showSsotTab;" in data_hook
+    assert "const showReqTab = showSsotTab || workflow === 'default';" in data_hook
+    assert "const showDebugTab = workflow === 'sim_debug';" in data_hook
+    assert ">{workflow === 'sim_debug' ? 'SIM_DEBUG' : 'debug'}</span>" in rail_tabs
 
 
 def test_workspace_right_panel_defaults_collapsed():

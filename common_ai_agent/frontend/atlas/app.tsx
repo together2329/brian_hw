@@ -147,7 +147,7 @@ const App = () => {
   ]), []);
   const WORKFLOW_DEFAULT = 'default';
   const WORKFLOW_OPTIONS = useMemo(() => {
-    if (atlasOagMode()) return [WORKFLOW_DEFAULT];
+    if (atlasOagMode()) return [WORKFLOW_DEFAULT, 'sim_debug'];
     const sorted = Array.from(TOP_WORKFLOWS)
       .filter(wf => wf !== 'orchestrator')
       .sort();
@@ -382,8 +382,8 @@ const App = () => {
   });
 
   const workflowForExecMode = useCallback((workflow: unknown) => {
-    if (atlasOagMode()) return WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
+    if (atlasOagMode()) return wf === 'sim_debug' ? 'sim_debug' : WORKFLOW_DEFAULT;
     if (execMode !== 'orchestrator' && wf === 'orchestrator') return WORKFLOW_DEFAULT;
     if (execMode === 'orchestrator' && wf === WORKFLOW_DEFAULT) return 'orchestrator';
     return wf;
@@ -726,7 +726,6 @@ const App = () => {
   // explicit workflow segment; /api/session/activate loads the matching
   // backend prompt, TODO file and workspace config.
   const selectWorkflow = (rawWf: string) => {
-    if (atlasOagMode()) return;
     let wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
     if (execMode === 'orchestrator' && wf === WORKFLOW_DEFAULT) wf = 'orchestrator';
     const parsed = splitActiveNamespace();

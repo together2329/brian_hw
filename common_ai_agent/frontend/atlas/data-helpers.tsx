@@ -63,7 +63,7 @@ export function atlasExecMode(): string {
 }
 
 export function flowStagesForExecMode(stages?: any[]): any[] {
-  if (atlasOagMode()) return [DEFAULT_FLOW_STAGE];
+  if (atlasOagMode()) return [DEFAULT_FLOW_STAGE].concat(DEFAULT_FLOW_STAGES.filter((s) => s.id === 'sim_debug'));
   const base = Array.isArray(stages) ? stages : DEFAULT_FLOW_STAGES;
   const deduped = base.filter((s) => s
     && s.id !== ORCHESTRATOR_FLOW_STAGE.id

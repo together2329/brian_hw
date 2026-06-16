@@ -22,7 +22,6 @@ import { Splitter, HorizontalSplitter } from './workspace-resize-splitters';
 import { appendActiveSessionParam, isSsotYamlPath } from './workspace-session-routing';
 import { ConvModeSelector } from './workspace-git-diff';
 import { ATLAS_WORKFLOW_LOCKED } from './app-helpers';
-import { atlasOagMode } from './runtime-flags';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
 // read it through window with a permissive cast + inline fallback so the
@@ -50,8 +49,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
     previewPath, setPreviewPath,
     setMainTab,
   } = ws;
-  const oagMode = atlasOagMode();
-  const workflowLocked = ATLAS_WORKFLOW_LOCKED || oagMode;
+  const workflowLocked = ATLAS_WORKFLOW_LOCKED;
   return (
     <>
       {fileContextMenu && (
@@ -183,7 +181,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
             <span>workflow</span>
             <span className="mute" style={{ fontSize: 9, textTransform: 'none', letterSpacing: 0 }}>
               {workflowLocked
-                ? (oagMode ? '· default · managed by OAG' : '· default · managed by codex')
+                ? '· default · managed by codex'
                 : (ws.atlasUiOrchestratorMode?.() ? '· orchestrator first' : '· optional · click to toggle')}
             </span>
           </div>
@@ -418,7 +416,6 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
     previewPath, activeIp, scmTabLabel,
     debugChatOpen, setDebugChatOpen,
   } = ws;
-  const oagMode = atlasOagMode();
   return (
     <div className="box-h">
       {/* Tab strip — chat · ssot · Q&A · split view · full view. */}
@@ -450,7 +447,7 @@ export const renderWorkspaceCenterTabStrip = (ws: any): ReactNode => {
             border: '1px solid ' + (mainTab === 'debug' ? 'var(--accent)' : 'transparent'),
             fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 'var(--ui-control-font-size)',
           }}
-        >{oagMode ? 'SIM_DEBUG' : 'debug'}</span>
+        >{workflow === 'sim_debug' ? 'SIM_DEBUG' : 'debug'}</span>
       )}
       {showCoverageTab && (
         <span

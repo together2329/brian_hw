@@ -1655,7 +1655,7 @@ requirements:
             observed_at: c164d110
 
   - id: REQ_PLAT_OAG_WORKSPACE_SURFACE_20260617_001
-    claim: "OAG_MODE=1인 ATLAS workspace는 workflow rail을 default 하나로 축소하고, SIM_DEBUG를 default 내부 center tab으로 제공하며, SSOT/DOC/REQ 계열 탭과 오른쪽 status/TODO rail은 기본 노출하지 않는다 — OAG가 기본 agent 안에서 IP 흐름을 이끌 때 화면도 단일 default 작업면으로 유지한다."
+    claim: "OAG_MODE=1인 ATLAS workspace는 workflow rail에 default와 sim_debug를 노출한다 — default workspace에는 REQ/SSOT/DOC review tab을 유지하고, VCD/RTL/waveform 디버그 surface는 default 내부 SIM_DEBUG tab이 아니라 별도 sim_debug workflow에서 제공한다. 오른쪽 status/TODO rail은 여전히 기본 folded 상태다."
     design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
     obligations:
       - id: OBL_OAG_BOOT_CONFIG_EXPOSES_UI_FLAG
@@ -1665,15 +1665,15 @@ requirements:
         evidence:
           - test: "tests/test_oag_workspace_surface.py::test_atlas_boot_config_exposes_oag_mode"
             observed_at: 709a105d
-      - id: OBL_OAG_WORKSPACE_DEFAULT_ONLY_WITH_SIM_DEBUG_TAB
+      - id: OBL_OAG_WORKSPACE_DEFAULT_AND_SIM_DEBUG_WORKFLOWS
         owned_by: ui.workspace
         granularity: behavior
-        status: closed
+        status: open
         evidence:
-          - test: "tests/test_oag_workspace_surface.py::test_oag_flow_stages_default_only"
-            observed_at: 709a105d
-          - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_tabs_hide_ssot_doc_req_and_show_sim_debug"
-            observed_at: 709a105d
+          - test: "tests/test_oag_workspace_surface.py::test_oag_flow_stages_default_and_sim_debug"
+            observed_at: PENDING_SHA
+          - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow"
+            observed_at: PENDING_SHA
       - id: OBL_WORKSPACE_RIGHT_RAIL_DEFAULT_FOLDED
         owned_by: ui.workspace
         granularity: behavior
@@ -1720,3 +1720,17 @@ requirements:
             observed_at: 4a748305
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_syntax_has_readable_document_rules"
             observed_at: 4a748305
+
+  - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
+    claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_MARKDOWN_DARK_SURFACE_BLACK
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_surfaces_use_neutral_black"
+            observed_at: PENDING_SHA
+          - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_nested_surfaces_avoid_brown_tint"
+            observed_at: PENDING_SHA

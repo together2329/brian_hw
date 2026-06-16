@@ -44,7 +44,6 @@ import {
 } from './workspace-tool-theme';
 import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
 import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } from './workspace-root-render';
-import { atlasOagMode } from './runtime-flags';
 
 // Poll bail-out: the periodic pollers below (worker status / orch workers /
 // telemetry / worker progress) rebuild their payload object every tick, which
@@ -1985,18 +1984,17 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const pendingQcardActiveTab = pendingQcard
     ? (qaState[pendingQcard.flowId]?.active || 0)
     : 0;
-  const oagMode = atlasOagMode();
-  const showQaTab = !oagMode && (centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard);
-  const showSsotChecklistTab = !oagMode && workflow === 'ssot-gen';
-  const showSsotImportExportTab = !oagMode && (workflow === 'ssot-gen' || workflow === 'default');
-  const showSsotTab = !oagMode && (workflow === 'ssot-gen' || (w.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath));
-  const showSsotDocTab = !oagMode && showSsotTab;
+  const showQaTab = centerLayout === 'tabbed' || workflow === 'ssot-gen' || !!pendingQcard;
+  const showSsotChecklistTab = workflow === 'ssot-gen';
+  const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';
+  const showSsotTab = workflow === 'ssot-gen' || workflow === 'default' || (w.SSOT_FILES || []).length > 0 || isSsotYamlPath(previewPath);
+  const showSsotDocTab = showSsotTab;
   // REQ aggregates the per-IP locked-truth bundle (req+obligations+contract+
   // evidence). Surface it wherever SSOT/DOC appear, and always in the default
   // workflow so it is the standing human-review surface there.
-  const showReqTab = !oagMode && (showSsotTab || workflow === 'default');
-  const showSimSummaryTab = !oagMode && workflow === 'sim_debug';
-  const showDebugTab = workflow === 'sim_debug' || (oagMode && workflow === 'default');
+  const showReqTab = showSsotTab || workflow === 'default';
+  const showSimSummaryTab = workflow === 'sim_debug';
+  const showDebugTab = workflow === 'sim_debug';
   const showCoverageTab = workflow === 'coverage';
   const workflowReportMeta = WORKFLOW_REPORT_TABS[workflow] || null;
   const showWorkflowReportTab = !!workflowReportMeta;

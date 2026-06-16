@@ -90,8 +90,8 @@ export const defaultWorkflowForExecMode = (): string => (
 );
 
 export const workflowForExecMode = (wf: any): string => {
-  if (atlasOagMode()) return 'default';
   const normalized = normalizeUiSession(wf || '');
+  if (atlasOagMode()) return normalized === 'sim_debug' ? 'sim_debug' : 'default';
   if (atlasUiOrchestratorMode()) {
     return (!normalized || normalized === 'default') ? 'orchestrator' : normalized;
   }

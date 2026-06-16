@@ -82,7 +82,7 @@ def test_default_workflow_shows_ssot_import_export_tab():
         + WORKSPACE_ROOT_TSX.read_text(encoding="utf-8")
     )
 
-    assert "const showSsotImportExportTab = !oagMode && (workflow === 'ssot-gen' || workflow === 'default');" in src
+    assert "const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';" in src
     assert ">Import / Export</span>" in src
     assert "importExportOnly={true}" in src
 
