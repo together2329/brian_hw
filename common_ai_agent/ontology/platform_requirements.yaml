@@ -1714,9 +1714,9 @@ requirements:
       - id: OBL_CHAT_MARKDOWN_DOCUMENT_STYLE
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_agent_chat_markdown_uses_document_card_surface"
-            observed_at: PENDING_SHA
+            observed_at: 4a748305
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_syntax_has_readable_document_rules"
-            observed_at: PENDING_SHA
+            observed_at: 4a748305
