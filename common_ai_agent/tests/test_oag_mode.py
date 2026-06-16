@@ -4,7 +4,9 @@ the default agent.
 When OAG_MODE=1 the agent must (1) inject the project's AGENTS.md + .codex/rules
 into its prompt context (independent of prompt-injection) and (2) expose the
 native `oag` tool that drives the project's own .codex/scripts/oag_cli.py gateway
-directly — no MCP, because this is our own custom ReAct agent. Default OFF.
+directly — no MCP, because this is our own custom ReAct agent. Code fallback is
+OFF when OAG_MODE is unset; the checked-in repo .config enables local ATLAS by
+default.
 """
 import sys
 from pathlib import Path
@@ -41,9 +43,26 @@ def _make_oag_project(tmp_path):
 
 # ── flag (platform.config / prompt_builder resolver) ──
 
+def _repo_config_values() -> dict[str, str]:
+    values: dict[str, str] = {}
+    config = PROJECT_ROOT / ".config"
+    for raw in config.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip()
+    return values
+
+
 def test_oag_mode_default_off(monkeypatch):
     monkeypatch.delenv("OAG_MODE", raising=False)
     assert pb.oag_mode_enabled() is False
+
+
+def test_repo_config_defaults_oag_mode_on():
+    values = _repo_config_values()
+    assert values["OAG_MODE"] == "1"
 
 
 def test_oag_mode_env_on(monkeypatch):

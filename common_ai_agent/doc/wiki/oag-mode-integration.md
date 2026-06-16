@@ -40,7 +40,7 @@ original codex stub is kept as `.codex/AGENTS.codex.md`.
 
 | env | meaning | default |
 |---|---|---|
-| `OAG_MODE` | master switch (`1/true/on`) | off |
+| `OAG_MODE` | master switch (`1/true/on`) | checked-in `.config`: on; code fallback with no env/config: off |
 | `OAG_ROOT` | project holding `.codex/` | `OAG_ROOT` → `ATLAS_PROJECT_ROOT` → cwd → **platform root** (`common_ai_agent`, the vendored `.codex/`); first with `.codex/` or `AGENTS.md` |
 
 ## The `oag` tool
@@ -70,6 +70,14 @@ oag(script="oag_eval.py")                                                      #
   tool-only turns are promoted to visible assistant text if Codex emits tool
   output but no final `agentMessage` delta (`agent.codex-bridge`).
 - Tests: `tests/test_oag_mode.py`.
+
+## Checked-in default
+
+As of 2026-06-16, the repository `.config` sets `OAG_MODE=1`. That makes local
+ATLAS launches use the native OAG path by default without requiring a shell
+export. The code fallback remains off when no env/config file provides
+`OAG_MODE`, so hermetic tests and external embedders can still opt into the
+feature explicitly.
 
 ## Web bridge visibility
 

@@ -209,6 +209,7 @@ units:
     kind: config
     summary: 전역 설정 로딩·env 계약
     owns:
+      - .config
       - src/config.py
 
   - id: platform.scm
