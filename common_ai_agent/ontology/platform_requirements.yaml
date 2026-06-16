@@ -1416,9 +1416,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_mode_default_off"
-            observed_at: 60686094
+            observed_at: 518ef2eb
           - test: "tests/test_oag_mode.py::test_oag_mode_env_on"
-            observed_at: 60686094
+            observed_at: 518ef2eb
       - id: OBL_OAG_AGENTS_MD_INJECTED
         owned_by: agent.prompt-builder
         granularity: behavior
@@ -1427,9 +1427,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_root_and_agents_context"
-            observed_at: 60686094
+            observed_at: 518ef2eb
           - test: "tests/test_oag_mode.py::test_oag_pack_vendored_and_self_contained"
-            observed_at: 60686094
+            observed_at: 518ef2eb
       - id: OBL_OAG_NATIVE_TOOL_DRIVES_CODEX
         owned_by: agent.tools
         granularity: behavior
@@ -1438,11 +1438,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_tool_calls_gateway"
-            observed_at: 60686094
+            observed_at: 518ef2eb
           - test: "tests/test_oag_mode.py::test_oag_tool_script_mode"
-            observed_at: 60686094
+            observed_at: 518ef2eb
           - test: "tests/test_oag_mode.py::test_filtered_tools_gates_oag"
-            observed_at: 60686094
+            observed_at: 518ef2eb
       - id: OBL_OAG_SKILL_ACTIVATES_ON_DEMAND
         owned_by: runtime.server
         granularity: behavior
@@ -1452,7 +1452,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_skill_activates_on_demand"
-            observed_at: 60686094
+            observed_at: 518ef2eb
       - id: OBL_OAG_ACTIVE_RUN_DRIVES_TURN
         owned_by: agent.prompt-builder
         granularity: behavior
@@ -1462,9 +1462,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_active_run_injected_and_gated"
-            observed_at: 60686094
+            observed_at: 518ef2eb
           - test: "tests/test_oag_mode.py::test_oag_active_run_goes_to_dynamic_not_static"
-            observed_at: 60686094
+            observed_at: 518ef2eb
       - id: OBL_OAG_PLATFORM_BACKEND
         owned_by: agent.tools
         granularity: behavior
@@ -1474,7 +1474,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_platform_backend_runs_local_no_recursion"
-            observed_at: 60686094
+            observed_at: 518ef2eb
       - id: OBL_OAG_CODEX_BRIDGE_TOOL_ONLY_VISIBLE
         owned_by: agent.codex-bridge
         granularity: behavior
@@ -1501,7 +1501,10 @@ requirements:
         # 코드 fallback은 OAG_MODE 미지정 시 off로 유지하되, 체크인된 .config는
         # 로컬 ATLAS 기본 실행에서 OAG_MODE=1을 켜 사용자가 별도 env를 안 줘도
         # native OAG 경로가 활성화되게 한다.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_oag_mode_on"
+            observed_at: 518ef2eb
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
