@@ -1700,9 +1700,9 @@ requirements:
       - id: OBL_PREVIEW_MARKDOWN_DOCUMENT_STYLE
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_uses_document_surface"
-            observed_at: PENDING_SHA
+            observed_at: 7ae1716e
           - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_styles_markdown_syntax_as_document"
-            observed_at: PENDING_SHA
+            observed_at: 7ae1716e
