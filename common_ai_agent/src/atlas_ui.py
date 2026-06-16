@@ -188,6 +188,12 @@ def _history_content_text(content: Any) -> str:
     return str(content)
 
 
+def _truthy_env(value: Any) -> bool:
+    return str(value or "").strip().lower() in {
+        "1", "true", "yes", "on", "enable", "enabled",
+    }
+
+
 def _history_message_preview(message: dict[str, Any], *, limit: int = 240) -> str:
     role = str(message.get("role") or "unknown")
     text = _history_content_text(message.get("content"))
@@ -1649,6 +1655,7 @@ def create_app():
             "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
             "exec_mode": exec_mode,
             "exec_policy": policy,
+            "oag_mode": _truthy_env(os.environ.get("OAG_MODE")),
             "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
             "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
             "scm_provider": configured_scm_provider(),

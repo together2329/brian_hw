@@ -46,6 +46,22 @@ called command/tool visible in the header. OAG cards show the full `oag(...)`
 call in the header, while long payload/result details start folded so OAG audit
 information is available without flooding the chat.
 
+## OAG workspace surface
+
+When `OAG_MODE=1`, the default agent owns the IP workflow through the native OAG
+tool rather than through Atlas workflow switching. The workspace UI should
+therefore show only the `default` workflow in the workflow rail. Simulation
+inspection remains useful, but it should appear as a `SIM_DEBUG` center tab
+inside the default workspace rather than as a separate `sim_debug` workflow.
+
+OAG mode also removes the legacy SSOT/DOC/REQ review tabs from the default
+workspace. Requirement and evidence discussion stays in the chat/OAG transcript
+unless the user intentionally opens a dedicated workflow-style surface.
+
+The right status/TODO rail is useful for diagnosis, but it consumes first-screen
+space. New OAG/default workspaces start with that rail folded; the splitter can
+restore it when the user wants the status panel.
+
 ## Perforce pane responsiveness
 
 The Perforce Sync tab should not wait for a folder click before starting the

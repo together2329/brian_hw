@@ -45,14 +45,14 @@ def test_ssot_doc_tab_has_view_and_feedback_modes():
     assert "setReloadKey(k => k + 1)" in src
     assert "docMode === 'feedback'" in src
     assert "feedbackPath" in src
-    assert "feedbackField" in src
+    assert "feedbackComment" in src
 
 
 def test_ssot_doc_feedback_mode_supports_drag_drop_comment_targeting():
     src = _combined_doc_src()
 
     assert "const docFrameRef = useRef<HTMLIFrameElement>(null);" in src
-    assert "const commentTextareaRef = useRef<HTMLTextAreaElement>(null);" in src
+    assert "const [feedbackComment, setFeedbackComment] = useState('');" in src
     assert "const handleDocCommentDragStart = (ev: DragEvent<HTMLButtonElement>) =>" in src
     assert "draggable={docMode === 'feedback'}" in src
     assert "frameDoc.addEventListener('dragover', onDragOver);" in src
@@ -82,7 +82,7 @@ def test_default_workflow_shows_ssot_import_export_tab():
         + WORKSPACE_ROOT_TSX.read_text(encoding="utf-8")
     )
 
-    assert "const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';" in src
+    assert "const showSsotImportExportTab = !oagMode && (workflow === 'ssot-gen' || workflow === 'default');" in src
     assert ">Import / Export</span>" in src
     assert "importExportOnly={true}" in src
 

@@ -14,6 +14,7 @@
 // normalizers, same component markup, same window reads/writes.
 import { Component, useState, useEffect } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
+import { atlasOagMode } from './runtime-flags';
 
 // ── ErrorBoundary ─────────────────────────────────────────────────
 // Without this, any throw inside Workspace / SocArchitect / a deep
@@ -118,11 +119,10 @@ export const ATLAS_EXEC_MODE_LOCKED = (() => {
     return !!(bc && bc.exec_policy && bc.exec_policy.locked);
   } catch (_) { return false; }
 })();
-// Workflow pinned to 'default' / non-selectable (workflows are managed via
-// codex `.codex`, not the atlas workflow rail). Shares the exec-mode lock
-// signal for now — one ATLAS_EXEC_MODE_LOCK=1 locks both; split into its own
-// boot-config flag later if they ever need to diverge.
-export const ATLAS_WORKFLOW_LOCKED = ATLAS_EXEC_MODE_LOCKED;
+// Workflow pinned to 'default' / non-selectable. In OAG mode, workflows are
+// driven by the native OAG tool through the default agent instead of by Atlas
+// workflow switching.
+export const ATLAS_WORKFLOW_LOCKED = ATLAS_EXEC_MODE_LOCKED || atlasOagMode();
 export const ATLAS_FONT_MODE_OPTIONS = [
   { key: 'windows', label: 'Windows' },
   { key: 'sans', label: 'Sans' },

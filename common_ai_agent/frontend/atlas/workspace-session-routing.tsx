@@ -12,6 +12,7 @@
 //
 // Typed in the permissive house style — window-sourced values and
 // dynamically-shaped payloads are typed `any` on purpose; do NOT tighten them.
+import { atlasOagMode } from './runtime-flags';
 
 // Narrow `any` cast over `window` for the cross-file globals owned by
 // unmigrated .jsx (window.AtlasSessionRouting, window.ATLAS_USER,
@@ -84,9 +85,12 @@ export const atlasUiExecMode = (): string => String(
 
 export const atlasUiOrchestratorMode = (): boolean => atlasUiExecMode() === 'orchestrator';
 
-export const defaultWorkflowForExecMode = (): string => atlasUiOrchestratorMode() ? 'orchestrator' : 'default';
+export const defaultWorkflowForExecMode = (): string => (
+  atlasOagMode() ? 'default' : (atlasUiOrchestratorMode() ? 'orchestrator' : 'default')
+);
 
 export const workflowForExecMode = (wf: any): string => {
+  if (atlasOagMode()) return 'default';
   const normalized = normalizeUiSession(wf || '');
   if (atlasUiOrchestratorMode()) {
     return (!normalized || normalized === 'default') ? 'orchestrator' : normalized;

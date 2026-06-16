@@ -36,6 +36,7 @@ import { useAtlasAuthGate } from './app-auth-hook';
 import { useAtlasSessionSync } from './app-session-hook';
 import { useAtlasScreen } from './app-screen-hook';
 import { AppShell } from './app-shell';
+import { atlasOagMode } from './runtime-flags';
 
 const App = () => {
   const dir = 'B';     // Workbench is the only visible Atlas shell mode.
@@ -146,6 +147,7 @@ const App = () => {
   ]), []);
   const WORKFLOW_DEFAULT = 'default';
   const WORKFLOW_OPTIONS = useMemo(() => {
+    if (atlasOagMode()) return [WORKFLOW_DEFAULT];
     const sorted = Array.from(TOP_WORKFLOWS)
       .filter(wf => wf !== 'orchestrator')
       .sort();
@@ -164,6 +166,7 @@ const App = () => {
     catch (_) { return ''; }
   }, []);
   const newIpInitialWorkflow = useCallback(() => {
+    if (atlasOagMode()) return WORKFLOW_DEFAULT;
     const policy = atlasPolicyConfig();
     const mode = normalizeAtlasExecMode(execMode || policy.exec_mode || window.ATLAS_EXEC_MODE || window.ATLAS_DEFAULT_EXEC_MODE);
     if (mode === 'orchestrator') return 'orchestrator';
@@ -379,6 +382,7 @@ const App = () => {
   });
 
   const workflowForExecMode = useCallback((workflow: unknown) => {
+    if (atlasOagMode()) return WORKFLOW_DEFAULT;
     const wf = normalizeSession(workflow || WORKFLOW_DEFAULT) || WORKFLOW_DEFAULT;
     if (execMode !== 'orchestrator' && wf === 'orchestrator') return WORKFLOW_DEFAULT;
     if (execMode === 'orchestrator' && wf === WORKFLOW_DEFAULT) return 'orchestrator';
@@ -722,6 +726,7 @@ const App = () => {
   // explicit workflow segment; /api/session/activate loads the matching
   // backend prompt, TODO file and workspace config.
   const selectWorkflow = (rawWf: string) => {
+    if (atlasOagMode()) return;
     let wf = normalizeSession(rawWf) || WORKFLOW_DEFAULT;
     if (execMode === 'orchestrator' && wf === WORKFLOW_DEFAULT) wf = 'orchestrator';
     const parsed = splitActiveNamespace();

@@ -1653,3 +1653,42 @@ requirements:
         evidence:
           - test: "tests/test_sim_debug_wave_value_cursor.py::test_wave_value_column_is_driven_by_cursor_a"
             observed_at: c164d110
+
+  - id: REQ_PLAT_OAG_WORKSPACE_SURFACE_20260617_001
+    claim: "OAG_MODE=1인 ATLAS workspace는 workflow rail을 default 하나로 축소하고, SIM_DEBUG를 default 내부 center tab으로 제공하며, SSOT/DOC/REQ 계열 탭과 오른쪽 status/TODO rail은 기본 노출하지 않는다 — OAG가 기본 agent 안에서 IP 흐름을 이끌 때 화면도 단일 default 작업면으로 유지한다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_OAG_BOOT_CONFIG_EXPOSES_UI_FLAG
+        owned_by: ui.tui
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_oag_workspace_surface.py::test_atlas_boot_config_exposes_oag_mode"
+            observed_at: PENDING_SHA
+      - id: OBL_OAG_WORKSPACE_DEFAULT_ONLY_WITH_SIM_DEBUG_TAB
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_oag_workspace_surface.py::test_oag_flow_stages_default_only"
+            observed_at: PENDING_SHA
+          - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_tabs_hide_ssot_doc_req_and_show_sim_debug"
+            observed_at: PENDING_SHA
+      - id: OBL_WORKSPACE_RIGHT_RAIL_DEFAULT_FOLDED
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_oag_workspace_surface.py::test_workspace_right_panel_defaults_collapsed"
+            observed_at: PENDING_SHA
+      - id: OBL_WORKSPACE_COPY_BUTTON_IMPORT_IS_DEFINED
+        owned_by: ui.workspace
+        granularity: behavior
+        # Production bundles must import CopyBtn from the typed ui-utils module.
+        # Reading window.CopyBtn at module load can capture undefined before the
+        # bridge is registered, rendering an undefined component and crashing
+        # the workspace before the OAG/default tabs are visible.
+        status: open
+        evidence:
+          - test: "tests/test_oag_workspace_surface.py::test_workspace_copy_button_uses_typed_import"
+            observed_at: PENDING_SHA

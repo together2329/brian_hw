@@ -14,6 +14,7 @@
 // pure value-level code only.
 //
 // Behavior preserved exactly: logic, comments, and signatures match data.jsx.
+import { atlasOagMode } from './runtime-flags';
 
 // ── Flow-stage constants & exec-mode selection ───────────────────────
 export const DEFAULT_WORKFLOW = 'default';
@@ -62,6 +63,7 @@ export function atlasExecMode(): string {
 }
 
 export function flowStagesForExecMode(stages?: any[]): any[] {
+  if (atlasOagMode()) return [DEFAULT_FLOW_STAGE];
   const base = Array.isArray(stages) ? stages : DEFAULT_FLOW_STAGES;
   const deduped = base.filter((s) => s
     && s.id !== ORCHESTRATOR_FLOW_STAGE.id

@@ -14,10 +14,11 @@
  *   • Inline chip activation dispatches atlas-chip-open / atlas-chip-ip
  *     CustomEvents so the chat feed can pivot preview/IP.
  *   • ToolOutputPre / DiffOutputPre: Prism-highlighted tool-output fences.
- *   • _copyToClipboard / CopyBtn: window-reads re-declared here (used by the Pre
- *     components and re-published in the legacy file).
+ *   • _copyToClipboard / CopyBtn: typed imports from ui-utils (used by the Pre
+ *     components and re-exported for sibling slices).
  */
 import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { CopyBtn as UiCopyBtn, copyToClipboard as uiCopyToClipboard } from './ui-utils';
 
 // ── Cross-module window globals owned by sibling slices ────────────────
 // renderInline / _escHtml are owned by workspace-feed-cards.tsx and
@@ -25,7 +26,8 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 // import FROM this file, so importing them back would create a cycle — we
 // read them off window (legacy publishes _escHtml; the others are read with
 // graceful fallbacks). marked / DOMPurify / Prism / PRISM_LANG_MAP /
-// _copyToClipboard / CopyBtn are declared in types/atlas-window.d.ts.
+// _copyToClipboard / CopyBtn are provided by ui-utils; legacy window bridge
+// remains there for not-yet-migrated callers.
 interface MarkdownChipWindowGlobals {
   renderInline?: (s: string) => string;
   _unwrapAtlasOutputFence?: (text: unknown) => string;
@@ -586,8 +588,5 @@ export const DiffOutputPre = ({ text, tool, truncated, hintText = '', maxLines }
 
 // Hover-revealed copy button (positioned absolute; parent must be
 // position:relative and apply CSS `:hover .copy-btn{opacity:1}`).
-// Phase 13e: CopyBtn + _copyToClipboard moved to frontend/atlas/ui-utils.jsx
-// (loaded before workspace.jsx in index.html). Alias the globals back to the
-// original names so the rest of this file references them unchanged.
-export const _copyToClipboard = window._copyToClipboard;
-export const CopyBtn = window.CopyBtn;
+export const _copyToClipboard = uiCopyToClipboard;
+export const CopyBtn = UiCopyBtn;

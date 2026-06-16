@@ -32,6 +32,7 @@ export const useResizable = (
   minW: number,
   maxW: number,
   restoreCollapsed = true,
+  defaultCollapsed = false,
 ): [number, (next: number) => void, () => void] => {
   const [w, setW] = useState<number>(() => {
     try {
@@ -43,7 +44,7 @@ export const useResizable = (
         return Math.min(maxW, raw);
       }
     } catch (_) {}
-    return initial;
+    return defaultCollapsed ? 0 : initial;
   });
   const lastOpenRef = useRef<number>(w > 0 ? w : initial);
   useEffect(() => {
