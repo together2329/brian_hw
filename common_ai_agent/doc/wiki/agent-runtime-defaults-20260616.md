@@ -62,6 +62,16 @@ The right status/TODO rail is useful for diagnosis, but it consumes first-screen
 space. New OAG/default workspaces start with that rail folded; the splitter can
 restore it when the user wants the status panel.
 
+## Markdown preview reading surface
+
+The preview pane should render Markdown as a document surface, not as raw text
+with light syntax coloring. `.md` and `.markdown` files already use the shared
+`marked -> sanitize -> md-agent` pipeline; the preview-specific `.md-preview`
+class adds document rhythm: constrained line length, stronger heading hierarchy,
+readable tables, callout-style blockquotes, code blocks, checklists, and images.
+This keeps README/OAG report artifacts readable without moving them into the
+heavier SSOT DOC iframe exporter.
+
 ## Perforce pane responsiveness
 
 The Perforce Sync tab should not wait for a folder click before starting the

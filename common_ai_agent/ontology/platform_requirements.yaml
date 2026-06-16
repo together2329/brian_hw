@@ -1692,3 +1692,17 @@ requirements:
         evidence:
           - test: "tests/test_oag_workspace_surface.py::test_workspace_copy_button_uses_typed_import"
             observed_at: 709a105d
+
+  - id: REQ_PLAT_PREVIEW_MARKDOWN_DOCUMENT_STYLE_20260617_001
+    claim: "PreviewPane의 Markdown 렌더링은 raw text가 아니라 문서형 reading surface로 표시된다 — .md/.markdown 파일은 기존 marked→sanitize→md-agent 파이프라인을 유지하되 .md-preview가 heading, list, table, code block, blockquote, checklist, image 문법을 DOC처럼 읽기 쉬운 spacing과 hierarchy로 스타일링한다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_PREVIEW_MARKDOWN_DOCUMENT_STYLE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_uses_document_surface"
+            observed_at: PENDING_SHA
+          - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_styles_markdown_syntax_as_document"
+            observed_at: PENDING_SHA
