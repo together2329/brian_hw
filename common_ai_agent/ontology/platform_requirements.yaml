@@ -1548,3 +1548,29 @@ requirements:
         evidence:
           - test: "tests/test_core/test_context_command.py::test_context_verbose_shows_full_system_prompt"
             observed_at: db8aba62
+
+  - id: REQ_PLAT_AGENT_TOOL_SURFACE_MINIMAL_001
+    claim: "기본 agent tool surface는 현재 모드에 필요한 도구만 노출한다 — external DB query는 opt-in으로 숨기고, todo_add/todo_write는 plan/plan_q 모드에서만 허용해 불필요한 tool call과 계획 도구의 실행모드 오용을 줄인다."
+    design_anchor: doc/wiki/agent-tool-surface-policy.md
+    obligations:
+      - id: OBL_AGENT_TOOL_SURFACE_GATES_EXTERNAL_DB_AND_TODO_CREATE
+        owned_by: agent.tools
+        granularity: behavior
+        # external_db_query는 default tool schema에서 제외하고, todo_add/todo_write는
+        # plan/plan_q 모드에서만 schema/registry에 남긴다. todo_update는 기존 실행
+        # TODO 전이용으로 유지한다.
+        status: open
+        evidence:
+          - test: "tests/test_tool_surface_policy.py::test_external_db_query_is_not_exposed_by_default"
+            observed_at: PENDING_SHA
+          - test: "tests/test_tool_surface_policy.py::test_todo_creation_tools_are_plan_mode_only"
+            observed_at: PENDING_SHA
+      - id: OBL_AGENT_TOOL_SURFACE_PROMPT_MATCHES_POLICY
+        owned_by: platform.config
+        granularity: behavior
+        # system prompt의 도구 표와 plan/normal 지시도 같은 정책을 말한다.
+        # 실행모드 prompt가 todo_add/write 또는 external_db_query 사용을 유도하지 않는다.
+        status: open
+        evidence:
+          - test: "tests/test_tool_surface_policy.py::test_prompt_tool_table_matches_minimal_surface_policy"
+            observed_at: PENDING_SHA

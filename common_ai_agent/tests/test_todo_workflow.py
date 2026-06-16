@@ -25,6 +25,23 @@ def _todo(content, status="pending", **extra):
     data.update(extra)
     return data
 
+
+def _todo_write_in_plan(*args, **kwargs):
+    old_plan_mode = os.environ.get("PLAN_MODE")
+    old_plan_count = os.environ.get("_PLAN_TODO_WRITE_COUNT")
+    os.environ["PLAN_MODE"] = "true"
+    try:
+        return todo_write(*args, **kwargs)
+    finally:
+        if old_plan_mode is None:
+            os.environ.pop("PLAN_MODE", None)
+        else:
+            os.environ["PLAN_MODE"] = old_plan_mode
+        if old_plan_count is None:
+            os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
+        else:
+            os.environ["_PLAN_TODO_WRITE_COUNT"] = old_plan_count
+
 @pytest.fixture
 def temp_todo_file(tmp_path, monkeypatch):
     todo_file = tmp_path / "test_todos.json"
@@ -86,7 +103,7 @@ def test_todo_status_transitions(temp_todo_file):
 def test_todo_update_tool_logic(temp_todo_file):
     """Test the todo_update tool handler directly"""
     # Initialize file via todo_write
-    todo_write(todos=[_todo("Tool Test")])
+    _todo_write_in_plan(todos=[_todo("Tool Test")])
     
     import main as main_mod
 
@@ -121,18 +138,18 @@ def test_todo_update_tool_logic(temp_todo_file):
 def test_todo_write_status_aliases(temp_todo_file):
     """Status aliases in todo_write should be auto-normalized, not rejected"""
     # "todo" -> "pending"
-    result = todo_write(todos=[_todo("Task A", "todo")])
+    result = _todo_write_in_plan(todos=[_todo("Task A", "todo")])
     assert "Error" not in result, f"Expected success but got: {result}"
 
     # "wip" -> "in_progress"  (will be first pending→in_progress anyway, but alias must not error)
-    result = todo_write(todos=[
+    result = _todo_write_in_plan(todos=[
         _todo("Task B", "wip"),
         _todo("Task C", "todo"),
     ])
     assert "Error" not in result, f"Expected success but got: {result}"
 
     # "done" -> "completed"
-    result = todo_write(todos=[
+    result = _todo_write_in_plan(todos=[
         _todo("Task D", "in_progress"),
         _todo("Task E", "done"),
     ])
@@ -142,7 +159,7 @@ def test_todo_write_status_aliases(temp_todo_file):
 def test_todo_write_keeps_all_tasks_pending_in_plan_mode(temp_todo_file, monkeypatch):
     monkeypatch.setenv("PLAN_MODE", "true")
 
-    result = todo_write(todos=[
+    result = _todo_write_in_plan(todos=[
         _todo("Write implementation plan", "wip"),
         _todo("Run verification", "completed"),
     ])
@@ -154,7 +171,7 @@ def test_todo_write_keeps_all_tasks_pending_in_plan_mode(temp_todo_file, monkeyp
 
 def test_todo_update_blocks_status_changes_in_plan_mode(temp_todo_file, monkeypatch):
     monkeypatch.setenv("PLAN_MODE", "true")
-    todo_write(todos=[_todo("Write implementation plan")])
+    _todo_write_in_plan(todos=[_todo("Write implementation plan")])
 
     result = todo_update(index=1, status="in_progress")
 
@@ -170,7 +187,7 @@ def test_todo_update_blocks_status_changes_in_plan_mode(temp_todo_file, monkeypa
 
 def test_todo_update_status_aliases(temp_todo_file):
     """Status aliases in todo_update should be auto-normalized"""
-    todo_write(todos=[_todo("Alias Test")])
+    _todo_write_in_plan(todos=[_todo("Alias Test")])
 
     # "done" -> "completed"
     result = todo_update(index=1, status="in_progress")

@@ -1509,12 +1509,12 @@ TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in (
 # ============================================================
 # Mode-gated tool unlocking
 # ============================================================
-# Default ON: todo_write/todo_update/todo_add/todo_status are exposed in Normal Mode too, so the agent
-# can manage its own task list during execution without flipping into
-# Plan Mode first. todo_remove stays plan-only because execution tasks are
-# audit history; failed or stale tasks must be rejected, not deleted.
+# Default ON keeps execution progress tools available in Normal Mode, but TODO
+# creation stays plan-only: todo_write/todo_add/todo_remove are planning tools;
+# execution should only advance existing tasks through todo_update.
 UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
 DISABLE_TODO_TOOLS = os.getenv("ATLAS_DISABLE_TODO_TOOLS", "false").lower() in ("true", "1", "yes", "on")
+ENABLE_EXTERNAL_DB_QUERY_TOOL = os.getenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "false").lower() in ("true", "1", "yes", "on")
 
 # ============================================================
 # RTL dialect for the rtl-gen / ssot-gen workflows
@@ -2378,7 +2378,8 @@ When deciding how to approach a task, consider:
    - **Parallel execution**: Use multiple read-only tools simultaneously
    - **Sequential execution**: Write tools create barriers
    - **Sub-agents**: Use background_task for delegation
-   - **Todo tracking**: Use todo_update/todo_add for task progress during execution
+   - **Todo tracking**: Use todo_update for existing task progress during execution.
+     Create or change task lists only in Plan Mode.
 
 Focus on using the right tools for the task at hand.
 
@@ -2455,6 +2456,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         tool_list = tool_list - PLAN_MODE_BLOCKED_TOOLS
     else:
         tool_list = tool_list - NORMAL_MODE_BLOCKED_TOOLS
+    if not ENABLE_EXTERNAL_DB_QUERY_TOOL:
+        tool_list.discard("external_db_query")
 
     def _tool_line(name, sig, desc):
         """Format one tool line, only if available."""
@@ -2485,20 +2488,17 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
     }
 
     # Task Management (conditional)
-    # todo_write is DESTRUCTIVE — replaces the entire task list — so it stays
-    # plan-mode-only regardless of UNLOCK_NORMAL_MODE_TOOLS. todo_remove is
-    # also plan-only: execution TODOs are audit history and stale/failed work
-    # must be marked rejected instead of deleted.
+    # todo_write/todo_add/todo_remove are plan-mode-only. Normal/execution mode
+    # may update existing tasks, but should not create or rewrite the plan.
     _unlock_all = UNLOCK_NORMAL_MODE_TOOLS
     task_tools = []
     if plan_mode:
         task_tools.append(_tool_line("todo_write", 'tasks', "Create task list (Plan Mode only — REPLACES all existing tasks). Format: [{content, activeForm, status, command, on_reject}]. command: shell str or {tool,args} dict — runs LLM-free, auto approved/rejected. on_reject: 1-based task index to jump to on failure."))
-    if plan_mode:
+        task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add one planning task (Plan Mode only). detail and criteria are required."))
         task_tools.append(_tool_line("todo_remove", 'index', "Remove a task (index REQUIRED, 1-based)."))
 
     if todo_active or _unlock_all:
         task_tools.append(_tool_line("todo_update", 'index, status, content, detail', "Update task status (index REQUIRED, 1-based)."))
-        task_tools.append(_tool_line("todo_add", 'content, priority, index', "Add task (index is target position, 1-based) — non-destructive, use this in Normal mode instead of todo_write."))
         task_tools.append(_tool_line("todo_status", '', "Show current task progress."))
     
     task_tools = [t for t in task_tools if t]
@@ -2538,9 +2538,9 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
 
     wiki_tools = [
         _tool_line("wiki_query", 'ip="", topic="", depth=2, max_nodes=12',
-                   "Query project/IP wiki graphs. Use ip='external-db' only when the dedicated external_db_query tool is unavailable."),
+                   "Query project/IP wiki graphs. Use external DB scopes only when explicitly requested."),
         _tool_line("external_db_query", 'topic="", depth=3, max_nodes=12',
-                   "Query the configured external reference DB before RTL reuse/reference claims."),
+                   "Opt-in external reference DB query."),
     ]
     wiki_tools = [t for t in wiki_tools if t]
     if wiki_tools:
@@ -2776,8 +2776,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
             "     current task is still 'pending'. Bump it to 'in_progress' first.\n"
             "   - Only ONE task may be 'in_progress' at a time. Bump previous to 'completed'\n"
             "     before starting the next.\n"
-            "   - Do NOT call todo_write in execution mode (Plan Mode only).\n"
-            "   - If you need to rewrite the entire task list, switch back to Plan Mode.\n"
+            "   - Do NOT create or extend task lists in execution mode.\n"
+            "   - If you need to create or change the task list, switch back to Plan Mode.\n"
         )
 
     rules_parts.append(
@@ -2825,18 +2825,15 @@ PLAN_MODE_BLOCKED_TOOLS = frozenset({
     'todo_update',
 }))
 
-# Tools blocked in Normal/Execution mode. Per user request, todo_write is now
-# permitted in normal mode too — the agent occasionally needs to (re)build
-# the task list mid-execution (e.g. after an unexpected branch in a workflow).
-# todo_remove remains blocked even when UNLOCK_NORMAL_MODE_TOOLS=true because
-# deleting execution tasks destroys the audit trail.
+# Tools blocked in Normal/Execution mode. TODO creation is plan-only; execution
+# may still call todo_update on an existing task list.
 if DISABLE_TODO_TOOLS:
     NORMAL_MODE_BLOCKED_TOOLS = frozenset({
         'todo_write', 'todo_update', 'todo_add', 'todo_remove', 'todo_status',
         'todo_note', 'todo_check', 'todo_auto_step',
     })
 else:
-    NORMAL_MODE_BLOCKED_TOOLS = frozenset({'todo_remove'})
+    NORMAL_MODE_BLOCKED_TOOLS = frozenset({'todo_write', 'todo_add', 'todo_remove'})
 
 
 # Update SYSTEM_PROMPT to use new tool description system

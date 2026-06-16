@@ -934,16 +934,24 @@ class TestTodoUpdateStateMachine(unittest.TestCase):
     def test_todo_add_zero_index_inserts_at_beginning(self):
         """todo_add index 0 is clamped to the first position for compatibility."""
         from core.tools import todo_add
+        old_plan_mode = os.environ.get("PLAN_MODE")
+        os.environ["PLAN_MODE"] = "true"
         self.tracker.add_todos([
             {"content": "T1", "status": "pending"},
             {"content": "T2", "status": "pending"},
         ])
-        result = todo_add(
-            content="Inserted",
-            detail="Insert the compatibility task at the start.",
-            criteria="Task appears before existing items.",
-            index=0,
-        )
+        try:
+            result = todo_add(
+                content="Inserted",
+                detail="Insert the compatibility task at the start.",
+                criteria="Task appears before existing items.",
+                index=0,
+            )
+        finally:
+            if old_plan_mode is None:
+                os.environ.pop("PLAN_MODE", None)
+            else:
+                os.environ["PLAN_MODE"] = old_plan_mode
         self.assertNotIn("1-based", result)
         self.assertEqual([todo.content for todo in self.tracker.todos], ["Inserted", "T1", "T2"])
 
@@ -1022,6 +1030,7 @@ class TestTodoWrite(unittest.TestCase):
         self._tag_patcher = patch("core.tools._git_tag_todo", lambda *args, **kwargs: None)
         self._commit_patcher.start()
         self._tag_patcher.start()
+        self._old_plan_mode = os.environ.get("PLAN_MODE")
 
         import config as cfg
         import lib.todo_tracker as todo_mod
@@ -1045,7 +1054,7 @@ class TestTodoWrite(unittest.TestCase):
 
         # Clear plan mode counter
         os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-        os.environ.pop("PLAN_MODE", None)
+        os.environ["PLAN_MODE"] = "true"
 
     def tearDown(self):
         import main as main_mod
@@ -1063,7 +1072,10 @@ class TestTodoWrite(unittest.TestCase):
         cfg.TODO_ERROR_FILE = self._old_cfg_error_file
         todo_mod.TODO_FILE = self._old_module_todo_file
         os.environ.pop("_PLAN_TODO_WRITE_COUNT", None)
-        os.environ.pop("PLAN_MODE", None)
+        if self._old_plan_mode is None:
+            os.environ.pop("PLAN_MODE", None)
+        else:
+            os.environ["PLAN_MODE"] = self._old_plan_mode
 
     def _task(self, content, status="pending", **extra):
         data = {
@@ -1101,7 +1113,7 @@ class TestTodoWrite(unittest.TestCase):
         self.assertEqual(self.tracker.todos[0].active_form, "Running tests")
 
     def test_status_alias_normalization(self):
-        """Status aliases are normalized (e.g. 'done' → 'completed')."""
+        """Plan-mode todo_write normalizes all initial statuses to pending."""
         from core.tools import todo_write
         result = todo_write([
             self._task("Task 1", "todo"),
@@ -1109,17 +1121,17 @@ class TestTodoWrite(unittest.TestCase):
         ])
         self.assertIn("✅", result)
         self.assertEqual(self.tracker.todos[0].status, "pending")
-        self.assertEqual(self.tracker.todos[1].status, "completed")
+        self.assertEqual(self.tracker.todos[1].status, "pending")
 
     def test_multiple_in_progress_rejected(self):
-        """Multiple in_progress tasks are rejected."""
+        """Plan-mode todo_write coerces attempted in-progress tasks to pending."""
         from core.tools import todo_write
         result = todo_write([
             self._task("T1", "in_progress"),
             self._task("T2", "in_progress"),
         ])
-        self.assertIn("Error", result)
-        self.assertIn("ONE task", result)
+        self.assertIn("✅", result)
+        self.assertEqual([todo.status for todo in self.tracker.todos], ["pending", "pending"])
 
     def test_empty_list_rejected(self):
         """Empty list returns error."""

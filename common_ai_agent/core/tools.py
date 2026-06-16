@@ -3605,6 +3605,15 @@ def todo_write(todos=None, tasks=None, **kwargs):
             _list_kwargs = [v for v in kwargs.values() if isinstance(v, list) and v]
             if len(_list_kwargs) == 1:
                 todos = _list_kwargs[0]
+    is_plan = os.environ.get("PLAN_MODE", "false").lower() == "true"
+    if not is_plan:
+        err = (
+            "Error: todo_write is disabled outside plan mode. Switch to Plan mode "
+            "to create or replace the task list; use todo_update for existing "
+            "execution tasks."
+        )
+        _save_todo_write_error(err, todos)
+        return err
     _locked = _todo_template_lock_error("todo_write")
     if _locked:
         _save_todo_write_error(_locked, todos)
@@ -3666,18 +3675,16 @@ def todo_write(todos=None, tasks=None, **kwargs):
                 "criteria":   todo,
             }
 
-    # Plan mode anti-loop: cap todo_write calls to prevent repeated planning
-    is_plan = os.environ.get("PLAN_MODE", "false").lower() == "true"
-    if is_plan:
-        _plan_write_count = int(os.environ.get("_PLAN_TODO_WRITE_COUNT", "0")) + 1
-        os.environ["_PLAN_TODO_WRITE_COUNT"] = str(_plan_write_count)
-        _plan_write_max = int(os.environ.get("PLAN_TODO_WRITE_MAX", "10"))
-        if _plan_write_count > _plan_write_max:
-            return (
-                f"⚠️ Plan mode todo_write limit reached (max {_plan_write_max} calls).\n"
-                "Your task list is ready. STOP calling todo_write and WAIT for user confirmation.\n"
-                "The user will confirm with 'y' to execute or provide feedback."
-            )
+    # Plan mode anti-loop: cap todo_write calls to prevent repeated planning.
+    _plan_write_count = int(os.environ.get("_PLAN_TODO_WRITE_COUNT", "0")) + 1
+    os.environ["_PLAN_TODO_WRITE_COUNT"] = str(_plan_write_count)
+    _plan_write_max = int(os.environ.get("PLAN_TODO_WRITE_MAX", "10"))
+    if _plan_write_count > _plan_write_max:
+        return (
+            f"⚠️ Plan mode todo_write limit reached (max {_plan_write_max} calls).\n"
+            "Your task list is ready. STOP calling todo_write and WAIT for user confirmation.\n"
+            "The user will confirm with 'y' to execute or provide feedback."
+        )
 
     # Validate each todo structure
     for i, todo in enumerate(todos):
@@ -4540,6 +4547,11 @@ def todo_add(content="", activeForm="", priority="medium", detail="", criteria="
     _locked = _todo_template_lock_error("todo_add")
     if _locked:
         return _locked
+    if os.environ.get("PLAN_MODE", "false").lower() != "true":
+        return (
+            "Error: todo_add is disabled outside plan mode. Switch to Plan mode "
+            "to add planning tasks; use todo_update for existing execution tasks."
+        )
 
     todo_tracker = _get_todo_tracker()
 
@@ -8908,6 +8920,10 @@ def filtered_available_tools(extra_disable=None):
     disabled = {x.strip() for x in raw.split(",") if x.strip()}
     if extra_disable:
         disabled.update(extra_disable)
+    if _os.environ.get("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "").strip().lower() not in ("1", "true", "yes", "on"):
+        disabled.add("external_db_query")
+    if _os.environ.get("PLAN_MODE", "false").strip().lower() != "true":
+        disabled.update({"todo_write", "todo_add"})
     # The native `oag` tool is exposed only in OAG_MODE (it drives a project's
     # .codex pack); hide it from non-OAG agents.
     try:

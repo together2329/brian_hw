@@ -484,15 +484,23 @@ class TestTodoAddCommand:
     def test_todo_add_with_command(self, tmp_path):
         from core.tools import scoped_todo_runtime, todo_add
         tracker = self._setup(tmp_path)
+        old_plan_mode = os.environ.get("PLAN_MODE")
+        os.environ["PLAN_MODE"] = "true"
         with scoped_todo_runtime(todo_tracker=tracker, todo_file=tracker._persist_path):
-            todo_add(
-                content="Run lint",
-                activeForm="linting",
-                detail="Run the lint target from the project root.",
-                criteria="make lint exits successfully.",
-                command="make lint",
-                on_reject=0,
-            )
+            try:
+                todo_add(
+                    content="Run lint",
+                    activeForm="linting",
+                    detail="Run the lint target from the project root.",
+                    criteria="make lint exits successfully.",
+                    command="make lint",
+                    on_reject=0,
+                )
+            finally:
+                if old_plan_mode is None:
+                    os.environ.pop("PLAN_MODE", None)
+                else:
+                    os.environ["PLAN_MODE"] = old_plan_mode
         import sys
         tracker = sys.modules["main"].todo_tracker
         assert tracker.todos[0].command == "make lint"
@@ -500,15 +508,23 @@ class TestTodoAddCommand:
     def test_todo_add_with_on_reject(self, tmp_path):
         from core.tools import scoped_todo_runtime, todo_add
         tracker = self._setup(tmp_path)
+        old_plan_mode = os.environ.get("PLAN_MODE")
+        os.environ["PLAN_MODE"] = "true"
         with scoped_todo_runtime(todo_tracker=tracker, todo_file=tracker._persist_path):
-            todo_add(
-                content="Run lint",
-                activeForm="linting",
-                detail="Run the lint command and capture failure output.",
-                criteria="Failure jumps to the configured rejection target.",
-                command="exit 1",
-                on_reject=1,
-            )
+            try:
+                todo_add(
+                    content="Run lint",
+                    activeForm="linting",
+                    detail="Run the lint command and capture failure output.",
+                    criteria="Failure jumps to the configured rejection target.",
+                    command="exit 1",
+                    on_reject=1,
+                )
+            finally:
+                if old_plan_mode is None:
+                    os.environ.pop("PLAN_MODE", None)
+                else:
+                    os.environ["PLAN_MODE"] = old_plan_mode
         import sys
         tracker = sys.modules["main"].todo_tracker
         assert tracker.todos[0].on_reject == 1
@@ -516,9 +532,17 @@ class TestTodoAddCommand:
     def test_todo_add_requires_detail_and_criteria(self, tmp_path):
         from core.tools import scoped_todo_runtime, todo_add
         tracker = self._setup(tmp_path)
+        old_plan_mode = os.environ.get("PLAN_MODE")
+        os.environ["PLAN_MODE"] = "true"
         with scoped_todo_runtime(todo_tracker=tracker, todo_file=tracker._persist_path):
-            assert todo_add(content="Run lint", criteria="lint passes") == "Error: 'detail' is required."
-            assert todo_add(content="Run lint", detail="Run lint") == "Error: 'criteria' is required."
+            try:
+                assert todo_add(content="Run lint", criteria="lint passes") == "Error: 'detail' is required."
+                assert todo_add(content="Run lint", detail="Run lint") == "Error: 'criteria' is required."
+            finally:
+                if old_plan_mode is None:
+                    os.environ.pop("PLAN_MODE", None)
+                else:
+                    os.environ["PLAN_MODE"] = old_plan_mode
         import sys
         tracker = sys.modules["main"].todo_tracker
         assert tracker.todos == []

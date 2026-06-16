@@ -209,31 +209,42 @@ def test_todo_write_function():
         {
             "content": "Test step 1",
             "activeForm": "Testing step 1",
-            "status": "in_progress"
+            "status": "in_progress",
+            "detail": "Exercise direct todo_write execution in plan mode.",
+            "criteria": "todo_write returns a success message."
         },
         {
             "content": "Test step 2",
             "activeForm": "Testing step 2",
-            "status": "pending"
+            "status": "pending",
+            "detail": "Keep a second pending task to validate list handling.",
+            "criteria": "The generated todo list contains two tasks."
         }
     ]
 
     try:
-        result = tools.todo_write(test_todos)
+        old_plan_mode = os.environ.get("PLAN_MODE")
+        os.environ["PLAN_MODE"] = "true"
+        try:
+            result = tools.todo_write(test_todos)
+        finally:
+            if old_plan_mode is None:
+                os.environ.pop("PLAN_MODE", None)
+            else:
+                os.environ["PLAN_MODE"] = old_plan_mode
 
         if "Error" in result:
             print(f"❌ Function returned error: {result}")
-            return False
+            assert False, result
         else:
             print("✅ todo_write executed successfully")
             print(f"\nResult:\n{result[:200]}...")
-            return True
 
     except Exception as e:
         print(f"❌ Exception during execution: {e}")
         import traceback
         traceback.print_exc()
-        return False
+        raise
 
 
 def test_parallel_execution_guidance():
