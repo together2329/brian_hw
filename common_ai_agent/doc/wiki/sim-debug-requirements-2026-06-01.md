@@ -68,6 +68,7 @@ not as disconnected widgets that partially populate and force repeated waiting.
 | SDR-023 | Tool call | Single-bit signals must add from source and signal list. | A unique single-bit leaf such as `parse_done` can resolve even when the RTL module scope and VCD instance path differ by parent prefixes. | Implemented/verify |
 | SDR-024 | Trace | Trace must support multiple drivers and multiple loads/sinks. | Trace popover and tool result show all drivers and loads/sinks with file/line context; UI must not collapse drivers to one item. | Implemented/verify |
 | SDR-025 | Trace | pyslang is the semantic authority. | Use pyslang/elaboration for hierarchy, ports, internals, driver/load trace, and pin-existence checks; static text fallback is allowed only as degraded continuity. | Implemented/verify |
+| SDR-026 | Waveform | The left value column should follow cursor A. | Each waveform row's value cell samples the trace at cursor A, not at the final VCD sample, so moving A updates the visible value column in lockstep. | Implemented/verify |
 | SDR-026 | Renderer | The waveform renderer should stay simple until profiling proves otherwise. | Current React DOM plus per-row SVG is acceptable. Do not migrate to React Flow. Consider hybrid Canvas only with row virtualization and time-window sample clipping. | Decision recorded |
 | SDR-027 | Verification | Validate the whole IP flow, not only isolated widgets. | For broad regressions, exercise one IP through SSOT, FL model, RTL, TB generation, Sim Debug, and lint, then record evidence. | Evidence recorded |
 

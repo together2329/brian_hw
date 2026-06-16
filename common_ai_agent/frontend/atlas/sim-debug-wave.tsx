@@ -771,6 +771,7 @@ export const WaveBand = ({
                   colorHint={color}
                   valueMap={valueMap}
                   onClick={(e: ReactMouseEvent<HTMLDivElement>) => handleWaveRowClick(e, t)}
+                  valueTime={waveCursor}
                 />
               </div>
             );

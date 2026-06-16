@@ -170,6 +170,22 @@ function nearestWaveEdgeTime(trace: Trace | unknown, x: number | string, width: 
   return bestTime;
 }
 
+function traceValueAt(trace: Trace | null | undefined, time: number | null | undefined): number | string | null | undefined {
+  if (!Array.isArray(trace) || trace.length === 0) return '?';
+  if (time == null) return trace[trace.length - 1][1];
+  const target = Number(time);
+  if (!Number.isFinite(target)) return trace[trace.length - 1][1];
+  let value: number | string | null | undefined = '?';
+  for (const sample of trace) {
+    if (!Array.isArray(sample)) continue;
+    const t = Number(sample[0]);
+    if (!Number.isFinite(t)) continue;
+    if (t > target) break;
+    value = sample[1];
+  }
+  return value == null ? '?' : value;
+}
+
 // Convert a binary or named bus value to a display string per radix.
 // VCD parser hands us bus values as binary strings (e.g. "10110011"); the
 // previous WaveRow rendered them verbatim with a "0x" prefix so a 32-bit
@@ -321,12 +337,13 @@ export interface WaveRowProps {
   onEdgeClick?: (edgeTime: number, e: MouseEvent<HTMLDivElement>) => void;
   colorHint?: string;
   valueMap?: Record<string, string>;
+  valueTime?: number | null;
 }
 
-export const WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, onClick, onEdgeClick, colorHint, valueMap }: WaveRowProps) => {
-  const lastVal = trace && trace.length > 0 ? trace[trace.length - 1][1] : '?';
-  const valStr = fmtWaveValue(lastVal, !!isBus, radix, valueMap);
-  const valCls = String(lastVal).match(/[xX]/) ? 'x' : (String(lastVal).match(/[zZ]/) ? 'z' : '');
+export const WaveRow = ({ name, scope, trace, width, isBus, radix = 'HEX', selected, onClick, onEdgeClick, colorHint, valueMap, valueTime }: WaveRowProps) => {
+  const shownVal = traceValueAt(trace, valueTime);
+  const valStr = fmtWaveValue(shownVal, !!isBus, radix, valueMap);
+  const valCls = String(shownVal).match(/[xX]/) ? 'x' : (String(shownVal).match(/[zZ]/) ? 'z' : '');
   const handleTrackClick = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (onClick) onClick(e);

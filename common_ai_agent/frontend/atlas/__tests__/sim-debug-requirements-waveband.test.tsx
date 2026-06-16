@@ -35,6 +35,7 @@ const makeDecor = (): WaveBandProps['decor'] => ({
 interface HarnessProps {
   readonly traceList: VcdSignal[];
   readonly onDelete: (items: PinnedSignal[]) => void;
+  readonly waveCursor?: number;
   readonly waveRcFiles?: Array<{ name: string; path?: string }>;
   readonly onSave?: () => void;
   readonly onRestore?: () => void;
@@ -43,6 +44,7 @@ interface HarnessProps {
 const Harness = ({
   traceList,
   onDelete,
+  waveCursor = 0,
   waveRcFiles = [],
   onSave = vi.fn(),
   onRestore = vi.fn(),
@@ -67,7 +69,7 @@ const Harness = ({
       waveWidth={320}
       traceList={traceList}
       ipName="REQIP"
-      waveCursor={0}
+      waveCursor={waveCursor}
       waveCursorB={10}
       setWaveCursor={vi.fn()}
       setWaveCursorB={vi.fn()}
@@ -194,5 +196,20 @@ describe('sim debug WaveBand requirements', () => {
 
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onRestore).toHaveBeenCalledTimes(1);
+  });
+
+  it('SDR-026 shows waveform row values at cursor A instead of the final sample', () => {
+    const view = render(
+      <Harness
+        traceList={[{
+          ...traceRow('cursor_value'),
+          trace: [[0, '0'], [10, '1'], [20, '0']],
+        }]}
+        waveCursor={10}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(view.container.querySelector('.wave-val')?.textContent).toBe('1');
   });
 });
