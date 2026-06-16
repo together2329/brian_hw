@@ -1715,7 +1715,14 @@ def create_app():
         """
         vite_html = _vite_index_html()
         if vite_html is not None:
-            return HTMLResponse(vite_html)
+            # no-store on the entry document: the built dist references
+            # content-hashed asset filenames, so a browser that cached an
+            # OLD index.vite.html keeps requesting asset hashes that no
+            # longer exist after a rebuild -> 404 -> blank app. Forcing the
+            # entry to revalidate every load (assets are already no-store via
+            # _NoCacheStatic) means returning browsers always boot the
+            # current frontend instead of a stale shell.
+            return HTMLResponse(vite_html, headers={"Cache-Control": "no-store, max-age=0"})
         return HTMLResponse(
             "<!doctype html><meta charset=utf-8>"
             "<title>ATLAS frontend build missing</title>"
@@ -1757,7 +1764,7 @@ def create_app():
         # via the shared _vite_index_html reader; same dist-missing 503 as index().
         vite_html = _vite_index_html("lobby.vite.html")
         if vite_html is not None:
-            return HTMLResponse(vite_html)
+            return HTMLResponse(vite_html, headers={"Cache-Control": "no-store, max-age=0"})
         return HTMLResponse(
             "<!doctype html><meta charset=utf-8>"
             "<title>ATLAS frontend build missing</title>"

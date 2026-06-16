@@ -1475,3 +1475,19 @@ requirements:
         evidence:
           - test: "tests/test_oag_mode.py::test_oag_platform_backend_runs_local_no_recursion"
             observed_at: 60686094
+
+  - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
+    claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
+    design_anchor: doc/wiki/project_vite_env_stale_build.md
+    obligations:
+      - id: OBL_FRONTEND_ENTRY_NO_STORE
+        owned_by: ui.tui
+        granularity: behavior
+        # index()/lobby()가 빌드된 dist를 서빙할 때 no-store 헤더를 붙인다.
+        # fresh-vs-returning 브라우저 비대칭(신선 OK/재방문 blank)의 근본 봉합.
+        status: closed
+        evidence:
+          - test: "tests/test_atlas_entry_cache_headers.py::test_index_entry_html_is_no_store"
+            observed_at: bb9f0c85
+          - test: "tests/test_atlas_entry_cache_headers.py::test_lobby_entry_html_is_no_store"
+            observed_at: bb9f0c85
