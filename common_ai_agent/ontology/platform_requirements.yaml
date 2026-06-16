@@ -1501,5 +1501,5 @@ requirements:
         granularity: behavior
         status: closed
         evidence:
-          - test: "frontend/atlas/__tests__/workspace-render-smoke.test.tsx::Workspace render smoke (the behavioral gate)::reconciles stale Agent responding from ready/not-running worker status only after grace"
-            observed_at: 5dc2dd70
+          - test: "tests/test_frontend_responding_reconcile.py::test_frontend_responding_reconciles_ready_idle_worker_status"
+            observed_at: beee7f32
