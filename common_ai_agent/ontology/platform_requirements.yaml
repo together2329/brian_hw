@@ -1499,4 +1499,7 @@ requirements:
       - id: OBL_FRONTEND_RESPONDING_RECONCILES_WORKER_IDLE
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
+        evidence:
+          - test: "frontend/atlas/__tests__/workspace-render-smoke.test.tsx::Workspace render smoke (the behavioral gate)::reconciles stale Agent responding from ready/not-running worker status only after grace"
+            observed_at: 5dc2dd70
