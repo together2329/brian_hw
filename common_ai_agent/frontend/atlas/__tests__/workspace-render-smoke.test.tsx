@@ -680,6 +680,51 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     expect(queryByText(/Agent worker idle/)).toBeNull();
   });
 
+  it('reconciles stale Agent responding from ready/not-running worker status only after grace', async () => {
+    const {
+      RESPONDING_IDLE_RECONCILE_GRACE_MS,
+      shouldReconcileRespondingFromWorkerStatus,
+    } = await import('../workspace-root-data-hook.tsx');
+    const readyIdle = { state: 'ready', alive: true, running: false };
+    const startedAt = 1000;
+
+    expect(shouldReconcileRespondingFromWorkerStatus({
+      status: readyIdle,
+      streaming: true,
+      agentRunning: true,
+      orchestratorMode: false,
+      startedAt,
+      now: startedAt + RESPONDING_IDLE_RECONCILE_GRACE_MS - 1,
+    })).toBe(false);
+
+    expect(shouldReconcileRespondingFromWorkerStatus({
+      status: readyIdle,
+      streaming: true,
+      agentRunning: true,
+      orchestratorMode: false,
+      startedAt,
+      now: startedAt + RESPONDING_IDLE_RECONCILE_GRACE_MS,
+    })).toBe(true);
+
+    expect(shouldReconcileRespondingFromWorkerStatus({
+      status: { state: 'ready', alive: true, running: true },
+      streaming: true,
+      agentRunning: true,
+      orchestratorMode: false,
+      startedAt,
+      now: startedAt + RESPONDING_IDLE_RECONCILE_GRACE_MS,
+    })).toBe(false);
+
+    expect(shouldReconcileRespondingFromWorkerStatus({
+      status: readyIdle,
+      streaming: true,
+      agentRunning: true,
+      orchestratorMode: true,
+      startedAt,
+      now: startedAt + RESPONDING_IDLE_RECONCILE_GRACE_MS,
+    })).toBe(false);
+  });
+
   it('shows Agent responding ahead of stale backend connecting state', async () => {
     const backend = (window as AnyWindow).backend;
     backend._setConnectionState('connecting');

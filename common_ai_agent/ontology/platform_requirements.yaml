@@ -1491,3 +1491,12 @@ requirements:
             observed_at: c4eb890a
           - test: "tests/test_atlas_entry_cache_headers.py::test_lobby_entry_html_is_no_store"
             observed_at: c4eb890a
+
+  - id: REQ_PLAT_FRONTEND_RESPONDING_RECONCILE_001
+    claim: "웹 Workspace의 Agent responding 표시는 낙관적 실행 시작 후에도 현재 세션 worker-status가 alive/ready/not-running임을 일정 시간 확인하면 finishLiveRun 경로로 자동 해제된다 — websocket terminal 이벤트를 놓친 Safari 탭이 worker는 ready인데 footer만 무한 running으로 남는 상태를 금지한다."
+    design_anchor: doc/wiki/atlas-worker-workflow-ui-sync-20260610.md
+    obligations:
+      - id: OBL_FRONTEND_RESPONDING_RECONCILES_WORKER_IDLE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open

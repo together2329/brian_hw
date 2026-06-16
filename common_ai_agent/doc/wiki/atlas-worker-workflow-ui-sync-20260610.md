@@ -64,3 +64,18 @@ through the activate path, same as a dropdown click.
 
 Related: [[atlas-session-canonicalization-backlog-20260606]],
 [[atlas-context-root-model-20260603]].
+
+## Responding-state reconciliation 2026-06-16
+
+Symptom: the Workspace footer can keep showing `Agent responding` while the
+right-side worker panel says `ready` and `/healthz` reports `agent_running:
+false`. In that state a submitted prompt appears in the feed, but no agent
+output follows because the local optimistic streaming latch missed the terminal
+`agent_state(false)` / `done` event.
+
+Design rule: the optimistic responding pill may outrank worker polling only
+during the normal startup grace window. After that window, the current session's
+worker-status poll is authoritative when it says the session worker is alive,
+not running, and ready/idle. The UI must route this through the same
+`finishLiveRun()` path used by terminal websocket events so buffered stream
+text, runtime labels, and command busy state are all cleared consistently.

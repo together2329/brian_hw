@@ -111,6 +111,37 @@ export type { WorkspaceDataDeps } from './workspace-rootdata-telemetry';
 import type { WorkspaceDataDeps } from './workspace-rootdata-telemetry';
 
 const w = window as any;
+export const RESPONDING_IDLE_RECONCILE_GRACE_MS = 10_000;
+export const workerStatusConfirmsRespondingIdle = (status: any): boolean => (
+  !!status
+  && status.state === 'ready'
+  && status.alive === true
+  && status.running === false
+);
+
+export const shouldReconcileRespondingFromWorkerStatus = ({
+  status,
+  streaming,
+  agentRunning,
+  orchestratorMode,
+  startedAt,
+  now,
+  graceMs = RESPONDING_IDLE_RECONCILE_GRACE_MS,
+}: {
+  status: any;
+  streaming: boolean;
+  agentRunning: boolean;
+  orchestratorMode: boolean;
+  startedAt: number;
+  now: number;
+  graceMs?: number;
+}): boolean => (
+  !orchestratorMode
+  && (streaming || agentRunning)
+  && workerStatusConfirmsRespondingIdle(status)
+  && !!startedAt
+  && now - startedAt >= graceMs
+);
 
 const healthzCostUrl = (): string => {
   const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
@@ -514,6 +545,9 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   });
   const [interactiveWorkerStatus, setInteractiveWorkerStatus] = useState<any>(null);
   const [interactiveWorkerStatusError, setInteractiveWorkerStatusError] = useState('');
+  const respondingStartedAtRef = useRef<number>(0);
+  const idleWorkerObservedAtRef = useRef<number>(0);
+  const finishLiveRunRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -565,6 +599,24 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
             samePolledState(comparable(prev), comparable(status)) ? prev : status
           ));
           setInteractiveWorkerStatusError('');
+          const confirmsIdle = workerStatusConfirmsRespondingIdle(status);
+          if (confirmsIdle) {
+            const now = Date.now();
+            if (!idleWorkerObservedAtRef.current) idleWorkerObservedAtRef.current = now;
+            if (!respondingStartedAtRef.current) respondingStartedAtRef.current = idleWorkerObservedAtRef.current;
+            if (shouldReconcileRespondingFromWorkerStatus({
+              status,
+              streaming: !!streamingRef.current,
+              agentRunning: w.ATLAS_AGENT_RUNNING === true,
+              orchestratorMode: atlasUiOrchestratorMode(),
+              startedAt: respondingStartedAtRef.current,
+              now,
+            })) {
+              finishLiveRunRef.current?.();
+            }
+          } else {
+            idleWorkerObservedAtRef.current = 0;
+          }
         }
       } catch (e) {
         if (!cancelled) setInteractiveWorkerStatusError(String((e && (e as Error).message) || e));
@@ -653,6 +705,14 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // ref-sync + window-broadcast side effects live here next to the chat feed,
   // exactly as the legacy closure had them (workspace.jsx L2739-L2747).
   useEffect(() => { streamingRef.current = streaming; }, [streaming, streamingRef]);
+  useEffect(() => {
+    if (streaming) {
+      if (!respondingStartedAtRef.current) respondingStartedAtRef.current = Date.now();
+      return;
+    }
+    respondingStartedAtRef.current = 0;
+    idleWorkerObservedAtRef.current = 0;
+  }, [streaming]);
   useEffect(() => {
     try {
       window.ATLAS_AGENT_RUNNING = !!streaming;
@@ -961,6 +1021,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     backendRunStartedRef.current = false;
     setCommandBusy(null);
   }, [cancelOrchestratorRunPoll, parkLiveStream, setStreaming]);
+  useEffect(() => {
+    finishLiveRunRef.current = finishLiveRun;
+    return () => {
+      if (finishLiveRunRef.current === finishLiveRun) finishLiveRunRef.current = null;
+    };
+  }, [finishLiveRun]);
 
   const pollOrchestratorRunUntilTerminal = useCallback((runId: string, sessionKey?: string) => {
     const id = String(runId || '').trim();
