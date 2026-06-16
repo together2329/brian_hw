@@ -1649,7 +1649,7 @@ requirements:
       - id: OBL_SIM_DEBUG_WAVE_VALUE_COLUMN_FOLLOWS_CURSOR_A
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_sim_debug_wave_value_cursor.py::test_wave_value_column_is_driven_by_cursor_a"
-            observed_at: PENDING_SHA
+            observed_at: c164d110
