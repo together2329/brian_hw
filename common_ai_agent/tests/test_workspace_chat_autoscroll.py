@@ -66,3 +66,33 @@ def test_tool_iframe_keeps_header_and_fold_control_outside():
     head_section = standard.split('className="tool-card-head"', 1)[1].split("</div>", 1)[0]
     assert "ToolDetailFrame" not in head_section
     assert "<ToolDetailFrame" in obs_card
+
+
+def test_tool_command_text_uses_iframe_surface():
+    source = _source("workspace-feed-cards.tsx")
+    standard = source.split("export const _StandardToolCardRaw", 1)[1].split(
+        "export const StandardToolCard", 1
+    )[0]
+
+    assert "const commandUsesFrame = !!displayArgs" in standard
+    assert "const commandFrameOpen = commandUsesFrame && showArgsExpanded" in standard
+    assert "const displayArgsSummary = commandUsesFrame ? _toolCommandSummary(displayArgs) : displayArgs" in standard
+    assert ">{displayArgsSummary}</span>" in standard
+    assert "text={displayArgs}" in standard
+    assert 'mode="text"' in standard
+    assert "title={`Tool call: ${_toolDisplay(tool)}`}" in standard
+    head_section = standard.split('className="tool-card-head"', 1)[1].split("</div>", 1)[0]
+    assert "text={displayArgs}" not in head_section
+
+
+def test_reasoning_blocks_use_iframe_surface():
+    source = _source("workspace-feed-cards.tsx")
+    thought = source.split("export const CollapsibleThought", 1)[1].split(
+        "const _READ_RESULT_TOOL_RE", 1
+    )[0]
+
+    assert "const visibleThoughtText = collapsed ? tail.join('\\n') : displayText;" in thought
+    assert "<ToolDetailFrame" in thought
+    assert "text={visibleThoughtText}" in thought
+    assert 'tool="reasoning"' in thought
+    assert 'title="Reasoning"' in thought

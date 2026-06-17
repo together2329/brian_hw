@@ -164,6 +164,18 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     background: var(--doc-panel-2);
     overflow: auto;
   }
+  .stream-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    background: var(--doc-accent);
+    vertical-align: text-bottom;
+    animation: blink 0.7s step-end infinite;
+  }
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
 `;
 
 const chatMarkdownTheme = (): string => {
@@ -171,7 +183,7 @@ const chatMarkdownTheme = (): string => {
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
 };
 
-export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
+export const ChatMarkdownFrame = ({ text, streaming = false }: { text: unknown; streaming?: boolean }): ReactNode => {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [height, setHeight] = useState(44);
@@ -227,10 +239,10 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
   <style>${CHAT_MARKDOWN_FRAME_CSS}</style>
 </head>
 <body>
-  <main class="md-agent md-chat-frame-body">${html}</main>
+  <main class="md-agent md-chat-frame-body">${html}${streaming ? '<span class="stream-caret" aria-hidden="true"></span>' : ''}</main>
 </body>
 </html>`;
-  }, [html, theme]);
+  }, [html, streaming, theme]);
 
   return (
     <iframe

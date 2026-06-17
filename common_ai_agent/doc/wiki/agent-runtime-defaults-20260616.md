@@ -53,6 +53,11 @@ visible and clickable. The iframe is for the noisy result/details body only:
 plain output, grep output, diffs, and workflow Markdown results get a clean
 black reading surface without taking over chat interaction.
 
+The same document-surface rule applies to the remaining long-form live transcript
+payloads: tool-call command text, streaming assistant Markdown, and reasoning
+blocks. Compact labels, timestamps, status, and fold controls stay in the parent
+DOM; the readable payload moves into iframe-backed black document surfaces.
+
 ## OAG workspace surface
 
 When `OAG_MODE=1`, the default agent owns the IP workflow through the native OAG
