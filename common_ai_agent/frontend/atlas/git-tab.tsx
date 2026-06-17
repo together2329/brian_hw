@@ -20,6 +20,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react';
+import { _normalizeDisplayedToolPaths } from './workspace-markdown-chips';
 
 // ── Cross-file window globals owned by unmigrated .jsx, reached via a narrow
 // typed view of `window` (not yet in types/atlas-window.d.ts). ──
@@ -53,6 +54,8 @@ interface IpListItem {
   ip?: string;
   name?: string;
 }
+
+const displayPathText = (value: unknown): string => _normalizeDisplayedToolPaths(value);
 
 function _fmtRel(unixSec?: number): string {
   if (!unixSec) return '';
@@ -194,7 +197,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
       .then(d => {
         if (!mountedRef.current || diffReqRef.current !== reqId) return;
         if (d && d.error) setDiffErr(d.error);
-        setDiffBody(String(d && d.diff || ''));
+        setDiffBody(displayPathText(d && d.diff || ''));
       })
       .catch(e => {
         if (mountedRef.current && diffReqRef.current === reqId) setDiffErr(String(e));
@@ -315,7 +318,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
                 }}>{busy ? '…' : '↻ Refresh'}</button>
         {gitStatus && (
           <>
-            <span style={sxChip} title={gitStatus.cwd || ''}>
+            <span style={sxChip} title={displayPathText(gitStatus.cwd || '')}>
               branch <b style={{ color: 'var(--fg)' }}>{gitStatus.branch || '(none)'}</b>
             </span>
             <span style={sxChip}>
@@ -380,7 +383,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
                   >Revert…</button>
                 )}
               </div>
-              <div style={{ marginTop: 2 }}>{c.subject}</div>
+              <div style={{ marginTop: 2 }}>{displayPathText(c.subject)}</div>
             </div>
           ))}
           {commits.length === 0 && !busy && (
@@ -402,7 +405,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
                 <span style={{
                   color: 'var(--fg)', overflow: 'hidden',
                   textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{selectedCommit.subject}</span>
+                }}>{displayPathText(selectedCommit.subject)}</span>
               </>
             )}
             <span style={{ flex: 1 }} />
@@ -428,7 +431,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
                   whiteSpace: 'pre-wrap', color: 'var(--fg-mute)',
                   background: 'var(--bg-2)',
                   borderBottom: diffPatch ? '1px solid var(--line)' : 'none',
-                }}>{diffHeader}</pre>
+                }}>{displayPathText(diffHeader)}</pre>
               )}
               {diffPatch ? (
                 <pre className="tool-output-pre tool-output-diff language-none" style={{
@@ -476,7 +479,7 @@ export function GitTab({ initialIp, provider = '' }: GitTabProps): ReactNode {
               <code style={{ color: 'var(--accent)' }}>{revertTarget.short}</code>
               {'  '}
               <span style={{ color: 'var(--fg-mute)' }}>{_fmtRel(revertTarget.time)}</span>
-              <div style={{ marginTop: 6 }}>{revertTarget.subject}</div>
+              <div style={{ marginTop: 6 }}>{displayPathText(revertTarget.subject)}</div>
             </div>
             <div style={{ fontSize: 11, color: 'var(--red, #ef4444)' }}>
               ⚠ Hard reset — all changes after this commit on the working tree will be lost.

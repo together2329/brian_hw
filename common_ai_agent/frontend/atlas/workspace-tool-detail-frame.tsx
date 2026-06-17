@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, type ReactNode } fro
 
 import {
   _markdownHtml,
+  _normalizeDisplayedToolPaths,
   _postProcessMarkdownNode,
 } from './workspace-markdown-chips';
 
@@ -215,7 +216,7 @@ export const renderedToolBodyHtml = (
   truncated?: boolean,
   maxLines?: number,
 ): string => {
-  const { text: visibleText, hidden } = clampToolText(stripAnsi(text), maxLines);
+  const { text: visibleText, hidden } = clampToolText(stripAnsi(_normalizeDisplayedToolPaths(text)), maxLines);
   const footer = [
     hidden > 0 ? `${hidden} more line${hidden === 1 ? '' : 's'} hidden; expand for full output` : '',
     truncated ? '...[truncated]' : '',

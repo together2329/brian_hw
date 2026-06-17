@@ -1861,3 +1861,17 @@ requirements:
             observed_at: 816e247b
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_nested_surfaces_avoid_brown_tint"
             observed_at: 816e247b
+
+  - id: REQ_PLAT_WORKSPACE_PATH_DISPLAY_SLASHES_20260617_001
+    claim: "Workspace UI는 path-like display text의 separator를 `/`로 정규화한다 — Windows backslash, doubled slashes, 한글/일본어 폰트에서 원화/엔화처럼 보이는 separator가 commit/diff/chat/tool 출력에 섞여도 사용자가 보는 경로는 canonical slash로 표시된다. 실제 tool argument나 filesystem value는 이 표시 정규화와 분리된다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_WORKSPACE_DISPLAY_PATH_SEPARATORS_CANONICAL_SLASH
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_windows_path_display_normalization.py::test_display_path_normalizer_covers_windows_and_font_separator_glyphs"
+            observed_at: PENDING_SHA
+          - test: "tests/test_windows_path_display_normalization.py::test_git_commit_display_uses_path_normalizer"
+            observed_at: PENDING_SHA

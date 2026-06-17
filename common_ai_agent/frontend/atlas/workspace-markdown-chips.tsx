@@ -162,17 +162,24 @@ export const _sanitizePrismLanguageClasses = (node: any): void => {
 // so CSS can style them differently, and path-like / IP-like chips
 // become clickable so the user can pivot the preview pane or active IP
 // straight from the chat feed.
-export const _CHIP_PATH_RE = /^[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f)$/i;
+export const _CHIP_PATH_RE = /^(?:[A-Za-z]:\/)?[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f)$/i;
 export const _CHIP_DIR_RE = /^[A-Za-z0-9_-]+\/(?:[A-Za-z0-9_./-]*)$/;
 export const _CHIP_CMD_RE = /^\/[a-z][a-z0-9-]+(?:\s.*)?$/i;
 export const _CHIP_IP_RE = /^[a-z][a-z0-9_]{1,40}$/i;
-export const _PLAIN_FILE_PATH_RE = /(^|[\s([{"'`])((?:\.{1,2}\/|\/)?[A-Za-z0-9_.$~@-]+(?:\/[A-Za-z0-9_.$~@-]+)+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|markdown|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f|html|htm|css|js|jsx|ts|tsx))(?:[:#]L?(\d+))?(?=$|[\s)\]}",.;!?])/gi;
-const _BACKSLASH_PATH_TOKEN_RE = /(^|[^\w./:-])((?:[A-Za-z]:\\+[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)*|[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)+(?:\\+)?))/g;
+export const _PLAIN_FILE_PATH_RE = /(^|[\s([{"'`])((?:[A-Za-z]:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+|\.{1,2}[\/\\\u20A9\u00A5\uFFE5\uFF3C]+|[\/\\\u20A9\u00A5\uFFE5\uFF3C]+)?[A-Za-z0-9_.$~@-]+(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+[A-Za-z0-9_.$~@-]+)+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|markdown|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f|html|htm|css|js|jsx|ts|tsx))(?:[:#]L?(\d+))?(?=$|[\s)\]}",.;!?])/gi;
+export const _DISPLAY_PATH_SEPARATOR_RE = /[\\\u20A9\u00A5\uFFE5\uFF3C]+|\/{2,}/g;
+export const _DISPLAY_PATH_TOKEN_RE = /(^|[^\w./:-])((?:[A-Za-z]:)?(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+)?[A-Za-z0-9_.$~@-]+(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+[A-Za-z0-9_.$~@-]+)+(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+)?)(?=$|[^\w.$~@-])/g;
+
+export const _normalizeDisplayPathToken = (path: unknown): string => (
+  String(path || '')
+    .replace(_DISPLAY_PATH_SEPARATOR_RE, '/')
+    .replace(/\/{2,}/g, '/')
+);
 
 export const _normalizeDisplayedToolPaths = (text: unknown): string => (
   String(text || '').replace(
-    _BACKSLASH_PATH_TOKEN_RE,
-    (_match, lead: string, path: string) => `${lead}${String(path).replace(/\\+/g, '/')}`,
+    _DISPLAY_PATH_TOKEN_RE,
+    (_match, lead: string, path: string) => `${lead}${_normalizeDisplayPathToken(path)}`,
   )
 );
 
@@ -266,7 +273,7 @@ export const _processPlainFilePathChips = (node: any): void => {
     const parent = cur.parentElement;
     const text = String(cur.nodeValue || '');
     if (
-      text.includes('/') &&
+      /[\/\\\u20A9\u00A5\uFFE5\uFF3C]/.test(text) &&
       /\.[A-Za-z0-9]{1,10}/.test(text) &&
       parent &&
       !parent.closest('code, pre, a, button, input, textarea, select, script, style')
