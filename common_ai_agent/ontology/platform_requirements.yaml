@@ -1709,12 +1709,12 @@ requirements:
       - id: OBL_PREVIEW_MARKDOWN_IFRAME_DOCUMENT_SURFACE
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_uses_iframe_srcdoc_surface"
-            observed_at: PENDING_SHA
+            observed_at: aa282121
           - test: "tests/test_preview_markdown_document_style.py::test_markdown_preview_iframe_keeps_scripts_disabled"
-            observed_at: PENDING_SHA
+            observed_at: aa282121
 
   - id: REQ_PLAT_CHAT_MARKDOWN_DOCUMENT_STYLE_20260617_001
     claim: "Workspace chat의 assistant Markdown 출력은 조잡한 terminal dump가 아니라 compact document card로 렌더된다 — feed-entry-agent는 조용한 패널과 label rhythm을 갖고, md-agent 문법(heading/list/table/code/blockquote/checklist)은 채팅 폭 안에서 읽기 쉬운 hierarchy와 spacing을 유지한다."
