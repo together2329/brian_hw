@@ -77,9 +77,23 @@ const TOOL_DETAIL_FRAME_CSS = `
     white-space: pre;
   }
   .tool-detail-pre.tool-detail-grep { white-space: pre-wrap; word-break: break-word; }
-  .diff-line { display: block; min-height: 1.52em; }
-  .diff-line.add { color: var(--tool-add); }
-  .diff-line.del { color: var(--tool-del); }
+  .diff-line {
+    display: block;
+    min-height: 1.52em;
+    padding-left: .42rem;
+    border-left: 2px solid transparent;
+    white-space: pre;
+  }
+  .diff-line.add {
+    color: var(--tool-add);
+    border-left-color: var(--tool-add);
+    background: color-mix(in oklch, var(--tool-add) 16%, transparent);
+  }
+  .diff-line.del {
+    color: var(--tool-del);
+    border-left-color: var(--tool-del);
+    background: color-mix(in oklch, var(--tool-del) 16%, transparent);
+  }
   .diff-line.meta { color: var(--tool-meta); }
   .diff-line.ctx { color: var(--tool-fg); }
   .tool-detail-muted {

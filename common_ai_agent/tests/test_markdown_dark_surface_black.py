@@ -13,7 +13,8 @@ def test_dark_markdown_surfaces_use_neutral_black():
     assert "background: #070b10;" in css
     assert '[data-theme="dark"] .feed-entry-user {' in css
     assert "background: #0b1118 !important;" in css
-    assert "color-mix(in oklch, var(--bg-2) 78%, var(--bg))" in css
+    assert ".chat-transcript-entry {" in css
+    assert "background: #070b10;" in css
 
 
 def test_dark_markdown_nested_surfaces_avoid_brown_tint():

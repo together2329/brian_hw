@@ -263,7 +263,7 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
         minHeight: 44,
         border: 0,
         display: 'block',
-        marginTop: 4,
+        marginTop: 0,
         background: theme === 'light' ? '#ffffff' : '#070b10',
         overflow: 'hidden',
       }}

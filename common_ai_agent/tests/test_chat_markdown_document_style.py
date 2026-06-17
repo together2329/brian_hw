@@ -11,10 +11,11 @@ def test_agent_chat_markdown_uses_document_card_surface():
     css = STYLES_CSS.read_text(encoding="utf-8")
     feed_src = FEED_CARDS_TSX.read_text(encoding="utf-8")
 
-    assert "className=\"feed-entry feed-entry-agent has-hover-affordance\"" in feed_src
+    assert "className=\"feed-entry feed-entry-agent chat-transcript-entry has-hover-affordance\"" in feed_src
     assert ".feed-entry-agent {" in css
-    assert "border-radius: 8px;" in css
-    assert "background: color-mix(in oklch, var(--bg-2) 78%, var(--bg));" in css
+    assert ".chat-transcript-entry {" in css
+    assert "border-radius: 6px;" in css
+    assert "background: #070b10;" in css
     assert ".feed-entry-agent > .md-agent" in css
     assert "max-width: 88ch;" in css
 
@@ -103,9 +104,28 @@ def test_live_streaming_uses_document_surface_class():
     live_section = feed_src.split("export const LiveAgentPreview", 1)[1].split("export const _FeedEntryRaw", 1)[0]
     agent_section = feed_src.split("if (entry.kind === 'agent')", 1)[1].split("if (entry.kind === 'thought')", 1)[0]
 
-    assert 'className="md-agent md-agent-stream-surface"' in live_section
-    assert 'className="md-agent md-agent-stream-surface"' in agent_section
+    assert 'className="md-agent md-agent-stream-surface chat-message-body"' in live_section
+    assert 'className="md-agent md-agent-stream-surface chat-message-body"' in agent_section
     assert 'className="md-agent-stream-text"' in feed_src
     assert 'className="stream-caret"' in feed_src
     assert "whiteSpace: 'pre-wrap'" not in live_section
     assert "overflowWrap: 'anywhere'" not in live_section
+
+
+def test_chat_feed_uses_transcript_header_and_body_classes():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+    feed_src = FEED_CARDS_TSX.read_text(encoding="utf-8")
+    frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
+
+    assert "chat-transcript-entry" in feed_src
+    assert 'className="chat-message-head"' in feed_src
+    assert "chat-message-role" in feed_src
+    assert "chat-message-body" in feed_src
+    assert ".chat-transcript-entry {" in css
+    assert ".chat-message-head {" in css
+    assert "border-bottom: 1px solid #263240;" in css
+    assert ".chat-message-body {" in css
+    assert "max-width: 88ch;" in css
+    assert ".feed-entry-user .md-user.md-agent" in css
+    assert "font-family: var(--sans);" in css
+    assert "marginTop: 0" in frame_src

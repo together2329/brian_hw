@@ -81,6 +81,18 @@ def test_tool_detail_iframe_autoheight_defers_resizeobserver_updates():
     assert "window.cancelAnimationFrame(pendingMeasureFrameRef.current);" in frame
 
 
+def test_tool_detail_iframe_restores_diff_replacement_palette():
+    frame = _source("workspace-tool-detail-frame.tsx")
+
+    assert ".diff-line.add {" in frame
+    assert "border-left-color: var(--tool-add);" in frame
+    assert "background: color-mix(in oklch, var(--tool-add) 16%, transparent);" in frame
+    assert ".diff-line.del {" in frame
+    assert "border-left-color: var(--tool-del);" in frame
+    assert "background: color-mix(in oklch, var(--tool-del) 16%, transparent);" in frame
+    assert "white-space: pre;" in frame
+
+
 def test_reasoning_coalesces_cumulative_snapshots():
     source = _source("workspace-tool-theme.tsx")
 

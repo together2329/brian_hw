@@ -126,6 +126,14 @@ iframe document: neutral black/white background, 88ch max width, 14px body text,
 jump when a live answer settles into the completed Markdown iframe without
 moving streaming into iframe lifecycle.
 
+Agent/User chat rows should read like a compact transcript, not a stack of
+terminal blobs. Each row uses a small mono role header (`Agent` / `You`) with a
+thin rule and a document body below it; user Markdown uses the same sans-serif
+reading rhythm as assistant Markdown instead of mono inline text. Tool-result
+details remain visually separate, but their diff/replacement red-green row
+tints must live inside the tool iframe CSS because outer `.tool-output-diff`
+rules cannot cross the iframe boundary.
+
 The page-level error banner should not surface browser `ResizeObserver` loop
 notifications as fatal uncaught errors. Those notifications can be emitted by
 native layout delivery after otherwise valid observer callbacks or third-party
