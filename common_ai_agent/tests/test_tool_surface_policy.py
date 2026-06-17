@@ -20,6 +20,18 @@ def test_external_db_query_is_not_exposed_by_default(monkeypatch):
     assert "external_db_query" in exposed
 
 
+def test_wiki_query_tool_is_not_exposed_by_default(monkeypatch):
+    from core import tools
+
+    monkeypatch.delenv("ATLAS_ENABLE_WIKI_QUERY_TOOL", raising=False)
+    exposed = tools.filtered_available_tools()
+    assert "wiki_query" not in exposed
+
+    monkeypatch.setenv("ATLAS_ENABLE_WIKI_QUERY_TOOL", "1")
+    exposed = tools.filtered_available_tools()
+    assert "wiki_query" in exposed
+
+
 def test_external_db_wiki_aliases_are_disabled_by_default(monkeypatch):
     from core import tools
 
@@ -33,6 +45,25 @@ def test_external_db_wiki_aliases_are_disabled_by_default(monkeypatch):
 
     assert "external DB lookup is disabled by default" in result
     assert "ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL=1" in result
+
+
+def test_prompt_tool_table_hides_wiki_query_by_default(monkeypatch):
+    import src.config as config
+    import src.llm_client as llm_client
+
+    monkeypatch.setenv("PLAN_MODE", "false")
+    monkeypatch.setenv("ENABLE_NATIVE_TOOL_CALLS", "false")
+    monkeypatch.setattr(llm_client, "is_responses_api_model", lambda: False, raising=False)
+    monkeypatch.setattr(config, "ENABLE_WIKI_QUERY_TOOL", False, raising=False)
+    monkeypatch.setattr(config, "ENABLE_EXTERNAL_DB_QUERY_TOOL", False, raising=False)
+
+    normal_prompt = config.build_base_system_prompt(plan_mode=False, todo_active=False)
+    assert "- wiki_query(" not in normal_prompt
+    assert "- external_db_query(" not in normal_prompt
+
+    monkeypatch.setattr(config, "ENABLE_WIKI_QUERY_TOOL", True, raising=False)
+    opt_in_prompt = config.build_base_system_prompt(plan_mode=False, todo_active=False)
+    assert "- wiki_query(" in opt_in_prompt
 
 
 def test_ask_user_is_not_exposed_by_default(monkeypatch):
@@ -82,6 +113,7 @@ def test_prompt_tool_table_matches_minimal_surface_policy(monkeypatch):
     monkeypatch.setattr(config, "UNLOCK_NORMAL_MODE_TOOLS", True, raising=False)
     monkeypatch.setattr(config, "DISABLE_TODO_TOOLS", False, raising=False)
     monkeypatch.setattr(config, "ENABLE_EXTERNAL_DB_QUERY_TOOL", False, raising=False)
+    monkeypatch.setattr(config, "ENABLE_WIKI_QUERY_TOOL", False, raising=False)
     monkeypatch.setattr(config, "ENABLE_ASK_USER_TOOL", False, raising=False)
     monkeypatch.setattr(
         config,
@@ -93,6 +125,7 @@ def test_prompt_tool_table_matches_minimal_surface_policy(monkeypatch):
     normal_prompt = config.build_base_system_prompt(plan_mode=False, todo_active=True)
     assert "todo_write" not in normal_prompt
     assert "todo_add" not in normal_prompt
+    assert "- wiki_query(" not in normal_prompt
     assert "- external_db_query(" not in normal_prompt
     assert "- ask_user(" not in normal_prompt
     assert "only advance existing tasks with `todo_update`" in normal_prompt

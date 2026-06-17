@@ -15,10 +15,10 @@ active-IP locality.
 
 Normal execution should not expose interactive planning or external retrieval
 tools by default. `todo_write` / `todo_add` remain plan-mode tools.
-`external_db_query`, external wiki aliases (`rtl-db`, `external-db`, `andes`),
-and `ask_user` are opt-in because they add latency, side effects, or disruptive
-UI flow. Requirements should be resolved in normal conversation unless a user
-explicitly opts into a structured interaction mode.
+`wiki_query`, `external_db_query`, external wiki aliases (`rtl-db`,
+`external-db`, `andes`), and `ask_user` are opt-in because they add latency,
+side effects, or disruptive UI flow. Requirements should be resolved in normal
+conversation unless a user explicitly opts into a structured interaction mode.
 
 ## OAG active IP locality
 
@@ -125,6 +125,14 @@ iframe document: neutral black/white background, 88ch max width, 14px body text,
 1.68 line-height, and parent-side whitespace wrapping. This reduces the visual
 jump when a live answer settles into the completed Markdown iframe without
 moving streaming into iframe lifecycle.
+
+The page-level error banner should not surface browser `ResizeObserver` loop
+notifications as fatal uncaught errors. Those notifications can be emitted by
+native layout delivery after otherwise valid observer callbacks or third-party
+canvas/layout libraries, and they do not identify a broken ATLAS action by
+themselves. The reporter suppresses only the exact ResizeObserver loop
+notification strings while leaving generic uncaught errors, promise rejections,
+and asset-load failures visible.
 
 ## Perforce pane responsiveness
 

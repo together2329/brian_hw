@@ -93,6 +93,17 @@
         lines.push(label + ': ' + detail);
         entries.push({ label: label, detail: detail, node: line });
       }
+      function isResizeObserverLoopNotification(detail) {
+        var msg = String(detail || '');
+        return msg === 'ResizeObserver loop completed with undelivered notifications.' ||
+          msg === 'ResizeObserver loop limit exceeded';
+      }
+      function ignoreResizeObserverLoopNotification(ev, detail) {
+        if (!isResizeObserverLoopNotification(detail)) return false;
+        if (ev && typeof ev.preventDefault === 'function') ev.preventDefault();
+        if (ev && typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+        return true;
+      }
       window.addEventListener('error', function (ev) {
         // Element load failure: ev.target is the failing script/link/img/etc.
         if (ev.target && (ev.target.src || ev.target.href) && ev.target !== window) {
@@ -106,11 +117,14 @@
           return;
         }
         var msg = (ev.error && (ev.error.stack || ev.error.message)) || ev.message || 'unknown';
+        if (ignoreResizeObserverLoopNotification(ev, msg)) return;
         append('uncaught', msg);
       }, true);
       window.addEventListener('unhandledrejection', function (ev) {
         var r = ev.reason;
-        append('unhandled promise', (r && (r.stack || r.message)) || String(r));
+        var msg = (r && (r.stack || r.message)) || String(r);
+        if (ignoreResizeObserverLoopNotification(ev, msg)) return;
+        append('unhandled promise', msg);
       });
       // Mirror console.error so non-throwing failures still surface.
       var origErr = console.error.bind(console);
