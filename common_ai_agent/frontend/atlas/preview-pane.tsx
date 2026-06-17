@@ -146,10 +146,202 @@ interface DeferredMarkdownPreviewProps {
   sourcePath?: string;
 }
 
+const MARKDOWN_PREVIEW_IFRAME_CSS = `
+  :root {
+    color-scheme: dark;
+    --doc-bg: #070b10;
+    --doc-panel: #070b10;
+    --doc-panel-2: #0b1118;
+    --doc-panel-3: #0d141c;
+    --doc-line: #263240;
+    --doc-fg: #d7e2ee;
+    --doc-muted: #94a3b8;
+    --doc-accent: #80d8ff;
+    --doc-warn: #ffd166;
+    --doc-ok: #7ee2b8;
+    --doc-code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    --doc-body-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+  html[data-theme="light"] {
+    color-scheme: light;
+    --doc-bg: #f6f8fb;
+    --doc-panel: #ffffff;
+    --doc-panel-2: #f3f6fb;
+    --doc-panel-3: #eef3f8;
+    --doc-line: #d6dee8;
+    --doc-fg: #17202b;
+    --doc-muted: #64748b;
+    --doc-accent: #0b6ea8;
+    --doc-warn: #8a5a00;
+    --doc-ok: #087f5b;
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    background: var(--doc-bg);
+    color: var(--doc-fg);
+    font-family: var(--doc-body-font);
+    font-size: 14px;
+    line-height: 1.68;
+  }
+  .md-preview {
+    max-width: 980px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 32px 44px 64px;
+    background: var(--doc-panel);
+  }
+  .md-preview > :first-child { margin-top: 0; }
+  .md-preview > :last-child { margin-bottom: 0; }
+  .md-preview p,
+  .md-preview li,
+  .md-preview td { color: var(--doc-fg); }
+  .md-preview p,
+  .md-preview ul,
+  .md-preview ol,
+  .md-preview blockquote { margin: 0 0 1rem; }
+  .md-preview h1,
+  .md-preview h2,
+  .md-preview h3,
+  .md-preview h4 {
+    color: var(--doc-fg);
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+  .md-preview h1 {
+    margin: 0 0 1rem;
+    padding-bottom: .65rem;
+    border-bottom: 1px solid var(--doc-line);
+    font-size: 2rem;
+    font-weight: 800;
+  }
+  .md-preview h2 {
+    margin: 2rem 0 .85rem;
+    padding-bottom: .35rem;
+    border-bottom: 1px solid var(--doc-line);
+    font-size: 1.38rem;
+    font-weight: 760;
+  }
+  .md-preview h3 {
+    margin: 1.55rem 0 .65rem;
+    font-size: 1.08rem;
+    font-weight: 740;
+    color: var(--doc-accent);
+  }
+  .md-preview h4 {
+    margin: 1.25rem 0 .45rem;
+    font-size: .96rem;
+    font-weight: 720;
+  }
+  .md-preview a { color: var(--doc-accent); text-decoration: none; }
+  .md-preview a:hover { text-decoration: underline; }
+  .md-preview ul,
+  .md-preview ol { padding-left: 1.45rem; }
+  .md-preview li { margin: .22rem 0; padding-left: .12rem; }
+  .md-preview code {
+    padding: .12rem .34rem;
+    border: 1px solid var(--doc-line);
+    border-radius: 4px;
+    background: var(--doc-panel-2);
+    color: var(--doc-fg);
+    font-family: var(--doc-code-font);
+    font-size: .9em;
+  }
+  .md-preview pre {
+    margin: 1rem 0 1.15rem;
+    padding: 1rem 1.05rem;
+    overflow: auto;
+    border: 1px solid var(--doc-line);
+    border-radius: 6px;
+    background: #05080c;
+  }
+  html[data-theme="light"] .md-preview pre { background: #f6f8fb; }
+  .md-preview pre code {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-size: .9rem;
+    line-height: 1.58;
+  }
+  .md-preview table {
+    width: 100%;
+    margin: 1rem 0 1.2rem;
+    border-collapse: collapse;
+    border: 1px solid var(--doc-line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--doc-panel);
+  }
+  .md-preview th,
+  .md-preview td {
+    padding: .55rem .68rem;
+    border: 1px solid var(--doc-line);
+    vertical-align: top;
+  }
+  .md-preview th {
+    background: var(--doc-panel-3);
+    color: var(--doc-fg);
+    font-weight: 750;
+  }
+  .md-preview blockquote {
+    padding: .8rem 1rem;
+    border-left: 3px solid var(--doc-accent);
+    border-radius: 0 6px 6px 0;
+    background: var(--doc-panel-3);
+    color: var(--doc-muted);
+  }
+  .md-preview hr {
+    margin: 1.8rem 0;
+    border: 0;
+    border-top: 1px solid var(--doc-line);
+  }
+  .md-preview img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 1rem auto;
+    border: 1px solid var(--doc-line);
+    border-radius: 6px;
+    background: #05080c;
+  }
+  html[data-theme="light"] .md-preview img { background: #ffffff; }
+  .md-preview input[type="checkbox"] { transform: translateY(1px); margin-right: .42rem; }
+  .atlas-mermaid-block {
+    margin: 1rem 0 1.2rem;
+    padding: 1rem;
+    border: 1px solid var(--doc-line);
+    border-radius: 6px;
+    background: var(--doc-panel-2);
+    overflow: auto;
+  }
+  @media (max-width: 720px) {
+    .md-preview { padding: 22px 20px 48px; }
+    .md-preview h1 { font-size: 1.6rem; }
+  }
+`;
+
+const markdownPreviewTheme = (): string => {
+  if (typeof document === 'undefined') return 'dark';
+  const attr = document.documentElement.getAttribute('data-theme') || '';
+  return attr === 'light' ? 'light' : 'dark';
+};
+
 const DeferredMarkdownPreview = ({ body, sourcePath = '' }: DeferredMarkdownPreviewProps): ReactNode => {
-  const nodeRef = useRef<HTMLDivElement>(null);
+  const frameRef = useRef<HTMLIFrameElement>(null);
   const [html, setHtml] = useState('');
+  const [theme, setTheme] = useState(markdownPreviewTheme);
   const text = String(body || '');
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const sync = () => setTheme(markdownPreviewTheme());
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setHtml('');
@@ -165,15 +357,21 @@ const DeferredMarkdownPreview = ({ body, sourcePath = '' }: DeferredMarkdownPrev
     };
   }, [text]);
 
-  useEffect(() => {
-    if (!html || !nodeRef.current) return;
-    _postProcessMarkdownNode(nodeRef.current);
+  const postProcessFrame = useCallback(() => {
+    const doc = frameRef.current?.contentDocument;
+    const root = doc?.querySelector('.md-preview') as HTMLElement | null;
+    if (!html || !doc || !root) return;
+    _postProcessMarkdownNode(root);
     // Rewrite <img src="relative/path.png"> → /api/file/raw?path=<resolved>
     // so embedded images from SSOT imports actually render in the preview
     // pane (the raw src is a project-relative path the browser cannot
     // fetch directly).
     const baseDir = sourcePath ? sourcePath.replace(/\/[^/]*$/, '') : '';
-    nodeRef.current.querySelectorAll('img[src]').forEach(img => {
+    root.querySelectorAll('a[href]').forEach(link => {
+      if (!link.getAttribute('target')) link.setAttribute('target', '_blank');
+      if (!link.getAttribute('rel')) link.setAttribute('rel', 'noopener noreferrer');
+    });
+    root.querySelectorAll('img[src]').forEach(img => {
       const rawSrc = img.getAttribute('src') || '';
       const src = _normalizeMarkdownImageSrc(rawSrc);
       if (src && src !== rawSrc) img.setAttribute('src', src);
@@ -190,6 +388,23 @@ const DeferredMarkdownPreview = ({ body, sourcePath = '' }: DeferredMarkdownPrev
       img.setAttribute('src', atlasFileRawUrl(resolved));
     });
   }, [html, sourcePath]);
+
+  const srcDoc = useMemo(() => {
+    if (!html) return '';
+    const frameTheme = theme === 'light' ? 'light' : 'dark';
+    return `<!doctype html>
+<html data-theme="${frameTheme}">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <base target="_blank" />
+  <style>${MARKDOWN_PREVIEW_IFRAME_CSS}</style>
+</head>
+<body>
+  <main class="md-agent md-preview">${html}</main>
+</body>
+</html>`;
+  }, [html, theme]);
 
   if (!text.trim()) return <div className="md-preview-empty">empty markdown file</div>;
   if (!html) {
@@ -208,10 +423,15 @@ const DeferredMarkdownPreview = ({ body, sourcePath = '' }: DeferredMarkdownPrev
     );
   }
   return (
-    <div
-      ref={nodeRef}
-      className="md-agent md-preview"
-      dangerouslySetInnerHTML={{ __html: html }}
+    <iframe
+      ref={frameRef}
+      className="md-preview-frame"
+      title={sourcePath ? `Markdown preview: ${sourcePath}` : 'Markdown preview'}
+      sandbox="allow-same-origin allow-popups"
+      referrerPolicy="no-referrer"
+      srcDoc={srcDoc}
+      onLoad={postProcessFrame}
+      style={{ width: '100%', height: '100%', minHeight: '100%', border: 0, display: 'block', background: theme === 'light' ? '#f6f8fb' : '#070b10' }}
     />
   );
 };

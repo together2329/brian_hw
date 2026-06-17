@@ -76,6 +76,12 @@ In dark theme, Markdown document surfaces use neutral black backgrounds instead
 of accent-mixed browns. Accent colors should mark edges, headings, and chips,
 not tint the full reading surface.
 
+Preview Markdown can use an iframe document surface. Unlike chat, preview is a
+file-reading pane rather than a streaming transcript, so iframe isolation helps
+match the cleaner DOC feel without nested chat scrolling. The iframe receives
+sanitized Markdown HTML through `srcDoc`, keeps scripts disabled, and lets the
+parent perform the same image/path and Mermaid post-processing after load.
+
 ## Chat markdown reading surface
 
 Assistant chat output also uses the shared `md-agent` Markdown pipeline. It

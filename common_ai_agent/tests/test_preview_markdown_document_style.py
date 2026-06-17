@@ -9,8 +9,9 @@ STYLES_CSS = ROOT / "frontend" / "atlas" / "styles.css"
 def test_markdown_preview_uses_document_surface():
     src = PREVIEW_PANE_TSX.read_text(encoding="utf-8")
 
-    assert "className=\"md-agent md-preview\"" in src
     assert "<DeferredMarkdownPreview body={body} sourcePath={path} />" in src
+    assert "className=\"md-preview-frame\"" in src
+    assert "<main class=\"md-agent md-preview\">${html}</main>" in src
 
 
 def test_markdown_preview_styles_markdown_syntax_as_document():
@@ -28,3 +29,23 @@ def test_markdown_preview_styles_markdown_syntax_as_document():
     assert ".md-preview img" in css
     assert ".md-preview input[type=\"checkbox\"]" in css
     assert "[data-theme=\"light\"] .md-preview" in css
+
+
+def test_markdown_preview_uses_iframe_srcdoc_surface():
+    src = PREVIEW_PANE_TSX.read_text(encoding="utf-8")
+
+    assert "const MARKDOWN_PREVIEW_IFRAME_CSS = `" in src
+    assert "const srcDoc = useMemo(() => {" in src
+    assert "srcDoc={srcDoc}" in src
+    assert "onLoad={postProcessFrame}" in src
+    assert "_postProcessMarkdownNode(root);" in src
+    assert "root.querySelectorAll('img[src]')" in src
+
+
+def test_markdown_preview_iframe_keeps_scripts_disabled():
+    src = PREVIEW_PANE_TSX.read_text(encoding="utf-8")
+
+    assert 'sandbox="allow-same-origin allow-popups"' in src
+    assert "allow-scripts" not in src
+    assert 'referrerPolicy="no-referrer"' in src
+    assert "<base target=\"_blank\" />" in src
