@@ -94,6 +94,14 @@ tool-card internals keep their own compact affordances.
 Dark chat Markdown follows the same neutral black surface rule as preview
 Markdown, so rendered assistant output does not drift toward a brown panel.
 
+Completed assistant chat bodies can use the same isolated document-surface
+idea as Preview, but only after streaming is done. Live token output, tool
+cards, OAG command headers, and Q&A/tool affordances stay in the parent chat
+DOM so scrolling, folding, copy buttons, and running-state updates remain
+stable. The iframe receives sanitized Markdown through `srcDoc`, disables
+scripts, auto-sizes to its document height, and keeps the tool-call audit trail
+outside the frame.
+
 ## Perforce pane responsiveness
 
 The Perforce Sync tab should not wait for a folder click before starting the

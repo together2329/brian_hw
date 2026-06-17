@@ -1729,6 +1729,15 @@ requirements:
             observed_at: 4a748305
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_syntax_has_readable_document_rules"
             observed_at: 4a748305
+      - id: OBL_CHAT_MARKDOWN_COMPLETED_IFRAME_SURFACE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_completed_agent_chat_uses_iframe_srcdoc_surface"
+            observed_at: PENDING_SHA
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_is_completed_only_and_keeps_tools_outside"
+            observed_at: PENDING_SHA
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."

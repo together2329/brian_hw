@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 STYLES_CSS = ROOT / "frontend" / "atlas" / "styles.css"
 FEED_CARDS_TSX = ROOT / "frontend" / "atlas" / "workspace-feed-cards.tsx"
+CHAT_FRAME_TSX = ROOT / "frontend" / "atlas" / "workspace-chat-markdown-frame.tsx"
 
 
 def test_agent_chat_markdown_uses_document_card_surface():
@@ -33,3 +34,33 @@ def test_chat_markdown_syntax_has_readable_document_rules():
     assert ".md-agent pre {" in css
     assert "padding: 12px 14px;" in css
     assert ".feed-entry-user {" in css
+
+
+def test_completed_agent_chat_uses_iframe_srcdoc_surface():
+    frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
+
+    assert "export const ChatMarkdownFrame" in frame_src
+    assert "const CHAT_MARKDOWN_FRAME_CSS = `" in frame_src
+    assert "className=\"chat-markdown-frame\"" in frame_src
+    assert "srcDoc={srcDoc}" in frame_src
+    assert "<main class=\"md-agent md-chat-frame-body\">${html}</main>" in frame_src
+    assert "_postProcessMarkdownNode(root)" in frame_src
+    assert "sandbox=\"allow-same-origin allow-popups\"" in frame_src
+    assert "allow-scripts" not in frame_src
+    assert "referrerPolicy=\"no-referrer\"" in frame_src
+
+
+def test_chat_iframe_is_completed_only_and_keeps_tools_outside():
+    feed_src = FEED_CARDS_TSX.read_text(encoding="utf-8")
+    agent_branch = feed_src.split("if (entry.kind === 'agent')", 1)[1].split("if (entry.kind === 'thought')", 1)[0]
+
+    assert "entry._animate" in agent_branch
+    assert "<Typewriter text={entry.text || ''} />" in agent_branch
+    assert "terminalKind" in agent_branch
+    assert "<AtlasTerminalTranscript text={entry.text || ''} kind={terminalKind} />" in agent_branch
+    assert "<ChatMarkdownFrame text={entry.text || ''} />" in agent_branch
+    assert agent_branch.index("entry._animate") < agent_branch.index("ChatMarkdownFrame")
+    assert agent_branch.index("terminalKind") < agent_branch.index("ChatMarkdownFrame")
+
+    tool_card_section = feed_src.split("export const _StandardToolCardRaw", 1)[1].split("export const Typewriter", 1)[0]
+    assert "ChatMarkdownFrame" not in tool_card_section

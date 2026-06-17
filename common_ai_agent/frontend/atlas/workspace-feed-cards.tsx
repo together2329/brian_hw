@@ -63,6 +63,7 @@ import {
   SsotApprovalCard,
   AskUserCall,
 } from './workspace-feed-askuser';
+import { ChatMarkdownFrame } from './workspace-chat-markdown-frame';
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
@@ -797,7 +798,6 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
   }
   if (entry.kind === 'agent') {
     const terminalKind = _atlasTerminalTranscriptKind(entry.text || '');
-    const html = _markdownHtml(entry.text || '');
     return (
       <div className="feed-entry feed-entry-agent has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
         <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
@@ -810,9 +810,7 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
           ? <div className="md-agent" style={{ marginTop: 4 }}><Typewriter text={entry.text || ''} /></div>
           : terminalKind
             ? <AtlasTerminalTranscript text={entry.text || ''} kind={terminalKind} />
-          : <div className="md-agent" style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: html }}
-              ref={_postProcessMarkdownNode}
-            />
+          : <ChatMarkdownFrame text={entry.text || ''} />
         }
       </div>
     );
