@@ -1628,12 +1628,12 @@ requirements:
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_body_uses_iframe_surface"
-            observed_at: PENDING_SHA
+            observed_at: 4d85fdc3
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_iframe_keeps_header_and_fold_control_outside"
-            observed_at: PENDING_SHA
+            observed_at: 4d85fdc3
       - id: OBL_PERFORCE_SYNC_PREFETCHES_NEXT_PANE
         owned_by: ui.workspace
         granularity: behavior
