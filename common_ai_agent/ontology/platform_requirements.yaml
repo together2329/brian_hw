@@ -1637,14 +1637,14 @@ requirements:
       - id: OBL_WORKSPACE_IFRAME_RESIZE_AND_REASONING_STABILITY
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: PENDING_SHA
+            observed_at: 0800c453
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: PENDING_SHA
+            observed_at: 0800c453
           - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_coalesces_cumulative_snapshots"
-            observed_at: PENDING_SHA
+            observed_at: 0800c453
       - id: OBL_PERFORCE_SYNC_PREFETCHES_NEXT_PANE
         owned_by: ui.workspace
         granularity: behavior
