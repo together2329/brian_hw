@@ -75,3 +75,37 @@ def test_chat_iframe_autoheight_defers_resizeobserver_updates():
     assert "resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());" in frame_src
     assert "setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));" in frame_src
     assert "window.cancelAnimationFrame(pendingMeasureFrameRef.current);" in frame_src
+
+
+def test_streaming_parent_dom_matches_iframe_document_surface():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+    frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
+
+    assert ".feed-entry-agent > .md-agent.md-agent-stream-surface {" in css
+    assert "max-width: 88ch;" in css
+    assert "font-size: 14px;" in css
+    assert "line-height: 1.68;" in css
+    assert "white-space: pre-wrap;" in css
+    assert "overflow-wrap: anywhere;" in css
+    assert "[data-theme=\"dark\"] .feed-entry-agent > .md-agent.md-agent-stream-surface" in css
+    assert "background: #070b10;" in css
+    assert "[data-theme=\"light\"] .feed-entry-agent > .md-agent.md-agent-stream-surface" in css
+    assert "background: #ffffff;" in css
+
+    assert "max-width: 88ch;" in frame_src
+    assert "font-size: 14px;" in frame_src
+    assert "line-height: 1.68;" in frame_src
+
+
+def test_live_streaming_uses_document_surface_class():
+    feed_src = FEED_CARDS_TSX.read_text(encoding="utf-8")
+
+    live_section = feed_src.split("export const LiveAgentPreview", 1)[1].split("export const _FeedEntryRaw", 1)[0]
+    agent_section = feed_src.split("if (entry.kind === 'agent')", 1)[1].split("if (entry.kind === 'thought')", 1)[0]
+
+    assert 'className="md-agent md-agent-stream-surface"' in live_section
+    assert 'className="md-agent md-agent-stream-surface"' in agent_section
+    assert 'className="md-agent-stream-text"' in feed_src
+    assert 'className="stream-caret"' in feed_src
+    assert "whiteSpace: 'pre-wrap'" not in live_section
+    assert "overflowWrap: 'anywhere'" not in live_section

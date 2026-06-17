@@ -740,9 +740,9 @@ export const Typewriter = ({ text }: any) => {
     return () => clearInterval(iv);
   }, [full]);
   return (
-    <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+    <span className="md-agent-stream-text">
       {shown}
-      {!done && <span className="stream-caret" style={{ display: 'inline-block', width: 2, height: '1em', background: 'var(--accent)', marginLeft: 1, verticalAlign: 'text-bottom', animation: 'blink 0.7s step-end infinite' }} />}
+      {!done && <span className="stream-caret" />}
     </span>
   );
 };
@@ -769,14 +769,7 @@ export const LiveAgentPreview = memo(({ text }: any) => {
       <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
         fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
       <span className="ts-pill">streaming</span>
-      <div
-        className="md-agent"
-        style={{
-          marginTop: 4,
-          whiteSpace: 'pre-wrap',
-          overflowWrap: 'anywhere',
-        }}
-      >
+      <div className="md-agent md-agent-stream-surface">
         {body}
       </div>
     </div>
@@ -814,7 +807,7 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
         ) : null}
         <CopyBtn text={entry.text || ''} />
         {entry._animate
-          ? <div className="md-agent" style={{ marginTop: 4 }}><Typewriter text={entry.text || ''} /></div>
+          ? <div className="md-agent md-agent-stream-surface"><Typewriter text={entry.text || ''} /></div>
           : terminalKind
             ? <AtlasTerminalTranscript text={entry.text || ''} kind={terminalKind} />
           : <ChatMarkdownFrame text={entry.text || ''} />

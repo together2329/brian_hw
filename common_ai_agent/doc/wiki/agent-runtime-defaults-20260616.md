@@ -118,6 +118,14 @@ stable. The iframe receives sanitized Markdown through `srcDoc`, disables
 scripts, auto-sizes to its document height, and keeps the tool-call audit trail
 outside the frame.
 
+Live streaming should still feel visually continuous with the completed
+iframe-backed answer. The streaming body stays in the parent DOM for stable
+scrolling and caret updates, but it uses the same reading-surface basics as the
+iframe document: neutral black/white background, 88ch max width, 14px body text,
+1.68 line-height, and parent-side whitespace wrapping. This reduces the visual
+jump when a live answer settles into the completed Markdown iframe without
+moving streaming into iframe lifecycle.
+
 ## Perforce pane responsiveness
 
 The Perforce Sync tab should not wait for a folder click before starting the
