@@ -129,3 +129,27 @@ def test_chat_feed_uses_transcript_header_and_body_classes():
     assert ".feed-entry-user .md-user.md-agent" in css
     assert "font-family: var(--sans);" in css
     assert "marginTop: 0" in frame_src
+
+
+def test_chat_transcript_role_labels_have_readable_line_box():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+
+    role_rule = css.split(".feed-entry-label,", 1)[1].split(".feed-entry-agent .chat-message-role", 1)[0]
+    assert "font-size: 12px !important;" in role_rule
+    assert "line-height: 1.45;" in role_rule
+    assert "text-transform: none;" in role_rule
+    assert "letter-spacing: 0.02em !important;" in role_rule
+
+    head_rule = css.split(".chat-message-head {", 1)[1].split("}", 1)[0]
+    assert "min-height: 28px;" in head_rule
+    assert "padding: 2px 0 8px;" in head_rule
+
+
+def test_chat_transcript_spacing_is_tight_between_agent_and_tools():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+
+    entry_rule = css.split(".chat-transcript-entry {", 1)[1].split("}", 1)[0]
+    assert "margin: 0 0 10px !important;" in entry_rule
+    assert ".chat-transcript-entry + .tool-card {" in css
+    tool_gap_rule = css.split(".chat-transcript-entry + .tool-card {", 1)[1].split("}", 1)[0]
+    assert "margin-top: 2px;" in tool_gap_rule

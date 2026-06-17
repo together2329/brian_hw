@@ -134,6 +134,13 @@ details remain visually separate, but their diff/replacement red-green row
 tints must live inside the tool iframe CSS because outer `.tool-output-diff`
 rules cannot cross the iframe boundary.
 
+Role labels should not be vertically clipped or over-compressed: keep the label
+line box taller than the glyphs and avoid forced uppercase transforms that make
+`Agent` / `You` look half-rendered on mixed Korean/Latin font stacks. The
+spacing after an Agent answer is a small transcript separator, not a mandatory
+blank line; tool cards that immediately follow an answer should sit close enough
+to read as the same turn.
+
 The page-level error banner should not surface browser `ResizeObserver` loop
 notifications as fatal uncaught errors. Those notifications can be emitted by
 native layout delivery after otherwise valid observer callbacks or third-party
