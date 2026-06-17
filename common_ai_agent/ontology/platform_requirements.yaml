@@ -1625,6 +1625,15 @@ requirements:
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_oag_tool_card_shows_header_and_folds_details"
             observed_at: 99ba64a4
+      - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_body_uses_iframe_surface"
+            observed_at: PENDING_SHA
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_iframe_keeps_header_and_fold_control_outside"
+            observed_at: PENDING_SHA
       - id: OBL_PERFORCE_SYNC_PREFETCHES_NEXT_PANE
         owned_by: ui.workspace
         granularity: behavior

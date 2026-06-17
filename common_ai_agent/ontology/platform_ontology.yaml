@@ -153,6 +153,7 @@ units:
     summary: 웹 프론트엔드 워크스페이스 (tsx)
     owns:
       - frontend/atlas/workspace-chat-markdown-frame.tsx
+      - frontend/atlas/workspace-tool-detail-frame.tsx
       # 나머지 frontend는 scope 밖 — e2e 증거로만 추적 (1차)
     e2e_evidence:
       - frontend/atlas/__tests__/workspace-render-smoke.test.tsx

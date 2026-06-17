@@ -46,6 +46,13 @@ called command/tool visible in the header. OAG cards show the full `oag(...)`
 call in the header, while long payload/result details start folded so OAG audit
 information is available without flooding the chat.
 
+Tool-call detail bodies can render inside a small iframe document surface once
+the user expands them. The tool-card header, status glyph, line count, command
+text, and fold control stay in the parent chat DOM so the audit trail remains
+visible and clickable. The iframe is for the noisy result/details body only:
+plain output, grep output, diffs, and workflow Markdown results get a clean
+black reading surface without taking over chat interaction.
+
 ## OAG workspace surface
 
 When `OAG_MODE=1`, the default agent owns the IP workflow through the native OAG

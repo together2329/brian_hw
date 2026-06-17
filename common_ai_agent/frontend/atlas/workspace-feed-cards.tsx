@@ -43,11 +43,7 @@ import {
   _markdownHtml,
   _postProcessMarkdownNode,
   _DIFF_RESULT_TOOL_RE,
-  _CHIP_PATH_RE,
   _normalizeDisplayedToolPaths,
-  ToolOutputPre,
-  GrepOutputPre,
-  DiffOutputPre,
   CopyBtn,
 } from './workspace-markdown-chips';
 
@@ -64,6 +60,7 @@ import {
   AskUserCall,
 } from './workspace-feed-askuser';
 import { ChatMarkdownFrame } from './workspace-chat-markdown-frame';
+import { ToolDetailFrame } from './workspace-tool-detail-frame';
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
@@ -135,7 +132,7 @@ export const _toolResultDefaultsClosed = (tool: unknown): boolean => (
 // Optional `embedded` prop: when true, render WITHOUT the outer
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
-export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', maxLinesOverride }: any) => {
+export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride }: any) => {
   // Replace/edit tools default to OPEN even in summary mode so the user
   // can see the actual diff without an extra click. Other tools stay
   // collapsed in summary mode.
@@ -169,10 +166,11 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', ma
   const isGrepTool = String(entry?.tool || '').toLowerCase() === 'grep_file';
 
   const renderMarkdownBody = () => (
-    <div
-      className="md-agent md-tool-result"
-      dangerouslySetInnerHTML={{ __html: _markdownHtml(txt) }}
-      ref={_postProcessMarkdownNode}
+    <ToolDetailFrame
+      text={txt}
+      mode="markdown"
+      tool={entry.tool}
+      truncated={entry.truncated}
     />
   );
   const useMarkdownResult = summaryMode && _isWorkflowResultTool(entry.tool);
@@ -229,23 +227,32 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', ma
       {(embedded || open) && (
         looksLikeDiff || !useMarkdownResult ? (
           looksLikeDiff ? (
-            <DiffOutputPre
+            <ToolDetailFrame
               text={txt}
+              mode="diff"
               tool={entry.tool}
               truncated={entry.truncated}
-              hintText={hintText || entry.hintText || entry.path || entry.file || ''}
               maxLines={maxPreviewLines}
             />
           ) : isGrepTool ? (
-            <GrepOutputPre text={txt} truncated={entry.truncated} maxLines={maxPreviewLines} />
+            <ToolDetailFrame
+              text={txt}
+              mode="grep"
+              tool={entry.tool}
+              truncated={entry.truncated}
+              maxLines={maxPreviewLines}
+            />
           ) : (
-            <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} maxLines={maxPreviewLines} />
+            <ToolDetailFrame
+              text={txt}
+              mode="text"
+              tool={entry.tool}
+              truncated={entry.truncated}
+              maxLines={maxPreviewLines}
+            />
           )
         ) : (
-          <>
-            {renderMarkdownBody()}
-            {entry.truncated ? <div className="mute" style={{ fontSize: 10 }}>…[truncated]</div> : null}
-          </>
+          renderMarkdownBody()
         )
       )}
     </Wrapper>
