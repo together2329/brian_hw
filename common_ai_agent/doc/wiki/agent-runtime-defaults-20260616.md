@@ -146,6 +146,16 @@ beside the iframe-backed assistant answer. Use the same sans-serif document
 rhythm for readable tool arguments, summaries, handoff rows, and reasoning
 text; keep monospace only where exact code/command identity matters, such as
 tool names, timestamps, inline code chips, and preformatted output.
+Step-update status pills follow that same rhythm: avoid oversized uppercase
+`ERROR`/status labels inside chat cards; keep them compact, mixed case, and
+aligned to the surrounding document text.
+
+Chat Markdown should make real workspace file references actionable. Inline
+code paths and plain text path tokens such as `rtl/foo.sv` are styled as path
+chips; activating one resolves it against the current active-IP file tree before
+opening the split preview. If the tree can map a suffix path to an active-IP
+file, the preview opens the canonical file-tree path instead of a stale or
+ambiguous raw token.
 
 The page-level error banner should not surface browser `ResizeObserver` loop
 notifications as fatal uncaught errors. Those notifications can be emitted by

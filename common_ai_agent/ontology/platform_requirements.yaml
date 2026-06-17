@@ -1812,6 +1812,22 @@ requirements:
             observed_at: 0d381e7e
           - test: "tests/test_chat_markdown_document_style.py::test_reasoning_blocks_match_chat_document_rhythm"
             observed_at: 0d381e7e
+      - id: OBL_CHAT_MARKDOWN_FILE_PATHS_OPEN_PREVIEW
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_plain_markdown_file_paths_become_openable_chips"
+            observed_at: PENDING_SHA
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
+            observed_at: PENDING_SHA
+      - id: OBL_CHAT_STEP_STATUS_BADGE_TYPOGRAPHY
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_step_update_status_badges_use_compact_document_typography"
+            observed_at: PENDING_SHA
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."

@@ -1384,11 +1384,39 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     }
   }, [activeSsotIp, currentSession, previewPath, workflow]);
 
-  // Inline-code chip click handlers — wired up from _processInlineChips().
+  const resolveChatOpenPath = useCallback((rawPath: unknown): string => {
+    const requested = String(rawPath || '')
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(/^['"`]+|['"`]+$/g, '')
+      .replace(/(?:#L|:)\d+$/i, '')
+      .replace(/^\/+/, '');
+    if (!requested) return '';
+    const activeIp = activeSsotIp() || activeIpFromSession(currentSession || w.ACTIVE_SESSION || '');
+    const tree = Array.isArray(w.FILE_TREE) ? w.FILE_TREE : [];
+    const filePaths = tree
+      .filter((n: any) => n && n.type === 'file')
+      .map((n: any) => {
+        const rel = String(n.name || '').replace(/^\/+|\/+$/g, '');
+        return activeIp && rel && !rel.startsWith(`${activeIp}/`) ? `${activeIp}/${rel}` : rel;
+      })
+      .filter(Boolean);
+    const exact = filePaths.find((p: string) => p === requested);
+    if (exact) return exact;
+    const suffix = filePaths.find((p: string) => (
+      p.endsWith(`/${requested}`) ||
+      requested.endsWith(`/${p}`) ||
+      (activeIp ? p === `${activeIp}/${requested}` : false)
+    ));
+    return suffix || requested;
+  }, [currentSession]);
+
+  // Inline/path chip click handlers — wired up from _postProcessMarkdownNode().
   useEffect(() => {
     const onPath = (ev: any) => {
-      const path = String(ev?.detail?.path || '').trim();
+      const path = resolveChatOpenPath(ev?.detail?.path || '');
       if (!path) return;
+      w.readAtlasAsyncResource?.('file', path)?.catch?.(() => {});
       setPreviewPath(path);
       persistAtlasPreviewPath(path);
       setMainTab((t: string) => (t === 'split' || t === 'preview') ? t : 'split');
@@ -1409,7 +1437,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       window.removeEventListener('atlas-chip-open', onPath);
       window.removeEventListener('atlas-chip-ip', onIp);
     };
-  }, []);
+  }, [resolveChatOpenPath]);
 
   // ── SSOT-QA refresh ─────────────────────────────────────────────
   const refreshSsotQa = useCallback(async (sessionOverride?: any) => {

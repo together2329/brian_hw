@@ -95,6 +95,15 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     font-family: var(--doc-code-font);
     font-size: .9em;
   }
+  .md-chat-frame-body code.chip-path {
+    color: var(--doc-accent);
+    border-color: color-mix(in oklch, var(--doc-accent) 44%, var(--doc-line));
+    cursor: pointer;
+  }
+  .md-chat-frame-body code.chip-path:hover {
+    background: color-mix(in oklch, var(--doc-accent) 13%, var(--doc-panel-2));
+    border-color: var(--doc-accent);
+  }
   .md-chat-frame-body pre {
     margin: .95rem 0 1.05rem;
     padding: .9rem 1rem;

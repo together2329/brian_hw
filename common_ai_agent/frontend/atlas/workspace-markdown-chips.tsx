@@ -166,6 +166,7 @@ export const _CHIP_PATH_RE = /^[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|y
 export const _CHIP_DIR_RE = /^[A-Za-z0-9_-]+\/(?:[A-Za-z0-9_./-]*)$/;
 export const _CHIP_CMD_RE = /^\/[a-z][a-z0-9-]+(?:\s.*)?$/i;
 export const _CHIP_IP_RE = /^[a-z][a-z0-9_]{1,40}$/i;
+export const _PLAIN_FILE_PATH_RE = /(^|[\s([{"'`])((?:\.{1,2}\/|\/)?[A-Za-z0-9_.$~@-]+(?:\/[A-Za-z0-9_.$~@-]+)+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|markdown|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f|html|htm|css|js|jsx|ts|tsx))(?:[:#]L?(\d+))?(?=$|[\s)\]}",.;!?])/gi;
 const _BACKSLASH_PATH_TOKEN_RE = /(^|[^\w./:-])((?:[A-Za-z]:\\+[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)*|[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)+(?:\\+)?))/g;
 
 export const _normalizeDisplayedToolPaths = (text: unknown): string => (
@@ -186,9 +187,14 @@ export const _chipKindFor = (text: unknown): string => {
 };
 
 export const _activateChipPath = (path: unknown): void => {
+  const clean = _normalizeDisplayedToolPaths(path)
+    .trim()
+    .replace(/^['"`]+|['"`]+$/g, '')
+    .replace(/(?:#L|:)\d+$/i, '');
+  if (!clean) return;
   try {
     window.dispatchEvent(new CustomEvent('atlas-chip-open', {
-      detail: { path: _normalizeDisplayedToolPaths(path) },
+      detail: { path: clean },
     }));
   } catch (_) {}
 };
@@ -247,6 +253,70 @@ export const _processInlineChips = (node: any): void => {
         }
       });
     }
+  });
+};
+
+export const _processPlainFilePathChips = (node: any): void => {
+  if (!node || !node.ownerDocument) return;
+  const doc = node.ownerDocument;
+  const walker = doc.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+  const textNodes: any[] = [];
+  let cur = walker.nextNode();
+  while (cur) {
+    const parent = cur.parentElement;
+    const text = String(cur.nodeValue || '');
+    if (
+      text.includes('/') &&
+      /\.[A-Za-z0-9]{1,10}/.test(text) &&
+      parent &&
+      !parent.closest('code, pre, a, button, input, textarea, select, script, style')
+    ) {
+      textNodes.push(cur);
+    }
+    cur = walker.nextNode();
+  }
+
+  textNodes.forEach((textNode) => {
+    const text = String(textNode.nodeValue || '');
+    _PLAIN_FILE_PATH_RE.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let last = 0;
+    let changed = false;
+    const frag = doc.createDocumentFragment();
+    while ((match = _PLAIN_FILE_PATH_RE.exec(text)) !== null) {
+      const lead = match[1] || '';
+      const path = _normalizeDisplayedToolPaths(match[2] || '').trim();
+      const line = match[3] || '';
+      const start = match.index;
+      const tokenStart = start + lead.length;
+      if (start > last) frag.appendChild(doc.createTextNode(text.slice(last, start)));
+      if (lead) frag.appendChild(doc.createTextNode(lead));
+      const code = doc.createElement('code');
+      code.textContent = line ? `${path}:${line}` : path;
+      code.dataset.chip = 'path';
+      if (line) code.dataset.line = line;
+      code.classList.add('chip', 'chip-path');
+      code.setAttribute('role', 'button');
+      code.setAttribute('tabindex', '0');
+      code.setAttribute('title', `open ${path}`);
+      code.style.cursor = 'pointer';
+      code.addEventListener('click', (e: any) => {
+        e.stopPropagation();
+        _activateChipPath(path);
+      });
+      code.addEventListener('keydown', (e: any) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          _activateChipPath(path);
+        }
+      });
+      frag.appendChild(code);
+      last = _PLAIN_FILE_PATH_RE.lastIndex;
+      changed = true;
+    }
+    if (!changed) return;
+    if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)));
+    textNode.parentNode?.replaceChild(frag, textNode);
   });
 };
 
@@ -357,6 +427,7 @@ export const _postProcessMarkdownNode = (node: any): void => {
   if (window.Prism) {
     try { window.Prism.highlightAllUnder(node); } catch (_) {}
   }
+  _processPlainFilePathChips(node);
   _processInlineChips(node);
   _processBlockquoteKinds(node);
 };

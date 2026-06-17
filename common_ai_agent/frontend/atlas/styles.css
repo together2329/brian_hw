@@ -2354,6 +2354,15 @@ html[data-platform="windows"] .app {
   flex-wrap: wrap;
   gap: 7px;
 }
+.step-update-card .atlas-status-badge.compact {
+  padding: 1px 5px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .step-update-target {
   color: var(--fg);
   font-weight: 800;
@@ -2361,10 +2370,10 @@ html[data-platform="windows"] .app {
 }
 .step-update-transition {
   color: var(--fg-mute);
-  font-size: var(--ui-small-font-size);
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   white-space: nowrap;
 }
 .step-update-body {
