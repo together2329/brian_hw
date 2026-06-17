@@ -1626,34 +1626,34 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_chat_stream_updates_force_bottom_scroll"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_WORKSPACE_OAG_TOOL_CARDS_SHOW_COMMAND_FOLD_DETAILS
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_oag_tool_card_shows_header_and_folds_details"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_body_uses_iframe_surface"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_iframe_keeps_header_and_fold_control_outside"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_WORKSPACE_IFRAME_RESIZE_AND_REASONING_STABILITY
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_coalesces_cumulative_snapshots"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_FRONTEND_ERROR_REPORTER_IGNORES_RESIZEOBSERVER_NOTIFICATION
         owned_by: ui.workspace
         granularity: behavior
@@ -1764,80 +1764,80 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_agent_chat_markdown_uses_document_card_surface"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_syntax_has_readable_document_rules"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_MARKDOWN_COMPLETED_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_completed_agent_chat_uses_iframe_srcdoc_surface"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_is_completed_only_and_keeps_tools_outside"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_STREAMING_MATCHES_DOCUMENT_SURFACE
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_streaming_parent_dom_matches_iframe_document_surface"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_chat_markdown_document_style.py::test_live_streaming_uses_document_surface_class"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_TRANSCRIPT_READABILITY_AND_TOOL_DIFF_TINT
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_feed_uses_transcript_header_and_body_classes"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_restores_diff_replacement_palette"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_TRANSCRIPT_ROLE_LABELS_AND_GAPS_READABLE
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_role_labels_have_readable_line_box"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_spacing_is_tight_between_agent_and_tools"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_TOOL_AND_REASONING_DOCUMENT_FONT_RHYTHM
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_tool_cards_use_document_font_for_readable_text"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_chat_markdown_document_style.py::test_reasoning_blocks_match_chat_document_rhythm"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_MARKDOWN_FILE_PATHS_OPEN_PREVIEW
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_plain_markdown_file_paths_become_openable_chips"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_STEP_STATUS_BADGE_TYPOGRAPHY
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_step_update_status_badges_use_compact_document_typography"
-            observed_at: bdff5925
+            observed_at: d7773ea5
       - id: OBL_CHAT_REASONING_STREAM_REUSES_LIVE_CARD
         owned_by: ui.workspace
         granularity: behavior
         # Provider reasoning events may be cumulative snapshots; the chat feed
         # must update one live Reasoning block instead of appending the same
         # text again as a new card or duplicated paragraph.
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_stream_updates_single_live_card"
-            observed_at: PENDING_SHA
+            observed_at: d7773ea5
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."
@@ -1849,6 +1849,6 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_surfaces_use_neutral_black"
-            observed_at: bdff5925
+            observed_at: d7773ea5
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_nested_surfaces_avoid_brown_tint"
-            observed_at: bdff5925
+            observed_at: d7773ea5
