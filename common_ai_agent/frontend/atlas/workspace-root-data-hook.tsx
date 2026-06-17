@@ -33,6 +33,8 @@ import {
   trimAtlasFeedState,
   coalesceAtlasFeedEntries,
   cleanAtlasTerminalText,
+  compactAtlasThoughtText,
+  mergeAtlasThoughtText,
   atlasBootScmProvider,
   atlasResolveScmTab,
   atlasScmTabLabel,
@@ -44,6 +46,7 @@ import {
 } from './workspace-tool-theme';
 import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
 import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } from './workspace-root-render';
+import { activeIpFromSession } from './data-helpers';
 
 // Poll bail-out: the periodic pollers below (worker status / orch workers /
 // telemetry / worker progress) rebuild their payload object every tick, which
@@ -853,6 +856,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // the agent actually starts. (workspace.jsx L2737-L2738 component-scope refs.)
   const awaitingRunStartRef = useRef<boolean>(false);
   const backendRunStartedRef = useRef<boolean>(false);
+  const liveReasoningEntryIdRef = useRef<string>('');
+  const liveReasoningTextRef = useRef<string>('');
   const orchestratorRunPollRef = useRef<{
     runId: string;
     session: string;
@@ -999,6 +1004,44 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     return minLen >= 2 && eventParts.slice(-minLen).join('/') === activeParts.slice(-minLen).join('/');
   }, [activeSessionRef, currentSession]);
 
+  const resetLiveReasoningStream = useCallback(() => {
+    liveReasoningEntryIdRef.current = '';
+    liveReasoningTextRef.current = '';
+  }, []);
+
+  const appendLiveReasoning = useCallback((rawText: any) => {
+    const text = String(rawText || '').trim();
+    if (!text) return;
+    const merged = compactAtlasThoughtText(mergeAtlasThoughtText(liveReasoningTextRef.current, text));
+    if (!merged.trim()) return;
+    liveReasoningTextRef.current = merged;
+    if (!liveReasoningEntryIdRef.current) {
+      liveReasoningEntryIdRef.current = `live-reasoning-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    const streamId = liveReasoningEntryIdRef.current;
+    const updatedAt = Date.now();
+    liveFeedStartedRef.current = true;
+    setFeed((items: any) => {
+      const list = Array.isArray(items) ? items.slice() : [];
+      const idx = list.findIndex((entry: any) => (
+        entry && entry.kind === 'thought' && entry.reasoningStreamId === streamId
+      ));
+      const prev = idx >= 0 ? list[idx] : {};
+      const next = {
+        ...prev,
+        kind: 'thought',
+        text: merged,
+        live: true,
+        reasoningStreamId: streamId,
+        createdAt: prev.createdAt || updatedAt,
+        updatedAt,
+      };
+      if (idx >= 0) list[idx] = next;
+      else list.push(next);
+      return trimAtlasFeedState(list);
+    });
+  }, [liveFeedStartedRef, setFeed]);
+
   const parkLiveStream = useCallback(() => {
     cancelStreamTextDisplay();
     const text = String(streamBufferRef.current || '').replace(/\u0000/g, '');
@@ -1029,12 +1072,13 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const finishLiveRun = useCallback(() => {
     cancelOrchestratorRunPoll();
     parkLiveStream();
+    resetLiveReasoningStream();
     setStreaming(false);
     setLiveLlmRuntime({ model: '', reasoningEffort: '' });
     awaitingRunStartRef.current = false;
     backendRunStartedRef.current = false;
     setCommandBusy(null);
-  }, [cancelOrchestratorRunPoll, parkLiveStream, setStreaming]);
+  }, [cancelOrchestratorRunPoll, parkLiveStream, resetLiveReasoningStream, setStreaming]);
   useEffect(() => {
     finishLiveRunRef.current = finishLiveRun;
     return () => {
@@ -1143,8 +1187,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }));
       subs.push(w.backend.subscribe('reasoning', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
-        const text = String((m && m.text) || '').trim();
-        if (text) appendLiveFeedEntries({ kind: 'thought', text, createdAt: Date.now(), live: true });
+        appendLiveReasoning(m && m.text);
       }));
       subs.push(w.backend.subscribe('tool', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
@@ -1226,6 +1269,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           if (controlPlaneState) return;
           const runtime = liveLlmRuntimeFrom(m);
           if (hasLiveLlmRuntime(runtime)) setLiveLlmRuntime(runtime);
+          if (!backendRunStartedRef.current) resetLiveReasoningStream();
           backendRunStartedRef.current = true;
           setStreaming(true);
           return;
@@ -1246,9 +1290,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     };
   }, [
     appendLiveFeedEntries,
+    appendLiveReasoning,
     eventMatchesCurrentSession,
     finishLiveRun,
     parkLiveStream,
+    resetLiveReasoningStream,
     scheduleStreamTextDisplay,
     setStreamText,
     setStreaming,

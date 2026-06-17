@@ -218,6 +218,7 @@ def test_plain_markdown_file_paths_become_openable_chips():
 def test_chat_path_open_resolves_against_current_file_tree():
     data_hook_src = DATA_HOOK_TSX.read_text(encoding="utf-8")
 
+    assert "import { activeIpFromSession } from './data-helpers';" in data_hook_src
     assert "const resolveChatOpenPath = useCallback" in data_hook_src
     assert ".filter((n: any) => n && n.type === 'file')" in data_hook_src
     assert "activeIp && rel && !rel.startsWith(`${activeIp}/`) ? `${activeIp}/${rel}` : rel" in data_hook_src

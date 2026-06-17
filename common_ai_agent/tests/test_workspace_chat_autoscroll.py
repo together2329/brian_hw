@@ -106,3 +106,20 @@ def test_reasoning_coalesces_cumulative_snapshots():
         "const _READ_RESULT_TOOL_RE", 1
     )[0]
     assert 'tool="reasoning"' not in thought
+
+
+def test_reasoning_stream_updates_single_live_card():
+    source = _source("workspace-root-data-hook.tsx")
+
+    assert "const liveReasoningEntryIdRef = useRef<string>('');" in source
+    assert "const liveReasoningTextRef = useRef<string>('');" in source
+    assert "const appendLiveReasoning = useCallback" in source
+    assert "compactAtlasThoughtText(mergeAtlasThoughtText(liveReasoningTextRef.current, text))" in source
+    assert "entry && entry.kind === 'thought' && entry.reasoningStreamId === streamId" in source
+    assert "if (idx >= 0) list[idx] = next;" in source
+    assert "else list.push(next);" in source
+    reasoning_handler = source.split("w.backend.subscribe('reasoning'", 1)[1].split(
+        "w.backend.subscribe('tool'", 1
+    )[0]
+    assert "appendLiveReasoning(m && m.text);" in reasoning_handler
+    assert "appendLiveFeedEntries({ kind: 'thought'" not in reasoning_handler

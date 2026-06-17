@@ -1828,6 +1828,16 @@ requirements:
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_step_update_status_badges_use_compact_document_typography"
             observed_at: bdff5925
+      - id: OBL_CHAT_REASONING_STREAM_REUSES_LIVE_CARD
+        owned_by: ui.workspace
+        granularity: behavior
+        # Provider reasoning events may be cumulative snapshots; the chat feed
+        # must update one live Reasoning block instead of appending the same
+        # text again as a new card or duplicated paragraph.
+        status: open
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_stream_updates_single_live_card"
+            observed_at: PENDING_SHA
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."
