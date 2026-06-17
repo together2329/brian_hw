@@ -1589,12 +1589,12 @@ requirements:
       - id: OBL_AGENT_WIKI_QUERY_TOOL_DEFAULT_OFF
         owned_by: agent.tools
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_tool_surface_policy.py::test_wiki_query_tool_is_not_exposed_by_default"
-            observed_at: PENDING_SHA
+            observed_at: 5f753962
           - test: "tests/test_tool_surface_policy.py::test_prompt_tool_table_hides_wiki_query_by_default"
-            observed_at: PENDING_SHA
+            observed_at: 5f753962
       - id: OBL_AGENT_ASK_USER_DEFAULT_OFF
         owned_by: agent.tools
         granularity: behavior
@@ -1657,12 +1657,12 @@ requirements:
       - id: OBL_FRONTEND_ERROR_REPORTER_IGNORES_RESIZEOBSERVER_NOTIFICATION
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_frontend_error_reporter.py::test_entry_error_reporters_ignore_resizeobserver_loop_notification"
-            observed_at: PENDING_SHA
+            observed_at: 5f753962
           - test: "tests/test_frontend_error_reporter.py::test_entry_error_reporters_keep_generic_uncaught_errors_visible"
-            observed_at: PENDING_SHA
+            observed_at: 5f753962
       - id: OBL_PERFORCE_SYNC_PREFETCHES_NEXT_PANE
         owned_by: ui.workspace
         granularity: behavior
