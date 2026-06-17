@@ -1803,6 +1803,15 @@ requirements:
             observed_at: e56bcff0
           - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_spacing_is_tight_between_agent_and_tools"
             observed_at: e56bcff0
+      - id: OBL_CHAT_TOOL_AND_REASONING_DOCUMENT_FONT_RHYTHM
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_tool_cards_use_document_font_for_readable_text"
+            observed_at: PENDING_SHA
+          - test: "tests/test_chat_markdown_document_style.py::test_reasoning_blocks_match_chat_document_rhythm"
+            observed_at: PENDING_SHA
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."

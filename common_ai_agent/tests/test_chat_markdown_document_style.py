@@ -153,3 +153,44 @@ def test_chat_transcript_spacing_is_tight_between_agent_and_tools():
     assert ".chat-transcript-entry + .tool-card {" in css
     tool_gap_rule = css.split(".chat-transcript-entry + .tool-card {", 1)[1].split("}", 1)[0]
     assert "margin-top: 2px;" in tool_gap_rule
+
+
+def test_tool_cards_use_document_font_for_readable_text():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+
+    tool_section = css.split("/* ToolCard", 1)[1]
+    card_rule = tool_section.split(".tool-card {", 1)[1].split("}", 1)[0]
+    assert "font-family: var(--sans);" in card_rule
+    assert "font-size: 14px;" in card_rule
+    assert "line-height: 1.58;" in card_rule
+    assert "letter-spacing: 0;" in card_rule
+
+    head_rule = css.split(".tool-card .tool-card-head {", 1)[1].split("}", 1)[0]
+    assert "font-family: var(--sans);" in head_rule
+    assert "font-size: 14px;" in head_rule
+    assert "line-height: 1.58;" in head_rule
+
+    args_rule = css.split(".tool-card .tool-card-args  {", 1)[1].split("}", 1)[0]
+    assert "font-family: var(--sans);" in args_rule
+    assert "font-size: 14px;" in args_rule
+    assert "line-height: 1.58;" in args_rule
+    assert "letter-spacing: 0;" in args_rule
+
+    tool_name_rule = css.split(".tool-card .tool-card-tool  {", 1)[1].split("}", 1)[0]
+    assert "font-family: var(--code-font);" in tool_name_rule
+
+
+def test_reasoning_blocks_match_chat_document_rhythm():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+
+    block_rule = css.split(".react-block {", 1)[1].split("}", 1)[0]
+    assert "font-family: var(--sans);" in block_rule
+    assert "font-size: 14px;" in block_rule
+    assert "line-height: 1.62;" in block_rule
+    assert "letter-spacing: 0;" in block_rule
+
+    tag_rule = css.split(".react-block .rb-tag {", 1)[1].split("}", 1)[0]
+    assert "font-size: 12px;" in tag_rule
+    assert "line-height: 1.45;" in tag_rule
+    assert "letter-spacing: 0.02em;" in tag_rule
+    assert "text-transform: none;" in tag_rule

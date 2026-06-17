@@ -141,6 +141,12 @@ spacing after an Agent answer is a small transcript separator, not a mandatory
 blank line; tool cards that immediately follow an answer should sit close enough
 to read as the same turn.
 
+Tool-call and reasoning surfaces should not feel like a separate terminal skin
+beside the iframe-backed assistant answer. Use the same sans-serif document
+rhythm for readable tool arguments, summaries, handoff rows, and reasoning
+text; keep monospace only where exact code/command identity matters, such as
+tool names, timestamps, inline code chips, and preformatted output.
+
 The page-level error banner should not surface browser `ResizeObserver` loop
 notifications as fatal uncaught errors. Those notifications can be emitted by
 native layout delivery after otherwise valid observer callbacks or third-party

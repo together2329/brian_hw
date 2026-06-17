@@ -1124,11 +1124,27 @@ html[data-platform="windows"] .app {
 }
 
 /* react-loop block */
-.react-block { padding: 6px 12px; border-left: 2px solid var(--line); margin: 4px 0; }
+.react-block {
+  padding: 8px 12px;
+  border-left: 2px solid var(--line);
+  margin: 4px 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.62;
+  letter-spacing: 0;
+}
 .react-block.thought { border-color: var(--magenta); }
 .react-block.action,
 .react-block.obs     { border-color: var(--tool-accent); }
-.react-block .rb-tag { font-size: var(--ui-small-font-size); letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-mute); margin-right: 8px; }
+.react-block .rb-tag {
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--fg-mute);
+  margin-right: 8px;
+}
 .react-block.thought .rb-tag { color: var(--magenta); }
 .react-block.action  .rb-tag,
 .react-block.obs     .rb-tag { color: var(--tool-accent); }
@@ -2281,16 +2297,35 @@ html[data-platform="windows"] .app {
   border-left: 3px solid var(--fg-mute);
   background: color-mix(in oklch, var(--bg-2) 76%, transparent);
   border-radius: 0 3px 3px 0;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.58;
+  letter-spacing: 0;
 }
 .tool-card .tool-card-head {
   display: flex; align-items: center; gap: 8px;
-  font-family: var(--mono); font-size: var(--ui-font-size);
-  line-height: 1.35;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.58;
   padding: 3px 0;
 }
 .tool-card .tool-card-glyph { font-size: 15px; line-height: 1; }
-.tool-card .tool-card-tool  { color: #fbbf24; font-weight: 700; }
-.tool-card .tool-card-args  { color: var(--fg-mute); font-size: var(--ui-font-size); flex: 1; min-width: 0; }
+.tool-card .tool-card-tool  {
+  color: #fbbf24;
+  font-family: var(--code-font);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.tool-card .tool-card-args  {
+  color: var(--fg-mute);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.58;
+  letter-spacing: 0;
+  flex: 1;
+  min-width: 0;
+}
 .tool-card .tool-card-meta {
   display: inline-flex;
   flex-wrap: wrap;
@@ -2336,9 +2371,10 @@ html[data-platform="windows"] .app {
   display: grid;
   gap: 5px;
   padding: 2px 0 3px;
-  font-family: var(--mono);
-  font-size: var(--ui-font-size);
-  line-height: 1.45;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.58;
+  letter-spacing: 0;
 }
 .step-update-card .handoff-row {
   padding-left: 24px;
@@ -2394,7 +2430,12 @@ html[data-platform="windows"] .app {
 
 /* Orchestrator handoff card (dispatch_workflow / write_handoff) — clean
    labeled key/value layout instead of raw JSON args. */
-.handoff-card { font-family: var(--mono); font-size: var(--ui-font-size); line-height: 1.4; }
+.handoff-card {
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.58;
+  letter-spacing: 0;
+}
 .handoff-block { padding: 2px 0; }
 .handoff-result { margin-top: 3px; }
 .handoff-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
