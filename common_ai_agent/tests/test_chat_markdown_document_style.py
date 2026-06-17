@@ -43,7 +43,7 @@ def test_completed_agent_chat_uses_iframe_srcdoc_surface():
     assert "const CHAT_MARKDOWN_FRAME_CSS = `" in frame_src
     assert "className=\"chat-markdown-frame\"" in frame_src
     assert "srcDoc={srcDoc}" in frame_src
-    assert "<main class=\"md-agent md-chat-frame-body\">${html}${streaming ?" in frame_src
+    assert "<main class=\"md-agent md-chat-frame-body\">${html}</main>" in frame_src
     assert "_postProcessMarkdownNode(root)" in frame_src
     assert "sandbox=\"allow-same-origin allow-popups\"" in frame_src
     assert "allow-scripts" not in frame_src
@@ -66,18 +66,12 @@ def test_chat_iframe_is_completed_only_and_keeps_tools_outside():
     assert "ChatMarkdownFrame" not in tool_card_section
 
 
-def test_streaming_agent_chat_uses_iframe_surface():
+def test_chat_iframe_autoheight_defers_resizeobserver_updates():
     frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
-    feed_src = FEED_CARDS_TSX.read_text(encoding="utf-8")
-    typewriter = feed_src.split("export const Typewriter", 1)[1].split(
-        "export const LiveAgentPreview", 1
-    )[0]
-    live_preview = feed_src.split("export const LiveAgentPreview", 1)[1].split(
-        "export const _FeedEntryRaw", 1
-    )[0]
 
-    assert "streaming?: boolean" in frame_src
-    assert "stream-caret" in frame_src
-    assert "streaming ? '<span class=\"stream-caret\"" in frame_src
-    assert "<ChatMarkdownFrame text={shown} streaming={!done} />" in typewriter
-    assert "<ChatMarkdownFrame text={body} streaming />" in live_preview
+    assert "const pendingMeasureFrameRef = useRef<number | null>(null);" in frame_src
+    assert "const scheduleMeasure = () => {" in frame_src
+    assert "pendingMeasureFrameRef.current = window.requestAnimationFrame(measure);" in frame_src
+    assert "resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());" in frame_src
+    assert "setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));" in frame_src
+    assert "window.cancelAnimationFrame(pendingMeasureFrameRef.current);" in frame_src

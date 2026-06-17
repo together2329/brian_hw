@@ -1634,17 +1634,17 @@ requirements:
             observed_at: 4d85fdc3
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_iframe_keeps_header_and_fold_control_outside"
             observed_at: 4d85fdc3
-      - id: OBL_WORKSPACE_TRANSCRIPT_PAYLOADS_IFRAME_SURFACE
+      - id: OBL_WORKSPACE_IFRAME_RESIZE_AND_REASONING_STABILITY
         owned_by: ui.workspace
         granularity: behavior
-        status: closed
+        status: open
         evidence:
-          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_command_text_uses_iframe_surface"
-            observed_at: c1850c5f
-          - test: "tests/test_chat_markdown_document_style.py::test_streaming_agent_chat_uses_iframe_surface"
-            observed_at: c1850c5f
-          - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_blocks_use_iframe_surface"
-            observed_at: c1850c5f
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_autoheight_defers_resizeobserver_updates"
+            observed_at: PENDING_SHA
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_autoheight_defers_resizeobserver_updates"
+            observed_at: PENDING_SHA
+          - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_coalesces_cumulative_snapshots"
+            observed_at: PENDING_SHA
       - id: OBL_PERFORCE_SYNC_PREFETCHES_NEXT_PANE
         owned_by: ui.workspace
         granularity: behavior

@@ -53,10 +53,14 @@ visible and clickable. The iframe is for the noisy result/details body only:
 plain output, grep output, diffs, and workflow Markdown results get a clean
 black reading surface without taking over chat interaction.
 
-The same document-surface rule applies to the remaining long-form live transcript
-payloads: tool-call command text, streaming assistant Markdown, and reasoning
-blocks. Compact labels, timestamps, status, and fold controls stay in the parent
-DOM; the readable payload moves into iframe-backed black document surfaces.
+The live tool-call command text, streaming text, and reasoning blocks stay in
+the parent chat DOM for stability and predictable folding. Iframe-backed
+surfaces are limited to completed assistant Markdown and expanded tool-result
+details. Those iframes schedule auto-height updates through
+`requestAnimationFrame` and ignore unchanged heights, avoiding ResizeObserver
+loop warnings. Live reasoning coalescing treats provider updates as cumulative
+snapshots when possible, so repeated reasoning summaries replace earlier text
+instead of duplicating it.
 
 ## OAG workspace surface
 

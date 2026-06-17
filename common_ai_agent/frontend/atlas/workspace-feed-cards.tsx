@@ -78,32 +78,30 @@ export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
   const tail = lines.slice(-TAIL_LINES);
   const hidden = Math.max(0, lines.length - TAIL_LINES);
   const collapsed = placeholderOnly || (summaryMode && !open);
-  const visibleThoughtText = collapsed ? tail.join('\n') : displayText;
   return (
     <div
       className="react-block thought"
-      style={{ opacity: 0.62 /* dim */ }}
+      style={{ cursor: placeholderOnly ? 'default' : 'pointer', opacity: 0.62 /* dim */ }}
+      onClick={placeholderOnly ? undefined : () => setOpen(o => !o)}
+      title={placeholderOnly ? 'waiting for model output' : (collapsed ? 'click to expand full reasoning' : 'click to collapse')}
     >
-      <div
-        onClick={placeholderOnly ? undefined : () => setOpen(o => !o)}
-        title={placeholderOnly ? 'waiting for model output' : (collapsed ? 'click to expand full reasoning' : 'click to collapse')}
-        style={{ cursor: placeholderOnly ? 'default' : 'pointer', userSelect: 'none', marginBottom: 6 }}
-      >
-        <span className="rb-tag">
-          thought{!placeholderOnly && lines.length > 1 && ` (${lines.length})`}
-          {!placeholderOnly && collapsed && hidden > 0 && (
-            <span className="mute" style={{ marginLeft: 6, fontSize: 10, fontWeight: 400 }}>
-              · +{hidden} earlier · click to expand
-            </span>
-          )}
-        </span>
-      </div>
-      <ToolDetailFrame
-        text={visibleThoughtText}
-        mode="text"
-        tool="reasoning"
-        title="Reasoning"
-      />
+      <span className="rb-tag">
+        thought{!placeholderOnly && lines.length > 1 && ` (${lines.length})`}
+        {!placeholderOnly && collapsed && hidden > 0 && (
+          <span className="mute" style={{ marginLeft: 6, fontSize: 10, fontWeight: 400 }}>
+            · +{hidden} earlier · click to expand
+          </span>
+        )}
+      </span>
+      <span style={{
+        whiteSpace: 'pre-wrap',
+        display: collapsed ? '-webkit-box' : 'block',
+        WebkitBoxOrient: collapsed ? 'vertical' : undefined,
+        WebkitLineClamp: collapsed ? TAIL_LINES : undefined,
+        overflow: collapsed ? 'hidden' : 'visible',
+      } as any}>
+        {collapsed ? tail.join('\n') : displayText}
+      </span>
     </div>
   );
 };
@@ -111,13 +109,6 @@ export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
 const _READ_RESULT_TOOL_RE = /^(read_file|read_lines|grep_file|find_files|list_dir)$/i;
 const _WRITE_RESULT_TOOL_RE = /^(write_file|write_to_file)$/i;
 const _REPLACE_RESULT_TOOL_RE = /^(replace_in_file|replace_lines|replace_file_content|edit|patch|update_file|apply_patch)$/i;
-
-const _toolCommandSummary = (value: unknown): string => {
-  const raw = String(value || '').trim();
-  if (!raw) return '';
-  const first = raw.split('\n').map(line => line.trim()).find(Boolean) || '';
-  return first.length > 150 ? `${first.slice(0, 147)}...` : first;
-};
 
 export const _toolResultPreviewLines = (tool: unknown): number => {
   const t = String(tool || '').toLowerCase();
@@ -627,11 +618,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
     setObsOpen(defaultObsOpen);
   }, [defaultObsOpen]);
   const showArgsExpanded = isOagTool || obsOpen || showFullArgsByDefault;
-  const commandUsesFrame = !!displayArgs && (isOagTool || argsIsLong || showFullArgsByDefault);
-  const commandFrameOpen = commandUsesFrame && showArgsExpanded;
-  const displayArgsSummary = commandUsesFrame ? _toolCommandSummary(displayArgs) : displayArgs;
-  const showObsBody = !!obs && (isPreviewTool || obsOpen);
-  const headClickable = commandUsesFrame || (isOagTool && !!obs) || (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
+  const headClickable = (isOagTool && !!obs) || (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
@@ -648,7 +635,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
         style={headClickable ? {
           cursor: 'pointer',
           userSelect: 'none',
-          alignItems: 'center',
+          alignItems: showArgsExpanded ? 'flex-start' : 'center',
           flexWrap: isDispatchTool ? 'wrap' : undefined,
         } : undefined}
         title={headClickable ? (obsOpen ? 'click to collapse' : 'click to expand') : undefined}
@@ -663,20 +650,20 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
             {dispatchMeta.worker && <span>{dispatchMeta.worker.replace(/^https?:\/\//, '')}</span>}
           </span>
         )}
-        {displayArgsSummary && (
+        {displayArgs && (
           <span
-            className={`tool-card-args${commandUsesFrame || !showArgsExpanded ? ' trunc' : ''}`}
+            className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
             style={{
               color: orchSummary ? 'var(--fg-mute)' : 'var(--fg)',
               ...(isDispatchTool ? { flexBasis: '100%' } : {}),
-              ...(!commandUsesFrame && showArgsExpanded ? {
+              ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
                 overflow: 'visible',
                 textOverflow: 'clip',
               } : {}),
             } as any}
-          >{displayArgsSummary}</span>
+          >{displayArgs}</span>
         )}
         {resultSummary && !obsOpen && (
           <span className="tool-card-args" style={{ color: 'var(--fg-mute)', flexBasis: '100%', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{resultSummary}</span>
@@ -694,17 +681,8 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
           </>
         ) : null}
       </div>
-      {(commandFrameOpen || showObsBody) && <div className="tool-card-sep" />}
-      {commandFrameOpen && (
-        <ToolDetailFrame
-          text={displayArgs}
-          mode="text"
-          tool={tool}
-          title={`Tool call: ${_toolDisplay(tool)}`}
-        />
-      )}
-      {commandFrameOpen && showObsBody && <div style={{ height: 6 }} />}
-      {showObsBody && (
+      {obs && (isPreviewTool || obsOpen) && <div className="tool-card-sep" />}
+      {obs && (isPreviewTool || obsOpen) && (
         <ObsCard
           entry={{ ...obs, tool: obs?.tool || tool, text: obsText }}
           embedded={true}
@@ -761,7 +739,12 @@ export const Typewriter = ({ text }: any) => {
     }, delay);
     return () => clearInterval(iv);
   }, [full]);
-  return <ChatMarkdownFrame text={shown} streaming={!done} />;
+  return (
+    <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+      {shown}
+      {!done && <span className="stream-caret" style={{ display: 'inline-block', width: 2, height: '1em', background: 'var(--accent)', marginLeft: 1, verticalAlign: 'text-bottom', animation: 'blink 0.7s step-end infinite' }} />}
+    </span>
+  );
 };
 
 // Terminal-transcript renderer family moved to ./workspace-feed-terminal to
@@ -786,7 +769,16 @@ export const LiveAgentPreview = memo(({ text }: any) => {
       <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
         fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
       <span className="ts-pill">streaming</span>
-      <ChatMarkdownFrame text={body} streaming />
+      <div
+        className="md-agent"
+        style={{
+          marginTop: 4,
+          whiteSpace: 'pre-wrap',
+          overflowWrap: 'anywhere',
+        }}
+      >
+        {body}
+      </div>
     </div>
   );
 });

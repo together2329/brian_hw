@@ -228,6 +228,7 @@ export const ToolDetailFrame = ({
 }: ToolDetailFrameProps): ReactNode => {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const pendingMeasureFrameRef = useRef<number | null>(null);
   const [height, setHeight] = useState(42);
   const [theme, setTheme] = useState(toolDetailTheme);
   const normalizedMode = mode === 'markdown' || mode === 'diff' || mode === 'grep' ? mode : 'text';
@@ -250,27 +251,42 @@ export const ToolDetailFrame = ({
     const root = doc?.querySelector('.tool-detail-frame-body') as HTMLElement | null;
     if (!doc || !root) return;
     resizeObserverRef.current?.disconnect();
+    if (pendingMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingMeasureFrameRef.current);
+      pendingMeasureFrameRef.current = null;
+    }
     if (normalizedMode === 'markdown') {
       _postProcessMarkdownNode(root);
     }
     const measure = () => {
+      pendingMeasureFrameRef.current = null;
       const next = Math.ceil(Math.max(
         root.scrollHeight || 0,
         doc.body?.scrollHeight || 0,
         doc.documentElement?.scrollHeight || 0,
         42,
-      ));
-      setHeight(next + 2);
+      )) + 2;
+      setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));
+    };
+    const scheduleMeasure = () => {
+      if (pendingMeasureFrameRef.current !== null) return;
+      pendingMeasureFrameRef.current = window.requestAnimationFrame(measure);
     };
     if (typeof ResizeObserver !== 'undefined') {
-      resizeObserverRef.current = new ResizeObserver(measure);
+      resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());
       resizeObserverRef.current.observe(root);
     }
-    window.requestAnimationFrame(measure);
-    window.setTimeout(measure, 120);
+    scheduleMeasure();
+    window.setTimeout(scheduleMeasure, 120);
   }, [bodyHtml, normalizedMode]);
 
-  useEffect(() => () => resizeObserverRef.current?.disconnect(), []);
+  useEffect(() => () => {
+    resizeObserverRef.current?.disconnect();
+    if (pendingMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingMeasureFrameRef.current);
+      pendingMeasureFrameRef.current = null;
+    }
+  }, []);
 
   const srcDoc = useMemo(() => {
     const frameTheme = theme === 'light' ? 'light' : 'dark';

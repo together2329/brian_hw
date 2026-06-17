@@ -164,18 +164,6 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     background: var(--doc-panel-2);
     overflow: auto;
   }
-  .stream-caret {
-    display: inline-block;
-    width: 2px;
-    height: 1em;
-    margin-left: 2px;
-    background: var(--doc-accent);
-    vertical-align: text-bottom;
-    animation: blink 0.7s step-end infinite;
-  }
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
 `;
 
 const chatMarkdownTheme = (): string => {
@@ -183,9 +171,10 @@ const chatMarkdownTheme = (): string => {
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
 };
 
-export const ChatMarkdownFrame = ({ text, streaming = false }: { text: unknown; streaming?: boolean }): ReactNode => {
+export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const pendingMeasureFrameRef = useRef<number | null>(null);
   const [height, setHeight] = useState(44);
   const [theme, setTheme] = useState(chatMarkdownTheme);
   const html = useMemo(() => _markdownHtml(text || ''), [text]);
@@ -204,29 +193,44 @@ export const ChatMarkdownFrame = ({ text, streaming = false }: { text: unknown; 
     const root = doc?.querySelector('.md-chat-frame-body') as HTMLElement | null;
     if (!doc || !root) return;
     resizeObserverRef.current?.disconnect();
+    if (pendingMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingMeasureFrameRef.current);
+      pendingMeasureFrameRef.current = null;
+    }
     _postProcessMarkdownNode(root);
     const measure = () => {
+      pendingMeasureFrameRef.current = null;
       const next = Math.ceil(Math.max(
         root.scrollHeight || 0,
         doc.body?.scrollHeight || 0,
         doc.documentElement?.scrollHeight || 0,
         44,
-      ));
-      setHeight(next + 2);
+      )) + 2;
+      setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));
+    };
+    const scheduleMeasure = () => {
+      if (pendingMeasureFrameRef.current !== null) return;
+      pendingMeasureFrameRef.current = window.requestAnimationFrame(measure);
     };
     root.querySelectorAll('img').forEach(img => {
-      img.addEventListener('load', measure, { once: true });
-      img.addEventListener('error', measure, { once: true });
+      img.addEventListener('load', scheduleMeasure, { once: true });
+      img.addEventListener('error', scheduleMeasure, { once: true });
     });
     if (typeof ResizeObserver !== 'undefined') {
-      resizeObserverRef.current = new ResizeObserver(measure);
+      resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());
       resizeObserverRef.current.observe(root);
     }
-    window.requestAnimationFrame(measure);
-    window.setTimeout(measure, 120);
+    scheduleMeasure();
+    window.setTimeout(scheduleMeasure, 120);
   }, [html]);
 
-  useEffect(() => () => resizeObserverRef.current?.disconnect(), []);
+  useEffect(() => () => {
+    resizeObserverRef.current?.disconnect();
+    if (pendingMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingMeasureFrameRef.current);
+      pendingMeasureFrameRef.current = null;
+    }
+  }, []);
 
   const srcDoc = useMemo(() => {
     const frameTheme = theme === 'light' ? 'light' : 'dark';
@@ -239,10 +243,10 @@ export const ChatMarkdownFrame = ({ text, streaming = false }: { text: unknown; 
   <style>${CHAT_MARKDOWN_FRAME_CSS}</style>
 </head>
 <body>
-  <main class="md-agent md-chat-frame-body">${html}${streaming ? '<span class="stream-caret" aria-hidden="true"></span>' : ''}</main>
+  <main class="md-agent md-chat-frame-body">${html}</main>
 </body>
 </html>`;
-  }, [html, streaming, theme]);
+  }, [html, theme]);
 
   return (
     <iframe

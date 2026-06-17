@@ -165,6 +165,30 @@ export const cleanAtlasTerminalText = (text: any): string => {
   return String(text || '').replace(/\x1b\[[\d;]*m/g, '');
 };
 
+export const mergeAtlasThoughtText = (prev: any, next: any): string => {
+  const prevLines = visibleAtlasThoughtLines(prev);
+  const nextLines = visibleAtlasThoughtLines(next);
+  if (!prevLines.length) return nextLines.join('\n');
+  if (!nextLines.length) return prevLines.join('\n');
+  const prevText = prevLines.join('\n');
+  const nextText = nextLines.join('\n');
+  if (prevText === nextText) return prevText;
+  if (nextText.startsWith(prevText)) return nextText;
+  if (prevText.startsWith(nextText)) return prevText;
+  const maxOverlap = Math.min(prevLines.length, nextLines.length);
+  for (let overlap = maxOverlap; overlap > 0; overlap--) {
+    let matches = true;
+    for (let i = 0; i < overlap; i++) {
+      if (prevLines[prevLines.length - overlap + i] !== nextLines[i]) {
+        matches = false;
+        break;
+      }
+    }
+    if (matches) return [...prevLines, ...nextLines.slice(overlap)].join('\n');
+  }
+  return [...prevLines, ...nextLines].join('\n');
+};
+
 export const coalesceAtlasFeedEntries = (current: any, entries: any): any[] => {
   const fn = (window as any).AtlasOrchestratorChatLogic?.coalesceFeedEntries;
   if (typeof fn === 'function') return fn(current, entries);
@@ -211,7 +235,7 @@ export const coalesceAtlasFeedEntries = (current: any, entries: any): any[] => {
     if (thought && prev && prev.kind === 'thought') {
       const prevText = String(prev.text || '').trim();
       const nextText = String(entry.text || '').trim();
-      if (nextText && prevText !== nextText) out[out.length - 1] = { ...prev, ...entry, text: compactAtlasThoughtText(prevText ? `${prevText}\n${nextText}` : nextText) };
+      if (nextText && prevText !== nextText) out[out.length - 1] = { ...prev, ...entry, text: compactAtlasThoughtText(mergeAtlasThoughtText(prevText, nextText)) };
       else if (nextText) out[out.length - 1] = { ...prev, ...entry, text: prev.text };
       continue;
     }

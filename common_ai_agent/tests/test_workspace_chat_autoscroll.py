@@ -63,36 +63,34 @@ def test_tool_iframe_keeps_header_and_fold_control_outside():
     assert "const showArgsExpanded = isOagTool || obsOpen" in standard
     assert "<ObsCard" in standard
     assert "embedded={true}" in standard
+    assert "commandFrameOpen" not in standard
+    assert "text={displayArgs}" not in standard
     head_section = standard.split('className="tool-card-head"', 1)[1].split("</div>", 1)[0]
     assert "ToolDetailFrame" not in head_section
     assert "<ToolDetailFrame" in obs_card
 
 
-def test_tool_command_text_uses_iframe_surface():
-    source = _source("workspace-feed-cards.tsx")
-    standard = source.split("export const _StandardToolCardRaw", 1)[1].split(
-        "export const StandardToolCard", 1
-    )[0]
+def test_tool_detail_iframe_autoheight_defers_resizeobserver_updates():
+    frame = _source("workspace-tool-detail-frame.tsx")
 
-    assert "const commandUsesFrame = !!displayArgs" in standard
-    assert "const commandFrameOpen = commandUsesFrame && showArgsExpanded" in standard
-    assert "const displayArgsSummary = commandUsesFrame ? _toolCommandSummary(displayArgs) : displayArgs" in standard
-    assert ">{displayArgsSummary}</span>" in standard
-    assert "text={displayArgs}" in standard
-    assert 'mode="text"' in standard
-    assert "title={`Tool call: ${_toolDisplay(tool)}`}" in standard
-    head_section = standard.split('className="tool-card-head"', 1)[1].split("</div>", 1)[0]
-    assert "text={displayArgs}" not in head_section
+    assert "const pendingMeasureFrameRef = useRef<number | null>(null);" in frame
+    assert "const scheduleMeasure = () => {" in frame
+    assert "pendingMeasureFrameRef.current = window.requestAnimationFrame(measure);" in frame
+    assert "resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());" in frame
+    assert "setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));" in frame
+    assert "window.cancelAnimationFrame(pendingMeasureFrameRef.current);" in frame
 
 
-def test_reasoning_blocks_use_iframe_surface():
-    source = _source("workspace-feed-cards.tsx")
-    thought = source.split("export const CollapsibleThought", 1)[1].split(
+def test_reasoning_coalesces_cumulative_snapshots():
+    source = _source("workspace-tool-theme.tsx")
+
+    assert "export const mergeAtlasThoughtText" in source
+    assert "if (nextText.startsWith(prevText)) return nextText;" in source
+    assert "if (prevText.startsWith(nextText)) return prevText;" in source
+    assert "for (let overlap = maxOverlap; overlap > 0; overlap--)" in source
+    assert "compactAtlasThoughtText(mergeAtlasThoughtText(prevText, nextText))" in source
+    feed = _source("workspace-feed-cards.tsx")
+    thought = feed.split("export const CollapsibleThought", 1)[1].split(
         "const _READ_RESULT_TOOL_RE", 1
     )[0]
-
-    assert "const visibleThoughtText = collapsed ? tail.join('\\n') : displayText;" in thought
-    assert "<ToolDetailFrame" in thought
-    assert "text={visibleThoughtText}" in thought
-    assert 'tool="reasoning"' in thought
-    assert 'title="Reasoning"' in thought
+    assert 'tool="reasoning"' not in thought
