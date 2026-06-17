@@ -1853,10 +1853,10 @@ requirements:
         # Wide workspace chat panes should not leave the right half blank. The
         # outer transcript card uses the available container width; prose line
         # length limits stay inside the markdown body/iframe for readability.
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_cards_fill_available_width"
-            observed_at: PENDING_SHA
+            observed_at: 139b4b3f
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."
