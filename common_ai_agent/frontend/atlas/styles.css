@@ -1816,7 +1816,9 @@ html[data-platform="windows"] .app {
 
 .feed-entry-agent,
 .feed-entry-user {
-  max-width: 92ch;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
 }
 .chat-transcript-entry {
   position: relative;
@@ -2780,7 +2782,7 @@ html[data-platform="windows"] .app {
   border-color: #d8e1ec;
 }
 [data-theme="light"] .feed-entry {
-  max-width: 82ch;
+  max-width: none;
 }
 [data-theme="light"] .feed-entry-agent {
   background: #ffffff;

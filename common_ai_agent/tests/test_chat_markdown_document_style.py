@@ -133,6 +133,23 @@ def test_chat_feed_uses_transcript_header_and_body_classes():
     assert "marginTop: 0" in frame_src
 
 
+def test_chat_transcript_cards_fill_available_width():
+    css = STYLES_CSS.read_text(encoding="utf-8")
+
+    entry_rule = css.split(".feed-entry-agent,\n.feed-entry-user {", 1)[1].split("}", 1)[0]
+    assert "width: 100%;" in entry_rule
+    assert "max-width: none;" in entry_rule
+    assert "box-sizing: border-box;" in entry_rule
+
+    # The card should fill the pane, but the prose surface can keep a readable
+    # measure inside the card/iframe.
+    body_rule = css.split(".chat-message-body {", 1)[1].split("}", 1)[0]
+    assert "max-width: 88ch;" in body_rule
+
+    light_feed_rule = css.split('[data-theme="light"] .feed-entry {', 1)[1].split("}", 1)[0]
+    assert "max-width: none;" in light_feed_rule
+
+
 def test_chat_transcript_role_labels_have_readable_line_box():
     css = STYLES_CSS.read_text(encoding="utf-8")
 
