@@ -1869,9 +1869,9 @@ requirements:
       - id: OBL_WORKSPACE_DISPLAY_PATH_SEPARATORS_CANONICAL_SLASH
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_windows_path_display_normalization.py::test_display_path_normalizer_covers_windows_and_font_separator_glyphs"
-            observed_at: PENDING_SHA
+            observed_at: b4303ae2
           - test: "tests/test_windows_path_display_normalization.py::test_git_commit_display_uses_path_normalizer"
-            observed_at: PENDING_SHA
+            observed_at: b4303ae2
