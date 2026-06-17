@@ -84,6 +84,10 @@ def test_tool_detail_iframe_autoheight_defers_resizeobserver_updates():
 def test_tool_detail_iframe_restores_diff_replacement_palette():
     frame = _source("workspace-tool-detail-frame.tsx")
 
+    assert "export const diffClassForLine" in frame
+    assert "export const renderedToolBodyHtml" in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+\\+/.test(line)) return 'add';" in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+-/.test(line)) return 'del';" in frame
     assert ".diff-line.add {" in frame
     assert "border-left-color: var(--tool-add);" in frame
     assert "background: color-mix(in oklch, var(--tool-add) 16%, transparent);" in frame
@@ -91,6 +95,15 @@ def test_tool_detail_iframe_restores_diff_replacement_palette():
     assert "border-left-color: var(--tool-del);" in frame
     assert "background: color-mix(in oklch, var(--tool-del) 16%, transparent);" in frame
     assert "white-space: pre;" in frame
+
+
+def test_tool_detail_iframe_tints_numbered_replacement_rows():
+    frame = _source("workspace-tool-detail-frame.tsx")
+
+    assert "diffClassForLine(line)" in frame
+    assert '<span class="diff-line ${diffClassForLine(line)}">' in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+\\+/.test(line)) return 'add';" in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+-/.test(line)) return 'del';" in frame
 
 
 def test_reasoning_coalesces_cumulative_snapshots():

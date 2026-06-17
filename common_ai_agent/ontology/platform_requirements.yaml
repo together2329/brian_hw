@@ -1838,6 +1838,15 @@ requirements:
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_stream_updates_single_live_card"
             observed_at: d7773ea5
+      - id: OBL_CHAT_TOOL_NUMBERED_REPLACEMENT_DIFF_TINT
+        owned_by: ui.workspace
+        granularity: behavior
+        # Update/replace tool output often includes line-number gutters before
+        # +/- markers; those rows still need add/remove tint inside the iframe.
+        status: open
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_tints_numbered_replacement_rows"
+            observed_at: PENDING_SHA
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."

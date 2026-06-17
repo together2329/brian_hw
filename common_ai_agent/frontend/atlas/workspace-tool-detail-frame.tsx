@@ -200,14 +200,16 @@ const clampToolText = (value: string, maxLines?: number): { text: string; hidden
   return { text: lines.slice(0, maxLines).join('\n'), hidden: lines.length - maxLines };
 };
 
-const diffClassForLine = (line: string): string => {
+export const diffClassForLine = (line: string): string => {
   if (/^(diff --git|index |@@|\+\+\+ |--- )/.test(line)) return 'meta';
+  if (/^\s*(?:\d+|[|>]*\s*\d+)\s+\+/.test(line)) return 'add';
+  if (/^\s*(?:\d+|[|>]*\s*\d+)\s+-/.test(line)) return 'del';
   if (line.startsWith('+')) return 'add';
   if (line.startsWith('-')) return 'del';
   return 'ctx';
 };
 
-const renderedToolBodyHtml = (
+export const renderedToolBodyHtml = (
   text: string,
   mode: ToolDetailFrameMode,
   truncated?: boolean,
