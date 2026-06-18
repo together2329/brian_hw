@@ -1649,14 +1649,14 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_highlights_edit_read_and_search_previews"
-            observed_at: 7142bd85
+            observed_at: eb16a506
       - id: OBL_WORKSPACE_TOOL_DEFAULT_PREVIEW_ONLY_WRITE_REPLACE
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_result_previews_default_only_for_write_and_replace"
-            observed_at: PENDING_SHA
+            observed_at: eb16a506
       - id: OBL_WORKSPACE_IFRAME_RESIZE_AND_REASONING_STABILITY
         owned_by: ui.workspace
         granularity: behavior
