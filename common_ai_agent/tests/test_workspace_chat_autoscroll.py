@@ -27,7 +27,7 @@ def test_oag_tool_card_shows_header_and_folds_details():
     assert "const isOagTool = toolName === 'oag';" in source
     assert "const displayArgs = isOagTool ? rawArgsText" in source
     assert "const showArgsExpanded = isOagTool || obsOpen" in source
-    assert "const defaultObsOpen = isOagTool\n    ? false" in source
+    assert "const defaultObsOpen = false;" in source
 
 
 def test_tool_detail_body_uses_iframe_surface():
@@ -114,7 +114,6 @@ def test_tool_detail_iframe_highlights_edit_read_and_search_previews():
 
     assert "if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;" in feed
     assert "if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;" in feed
-    assert "if (/^(read_file|read_lines|grep_file)$/i.test(t)) return 10;" in feed
     assert "hintText={hintText}" in feed
 
     assert "_toolOutputLanguage" in frame
@@ -129,6 +128,28 @@ def test_tool_detail_iframe_highlights_edit_read_and_search_previews():
     assert "highlightedToolCodeHtml(code, diffLang)" in frame
     assert ".token.string" in frame
     assert "Prism.plugins.autoloader.loadLanguages(language" in frame
+
+
+def test_tool_result_previews_default_only_for_write_and_replace():
+    frame = _source("workspace-tool-detail-frame.tsx")
+    feed = _source("workspace-feed-cards.tsx")
+
+    preview_fn = feed.split("export const _toolResultPreviewLines", 1)[1].split(
+        "export const _toolResultDefaultsClosed", 1
+    )[0]
+    assert "if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;" in preview_fn
+    assert "if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;" in preview_fn
+    assert "read_file|read_lines|grep_file" not in preview_fn
+    assert "run_command" not in preview_fn
+
+    standard = feed.split("export const _StandardToolCardRaw", 1)[1].split(
+        "export const StandardToolCard", 1
+    )[0]
+    assert "const defaultObsOpen = false;" in standard
+    assert "const headClickable = !!obs || argsIsLong" in standard
+    assert "obs && (isPreviewTool || obsOpen)" in standard
+
+    assert "if (/^run_command$/i.test(String(tool || ''))) return 'none';" in frame
 
 
 def test_reasoning_coalesces_cumulative_snapshots():

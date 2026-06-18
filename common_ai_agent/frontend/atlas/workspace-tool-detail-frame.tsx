@@ -287,6 +287,7 @@ export const highlightedToolCodeHtml = (code: unknown, lang: string): string => 
 };
 
 export const toolDetailLanguage = (tool: unknown, text: unknown, hintText = ''): string => {
+  if (/^run_command$/i.test(String(tool || ''))) return 'none';
   const body = String(text ?? '');
   const hint = String(hintText || '');
   const lang = _toolOutputLanguage(tool, `${hint}\n${body}`);

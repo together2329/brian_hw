@@ -114,8 +114,6 @@ export const _toolResultPreviewLines = (tool: unknown): number => {
   const t = String(tool || '').toLowerCase();
   if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;
   if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;
-  if (/^(read_file|read_lines|grep_file)$/i.test(t)) return 10;
-  if (/^run_command$/i.test(t)) return 4;
   return 0;
 };
 
@@ -584,16 +582,11 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const orchSummary = (isDispatchTool || isOagTool) ? '' : _orchToolArgsSummary(tool, rawArgsText);
   const displayArgs = isOagTool ? rawArgsText : (orchSummary || argsText);
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
-  // Tool results default to OPEN. The user needs to see the result/cost
-  // trail without hunting through collapsed cards; large bodies remain
-  // bounded by .tool-output-pre max-height.
-  const isReplaceTool = tool && _DIFF_RESULT_TOOL_RE.test(tool);
-  const defaultsClosed = _toolResultDefaultsClosed(tool);
   const previewLines = _toolResultPreviewLines(tool);
-  // Preview tools (write/replace/run_command) show a short N-line preview of
+  // Preview tools (write/replace only) show a short 10-line preview of
   // their output and expand to the FULL body on click — like Claude Code's
-  // "+N lines (expand)". The body is always visible; the chevron toggles
-  // preview ↔ full, not show ↔ hide.
+  // "+N lines (expand)". Other tools keep their result body folded until
+  // the user clicks the header.
   const isPreviewTool = previewLines > 0;
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
@@ -604,26 +597,13 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
-  // Read/search tools are useful as audit evidence but too noisy in chat.
-  // Keep them collapsed in summary mode; write/replace tools stay open with
-  // tool-specific line caps enforced by ObsCard.
-  // Read/search tools (read_file, read_lines, grep_file, find_files, list_dir)
-  // are audit noise in the chat flow — default them COLLAPSED always, even
-  // while the worker is live (entrySummaryMode passes summaryMode=false during
-  // a live turn, which previously forced them open). Expand on demand via ▸.
-  const defaultObsOpen = isOagTool
-    ? false
-    : defaultsClosed
-    ? false
-    : isPreviewTool
-    ? false
-    : (((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool);
+  const defaultObsOpen = false;
   const [obsOpen, setObsOpen] = useState<boolean>(defaultObsOpen);
   useEffect(() => {
     setObsOpen(defaultObsOpen);
   }, [defaultObsOpen]);
   const showArgsExpanded = isOagTool || obsOpen || showFullArgsByDefault;
-  const headClickable = (isOagTool && !!obs) || (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
+  const headClickable = !!obs || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
