@@ -88,7 +88,7 @@ requirements:
           맥락이 새 세션으로 섞인다.
         evidence:
           - test: "tests/test_api_sessions_content.py::test_activate_single_user_does_not_premark_chat_history_applied"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_UI_SESSION_PROXY_DOES_NOT_PREMARK_HISTORY_APPLIED
         owned_by: ui.tui
         granularity: behavior
@@ -100,7 +100,7 @@ requirements:
           새 세션으로 섞인다.
         evidence:
           - test: "tests/test_api_sessions_content.py::test_setup_session_proxy_does_not_premark_chat_history_applied"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_CHAT_LOOP_MARKS_HISTORY_APPLIED_AFTER_RELOAD
         owned_by: runtime.server
         granularity: behavior
@@ -111,7 +111,7 @@ requirements:
           적용 완료로 취급될 수 있다.
         evidence:
           - test: "tests/test_api_sessions_content.py::test_chat_loop_marks_session_applied_after_history_save"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_WS_HEALTHZ_PREFERS_FULL_SESSION_ROUTE
         owned_by: ui.tui
         granularity: behavior
@@ -122,11 +122,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_e2e_api.py::test_healthz_prefers_full_session_route_over_owner_query"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_e2e_api.py::test_legacy_conversation_uses_requested_full_session_without_recent_fallback"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_e2e_api.py::test_ws_agent_prefers_full_session_route_over_owner_query"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_SINGLE_USER_BRIDGE_PRESERVES_EXPLICIT_SESSION_ROUTE
         owned_by: runtime.multiuser
         granularity: behavior
@@ -138,7 +138,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_e2e_api.py::test_ws_agent_prefers_full_session_route_over_owner_query"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_SESSION_ACTIVATE_PRESERVES_EXISTING_RUNTIME_ROUTE
         owned_by: api.sessions
         granularity: behavior
@@ -150,7 +150,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_e2e_api.py::test_session_activate_preserves_existing_v2_runtime_route_without_ip_dir"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_FRONTEND_ROSTER_DOES_NOT_OVERRIDE_CONFIRMED_ROUTE
         owned_by: ui.workspace
         granularity: behavior
@@ -162,7 +162,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_frontend_responding_reconcile.py::test_frontend_roster_refresh_preserves_confirmed_session_route"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_SESSION_STATE_AUTHZ_ALLOWS_OWNED_FILE_NAMESPACE
         owned_by: api.sessions
         granularity: behavior
@@ -173,7 +173,7 @@ requirements:
           .session/<owner>/... file fallback.
         evidence:
           - test: "tests/test_e2e_api.py::test_session_state_keeps_file_fallback_for_namespace_sessions"
-            observed_at: a80018c3
+            observed_at: 468b869f
 
       # ── ATLAS-wide adversarial review (61-agent) cross-tenant authz holes ──
       # 196b4b53 닫음: 미게이트 엔드포인트 잔존(runtime.authz known_gap)을 구체화.
@@ -406,13 +406,13 @@ requirements:
         refuted_by: "operator_feedback_2026-06-19: orchestrator mode remains selectable/routable while the product should run single-worker only for now."
         evidence:
           - test: "tests/test_atlas_exec_policy.py::test_exec_mode_lock_is_env_driven_for_checked_in_profile"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_atlas_exec_policy.py::test_exec_policy_payload_and_env_application"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_atlas_exec_policy.py::test_repo_config_defaults_to_single_worker_profile"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_atlas_api_pipeline_state.py::test_pipeline_run_policy_get_post_and_state_payload"
-            observed_at: a80018c3
+            observed_at: 468b869f
 
   - id: REQ_PLAT_SCM_PERFORCE_SYNC_001
     claim: "Perforce Sync 탭의 checkout→edit→submit은 기존 depot 파일을 갱신하고, pending 목록에 쓰레기 changelist 를 남기지 않는다"
@@ -1643,14 +1643,14 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_frontend_responding_reconcile.py::test_frontend_responding_reconciles_ready_idle_worker_status"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_FRONTEND_COMPLETED_RUN_HYDRATES_PERSISTED_ASSISTANT
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_frontend_responding_reconcile.py::test_frontend_completed_run_hydrates_persisted_assistant_snapshot"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_WORKSPACE_AGENT_CARD_RUNTIME_AND_TIGHT_BODY
         owned_by: ui.workspace
         granularity: behavior
@@ -1660,7 +1660,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_frontend_responding_reconcile.py::test_frontend_completed_agent_cards_keep_runtime_metadata_and_tight_body"
-            observed_at: a80018c3
+            observed_at: 468b869f
 
   - id: REQ_PLAT_CONTEXT_VERBOSE_SYSTEM_PROMPT_001
     claim: "/context -v는 ATLAS 워커에게 실제로 전달된 system prompt를 요약/은닉하지 않고 표시한다 — OAG_MODE가 AGENTS.md와 .codex/rules를 static system prompt에 주입할 때 사용자는 어떤 규칙 때문에 에이전트가 움직이는지 같은 화면에서 감사할 수 있어야 한다."
@@ -1781,9 +1781,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_WORKSPACE_CONTENT_RESIZE_PRESERVES_SCROLL_PIN
         owned_by: ui.workspace
         granularity: behavior
@@ -1795,7 +1795,7 @@ requirements:
         refuted_by: "run_command tool detail resize path forced feedPinnedToBottomRef.current=true through requestFeedScrollToBottom"
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_resize_observer_does_not_force_scroll_pin"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_WORKSPACE_MARKDOWN_AND_COMMAND_USE_CHAT_WIDTH
         owned_by: ui.workspace
         granularity: behavior
@@ -1805,11 +1805,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_uses_available_transcript_width"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_workspace_chat_autoscroll.py::test_oag_tool_card_shows_header_and_folds_details"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_body_uses_iframe_surface"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_WORKSPACE_MARKDOWN_IFRAMES_TRACK_TEXT_SIZE
         owned_by: ui.workspace
         granularity: behavior
@@ -1819,9 +1819,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_iframe_tracks_workspace_text_size"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_tracks_workspace_text_size"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_WORKSPACE_IFRAME_RESIZE_AND_REASONING_STABILITY
         owned_by: ui.workspace
         granularity: behavior
@@ -1843,9 +1843,9 @@ requirements:
           the current iframe viewport instead of intrinsic content height.
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: a80018c3
+            observed_at: 468b869f
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_autoheight_defers_resizeobserver_updates"
-            observed_at: a80018c3
+            observed_at: 468b869f
       - id: OBL_FRONTEND_ERROR_REPORTER_IGNORES_RESIZEOBSERVER_NOTIFICATION
         owned_by: ui.workspace
         granularity: behavior
