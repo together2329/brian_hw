@@ -113,7 +113,8 @@ const _REPLACE_RESULT_TOOL_RE = /^(replace_in_file|replace_lines|replace_file_co
 export const _toolResultPreviewLines = (tool: unknown): number => {
   const t = String(tool || '').toLowerCase();
   if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;
-  if (_REPLACE_RESULT_TOOL_RE.test(t)) return 30;
+  if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;
+  if (/^(read_file|read_lines|grep_file)$/i.test(t)) return 10;
   if (/^run_command$/i.test(t)) return 4;
   return 0;
 };
@@ -132,7 +133,7 @@ export const _toolResultDefaultsClosed = (tool: unknown): boolean => (
 // Optional `embedded` prop: when true, render WITHOUT the outer
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
-export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride }: any) => {
+export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride, hintText = '' }: any) => {
   // Replace/edit tools default to OPEN even in summary mode so the user
   // can see the actual diff without an extra click. Other tools stay
   // collapsed in summary mode.
@@ -171,6 +172,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride 
       mode="markdown"
       tool={entry.tool}
       truncated={entry.truncated}
+      hintText={hintText}
     />
   );
   const useMarkdownResult = summaryMode && _isWorkflowResultTool(entry.tool);
@@ -233,6 +235,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride 
               tool={entry.tool}
               truncated={entry.truncated}
               maxLines={maxPreviewLines}
+              hintText={hintText}
             />
           ) : isGrepTool ? (
             <ToolDetailFrame
@@ -241,6 +244,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride 
               tool={entry.tool}
               truncated={entry.truncated}
               maxLines={maxPreviewLines}
+              hintText={hintText}
             />
           ) : (
             <ToolDetailFrame
@@ -249,6 +253,7 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride 
               tool={entry.tool}
               truncated={entry.truncated}
               maxLines={maxPreviewLines}
+              hintText={hintText}
             />
           )
         ) : (

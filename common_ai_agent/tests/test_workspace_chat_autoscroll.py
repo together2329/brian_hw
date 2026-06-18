@@ -101,9 +101,34 @@ def test_tool_detail_iframe_tints_numbered_replacement_rows():
     frame = _source("workspace-tool-detail-frame.tsx")
 
     assert "diffClassForLine(line)" in frame
-    assert '<span class="diff-line ${diffClassForLine(line)}">' in frame
+    assert 'const kind = diffClassForLine(line);' in frame
+    assert '<span class="diff-line ${kind}">' in frame
+    assert '<span class="diff-prefix">' in frame
     assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+\\+/.test(line)) return 'add';" in frame
     assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+-/.test(line)) return 'del';" in frame
+
+
+def test_tool_detail_iframe_highlights_edit_read_and_search_previews():
+    frame = _source("workspace-tool-detail-frame.tsx")
+    feed = _source("workspace-feed-cards.tsx")
+
+    assert "if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;" in feed
+    assert "if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;" in feed
+    assert "if (/^(read_file|read_lines|grep_file)$/i.test(t)) return 10;" in feed
+    assert "hintText={hintText}" in feed
+
+    assert "_toolOutputLanguage" in frame
+    assert "_highlightInlineCode" in frame
+    assert "_grepOutputRows" in frame
+    assert "export const highlightedToolCodeHtml" in frame
+    assert "export const toolDetailLanguage" in frame
+    assert "tool-detail-code" in frame
+    assert "language-${lang}" in frame
+    assert "_grepOutputRows(visibleText)" in frame
+    assert "highlightedToolCodeHtml(row.code, rowLang)" in frame
+    assert "highlightedToolCodeHtml(code, diffLang)" in frame
+    assert ".token.string" in frame
+    assert "Prism.plugins.autoloader.loadLanguages(language" in frame
 
 
 def test_reasoning_coalesces_cumulative_snapshots():

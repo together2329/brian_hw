@@ -6,6 +6,9 @@ import {
   _markdownHtml,
   _normalizeDisplayedToolPaths,
   _postProcessMarkdownNode,
+  _grepOutputRows,
+  _highlightInlineCode,
+  _toolOutputLanguage,
 } from './workspace-markdown-chips';
 
 export type ToolDetailFrameMode = 'text' | 'diff' | 'grep' | 'markdown';
@@ -17,6 +20,7 @@ export interface ToolDetailFrameProps {
   truncated?: boolean;
   maxLines?: number;
   title?: string;
+  hintText?: string;
 }
 
 const TOOL_DETAIL_FRAME_CSS = `
@@ -78,6 +82,42 @@ const TOOL_DETAIL_FRAME_CSS = `
     white-space: pre;
   }
   .tool-detail-pre.tool-detail-grep { white-space: pre-wrap; word-break: break-word; }
+  .tool-detail-code code,
+  .tool-detail-diff code,
+  .tool-detail-grep code {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+  .tool-detail-grep {
+    display: block;
+  }
+  .grep-line {
+    display: block;
+    min-height: 1.52em;
+    white-space: pre-wrap;
+  }
+  .grep-match {
+    background: color-mix(in oklch, var(--tool-accent) 12%, transparent);
+  }
+  .grep-prefix {
+    display: inline-block;
+    min-width: 3.25rem;
+    padding-right: .42rem;
+    color: var(--tool-muted);
+    text-align: right;
+    user-select: none;
+  }
+  .grep-file {
+    color: var(--tool-meta);
+  }
+  .grep-sep {
+    padding-right: .5rem;
+    color: var(--tool-muted);
+    user-select: none;
+  }
   .diff-line {
     display: block;
     min-height: 1.52em;
@@ -97,6 +137,10 @@ const TOOL_DETAIL_FRAME_CSS = `
   }
   .diff-line.meta { color: var(--tool-meta); }
   .diff-line.ctx { color: var(--tool-fg); }
+  .diff-prefix {
+    color: var(--tool-muted);
+    user-select: none;
+  }
   .tool-detail-muted {
     margin-top: .45rem;
     color: var(--tool-muted);
@@ -179,6 +223,37 @@ const TOOL_DETAIL_FRAME_CSS = `
     background: var(--tool-panel-2);
     color: var(--tool-muted);
   }
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata { color: #7d8590; }
+  .token.punctuation { color: #c9d1d9; }
+  .token.property,
+  .token.tag,
+  .token.boolean,
+  .token.number,
+  .token.constant,
+  .token.symbol,
+  .token.deleted { color: #ff8a8a; }
+  .token.selector,
+  .token.attr-name,
+  .token.string,
+  .token.char,
+  .token.builtin,
+  .token.inserted { color: #9be28f; }
+  .token.operator,
+  .token.entity,
+  .token.url,
+  .language-css .token.string,
+  .style .token.string { color: #80d8ff; }
+  .token.atrule,
+  .token.attr-value,
+  .token.keyword { color: #d2a8ff; }
+  .token.function,
+  .token.class-name { color: #ffd166; }
+  .token.regex,
+  .token.important,
+  .token.variable { color: #ffa657; }
 `;
 
 const toolDetailTheme = (): string => {
@@ -201,6 +276,23 @@ const clampToolText = (value: string, maxLines?: number): { text: string; hidden
   return { text: lines.slice(0, maxLines).join('\n'), hidden: lines.length - maxLines };
 };
 
+const safeLanguageClass = (lang: string): string => (
+  /^[a-z0-9_-]{1,40}$/i.test(lang) ? lang : 'none'
+);
+
+export const highlightedToolCodeHtml = (code: unknown, lang: string): string => {
+  const safeLang = safeLanguageClass(lang);
+  if (!safeLang || safeLang === 'none') return escapeHtml(code);
+  return _highlightInlineCode(String(code ?? ''), safeLang);
+};
+
+export const toolDetailLanguage = (tool: unknown, text: unknown, hintText = ''): string => {
+  const body = String(text ?? '');
+  const hint = String(hintText || '');
+  const lang = _toolOutputLanguage(tool, `${hint}\n${body}`);
+  return safeLanguageClass(lang);
+};
+
 export const diffClassForLine = (line: string): string => {
   if (/^(diff --git|index |@@|\+\+\+ |--- )/.test(line)) return 'meta';
   if (/^\s*(?:\d+|[|>]*\s*\d+)\s+\+/.test(line)) return 'add';
@@ -215,8 +307,13 @@ export const renderedToolBodyHtml = (
   mode: ToolDetailFrameMode,
   truncated?: boolean,
   maxLines?: number,
+  tool?: unknown,
+  hintText = '',
+  languageOverride = '',
 ): string => {
   const { text: visibleText, hidden } = clampToolText(stripAnsi(_normalizeDisplayedToolPaths(text)), maxLines);
+  const lang = safeLanguageClass(languageOverride || toolDetailLanguage(tool, visibleText, hintText));
+  const codeClass = lang && lang !== 'none' ? `language-${lang}` : 'language-none';
   const footer = [
     hidden > 0 ? `${hidden} more line${hidden === 1 ? '' : 's'} hidden; expand for full output` : '',
     truncated ? '...[truncated]' : '',
@@ -226,13 +323,42 @@ export const renderedToolBodyHtml = (
     return `<section class="md-agent tool-detail-markdown">${_markdownHtml(visibleText)}</section>${footer}`;
   }
   if (mode === 'diff') {
+    const codeOnly = visibleText.split('\n').map((line) => (
+      line.replace(/^\s*(?:\d+|[|>]*\s*\d+)\s+[ +-]/, '')
+        .replace(/^[+-]/, '')
+    )).join('\n');
+    const diffLang = safeLanguageClass(languageOverride || toolDetailLanguage(tool, codeOnly, hintText || visibleText));
+    const diffCodeClass = diffLang && diffLang !== 'none' ? `language-${diffLang}` : 'language-none';
     const rows = visibleText.split('\n')
-      .map(line => `<span class="diff-line ${diffClassForLine(line)}">${escapeHtml(line) || ' '}</span>`)
+      .map((line) => {
+        const kind = diffClassForLine(line);
+        if (kind === 'meta') {
+          return `<span class="diff-line ${kind}">${escapeHtml(line) || ' '}</span>`;
+        }
+        const match = line.match(/^(\s*(?:\d+|[|>]*\s*\d+)\s+)([ +-])(.*)$/);
+        const bare = !match ? line.match(/^([+-])(.*)$/) : null;
+        const prefix = match ? `${match[1]}${match[2]}` : (bare ? bare[1] : '');
+        const code = match ? match[3] : (bare ? bare[2] : line);
+        return `<span class="diff-line ${kind}"><span class="diff-prefix">${escapeHtml(prefix)}</span><code class="${diffCodeClass}">${highlightedToolCodeHtml(code, diffLang) || ' '}</code></span>`;
+      })
       .join('');
-    return `<pre class="tool-detail-pre tool-detail-diff">${rows}</pre>${footer}`;
+    return `<pre class="tool-detail-pre tool-detail-diff ${diffCodeClass}">${rows}</pre>${footer}`;
   }
-  const preClass = mode === 'grep' ? 'tool-detail-pre tool-detail-grep' : 'tool-detail-pre';
-  return `<pre class="${preClass}">${escapeHtml(visibleText)}</pre>${footer}`;
+  if (mode === 'grep') {
+    const rows = _grepOutputRows(visibleText)
+      .map((row) => {
+        if (!row.lineNumber) {
+          return `<span class="grep-line grep-${row.kind}">${escapeHtml(row.text) || ' '}</span>`;
+        }
+        const rowLang = safeLanguageClass(toolDetailLanguage(tool, row.code, row.file || hintText || visibleText));
+        const rowCodeClass = rowLang && rowLang !== 'none' ? `language-${rowLang}` : 'language-none';
+        const file = row.file ? `<span class="grep-file">${escapeHtml(row.file)}</span><span class="grep-sep">:</span>` : '';
+        return `<span class="grep-line grep-${row.kind}">${file}<span class="grep-prefix">${escapeHtml(row.lineNumber)}</span><span class="grep-sep">|</span><code class="${rowCodeClass}">${highlightedToolCodeHtml(row.code, rowLang) || ' '}</code></span>`;
+      })
+      .join('');
+    return `<pre class="tool-detail-pre tool-detail-grep">${rows}</pre>${footer}`;
+  }
+  return `<pre class="tool-detail-pre tool-detail-code ${codeClass}"><code class="${codeClass}">${highlightedToolCodeHtml(visibleText, lang)}</code></pre>${footer}`;
 };
 
 export const ToolDetailFrame = ({
@@ -242,17 +368,34 @@ export const ToolDetailFrame = ({
   truncated = false,
   maxLines,
   title,
+  hintText = '',
 }: ToolDetailFrameProps): ReactNode => {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const pendingMeasureFrameRef = useRef<number | null>(null);
   const [height, setHeight] = useState(42);
   const [theme, setTheme] = useState(toolDetailTheme);
+  const [grammarTick, setGrammarTick] = useState(0);
   const normalizedMode = mode === 'markdown' || mode === 'diff' || mode === 'grep' ? mode : 'text';
-  const bodyHtml = useMemo(
-    () => renderedToolBodyHtml(String(text ?? ''), normalizedMode, truncated, maxLines),
-    [text, normalizedMode, truncated, maxLines],
+  const language = useMemo(
+    () => toolDetailLanguage(tool, text, hintText),
+    [tool, text, hintText],
   );
+  const bodyHtml = useMemo(
+    () => renderedToolBodyHtml(String(text ?? ''), normalizedMode, truncated, maxLines, tool, hintText, language),
+    [text, normalizedMode, truncated, maxLines, tool, hintText, language, grammarTick],
+  );
+
+  useEffect(() => {
+    const Prism = window.Prism;
+    if (!Prism || !language || language === 'none' || (Prism.languages && Prism.languages[language])) return undefined;
+    if (Prism.plugins && Prism.plugins.autoloader && Prism.plugins.autoloader.loadLanguages) {
+      try {
+        Prism.plugins.autoloader.loadLanguages(language, () => setGrammarTick((tick: number) => tick + 1));
+      } catch (_) {}
+    }
+    return undefined;
+  }, [language, text, hintText]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;

@@ -1643,6 +1643,13 @@ requirements:
             observed_at: b4303ae2
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_iframe_keeps_header_and_fold_control_outside"
             observed_at: b4303ae2
+      - id: OBL_WORKSPACE_TOOL_DETAILS_HIGHLIGHT_CODE_PREVIEWS
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_highlights_edit_read_and_search_previews"
+            observed_at: PENDING_SHA
       - id: OBL_WORKSPACE_IFRAME_RESIZE_AND_REASONING_STABILITY
         owned_by: ui.workspace
         granularity: behavior
