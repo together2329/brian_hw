@@ -612,7 +612,16 @@ export function createDataLoaders(deps: DataLoaderDeps): DataLoaders {
       const activeParts = activeSession.split('/').filter(Boolean);
       const activeWorkspaceSession = activeParts.length >= 4 ? activeParts[1] : '';
       const healthParams = new URLSearchParams();
-      if (activeSession) healthParams.set('session_id', activeSession);
+      if (activeSession) {
+        if (activeParts.length >= 3) {
+          healthParams.set('session', activeSession);
+          if (activeParts[0]) healthParams.set('session_id', activeParts[0]);
+          if (activeParts[activeParts.length - 2]) healthParams.set('ip', activeParts[activeParts.length - 2]);
+          if (activeParts[activeParts.length - 1]) healthParams.set('workflow', activeParts[activeParts.length - 1]);
+        } else {
+          healthParams.set('session_id', activeSession);
+        }
+      }
       if (activeWorkspaceSession) healthParams.set('workspace_session', activeWorkspaceSession);
       const healthQuery = healthParams.toString();
       const healthUrl = healthQuery ? `/healthz?${healthQuery}` : '/healthz';

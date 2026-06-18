@@ -18,9 +18,17 @@ export function normalizeExecMode(value, fallback = EXEC_MODE_SINGLE) {
 
 export function policyFromBootConfig(config = {}) {
   const policy = config.exec_policy || config.policy || {};
-  const mode = normalizeExecMode(policy.exec_mode || config.exec_mode, EXEC_MODE_SINGLE);
+  const locked = !!policy.locked;
+  const mode = locked
+    ? EXEC_MODE_SINGLE
+    : normalizeExecMode(policy.exec_mode || config.exec_mode, EXEC_MODE_SINGLE);
+  const availableExecModes = Array.isArray(policy.available_exec_modes)
+    ? policy.available_exec_modes.map(v => normalizeExecMode(v, '')).filter(Boolean)
+    : (locked ? [EXEC_MODE_SINGLE] : EXEC_MODES.slice());
   return {
     exec_mode: mode,
+    locked,
+    available_exec_modes: availableExecModes.length ? availableExecModes : [EXEC_MODE_SINGLE],
     initial_workflow: policy.initial_workflow || (mode === EXEC_MODE_ORCHESTRATOR ? 'orchestrator' : 'default'),
     worker_strategy: policy.worker_strategy || (mode === EXEC_MODE_ORCHESTRATOR ? 'workflow-workers' : 'single-main-loop'),
     single_worker_url: policy.single_worker_url || 'http://127.0.0.1:5601',

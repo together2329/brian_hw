@@ -22,6 +22,49 @@ import { stripScopeDirective } from './workspace-session-routing';
 
 const w = window as any;
 
+const firstRuntimeText = (...values: any[]): string => {
+  for (const value of values) {
+    const text = String(value ?? '').trim();
+    if (text && text !== '—') return text;
+  }
+  return '';
+};
+
+export function runtimeMetaFromConversationMessage(message: any): any {
+  const runtime = (message && message.runtime) || {};
+  const tokens = (message && message._tokens) || {};
+  const context = (w && w.CONTEXT) || {};
+  const model = firstRuntimeText(
+    message?.model,
+    message?.active_model,
+    message?.activeModel,
+    message?.runtime_model,
+    runtime.model,
+    runtime.active_model,
+    tokens.model,
+    context.model,
+    context.activeModel,
+    context.baseModel,
+  );
+  const reasoningEffort = firstRuntimeText(
+    message?.reasoning_effort,
+    message?.reasoningEffort,
+    message?.effort,
+    runtime.reasoning_effort,
+    runtime.reasoningEffort,
+    runtime.effort,
+    tokens.reasoning_effort,
+    tokens.reasoningEffort,
+    context.reasoning_effort,
+    context.reasoningEffort,
+    context.effort,
+  );
+  return {
+    ...(model ? { model } : {}),
+    ...(reasoningEffort ? { reasoningEffort } : {}),
+  };
+}
+
 /**
  * Map a conversation.json message list into chat feed entries. Pure: depends
  * only on `msgs`, the resolved `session` label (for the turn_end marker), the
@@ -39,7 +82,7 @@ export function conversationFeedFromMessages(msgs: any[], session: string): any[
       newFeed.push({ kind: 'user', text: stripScopeDirective(content) });
     } else if (role === 'assistant') {
       if (content && content.trim()) {
-        newFeed.push({ kind: 'agent', text: content });
+        newFeed.push({ kind: 'agent', text: content, ...runtimeMetaFromConversationMessage(m) });
       }
       if (Array.isArray(m.tool_calls)) {
         for (const tc of m.tool_calls) {

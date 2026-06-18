@@ -152,11 +152,20 @@ units:
     kind: ui
     summary: 웹 프론트엔드 워크스페이스 (tsx)
     owns:
+      - frontend/atlas/agent-status-panel.tsx
       - frontend/atlas/admin.html
+      - frontend/atlas/app-boot-hook.tsx
+      - frontend/atlas/app-session-hook.tsx
+      - frontend/atlas/backend.js
+      - frontend/atlas/data-loaders.tsx
       - frontend/atlas/index.vite.html
       - frontend/atlas/lobby.vite.html
       - frontend/atlas/preview.html
+      - frontend/atlas/styles.css
       - frontend/atlas/workspace-chat-markdown-frame.tsx
+      - frontend/atlas/workspace-feed-cards.tsx
+      - frontend/atlas/workspace-root-data-hook.tsx
+      - frontend/atlas/workspace-rootdata-feed-completion.tsx
       - frontend/atlas/workspace-tool-detail-frame.tsx
       - frontend/atlas/workspace-tool-theme.tsx
       # 나머지 frontend는 scope 밖 — e2e 증거로만 추적 (1차)

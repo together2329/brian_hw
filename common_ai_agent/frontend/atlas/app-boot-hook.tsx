@@ -23,9 +23,20 @@ function healthzCostUrl(): string {
     })()
     || ''
   ).trim().replace(/^\/+|\/+$/g, '');
-  return activeSession
-    ? `/healthz?cost=0&session_id=${encodeURIComponent(activeSession)}`
-    : '/healthz?cost=0';
+  const params = new URLSearchParams({ cost: '0' });
+  if (activeSession) {
+    const parts = activeSession.split('/').filter(Boolean);
+    if (parts.length >= 3) {
+      params.set('session', activeSession);
+      if (parts[0]) params.set('session_id', parts[0]);
+      if (parts.length >= 4 && parts[1]) params.set('workspace_session', parts[1]);
+      if (parts[parts.length - 2]) params.set('ip', parts[parts.length - 2]);
+      if (parts[parts.length - 1]) params.set('workflow', parts[parts.length - 1]);
+    } else {
+      params.set('session_id', activeSession);
+    }
+  }
+  return `/healthz?${params.toString()}`;
 }
 
 export interface AtlasBoot {

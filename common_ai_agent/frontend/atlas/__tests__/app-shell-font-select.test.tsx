@@ -10,7 +10,7 @@ type RenderResult = {
   policyCalls: Array<[string, string]>;
 };
 
-function renderShell(initialFontMode = 'mono'): RenderResult {
+function renderShell(initialFontMode = 'mono', ShellComponent = AppShell): RenderResult {
   const calls: string[] = [];
   const policyCalls: Array<[string, string]> = [];
   const noop = vi.fn();
@@ -23,7 +23,7 @@ function renderShell(initialFontMode = 'mono'): RenderResult {
     };
 
     return (
-      <AppShell
+      <ShellComponent
         dir="B"
         theme="dark"
         setTheme={noop}
@@ -88,6 +88,7 @@ describe('AppShell font selector', () => {
     localStorage.clear();
     (window as any).Workspace = () => null;
     (window as any).ATLAS_USER = undefined;
+    delete (window as any).ATLAS_BOOT_CONFIG;
   });
 
   afterEach(() => {
@@ -133,6 +134,28 @@ describe('AppShell font selector', () => {
     fireEvent.change(select, { target: { value: 'orchestrator' } });
 
     expect(policyCalls).toContainEqual(['engineering', 'orchestrator']);
+  });
+
+  it('locks the execution picker to single-worker when boot policy disables orchestrator', async () => {
+    cleanup();
+    vi.resetModules();
+    (window as any).ATLAS_BOOT_CONFIG = {
+      exec_policy: {
+        exec_mode: 'single-worker',
+        locked: true,
+        available_exec_modes: ['single-worker'],
+      },
+    };
+    const { AppShell: LockedAppShell } = await import('../app-shell');
+
+    const { policyCalls } = renderShell('mono', LockedAppShell);
+    const select = screen.getByTitle('Exec Mode is locked to Single Worker') as HTMLSelectElement;
+
+    expect(select).toBeDisabled();
+    expect([...select.options].map(option => option.value)).toEqual(['single-worker']);
+
+    fireEvent.change(select, { target: { value: 'orchestrator' } });
+    expect(policyCalls).toEqual([]);
   });
 });
 

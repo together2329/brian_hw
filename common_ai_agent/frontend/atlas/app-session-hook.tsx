@@ -214,7 +214,33 @@ export function useAtlasSessionSync(deps: AtlasSessionSyncDeps): {
       }
     }
     let parsedLive = splitSessionNamespace(liveNamespace);
-    if (liveNamespace && !ipAllowedForCurrentUser(parsedLive.ipId)) {
+    const initialUrlStillOwnsLiveRoute = !!(
+      liveNamespace &&
+      normalizeSession(initialUrlNamespaceRef.current || '') === liveNamespace
+    );
+    const healthzConfirmsLiveRoute = (() => {
+      if (!liveNamespace) return false;
+      try {
+        const ctx = window.CONTEXT || {};
+        const ctxSession = normalizeSession(ctx.active_session || ctx.activeSession || '');
+        if (!ctxSession || ctxSession !== liveNamespace) return false;
+        const ctxIp = normalizeSession(ctx.active_ip || ctx.activeIp || '');
+        const ctxWorkflow = normalizeSession(
+          ctx.active_workflow || ctx.activeWorkflow || ctx.workspace || ''
+        );
+        const liveIp = parsedLive.ipId === 'soc' ? WORKFLOW_DEFAULT : (parsedLive.ipId || WORKFLOW_DEFAULT);
+        const liveWorkflow = parsedLive.workflow || WORKFLOW_DEFAULT;
+        return (!ctxIp || ctxIp === liveIp) && (!ctxWorkflow || ctxWorkflow === liveWorkflow);
+      } catch (_) {
+        return false;
+      }
+    })();
+    if (
+      liveNamespace &&
+      !ipAllowedForCurrentUser(parsedLive.ipId) &&
+      !initialUrlStillOwnsLiveRoute &&
+      !healthzConfirmsLiveRoute
+    ) {
       const owner = currentUserSession || parsedLive.sessionId || 'default';
       const wf = parsedLive.workflow || currentWorkflow() || WORKFLOW_DEFAULT;
       liveNamespace = namespaceFor(owner, WORKFLOW_DEFAULT, wf);

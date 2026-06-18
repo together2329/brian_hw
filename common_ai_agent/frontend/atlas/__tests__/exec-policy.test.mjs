@@ -30,6 +30,18 @@ describe('Atlas exec policy helper', () => {
     });
     expect(initialWorkflow(orchestrator)).toBe('orchestrator');
     expect(preserveRunning(orchestrator)).toBe(true);
+
+    const locked = policyFromBootConfig({
+      exec_mode: 'orchestrator',
+      exec_policy: {
+        locked: true,
+        available_exec_modes: ['single-worker'],
+      },
+    });
+    expect(locked.exec_mode).toBe('single-worker');
+    expect(locked.locked).toBe(true);
+    expect(locked.available_exec_modes).toEqual(['single-worker']);
+    expect(initialWorkflow(locked)).toBe('default');
   });
 
   it('merges run-policy responses into boot config', () => {

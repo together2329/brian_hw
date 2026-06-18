@@ -43,9 +43,9 @@ from fastapi.responses import JSONResponse
 from core.atlas_exec_policy import (
     EXEC_MODE_ORCHESTRATOR,
     EXEC_MODE_SINGLE,
-    EXEC_MODES,
     SINGLE_WORKER_URL,
     apply_exec_mode_env,
+    available_exec_modes,
     current_exec_mode,
     exec_policy_payload,
     normalize_exec_mode,
@@ -424,7 +424,6 @@ def _junit_counts(results_xml: Path) -> tuple[int, int, int]:
         )
     return tests, failures, errors
 _RUN_MODES = ("starter", "engineering", "signoff")
-_EXEC_MODES = EXEC_MODES
 _WORKER_MODEL_DEFAULTS = {
     "orchestrator": "gpt-5.5",
     "ssot-gen": "gpt-5.5",
@@ -8513,7 +8512,7 @@ def register_jobs_routes(
             "exec_mode": exec_mode,
             "orchestrator_enabled": exec_mode == EXEC_MODE_ORCHESTRATOR,
             "run_modes": list(_RUN_MODES),
-            "exec_modes": list(_EXEC_MODES),
+            "exec_modes": list(available_exec_modes(os.environ)),
             "policy": policy,
             "initial_workflow": policy["initial_workflow"],
             "dispatch_schedule": policy["dispatch_schedule"],

@@ -329,43 +329,62 @@ def register_sessions_routes(
             )
         else:
             context = AtlasContext.from_session_key(f"{sid}/{ip}/{wf}", atlas_root=project_root())
+
+        def _existing_runtime_route(ctx: AtlasContext) -> bool:
+            """Return true when the canonical runtime session already exists.
+
+            The phantom-IP guard below prevents stale URLs from minting a new
+            IP namespace.  A runtime session directory that already exists is
+            different: healthz/conversation can legitimately resolve it from a
+            browser URL before activate runs, and collapsing it to default here
+            splits the UI route from the worker/status route.
+            """
+            try:
+                return ctx.session_dir.is_dir()
+            except Exception:
+                return False
+
         # [phantom-ip-disk-guard] Validate the requested IP against THIS session's
         # workspace root, not the bare project root. IPs created via /api/ip/create
         # live under context.workspace_root (<atlas_root>/<user>/<session>/<ip>), so
         # a project_root()/ip check would wrongly miss them and fall back. Accept
-        # either the workspace-nested layout (context.ip_root) or a legacy bare-root
-        # IP (<atlas_root>/<ip>); only a genuinely absent IP falls back to default.
+        # the workspace-nested layout (context.ip_root), an existing canonical
+        # runtime route (.session/<ip>/<workflow>), or a legacy bare-root IP
+        # (<atlas_root>/<ip>); only a genuinely absent IP falls back to default.
         if ip != "default" and not multi_user_on:
             try:
                 if not context.ip_root.is_dir():
-                    bare = AtlasContext.from_session_key(
-                        f"{sid}/{ip}/{wf}", atlas_root=project_root()
-                    )
-                    if bare.ip_root.is_dir():
-                        # IP physically lives at the legacy bare root — adopt it.
-                        context = bare
+                    if _existing_runtime_route(context):
+                        pass
                     else:
-                        print(
-                            f"[Session] activate: IP {ip!r} not found on disk under "
-                            f"{context.workspace_root} or {project_root()} — falling "
-                            f"back to default/default (was workflow={wf!r})",
-                            flush=True,
+                        bare = AtlasContext.from_session_key(
+                            f"{sid}/{ip}/{wf}", atlas_root=project_root()
                         )
-                        ip = "default"
-                        wf = "default"
-                        context = (
-                            AtlasContext(
-                                user_name=sid,
-                                workspace_session=workspace_session,
-                                ip_name=ip,
-                                workflow=wf,
-                                atlas_root=atlas_root,
+                        if bare.ip_root.is_dir() or _existing_runtime_route(bare):
+                            # IP/session physically lives at the legacy bare root.
+                            context = bare
+                        else:
+                            print(
+                                f"[Session] activate: IP {ip!r} not found on disk under "
+                                f"{context.workspace_root} or {project_root()} — falling "
+                                f"back to default/default (was workflow={wf!r})",
+                                flush=True,
                             )
-                            if workspace_session
-                            else AtlasContext.from_session_key(
-                                f"{sid}/{ip}/{wf}", atlas_root=project_root()
+                            ip = "default"
+                            wf = "default"
+                            context = (
+                                AtlasContext(
+                                    user_name=sid,
+                                    workspace_session=workspace_session,
+                                    ip_name=ip,
+                                    workflow=wf,
+                                    atlas_root=atlas_root,
+                                )
+                                if workspace_session
+                                else AtlasContext.from_session_key(
+                                    f"{sid}/{ip}/{wf}", atlas_root=project_root()
+                                )
                             )
-                        )
             except Exception:
                 pass
         canonical = context.active_session_key
@@ -415,7 +434,8 @@ def register_sessions_routes(
                     own_ssot = own_yaml.is_dir() and any(own_yaml.glob("*.ssot.yaml"))
                 except OSError:
                     own_ssot = False
-                owned = in_catalog or own_ssot or already_owned
+                existing_runtime_route = _existing_runtime_route(context)
+                owned = in_catalog or own_ssot or already_owned or existing_runtime_route
                 if multi_user_on:
                     # FAIL CLOSED: not owned and not an explicit create → don't
                     # materialize; collapse to default so no ghost is minted.
@@ -427,7 +447,7 @@ def register_sessions_routes(
                     # cross-owner phantom risk). An IP that exists under the session's
                     # own workspace is yours even if it predates the catalog (e.g.
                     # created before catalog registration / by a different surface).
-                    downgrade = not context.ip_root.is_dir()
+                    downgrade = not (context.ip_root.is_dir() or existing_runtime_route)
                 if downgrade:
                     print(
                         f"[Session] activate: IP {ip!r} not owned by {sid!r} and "
@@ -587,7 +607,6 @@ def register_sessions_routes(
             if setup_session is not None:
                 try:
                     setup_session(canonical)
-                    os.environ["ATLAS_SESSION_APPLIED"] = canonical
                 except Exception as exc:
                     print(f"[Session] activate→setup_session({canonical!r}) failed: {exc}",
                           flush=True)
@@ -1386,6 +1405,12 @@ def register_sessions_routes(
                 if existing is not None and existing.get("user_id") != user_id:
                     return JSONResponse({"error": "session owner mismatch"}, status_code=403)
                 if existing is None:
+                    try:
+                        sdir, _display_base = _session_dir_for_namespace(session)
+                    except Exception:
+                        sdir = None
+                    if namespace_owner and namespace_owner == owner and sdir is not None and sdir.is_dir():
+                        return None
                     # No DB row at all: this is a read endpoint and no session has
                     # been persisted for this namespace yet.  Namespace-prefix
                     # matching alone is not sufficient proof of ownership — deny

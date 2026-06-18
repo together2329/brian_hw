@@ -729,6 +729,7 @@ def test_orchestrator_mode_post_toggles_env_and_state_payload(
     monkeypatch.delenv("ATLAS_EXEC_MODE", raising=False)
     monkeypatch.delenv("ATLAS_DEFAULT_EXEC_MODE", raising=False)
     monkeypatch.setenv("ATLAS_SINGLE_MAIN_LOOP", "1")
+    monkeypatch.setenv("ATLAS_EXEC_MODE_LOCK", "1")
     ip = "toggle_ip"
     (tmp_path / ip).mkdir()
     client = _make_client(tmp_path, monkeypatch)
@@ -796,7 +797,10 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     assert base.status_code == 200
     assert base.json()["run_mode"] == "engineering"
     assert base.json()["exec_mode"] == "single-worker"
+    assert base.json()["exec_modes"] == ["single-worker"]
+    assert base.json()["orchestrator_enabled"] is False
     assert base.json()["initial_workflow"] == "default"
+    assert base.json()["policy"]["locked"] is True
     assert base.json()["policy"]["worker_strategy"] == "single-main-loop"
 
     r = client.post("/api/pipeline/run_policy", json={
@@ -805,25 +809,27 @@ def test_pipeline_run_policy_get_post_and_state_payload(tmp_path: Path, monkeypa
     })
     assert r.status_code == 200, r.text
     assert r.json()["run_mode"] == "starter"
-    assert r.json()["exec_mode"] == "orchestrator"
-    assert r.json()["initial_workflow"] == "orchestrator"
-    assert r.json()["policy"]["preserve_running_on_workflow_switch"] is True
+    assert r.json()["exec_mode"] == "single-worker"
+    assert r.json()["exec_modes"] == ["single-worker"]
+    assert r.json()["initial_workflow"] == "default"
+    assert r.json()["policy"]["locked"] is True
+    assert r.json()["policy"]["preserve_running_on_workflow_switch"] is False
     assert os.environ.get("ATLAS_RUN_MODE") == "starter"
-    assert os.environ.get("ATLAS_EXEC_MODE") == "orchestrator"
-    assert os.environ.get("ATLAS_DEFAULT_EXEC_MODE") == "orchestrator"
-    assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "1"
-    assert os.environ.get("ATLAS_SINGLE_MAIN_LOOP") == "0"
+    assert os.environ.get("ATLAS_EXEC_MODE") == "single-worker"
+    assert os.environ.get("ATLAS_DEFAULT_EXEC_MODE") == "single-worker"
+    assert os.environ.get("ATLAS_ORCHESTRATOR_MODE") == "0"
+    assert os.environ.get("ATLAS_SINGLE_MAIN_LOOP") == "1"
     saved_config = (tmp_path / ".config").read_text(encoding="utf-8")
     assert "ATLAS_RUN_MODE=starter" in saved_config
-    assert "ATLAS_EXEC_MODE=orchestrator" in saved_config
-    assert "ATLAS_DEFAULT_EXEC_MODE=orchestrator" in saved_config
-    assert "ATLAS_SINGLE_MAIN_LOOP=0" in saved_config
+    assert "ATLAS_EXEC_MODE=single-worker" in saved_config
+    assert "ATLAS_DEFAULT_EXEC_MODE=single-worker" in saved_config
+    assert "ATLAS_SINGLE_MAIN_LOOP=1" in saved_config
 
     state = client.get(f"/api/pipeline/state?ip={ip}").json()
     assert state["run_mode"] == "starter"
-    assert state["exec_mode"] == "orchestrator"
+    assert state["exec_mode"] == "single-worker"
     assert state["policy"]["run_mode"] == "starter"
-    assert state["policy"]["exec_mode"] == "orchestrator"
+    assert state["policy"]["exec_mode"] == "single-worker"
 
     bad = client.post("/api/pipeline/run_policy", json={"run_mode": "tiny"})
     assert bad.status_code == 400

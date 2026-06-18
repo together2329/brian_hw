@@ -38,6 +38,10 @@ const TOOL_DETAIL_FRAME_CSS = `
     --tool-meta: #9fb8ff;
     --tool-code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     --tool-body-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --tool-body-font-size: 12px;
+    --tool-markdown-font-size: 13px;
+    --tool-code-font-size: 11.5px;
+    --tool-markdown-line-height: 1.62;
   }
   html[data-theme="light"] {
     color-scheme: light;
@@ -53,11 +57,11 @@ const TOOL_DETAIL_FRAME_CSS = `
     --tool-meta: #2451a6;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: var(--tool-bg); }
+  html, body { margin: 0; height: auto; min-height: 0; background: var(--tool-bg); }
   body {
     color: var(--tool-fg);
     font-family: var(--tool-body-font);
-    font-size: 12px;
+    font-size: var(--tool-body-font-size);
     line-height: 1.55;
     overflow: hidden;
   }
@@ -77,7 +81,7 @@ const TOOL_DETAIL_FRAME_CSS = `
     background: var(--tool-panel);
     color: var(--tool-fg);
     font-family: var(--tool-code-font);
-    font-size: 11.5px;
+    font-size: var(--tool-code-font-size);
     line-height: 1.52;
     white-space: pre;
   }
@@ -145,14 +149,14 @@ const TOOL_DETAIL_FRAME_CSS = `
     margin-top: .45rem;
     color: var(--tool-muted);
     font-family: var(--tool-code-font);
-    font-size: 11px;
+    font-size: var(--tool-code-font-size);
   }
   .tool-detail-markdown {
-    max-width: 88ch;
+    max-width: 100%;
     color: var(--tool-fg);
     background: var(--tool-bg);
-    font-size: 13px;
-    line-height: 1.62;
+    font-size: var(--tool-markdown-font-size);
+    line-height: var(--tool-markdown-line-height);
   }
   .tool-detail-markdown > :first-child { margin-top: 0; }
   .tool-detail-markdown > :last-child { margin-bottom: 0; }
@@ -200,7 +204,7 @@ const TOOL_DETAIL_FRAME_CSS = `
     border: 0;
     background: transparent;
     color: inherit;
-    font-size: 11.5px;
+    font-size: var(--tool-code-font-size);
   }
   .tool-detail-markdown table {
     width: 100%;
@@ -259,6 +263,41 @@ const TOOL_DETAIL_FRAME_CSS = `
 const toolDetailTheme = (): string => {
   if (typeof document === 'undefined') return 'dark';
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+};
+
+type FrameTypography = {
+  bodyFontSize: string;
+  markdownFontSize: string;
+  codeFontSize: string;
+  markdownLineHeight: string;
+};
+
+const cssPxValue = (value: string, fallback: string): string => {
+  const trimmed = value.trim();
+  return /^\d+(?:\.\d+)?px$/.test(trimmed) ? trimmed : fallback;
+};
+
+const cssLineHeightValue = (value: string, fallback: string): string => {
+  const trimmed = value.trim();
+  return /^(?:\d+(?:\.\d+)?|\d+(?:\.\d+)?px)$/.test(trimmed) ? trimmed : fallback;
+};
+
+const toolDetailTypography = (): FrameTypography => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return {
+      bodyFontSize: '12px',
+      markdownFontSize: '13px',
+      codeFontSize: '11.5px',
+      markdownLineHeight: '1.62',
+    };
+  }
+  const rootStyle = window.getComputedStyle(document.documentElement);
+  return {
+    bodyFontSize: cssPxValue(rootStyle.getPropertyValue('--ui-control-font-size'), '12px'),
+    markdownFontSize: cssPxValue(rootStyle.getPropertyValue('--ui-agent-font-size'), '13px'),
+    codeFontSize: cssPxValue(rootStyle.getPropertyValue('--ui-code-font-size'), '11.5px'),
+    markdownLineHeight: cssLineHeightValue(rootStyle.getPropertyValue('--ui-agent-line-height'), '1.62'),
+  };
 };
 
 const escapeHtml = (value: unknown): string => String(value ?? '')
@@ -376,6 +415,7 @@ export const ToolDetailFrame = ({
   const pendingMeasureFrameRef = useRef<number | null>(null);
   const [height, setHeight] = useState(42);
   const [theme, setTheme] = useState(toolDetailTheme);
+  const [typography, setTypography] = useState(toolDetailTypography);
   const [grammarTick, setGrammarTick] = useState(0);
   const normalizedMode = mode === 'markdown' || mode === 'diff' || mode === 'grep' ? mode : 'text';
   const language = useMemo(
@@ -400,10 +440,16 @@ export const ToolDetailFrame = ({
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const sync = () => setTheme(toolDetailTheme());
+    const sync = () => {
+      setTheme(toolDetailTheme());
+      setTypography(toolDetailTypography());
+    };
     sync();
     const observer = new MutationObserver(sync);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'data-font-scale', 'data-platform', 'style'],
+    });
     return () => observer.disconnect();
   }, []);
 
@@ -421,12 +467,21 @@ export const ToolDetailFrame = ({
     }
     const measure = () => {
       pendingMeasureFrameRef.current = null;
+      const rectHeight = root.getBoundingClientRect().height || 0;
+      const viewportHeight = frameRef.current?.contentWindow?.innerHeight || 0;
+      const stableMetric = (value: number): number => {
+        if (!value) return 0;
+        if (viewportHeight > 0 && value > rectHeight + 1 && Math.abs(value - viewportHeight) <= 1) {
+          return 0;
+        }
+        return value;
+      };
       const next = Math.ceil(Math.max(
-        root.scrollHeight || 0,
-        doc.body?.scrollHeight || 0,
-        doc.documentElement?.scrollHeight || 0,
+        stableMetric(root.scrollHeight || 0),
+        stableMetric(root.offsetHeight || 0),
+        rectHeight,
         42,
-      )) + 2;
+      ));
       setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));
     };
     const scheduleMeasure = () => {
@@ -451,6 +506,14 @@ export const ToolDetailFrame = ({
 
   const srcDoc = useMemo(() => {
     const frameTheme = theme === 'light' ? 'light' : 'dark';
+    const typographyCss = `
+  :root {
+    --tool-body-font-size: ${typography.bodyFontSize};
+    --tool-markdown-font-size: ${typography.markdownFontSize};
+    --tool-code-font-size: ${typography.codeFontSize};
+    --tool-markdown-line-height: ${typography.markdownLineHeight};
+  }
+`;
     return `<!doctype html>
 <html data-theme="${frameTheme}">
 <head>
@@ -458,12 +521,13 @@ export const ToolDetailFrame = ({
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <base target="_blank" />
   <style>${TOOL_DETAIL_FRAME_CSS}</style>
+  <style>${typographyCss}</style>
 </head>
 <body>
   <main class="tool-detail-frame-body" data-mode="${normalizedMode}">${bodyHtml}</main>
 </body>
 </html>`;
-  }, [bodyHtml, normalizedMode, theme]);
+  }, [bodyHtml, normalizedMode, theme, typography]);
 
   return (
     <iframe

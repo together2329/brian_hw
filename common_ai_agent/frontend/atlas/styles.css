@@ -1865,15 +1865,32 @@ html[data-platform="windows"] .app {
 .feed-entry-agent .chat-message-role {
   color: #7ee787;
 }
+.feed-entry-agent .chat-message-head {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+}
 .feed-entry-user .chat-message-role {
   color: var(--accent);
+}
+.chat-message-runtime {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: min(52ch, 48%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg-mute);
+  font-family: var(--mono);
+  font-size: var(--ui-small-font-size);
+  line-height: 1.35;
 }
 .chat-message-meta {
   margin-left: auto;
 }
 .chat-message-body {
   display: block !important;
-  max-width: 88ch;
+  max-width: 100%;
   margin-top: 0 !important;
 }
 .chat-transcript-entry + .tool-card {
@@ -1882,12 +1899,12 @@ html[data-platform="windows"] .app {
 .feed-entry-agent > .md-agent,
 .feed-entry-user > .md-agent {
   display: block !important;
-  max-width: 88ch;
+  max-width: 100%;
   margin-top: 5px !important;
 }
 .feed-entry-agent > .md-agent.md-agent-stream-surface {
   width: 100%;
-  max-width: 88ch;
+  max-width: 100%;
   margin-top: 0 !important;
   padding: 2px 0 4px;
   background: transparent;
@@ -2328,6 +2345,20 @@ html[data-platform="windows"] .app {
   flex: 1;
   min-width: 0;
 }
+.tool-card .tool-card-command-args {
+  flex: 1 0 100%;
+  margin-top: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #05080c;
+  color: var(--fg);
+  font-family: var(--code-font);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .tool-card .tool-card-meta {
   display: inline-flex;
   flex-wrap: wrap;
@@ -2735,6 +2766,11 @@ html[data-platform="windows"] .app {
 [data-theme="light"] .tool-card .tool-card-meta span {
   border-color: #d8e1ec;
   color: var(--fg-mute);
+}
+[data-theme="light"] .tool-card .tool-card-command-args {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #d8e1ec;
 }
 [data-theme="light"] .step-update-card {
   background: #ffffff;

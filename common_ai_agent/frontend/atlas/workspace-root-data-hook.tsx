@@ -146,11 +146,48 @@ export const shouldReconcileRespondingFromWorkerStatus = ({
   && now - startedAt >= graceMs
 );
 
+const hydrateFeedEntryKey = (entry: any): string => {
+  if (!entry || typeof entry !== 'object') return '';
+  const kind = String(entry.kind || '').trim();
+  const text = String(entry.text || '').trim();
+  if (!kind || !text) return '';
+  const tool = String(entry.tool || '').trim();
+  const args = String(entry.args || '').trim();
+  return `${kind}\n${tool}\n${args}\n${text}`;
+};
+
+export const conversationSnapshotExtendsLiveFeed = (
+  prevFeed: any[],
+  nextFeed: any[],
+): boolean => {
+  if (!Array.isArray(prevFeed) || !Array.isArray(nextFeed)) return false;
+  const prevKeys = prevFeed.map(hydrateFeedEntryKey).filter(Boolean);
+  const nextKeys = nextFeed.map(hydrateFeedEntryKey).filter(Boolean);
+  if (!prevKeys.length || nextKeys.length <= prevKeys.length) return false;
+  let matched = 0;
+  for (const key of nextKeys) {
+    if (key === prevKeys[matched]) matched += 1;
+    if (matched >= prevKeys.length) return true;
+  }
+  return false;
+};
+
 const healthzCostUrl = (): string => {
   const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
-  return activeSession
-    ? `/healthz?cost=0&session_id=${encodeURIComponent(activeSession)}`
-    : '/healthz?cost=0';
+  const params = new URLSearchParams({ cost: '0' });
+  if (activeSession) {
+    const parts = activeSession.split('/').filter(Boolean);
+    if (parts.length >= 3) {
+      params.set('session', activeSession);
+      if (parts[0]) params.set('session_id', parts[0]);
+      if (parts.length >= 4 && parts[1]) params.set('workspace_session', parts[1]);
+      if (parts[parts.length - 2]) params.set('ip', parts[parts.length - 2]);
+      if (parts[parts.length - 1]) params.set('workflow', parts[parts.length - 1]);
+    } else {
+      params.set('session_id', activeSession);
+    }
+  }
+  return `/healthz?${params.toString()}`;
 };
 
 const activeWorkspaceSession = (): string => {
@@ -993,7 +1030,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   })();
 
   const eventMatchesCurrentSession = useCallback((m: any, opts: { requireSession?: boolean } = {}) => {
-    const eventSession = normalizeUiSession((m && (m.session_id || m.session || m.namespace)) || '');
+    const eventSession = normalizeUiSession((m && (m.session || m.namespace || m.session_id)) || '');
     const active = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || currentSession || '');
     if (!active) return !opts.requireSession;
     if (!eventSession) return !opts.requireSession;
@@ -1073,12 +1110,27 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     cancelOrchestratorRunPoll();
     parkLiveStream();
     resetLiveReasoningStream();
+    streamingRef.current = false;
     setStreaming(false);
     setLiveLlmRuntime({ model: '', reasoningEffort: '' });
     awaitingRunStartRef.current = false;
     backendRunStartedRef.current = false;
     setCommandBusy(null);
-  }, [cancelOrchestratorRunPoll, parkLiveStream, resetLiveReasoningStream, setStreaming]);
+    const sid = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '');
+    const refreshActiveConversation = w.atlasData?.refreshActiveConversation;
+    if (!atlasUiOrchestratorMode() && sid && typeof refreshActiveConversation === 'function') {
+      window.setTimeout(() => {
+        try { refreshActiveConversation(sid, { force: true }); } catch (_) {}
+      }, 120);
+    }
+  }, [
+    activeSessionRef,
+    cancelOrchestratorRunPoll,
+    parkLiveStream,
+    resetLiveReasoningStream,
+    setStreaming,
+    streamingRef,
+  ]);
   useEffect(() => {
     finishLiveRunRef.current = finishLiveRun;
     return () => {
@@ -1756,9 +1808,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const activeDisplaySession = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '');
         const viewDisplaySession = normalizeUiSession(chatViewSessionRef.current || '');
         const sameActiveSession = !session || session === activeDisplaySession || (!!viewDisplaySession && session === viewDisplaySession);
-        if (sameActiveSession && !namespaceChanged && liveFeedStartedRef.current && hasLiveFeedEntries(prev)) {
+        const preservingLiveFeed = sameActiveSession && !namespaceChanged && liveFeedStartedRef.current && hasLiveFeedEntries(prev);
+        if (preservingLiveFeed && !conversationSnapshotExtendsLiveFeed(prev, newFeed)) {
           return prev;
         }
+        if (preservingLiveFeed) liveFeedStartedRef.current = false;
         const lateEmptySnapshot = (
           sameActiveSession
           && !namespaceChanged
@@ -1998,7 +2052,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // when a toggle was just queued (e.g. single-kind Enter = toggle+submit)
     // and we'd otherwise see pre-toggle state.
     let snapshot: any = null;
-    requestFeedScrollToBottom();
+    forceFeedScrollToBottom();
     setQaState((s: any) => {
       const st = s[flowId];
       if (!st || st.submitted) return s;
@@ -2213,7 +2267,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, [feedRef]);
 
   const requestFeedScrollToBottom = useCallback(() => {
-    feedPinnedToBottomRef.current = true;
     if (feedScrollFrameRef.current !== null || feedScrollFallbackTimerRef.current !== null) return;
     const run = () => {
       feedScrollFrameRef.current = null;
@@ -2232,6 +2285,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     }
     feedScrollFallbackTimerRef.current = setTimeout(run, 16);
   }, [feedRef]);
+
+  const forceFeedScrollToBottom = useCallback(() => {
+    feedPinnedToBottomRef.current = true;
+    requestFeedScrollToBottom();
+  }, [requestFeedScrollToBottom]);
 
   useEffect(() => {
     requestFeedScrollToBottom();
@@ -2266,7 +2324,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       w.QA_FLOWS = w.QA_FLOWS || {};
       w.QA_FLOWS[built.flowId] = built.flow;
       liveFeedStartedRef.current = true;
-      feedPinnedToBottomRef.current = true;
       setQaState((state: any) => {
         const cur = state[built.flowId];
         if (cur && cur.submitted) return state;
@@ -2283,7 +2340,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         ]);
       });
       setMainTab('qa');
-      requestFeedScrollToBottom();
+      forceFeedScrollToBottom();
     });
     const closePending = (message: any) => {
       const flowId = askText(message?.flow_id ?? message?.flowId);
@@ -2579,7 +2636,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const submittedImages = submitted.images;
     submittedInputConsumedRef.current = false;
     if (!raw && !submittedImages.length) return;
-    requestFeedScrollToBottom();
+    forceFeedScrollToBottom();
     const clearCurrentInput = !!(opts && opts.clearCurrentInput);
 
     // BUG A: read-and-clear the replay msg_id for THIS dispatch. Set only by the
@@ -3279,7 +3336,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     sessionForInputRoute, setChatViewSession, setOrchestratorInputRoute,
     switchToDefaultSession, switchWorkflow, activeSsotIp,
     activeSessionRef, chatViewSessionRef, hydratedConversationSessionRef, inputRouteRef,
-    requestFeedScrollToBottom, cancelOrchestratorRunPoll, finishLiveRun, pollOrchestratorRunUntilTerminal,
+    requestFeedScrollToBottom, forceFeedScrollToBottom, cancelOrchestratorRunPoll, finishLiveRun, pollOrchestratorRunUntilTerminal,
   ]);
 
   // Held-input replay: when the switch settles (workflowReady cleared) and the

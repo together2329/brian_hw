@@ -707,8 +707,6 @@ class _MultiUserBridge:
             session.emit("file_changed", path=path, tool=tool)
 
     def _normalize_session_id(self, session_id: str | None) -> str:
-        if self._single_user:
-            return "default"
         normalized = normalize_session_name(str(session_id or ""))
         return normalized or "default"
 
@@ -1980,8 +1978,6 @@ class _MultiUserBridge:
 
     @property
     def agent_running(self) -> bool:
-        if self._single_user:
-            return self._default_session.agent_running
         if self._process_manager is not None:
             with self._sessions_lock:
                 return any(session.agent_running for session in self._sessions.values())
@@ -1999,8 +1995,6 @@ class _MultiUserBridge:
 
     @property
     def agent_alive(self) -> bool:
-        if self._single_user:
-            return self._default_session.agent_alive
         if self._process_manager is not None:
             with self._active_lock:
                 session_id = self._active_session_id

@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+import json
 
 SOURCE_ROOT = Path(__file__).resolve().parents[1]
 PACKAGE_ROOT = SOURCE_ROOT.parent
@@ -190,6 +191,167 @@ def test_session_state_keeps_file_fallback_for_namespace_sessions(tmp_path, monk
     conversation = state.json()["conversation"]
     assert conversation["source"] == "file"
     assert conversation["messages"][0]["content"] == "hello from file"
+
+
+def test_healthz_prefers_full_session_route_over_owner_query(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    atlas_root = tmp_path / "atlas"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    client = TestClient(atlas_ui.create_app())
+    session = "alice/ws1/uart_ip/default"
+    response = client.get(
+        "/healthz",
+        params={
+            "cost": "0",
+            "session": session,
+            "session_id": "alice",
+            "workspace_session": "ws1",
+            "ip": "uart_ip",
+            "workflow": "default",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["active_session"] == session
+    assert body["session_dir"] == str(atlas_root / "alice" / "ws1" / ".session" / "uart_ip" / "default")
+
+
+def test_legacy_conversation_uses_requested_full_session_without_recent_fallback(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    atlas_root = tmp_path / "atlas"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    session = "alice/ws1/uart_ip/default"
+    requested_history = atlas_root / "alice" / "ws1" / ".session" / "uart_ip" / "default" / "conversation.json"
+    requested_history.parent.mkdir(parents=True)
+    requested_history.write_text(
+        json.dumps([{"role": "assistant", "content": "UART answer, not MCTP"}]),
+        encoding="utf-8",
+    )
+    stray_history = tmp_path / ".session" / "alice" / "mctp_ip" / "default" / "conversation.json"
+    stray_history.parent.mkdir(parents=True)
+    stray_history.write_text(
+        json.dumps([{"role": "assistant", "content": "MCTP stale answer"}]),
+        encoding="utf-8",
+    )
+
+    client = TestClient(atlas_ui.create_app())
+    login = client.post("/api/auth/register", json={"username": "alice", "password": "pw"})
+    assert login.status_code == 200, login.text
+    response = client.get(
+        "/api/conversation",
+        params={
+            "session": session,
+            "session_id": "alice",
+            "workspace_session": "ws1",
+            "ip": "uart_ip",
+            "workflow": "default",
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["messages"] == [{"role": "assistant", "content": "UART answer, not MCTP"}]
+    assert body["fallback_session"] == ""
+    assert body["path"] == str(requested_history)
+
+
+def test_ws_agent_prefers_full_session_route_over_owner_query(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ROOT", str(tmp_path / "atlas"))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    app = atlas_ui.create_app()
+    client = TestClient(app)
+    login = client.post("/api/auth/register", json={"username": "alice", "password": "pw"})
+    assert login.status_code == 200, login.text
+
+    session = "alice/ws1/uart_ip/default"
+    with client.websocket_connect(
+        "/ws/agent"
+        f"?session={session}"
+        "&session_id=alice"
+        "&workspace_session=ws1"
+        "&ip=uart_ip"
+        "&workflow=default"
+    ) as ws:
+        hello = ws.receive_json()
+        assert hello["type"] == "hello"
+
+    assert app.state.atlas_bridge.active_session_for_owner("alice") == session
+
+
+def test_session_activate_preserves_existing_v2_runtime_route_without_ip_dir(tmp_path, monkeypatch):
+    import src.atlas_ui as atlas_ui
+
+    atlas_root = tmp_path / "atlas"
+    monkeypatch.setenv("HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("ATLAS_ROOT", str(atlas_root))
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    monkeypatch.setenv("ATLAS_MULTI_USER_PROC", "0")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(atlas_ui, "PROJECT_ROOT", tmp_path)
+
+    session = "alice/ws1/uart_ip/default"
+    session_dir = atlas_root / "alice" / "ws1" / ".session" / "uart_ip" / "default"
+    session_dir.mkdir(parents=True)
+    assert not (atlas_root / "alice" / "ws1" / "uart_ip").exists()
+
+    client = TestClient(atlas_ui.create_app())
+    login = client.post("/api/auth/register", json={"username": "alice", "password": "pw"})
+    assert login.status_code == 200, login.text
+
+    health = client.get(
+        "/healthz",
+        params={
+            "cost": "0",
+            "session": session,
+            "session_id": "alice",
+            "workspace_session": "ws1",
+            "ip": "uart_ip",
+            "workflow": "default",
+        },
+    )
+    assert health.status_code == 200, health.text
+    assert health.json()["active_session"] == session
+
+    activated = client.post(
+        "/api/session/activate",
+        json={
+            "owner": "alice",
+            "workspace_session": "ws1",
+            "ip": "uart_ip",
+            "workflow": "default",
+        },
+    )
+
+    assert activated.status_code == 200, activated.text
+    body = activated.json()
+    assert body["active_session"] == session
+    assert body["namespace"] == session
+    assert body["ip"] == "uart_ip"
+    assert body["workflow"] == "default"
+    assert body["session_dir"] == str(session_dir)
+    assert not (atlas_root / "alice" / "ws1" / "default").exists()
 
 
 def test_delete_session_returns_force_required_when_runtime_queue_pending(tmp_path, monkeypatch):

@@ -5,7 +5,9 @@ from core.atlas_exec_policy import (
     EXEC_MODE_ORCHESTRATOR,
     EXEC_MODE_SINGLE,
     apply_exec_mode_env,
+    available_exec_modes,
     current_exec_mode,
+    exec_mode_locked,
     exec_policy_payload,
     initial_workflow_for_exec_mode,
     normalize_exec_mode,
@@ -33,13 +35,19 @@ def test_normalize_exec_mode_accepts_cli_and_ui_aliases() -> None:
     assert normalize_exec_mode("unknown") == ""
 
 
-def test_exec_mode_picker_is_not_policy_locked() -> None:
+def test_exec_mode_lock_is_env_driven_for_checked_in_profile() -> None:
     assert EXEC_MODE_LOCKED is False
+    assert exec_mode_locked({"ATLAS_EXEC_MODE_LOCK": "1"}) is True
+    assert available_exec_modes({"ATLAS_EXEC_MODE_LOCK": "1"}) == (EXEC_MODE_SINGLE,)
 
 
 def test_current_exec_mode_defaults_to_single_worker_when_nothing_set() -> None:
     assert current_exec_mode({}) == EXEC_MODE_SINGLE
     assert current_exec_mode({"ATLAS_ORCHESTRATOR_MODE": "1"}) == EXEC_MODE_ORCHESTRATOR
+    assert current_exec_mode({
+        "ATLAS_ORCHESTRATOR_MODE": "1",
+        "ATLAS_EXEC_MODE_LOCK": "1",
+    }) == EXEC_MODE_SINGLE
 
 
 def test_current_exec_mode_prefers_explicit_policy_over_legacy_single_flag() -> None:
@@ -73,9 +81,19 @@ def test_exec_policy_payload_and_env_application() -> None:
 
     payload = exec_policy_payload(env=env)
     assert payload["exec_mode"] == EXEC_MODE_SINGLE
+    assert payload["locked"] is False
     assert payload["initial_workflow"] == "default"
     assert payload["worker_strategy"] == "single-main-loop"
     assert payload["preserve_running_on_workflow_switch"] is False
+
+    locked_env = {"ATLAS_EXEC_MODE_LOCK": "1"}
+    values = apply_exec_mode_env("orchestrator", locked_env)
+    assert values["ATLAS_EXEC_MODE"] == EXEC_MODE_SINGLE
+    assert locked_env["ATLAS_ORCHESTRATOR_MODE"] == "0"
+    locked_payload = exec_policy_payload("orchestrator", env=locked_env)
+    assert locked_payload["exec_mode"] == EXEC_MODE_SINGLE
+    assert locked_payload["locked"] is True
+    assert locked_payload["available_exec_modes"] == [EXEC_MODE_SINGLE]
 
 
 def test_repo_config_defaults_to_single_worker_profile() -> None:
@@ -86,3 +104,6 @@ def test_repo_config_defaults_to_single_worker_profile() -> None:
     assert values["ATLAS_DEFAULT_EXEC_MODE"] == EXEC_MODE_SINGLE
     assert values["ATLAS_ORCHESTRATOR_MODE"] == "0"
     assert values["ATLAS_SINGLE_MAIN_LOOP"] == "1"
+    assert values["ATLAS_EXEC_MODE_LOCK"] == "1"
+    assert exec_mode_locked(values) is True
+    assert exec_policy_payload(env=values)["locked"] is True

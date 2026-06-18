@@ -62,6 +62,43 @@ import {
 import { ChatMarkdownFrame } from './workspace-chat-markdown-frame';
 import { ToolDetailFrame } from './workspace-tool-detail-frame';
 
+const firstRuntimeText = (...values: any[]): string => {
+  for (const value of values) {
+    const text = String(value ?? '').trim();
+    if (text && text !== '—') return text;
+  }
+  return '';
+};
+
+export const agentRuntimeParts = (entry: any): string[] => {
+  if (!entry || typeof entry !== 'object') return [];
+  const model = firstRuntimeText(
+    entry.model,
+    entry.active_model,
+    entry.activeModel,
+    entry.runtime_model,
+    entry.runtime?.model,
+  );
+  const effort = firstRuntimeText(
+    entry.reasoningEffort,
+    entry.reasoning_effort,
+    entry.effort,
+    entry.runtime?.reasoningEffort,
+    entry.runtime?.reasoning_effort,
+    entry.runtime?.effort,
+  );
+  return [
+    ...(model ? [model] : []),
+    ...(effort ? [`effort ${effort}`] : []),
+  ];
+};
+
+export const AgentRuntimePill = ({ entry }: any): ReactNode => {
+  const parts = agentRuntimeParts(entry);
+  if (!parts.length) return null;
+  return <span className="chat-message-runtime">{parts.join(' · ')}</span>;
+};
+
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
   // Default state: show only the LAST ~3 lines, dimmed. Reasoning is
@@ -545,6 +582,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const obsText = cleanAtlasTerminalText(obsTextRaw).replace(/\x1b\[[\d;]*m/g, '');
   const toolName = String(tool || '').toLowerCase();
   const isOagTool = toolName === 'oag';
+  const isRunCommandTool = toolName === 'run_command';
   const isStateRead = toolName === 'read_pipeline_state';
   const isArtifactRead = toolName === 'read_artifact' || toolName === 'read_evidence';
   const stateSummary = isStateRead && obs ? _pipelineStateSummary(obsText) : '';
@@ -597,6 +635,13 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // their arguments by default while keeping the result body collapsible.
   // Threshold: > 100 chars or contains a newline.
   const argsIsLong = !!argsText && (argsText.length > 100 || /\n/.test(argsText));
+  // Read/search tools are useful as audit evidence but too noisy in chat.
+  // Keep them collapsed in summary mode; write/replace tools stay open with
+  // tool-specific line caps enforced by ObsCard.
+  // Read/search tools (read_file, read_lines, grep_file, find_files, list_dir)
+  // are audit noise in the chat flow — default them COLLAPSED always, even
+  // while the worker is live (entrySummaryMode passes summaryMode=false during
+  // a live turn, which previously forced them open). Expand on demand via ▸.
   const defaultObsOpen = false;
   const [obsOpen, setObsOpen] = useState<boolean>(defaultObsOpen);
   useEffect(() => {
@@ -637,10 +682,10 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
         )}
         {displayArgs && (
           <span
-            className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
+            className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}${isRunCommandTool ? ' tool-card-command-args' : ''}`}
             style={{
               color: orchSummary ? 'var(--fg-mute)' : 'var(--fg)',
-              ...(isDispatchTool ? { flexBasis: '100%' } : {}),
+              ...(isDispatchTool || isRunCommandTool ? { flexBasis: '100%' } : {}),
               ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
@@ -789,6 +834,7 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
       <div className="feed-entry feed-entry-agent chat-transcript-entry has-hover-affordance">
         <div className="chat-message-head">
           <span className="feed-entry-label ok chat-message-role">Agent</span>
+          <AgentRuntimePill entry={entry} />
           {entry.createdAt ? (
             <span className="ts-pill chat-message-meta">{_relTime(entry.createdAt)}</span>
           ) : null}
