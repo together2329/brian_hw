@@ -116,6 +116,9 @@ cards, OAG command headers, and Q&A/tool affordances stay in the parent chat
 DOM so scrolling, folding, copy buttons, and running-state updates remain
 stable. The iframe receives sanitized Markdown through `srcDoc`, disables
 scripts, auto-sizes to its document height, and keeps the tool-call audit trail
+in the parent surface. Because path chips depend on the async `FILE_TREE`, the
+chat iframe re-runs Markdown post-processing when `FILE_TREE` or scope data
+refreshes; this lets path highlights appear without a browser refresh.
 outside the frame.
 
 Live streaming should still feel visually continuous with the completed

@@ -1790,6 +1790,13 @@ requirements:
             observed_at: b4303ae2
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_is_completed_only_and_keeps_tools_outside"
             observed_at: b4303ae2
+      - id: OBL_CHAT_MARKDOWN_REPROCESS_ON_FILE_TREE_REFRESH
+        owned_by: ui.workspace
+        granularity: behavior
+        # Completed chat markdown iframe post-processing depends on the current
+        # FILE_TREE for path-chip highlighting/opening. The iframe must re-run
+        # post-processing when FILE_TREE refreshes, without requiring browser refresh.
+        status: open
       - id: OBL_CHAT_STREAMING_MATCHES_DOCUMENT_SURFACE
         owned_by: ui.workspace
         granularity: behavior

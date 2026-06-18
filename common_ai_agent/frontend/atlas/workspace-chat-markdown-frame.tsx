@@ -186,6 +186,7 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
   const pendingMeasureFrameRef = useRef<number | null>(null);
   const [height, setHeight] = useState(44);
   const [theme, setTheme] = useState(chatMarkdownTheme);
+  const [dataRevision, setDataRevision] = useState(0);
   const html = useMemo(() => _markdownHtml(text || ''), [text]);
 
   useEffect(() => {
@@ -195,6 +196,18 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
     const observer = new MutationObserver(sync);
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onDataChanged = (ev: any) => {
+      const detail = String(ev?.detail || '');
+      if (detail === 'FILE_TREE' || detail === 'SCOPE_PATH' || detail === 'SESSION_STATE') {
+        setDataRevision((n) => n + 1);
+      }
+    };
+    window.addEventListener('atlas-data-changed', onDataChanged);
+    return () => window.removeEventListener('atlas-data-changed', onDataChanged);
   }, []);
 
   const postProcessFrame = useCallback(() => {
@@ -231,7 +244,11 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
     }
     scheduleMeasure();
     window.setTimeout(scheduleMeasure, 120);
-  }, [html]);
+  }, [html, dataRevision]);
+
+  useEffect(() => {
+    postProcessFrame();
+  }, [postProcessFrame]);
 
   useEffect(() => () => {
     resizeObserverRef.current?.disconnect();

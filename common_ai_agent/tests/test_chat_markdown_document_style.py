@@ -80,6 +80,21 @@ def test_chat_iframe_autoheight_defers_resizeobserver_updates():
     assert "window.cancelAnimationFrame(pendingMeasureFrameRef.current);" in frame_src
 
 
+def test_chat_iframe_reprocesses_path_chips_after_file_tree_refresh():
+    frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
+    chip_src = MARKDOWN_CHIPS_TSX.read_text(encoding="utf-8")
+
+    assert "const [dataRevision, setDataRevision] = useState(0);" in frame_src
+    assert "window.addEventListener('atlas-data-changed', onDataChanged);" in frame_src
+    assert "detail === 'FILE_TREE'" in frame_src
+    assert "detail === 'SCOPE_PATH'" in frame_src
+    assert "setDataRevision((n) => n + 1);" in frame_src
+    assert "useEffect(() => {\n    postProcessFrame();\n  }, [postProcessFrame]);" in frame_src
+    assert "}, [html, dataRevision]);" in frame_src
+    assert "if (kind === 'path' && !resolvedPath) return;" in chip_src
+    assert "if (el.dataset && el.dataset.chip) return;" in chip_src
+
+
 def test_streaming_parent_dom_matches_iframe_document_surface():
     css = STYLES_CSS.read_text(encoding="utf-8")
     frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
