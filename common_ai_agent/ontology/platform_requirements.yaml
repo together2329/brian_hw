@@ -1796,7 +1796,10 @@ requirements:
         # Completed chat markdown iframe post-processing depends on the current
         # FILE_TREE for path-chip highlighting/opening. The iframe must re-run
         # post-processing when FILE_TREE refreshes, without requiring browser refresh.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_reprocesses_path_chips_after_file_tree_refresh"
+            observed_at: 93e238cd
       - id: OBL_CHAT_STREAMING_MATCHES_DOCUMENT_SURFACE
         owned_by: ui.workspace
         granularity: behavior
