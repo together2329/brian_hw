@@ -1885,3 +1885,24 @@ requirements:
             observed_at: b4303ae2
           - test: "tests/test_windows_path_display_normalization.py::test_git_commit_display_uses_path_normalizer"
             observed_at: b4303ae2
+
+  - id: REQ_PLAT_WORKSPACE_PREVIEW_MODE_STICKY_20260618_001
+    claim: "Workspace preview/file navigation은 현재 사용자의 작업 맥락을 보존한다 — FULL VIEW(preview)에서 왼쪽 IP 파일 트리를 클릭하면 previewPath만 교체하고 split view로 강제 전환하지 않으며, Markdown/chat의 path chip은 왼쪽 파일 트리에 실제 매핑되는 파일만 highlight/click 가능하다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_WORKSPACE_FILE_TREE_PRESERVES_FULL_VIEW_PREVIEW
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_workspace_preview_mode.py::test_file_tree_open_preserves_full_view_preview_mode"
+            observed_at: PENDING_SHA
+      - id: OBL_MARKDOWN_CHAT_PATH_CHIPS_REQUIRE_FILE_TREE_MATCH
+        owned_by: ui.workspace
+        granularity: behavior
+        status: open
+        evidence:
+          - test: "tests/test_workspace_preview_mode.py::test_markdown_and_chat_path_chips_require_file_tree_match"
+            observed_at: PENDING_SHA
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
+            observed_at: PENDING_SHA

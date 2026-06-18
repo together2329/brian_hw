@@ -223,8 +223,9 @@ def test_plain_markdown_file_paths_become_openable_chips():
     assert "export const _processPlainFilePathChips" in chips_src
     assert "!parent.closest('code, pre, a, button, input, textarea, select, script, style')" in chips_src
     assert "code.dataset.chip = 'path';" in chips_src
+    assert "code.dataset.path = resolvedPath;" in chips_src
     assert "code.classList.add('chip', 'chip-path');" in chips_src
-    assert "_activateChipPath(path);" in chips_src
+    assert "_activateChipPath(resolvedPath);" in chips_src
     assert "_processPlainFilePathChips(node);" in chips_src
     assert chips_src.index("_processPlainFilePathChips(node);") < chips_src.index("_processInlineChips(node);")
 
@@ -241,7 +242,8 @@ def test_chat_path_open_resolves_against_current_file_tree():
     assert "activeIp && rel && !rel.startsWith(`${activeIp}/`) ? `${activeIp}/${rel}` : rel" in data_hook_src
     assert "p.endsWith(`/${requested}`)" in data_hook_src
     assert "requested.endsWith(`/${p}`)" in data_hook_src
-    assert "return suffix || requested;" in data_hook_src
+    assert "return suffix || '';" in data_hook_src
+    assert "w.atlasResolveOpenablePath = resolveChatOpenPath;" in data_hook_src
     assert "const path = resolveChatOpenPath(ev?.detail?.path || '');" in data_hook_src
     assert "w.readAtlasAsyncResource?.('file', path)?.catch?.(() => {});" in data_hook_src
     assert "setMainTab((t: string) => (t === 'split' || t === 'preview') ? t : 'split');" in data_hook_src

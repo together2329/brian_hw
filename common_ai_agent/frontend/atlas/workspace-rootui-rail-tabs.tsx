@@ -337,7 +337,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
                       ws.readAtlasAsyncResource?.('file', fullPath)?.catch?.(() => {});
                       setPreviewPath(fullPath);
                       ws.persistAtlasPreviewPath?.(fullPath);
-                      setMainTab('split');
+                      setMainTab((tab: string) => tab === 'preview' ? 'preview' : 'split');
                     } else {
                       // Expand-on-demand: toggle ONLY this folder. (The old
                       // code flipped the whole tree to 'deep' on any folder

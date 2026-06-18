@@ -1454,8 +1454,17 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       requested.endsWith(`/${p}`) ||
       (activeIp ? p === `${activeIp}/${requested}` : false)
     ));
-    return suffix || requested;
+    return suffix || '';
   }, [currentSession]);
+
+  w.atlasResolveOpenablePath = resolveChatOpenPath;
+
+  useEffect(() => {
+    w.atlasResolveOpenablePath = resolveChatOpenPath;
+    return () => {
+      if (w.atlasResolveOpenablePath === resolveChatOpenPath) delete w.atlasResolveOpenablePath;
+    };
+  }, [resolveChatOpenPath]);
 
   // Inline/path chip click handlers — wired up from _postProcessMarkdownNode().
   useEffect(() => {

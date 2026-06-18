@@ -32,6 +32,7 @@ interface MarkdownChipWindowGlobals {
   renderInline?: (s: string) => string;
   _unwrapAtlasOutputFence?: (text: unknown) => string;
   _escHtml?: (s: unknown) => string;
+  atlasResolveOpenablePath?: (path: unknown) => string;
 }
 const _mdWin = window as unknown as Window & MarkdownChipWindowGlobals;
 
@@ -193,11 +194,20 @@ export const _chipKindFor = (text: unknown): string => {
   return '';
 };
 
-export const _activateChipPath = (path: unknown): void => {
+export const _resolveOpenableChipPath = (path: unknown): string => {
   const clean = _normalizeDisplayedToolPaths(path)
     .trim()
     .replace(/^['"`]+|['"`]+$/g, '')
     .replace(/(?:#L|:)\d+$/i, '');
+  if (!clean) return '';
+  if (typeof _mdWin.atlasResolveOpenablePath === 'function') {
+    return String(_mdWin.atlasResolveOpenablePath(clean) || '').trim();
+  }
+  return clean;
+};
+
+export const _activateChipPath = (path: unknown): void => {
+  const clean = _resolveOpenableChipPath(path);
   if (!clean) return;
   try {
     window.dispatchEvent(new CustomEvent('atlas-chip-open', {
@@ -224,21 +234,24 @@ export const _processInlineChips = (node: any): void => {
     const kind = _chipKindFor(txt);
     if (!kind) return;
     if (txt !== rawTxt) el.textContent = txt;
+    const resolvedPath = kind === 'path' ? _resolveOpenableChipPath(txt) : '';
+    if (kind === 'path' && !resolvedPath) return;
     el.dataset.chip = kind;
     el.classList.add('chip', `chip-${kind}`);
     if (kind === 'path') {
+      el.dataset.path = resolvedPath;
       el.setAttribute('role', 'button');
       el.setAttribute('tabindex', '0');
-      el.setAttribute('title', `open ${txt}`);
+      el.setAttribute('title', `open ${resolvedPath}`);
       el.style.cursor = 'pointer';
       el.addEventListener('click', (e: any) => {
         e.stopPropagation();
-        _activateChipPath(txt);
+        _activateChipPath(resolvedPath);
       });
       el.addEventListener('keydown', (e: any) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          _activateChipPath(txt);
+          _activateChipPath(resolvedPath);
         }
       });
     } else if (kind === 'ident') {
@@ -294,27 +307,34 @@ export const _processPlainFilePathChips = (node: any): void => {
       const lead = match[1] || '';
       const path = _normalizeDisplayedToolPaths(match[2] || '').trim();
       const line = match[3] || '';
+      const resolvedPath = _resolveOpenableChipPath(path);
       const start = match.index;
       const tokenStart = start + lead.length;
       if (start > last) frag.appendChild(doc.createTextNode(text.slice(last, start)));
       if (lead) frag.appendChild(doc.createTextNode(lead));
+      if (!resolvedPath) {
+        frag.appendChild(doc.createTextNode(text.slice(tokenStart, _PLAIN_FILE_PATH_RE.lastIndex)));
+        last = _PLAIN_FILE_PATH_RE.lastIndex;
+        continue;
+      }
       const code = doc.createElement('code');
       code.textContent = line ? `${path}:${line}` : path;
       code.dataset.chip = 'path';
+      code.dataset.path = resolvedPath;
       if (line) code.dataset.line = line;
       code.classList.add('chip', 'chip-path');
       code.setAttribute('role', 'button');
       code.setAttribute('tabindex', '0');
-      code.setAttribute('title', `open ${path}`);
+      code.setAttribute('title', `open ${resolvedPath}`);
       code.style.cursor = 'pointer';
       code.addEventListener('click', (e: any) => {
         e.stopPropagation();
-        _activateChipPath(path);
+        _activateChipPath(resolvedPath);
       });
       code.addEventListener('keydown', (e: any) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          _activateChipPath(path);
+          _activateChipPath(resolvedPath);
         }
       });
       frag.appendChild(code);
