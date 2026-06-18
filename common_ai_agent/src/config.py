@@ -484,6 +484,7 @@ def _refresh_runtime_globals():
     g['ENABLE_PROMPT_INJECTION'] = _prompt_injection_env_enabled()
     g['ATLAS_PROMPT_INJECTION'] = g['ENABLE_PROMPT_INJECTION']
     g['ENABLE_EXTERNAL_DB_QUERY_TOOL'] = _env_bool("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "false")
+    g['ENABLE_WIKI_QUERY_TOOL'] = _env_bool("ATLAS_ENABLE_WIKI_QUERY_TOOL", "false")
     g['ENABLE_ASK_USER_TOOL'] = _env_bool("ATLAS_ENABLE_ASK_USER_TOOL", "false")
     reasoning_mode = os.getenv("REASONING_MODE", os.getenv("REASONING_EFFORT", "xhigh")).lower()
     g['REASONING_MODE'] = reasoning_mode
@@ -1517,6 +1518,7 @@ TOOL_SCHEMA_COMPACT     = os.getenv("TOOL_SCHEMA_COMPACT", "false").lower() in (
 UNLOCK_NORMAL_MODE_TOOLS = os.getenv("UNLOCK_NORMAL_MODE_TOOLS", "true").lower() in ("true", "1", "yes")
 DISABLE_TODO_TOOLS = os.getenv("ATLAS_DISABLE_TODO_TOOLS", "false").lower() in ("true", "1", "yes", "on")
 ENABLE_EXTERNAL_DB_QUERY_TOOL = os.getenv("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL", "false").lower() in ("true", "1", "yes", "on")
+ENABLE_WIKI_QUERY_TOOL = os.getenv("ATLAS_ENABLE_WIKI_QUERY_TOOL", "false").lower() in ("true", "1", "yes", "on")
 ENABLE_ASK_USER_TOOL = os.getenv("ATLAS_ENABLE_ASK_USER_TOOL", "false").lower() in ("true", "1", "yes", "on")
 
 # ============================================================
@@ -2461,6 +2463,8 @@ def build_base_system_prompt(allowed_tools: set = None, plan_mode: bool = False,
         tool_list = tool_list - NORMAL_MODE_BLOCKED_TOOLS
     if not ENABLE_EXTERNAL_DB_QUERY_TOOL:
         tool_list.discard("external_db_query")
+    if not ENABLE_WIKI_QUERY_TOOL:
+        tool_list.discard("wiki_query")
     if not ENABLE_ASK_USER_TOOL:
         tool_list.discard("ask_user")
 

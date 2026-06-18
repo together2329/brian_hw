@@ -2085,7 +2085,6 @@ def chat_loop():
             if _atlas_active_session and _atlas_active_session != os.environ.get("ATLAS_SESSION_APPLIED", ""):
                 try:
                     _setup_session(_atlas_active_session)
-                    os.environ["ATLAS_SESSION_APPLIED"] = _atlas_active_session
                     _new_sys = _build_system_prompt_str(agent_mode=agent_mode)
                     _loaded = load_conversation_history()
                     if _loaded:
@@ -2097,6 +2096,7 @@ def chat_loop():
                     else:
                         messages = [{"role": "system", "content": _new_sys}]
                     save_conversation_history(messages)
+                    os.environ["ATLAS_SESSION_APPLIED"] = _atlas_active_session
                     if config.ENABLE_TODO_TRACKING:
                         todo_tracker_main = (
                             TodoTracker.load(Path(config.TODO_FILE))

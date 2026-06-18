@@ -15,9 +15,10 @@ explicitly asks for them.
 
 ## Current policy
 
-- External reference DB lookup is opt-in. Do not expose the dedicated
-  `external_db_query` tool in the default tool surface.
+- Wiki/retrieval lookup is opt-in. Do not expose `wiki_query` or the dedicated
+  `external_db_query` tool in the default tool surface. Operators can enable
+  them explicitly with `ATLAS_ENABLE_WIKI_QUERY_TOOL=1` and
+  `ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL=1`.
 - TODO creation tools (`todo_add`, `todo_write`) are planning tools. Expose them
   only in `plan` / `plan_q` modes; execution may still use `todo_update` for
   progress transitions on an existing plan.
-

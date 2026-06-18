@@ -21,9 +21,17 @@
   function policyFromBootConfig(config) {
     var cfg = config || {};
     var policy = cfg.exec_policy || cfg.policy || {};
-    var mode = normalizeExecMode(policy.exec_mode || cfg.exec_mode, EXEC_MODE_SINGLE);
+    var locked = !!policy.locked;
+    var mode = locked
+      ? EXEC_MODE_SINGLE
+      : normalizeExecMode(policy.exec_mode || cfg.exec_mode, EXEC_MODE_SINGLE);
+    var availableExecModes = Array.isArray(policy.available_exec_modes)
+      ? policy.available_exec_modes.map(function (v) { return normalizeExecMode(v, ''); }).filter(Boolean)
+      : (locked ? [EXEC_MODE_SINGLE] : EXEC_MODES.slice());
     return {
       exec_mode: mode,
+      locked: locked,
+      available_exec_modes: availableExecModes.length ? availableExecModes : [EXEC_MODE_SINGLE],
       initial_workflow: policy.initial_workflow || (mode === EXEC_MODE_ORCHESTRATOR ? 'orchestrator' : 'default'),
       worker_strategy: policy.worker_strategy || (mode === EXEC_MODE_ORCHESTRATOR ? 'workflow-workers' : 'single-main-loop'),
       single_worker_url: policy.single_worker_url || 'http://127.0.0.1:5601',

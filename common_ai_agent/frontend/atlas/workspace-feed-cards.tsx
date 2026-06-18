@@ -43,11 +43,7 @@ import {
   _markdownHtml,
   _postProcessMarkdownNode,
   _DIFF_RESULT_TOOL_RE,
-  _CHIP_PATH_RE,
   _normalizeDisplayedToolPaths,
-  ToolOutputPre,
-  GrepOutputPre,
-  DiffOutputPre,
   CopyBtn,
 } from './workspace-markdown-chips';
 
@@ -64,6 +60,44 @@ import {
   AskUserCall,
 } from './workspace-feed-askuser';
 import { ChatMarkdownFrame } from './workspace-chat-markdown-frame';
+import { ToolDetailFrame } from './workspace-tool-detail-frame';
+
+const firstRuntimeText = (...values: any[]): string => {
+  for (const value of values) {
+    const text = String(value ?? '').trim();
+    if (text && text !== '—') return text;
+  }
+  return '';
+};
+
+export const agentRuntimeParts = (entry: any): string[] => {
+  if (!entry || typeof entry !== 'object') return [];
+  const model = firstRuntimeText(
+    entry.model,
+    entry.active_model,
+    entry.activeModel,
+    entry.runtime_model,
+    entry.runtime?.model,
+  );
+  const effort = firstRuntimeText(
+    entry.reasoningEffort,
+    entry.reasoning_effort,
+    entry.effort,
+    entry.runtime?.reasoningEffort,
+    entry.runtime?.reasoning_effort,
+    entry.runtime?.effort,
+  );
+  return [
+    ...(model ? [model] : []),
+    ...(effort ? [`effort ${effort}`] : []),
+  ];
+};
+
+export const AgentRuntimePill = ({ entry }: any): ReactNode => {
+  const parts = agentRuntimeParts(entry);
+  if (!parts.length) return null;
+  return <span className="chat-message-runtime">{parts.join(' · ')}</span>;
+};
 
 // ── Feed entry: dispatcher ─────────────────────────────────────────
 export const CollapsibleThought = ({ text, summaryMode = true }: any) => {
@@ -116,8 +150,7 @@ const _REPLACE_RESULT_TOOL_RE = /^(replace_in_file|replace_lines|replace_file_co
 export const _toolResultPreviewLines = (tool: unknown): number => {
   const t = String(tool || '').toLowerCase();
   if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;
-  if (_REPLACE_RESULT_TOOL_RE.test(t)) return 30;
-  if (/^run_command$/i.test(t)) return 4;
+  if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;
   return 0;
 };
 
@@ -135,7 +168,7 @@ export const _toolResultDefaultsClosed = (tool: unknown): boolean => (
 // Optional `embedded` prop: when true, render WITHOUT the outer
 // react-block wrapper (used by ToolCard which provides its own
 // outer container).
-export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', maxLinesOverride }: any) => {
+export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride, hintText = '' }: any) => {
   // Replace/edit tools default to OPEN even in summary mode so the user
   // can see the actual diff without an extra click. Other tools stay
   // collapsed in summary mode.
@@ -169,10 +202,12 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', ma
   const isGrepTool = String(entry?.tool || '').toLowerCase() === 'grep_file';
 
   const renderMarkdownBody = () => (
-    <div
-      className="md-agent md-tool-result"
-      dangerouslySetInnerHTML={{ __html: _markdownHtml(txt) }}
-      ref={_postProcessMarkdownNode}
+    <ToolDetailFrame
+      text={txt}
+      mode="markdown"
+      tool={entry.tool}
+      truncated={entry.truncated}
+      hintText={hintText}
     />
   );
   const useMarkdownResult = summaryMode && _isWorkflowResultTool(entry.tool);
@@ -229,23 +264,35 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, hintText = '', ma
       {(embedded || open) && (
         looksLikeDiff || !useMarkdownResult ? (
           looksLikeDiff ? (
-            <DiffOutputPre
+            <ToolDetailFrame
               text={txt}
+              mode="diff"
               tool={entry.tool}
               truncated={entry.truncated}
-              hintText={hintText || entry.hintText || entry.path || entry.file || ''}
               maxLines={maxPreviewLines}
+              hintText={hintText}
             />
           ) : isGrepTool ? (
-            <GrepOutputPre text={txt} truncated={entry.truncated} maxLines={maxPreviewLines} />
+            <ToolDetailFrame
+              text={txt}
+              mode="grep"
+              tool={entry.tool}
+              truncated={entry.truncated}
+              maxLines={maxPreviewLines}
+              hintText={hintText}
+            />
           ) : (
-            <ToolOutputPre text={txt} tool={entry.tool} truncated={entry.truncated} maxLines={maxPreviewLines} />
+            <ToolDetailFrame
+              text={txt}
+              mode="text"
+              tool={entry.tool}
+              truncated={entry.truncated}
+              maxLines={maxPreviewLines}
+              hintText={hintText}
+            />
           )
         ) : (
-          <>
-            {renderMarkdownBody()}
-            {entry.truncated ? <div className="mute" style={{ fontSize: 10 }}>…[truncated]</div> : null}
-          </>
+          renderMarkdownBody()
         )
       )}
     </Wrapper>
@@ -535,6 +582,7 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const obsText = cleanAtlasTerminalText(obsTextRaw).replace(/\x1b\[[\d;]*m/g, '');
   const toolName = String(tool || '').toLowerCase();
   const isOagTool = toolName === 'oag';
+  const isRunCommandTool = toolName === 'run_command';
   const isStateRead = toolName === 'read_pipeline_state';
   const isArtifactRead = toolName === 'read_artifact' || toolName === 'read_evidence';
   const stateSummary = isStateRead && obs ? _pipelineStateSummary(obsText) : '';
@@ -572,16 +620,9 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const orchSummary = (isDispatchTool || isOagTool) ? '' : _orchToolArgsSummary(tool, rawArgsText);
   const displayArgs = isOagTool ? rawArgsText : (orchSummary || argsText);
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
-  // Tool results default to OPEN. The user needs to see the result/cost
-  // trail without hunting through collapsed cards; large bodies remain
-  // bounded by .tool-output-pre max-height.
-  const isReplaceTool = tool && _DIFF_RESULT_TOOL_RE.test(tool);
-  const defaultsClosed = _toolResultDefaultsClosed(tool);
   const previewLines = _toolResultPreviewLines(tool);
-  // Preview tools (write/replace/run_command) show a short N-line preview of
-  // their output and expand to the FULL body on click — like Claude Code's
-  // "+N lines (expand)". The body is always visible; the chevron toggles
-  // preview ↔ full, not show ↔ hide.
+  // Preview tools (write/replace only) show a short 10-line preview of their
+  // output. Other tool bodies stay folded until the header is clicked.
   const isPreviewTool = previewLines > 0;
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
@@ -599,19 +640,13 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   // are audit noise in the chat flow — default them COLLAPSED always, even
   // while the worker is live (entrySummaryMode passes summaryMode=false during
   // a live turn, which previously forced them open). Expand on demand via ▸.
-  const defaultObsOpen = isOagTool
-    ? false
-    : defaultsClosed
-    ? false
-    : isPreviewTool
-    ? false
-    : (((!!obs && !isCompactRead && !obsIsLarge) || !summaryMode) || isReplaceTool);
+  const defaultObsOpen = false;
   const [obsOpen, setObsOpen] = useState<boolean>(defaultObsOpen);
   useEffect(() => {
     setObsOpen(defaultObsOpen);
   }, [defaultObsOpen]);
   const showArgsExpanded = isOagTool || obsOpen || showFullArgsByDefault;
-  const headClickable = (isOagTool && !!obs) || (!!obs && obsIsMulti) || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
+  const headClickable = !!obs || argsIsLong || (isCompactRead && !!obs) || obsIsLarge;
   const toggleObs = () => { if (headClickable) setObsOpen(v => !v); };
   return (
     <div className="tool-card has-hover-affordance"
@@ -645,10 +680,10 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
         )}
         {displayArgs && (
           <span
-            className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}`}
+            className={`tool-card-args${showArgsExpanded ? '' : ' trunc'}${isRunCommandTool ? ' tool-card-command-args' : ''}`}
             style={{
               color: orchSummary ? 'var(--fg-mute)' : 'var(--fg)',
-              ...(isDispatchTool ? { flexBasis: '100%' } : {}),
+              ...(isDispatchTool || isRunCommandTool ? { flexBasis: '100%' } : {}),
               ...(showArgsExpanded ? {
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
@@ -733,9 +768,9 @@ export const Typewriter = ({ text }: any) => {
     return () => clearInterval(iv);
   }, [full]);
   return (
-    <span style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+    <span className="md-agent-stream-text">
       {shown}
-      {!done && <span className="stream-caret" style={{ display: 'inline-block', width: 2, height: '1em', background: 'var(--accent)', marginLeft: 1, verticalAlign: 'text-bottom', animation: 'blink 0.7s step-end infinite' }} />}
+      {!done && <span className="stream-caret" />}
     </span>
   );
 };
@@ -758,18 +793,12 @@ export const LiveAgentPreview = memo(({ text }: any) => {
   const body = String(text || '');
   if (!body.trim()) return null;
   return (
-    <div className="feed-entry feed-entry-agent feed-entry-live has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
-      <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
-        fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
-      <span className="ts-pill">streaming</span>
-      <div
-        className="md-agent"
-        style={{
-          marginTop: 4,
-          whiteSpace: 'pre-wrap',
-          overflowWrap: 'anywhere',
-        }}
-      >
+    <div className="feed-entry feed-entry-agent feed-entry-live chat-transcript-entry has-hover-affordance">
+      <div className="chat-message-head">
+        <span className="feed-entry-label ok chat-message-role">Agent</span>
+        <span className="ts-pill chat-message-meta">streaming</span>
+      </div>
+      <div className="md-agent md-agent-stream-surface chat-message-body">
         {body}
       </div>
     </div>
@@ -785,11 +814,12 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
     // Plain single-line user inputs still render fine via marked.
     const userHtml = _markdownHtml(userText);
     return (
-      <div className="feed-entry feed-entry-user" style={{ padding: '10px 14px', marginBottom: 12, borderLeft: '2px solid var(--accent)', background: 'var(--bg-2)', borderRadius: 2 }}>
-        <span className="feed-entry-label acc" style={{ fontWeight: 600, marginRight: 8, fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>You</span>
+      <div className="feed-entry feed-entry-user chat-transcript-entry">
+        <div className="chat-message-head">
+          <span className="feed-entry-label acc chat-message-role">You</span>
+        </div>
         <div
-          className="md-user md-agent"
-          style={{ fontFamily: 'var(--mono)', fontSize: 'var(--ui-font-size)', display: 'inline-block', verticalAlign: 'top' }}
+          className="md-user md-agent chat-message-body"
           dangerouslySetInnerHTML={{ __html: userHtml }}
           ref={_postProcessMarkdownNode}
         />
@@ -799,15 +829,17 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
   if (entry.kind === 'agent') {
     const terminalKind = _atlasTerminalTranscriptKind(entry.text || '');
     return (
-      <div className="feed-entry feed-entry-agent has-hover-affordance" style={{ padding: '8px 0 12px', marginBottom: 4, position: 'relative' }}>
-        <span className="feed-entry-label ok" style={{ fontWeight: 600, marginRight: 8,
-          fontSize: 'var(--ui-control-font-size)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>Agent</span>
-        {entry.createdAt ? (
-          <span className="ts-pill">{_relTime(entry.createdAt)}</span>
-        ) : null}
+      <div className="feed-entry feed-entry-agent chat-transcript-entry has-hover-affordance">
+        <div className="chat-message-head">
+          <span className="feed-entry-label ok chat-message-role">Agent</span>
+          <AgentRuntimePill entry={entry} />
+          {entry.createdAt ? (
+            <span className="ts-pill chat-message-meta">{_relTime(entry.createdAt)}</span>
+          ) : null}
+        </div>
         <CopyBtn text={entry.text || ''} />
         {entry._animate
-          ? <div className="md-agent" style={{ marginTop: 4 }}><Typewriter text={entry.text || ''} /></div>
+          ? <div className="md-agent md-agent-stream-surface chat-message-body"><Typewriter text={entry.text || ''} /></div>
           : terminalKind
             ? <AtlasTerminalTranscript text={entry.text || ''} kind={terminalKind} />
           : <ChatMarkdownFrame text={entry.text || ''} />

@@ -27,7 +27,7 @@ import contextvars
 import threading
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 import pytest
 from fastapi import FastAPI
@@ -813,6 +813,7 @@ def _build_activate_app(
     *,
     username: str = "alice",
     user_id: str = "uid-alice",
+    setup_session: Optional[Callable[[str], Any]] = None,
 ) -> TestClient:
     """Build a minimal app that supports /api/session/activate for Defect B tests."""
     app = FastAPI()
@@ -841,6 +842,7 @@ def _build_activate_app(
         bridge=_MockBridge(),
         get_jobs_state=lambda: ({}, threading.Lock()),
         atlas_db_factory=_make_db_factory(db_path),
+        setup_session=setup_session,
     )
     return TestClient(app)
 
@@ -899,3 +901,61 @@ def test_activate_single_user_preserves_os_environ_update(
     assert "alice" in active, (
         f"Expected ATLAS_ACTIVE_SESSION to contain 'alice' in single-user mode, got {active!r}"
     )
+
+
+def test_activate_single_user_does_not_premark_chat_history_applied(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Single-user activation retargets env/config, but chat_loop must be the
+    only code path that marks in-memory messages as reloaded for the new
+    session. Otherwise stale messages from the previous session can be written
+    into the newly activated session's conversation.json."""
+    monkeypatch.setenv("ATLAS_MULTI_USER", "0")
+    old_applied = "alice/oldip/default"
+    monkeypatch.setenv("ATLAS_SESSION_APPLIED", old_applied)
+    (tmp_path / "myip").mkdir()
+
+    db_path = str(tmp_path / "atlas.db")
+    setup_calls: list[str] = []
+    alice_client = _build_activate_app(
+        db_path,
+        tmp_path,
+        username="alice",
+        user_id="uid-alice",
+        setup_session=setup_calls.append,
+    )
+
+    import os
+    resp = alice_client.post(
+        "/api/session/activate",
+        json={"owner": "alice", "ip": "myip", "workflow": "rtl-gen"},
+    )
+    assert resp.status_code == 200, resp.text
+
+    assert setup_calls == ["alice/myip/rtl-gen"]
+    assert os.environ.get("ATLAS_ACTIVE_SESSION") == "alice/myip/rtl-gen"
+    assert os.environ.get("ATLAS_SESSION_APPLIED") == old_applied
+
+
+def test_setup_session_proxy_does_not_premark_chat_history_applied() -> None:
+    source = Path("src/atlas_ui.py").read_text(encoding="utf-8")
+    body = source.split("def _setup_session_proxy(", 1)[1].split(
+        "# Build the admin-check", 1
+    )[0]
+
+    assert "ATLAS_SESSION_APPLIED" not in body
+
+
+def test_chat_loop_marks_session_applied_after_history_save() -> None:
+    source = Path("src/main.py").read_text(encoding="utf-8")
+    block = source.split(
+        'if _atlas_active_session and _atlas_active_session != os.environ.get("ATLAS_SESSION_APPLIED", ""):',
+        1,
+    )[1].split("# Refresh TODO after input returns", 1)[0]
+
+    setup_idx = block.index("_setup_session(_atlas_active_session)")
+    load_idx = block.index("_loaded = load_conversation_history()")
+    save_idx = block.index("save_conversation_history(messages)")
+    mark_idx = block.index('os.environ["ATLAS_SESSION_APPLIED"] = _atlas_active_session')
+
+    assert setup_idx < load_idx < save_idx < mark_idx

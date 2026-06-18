@@ -151,6 +151,7 @@ else:
 from core.atlas_exec_policy import (
     EXEC_MODE_ORCHESTRATOR,
     apply_exec_mode_env,
+    available_exec_modes,
     current_exec_mode,
     exec_policy_payload,
     initial_workflow_for_exec_mode,
@@ -1330,8 +1331,9 @@ def create_app():
 
     if _multi_user_env:
         print(f"[atlas] Multi-user enabled (process_per_session={'on' if _use_proc else 'off'})")
-    # single_user collapses every WS-bound session_id onto "default" so
-    # the agent thread's inbox and the WS handler's inbox are the same.
+    # single_user keeps one in-process worker but still preserves explicit
+    # workspace routes, so the agent thread and websocket clients share the
+    # same visible session instead of falling back to the owner/default inbox.
     bridge = _MultiUserBridge(
         single_user=not _multi_user_env,
         use_processes=_use_proc,
@@ -1655,6 +1657,7 @@ def create_app():
             "run_mode": os.environ.get("ATLAS_RUN_MODE", "engineering"),
             "exec_mode": exec_mode,
             "exec_policy": policy,
+            "exec_modes": available_exec_modes(os.environ),
             "oag_mode": _truthy_env(os.environ.get("OAG_MODE")),
             "multi_user": os.environ.get("ATLAS_MULTI_USER", "1"),
             "multi_user_proc": os.environ.get("ATLAS_MULTI_USER_PROC", "1"),
@@ -1936,6 +1939,47 @@ def create_app():
             return active or f"{username}/default/default/default"
         return normalize_session_name(_active_session_value() or "")
 
+    def _query_full_session_route(query_params: Any) -> str:
+        """Resolve the browser's explicit workspace route from query params.
+
+        Workspace URLs intentionally carry both:
+        - session=<user/workspace_session/ip/workflow>
+        - session_id=<owner>
+
+        The full route is the chat/runtime namespace.  The owner-only
+        session_id is just compatibility metadata for older panes, so it must
+        not win when both are present.
+        """
+        for key in ("session", "namespace"):
+            value = normalize_session_name(str(query_params.get(key) or ""))
+            if value:
+                return value
+        owner = normalize_session_name(str(query_params.get("session_id") or ""))
+        workspace = normalize_session_name(str(
+            query_params.get("workspace_session")
+            or query_params.get("workspace_session_id")
+            or ""
+        ))
+        ip = normalize_session_name(str(
+            query_params.get("ip")
+            or query_params.get("ip_id")
+            or query_params.get("scope")
+            or ""
+        ))
+        workflow = normalize_session_name(str(
+            query_params.get("workflow")
+            or query_params.get("active_workflow")
+            or ""
+        ))
+        if owner and (workspace or ip or workflow):
+            return "/".join([
+                owner,
+                workspace or "default",
+                ip or "default",
+                workflow or "default",
+            ])
+        return owner
+
     @app.post("/api/control/stop")
     async def api_control_stop(request: Request):
         """HTTP fallback for the UI Stop button and Escape key.
@@ -2150,13 +2194,7 @@ def create_app():
         include_cost = str(request.query_params.get("cost", "1") or "1").strip().lower() not in {
             "0", "false", "no", "lite",
         }
-        query_active_session = normalize_session_name(
-            str(
-                request.query_params.get("session_id")
-                or request.query_params.get("session")
-                or ""
-            )
-        )
+        query_active_session = _query_full_session_route(request.query_params)
         request_active_session = ""
         if username_norm:
             try:
@@ -10549,13 +10587,34 @@ def create_app():
             if _cfg is None:
                 return JSONResponse({"messages": [], "error": "config unavailable"})
             hpath = Path(getattr(_cfg, "HISTORY_FILE", "") or "")
+            requested_session = _query_full_session_route(request.query_params)
+            if requested_session:
+                requested_session = normalize_session_name(requested_session)
+                if _multi_user_enabled():
+                    user = request.scope.get("user") or {}
+                    username = normalize_session_name(str(user.get("username") or ""))
+                    owner = requested_session.split("/", 1)[0]
+                    allowed = {
+                        username,
+                        _session_owner_with_model(username) if username else "",
+                    }
+                    if username and owner not in allowed:
+                        return JSONResponse({"messages": [], "error": "forbidden"}, status_code=403)
+                try:
+                    context = AtlasContext.from_session_key(
+                        requested_session,
+                        atlas_root=_atlas_root_for_context(),
+                    )
+                    hpath = context.session_dir / "conversation.json"
+                except ValueError:
+                    hpath = PROJECT_ROOT / ".session" / requested_session / "conversation.json"
             # SECURITY: config.HISTORY_FILE is a process-global that points at
             # whichever session last activated — in multi-user mode that may be
             # another tenant's conversation. Bind strictly to the CALLER's own
             # session conversation.json, and never rglob across `.session`
             # owners (that fallback leaked the most-recently-active tenant's
             # chat to any authenticated caller).
-            if _multi_user_enabled():
+            if _multi_user_enabled() and not requested_session:
                 caller_session = normalize_session_name(
                     _request_active_session_for_user(request)
                 )
@@ -10579,7 +10638,7 @@ def create_app():
                 return JSONResponse({"messages": [], "path": str(hpath),
                                        "error": f"parse: {e}"})
             non_system = [m for m in msgs if isinstance(m, dict) and m.get("role") != "system"]
-            if not non_system and not _multi_user_enabled():
+            if not non_system and not _multi_user_enabled() and not requested_session:
                 # Single-user/local mode only: one owner, so picking the most
                 # recent conversation.json is harmless convenience hydration.
                 root = PROJECT_ROOT / ".session"
@@ -10785,8 +10844,6 @@ def create_app():
         else:
             from core.session_setup import setup_session as _shared_setup_session
             _shared_setup_session(session)
-        if mirror_env:
-            os.environ["ATLAS_SESSION_APPLIED"] = session
 
     # Build the admin-check BEFORE registering session routes so the interactive
     # worker status endpoint can gate its all-owner view behind it (Wave-3 H8).
@@ -11379,7 +11436,7 @@ def create_app():
             if _is_websocket_disconnect(exc):
                 return
             raise
-        session_id = websocket.query_params.get("session_id", "")
+        session_id = _query_full_session_route(websocket.query_params)
         _multi_user = _multi_user_enabled()
 
         class _WebSocketCookieRequest:
@@ -11527,9 +11584,9 @@ def create_app():
                 t = msg.get("type")
                 if t in ("session_switch", "client_session_switch"):
                     _session_raw = str(
-                        msg.get("session_id")
-                        or msg.get("session")
+                        msg.get("session")
                         or msg.get("namespace")
+                        or msg.get("session_id")
                         or ""
                     ).strip()
                     _session = _authorize_ws_session(_session_raw)

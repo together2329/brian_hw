@@ -8961,6 +8961,8 @@ def filtered_available_tools(extra_disable=None):
         disabled.update(extra_disable)
     if not _env_enabled("ATLAS_ENABLE_EXTERNAL_DB_QUERY_TOOL"):
         disabled.add("external_db_query")
+    if not _env_enabled("ATLAS_ENABLE_WIKI_QUERY_TOOL"):
+        disabled.add("wiki_query")
     if not _env_enabled("ATLAS_ENABLE_ASK_USER_TOOL"):
         disabled.add("ask_user")
     if _os.environ.get("PLAN_MODE", "false").strip().lower() != "true":

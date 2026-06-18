@@ -82,6 +82,7 @@ function installWindowStubs() {
   w.ATLAS_EXEC_MODE = '';
   delete w.ATLAS_DEFAULT_EXEC_MODE;
   delete w.ATLAS_BOOT_CONFIG;
+  delete w.ATLAS_ENABLE_ASK_USER_CARDS;
   w.FLOW_STAGES = [];
   w.TODOS = [];
   w.atlasData = {};
@@ -572,7 +573,14 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
   it('clears the Workspace Agent responding banner on agent_state false', async () => {
     const { Workspace } = await import('../workspace.tsx');
-    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const { queryByText } = render(
+      <Workspace
+        dir="/tmp/ws"
+        uiLang="ko"
+        activeNamespace="alice/demo/jjj/orchestrator"
+        activeWorkflow="orchestrator"
+      />,
+    );
     const backend = (window as AnyWindow).backend;
 
     await act(async () => {
@@ -725,6 +733,51 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     })).toBe(false);
   });
 
+  it('hydrates persisted assistant output when the saved conversation extends the live feed', async () => {
+    const { conversationSnapshotExtendsLiveFeed } = await import('../workspace-root-data-hook.tsx');
+
+    const liveFeed = [
+      { kind: 'agent', text: 'previous answer' },
+      { kind: 'turn_end', text: 'live marker' },
+      { kind: 'user', text: 'Hi', live: true },
+    ];
+    const persistedFeed = [
+      { kind: 'agent', text: 'previous answer' },
+      { kind: 'turn_end', text: 'live marker' },
+      { kind: 'user', text: 'Hi' },
+      { kind: 'agent', text: 'Hi! UART RTL 개선 계속 진행할 수 있어요.' },
+      { kind: 'turn_end', text: 'live marker' },
+    ];
+
+    expect(conversationSnapshotExtendsLiveFeed(liveFeed, persistedFeed)).toBe(true);
+    expect(conversationSnapshotExtendsLiveFeed(liveFeed, [
+      { kind: 'agent', text: 'older answer' },
+      { kind: 'turn_end', text: 'live marker' },
+    ])).toBe(false);
+  });
+
+  it('preserves completed assistant runtime metadata when hydrating conversation history', async () => {
+    const { conversationFeedFromMessages } = await import('../workspace-rootdata-feed-completion.tsx');
+    const { agentRuntimeParts } = await import('../workspace-feed-cards.tsx');
+
+    const feed = conversationFeedFromMessages([
+      {
+        role: 'assistant',
+        content: 'pong',
+        model: 'gpt-5.5',
+        reasoning_effort: 'xhigh',
+      },
+    ], 'alice/ws1/uart_ip/default');
+
+    expect(feed[0]).toMatchObject({
+      kind: 'agent',
+      text: 'pong',
+      model: 'gpt-5.5',
+      reasoningEffort: 'xhigh',
+    });
+    expect(agentRuntimeParts(feed[0])).toEqual(['gpt-5.5', 'effort xhigh']);
+  });
+
   it('shows Agent responding ahead of stale backend connecting state', async () => {
     const backend = (window as AnyWindow).backend;
     backend._setConnectionState('connecting');
@@ -792,7 +845,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
 
     await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
-    await waitFor(() => expect(queryByText('Hi there')).not.toBeNull());
+    await waitFor(() => expect(queryByText('Hi there')).not.toBeNull(), { timeout: 2500 });
 
     await act(async () => {
       backend._emit('orchestrator_chat', {
@@ -1329,6 +1382,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
   });
 
   it('surfaces ask_user websocket events as a pending Q&A prompt', async () => {
+    (window as AnyWindow).ATLAS_ENABLE_ASK_USER_CARDS = true;
     const { Workspace } = await import('../workspace.tsx');
     const { container, getByTestId, getByText, queryByTestId } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
     const backend = (window as AnyWindow).backend;
@@ -1367,5 +1421,124 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
 
     expect(queryByText('Agent responding')).toBeNull();
+  });
+
+  it('keeps completed chat iframe height stable when iframe viewport metrics echo back', async () => {
+    const callbacks: ResizeObserverCallback[] = [];
+    const originalResizeObserver = (window as AnyWindow).ResizeObserver;
+    const originalRaf = window.requestAnimationFrame;
+    const originalCancelRaf = window.cancelAnimationFrame;
+    const originalContentDocument = Object.getOwnPropertyDescriptor(
+      HTMLIFrameElement.prototype,
+      'contentDocument',
+    );
+    const originalContentWindow = Object.getOwnPropertyDescriptor(
+      HTMLIFrameElement.prototype,
+      'contentWindow',
+    );
+    const docs = new WeakMap<HTMLIFrameElement, Document>();
+    let viewportHeight = 24;
+    let nextRafId = 1;
+    let rafCallbacks = new Map<number, FrameRequestCallback>();
+
+    class TestResizeObserver {
+      constructor(callback: ResizeObserverCallback) {
+        callbacks.push(callback);
+      }
+      observe = vi.fn();
+      unobserve = vi.fn();
+      disconnect = vi.fn();
+    }
+
+    const flushRaf = async () => {
+      const pending = Array.from(rafCallbacks.entries());
+      rafCallbacks = new Map();
+      pending.forEach(([, callback]) => callback(performance.now()));
+      await Promise.resolve();
+    };
+
+    (window as AnyWindow).ResizeObserver = TestResizeObserver;
+    window.requestAnimationFrame = ((callback: FrameRequestCallback) => {
+      const id = nextRafId++;
+      rafCallbacks.set(id, callback);
+      return id;
+    }) as typeof window.requestAnimationFrame;
+    window.cancelAnimationFrame = ((id: number) => {
+      rafCallbacks.delete(id);
+    }) as typeof window.cancelAnimationFrame;
+    Object.defineProperty(HTMLIFrameElement.prototype, 'contentDocument', {
+      configurable: true,
+      get() {
+        return docs.get(this as HTMLIFrameElement) ?? null;
+      },
+    });
+    Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', {
+      configurable: true,
+      get() {
+        return { innerHeight: viewportHeight };
+      },
+    });
+
+    let rendered: ReturnType<typeof render> | null = null;
+    try {
+      const { ChatMarkdownFrame } = await import('../workspace-chat-markdown-frame.tsx');
+      rendered = render(<ChatMarkdownFrame text="pong" />);
+      const iframe = rendered.container.querySelector('iframe.chat-markdown-frame') as HTMLIFrameElement;
+      expect(iframe).not.toBeNull();
+
+      const doc = document.implementation.createHTMLDocument('chat-frame');
+      const root = doc.createElement('main');
+      root.className = 'md-agent md-chat-frame-body';
+      root.innerHTML = '<p>pong</p>';
+      Object.defineProperty(root, 'scrollHeight', { configurable: true, get: () => viewportHeight });
+      Object.defineProperty(root, 'offsetHeight', { configurable: true, get: () => viewportHeight });
+      root.getBoundingClientRect = (() => ({
+        x: 0,
+        y: 0,
+        top: 0,
+        left: 0,
+        right: 320,
+        bottom: 20,
+        width: 320,
+        height: 20,
+        toJSON: () => ({}),
+      })) as typeof root.getBoundingClientRect;
+      doc.body.appendChild(root);
+      docs.set(iframe, doc);
+
+      fireEvent.load(iframe);
+      await act(async () => {
+        await flushRaf();
+      });
+      expect(iframe.style.height).toBe('24px');
+
+      for (let i = 0; i < 3; i += 1) {
+        viewportHeight = Number.parseFloat(iframe.style.height) || 24;
+        await act(async () => {
+          callbacks.forEach((callback) => callback([], {} as ResizeObserver));
+          await flushRaf();
+        });
+        expect(iframe.style.height).toBe('24px');
+      }
+    } finally {
+      rendered?.unmount();
+      if (originalResizeObserver) {
+        (window as AnyWindow).ResizeObserver = originalResizeObserver;
+      } else {
+        delete (window as AnyWindow).ResizeObserver;
+      }
+      window.requestAnimationFrame = originalRaf;
+      window.cancelAnimationFrame = originalCancelRaf;
+      if (originalContentDocument) {
+        Object.defineProperty(HTMLIFrameElement.prototype, 'contentDocument', originalContentDocument);
+      } else {
+        delete (HTMLIFrameElement.prototype as AnyWindow).contentDocument;
+      }
+      if (originalContentWindow) {
+        Object.defineProperty(HTMLIFrameElement.prototype, 'contentWindow', originalContentWindow);
+      } else {
+        delete (HTMLIFrameElement.prototype as AnyWindow).contentWindow;
+      }
+    }
   });
 });

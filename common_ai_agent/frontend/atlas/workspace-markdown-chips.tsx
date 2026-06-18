@@ -32,6 +32,7 @@ interface MarkdownChipWindowGlobals {
   renderInline?: (s: string) => string;
   _unwrapAtlasOutputFence?: (text: unknown) => string;
   _escHtml?: (s: unknown) => string;
+  atlasResolveOpenablePath?: (path: unknown) => string;
 }
 const _mdWin = window as unknown as Window & MarkdownChipWindowGlobals;
 
@@ -162,16 +163,24 @@ export const _sanitizePrismLanguageClasses = (node: any): void => {
 // so CSS can style them differently, and path-like / IP-like chips
 // become clickable so the user can pivot the preview pane or active IP
 // straight from the chat feed.
-export const _CHIP_PATH_RE = /^[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f)$/i;
+export const _CHIP_PATH_RE = /^(?:[A-Za-z]:\/)?[A-Za-z0-9_./-]+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f)$/i;
 export const _CHIP_DIR_RE = /^[A-Za-z0-9_-]+\/(?:[A-Za-z0-9_./-]*)$/;
 export const _CHIP_CMD_RE = /^\/[a-z][a-z0-9-]+(?:\s.*)?$/i;
 export const _CHIP_IP_RE = /^[a-z][a-z0-9_]{1,40}$/i;
-const _BACKSLASH_PATH_TOKEN_RE = /(^|[^\w./:-])((?:[A-Za-z]:\\+[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)*|[A-Za-z0-9_.$~@-]+(?:\\+[A-Za-z0-9_.$~@-]+)+(?:\\+)?))/g;
+export const _PLAIN_FILE_PATH_RE = /(^|[\s([{"'`])((?:[A-Za-z]:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+|\.{1,2}[\/\\\u20A9\u00A5\uFFE5\uFF3C]+|[\/\\\u20A9\u00A5\uFFE5\uFF3C]+)?[A-Za-z0-9_.$~@-]+(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+[A-Za-z0-9_.$~@-]+)+\.(?:sv|v|svh|vh|vlt|sdc|tcl|md|markdown|yaml|yml|json|jsonl|txt|log|py|sh|c|cc|cpp|h|hpp|f|html|htm|css|js|jsx|ts|tsx))(?:[:#]L?(\d+))?(?=$|[\s)\]}",.;!?])/gi;
+export const _DISPLAY_PATH_SEPARATOR_RE = /[\\\u20A9\u00A5\uFFE5\uFF3C]+|\/{2,}/g;
+export const _DISPLAY_PATH_TOKEN_RE = /(^|[^\w./:-])((?:[A-Za-z]:)?(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+)?[A-Za-z0-9_.$~@-]+(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+[A-Za-z0-9_.$~@-]+)+(?:[\/\\\u20A9\u00A5\uFFE5\uFF3C]+)?)(?=$|[^\w.$~@-])/g;
+
+export const _normalizeDisplayPathToken = (path: unknown): string => (
+  String(path || '')
+    .replace(_DISPLAY_PATH_SEPARATOR_RE, '/')
+    .replace(/\/{2,}/g, '/')
+);
 
 export const _normalizeDisplayedToolPaths = (text: unknown): string => (
   String(text || '').replace(
-    _BACKSLASH_PATH_TOKEN_RE,
-    (_match, lead: string, path: string) => `${lead}${String(path).replace(/\\+/g, '/')}`,
+    _DISPLAY_PATH_TOKEN_RE,
+    (_match, lead: string, path: string) => `${lead}${_normalizeDisplayPathToken(path)}`,
   )
 );
 
@@ -185,10 +194,24 @@ export const _chipKindFor = (text: unknown): string => {
   return '';
 };
 
+export const _resolveOpenableChipPath = (path: unknown): string => {
+  const clean = _normalizeDisplayedToolPaths(path)
+    .trim()
+    .replace(/^['"`]+|['"`]+$/g, '')
+    .replace(/(?:#L|:)\d+$/i, '');
+  if (!clean) return '';
+  if (typeof _mdWin.atlasResolveOpenablePath === 'function') {
+    return String(_mdWin.atlasResolveOpenablePath(clean) || '').trim();
+  }
+  return clean;
+};
+
 export const _activateChipPath = (path: unknown): void => {
+  const clean = _resolveOpenableChipPath(path);
+  if (!clean) return;
   try {
     window.dispatchEvent(new CustomEvent('atlas-chip-open', {
-      detail: { path: _normalizeDisplayedToolPaths(path) },
+      detail: { path: clean },
     }));
   } catch (_) {}
 };
@@ -211,21 +234,24 @@ export const _processInlineChips = (node: any): void => {
     const kind = _chipKindFor(txt);
     if (!kind) return;
     if (txt !== rawTxt) el.textContent = txt;
+    const resolvedPath = kind === 'path' ? _resolveOpenableChipPath(txt) : '';
+    if (kind === 'path' && !resolvedPath) return;
     el.dataset.chip = kind;
     el.classList.add('chip', `chip-${kind}`);
     if (kind === 'path') {
+      el.dataset.path = resolvedPath;
       el.setAttribute('role', 'button');
       el.setAttribute('tabindex', '0');
-      el.setAttribute('title', `open ${txt}`);
+      el.setAttribute('title', `open ${resolvedPath}`);
       el.style.cursor = 'pointer';
       el.addEventListener('click', (e: any) => {
         e.stopPropagation();
-        _activateChipPath(txt);
+        _activateChipPath(resolvedPath);
       });
       el.addEventListener('keydown', (e: any) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          _activateChipPath(txt);
+          _activateChipPath(resolvedPath);
         }
       });
     } else if (kind === 'ident') {
@@ -247,6 +273,77 @@ export const _processInlineChips = (node: any): void => {
         }
       });
     }
+  });
+};
+
+export const _processPlainFilePathChips = (node: any): void => {
+  if (!node || !node.ownerDocument) return;
+  const doc = node.ownerDocument;
+  const walker = doc.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+  const textNodes: any[] = [];
+  let cur = walker.nextNode();
+  while (cur) {
+    const parent = cur.parentElement;
+    const text = String(cur.nodeValue || '');
+    if (
+      /[\/\\\u20A9\u00A5\uFFE5\uFF3C]/.test(text) &&
+      /\.[A-Za-z0-9]{1,10}/.test(text) &&
+      parent &&
+      !parent.closest('code, pre, a, button, input, textarea, select, script, style')
+    ) {
+      textNodes.push(cur);
+    }
+    cur = walker.nextNode();
+  }
+
+  textNodes.forEach((textNode) => {
+    const text = String(textNode.nodeValue || '');
+    _PLAIN_FILE_PATH_RE.lastIndex = 0;
+    let match: RegExpExecArray | null;
+    let last = 0;
+    let changed = false;
+    const frag = doc.createDocumentFragment();
+    while ((match = _PLAIN_FILE_PATH_RE.exec(text)) !== null) {
+      const lead = match[1] || '';
+      const path = _normalizeDisplayedToolPaths(match[2] || '').trim();
+      const line = match[3] || '';
+      const resolvedPath = _resolveOpenableChipPath(path);
+      const start = match.index;
+      const tokenStart = start + lead.length;
+      if (start > last) frag.appendChild(doc.createTextNode(text.slice(last, start)));
+      if (lead) frag.appendChild(doc.createTextNode(lead));
+      if (!resolvedPath) {
+        frag.appendChild(doc.createTextNode(text.slice(tokenStart, _PLAIN_FILE_PATH_RE.lastIndex)));
+        last = _PLAIN_FILE_PATH_RE.lastIndex;
+        continue;
+      }
+      const code = doc.createElement('code');
+      code.textContent = line ? `${path}:${line}` : path;
+      code.dataset.chip = 'path';
+      code.dataset.path = resolvedPath;
+      if (line) code.dataset.line = line;
+      code.classList.add('chip', 'chip-path');
+      code.setAttribute('role', 'button');
+      code.setAttribute('tabindex', '0');
+      code.setAttribute('title', `open ${resolvedPath}`);
+      code.style.cursor = 'pointer';
+      code.addEventListener('click', (e: any) => {
+        e.stopPropagation();
+        _activateChipPath(resolvedPath);
+      });
+      code.addEventListener('keydown', (e: any) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          _activateChipPath(resolvedPath);
+        }
+      });
+      frag.appendChild(code);
+      last = _PLAIN_FILE_PATH_RE.lastIndex;
+      changed = true;
+    }
+    if (!changed) return;
+    if (last < text.length) frag.appendChild(doc.createTextNode(text.slice(last)));
+    textNode.parentNode?.replaceChild(frag, textNode);
   });
 };
 
@@ -357,6 +454,7 @@ export const _postProcessMarkdownNode = (node: any): void => {
   if (window.Prism) {
     try { window.Prism.highlightAllUnder(node); } catch (_) {}
   }
+  _processPlainFilePathChips(node);
   _processInlineChips(node);
   _processBlockquoteKinds(node);
 };

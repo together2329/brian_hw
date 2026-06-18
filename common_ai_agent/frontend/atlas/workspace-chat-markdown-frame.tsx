@@ -19,6 +19,9 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     --doc-accent: #80d8ff;
     --doc-code-font: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
     --doc-body-font: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --doc-body-font-size: 14px;
+    --doc-code-font-size: 12.5px;
+    --doc-body-line-height: 1.66;
   }
   html[data-theme="light"] {
     color-scheme: light;
@@ -31,19 +34,19 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     --doc-accent: #0b6ea8;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; min-height: 100%; background: var(--doc-bg); }
+  html, body { margin: 0; height: auto; min-height: 0; background: var(--doc-bg); }
   body {
     color: var(--doc-fg);
     font-family: var(--doc-body-font);
-    font-size: 14px;
-    line-height: 1.68;
+    font-size: var(--doc-body-font-size);
+    line-height: var(--doc-body-line-height);
     overflow: hidden;
   }
   .md-chat-frame-body {
     width: 100%;
-    max-width: 88ch;
+    max-width: 100%;
     margin: 0;
-    padding: 2px 0 4px;
+    padding: 0 0 2px;
     background: var(--doc-bg);
   }
   .md-chat-frame-body > :first-child { margin-top: 0; }
@@ -95,6 +98,15 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     font-family: var(--doc-code-font);
     font-size: .9em;
   }
+  .md-chat-frame-body code.chip-path {
+    color: var(--doc-accent);
+    border-color: color-mix(in oklch, var(--doc-accent) 44%, var(--doc-line));
+    cursor: pointer;
+  }
+  .md-chat-frame-body code.chip-path:hover {
+    background: color-mix(in oklch, var(--doc-accent) 13%, var(--doc-panel-2));
+    border-color: var(--doc-accent);
+  }
   .md-chat-frame-body pre {
     margin: .95rem 0 1.05rem;
     padding: .9rem 1rem;
@@ -110,7 +122,7 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     border: 0;
     background: transparent;
     color: inherit;
-    font-size: .9rem;
+    font-size: var(--doc-code-font-size);
     line-height: 1.58;
   }
   .md-chat-frame-body table {
@@ -171,20 +183,69 @@ const chatMarkdownTheme = (): string => {
   return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
 };
 
+type FrameTypography = {
+  bodyFontSize: string;
+  codeFontSize: string;
+  lineHeight: string;
+};
+
+const cssPxValue = (value: string, fallback: string): string => {
+  const trimmed = value.trim();
+  return /^\d+(?:\.\d+)?px$/.test(trimmed) ? trimmed : fallback;
+};
+
+const cssLineHeightValue = (value: string, fallback: string): string => {
+  const trimmed = value.trim();
+  return /^(?:\d+(?:\.\d+)?|\d+(?:\.\d+)?px)$/.test(trimmed) ? trimmed : fallback;
+};
+
+const chatMarkdownTypography = (): FrameTypography => {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return { bodyFontSize: '14px', codeFontSize: '12.5px', lineHeight: '1.66' };
+  }
+  const rootStyle = window.getComputedStyle(document.documentElement);
+  return {
+    bodyFontSize: cssPxValue(rootStyle.getPropertyValue('--ui-agent-font-size'), '14px'),
+    codeFontSize: cssPxValue(rootStyle.getPropertyValue('--ui-code-font-size'), '12.5px'),
+    lineHeight: cssLineHeightValue(rootStyle.getPropertyValue('--ui-agent-line-height'), '1.66'),
+  };
+};
+
 export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
   const frameRef = useRef<HTMLIFrameElement>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
-  const [height, setHeight] = useState(44);
+  const pendingMeasureFrameRef = useRef<number | null>(null);
+  const [height, setHeight] = useState(24);
   const [theme, setTheme] = useState(chatMarkdownTheme);
+  const [typography, setTypography] = useState(chatMarkdownTypography);
+  const [dataRevision, setDataRevision] = useState(0);
   const html = useMemo(() => _markdownHtml(text || ''), [text]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const sync = () => setTheme(chatMarkdownTheme());
+    const sync = () => {
+      setTheme(chatMarkdownTheme());
+      setTypography(chatMarkdownTypography());
+    };
     sync();
     const observer = new MutationObserver(sync);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'data-font-scale', 'data-platform', 'style'],
+    });
     return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onDataChanged = (ev: any) => {
+      const detail = String(ev?.detail || '');
+      if (detail === 'FILE_TREE' || detail === 'SCOPE_PATH' || detail === 'SESSION_STATE') {
+        setDataRevision((n) => n + 1);
+      }
+    };
+    window.addEventListener('atlas-data-changed', onDataChanged);
+    return () => window.removeEventListener('atlas-data-changed', onDataChanged);
   }, []);
 
   const postProcessFrame = useCallback(() => {
@@ -192,32 +253,67 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
     const root = doc?.querySelector('.md-chat-frame-body') as HTMLElement | null;
     if (!doc || !root) return;
     resizeObserverRef.current?.disconnect();
+    if (pendingMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingMeasureFrameRef.current);
+      pendingMeasureFrameRef.current = null;
+    }
     _postProcessMarkdownNode(root);
     const measure = () => {
+      pendingMeasureFrameRef.current = null;
+      const rectHeight = root.getBoundingClientRect().height || 0;
+      const viewportHeight = frameRef.current?.contentWindow?.innerHeight || 0;
+      const stableMetric = (value: number): number => {
+        if (!value) return 0;
+        if (viewportHeight > 0 && value > rectHeight + 1 && Math.abs(value - viewportHeight) <= 1) {
+          return 0;
+        }
+        return value;
+      };
       const next = Math.ceil(Math.max(
-        root.scrollHeight || 0,
-        doc.body?.scrollHeight || 0,
-        doc.documentElement?.scrollHeight || 0,
-        44,
+        stableMetric(root.scrollHeight || 0),
+        stableMetric(root.offsetHeight || 0),
+        rectHeight,
+        24,
       ));
-      setHeight(next + 2);
+      setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));
+    };
+    const scheduleMeasure = () => {
+      if (pendingMeasureFrameRef.current !== null) return;
+      pendingMeasureFrameRef.current = window.requestAnimationFrame(measure);
     };
     root.querySelectorAll('img').forEach(img => {
-      img.addEventListener('load', measure, { once: true });
-      img.addEventListener('error', measure, { once: true });
+      img.addEventListener('load', scheduleMeasure, { once: true });
+      img.addEventListener('error', scheduleMeasure, { once: true });
     });
     if (typeof ResizeObserver !== 'undefined') {
-      resizeObserverRef.current = new ResizeObserver(measure);
+      resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());
       resizeObserverRef.current.observe(root);
     }
-    window.requestAnimationFrame(measure);
-    window.setTimeout(measure, 120);
-  }, [html]);
+    scheduleMeasure();
+    window.setTimeout(scheduleMeasure, 120);
+  }, [html, dataRevision]);
 
-  useEffect(() => () => resizeObserverRef.current?.disconnect(), []);
+  useEffect(() => {
+    postProcessFrame();
+  }, [postProcessFrame]);
+
+  useEffect(() => () => {
+    resizeObserverRef.current?.disconnect();
+    if (pendingMeasureFrameRef.current !== null) {
+      window.cancelAnimationFrame(pendingMeasureFrameRef.current);
+      pendingMeasureFrameRef.current = null;
+    }
+  }, []);
 
   const srcDoc = useMemo(() => {
     const frameTheme = theme === 'light' ? 'light' : 'dark';
+    const typographyCss = `
+  :root {
+    --doc-body-font-size: ${typography.bodyFontSize};
+    --doc-code-font-size: ${typography.codeFontSize};
+    --doc-body-line-height: ${typography.lineHeight};
+  }
+`;
     return `<!doctype html>
 <html data-theme="${frameTheme}">
 <head>
@@ -225,12 +321,13 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <base target="_blank" />
   <style>${CHAT_MARKDOWN_FRAME_CSS}</style>
+  <style>${typographyCss}</style>
 </head>
 <body>
   <main class="md-agent md-chat-frame-body">${html}</main>
 </body>
 </html>`;
-  }, [html, theme]);
+  }, [html, theme, typography]);
 
   return (
     <iframe
@@ -244,10 +341,10 @@ export const ChatMarkdownFrame = ({ text }: { text: unknown }): ReactNode => {
       style={{
         width: '100%',
         height,
-        minHeight: 44,
+        minHeight: 24,
         border: 0,
         display: 'block',
-        marginTop: 4,
+        marginTop: 0,
         background: theme === 'light' ? '#ffffff' : '#070b10',
         overflow: 'hidden',
       }}

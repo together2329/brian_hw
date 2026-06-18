@@ -260,9 +260,21 @@ export const AgentStatusPanel = ({ intent, workflow, activeIp = '', agentAlive =
   };
   const healthzUrl = (): string => {
     const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
-    return activeSession
-      ? `/healthz?session_id=${encodeURIComponent(activeSession)}`
-      : '/healthz';
+    const params = new URLSearchParams();
+    if (activeSession) {
+      const parts = activeSession.split('/').filter(Boolean);
+      if (parts.length >= 3) {
+        params.set('session', activeSession);
+        if (parts[0]) params.set('session_id', parts[0]);
+        if (parts.length >= 4 && parts[1]) params.set('workspace_session', parts[1]);
+        if (parts[parts.length - 2]) params.set('ip', parts[parts.length - 2]);
+        if (parts[parts.length - 1]) params.set('workflow', parts[parts.length - 1]);
+      } else {
+        params.set('session_id', activeSession);
+      }
+    }
+    const query = params.toString();
+    return query ? `/healthz?${query}` : '/healthz';
   };
   useEffect(() => {
     let alive = true;

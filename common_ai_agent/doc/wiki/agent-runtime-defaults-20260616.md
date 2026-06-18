@@ -15,10 +15,10 @@ active-IP locality.
 
 Normal execution should not expose interactive planning or external retrieval
 tools by default. `todo_write` / `todo_add` remain plan-mode tools.
-`external_db_query`, external wiki aliases (`rtl-db`, `external-db`, `andes`),
-and `ask_user` are opt-in because they add latency, side effects, or disruptive
-UI flow. Requirements should be resolved in normal conversation unless a user
-explicitly opts into a structured interaction mode.
+`wiki_query`, `external_db_query`, external wiki aliases (`rtl-db`,
+`external-db`, `andes`), and `ask_user` are opt-in because they add latency,
+side effects, or disruptive UI flow. Requirements should be resolved in normal
+conversation unless a user explicitly opts into a structured interaction mode.
 
 ## OAG active IP locality
 
@@ -44,7 +44,39 @@ The workspace chat is primarily a live transcript, so new feed entries and
 streaming text should scroll to the bottom by default. Tool cards must keep the
 called command/tool visible in the header. OAG cards show the full `oag(...)`
 call in the header, while long payload/result details start folded so OAG audit
-information is available without flooding the chat.
+information is available without flooding the chat. Delayed content growth from
+expanded tool results should only follow the bottom when the user is already
+pinned there; explicit submit/Q&A actions may force the feed to the bottom, but
+ResizeObserver-driven layout changes must not reset the user's scroll intent.
+
+Tool-call detail bodies can render inside a small iframe document surface once
+the user expands them. The tool-card header, status glyph, line count, command
+text, and fold control stay in the parent chat DOM so the audit trail remains
+visible and clickable. The iframe is for the noisy result/details body only:
+plain output, grep output, diffs, and workflow Markdown results get a clean
+black reading surface without taking over chat interaction.
+
+The live tool-call command text, streaming text, and reasoning blocks stay in
+the parent chat DOM for stability and predictable folding. Iframe-backed
+surfaces are limited to completed assistant Markdown and expanded tool-result
+details. Those iframes schedule auto-height updates through
+`requestAnimationFrame`, ignore unchanged heights, and measure the rendered
+content root instead of the iframe document viewport. That avoids feeding the
+previous iframe height back into the next measurement, which can make expanded
+tool results such as `run_command` visually grow or shake. Live reasoning
+coalescing treats provider updates as cumulative snapshots when possible, so
+repeated reasoning summaries replace earlier text instead of duplicating it.
+
+Assistant Markdown and tool Markdown use the available transcript width rather
+than a narrow fixed document column. `run_command` arguments render as a
+full-width monospace command block in the tool-card header so long commands wrap
+predictably without disturbing the result body.
+
+The workspace Size control is the source of truth for chat reading surfaces.
+Completed assistant Markdown and expanded tool-result iframes copy the parent
+workspace text-size CSS variables into their isolated `srcDoc` documents, so
+the 13/14/15/16 size presets affect Markdown body text, code blocks, and command
+output instead of leaving iframe content pinned to a fixed default.
 
 ## OAG workspace surface
 
@@ -101,6 +133,22 @@ DOM so scrolling, folding, copy buttons, and running-state updates remain
 stable. The iframe receives sanitized Markdown through `srcDoc`, disables
 scripts, auto-sizes to its document height, and keeps the tool-call audit trail
 outside the frame.
+
+Live streaming should still feel visually continuous with the completed
+iframe-backed answer. The streaming body stays in the parent DOM for stable
+scrolling and caret updates, but it uses the same reading-surface basics as the
+iframe document: neutral black/white background, available transcript width,
+Size-controlled body text, Size-controlled code text, and parent-side whitespace
+wrapping. This reduces the visual jump when a live answer settles into the
+completed Markdown iframe without moving streaming into iframe lifecycle.
+
+The page-level error banner should not surface browser `ResizeObserver` loop
+notifications as fatal uncaught errors. Those notifications can be emitted by
+native layout delivery after otherwise valid observer callbacks or third-party
+canvas/layout libraries, and they do not identify a broken ATLAS action by
+themselves. The reporter suppresses only the exact ResizeObserver loop
+notification strings while leaving generic uncaught errors, promise rejections,
+and asset-load failures visible.
 
 ## Perforce pane responsiveness
 

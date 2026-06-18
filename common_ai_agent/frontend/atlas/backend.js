@@ -78,6 +78,40 @@
     } catch (_) {}
   }
 
+  function sessionRouteParams(sessionId) {
+    const target = String(sessionId || '').trim().replace(/^\/+|\/+$/g, '');
+    const params = new URLSearchParams();
+    if (!target) return params;
+    const parts = target.split('/').filter(Boolean);
+    if (parts.length >= 3) {
+      params.set('session', target);
+      if (parts[0]) params.set('session_id', parts[0]);
+      if (parts.length >= 4 && parts[1]) params.set('workspace_session', parts[1]);
+      if (parts[parts.length - 2]) params.set('ip', parts[parts.length - 2]);
+      if (parts[parts.length - 1]) params.set('workflow', parts[parts.length - 1]);
+    } else {
+      params.set('session_id', target);
+    }
+    return params;
+  }
+
+  function sessionSwitchMessage(sessionId) {
+    const target = String(sessionId || '').trim().replace(/^\/+|\/+$/g, '');
+    const msg = { type: 'session_switch' };
+    if (!target) return msg;
+    const parts = target.split('/').filter(Boolean);
+    if (parts.length >= 3) {
+      msg.session = target;
+      if (parts[0]) msg.session_id = parts[0];
+      if (parts.length >= 4 && parts[1]) msg.workspace_session = parts[1];
+      if (parts[parts.length - 2]) msg.ip = parts[parts.length - 2];
+      if (parts[parts.length - 1]) msg.workflow = parts[parts.length - 1];
+    } else {
+      msg.session_id = target;
+    }
+    return msg;
+  }
+
   function _rawSend(msg) {
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg));
     else liveQueue.push(msg);
@@ -123,8 +157,9 @@
       return;
     }
     const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url   = targetSessionId
-        ? `${proto}//${location.host}/ws/agent?session_id=${encodeURIComponent(targetSessionId)}`
+    const sessionParams = sessionRouteParams(targetSessionId).toString();
+    const url   = sessionParams
+        ? `${proto}//${location.host}/ws/agent?${sessionParams}`
         : `${proto}//${location.host}/ws/agent`;
     try {
       ws = new WebSocket(url);
@@ -211,7 +246,7 @@
       liveConnect(targetSessionId);
       return;
     }
-    _rawSend({ type: 'session_switch', session_id: targetSessionId });
+    _rawSend(sessionSwitchMessage(targetSessionId));
   }
   function liveDisconnect() {
     clearTimeout(reconnectTimer);

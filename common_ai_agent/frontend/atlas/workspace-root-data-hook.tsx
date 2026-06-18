@@ -33,6 +33,8 @@ import {
   trimAtlasFeedState,
   coalesceAtlasFeedEntries,
   cleanAtlasTerminalText,
+  compactAtlasThoughtText,
+  mergeAtlasThoughtText,
   atlasBootScmProvider,
   atlasResolveScmTab,
   atlasScmTabLabel,
@@ -44,6 +46,7 @@ import {
 } from './workspace-tool-theme';
 import { useResizable, useVerticalResizable } from './workspace-resize-splitters';
 import { WorkspaceChatPane, WorkspacePromptRow, type WorkspacePromptKeyResult } from './workspace-root-render';
+import { activeIpFromSession } from './data-helpers';
 
 // Poll bail-out: the periodic pollers below (worker status / orch workers /
 // telemetry / worker progress) rebuild their payload object every tick, which
@@ -143,11 +146,48 @@ export const shouldReconcileRespondingFromWorkerStatus = ({
   && now - startedAt >= graceMs
 );
 
+const hydrateFeedEntryKey = (entry: any): string => {
+  if (!entry || typeof entry !== 'object') return '';
+  const kind = String(entry.kind || '').trim();
+  const text = String(entry.text || '').trim();
+  if (!kind || !text) return '';
+  const tool = String(entry.tool || '').trim();
+  const args = String(entry.args || '').trim();
+  return `${kind}\n${tool}\n${args}\n${text}`;
+};
+
+export const conversationSnapshotExtendsLiveFeed = (
+  prevFeed: any[],
+  nextFeed: any[],
+): boolean => {
+  if (!Array.isArray(prevFeed) || !Array.isArray(nextFeed)) return false;
+  const prevKeys = prevFeed.map(hydrateFeedEntryKey).filter(Boolean);
+  const nextKeys = nextFeed.map(hydrateFeedEntryKey).filter(Boolean);
+  if (!prevKeys.length || nextKeys.length <= prevKeys.length) return false;
+  let matched = 0;
+  for (const key of nextKeys) {
+    if (key === prevKeys[matched]) matched += 1;
+    if (matched >= prevKeys.length) return true;
+  }
+  return false;
+};
+
 const healthzCostUrl = (): string => {
   const activeSession = normalizeUiSession(w.ACTIVE_SESSION || '');
-  return activeSession
-    ? `/healthz?cost=0&session_id=${encodeURIComponent(activeSession)}`
-    : '/healthz?cost=0';
+  const params = new URLSearchParams({ cost: '0' });
+  if (activeSession) {
+    const parts = activeSession.split('/').filter(Boolean);
+    if (parts.length >= 3) {
+      params.set('session', activeSession);
+      if (parts[0]) params.set('session_id', parts[0]);
+      if (parts.length >= 4 && parts[1]) params.set('workspace_session', parts[1]);
+      if (parts[parts.length - 2]) params.set('ip', parts[parts.length - 2]);
+      if (parts[parts.length - 1]) params.set('workflow', parts[parts.length - 1]);
+    } else {
+      params.set('session_id', activeSession);
+    }
+  }
+  return `/healthz?${params.toString()}`;
 };
 
 const activeWorkspaceSession = (): string => {
@@ -853,6 +893,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // the agent actually starts. (workspace.jsx L2737-L2738 component-scope refs.)
   const awaitingRunStartRef = useRef<boolean>(false);
   const backendRunStartedRef = useRef<boolean>(false);
+  const liveReasoningEntryIdRef = useRef<string>('');
+  const liveReasoningTextRef = useRef<string>('');
   const orchestratorRunPollRef = useRef<{
     runId: string;
     session: string;
@@ -988,7 +1030,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   })();
 
   const eventMatchesCurrentSession = useCallback((m: any, opts: { requireSession?: boolean } = {}) => {
-    const eventSession = normalizeUiSession((m && (m.session_id || m.session || m.namespace)) || '');
+    const eventSession = normalizeUiSession((m && (m.session || m.namespace || m.session_id)) || '');
     const active = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || currentSession || '');
     if (!active) return !opts.requireSession;
     if (!eventSession) return !opts.requireSession;
@@ -998,6 +1040,44 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const minLen = Math.min(eventParts.length, activeParts.length);
     return minLen >= 2 && eventParts.slice(-minLen).join('/') === activeParts.slice(-minLen).join('/');
   }, [activeSessionRef, currentSession]);
+
+  const resetLiveReasoningStream = useCallback(() => {
+    liveReasoningEntryIdRef.current = '';
+    liveReasoningTextRef.current = '';
+  }, []);
+
+  const appendLiveReasoning = useCallback((rawText: any) => {
+    const text = String(rawText || '').trim();
+    if (!text) return;
+    const merged = compactAtlasThoughtText(mergeAtlasThoughtText(liveReasoningTextRef.current, text));
+    if (!merged.trim()) return;
+    liveReasoningTextRef.current = merged;
+    if (!liveReasoningEntryIdRef.current) {
+      liveReasoningEntryIdRef.current = `live-reasoning-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
+    const streamId = liveReasoningEntryIdRef.current;
+    const updatedAt = Date.now();
+    liveFeedStartedRef.current = true;
+    setFeed((items: any) => {
+      const list = Array.isArray(items) ? items.slice() : [];
+      const idx = list.findIndex((entry: any) => (
+        entry && entry.kind === 'thought' && entry.reasoningStreamId === streamId
+      ));
+      const prev = idx >= 0 ? list[idx] : {};
+      const next = {
+        ...prev,
+        kind: 'thought',
+        text: merged,
+        live: true,
+        reasoningStreamId: streamId,
+        createdAt: prev.createdAt || updatedAt,
+        updatedAt,
+      };
+      if (idx >= 0) list[idx] = next;
+      else list.push(next);
+      return trimAtlasFeedState(list);
+    });
+  }, [liveFeedStartedRef, setFeed]);
 
   const parkLiveStream = useCallback(() => {
     cancelStreamTextDisplay();
@@ -1029,12 +1109,28 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const finishLiveRun = useCallback(() => {
     cancelOrchestratorRunPoll();
     parkLiveStream();
+    resetLiveReasoningStream();
+    streamingRef.current = false;
     setStreaming(false);
     setLiveLlmRuntime({ model: '', reasoningEffort: '' });
     awaitingRunStartRef.current = false;
     backendRunStartedRef.current = false;
     setCommandBusy(null);
-  }, [cancelOrchestratorRunPoll, parkLiveStream, setStreaming]);
+    const sid = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '');
+    const refreshActiveConversation = w.atlasData?.refreshActiveConversation;
+    if (!atlasUiOrchestratorMode() && sid && typeof refreshActiveConversation === 'function') {
+      window.setTimeout(() => {
+        try { refreshActiveConversation(sid, { force: true }); } catch (_) {}
+      }, 120);
+    }
+  }, [
+    activeSessionRef,
+    cancelOrchestratorRunPoll,
+    parkLiveStream,
+    resetLiveReasoningStream,
+    setStreaming,
+    streamingRef,
+  ]);
   useEffect(() => {
     finishLiveRunRef.current = finishLiveRun;
     return () => {
@@ -1143,8 +1239,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       }));
       subs.push(w.backend.subscribe('reasoning', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
-        const text = String((m && m.text) || '').trim();
-        if (text) appendLiveFeedEntries({ kind: 'thought', text, createdAt: Date.now(), live: true });
+        appendLiveReasoning(m && m.text);
       }));
       subs.push(w.backend.subscribe('tool', (m: any) => {
         if (!eventMatchesCurrentSession(m)) return;
@@ -1226,6 +1321,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           if (controlPlaneState) return;
           const runtime = liveLlmRuntimeFrom(m);
           if (hasLiveLlmRuntime(runtime)) setLiveLlmRuntime(runtime);
+          if (!backendRunStartedRef.current) resetLiveReasoningStream();
           backendRunStartedRef.current = true;
           setStreaming(true);
           return;
@@ -1246,9 +1342,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     };
   }, [
     appendLiveFeedEntries,
+    appendLiveReasoning,
     eventMatchesCurrentSession,
     finishLiveRun,
     parkLiveStream,
+    resetLiveReasoningStream,
     scheduleStreamTextDisplay,
     setStreamText,
     setStreaming,
@@ -1384,11 +1482,48 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     }
   }, [activeSsotIp, currentSession, previewPath, workflow]);
 
-  // Inline-code chip click handlers — wired up from _processInlineChips().
+  const resolveChatOpenPath = useCallback((rawPath: unknown): string => {
+    const requested = String(rawPath || '')
+      .trim()
+      .replace(/\\/g, '/')
+      .replace(/^['"`]+|['"`]+$/g, '')
+      .replace(/(?:#L|:)\d+$/i, '')
+      .replace(/^\/+/, '');
+    if (!requested) return '';
+    const activeIp = activeSsotIp() || activeIpFromSession(currentSession || w.ACTIVE_SESSION || '');
+    const tree = Array.isArray(w.FILE_TREE) ? w.FILE_TREE : [];
+    const filePaths = tree
+      .filter((n: any) => n && n.type === 'file')
+      .map((n: any) => {
+        const rel = String(n.name || '').replace(/^\/+|\/+$/g, '');
+        return activeIp && rel && !rel.startsWith(`${activeIp}/`) ? `${activeIp}/${rel}` : rel;
+      })
+      .filter(Boolean);
+    const exact = filePaths.find((p: string) => p === requested);
+    if (exact) return exact;
+    const suffix = filePaths.find((p: string) => (
+      p.endsWith(`/${requested}`) ||
+      requested.endsWith(`/${p}`) ||
+      (activeIp ? p === `${activeIp}/${requested}` : false)
+    ));
+    return suffix || '';
+  }, [currentSession]);
+
+  w.atlasResolveOpenablePath = resolveChatOpenPath;
+
+  useEffect(() => {
+    w.atlasResolveOpenablePath = resolveChatOpenPath;
+    return () => {
+      if (w.atlasResolveOpenablePath === resolveChatOpenPath) delete w.atlasResolveOpenablePath;
+    };
+  }, [resolveChatOpenPath]);
+
+  // Inline/path chip click handlers — wired up from _postProcessMarkdownNode().
   useEffect(() => {
     const onPath = (ev: any) => {
-      const path = String(ev?.detail?.path || '').trim();
+      const path = resolveChatOpenPath(ev?.detail?.path || '');
       if (!path) return;
+      w.readAtlasAsyncResource?.('file', path)?.catch?.(() => {});
       setPreviewPath(path);
       persistAtlasPreviewPath(path);
       setMainTab((t: string) => (t === 'split' || t === 'preview') ? t : 'split');
@@ -1409,7 +1544,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       window.removeEventListener('atlas-chip-open', onPath);
       window.removeEventListener('atlas-chip-ip', onIp);
     };
-  }, []);
+  }, [resolveChatOpenPath]);
 
   // ── SSOT-QA refresh ─────────────────────────────────────────────
   const refreshSsotQa = useCallback(async (sessionOverride?: any) => {
@@ -1673,9 +1808,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const activeDisplaySession = normalizeUiSession(w.ACTIVE_SESSION || activeSessionRef.current || '');
         const viewDisplaySession = normalizeUiSession(chatViewSessionRef.current || '');
         const sameActiveSession = !session || session === activeDisplaySession || (!!viewDisplaySession && session === viewDisplaySession);
-        if (sameActiveSession && !namespaceChanged && liveFeedStartedRef.current && hasLiveFeedEntries(prev)) {
+        const preservingLiveFeed = sameActiveSession && !namespaceChanged && liveFeedStartedRef.current && hasLiveFeedEntries(prev);
+        if (preservingLiveFeed && !conversationSnapshotExtendsLiveFeed(prev, newFeed)) {
           return prev;
         }
+        if (preservingLiveFeed) liveFeedStartedRef.current = false;
         const lateEmptySnapshot = (
           sameActiveSession
           && !namespaceChanged
@@ -1915,7 +2052,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     // when a toggle was just queued (e.g. single-kind Enter = toggle+submit)
     // and we'd otherwise see pre-toggle state.
     let snapshot: any = null;
-    requestFeedScrollToBottom();
+    forceFeedScrollToBottom();
     setQaState((s: any) => {
       const st = s[flowId];
       if (!st || st.submitted) return s;
@@ -2130,7 +2267,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   }, [feedRef]);
 
   const requestFeedScrollToBottom = useCallback(() => {
-    feedPinnedToBottomRef.current = true;
     if (feedScrollFrameRef.current !== null || feedScrollFallbackTimerRef.current !== null) return;
     const run = () => {
       feedScrollFrameRef.current = null;
@@ -2149,6 +2285,11 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     }
     feedScrollFallbackTimerRef.current = setTimeout(run, 16);
   }, [feedRef]);
+
+  const forceFeedScrollToBottom = useCallback(() => {
+    feedPinnedToBottomRef.current = true;
+    requestFeedScrollToBottom();
+  }, [requestFeedScrollToBottom]);
 
   useEffect(() => {
     requestFeedScrollToBottom();
@@ -2183,7 +2324,6 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       w.QA_FLOWS = w.QA_FLOWS || {};
       w.QA_FLOWS[built.flowId] = built.flow;
       liveFeedStartedRef.current = true;
-      feedPinnedToBottomRef.current = true;
       setQaState((state: any) => {
         const cur = state[built.flowId];
         if (cur && cur.submitted) return state;
@@ -2200,7 +2340,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         ]);
       });
       setMainTab('qa');
-      requestFeedScrollToBottom();
+      forceFeedScrollToBottom();
     });
     const closePending = (message: any) => {
       const flowId = askText(message?.flow_id ?? message?.flowId);
@@ -2496,7 +2636,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     const submittedImages = submitted.images;
     submittedInputConsumedRef.current = false;
     if (!raw && !submittedImages.length) return;
-    requestFeedScrollToBottom();
+    forceFeedScrollToBottom();
     const clearCurrentInput = !!(opts && opts.clearCurrentInput);
 
     // BUG A: read-and-clear the replay msg_id for THIS dispatch. Set only by the
@@ -3196,7 +3336,7 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     sessionForInputRoute, setChatViewSession, setOrchestratorInputRoute,
     switchToDefaultSession, switchWorkflow, activeSsotIp,
     activeSessionRef, chatViewSessionRef, hydratedConversationSessionRef, inputRouteRef,
-    requestFeedScrollToBottom, cancelOrchestratorRunPoll, finishLiveRun, pollOrchestratorRunUntilTerminal,
+    requestFeedScrollToBottom, forceFeedScrollToBottom, cancelOrchestratorRunPoll, finishLiveRun, pollOrchestratorRunUntilTerminal,
   ]);
 
   // Held-input replay: when the switch settles (workflowReady cleared) and the
