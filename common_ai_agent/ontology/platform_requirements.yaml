@@ -1893,16 +1893,16 @@ requirements:
       - id: OBL_WORKSPACE_FILE_TREE_PRESERVES_FULL_VIEW_PREVIEW
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_workspace_preview_mode.py::test_file_tree_open_preserves_full_view_preview_mode"
-            observed_at: PENDING_SHA
+            observed_at: 21236407
       - id: OBL_MARKDOWN_CHAT_PATH_CHIPS_REQUIRE_FILE_TREE_MATCH
         owned_by: ui.workspace
         granularity: behavior
-        status: open
+        status: closed
         evidence:
           - test: "tests/test_workspace_preview_mode.py::test_markdown_and_chat_path_chips_require_file_tree_match"
-            observed_at: PENDING_SHA
+            observed_at: 21236407
           - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
-            observed_at: PENDING_SHA
+            observed_at: 21236407
