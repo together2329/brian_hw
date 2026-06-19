@@ -1770,7 +1770,10 @@ requirements:
         # DB mapper catches up. Parse canonical Action:/tool-call display
         # lines at the frontend boundary so the first visible row is already
         # the stable ToolCard.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_action_rows_stabilize_as_tool_cards"
+            observed_at: b4078785
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
