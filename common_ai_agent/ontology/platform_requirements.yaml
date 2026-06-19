@@ -1782,7 +1782,10 @@ requirements:
         # window small so iframe ResizeObservers and scroll anchoring do not
         # churn while the user is watching the live edge; FULL remains the
         # larger audit/history view.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_recent_chat_mounts_small_stable_window"
+            observed_at: f4aa21d2
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
@@ -1942,8 +1945,11 @@ requirements:
       - id: OBL_OAG_LOCKED_WORKFLOW_RAIL_SHOWS_SIM_DEBUG
         owned_by: ui.workspace
         granularity: behavior
-        status: refuted
+        status: closed
         refuted_by: "2026-06-19 Computer Use QA: OAG single-worker workspace showed only the default workflow when ATLAS_WORKFLOW_LOCKED was true, hiding sim_debug from the left workflow rail."
+        evidence:
+          - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow"
+            observed_at: f4aa21d2
       - id: OBL_WORKSPACE_RIGHT_RAIL_DEFAULT_FOLDED
         owned_by: ui.workspace
         granularity: behavior
