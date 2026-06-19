@@ -141,9 +141,10 @@ def test_streaming_parent_dom_matches_iframe_document_surface():
     frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
 
     assert ".feed-entry-agent > .md-agent.md-agent-stream-surface {" in css
-    assert "max-width: 88ch;" in css
-    assert "font-size: 14px;" in css
-    assert "line-height: 1.68;" in css
+    stream_rule = css.split(".feed-entry-agent > .md-agent.md-agent-stream-surface {", 1)[1].split("}", 1)[0]
+    assert "max-width: 100%;" in stream_rule
+    assert "font-size: var(--ui-agent-font-size);" in stream_rule
+    assert "line-height: var(--ui-agent-line-height);" in stream_rule
     assert "white-space: pre-wrap;" in css
     assert "overflow-wrap: anywhere;" in css
     assert "[data-theme=\"dark\"] .feed-entry-agent > .md-agent.md-agent-stream-surface" in css
@@ -151,9 +152,9 @@ def test_streaming_parent_dom_matches_iframe_document_surface():
     assert "[data-theme=\"light\"] .feed-entry-agent > .md-agent.md-agent-stream-surface" in css
     assert "background: #ffffff;" in css
 
-    assert "max-width: 88ch;" in frame_src
-    assert "font-size: 14px;" in frame_src
-    assert "line-height: 1.68;" in frame_src
+    assert "max-width: 100%;" in frame_src
+    assert "font-size: var(--doc-body-font-size);" in frame_src
+    assert "line-height: var(--doc-body-line-height);" in frame_src
 
 
 def test_live_streaming_uses_document_surface_class():
@@ -183,7 +184,8 @@ def test_chat_feed_uses_transcript_header_and_body_classes():
     assert ".chat-message-head {" in css
     assert "border-bottom: 1px solid #263240;" in css
     assert ".chat-message-body {" in css
-    assert "max-width: 88ch;" in css
+    body_rule = css.split(".chat-message-body {", 1)[1].split("}", 1)[0]
+    assert "max-width: 100%;" in body_rule
     assert ".feed-entry-user .md-user.md-agent" in css
     assert "font-family: var(--sans);" in css
     assert "marginTop: 0" in frame_src
@@ -197,10 +199,10 @@ def test_chat_transcript_cards_fill_available_width():
     assert "max-width: none;" in entry_rule
     assert "box-sizing: border-box;" in entry_rule
 
-    # The card should fill the pane, but the prose surface can keep a readable
-    # measure inside the card/iframe.
+    # The card and prose surface should fill the transcript width; iframe
+    # typography still controls readability through Size variables.
     body_rule = css.split(".chat-message-body {", 1)[1].split("}", 1)[0]
-    assert "max-width: 88ch;" in body_rule
+    assert "max-width: 100%;" in body_rule
 
     light_feed_rule = css.split('[data-theme="light"] .feed-entry {', 1)[1].split("}", 1)[0]
     assert "max-width: none;" in light_feed_rule

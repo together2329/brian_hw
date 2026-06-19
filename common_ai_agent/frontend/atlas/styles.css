@@ -1909,8 +1909,8 @@ html[data-platform="windows"] .app {
   padding: 2px 0 4px;
   background: transparent;
   color: var(--fg);
-  font-size: 14px;
-  line-height: 1.68;
+  font-size: var(--ui-agent-font-size);
+  line-height: var(--ui-agent-line-height);
   font-weight: 400;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -1921,8 +1921,8 @@ html[data-platform="windows"] .app {
 }
 .feed-entry-user .md-user.md-agent {
   font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.68;
+  font-size: var(--ui-agent-font-size);
+  line-height: var(--ui-agent-line-height);
   color: #d7e2ee;
 }
 .stream-caret {
