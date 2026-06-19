@@ -103,7 +103,18 @@ describe('orchestrator chat poll mapping', () => {
       args: '(ip="new_axi", stage="sta")',
       text: 'read_artifact(ip="new_axi", stage="sta")',
     });
+    expect(toolEntryFromDisplayLine('Action: run_command(command="pytest -q")')).toEqual({
+      tool: 'run_command',
+      args: '(command="pytest -q")',
+      text: 'Action: run_command(command="pytest -q")',
+    });
+    expect(toolEntryFromDisplayLine('▶ run_command command="pytest -q"')).toEqual({
+      tool: 'run_command',
+      args: 'command="pytest -q"',
+      text: '▶ run_command command="pytest -q"',
+    });
     expect(toolEntryFromDisplayLine('🔎 파이프라인 상태 조회: new_axi')).toBeNull();
+    expect(toolEntryFromDisplayLine('▶ Todo (6 tasks)')).toBeNull();
   });
 
   it('renders DB-restored tool result rows as obs entries', () => {
@@ -153,8 +164,22 @@ describe('orchestrator chat poll mapping', () => {
       index: 6,
       type: 'action',
       role: 'assistant',
-      content: 'slash:/sim-debug mctp_axi',
+      content: 'Action: run_command(command="pytest -q")',
       timestamp: 1716400004,
+    }, job)).toMatchObject({
+      kind: 'action',
+      text: 'Action: run_command(command="pytest -q")',
+      tool: 'run_command',
+      args: '(command="pytest -q")',
+      live: true,
+      worker: { job_id: 'j1', workflow: 'sim_debug' },
+    });
+    expect(feedEntryFromWorkerLogEntry({
+      index: 7,
+      type: 'action',
+      role: 'assistant',
+      content: 'slash:/sim-debug mctp_axi',
+      timestamp: 1716400005,
     }, job)).toMatchObject({
       kind: 'action',
       text: 'slash:/sim-debug mctp_axi',
@@ -163,11 +188,11 @@ describe('orchestrator chat poll mapping', () => {
       worker: { job_id: 'j1', workflow: 'sim_debug' },
     });
     expect(feedEntryFromWorkerLogEntry({
-      index: 7,
+      index: 8,
       type: 'observation',
       role: 'tool',
       content: '[sim-debug] FL-vs-RTL compare',
-      timestamp: 1716400005,
+      timestamp: 1716400006,
     }, job)).toMatchObject({
       kind: 'obs',
       text: '[sim-debug] FL-vs-RTL compare',

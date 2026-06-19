@@ -130,12 +130,107 @@ def test_tool_detail_iframe_autoheight_defers_resizeobserver_updates():
     assert "resizeObserverRef.current = new ResizeObserver(() => scheduleMeasure());" in frame
     assert "setHeight(prev => (Math.abs(prev - next) <= 1 ? prev : next));" in frame
     assert "window.cancelAnimationFrame(pendingMeasureFrameRef.current);" in frame
+
+
+def test_tool_detail_iframe_restores_diff_replacement_palette():
+    frame = _source("workspace-tool-detail-frame.tsx")
+
+    assert "export const diffClassForLine" in frame
+    assert "export const renderedToolBodyHtml" in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+\\+/.test(line)) return 'add';" in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+-/.test(line)) return 'del';" in frame
+    assert ".diff-line.add {" in frame
+    assert "border-left-color: var(--tool-add);" in frame
+    assert "background: color-mix(in oklch, var(--tool-add) 16%, transparent);" in frame
+    assert ".diff-line.del {" in frame
+    assert "border-left-color: var(--tool-del);" in frame
+    assert "background: color-mix(in oklch, var(--tool-del) 16%, transparent);" in frame
+    assert "white-space: pre;" in frame
+
+
+def test_tool_detail_iframe_tints_numbered_replacement_rows():
+    frame = _source("workspace-tool-detail-frame.tsx")
+
+    assert "diffClassForLine(line)" in frame
+    assert 'const kind = diffClassForLine(line);' in frame
+    assert '<span class="diff-line ${kind}">' in frame
+    assert '<span class="diff-prefix">' in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+\\+/.test(line)) return 'add';" in frame
+    assert "if (/^\\s*(?:\\d+|[|>]*\\s*\\d+)\\s+-/.test(line)) return 'del';" in frame
+
+
+def test_tool_detail_iframe_highlights_edit_read_and_search_previews():
+    frame = _source("workspace-tool-detail-frame.tsx")
+    feed = _source("workspace-feed-cards.tsx")
+
+    assert "if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;" in feed
+    assert "if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;" in feed
+    assert "hintText={hintText}" in feed
+
+    assert "_toolOutputLanguage" in frame
+    assert "_highlightInlineCode" in frame
+    assert "_grepOutputRows" in frame
+    assert "export const highlightedToolCodeHtml" in frame
+    assert "export const toolDetailLanguage" in frame
+    assert "tool-detail-code" in frame
+    assert "language-${lang}" in frame
+    assert "_grepOutputRows(visibleText)" in frame
+    assert "highlightedToolCodeHtml(row.code, rowLang)" in frame
+    assert "highlightedToolCodeHtml(code, diffLang)" in frame
+    assert ".token.string" in frame
+    assert "Prism.plugins.autoloader.loadLanguages(language" in frame
+
+
+def test_tool_result_previews_default_only_for_write_and_replace():
+    frame = _source("workspace-tool-detail-frame.tsx")
+    feed = _source("workspace-feed-cards.tsx")
+
+    preview_fn = feed.split("export const _toolResultPreviewLines", 1)[1].split(
+        "export const _toolResultDefaultsClosed", 1
+    )[0]
+    assert "if (_WRITE_RESULT_TOOL_RE.test(t)) return 10;" in preview_fn
+    assert "if (_REPLACE_RESULT_TOOL_RE.test(t)) return 10;" in preview_fn
+    assert "read_file|read_lines|grep_file" not in preview_fn
+    assert "run_command" not in preview_fn
+
+    standard = feed.split("export const _StandardToolCardRaw", 1)[1].split(
+        "export const StandardToolCard", 1
+    )[0]
+    obs_card = feed.split("export const ObsCard", 1)[1].split(
+        "export const _parseJsonObject", 1
+    )[0]
+    assert "const defaultObsOpen = false;" in standard
+    assert "const headClickable = !!obs || argsIsLong" in standard
+    assert "obs && (isPreviewTool || obsOpen)" in standard
+    assert "setOpen(_obsDefaultOpen);" not in obs_card
+
+    assert "if (/^run_command$/i.test(String(tool || ''))) return 'none';" in frame
     measure_section = frame.split("const measure = () => {", 1)[1].split("const scheduleMeasure = () => {", 1)[0]
     assert "stableMetric(root.scrollHeight || 0)" in measure_section
     assert "stableMetric(root.offsetHeight || 0)" in measure_section
     assert ")) + 2" not in measure_section
     assert "doc.body?.scrollHeight" not in measure_section
     assert "doc.documentElement?.scrollHeight" not in measure_section
+
+
+def test_workspace_recent_chat_mounts_small_stable_window():
+    data = _source("data.tsx")
+    render = _source("workspace-root-render.tsx")
+    data_hook = _source("workspace-root-data-hook.tsx")
+    vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "workspace-chat-performance.test.tsx").read_text(encoding="utf-8")
+    tool_vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "workspace-tool-card-output-policy.test.tsx").read_text(encoding="utf-8")
+
+    assert "const CHAT_RECENT_LIMIT = 20;" in data
+    assert "const RECENT_RENDERED_FEED_ENTRIES = 20;" in render
+    assert "const FULL_RENDERED_FEED_ENTRIES = 240;" in render
+    assert "const maxRenderedFeedEntries = chatFeedSummary" in render
+    assert "const feedEntryKey = (entry: any): string =>" in render
+    assert "key={`tool:${feedEntryKey(cur)}:${feedEntryKey(nxt)}`}" in render
+    assert "key={i}" not in render.split("export const renderWorkspaceFeedEntries", 1)[1].split("const sameFeedEntriesProps", 1)[0]
+    assert "id: fe.id || `worker-log:${jid}:" in data_hook
+    assert "mounts only the latest 20 entries in Recent mode" in vitest
+    assert "keeps stable entry keys when the Recent window slides" in vitest
+    assert "keeps an expanded replace_in_file card open when the Recent window advances" in tool_vitest
 
 
 def test_reasoning_coalesces_cumulative_snapshots():
@@ -151,3 +246,43 @@ def test_reasoning_coalesces_cumulative_snapshots():
         "const _READ_RESULT_TOOL_RE", 1
     )[0]
     assert 'tool="reasoning"' not in thought
+
+
+def test_reasoning_stream_updates_single_live_card():
+    source = _source("workspace-root-data-hook.tsx")
+
+    assert "const liveReasoningEntryIdRef = useRef<string>('');" in source
+    assert "const liveReasoningTextRef = useRef<string>('');" in source
+    assert "const appendLiveReasoning = useCallback" in source
+    assert "compactAtlasThoughtText(mergeAtlasThoughtText(liveReasoningTextRef.current, text))" in source
+    assert "entry && entry.kind === 'thought' && entry.reasoningStreamId === streamId" in source
+    assert "if (idx >= 0) list[idx] = next;" in source
+    assert "else list.push(next);" in source
+    reasoning_handler = source.split("w.backend.subscribe('reasoning'", 1)[1].split(
+        "w.backend.subscribe('tool'", 1
+    )[0]
+    assert "appendLiveReasoning(m && m.text);" in reasoning_handler
+    assert "appendLiveFeedEntries({ kind: 'thought'" not in reasoning_handler
+
+
+def test_workspace_action_rows_stabilize_as_tool_cards():
+    theme = _source("workspace-tool-theme.tsx")
+    feed = _source("workspace-feed-cards.tsx")
+    data_hook = _source("workspace-root-data-hook.tsx")
+    logic = _source("lib/orchestrator_chat_logic.mjs")
+    vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "workspace-tool-card-output-policy.test.tsx").read_text(encoding="utf-8")
+    poller_vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "orchestrator-chat-poller.test.jsx").read_text(encoding="utf-8")
+
+    assert "export const atlasToolEntryFromDisplayLine" in theme
+    assert "const actionPrefixed = /^Action\\s*:/i.test(text);" in theme
+    assert "if (!actionPrefixed && !_looksLikeToolCallName(tool)) return null;" in theme
+    assert "'Todo'" not in theme.split("const _CANONICAL_DISPLAY_TOOL_NAMES", 1)[1].split("]);", 1)[0]
+    assert "const actionEntryWithParsedTool" in feed
+    assert "return <ToolCard action={actionEntry} obs={null} summaryMode={summaryMode} />;" in feed
+    assert ".replace(/^Action\\s*:\\s*/i, '')" in feed
+    assert "atlasToolEntryFromDisplayLine(content)" in data_hook
+    assert "atlasToolEntryFromDisplayLine(text)" in data_hook
+    assert "var actionPrefixed = /^Action\\s*:/i.test(text);" in logic or "const actionPrefixed = /^Action\\s*:/i.test(text);" in logic
+    assert "renders parseable raw action lines as tool cards immediately" in vitest
+    assert "Action: run_command(command=\"pytest -q\")" in poller_vitest
+    assert "expect(toolEntryFromDisplayLine('▶ Todo (6 tasks)')).toBeNull();" in poller_vitest

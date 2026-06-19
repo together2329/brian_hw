@@ -22,6 +22,7 @@ import { Splitter, HorizontalSplitter } from './workspace-resize-splitters';
 import { appendActiveSessionParam, isSsotYamlPath } from './workspace-session-routing';
 import { ConvModeSelector } from './workspace-git-diff';
 import { ATLAS_WORKFLOW_LOCKED } from './app-helpers';
+import { atlasOagMode } from './runtime-flags';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
 // read it through window with a permissive cast + inline fallback so the
@@ -49,7 +50,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
     previewPath, setPreviewPath,
     setMainTab,
   } = ws;
-  const workflowLocked = ATLAS_WORKFLOW_LOCKED;
+  const workflowLocked = ATLAS_WORKFLOW_LOCKED && !atlasOagMode();
   return (
     <>
       {fileContextMenu && (

@@ -165,6 +165,74 @@ export const cleanAtlasTerminalText = (text: any): string => {
   return String(text || '').replace(/\x1b\[[\d;]*m/g, '');
 };
 
+export type AtlasToolDisplayEntry = {
+  tool: string;
+  args: string;
+  text: string;
+};
+
+const _CANONICAL_DISPLAY_TOOL_NAMES = new Set<string>([
+  'oag',
+  'Read',
+  'List',
+  'Write',
+  'Edit',
+  'MultiEdit',
+  'Bash',
+  'Glob',
+  'Grep',
+  'LS',
+  'TodoWrite',
+  'WebFetch',
+  'WebSearch',
+  'NotebookRead',
+  'NotebookEdit',
+]);
+
+const _looksLikeToolCallName = (tool: string): boolean => (
+  !!tool &&
+  (
+    tool.includes('_') ||
+    Object.prototype.hasOwnProperty.call(TOOL_THEME, tool) ||
+    Object.prototype.hasOwnProperty.call(_TOOL_CHAT_ALIAS, tool) ||
+    _CANONICAL_DISPLAY_TOOL_NAMES.has(tool)
+  )
+);
+
+export const atlasToolEntryFromDisplayLine = (content: any): AtlasToolDisplayEntry | null => {
+  const text = cleanAtlasTerminalText(content).trim();
+  if (!text) return null;
+  const actionPrefixed = /^Action\s*:/i.test(text);
+  const source = actionPrefixed ? text.replace(/^Action\s*:\s*/i, '').trim() : text;
+  if (!source) return null;
+  const call = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/)
+    || source.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
+  if (call) {
+    const tool = String(call[1] || '').trim() || 'tool';
+    if (!actionPrefixed && !_looksLikeToolCallName(tool)) return null;
+    const args = `(${String(call[2] || '').trim()})`;
+    return { tool, args, text };
+  }
+  const barePrefixed = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*$/);
+  if (barePrefixed) {
+    const tool = String(barePrefixed[1] || '').trim() || 'tool';
+    if (!_looksLikeToolCallName(tool)) return null;
+    return { tool, args: '', text };
+  }
+  const loose = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s+([\s\S]+)$/)
+    || (actionPrefixed ? source.match(/^([A-Za-z_][\w.-]*)\s*([\s\S]*)$/) : null);
+  if (loose) {
+    const tool = String(loose[1] || '').trim() || 'tool';
+    if (!actionPrefixed && !_looksLikeToolCallName(tool)) return null;
+    return {
+      tool,
+      args: String(loose[2] || '').trim(),
+      text,
+    };
+  }
+  return null;
+};
+
 export const mergeAtlasThoughtText = (prev: any, next: any): string => {
   const prevLines = visibleAtlasThoughtLines(prev);
   const nextLines = visibleAtlasThoughtLines(next);

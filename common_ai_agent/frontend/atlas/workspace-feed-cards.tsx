@@ -25,6 +25,7 @@ import {
   _normalizeToolName,
   _toolDisplay,
   _isWorkflowResultTool,
+  atlasToolEntryFromDisplayLine,
   atlasIsThinkingPlaceholderText,
   visibleAtlasThoughtLines,
   cleanAtlasTerminalText,
@@ -68,6 +69,18 @@ const firstRuntimeText = (...values: any[]): string => {
     if (text && text !== '—') return text;
   }
   return '';
+};
+
+const actionEntryWithParsedTool = (entry: any): any => {
+  if (!entry || entry.kind !== 'action' || entry.tool) return entry;
+  const parsed = atlasToolEntryFromDisplayLine(entry.text || '');
+  if (!parsed) return entry;
+  return {
+    ...entry,
+    text: parsed.text || entry.text,
+    tool: parsed.tool,
+    args: entry.args || parsed.args,
+  };
 };
 
 export const agentRuntimeParts = (entry: any): string[] => {
@@ -178,9 +191,6 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride,
   const _readClosed = _toolResultDefaultsClosed(entry?.tool);
   const _obsDefaultOpen = _readClosed ? false : (!summaryMode || isReplaceTool);
   const [open, setOpen] = useState<boolean>(_obsDefaultOpen);
-  useEffect(() => {
-    setOpen(_obsDefaultOpen);
-  }, [_obsDefaultOpen]);
   let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : cleanAtlasTerminalText(entry.text || '');
   // Strip ANSI escape sequences leaked from terminal-style backends
   // (e.g. `\x1b[1m`, `\x1b[38;5;71m`, `\x1b[0m`) so they don't show as
@@ -592,7 +602,9 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const rawArgsText = action && action.text
     ? action.text
+        .replace(/^Action\s*:\s*/i, '')
         .replace(/^[▶⏺]\s*/, '')
+        .replace(/^\*\s*/, '')
         .replace(tool ? new RegExp('^' + tool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*') : /^\?\s*/, '')
     : '';
   const todoStepInfo = _parseTodoStepUpdate(obs ? obs.text || '' : '', tool, rawArgsText || (action && action.text) || '');
@@ -621,8 +633,10 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const displayArgs = isOagTool ? rawArgsText : (orchSummary || argsText);
   const ts = (action && action.createdAt) || (obs && obs.createdAt) || 0;
   const previewLines = _toolResultPreviewLines(tool);
-  // Preview tools (write/replace only) show a short 10-line preview of their
-  // output. Other tool bodies stay folded until the header is clicked.
+  // Preview tools (write/replace only) show a short 10-line preview of
+  // their output and expand to the FULL body on click — like Claude Code's
+  // "+N lines (expand)". Other tools keep their result body folded until
+  // the user clicks the header.
   const isPreviewTool = previewLines > 0;
   const showFullArgsByDefault = !!tool && /^(run_command|todo_update|dispatch_workflow)$/i.test(tool);
   const obsLines = obs ? obsText.split('\n') : [];
@@ -727,7 +741,8 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
 export const StandardToolCard = memo(_StandardToolCardRaw);
 
 export const _ToolCardRaw = ({ action, obs, summaryMode = true }: any) => {
-  const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
+  const parsedAction = actionEntryWithParsedTool(action);
+  const tool = _normalizeToolName((parsedAction && parsedAction.tool) || (obs && obs.tool) || '');
   // Orchestrator handoffs get a dedicated labeled card instead of the raw
   // "key={json}" args line — see HandoffCard.
   // dispatch_workflow / write_handoff are ALWAYS orchestrator tool calls — use
@@ -738,7 +753,7 @@ export const _ToolCardRaw = ({ action, obs, summaryMode = true }: any) => {
   }
   return (
     <StandardToolCard
-      action={action}
+      action={parsedAction}
       obs={obs}
       summaryMode={summaryMode}
       tool={tool}
@@ -859,6 +874,10 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
   }
   if (entry.kind === 'action') {
     const planned = entry.planned;
+    const actionEntry = actionEntryWithParsedTool(entry);
+    if (actionEntry && actionEntry.tool) {
+      return <ToolCard action={actionEntry} obs={null} summaryMode={summaryMode} />;
+    }
     // Live mode emits {kind:'action', text:'▶ tool args…'}; the old mock
     // shape was {kind:'action', tool, args, planned?}. Prefer .text when
     // present so we don't crash on missing args.

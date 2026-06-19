@@ -132,15 +132,49 @@ cards, OAG command headers, and Q&A/tool affordances stay in the parent chat
 DOM so scrolling, folding, copy buttons, and running-state updates remain
 stable. The iframe receives sanitized Markdown through `srcDoc`, disables
 scripts, auto-sizes to its document height, and keeps the tool-call audit trail
-outside the frame.
+outside the frame. Because path chips depend on the async `FILE_TREE`, the chat
+iframe re-runs Markdown post-processing when `FILE_TREE` or scope data refreshes;
+this lets path highlights appear without a browser refresh.
 
 Live streaming should still feel visually continuous with the completed
 iframe-backed answer. The streaming body stays in the parent DOM for stable
 scrolling and caret updates, but it uses the same reading-surface basics as the
 iframe document: neutral black/white background, available transcript width,
-Size-controlled body text, Size-controlled code text, and parent-side whitespace
-wrapping. This reduces the visual jump when a live answer settles into the
-completed Markdown iframe without moving streaming into iframe lifecycle.
+Size-controlled body text, Size-controlled code text, and parent-side
+whitespace wrapping. This reduces the visual jump when a live answer settles
+into the completed Markdown iframe without moving streaming into iframe
+lifecycle.
+
+Agent/User chat rows should read like a compact transcript, not a stack of
+terminal blobs. Each row uses a small mono role header (`Agent` / `You`) with a
+thin rule and a document body below it; user Markdown uses the same sans-serif
+reading rhythm as assistant Markdown instead of mono inline text. Tool-result
+details remain visually separate, but their diff/replacement red-green row
+tints must live inside the tool iframe CSS because outer `.tool-output-diff`
+rules cannot cross the iframe boundary.
+
+Role labels should not be vertically clipped or over-compressed: keep the label
+line box taller than the glyphs and avoid forced uppercase transforms that make
+`Agent` / `You` look half-rendered on mixed Korean/Latin font stacks. The
+spacing after an Agent answer is a small transcript separator, not a mandatory
+blank line; tool cards that immediately follow an answer should sit close enough
+to read as the same turn.
+
+Tool-call and reasoning surfaces should not feel like a separate terminal skin
+beside the iframe-backed assistant answer. Use the same sans-serif document
+rhythm for readable tool arguments, summaries, handoff rows, and reasoning
+text; keep monospace only where exact code/command identity matters, such as
+tool names, timestamps, inline code chips, and preformatted output.
+Step-update status pills follow that same rhythm: avoid oversized uppercase
+`ERROR`/status labels inside chat cards; keep them compact, mixed case, and
+aligned to the surrounding document text.
+
+Chat Markdown should make real workspace file references actionable. Inline
+code paths and plain text path tokens such as `rtl/foo.sv` are styled as path
+chips; activating one resolves it against the current active-IP file tree before
+opening the split preview. If the tree can map a suffix path to an active-IP
+file, the preview opens the canonical file-tree path instead of a stale or
+ambiguous raw token.
 
 The page-level error banner should not surface browser `ResizeObserver` loop
 notifications as fatal uncaught errors. Those notifications can be emitted by

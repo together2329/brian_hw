@@ -1754,7 +1754,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_chat_stream_updates_force_bottom_scroll"
-            observed_at: 99ba64a4
+            observed_at: b4303ae2
       - id: OBL_WORKSPACE_OAG_TOOL_CARDS_SHOW_COMMAND_FOLD_DETAILS
         owned_by: ui.workspace
         granularity: behavior
@@ -1762,6 +1762,30 @@ requirements:
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_oag_tool_card_shows_header_and_folds_details"
             observed_at: 99ba64a4
+      - id: OBL_WORKSPACE_ACTION_ROWS_STABILIZE_AS_TOOL_CARDS
+        owned_by: ui.workspace
+        granularity: behavior
+        # Live action rows should not briefly render as a generic "action"
+        # block and then morph into a tool-name card once the observation or
+        # DB mapper catches up. Parse canonical Action:/tool-call display
+        # lines at the frontend boundary so the first visible row is already
+        # the stable ToolCard.
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_action_rows_stabilize_as_tool_cards"
+            observed_at: b4078785
+      - id: OBL_WORKSPACE_RECENT_CHAT_MOUNTS_SMALL_WINDOW
+        owned_by: ui.workspace
+        granularity: behavior
+        # Recent chat mode should not keep a large history of completed
+        # iframe-backed Markdown/tool cards mounted. Keep the mounted Recent
+        # window small so iframe ResizeObservers and scroll anchoring do not
+        # churn while the user is watching the live edge; FULL remains the
+        # larger audit/history view.
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_recent_chat_mounts_small_stable_window"
+            observed_at: f4aa21d2
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
@@ -1771,6 +1795,20 @@ requirements:
             observed_at: 4d85fdc3
           - test: "tests/test_workspace_chat_autoscroll.py::test_tool_iframe_keeps_header_and_fold_control_outside"
             observed_at: 4d85fdc3
+      - id: OBL_WORKSPACE_TOOL_DETAILS_HIGHLIGHT_CODE_PREVIEWS
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_highlights_edit_read_and_search_previews"
+            observed_at: eb16a506
+      - id: OBL_WORKSPACE_TOOL_DEFAULT_PREVIEW_ONLY_WRITE_REPLACE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_result_previews_default_only_for_write_and_replace"
+            observed_at: eb16a506
       - id: OBL_WORKSPACE_TOOL_IFRAME_HEIGHT_USES_CONTENT_ROOT
         owned_by: ui.workspace
         granularity: behavior
@@ -1904,6 +1942,14 @@ requirements:
             observed_at: 8ec35c08
           - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow"
             observed_at: 8ec35c08
+      - id: OBL_OAG_LOCKED_WORKFLOW_RAIL_SHOWS_SIM_DEBUG
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        refuted_by: "2026-06-19 Computer Use QA: OAG single-worker workspace showed only the default workflow when ATLAS_WORKFLOW_LOCKED was true, hiding sim_debug from the left workflow rail."
+        evidence:
+          - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow"
+            observed_at: f4aa21d2
       - id: OBL_WORKSPACE_RIGHT_RAIL_DEFAULT_FOLDED
         owned_by: ui.workspace
         granularity: behavior
@@ -1956,18 +2002,109 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_agent_chat_markdown_uses_document_card_surface"
-            observed_at: 4a748305
+            observed_at: b4303ae2
           - test: "tests/test_chat_markdown_document_style.py::test_chat_markdown_syntax_has_readable_document_rules"
-            observed_at: 4a748305
+            observed_at: b4303ae2
       - id: OBL_CHAT_MARKDOWN_COMPLETED_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
         status: closed
         evidence:
           - test: "tests/test_chat_markdown_document_style.py::test_completed_agent_chat_uses_iframe_srcdoc_surface"
-            observed_at: abf174d4
+            observed_at: b4303ae2
           - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_is_completed_only_and_keeps_tools_outside"
-            observed_at: abf174d4
+            observed_at: b4303ae2
+      - id: OBL_CHAT_MARKDOWN_REPROCESS_ON_FILE_TREE_REFRESH
+        owned_by: ui.workspace
+        granularity: behavior
+        # Completed chat markdown iframe post-processing depends on the current
+        # FILE_TREE for path-chip highlighting/opening. The iframe must re-run
+        # post-processing when FILE_TREE refreshes, without requiring browser refresh.
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_iframe_reprocesses_path_chips_after_file_tree_refresh"
+            observed_at: 93e238cd
+      - id: OBL_CHAT_STREAMING_MATCHES_DOCUMENT_SURFACE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_streaming_parent_dom_matches_iframe_document_surface"
+            observed_at: b4303ae2
+          - test: "tests/test_chat_markdown_document_style.py::test_live_streaming_uses_document_surface_class"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_TRANSCRIPT_READABILITY_AND_TOOL_DIFF_TINT
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_feed_uses_transcript_header_and_body_classes"
+            observed_at: b4303ae2
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_restores_diff_replacement_palette"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_TRANSCRIPT_ROLE_LABELS_AND_GAPS_READABLE
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_role_labels_have_readable_line_box"
+            observed_at: b4303ae2
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_spacing_is_tight_between_agent_and_tools"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_TOOL_AND_REASONING_DOCUMENT_FONT_RHYTHM
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_tool_cards_use_document_font_for_readable_text"
+            observed_at: b4303ae2
+          - test: "tests/test_chat_markdown_document_style.py::test_reasoning_blocks_match_chat_document_rhythm"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_MARKDOWN_FILE_PATHS_OPEN_PREVIEW
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_plain_markdown_file_paths_become_openable_chips"
+            observed_at: b4303ae2
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_STEP_STATUS_BADGE_TYPOGRAPHY
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_step_update_status_badges_use_compact_document_typography"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_REASONING_STREAM_REUSES_LIVE_CARD
+        owned_by: ui.workspace
+        granularity: behavior
+        # Provider reasoning events may be cumulative snapshots; the chat feed
+        # must update one live Reasoning block instead of appending the same
+        # text again as a new card or duplicated paragraph.
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_reasoning_stream_updates_single_live_card"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_TOOL_NUMBERED_REPLACEMENT_DIFF_TINT
+        owned_by: ui.workspace
+        granularity: behavior
+        # Update/replace tool output often includes line-number gutters before
+        # +/- markers; those rows still need add/remove tint inside the iframe.
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_chat_autoscroll.py::test_tool_detail_iframe_tints_numbered_replacement_rows"
+            observed_at: b4303ae2
+      - id: OBL_CHAT_TRANSCRIPT_CARDS_FILL_AVAILABLE_WIDTH
+        owned_by: ui.workspace
+        granularity: behavior
+        # Wide workspace chat panes should not leave the right half blank. The
+        # outer transcript card uses the available container width; prose line
+        # length limits stay inside the markdown body/iframe for readability.
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_transcript_cards_fill_available_width"
+            observed_at: 139b4b3f
 
   - id: REQ_PLAT_MARKDOWN_DARK_SURFACE_BLACK_20260617_001
     claim: "Dark theme의 Markdown rendering surface는 갈색/amber tint가 아니라 neutral black 계열로 표시된다 — preview .md-preview와 chat .feed-entry-agent, 그리고 code/table/blockquote 하위 surface는 accent를 전체 배경에 섞지 않고 검은 reading surface 위에 edge/highlight로만 사용한다."
@@ -1979,6 +2116,41 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_surfaces_use_neutral_black"
-            observed_at: 8ec35c08
+            observed_at: b4303ae2
           - test: "tests/test_markdown_dark_surface_black.py::test_dark_markdown_nested_surfaces_avoid_brown_tint"
-            observed_at: 8ec35c08
+            observed_at: b4303ae2
+
+  - id: REQ_PLAT_WORKSPACE_PATH_DISPLAY_SLASHES_20260617_001
+    claim: "Workspace UI는 path-like display text의 separator를 `/`로 정규화한다 — Windows backslash, doubled slashes, 한글/일본어 폰트에서 원화/엔화처럼 보이는 separator가 commit/diff/chat/tool 출력에 섞여도 사용자가 보는 경로는 canonical slash로 표시된다. 실제 tool argument나 filesystem value는 이 표시 정규화와 분리된다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_WORKSPACE_DISPLAY_PATH_SEPARATORS_CANONICAL_SLASH
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_windows_path_display_normalization.py::test_display_path_normalizer_covers_windows_and_font_separator_glyphs"
+            observed_at: b4303ae2
+          - test: "tests/test_windows_path_display_normalization.py::test_git_commit_display_uses_path_normalizer"
+            observed_at: b4303ae2
+
+  - id: REQ_PLAT_WORKSPACE_PREVIEW_MODE_STICKY_20260618_001
+    claim: "Workspace preview/file navigation은 현재 사용자의 작업 맥락을 보존한다 — FULL VIEW(preview)에서 왼쪽 IP 파일 트리를 클릭하면 previewPath만 교체하고 split view로 강제 전환하지 않으며, Markdown/chat의 path chip은 왼쪽 파일 트리에 실제 매핑되는 파일만 highlight/click 가능하다."
+    design_anchor: doc/wiki/agent-runtime-defaults-20260616.md
+    obligations:
+      - id: OBL_WORKSPACE_FILE_TREE_PRESERVES_FULL_VIEW_PREVIEW
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_preview_mode.py::test_file_tree_open_preserves_full_view_preview_mode"
+            observed_at: 21236407
+      - id: OBL_MARKDOWN_CHAT_PATH_CHIPS_REQUIRE_FILE_TREE_MATCH
+        owned_by: ui.workspace
+        granularity: behavior
+        status: closed
+        evidence:
+          - test: "tests/test_workspace_preview_mode.py::test_markdown_and_chat_path_chips_require_file_tree_match"
+            observed_at: 21236407
+          - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
+            observed_at: 21236407

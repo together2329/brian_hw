@@ -40,6 +40,7 @@ import {
   atlasScmTabLabel,
   workspaceFetchWorkerSnapshot,
   atlasIsIterationMarkerText,
+  atlasToolEntryFromDisplayLine,
   INPUT_HISTORY_LIMIT,
   QA_HISTORY_LIMIT,
   QA_HISTORY_LEGACY_STORAGE_KEY,
@@ -283,7 +284,17 @@ const orchestratorChatRowToFeedEntry = (row: OrchestratorChatRow): any => {
   if (role === 'user') return { id: rawId, kind: 'user', text: content, createdAt: createdAtMs };
   if (role === 'assistant') return { id: rawId, kind: 'agent', text: content, createdAt: createdAtMs };
   if (role === 'thought' || role === 'reasoning') return { id: rawId, kind: 'thought', text: content, createdAt: createdAtMs };
-  if (role === 'tool') return { id: rawId, kind: 'action', text: content, tool: String(payload.display_name || payload.tool || '').trim(), createdAt: createdAtMs };
+  if (role === 'tool') {
+    const parsed = atlasToolEntryFromDisplayLine(content);
+    return {
+      id: rawId,
+      kind: 'action',
+      text: content,
+      tool: (parsed && parsed.tool) || String(payload.display_name || payload.tool || '').trim(),
+      args: parsed ? parsed.args : undefined,
+      createdAt: createdAtMs,
+    };
+  }
   if (role === 'tool_result' || role === 'observation' || role === 'obs') {
     return { id: rawId, kind: 'obs', text: content, tool: String(payload.display_name || payload.tool || '').trim(), createdAt: createdAtMs };
   }
@@ -3520,7 +3531,18 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         worker: String(job.worker || ''),
       };
       if (type === 'response' || type === 'assistant') return { kind: 'agent', text, createdAt, live: true, worker };
-      if (type === 'action') return { kind: 'action', text, createdAt, live: true, worker };
+      if (type === 'action') {
+        const parsed = atlasToolEntryFromDisplayLine(text);
+        return {
+          kind: 'action',
+          text,
+          tool: parsed ? parsed.tool : String(job.workflow || job.stage_id || wf || ''),
+          args: parsed ? parsed.args : '',
+          createdAt,
+          live: true,
+          worker,
+        };
+      }
       if (type === 'observation' || type === 'obs') return { kind: 'obs', text, createdAt, live: true, worker };
       // task / plan / context / system / thought → thought (truncate noisy context)
       return { kind: 'thought', text: text.length > 1200 ? text.slice(0, 1200) + ' …' : text, createdAt, live: true, worker };
@@ -3594,7 +3616,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
             workflow: jb.workflow || wf,
             status: jb.status || d.status || '',
           });
-          if (fe) fresh.push(fe);
+          if (fe) {
+            fresh.push({
+              ...fe,
+              id: fe.id || `worker-log:${jid}:${Number.isFinite(idx) ? idx : `${fe.kind || 'entry'}:${fe.createdAt || ''}:${String(fe.text || '').slice(0, 64)}`}`,
+            });
+          }
         }
         workerLogSinceRef.current = maxIdx;
         if (fresh.length) {
