@@ -78,22 +78,6 @@ workspace text-size CSS variables into their isolated `srcDoc` documents, so
 the 13/14/15/16 size presets affect Markdown body text, code blocks, and command
 output instead of leaving iframe content pinned to a fixed default.
 
-Tool-call detail bodies can render inside a small iframe document surface once
-the user expands them. The tool-card header, status glyph, line count, command
-text, and fold control stay in the parent chat DOM so the audit trail remains
-visible and clickable. The iframe is for the noisy result/details body only:
-plain output, grep output, diffs, and workflow Markdown results get a clean
-black reading surface without taking over chat interaction.
-
-The live tool-call command text, streaming text, and reasoning blocks stay in
-the parent chat DOM for stability and predictable folding. Iframe-backed
-surfaces are limited to completed assistant Markdown and expanded tool-result
-details. Those iframes schedule auto-height updates through
-`requestAnimationFrame` and ignore unchanged heights, avoiding ResizeObserver
-loop warnings. Live reasoning coalescing treats provider updates as cumulative
-snapshots when possible, so repeated reasoning summaries replace earlier text
-instead of duplicating it.
-
 ## OAG workspace surface
 
 When `OAG_MODE=1`, the default agent owns the IP workflow through the native OAG
@@ -148,10 +132,9 @@ cards, OAG command headers, and Q&A/tool affordances stay in the parent chat
 DOM so scrolling, folding, copy buttons, and running-state updates remain
 stable. The iframe receives sanitized Markdown through `srcDoc`, disables
 scripts, auto-sizes to its document height, and keeps the tool-call audit trail
-in the parent surface. Because path chips depend on the async `FILE_TREE`, the
-chat iframe re-runs Markdown post-processing when `FILE_TREE` or scope data
-refreshes; this lets path highlights appear without a browser refresh.
-outside the frame.
+outside the frame. Because path chips depend on the async `FILE_TREE`, the chat
+iframe re-runs Markdown post-processing when `FILE_TREE` or scope data refreshes;
+this lets path highlights appear without a browser refresh.
 
 Live streaming should still feel visually continuous with the completed
 iframe-backed answer. The streaming body stays in the parent DOM for stable

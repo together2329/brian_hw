@@ -756,6 +756,10 @@ const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: Pr
   const ext = (path ? (path.split('.').pop() || '') : '').toLowerCase();
   const lang = (g.PRISM_LANG_MAP && g.PRISM_LANG_MAP[ext]) || 'none';
   const isMarkdown = ['md', 'markdown', 'mdown', 'mkdn'].includes(ext);
+  // .mmd / .mermaid are raw Mermaid (no code fence). Render them as diagrams by
+  // wrapping the body in a ```mermaid fence and reusing the markdown pipeline
+  // (_markdownHtml -> _postProcessMarkdownNode -> _renderMermaidBlocks).
+  const isMermaid = ['mmd', 'mermaid'].includes(ext);
   const isImage = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg', 'tif', 'tiff', 'ico'].includes(ext);
   const isPdf = ext === 'pdf';
   const isHtml = ['html', 'htm'].includes(ext);
@@ -975,7 +979,7 @@ const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: Pr
           rendering instead of raw text + Prism, so the same headings/
           code-fence/table styling used for the agent's chat replies
           applies to README/guide files in the preview tab. */}
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: isMarkdown ? 'var(--bg)' : 'var(--bg-3)' }}>
+      <div style={{ flex: 1, minHeight: 0, overflow: 'auto', background: (isMarkdown || isMermaid) ? 'var(--bg)' : 'var(--bg-3)' }}>
         {blockingLoading ? (
           <div style={{ padding: 16, color: 'var(--fg-mute)', fontFamily: 'var(--code-font, var(--mono))', fontSize: 12 }}>
             loading {path}…
@@ -1022,6 +1026,8 @@ const PreviewPane = ({ path, onClose, focusLine = 0, lintDiagnostic = null }: Pr
             title={path}
             style={{ width: '100%', height: '100%', border: 0, background: '#fff' }}
           />
+        ) : isMermaid ? (
+          <DeferredMarkdownPreview body={'```mermaid\n' + (body || '') + '\n```'} sourcePath={path} />
         ) : isMarkdown ? (
           <DeferredMarkdownPreview body={body} sourcePath={path} />
         ) : hasBody ? (
