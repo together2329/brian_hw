@@ -134,6 +134,23 @@ const CHAT_MARKDOWN_FRAME_CSS = `
     overflow: hidden;
     background: var(--doc-bg);
   }
+  .md-chat-frame-body .md-table-scroll {
+    max-width: 100%;
+    margin: .95rem 0 1.1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--doc-line);
+    border-radius: 6px;
+    background: var(--doc-bg);
+  }
+  .md-chat-frame-body .md-table-scroll > table {
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
   .md-chat-frame-body th,
   .md-chat-frame-body td {
     padding: .5rem .62rem;

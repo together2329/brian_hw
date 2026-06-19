@@ -5,6 +5,8 @@ ROOT = Path(__file__).resolve().parents[1]
 STYLES_CSS = ROOT / "frontend" / "atlas" / "styles.css"
 FEED_CARDS_TSX = ROOT / "frontend" / "atlas" / "workspace-feed-cards.tsx"
 CHAT_FRAME_TSX = ROOT / "frontend" / "atlas" / "workspace-chat-markdown-frame.tsx"
+TOOL_FRAME_TSX = ROOT / "frontend" / "atlas" / "workspace-tool-detail-frame.tsx"
+PREVIEW_PANE_TSX = ROOT / "frontend" / "atlas" / "preview-pane.tsx"
 MARKDOWN_CHIPS_TSX = ROOT / "frontend" / "atlas" / "workspace-markdown-chips.tsx"
 DATA_HOOK_TSX = ROOT / "frontend" / "atlas" / "workspace-root-data-hook.tsx"
 
@@ -305,6 +307,35 @@ def test_chat_path_open_resolves_against_current_file_tree():
     assert "const path = resolveChatOpenPath(ev?.detail?.path || '');" in data_hook_src
     assert "w.readAtlasAsyncResource?.('file', path)?.catch?.(() => {});" in data_hook_src
     assert "setMainTab((t: string) => (t === 'split' || t === 'preview') ? t : 'split');" in data_hook_src
+
+
+def test_markdown_tables_use_local_horizontal_scroll_containers():
+    chips_src = MARKDOWN_CHIPS_TSX.read_text(encoding="utf-8")
+    css = STYLES_CSS.read_text(encoding="utf-8")
+    frame_src = CHAT_FRAME_TSX.read_text(encoding="utf-8")
+    tool_frame_src = TOOL_FRAME_TSX.read_text(encoding="utf-8")
+    preview_src = PREVIEW_PANE_TSX.read_text(encoding="utf-8")
+
+    assert "export const _wrapMarkdownTables" in chips_src
+    assert "table.closest('.md-table-scroll')" in chips_src
+    assert "wrapper.className = 'md-table-scroll';" in chips_src
+    assert "wrapper.appendChild(table);" in chips_src
+    assert "_wrapMarkdownTables(node);" in chips_src
+    assert chips_src.index("_wrapMarkdownTables(node);") < chips_src.index("_processPlainFilePathChips(node);")
+
+    assert ".md-agent .md-table-scroll {" in css
+    assert ".md-agent .md-table-scroll > table {" in css
+    assert ".md-preview .md-table-scroll {" in css
+    assert "overflow-x: auto;" in css
+    assert "width: max-content;" in css
+    assert "min-width: 100%;" in css
+
+    assert ".md-chat-frame-body .md-table-scroll {" in frame_src
+    assert ".md-chat-frame-body .md-table-scroll > table {" in frame_src
+    assert ".tool-detail-markdown .md-table-scroll {" in tool_frame_src
+    assert ".tool-detail-markdown .md-table-scroll > table {" in tool_frame_src
+    assert ".md-preview .md-table-scroll {" in preview_src
+    assert ".md-preview .md-table-scroll > table {" in preview_src
 
 
 def test_step_update_status_badges_use_compact_document_typography():

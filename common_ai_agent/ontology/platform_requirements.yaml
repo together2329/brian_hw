@@ -2069,6 +2069,16 @@ requirements:
             observed_at: b4303ae2
           - test: "tests/test_chat_markdown_document_style.py::test_chat_path_open_resolves_against_current_file_tree"
             observed_at: b4303ae2
+      - id: OBL_CHAT_MARKDOWN_TABLES_SCROLL_WITHIN_SURFACE
+        owned_by: ui.workspace
+        granularity: behavior
+        # Wide Markdown tables in completed assistant iframes, streaming chat,
+        # tool Markdown, and preview Markdown must not make columns disappear
+        # under the surrounding chat/frame overflow clipping. Markdown
+        # post-processing wraps each table in a local scroll container so the
+        # transcript keeps stable vertical scrolling while the table itself
+        # exposes horizontal overflow.
+        status: open
       - id: OBL_CHAT_STEP_STATUS_BADGE_TYPOGRAPHY
         owned_by: ui.workspace
         granularity: behavior

@@ -371,6 +371,19 @@ export const _processBlockquoteKinds = (node: any): void => {
   });
 };
 
+export const _wrapMarkdownTables = (node: any): void => {
+  if (!node || !node.ownerDocument) return;
+  node.querySelectorAll('table').forEach((table: any) => {
+    if (!table.parentElement || table.closest('.md-table-scroll')) return;
+    const wrapper = node.ownerDocument.createElement('div');
+    wrapper.className = 'md-table-scroll';
+    wrapper.setAttribute('role', 'region');
+    wrapper.setAttribute('aria-label', 'Scrollable markdown table');
+    table.parentElement.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+  });
+};
+
 let _mermaidBlockSeq = 0;
 
 export const _ensureMarkdownMermaid = (): any => {
@@ -454,6 +467,7 @@ export const _postProcessMarkdownNode = (node: any): void => {
   if (window.Prism) {
     try { window.Prism.highlightAllUnder(node); } catch (_) {}
   }
+  _wrapMarkdownTables(node);
   _processPlainFilePathChips(node);
   _processInlineChips(node);
   _processBlockquoteKinds(node);

@@ -213,6 +213,22 @@ const TOOL_DETAIL_FRAME_CSS = `
     border: 1px solid var(--tool-line);
     background: var(--tool-bg);
   }
+  .tool-detail-markdown .md-table-scroll {
+    max-width: 100%;
+    margin: .85rem 0 .95rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--tool-line);
+    border-radius: 6px;
+    background: var(--tool-bg);
+  }
+  .tool-detail-markdown .md-table-scroll > table {
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+    border: 0;
+    background: transparent;
+  }
   .tool-detail-markdown th,
   .tool-detail-markdown td {
     padding: .45rem .55rem;

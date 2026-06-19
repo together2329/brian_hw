@@ -274,6 +274,23 @@ const MARKDOWN_PREVIEW_IFRAME_CSS = `
     overflow: hidden;
     background: var(--doc-panel);
   }
+  .md-preview .md-table-scroll {
+    max-width: 100%;
+    margin: 1rem 0 1.2rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border: 1px solid var(--doc-line);
+    border-radius: 6px;
+    background: var(--doc-panel);
+  }
+  .md-preview .md-table-scroll > table {
+    width: max-content;
+    min-width: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
   .md-preview th,
   .md-preview td {
     padding: .55rem .68rem;
