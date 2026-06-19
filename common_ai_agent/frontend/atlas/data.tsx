@@ -253,7 +253,7 @@ const w = window as any;
   // bootstrap below, so moving their creation a few lines earlier than the
   // original is behavior-neutral (they start empty either way).
   const SESSION_STATE_CACHE_MS = 1200;
-  const CHAT_RECENT_LIMIT = 30;
+  const CHAT_RECENT_LIMIT = 20;
   const CHAT_SWITCH_LIMIT = 80;
   const WORKER_SNAPSHOT_CACHE_MS = 1500;
   const sessionStateCache = new Map<string, any>();

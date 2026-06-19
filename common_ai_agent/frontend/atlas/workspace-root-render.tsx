@@ -93,8 +93,8 @@ export type WorkspacePromptKeyResult = 'handled' | 'submitted' | void;
 // Builds the windowed list of feed cards for the chat pane. Pairs adjacent
 // action+obs entries into a single ToolCard, wraps orphan obs rows, and falls
 // back to FeedEntry for everything else. Caps the rendered slice at
-// MAX_RENDERED_FEED_ENTRIES for scroll performance, prepending a notice when
-// older entries are hidden.
+// a Recent/FULL-dependent limit for scroll performance, prepending a notice
+// when older entries are hidden.
 export interface RenderWorkspaceFeedEntriesProps {
   feed: any[];
   qaState: any;
@@ -104,6 +104,40 @@ export interface RenderWorkspaceFeedEntriesProps {
   submitCard: (...args: any[]) => void;
   dir?: string;
 }
+
+const stableFeedKeyPart = (value: unknown): string => String(value ?? '')
+  .replace(/[^a-z0-9_.:-]+/gi, '-')
+  .slice(0, 80);
+
+const stableTextHash = (value: unknown): string => {
+  const text = String(value ?? '');
+  let hash = 5381;
+  for (let i = 0; i < text.length; i++) {
+    hash = ((hash << 5) + hash) ^ text.charCodeAt(i);
+  }
+  return (hash >>> 0).toString(36);
+};
+
+const feedEntryKey = (entry: any): string => {
+  if (!entry || typeof entry !== 'object') return 'empty';
+  if (entry._feedWindowNotice) return 'feed-window-notice';
+  if (entry.id != null && entry.id !== '') return stableFeedKeyPart(entry.id);
+  const worker = entry.worker || {};
+  const workerKey = [
+    worker.job_id,
+    worker.run_id,
+    worker.workflow,
+    worker.stage_id,
+  ].filter(Boolean).map(stableFeedKeyPart).join(':');
+  const base = [
+    stableFeedKeyPart(entry.kind || 'entry'),
+    stableFeedKeyPart(entry.tool || ''),
+    stableFeedKeyPart(entry.reasoningStreamId || ''),
+    stableFeedKeyPart(entry.createdAt || entry.updatedAt || ''),
+    workerKey,
+  ].filter(Boolean).join(':');
+  return `${base || 'entry'}:${stableTextHash(entry.text || entry.args || '')}`;
+};
 
 export const renderWorkspaceFeedEntries = ({
   feed,
@@ -127,39 +161,43 @@ export const renderWorkspaceFeedEntries = ({
     if (entries.some((e) => e && e.kind === 'thought')) return true;
     return entries.some((e) => e && e.live) ? false : chatFeedSummary;
   };
-  const MAX_RENDERED_FEED_ENTRIES = 240;
-  const renderFeed = feed.length > MAX_RENDERED_FEED_ENTRIES
+  const RECENT_RENDERED_FEED_ENTRIES = 20;
+  const FULL_RENDERED_FEED_ENTRIES = 240;
+  const maxRenderedFeedEntries = chatFeedSummary
+    ? RECENT_RENDERED_FEED_ENTRIES
+    : FULL_RENDERED_FEED_ENTRIES;
+  const renderFeed = feed.length > maxRenderedFeedEntries
     ? [
       {
         kind: 'agent',
-        text: `Showing latest ${MAX_RENDERED_FEED_ENTRIES} of ${feed.length} chat events. Older entries are hidden in this view for speed.`,
+        text: `Showing latest ${maxRenderedFeedEntries} of ${feed.length} chat events. Older entries are hidden in this view for speed.`,
         _feedWindowNotice: true,
       },
-      ...feed.slice(-MAX_RENDERED_FEED_ENTRIES),
+      ...feed.slice(-maxRenderedFeedEntries),
     ]
     : feed;
   for (let i = 0; i < renderFeed.length; i++) {
     const cur = renderFeed[i];
     const nxt = renderFeed[i + 1];
     if (cur && cur.kind === 'action' && nxt && nxt.kind === 'obs') {
-      out.push(<ToolCard key={i} action={cur} obs={nxt} summaryMode={entrySummaryMode(cur, nxt)} />);
+      out.push(<ToolCard key={`tool:${feedEntryKey(cur)}:${feedEntryKey(nxt)}`} action={cur} obs={nxt} summaryMode={entrySummaryMode(cur, nxt)} />);
       i++;
       continue;
     }
     if (cur && cur.kind === 'action' && cur.tool) {
-      out.push(<ToolCard key={i} action={cur} obs={null} summaryMode={entrySummaryMode(cur)} />);
+      out.push(<ToolCard key={`action:${feedEntryKey(cur)}`} action={cur} obs={null} summaryMode={entrySummaryMode(cur)} />);
       continue;
     }
     // Orphan obs (action got swallowed, or hydration ordering anomaly):
     // wrap it in a ToolCard so it gets the same single-row collapsed
     // look as paired tools, instead of a separate "OBS" header line.
     if (cur && cur.kind === 'obs') {
-      out.push(<ToolCard key={i} action={null} obs={cur} summaryMode={entrySummaryMode(cur)} />);
+      out.push(<ToolCard key={`obs:${feedEntryKey(cur)}`} action={null} obs={cur} summaryMode={entrySummaryMode(cur)} />);
       continue;
     }
     out.push(
       <FeedEntry
-        key={i}
+        key={`feed:${feedEntryKey(cur)}`}
         entry={cur}
         qaState={qaState}
         onToggle={toggleOpt}

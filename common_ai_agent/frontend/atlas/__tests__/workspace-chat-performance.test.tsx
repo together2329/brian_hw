@@ -28,7 +28,11 @@ vi.mock('../workspace-feed-cards', async () => {
   };
 });
 
-import { WorkspaceChatPane, type RenderWorkspaceFeedEntriesProps } from '../workspace-root-render';
+import {
+  WorkspaceChatPane,
+  renderWorkspaceFeedEntries,
+  type RenderWorkspaceFeedEntriesProps,
+} from '../workspace-root-render';
 
 describe('WorkspaceChatPane streaming render cost', () => {
   afterEach(() => {
@@ -79,5 +83,62 @@ describe('WorkspaceChatPane streaming render cost', () => {
     expect(renderCounters.feedEntry).not.toHaveBeenCalled();
     expect(renderCounters.toolCard).not.toHaveBeenCalled();
     expect(renderCounters.livePreview).toHaveBeenCalledTimes(1);
+  });
+
+  it('mounts only the latest 20 entries in Recent mode', () => {
+    const feed = Array.from({ length: 25 }, (_, i) => ({
+      id: `msg-${i}`,
+      kind: 'agent',
+      text: `entry-${i}`,
+    }));
+    const feedProps: RenderWorkspaceFeedEntriesProps = {
+      feed,
+      qaState: {},
+      chatFeedSummary: true,
+      toggleOpt: vi.fn(),
+      setCustom: vi.fn(),
+      submitCard: vi.fn(),
+      dir: '/tmp/ws',
+    };
+
+    render(
+      <WorkspaceChatPane
+        feedRef={createRef<HTMLDivElement>()}
+        streamText=""
+        feedEntriesProps={feedProps}
+      />,
+    );
+
+    expect(renderCounters.feedEntry).toHaveBeenCalledTimes(21);
+    expect(screen.getByText(/Showing latest 20 of 25/)).toBeTruthy();
+    expect(screen.queryByText('entry-4')).toBeNull();
+    expect(screen.getByText('entry-24')).toBeTruthy();
+  });
+
+  it('keeps stable entry keys when the Recent window slides', () => {
+    const baseFeed = Array.from({ length: 25 }, (_, i) => ({
+      id: `msg-${i}`,
+      kind: 'agent',
+      text: `entry-${i}`,
+    }));
+    const props = (feed: any[]): RenderWorkspaceFeedEntriesProps => ({
+      feed,
+      qaState: {},
+      chatFeedSummary: true,
+      toggleOpt: vi.fn(),
+      setCustom: vi.fn(),
+      submitCard: vi.fn(),
+      dir: '/tmp/ws',
+    });
+
+    const beforeKeys = renderWorkspaceFeedEntries(props(baseFeed)).map((node: any) => String(node.key));
+    const afterKeys = renderWorkspaceFeedEntries(props([
+      ...baseFeed,
+      { id: 'msg-25', kind: 'agent', text: 'entry-25' },
+    ])).map((node: any) => String(node.key));
+
+    expect(beforeKeys).toContain('feed:msg-10');
+    expect(afterKeys).toContain('feed:msg-10');
+    expect(afterKeys).not.toContain('feed:msg-5');
   });
 });

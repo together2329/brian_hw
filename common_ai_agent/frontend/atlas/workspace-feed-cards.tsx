@@ -191,9 +191,6 @@ export const ObsCard = ({ entry, embedded, summaryMode = true, maxLinesOverride,
   const _readClosed = _toolResultDefaultsClosed(entry?.tool);
   const _obsDefaultOpen = _readClosed ? false : (!summaryMode || isReplaceTool);
   const [open, setOpen] = useState<boolean>(_obsDefaultOpen);
-  useEffect(() => {
-    setOpen(_obsDefaultOpen);
-  }, [_obsDefaultOpen]);
   let txt = summaryMode ? _cleanTodoToolText(entry.text || '', entry.tool) : cleanAtlasTerminalText(entry.text || '');
   // Strip ANSI escape sequences leaked from terminal-style backends
   // (e.g. `\x1b[1m`, `\x1b[38;5;71m`, `\x1b[0m`) so they don't show as

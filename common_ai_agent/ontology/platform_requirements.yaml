@@ -1774,6 +1774,15 @@ requirements:
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_workspace_action_rows_stabilize_as_tool_cards"
             observed_at: b4078785
+      - id: OBL_WORKSPACE_RECENT_CHAT_MOUNTS_SMALL_WINDOW
+        owned_by: ui.workspace
+        granularity: behavior
+        # Recent chat mode should not keep a large history of completed
+        # iframe-backed Markdown/tool cards mounted. Keep the mounted Recent
+        # window small so iframe ResizeObservers and scroll anchoring do not
+        # churn while the user is watching the live edge; FULL remains the
+        # larger audit/history view.
+        status: open
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior
@@ -1930,6 +1939,11 @@ requirements:
             observed_at: 8ec35c08
           - test: "tests/test_oag_workspace_surface.py::test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow"
             observed_at: 8ec35c08
+      - id: OBL_OAG_LOCKED_WORKFLOW_RAIL_SHOWS_SIM_DEBUG
+        owned_by: ui.workspace
+        granularity: behavior
+        status: refuted
+        refuted_by: "2026-06-19 Computer Use QA: OAG single-worker workspace showed only the default workflow when ATLAS_WORKFLOW_LOCKED was true, hiding sim_debug from the left workflow rail."
       - id: OBL_WORKSPACE_RIGHT_RAIL_DEFAULT_FOLDED
         owned_by: ui.workspace
         granularity: behavior

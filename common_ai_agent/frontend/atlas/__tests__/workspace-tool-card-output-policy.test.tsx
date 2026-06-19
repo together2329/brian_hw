@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { createRef } from 'react';
 
 import '../ui-utils.tsx';
 import { FeedEntry, ToolCard } from '../workspace-feed-cards';
+import { WorkspaceChatPane, type RenderWorkspaceFeedEntriesProps } from '../workspace-root-render';
 
 const toolCard = (tool: string, text: string) => (
   <ToolCard
@@ -64,6 +66,68 @@ describe('workspace tool-card output display policy', () => {
     expect(srcdoc).toContain('replace-preview-10');
     expect(srcdoc).not.toContain('replace-preview-11');
     expect(srcdoc).toContain('25 more lines hidden');
+  });
+
+  it('keeps an expanded replace_in_file card open when the Recent window advances', () => {
+    const makeFeed = (tailExtra = 0) => [
+      ...Array.from({ length: 17 }, (_, i) => ({
+        id: `before-${i}`,
+        kind: 'agent',
+        text: `before-${i}`,
+      })),
+      {
+        id: 'replace-action',
+        kind: 'action',
+        tool: 'replace_in_file',
+        text: '▶ replace_in_file path="demo.txt"',
+        createdAt: 1,
+      },
+      {
+        id: 'replace-obs',
+        kind: 'obs',
+        tool: 'replace_in_file',
+        text: numberedLines('replace-stays-open', 35),
+        createdAt: 2,
+      },
+      ...Array.from({ length: 6 + tailExtra }, (_, i) => ({
+        id: `after-${i}`,
+        kind: 'agent',
+        text: `after-${i}`,
+      })),
+    ];
+    const props = (feed: any[]): RenderWorkspaceFeedEntriesProps => ({
+      feed,
+      qaState: {},
+      chatFeedSummary: true,
+      toggleOpt: () => {},
+      setCustom: () => {},
+      submitCard: () => {},
+      dir: '/tmp/ws',
+    });
+
+    const { rerender, container } = render(
+      <WorkspaceChatPane
+        feedRef={createRef<HTMLDivElement>()}
+        streamText=""
+        feedEntriesProps={props(makeFeed())}
+      />,
+    );
+
+    expect(toolFrameSrcDoc(container)).toContain('replace-stays-open-10');
+    expect(toolFrameSrcDoc(container)).not.toContain('replace-stays-open-11');
+
+    fireEvent.click(screen.getByText('replace_in_file').closest('.tool-card-head') as HTMLElement);
+    expect(toolFrameSrcDoc(container)).toContain('replace-stays-open-11');
+
+    rerender(
+      <WorkspaceChatPane
+        feedRef={createRef<HTMLDivElement>()}
+        streamText=""
+        feedEntriesProps={props(makeFeed(1))}
+      />,
+    );
+
+    expect(toolFrameSrcDoc(container)).toContain('replace-stays-open-11');
   });
 
   it('renders parseable raw action lines as tool cards immediately', () => {

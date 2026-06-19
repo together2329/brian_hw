@@ -56,6 +56,9 @@ def test_oag_workspace_restores_default_tabs_and_keeps_sim_debug_workflow():
     assert "if (atlasOagMode()) return [WORKFLOW_DEFAULT, 'sim_debug'];" in app
     assert "if (atlasOagMode()) return wf === 'sim_debug' ? 'sim_debug' : WORKFLOW_DEFAULT;" in app
     assert "if (atlasOagMode()) return;" not in app
+    assert "import { atlasOagMode } from './runtime-flags';" in rail_tabs
+    assert "const workflowLocked = ATLAS_WORKFLOW_LOCKED && !atlasOagMode();" in rail_tabs
+    assert ".filter((s: any) => !workflowLocked || s.id === 'default')" in rail_tabs
     assert "const showSsotImportExportTab = workflow === 'ssot-gen' || workflow === 'default';" in data_hook
     assert "const showSsotTab = workflow === 'ssot-gen' || workflow === 'default' ||" in data_hook
     assert "const showSsotDocTab = showSsotTab;" in data_hook

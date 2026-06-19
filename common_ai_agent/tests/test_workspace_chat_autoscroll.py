@@ -196,9 +196,13 @@ def test_tool_result_previews_default_only_for_write_and_replace():
     standard = feed.split("export const _StandardToolCardRaw", 1)[1].split(
         "export const StandardToolCard", 1
     )[0]
+    obs_card = feed.split("export const ObsCard", 1)[1].split(
+        "export const _parseJsonObject", 1
+    )[0]
     assert "const defaultObsOpen = false;" in standard
     assert "const headClickable = !!obs || argsIsLong" in standard
     assert "obs && (isPreviewTool || obsOpen)" in standard
+    assert "setOpen(_obsDefaultOpen);" not in obs_card
 
     assert "if (/^run_command$/i.test(String(tool || ''))) return 'none';" in frame
     measure_section = frame.split("const measure = () => {", 1)[1].split("const scheduleMeasure = () => {", 1)[0]
@@ -207,6 +211,26 @@ def test_tool_result_previews_default_only_for_write_and_replace():
     assert ")) + 2" not in measure_section
     assert "doc.body?.scrollHeight" not in measure_section
     assert "doc.documentElement?.scrollHeight" not in measure_section
+
+
+def test_workspace_recent_chat_mounts_small_stable_window():
+    data = _source("data.tsx")
+    render = _source("workspace-root-render.tsx")
+    data_hook = _source("workspace-root-data-hook.tsx")
+    vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "workspace-chat-performance.test.tsx").read_text(encoding="utf-8")
+    tool_vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "workspace-tool-card-output-policy.test.tsx").read_text(encoding="utf-8")
+
+    assert "const CHAT_RECENT_LIMIT = 20;" in data
+    assert "const RECENT_RENDERED_FEED_ENTRIES = 20;" in render
+    assert "const FULL_RENDERED_FEED_ENTRIES = 240;" in render
+    assert "const maxRenderedFeedEntries = chatFeedSummary" in render
+    assert "const feedEntryKey = (entry: any): string =>" in render
+    assert "key={`tool:${feedEntryKey(cur)}:${feedEntryKey(nxt)}`}" in render
+    assert "key={i}" not in render.split("export const renderWorkspaceFeedEntries", 1)[1].split("const sameFeedEntriesProps", 1)[0]
+    assert "id: fe.id || `worker-log:${jid}:" in data_hook
+    assert "mounts only the latest 20 entries in Recent mode" in vitest
+    assert "keeps stable entry keys when the Recent window slides" in vitest
+    assert "keeps an expanded replace_in_file card open when the Recent window advances" in tool_vitest
 
 
 def test_reasoning_coalesces_cumulative_snapshots():

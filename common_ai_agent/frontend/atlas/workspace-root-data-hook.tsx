@@ -3616,7 +3616,12 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
             workflow: jb.workflow || wf,
             status: jb.status || d.status || '',
           });
-          if (fe) fresh.push(fe);
+          if (fe) {
+            fresh.push({
+              ...fe,
+              id: fe.id || `worker-log:${jid}:${Number.isFinite(idx) ? idx : `${fe.kind || 'entry'}:${fe.createdAt || ''}:${String(fe.text || '').slice(0, 64)}`}`,
+            });
+          }
         }
         workerLogSinceRef.current = maxIdx;
         if (fresh.length) {
