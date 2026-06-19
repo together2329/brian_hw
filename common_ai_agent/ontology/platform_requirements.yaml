@@ -2078,7 +2078,10 @@ requirements:
         # post-processing wraps each table in a local scroll container so the
         # transcript keeps stable vertical scrolling while the table itself
         # exposes horizontal overflow.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_chat_markdown_document_style.py::test_markdown_tables_use_local_horizontal_scroll_containers"
+            observed_at: fd886eda
       - id: OBL_CHAT_STEP_STATUS_BADGE_TYPOGRAPHY
         owned_by: ui.workspace
         granularity: behavior
