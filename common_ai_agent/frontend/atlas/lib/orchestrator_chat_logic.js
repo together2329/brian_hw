@@ -8,6 +8,23 @@
     read_pipeline_state: true,
     yield_run: true,
   };
+  var CANONICAL_DISPLAY_TOOL_NAMES = {
+    oag: true,
+    Read: true,
+    List: true,
+    Write: true,
+    Edit: true,
+    MultiEdit: true,
+    Bash: true,
+    Glob: true,
+    Grep: true,
+    LS: true,
+    TodoWrite: true,
+    WebFetch: true,
+    WebSearch: true,
+    NotebookRead: true,
+    NotebookEdit: true,
+  };
 
   function cleanTerminalControlText(text) {
     return String(text || '')
@@ -53,20 +70,38 @@
       .join('\n');
   }
 
+  function looksLikeToolCallName(tool) {
+    var text = String(tool || '').trim();
+    return !!text && (text.indexOf('_') >= 0 || !!CANONICAL_DISPLAY_TOOL_NAMES[text]);
+  }
+
   function toolEntryFromDisplayLine(content) {
     var text = cleanTerminalControlText(content).trim();
     if (!text) return null;
-    var call = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
-      || text.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
+    var actionPrefixed = /^Action\s*:/i.test(text);
+    var source = actionPrefixed ? text.replace(/^Action\s*:\s*/i, '').trim() : text;
+    if (!source) return null;
+    var call = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/)
+      || source.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
     if (call) {
       var callTool = String(call[1] || '').trim() || 'tool';
-      var callArgs = call[2] === undefined ? '' : '(' + String(call[2] || '').trim() + ')';
+      if (!actionPrefixed && !looksLikeToolCallName(callTool)) return null;
+      var callArgs = '(' + String(call[2] || '').trim() + ')';
       return { tool: callTool, args: callArgs, text: text };
     }
-    var loose = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(.*)$/);
+    var barePrefixed = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*$/);
+    if (barePrefixed) {
+      var bareTool = String(barePrefixed[1] || '').trim() || 'tool';
+      if (!looksLikeToolCallName(bareTool)) return null;
+      return { tool: bareTool, args: '', text: text };
+    }
+    var loose = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s+([\s\S]+)$/)
+      || (actionPrefixed ? source.match(/^([A-Za-z_][\w.-]*)\s*([\s\S]*)$/) : null);
     if (loose) {
+      var looseTool = String(loose[1] || '').trim() || 'tool';
+      if (!actionPrefixed && !looksLikeToolCallName(looseTool)) return null;
       return {
-        tool: String(loose[1] || '').trim() || 'tool',
+        tool: looseTool,
         args: String(loose[2] || '').trim(),
         text: text,
       };

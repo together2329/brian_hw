@@ -1762,6 +1762,15 @@ requirements:
         evidence:
           - test: "tests/test_workspace_chat_autoscroll.py::test_oag_tool_card_shows_header_and_folds_details"
             observed_at: b4303ae2
+      - id: OBL_WORKSPACE_ACTION_ROWS_STABILIZE_AS_TOOL_CARDS
+        owned_by: ui.workspace
+        granularity: behavior
+        # Live action rows should not briefly render as a generic "action"
+        # block and then morph into a tool-name card once the observation or
+        # DB mapper catches up. Parse canonical Action:/tool-call display
+        # lines at the frontend boundary so the first visible row is already
+        # the stable ToolCard.
+        status: open
       - id: OBL_WORKSPACE_TOOL_DETAILS_IFRAME_SURFACE
         owned_by: ui.workspace
         granularity: behavior

@@ -3,6 +3,23 @@
 const MAX_THOUGHT_LINES = 80;
 const THOUGHT_COMPACTION_MARKER_RE = /^\.\.\. \(\d+ older thought lines hidden for speed\)$/;
 const RUNTIME_HOUSEKEEPING_TOOLS = new Set(['read_pipeline_state', 'yield_run']);
+const CANONICAL_DISPLAY_TOOL_NAMES = new Set([
+  'oag',
+  'Read',
+  'List',
+  'Write',
+  'Edit',
+  'MultiEdit',
+  'Bash',
+  'Glob',
+  'Grep',
+  'LS',
+  'TodoWrite',
+  'WebFetch',
+  'WebSearch',
+  'NotebookRead',
+  'NotebookEdit',
+]);
 
 export function cleanTerminalControlText(text) {
   return String(text || '')
@@ -48,20 +65,38 @@ function stripRuntimeHousekeepingLines(text) {
     .join('\n');
 }
 
+function looksLikeToolCallName(tool) {
+  const text = String(tool || '').trim();
+  return !!text && (text.includes('_') || CANONICAL_DISPLAY_TOOL_NAMES.has(text));
+}
+
 export function toolEntryFromDisplayLine(content) {
   const text = cleanTerminalControlText(content).trim();
   if (!text) return null;
-  const call = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(?:\(([\s\S]*)\))?\s*$/)
-    || text.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
+  const actionPrefixed = /^Action\s*:/i.test(text);
+  const source = actionPrefixed ? text.replace(/^Action\s*:\s*/i, '').trim() : text;
+  if (!source) return null;
+  const call = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/)
+    || source.match(/^([A-Za-z_][\w.-]*)\s*\(([\s\S]*)\)\s*$/);
   if (call) {
     const tool = String(call[1] || '').trim() || 'tool';
-    const args = call[2] === undefined ? '' : `(${String(call[2] || '').trim()})`;
+    if (!actionPrefixed && !looksLikeToolCallName(tool)) return null;
+    const args = `(${String(call[2] || '').trim()})`;
     return { tool, args, text };
   }
-  const loose = text.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*(.*)$/);
+  const barePrefixed = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s*$/);
+  if (barePrefixed) {
+    const tool = String(barePrefixed[1] || '').trim() || 'tool';
+    if (!looksLikeToolCallName(tool)) return null;
+    return { tool, args: '', text };
+  }
+  const loose = source.match(/^[▶⏺*]\s*([A-Za-z_][\w.-]*)\s+([\s\S]+)$/)
+    || (actionPrefixed ? source.match(/^([A-Za-z_][\w.-]*)\s*([\s\S]*)$/) : null);
   if (loose) {
+    const tool = String(loose[1] || '').trim() || 'tool';
+    if (!actionPrefixed && !looksLikeToolCallName(tool)) return null;
     return {
-      tool: String(loose[1] || '').trim() || 'tool',
+      tool,
       args: String(loose[2] || '').trim(),
       text,
     };

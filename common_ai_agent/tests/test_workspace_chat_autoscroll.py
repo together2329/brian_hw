@@ -239,3 +239,26 @@ def test_reasoning_stream_updates_single_live_card():
     )[0]
     assert "appendLiveReasoning(m && m.text);" in reasoning_handler
     assert "appendLiveFeedEntries({ kind: 'thought'" not in reasoning_handler
+
+
+def test_workspace_action_rows_stabilize_as_tool_cards():
+    theme = _source("workspace-tool-theme.tsx")
+    feed = _source("workspace-feed-cards.tsx")
+    data_hook = _source("workspace-root-data-hook.tsx")
+    logic = _source("lib/orchestrator_chat_logic.mjs")
+    vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "workspace-tool-card-output-policy.test.tsx").read_text(encoding="utf-8")
+    poller_vitest = (PROJECT_ROOT / "frontend" / "atlas" / "__tests__" / "orchestrator-chat-poller.test.jsx").read_text(encoding="utf-8")
+
+    assert "export const atlasToolEntryFromDisplayLine" in theme
+    assert "const actionPrefixed = /^Action\\s*:/i.test(text);" in theme
+    assert "if (!actionPrefixed && !_looksLikeToolCallName(tool)) return null;" in theme
+    assert "'Todo'" not in theme.split("const _CANONICAL_DISPLAY_TOOL_NAMES", 1)[1].split("]);", 1)[0]
+    assert "const actionEntryWithParsedTool" in feed
+    assert "return <ToolCard action={actionEntry} obs={null} summaryMode={summaryMode} />;" in feed
+    assert ".replace(/^Action\\s*:\\s*/i, '')" in feed
+    assert "atlasToolEntryFromDisplayLine(content)" in data_hook
+    assert "atlasToolEntryFromDisplayLine(text)" in data_hook
+    assert "var actionPrefixed = /^Action\\s*:/i.test(text);" in logic or "const actionPrefixed = /^Action\\s*:/i.test(text);" in logic
+    assert "renders parseable raw action lines as tool cards immediately" in vitest
+    assert "Action: run_command(command=\"pytest -q\")" in poller_vitest
+    assert "expect(toolEntryFromDisplayLine('▶ Todo (6 tasks)')).toBeNull();" in poller_vitest

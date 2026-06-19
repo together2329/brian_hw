@@ -25,6 +25,7 @@ import {
   _normalizeToolName,
   _toolDisplay,
   _isWorkflowResultTool,
+  atlasToolEntryFromDisplayLine,
   atlasIsThinkingPlaceholderText,
   visibleAtlasThoughtLines,
   cleanAtlasTerminalText,
@@ -68,6 +69,18 @@ const firstRuntimeText = (...values: any[]): string => {
     if (text && text !== '—') return text;
   }
   return '';
+};
+
+const actionEntryWithParsedTool = (entry: any): any => {
+  if (!entry || entry.kind !== 'action' || entry.tool) return entry;
+  const parsed = atlasToolEntryFromDisplayLine(entry.text || '');
+  if (!parsed) return entry;
+  return {
+    ...entry,
+    text: parsed.text || entry.text,
+    tool: parsed.tool,
+    args: entry.args || parsed.args,
+  };
 };
 
 export const agentRuntimeParts = (entry: any): string[] => {
@@ -592,7 +605,9 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
   const borderColor = status === 'err' ? '#f85149' : theme.color;
   const rawArgsText = action && action.text
     ? action.text
+        .replace(/^Action\s*:\s*/i, '')
         .replace(/^[▶⏺]\s*/, '')
+        .replace(/^\*\s*/, '')
         .replace(tool ? new RegExp('^' + tool.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*') : /^\?\s*/, '')
     : '';
   const todoStepInfo = _parseTodoStepUpdate(obs ? obs.text || '' : '', tool, rawArgsText || (action && action.text) || '');
@@ -729,7 +744,8 @@ export const _StandardToolCardRaw = ({ action, obs, summaryMode = true, tool }: 
 export const StandardToolCard = memo(_StandardToolCardRaw);
 
 export const _ToolCardRaw = ({ action, obs, summaryMode = true }: any) => {
-  const tool = _normalizeToolName((action && action.tool) || (obs && obs.tool) || '');
+  const parsedAction = actionEntryWithParsedTool(action);
+  const tool = _normalizeToolName((parsedAction && parsedAction.tool) || (obs && obs.tool) || '');
   // Orchestrator handoffs get a dedicated labeled card instead of the raw
   // "key={json}" args line — see HandoffCard.
   // dispatch_workflow / write_handoff are ALWAYS orchestrator tool calls — use
@@ -740,7 +756,7 @@ export const _ToolCardRaw = ({ action, obs, summaryMode = true }: any) => {
   }
   return (
     <StandardToolCard
-      action={action}
+      action={parsedAction}
       obs={obs}
       summaryMode={summaryMode}
       tool={tool}
@@ -861,6 +877,10 @@ export const _FeedEntryRaw = ({ entry, qaState, onToggle, onCustom, onSubmit, di
   }
   if (entry.kind === 'action') {
     const planned = entry.planned;
+    const actionEntry = actionEntryWithParsedTool(entry);
+    if (actionEntry && actionEntry.tool) {
+      return <ToolCard action={actionEntry} obs={null} summaryMode={summaryMode} />;
+    }
     // Live mode emits {kind:'action', text:'▶ tool args…'}; the old mock
     // shape was {kind:'action', tool, args, planned?}. Prefer .text when
     // present so we don't crash on missing args.
