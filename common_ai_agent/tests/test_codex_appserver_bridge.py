@@ -1,5 +1,53 @@
 import asyncio
 import json
+from pathlib import Path
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_app_server_cmd_uses_codex_app_server(monkeypatch):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setattr(bridge, "CODEX_BIN", "codex-test")
+
+    assert bridge._app_server_cmd() == [
+        "codex-test",
+        "app-server",
+        "--listen",
+        "stdio://",
+    ]
+
+
+def test_app_server_env_forces_oag_mode_off_by_default(monkeypatch):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.delenv("CODEX_BRIDGE_OAG_MODE", raising=False)
+
+    env = bridge._app_server_env()
+
+    assert env["OAG_MODE"] == "0"
+
+
+def test_app_server_env_honors_explicit_bridge_oag_override(monkeypatch):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setenv("OAG_MODE", "0")
+    monkeypatch.setenv("CODEX_BRIDGE_OAG_MODE", "1")
+
+    env = bridge._app_server_env()
+
+    assert env["OAG_MODE"] == "1"
+
+
+def test_atlas_codex_mode_dispatches_to_app_server_bridge():
+    src = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text(encoding="utf-8")
+
+    assert 'if os.environ.get("CODEX_BRIDGE"):' in src
+    assert "from core.codex_appserver_bridge import run_codex_turn" in src
+    assert 'await _accept_handled("codex")' in src
+    assert "run_codex_turn(" in src
 
 
 def test_tool_only_turn_is_visible_and_persisted(tmp_path, monkeypatch):

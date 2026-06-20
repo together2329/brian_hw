@@ -18,6 +18,8 @@ Env:
   CODEX_BRIDGE_BIN   codex binary (default "codex" on PATH)
   CODEX_BRIDGE_HOME  CODEX_HOME to use (default: inherit env / ~/.codex)
   CODEX_BRIDGE_MODEL optional model override for the thread
+  CODEX_BRIDGE_OAG_MODE OAG_MODE visible to the codex app-server process
+                        (default "0" so native ATLAS OAG injection stays off)
 """
 from __future__ import annotations
 
@@ -46,6 +48,20 @@ _conns_lock = asyncio.Lock()
 
 # item.type values that are NOT surfaced as tool activity
 _NON_TOOL_ITEMS = {"userMessage", "agentMessage", "reasoning"}
+
+
+def _app_server_cmd() -> list[str]:
+    return [CODEX_BIN, "app-server", "--listen", "stdio://"]
+
+
+def _app_server_env() -> dict[str, str]:
+    env = dict(os.environ)
+    if CODEX_HOME:
+        env["CODEX_HOME"] = CODEX_HOME
+    # Codex app-server is the engine here. Keep ATLAS's native OAG path out of
+    # the subprocess by default, even if a parent shell still has OAG_MODE=1.
+    env["OAG_MODE"] = (os.environ.get("CODEX_BRIDGE_OAG_MODE", "0").strip() or "0")
+    return env
 
 
 def _item_started_text(item: dict) -> "str | None":
@@ -212,16 +228,13 @@ class _CodexConn:
         self._broken = False
 
     async def start(self) -> None:
-        env = dict(os.environ)
-        if CODEX_HOME:
-            env["CODEX_HOME"] = CODEX_HOME
         self.proc = await asyncio.create_subprocess_exec(
-            CODEX_BIN, "app-server", "--listen", "stdio://",
+            *_app_server_cmd(),
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             limit=_STREAM_LIMIT,
-            env=env,
+            env=_app_server_env(),
         )
         asyncio.create_task(self._read_loop())
         asyncio.create_task(self._drain_stderr())

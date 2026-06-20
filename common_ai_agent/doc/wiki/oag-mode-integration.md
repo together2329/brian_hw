@@ -40,7 +40,9 @@ original codex stub is kept as `.codex/AGENTS.codex.md`.
 
 | env | meaning | default |
 |---|---|---|
-| `OAG_MODE` | master switch (`1/true/on`) | checked-in `.config`: on; code fallback with no env/config: off |
+| `OAG_MODE` | master switch (`1/true/on`) | checked-in `.config`: off for Codex app-server mode; code fallback with no env/config: off |
+| `CODEX_BRIDGE` | route Atlas chat through `codex app-server --listen stdio://` | checked-in `.config`: on |
+| `CODEX_BRIDGE_OAG_MODE` | `OAG_MODE` passed to the Codex app-server subprocess | checked-in `.config`: `0` |
 | `OAG_ROOT` | project holding `.codex/` | `OAG_ROOT` → `ATLAS_PROJECT_ROOT` → cwd → **platform root** (`common_ai_agent`, the vendored `.codex/`); first with `.codex/` or `AGENTS.md` |
 
 ## The `oag` tool
@@ -73,20 +75,18 @@ oag(script="oag_eval.py")                                                      #
 
 ## Checked-in default
 
-As of 2026-06-16, the repository `.config` sets `OAG_MODE=1`. That makes local
-ATLAS launches use the native OAG path by default without requiring a shell
-export. The code fallback remains off when no env/config file provides
-`OAG_MODE`, so hermetic tests and external embedders can still opt into the
-feature explicitly.
+As of 2026-06-20, the repository `.config` sets `CODEX_BRIDGE=1`,
+`CODEX_BRIDGE_OAG_MODE=0`, and `OAG_MODE=0`. Local ATLAS codex mode therefore
+uses the Codex app-server bridge by default while leaving ATLAS's native OAG
+prompt/tool injection off. The native OAG path remains opt-in: set
+`OAG_MODE=1` explicitly when running the legacy/native worker path.
 
 ## Web bridge visibility
 
-Observed 2026-06-16: with either `OAG_MODE=1` alone (default worker native
-tool-calls) or `OAG_MODE=1 CODEX_BRIDGE=1` (Codex app-server bridge), the model
-can legally call `oag.inspect` and then end the turn without a natural-language
-final message. The OAG result exists in the native tool response
-(`oag_tool_response.v1`), but the ATLAS chat feed renders assistant text, so the
-turn can look blank.
+Observed 2026-06-16: with native OAG enabled, a model can legally call
+`oag.inspect` and then end the turn without a natural-language final message.
+The OAG result exists in the native tool response (`oag_tool_response.v1`), but
+the ATLAS chat feed renders assistant text, so the turn can look blank.
 
 Both paths therefore treat "tool output but no assistant text" as visible
 fallback. The default worker promotes the tail `role=tool` messages to a

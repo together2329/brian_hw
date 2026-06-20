@@ -1,6 +1,8 @@
 # Codex Engine for Atlas UI Integration
 
-Status: concept note only. No implementation is implied by this page.
+Status: implemented for the Atlas checked-in local codex mode as of 2026-06-20:
+`CODEX_BRIDGE=1`, `OAG_MODE=0`, and chat turns route through
+`codex app-server --listen stdio://`.
 
 ## Decision Shape
 
