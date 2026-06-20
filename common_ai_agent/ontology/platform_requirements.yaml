@@ -1519,7 +1519,12 @@ requirements:
         # <owner>/<workspace>/<ip>/rtl/*.sv와 달라 /api/source가 "not found"를 표시.
         # 수정: frontend와 /api/source 모두 active session 기준으로 IP-relative/source-root-relative
         # path를 owner/workspace/ip path로 보정한다.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_atlas_authz_e2e.py::test_source_resolves_active_session_ip_relative_path"
+            observed_at: 2cffc88c
+          - test: "tests/test_sim_debug_source_path_frontend.py::test_ip_relative_source_paths_normalize_to_active_session_workspace"
+            observed_at: 2cffc88c
 
   - id: REQ_PLAT_LOCKED_TRUTH_DRAFT_TOGGLE_001
     claim: "atlas web 기본 에이전트는 평범한 채팅 에이전트로 동작한다 — locked-truth-draft 인터뷰 오버레이(/draft-req 강요)는 기본 OFF이고, ATLAS_LOCKED_TRUTH_DRAFT_MODE로만 opt-in 한다"
