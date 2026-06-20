@@ -838,7 +838,7 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     w.atlasData.sessionFor = (ip: string, wf: string) => `alice/demo/${ip}/${wf}`;
 
     const { Workspace } = await import('../workspace.tsx');
-    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const { container, queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
     const backend = w.backend;
 
     await act(async () => {
@@ -865,7 +865,12 @@ describe('Workspace render smoke (the behavioral gate)', () => {
     });
 
     await waitFor(() => expect(queryByText('Agent responding')).not.toBeNull());
-    await waitFor(() => expect(queryByText('Hi there')).not.toBeNull(), { timeout: 2500 });
+    await waitFor(() => {
+      const srcDoc = Array.from(container.querySelectorAll('iframe[title="Agent Markdown response"]'))
+        .map((iframe) => (iframe as HTMLIFrameElement).srcdoc || iframe.getAttribute('srcdoc') || '')
+        .join('\n');
+      expect(srcDoc).toContain('Hi there');
+    }, { timeout: 2500 });
 
     await act(async () => {
       backend._emit('orchestrator_chat', {
