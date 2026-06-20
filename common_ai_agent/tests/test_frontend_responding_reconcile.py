@@ -12,6 +12,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_HOOK = PROJECT_ROOT / "frontend" / "atlas" / "workspace-root-data-hook.tsx"
 APP_SESSION_HOOK = PROJECT_ROOT / "frontend" / "atlas" / "app-session-hook.tsx"
+WORKSPACE_ROOT = PROJECT_ROOT / "frontend" / "atlas" / "workspace-root.tsx"
 FEED_CARDS = PROJECT_ROOT / "frontend" / "atlas" / "workspace-feed-cards.tsx"
 FEED_COMPLETION = PROJECT_ROOT / "frontend" / "atlas" / "workspace-rootdata-feed-completion.tsx"
 CHAT_FRAME = PROJECT_ROOT / "frontend" / "atlas" / "workspace-chat-markdown-frame.tsx"
@@ -70,6 +71,25 @@ def test_frontend_completed_agent_cards_keep_runtime_metadata_and_tight_body():
     assert "useState(24)" in frame
     assert "minHeight: 24" in frame
     assert "preserves completed assistant runtime metadata when hydrating conversation history" in vitest
+
+
+def test_frontend_responding_runtime_metadata_falls_back_to_context():
+    workspace = WORKSPACE_ROOT.read_text(encoding="utf-8")
+    vitest = VITEST.read_text(encoding="utf-8")
+
+    assert "contextRuntime" in workspace
+    assert "w.CONTEXT" in workspace
+    assert "telemetryRuntime" in workspace
+    assert "workspaceTelemetry" in workspace
+    assert "cleanRuntimeLabel(liveLlmRuntime?.model)" in workspace
+    assert "cleanRuntimeLabel(contextRuntime.model)" in workspace
+    assert "cleanRuntimeLabel(contextRuntime.active_model)" in workspace
+    assert "cleanRuntimeLabel(telemetryRuntime.model)" in workspace
+    assert "cleanRuntimeLabel(liveLlmRuntime?.reasoningEffort)" in workspace
+    assert "cleanRuntimeLabel(contextRuntime.reasoning_effort)" in workspace
+    assert "cleanRuntimeLabel(contextRuntime.effort)" in workspace
+    assert "cleanRuntimeLabel(telemetryRuntime.effort)" in workspace
+    assert "falls back to context runtime metadata when agent_state has no model or effort" in vitest
 
 
 def test_frontend_roster_refresh_preserves_confirmed_session_route():
