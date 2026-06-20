@@ -16,8 +16,15 @@ conversation has multi-turn memory. Turns on a session are serialized.
 Env:
   CODEX_BRIDGE       "1" to enable (checked by the caller in atlas_ui.py)
   CODEX_BRIDGE_BIN   codex binary (default "codex" on PATH)
-  CODEX_BRIDGE_HOME  CODEX_HOME to use (default: inherit env / ~/.codex)
+  CODEX_BRIDGE_HOME  source .codex pack to stage (repo-relative paths supported)
+  CODEX_BRIDGE_RUNTIME_HOME optional CODEX_HOME override; default keeps ~/.codex
   CODEX_BRIDGE_MODEL optional model override for the thread
+  CODEX_BRIDGE_OAG_ROOT OAG pack/project root visible to the app-server process
+  CODEX_BRIDGE_ENABLE_HOOKS "1" to enable Codex hook/plugin features
+  CODEX_BRIDGE_RUN_OAG_HOOKS "1" to run staged OAG prompt hooks before each turn
+  CODEX_BRIDGE_STAGE_DOT_CODEX "1" to stage OAG pack runtime files in thread cwd
+  CODEX_BRIDGE_TRUST_THREAD_CWD "1" to trust the thread cwd in CODEX_HOME config
+  CODEX_BRIDGE_BYPASS_HOOK_TRUST "1" to run staged hooks in app-server automation
   CODEX_BRIDGE_OAG_MODE OAG_MODE visible to the codex app-server process
                         (default "0" so native ATLAS OAG injection stays off)
 """
@@ -26,11 +33,13 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import shutil
+from pathlib import Path
 from typing import Any, Callable
 
 CODEX_BIN = os.environ.get("CODEX_BRIDGE_BIN", "codex")
-CODEX_HOME = os.environ.get("CODEX_BRIDGE_HOME") or os.environ.get("CODEX_HOME")
 CODEX_MODEL = os.environ.get("CODEX_BRIDGE_MODEL")
+_REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # A single JSON-RPC notification line can be large (e.g. a command's full
 # aggregatedOutput). asyncio's StreamReader defaults to a 64KB line limit and
@@ -42,6 +51,18 @@ _CALL_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_CALL_TIMEOUT", "60"))
 # Whole-turn timeout: never leave the frontend stuck on "running" forever.
 _TURN_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_TURN_TIMEOUT", "180"))
 _TOOL_ONLY_FALLBACK_LIMIT = int(os.environ.get("CODEX_BRIDGE_TOOL_FALLBACK_LIMIT", "4000"))
+_HOOK_TIMEOUT = float(os.environ.get("CODEX_BRIDGE_HOOK_TIMEOUT", "10"))
+_STAGED_DOT_CODEX_MARKER = ".atlas_codex_bridge_source"
+_RUNTIME_DOT_CODEX_ENTRIES = (
+    "AGENTS.md",
+    "config.toml",
+    "hooks",
+    "hooks.json",
+    "mcp.json",
+    "rules",
+    "scripts",
+    "skills",
+)
 
 _conns: "dict[str, _CodexConn]" = {}
 _conns_lock = asyncio.Lock()
@@ -50,18 +71,216 @@ _conns_lock = asyncio.Lock()
 _NON_TOOL_ITEMS = {"userMessage", "agentMessage", "reasoning"}
 
 
-def _app_server_cmd() -> list[str]:
-    return [CODEX_BIN, "app-server", "--listen", "stdio://"]
+def _toml_quoted_key(value: str) -> str:
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
-def _app_server_env() -> dict[str, str]:
+def _app_server_cmd(cwd: "str | None" = None) -> list[str]:
+    cmd = [CODEX_BIN]
+    if _truthy_env(os.environ.get("CODEX_BRIDGE_BYPASS_HOOK_TRUST")):
+        cmd.append("--dangerously-bypass-hook-trust")
+    cmd.append("app-server")
+    if cwd:
+        trusted_cwd = str(Path(cwd).resolve(strict=False))
+        cmd.extend(["-c", f"projects.{_toml_quoted_key(trusted_cwd)}.trust_level=\"trusted\""])
+    if _truthy_env(os.environ.get("CODEX_BRIDGE_ENABLE_HOOKS")):
+        cmd.extend(["--enable", "hooks", "--enable", "plugin_hooks", "--enable", "plugins"])
+    cmd.extend(["--listen", "stdio://"])
+    return cmd
+
+
+def _truthy_env(value: "str | None") -> bool:
+    return str(value or "").strip().lower() in {"1", "true", "yes", "on", "enable", "enabled"}
+
+
+def _resolve_repo_relative_path(raw: "str | None") -> str:
+    value = str(raw or "").strip()
+    if not value:
+        return ""
+    path = Path(os.path.expandvars(value)).expanduser()
+    if not path.is_absolute():
+        path = _REPO_ROOT / path
+    return str(path.resolve(strict=False))
+
+
+def _configured_codex_pack_home() -> str:
+    return _resolve_repo_relative_path(
+        os.environ.get("CODEX_BRIDGE_HOME") or os.environ.get("CODEX_BRIDGE_PACK_HOME")
+    )
+
+
+def _configured_runtime_codex_home() -> str:
+    return _resolve_repo_relative_path(
+        os.environ.get("CODEX_BRIDGE_RUNTIME_HOME") or os.environ.get("CODEX_HOME")
+    )
+
+
+def _runtime_codex_home_for_files() -> str:
+    return _configured_runtime_codex_home() or os.path.expanduser("~/.codex")
+
+
+def _configured_oag_root() -> str:
+    return _resolve_repo_relative_path(
+        os.environ.get("CODEX_BRIDGE_OAG_ROOT") or os.environ.get("OAG_ROOT")
+    )
+
+
+def _app_server_env(cwd: "str | None" = None) -> dict[str, str]:
     env = dict(os.environ)
-    if CODEX_HOME:
-        env["CODEX_HOME"] = CODEX_HOME
+    runtime_home = _configured_runtime_codex_home()
+    if runtime_home:
+        env["CODEX_HOME"] = runtime_home
+    pack_home = _configured_codex_pack_home()
+    if pack_home:
+        mcp_config = os.path.join(pack_home, "mcp.json")
+        if os.path.isfile(mcp_config):
+            env["MCP_CONFIG_PATH"] = mcp_config
+    oag_root = _configured_oag_root()
+    if oag_root:
+        env["OAG_ROOT"] = oag_root
+    if cwd:
+        env.setdefault("OAG_IP_DIR", cwd)
     # Codex app-server is the engine here. Keep ATLAS's native OAG path out of
     # the subprocess by default, even if a parent shell still has OAG_MODE=1.
     env["OAG_MODE"] = (os.environ.get("CODEX_BRIDGE_OAG_MODE", "0").strip() or "0")
+    env.setdefault("OAG_ACTOR_SURFACE", "codex-appserver")
     return env
+
+
+def _stage_dot_codex(cwd: "str | None") -> None:
+    """Expose the configured Codex pack at `<thread cwd>/.codex`.
+
+    The ontology-ip-agent hook commands are intentionally project-relative
+    (`python3 .codex/hooks/...`). A plain CODEX_HOME override is not enough when
+    the thread runs inside an IP workspace, so stage the runtime subset without
+    replacing an existing user/project `.codex`.
+    """
+    if not _truthy_env(os.environ.get("CODEX_BRIDGE_STAGE_DOT_CODEX")):
+        return
+    if not cwd:
+        return
+    codex_home = _configured_codex_pack_home()
+    if not codex_home:
+        return
+    source = Path(codex_home)
+    if not ((source / "hooks.json").is_file() or (source / "skills").is_dir()):
+        return
+    target_dir = Path(cwd)
+    try:
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target = target_dir / ".codex"
+        marker = target / _STAGED_DOT_CODEX_MARKER
+        if target.exists() and not (
+            target.is_dir() and marker.is_file() and marker.read_text(encoding="utf-8").strip() == str(source)
+        ):
+            return
+        target.mkdir(parents=True, exist_ok=True)
+        for entry in _RUNTIME_DOT_CODEX_ENTRIES:
+            src = source / entry
+            dst = target / entry
+            if src.is_dir():
+                shutil.copytree(
+                    src,
+                    dst,
+                    dirs_exist_ok=True,
+                    ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
+                )
+            elif src.is_file():
+                dst.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(src, dst)
+        script_alias = target_dir / "scripts"
+        if not script_alias.exists() and not script_alias.is_symlink() and (target / "scripts").is_dir():
+            script_alias.symlink_to(Path(".codex") / "scripts", target_is_directory=True)
+        marker.write_text(str(source), encoding="utf-8")
+    except (OSError, RuntimeError):
+        return
+
+
+def _ensure_thread_cwd_trusted(cwd: "str | None") -> None:
+    if not _truthy_env(os.environ.get("CODEX_BRIDGE_TRUST_THREAD_CWD", "1")):
+        return
+    if not cwd:
+        return
+    config_path = Path(_runtime_codex_home_for_files()) / "config.toml"
+    trusted_cwd = str(Path(cwd).resolve(strict=False))
+    header = f"[projects.{_toml_quoted_key(trusted_cwd)}]"
+    try:
+        text = config_path.read_text(encoding="utf-8") if config_path.is_file() else ""
+        if header in text:
+            return
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        prefix = "" if not text or text.endswith("\n") else "\n"
+        with config_path.open("a", encoding="utf-8") as f:
+            f.write(f"{prefix}\n{header}\ntrust_level = \"trusted\"\n")
+    except OSError:
+        return
+
+
+def _extract_hook_additional_context(raw: str) -> str:
+    blocks: "list[str]" = []
+    for line in str(raw or "").splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            payload = json.loads(line)
+        except Exception:
+            continue
+        hook_out = payload.get("hookSpecificOutput")
+        if not isinstance(hook_out, dict):
+            continue
+        text = hook_out.get("additionalContext")
+        if isinstance(text, str) and text.strip():
+            blocks.append(text.strip())
+    return "\n\n".join(blocks)
+
+
+async def _run_oag_prompt_hook(cwd: str, hook_script: str, payload: dict[str, Any]) -> str:
+    script = Path(cwd) / ".codex" / "hooks" / hook_script
+    if not script.is_file():
+        return ""
+    env = _app_server_env(cwd)
+    env.setdefault("OAG_IP_DIR", cwd)
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            "python3",
+            str(script),
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=cwd,
+            env=env,
+        )
+        out, _err = await asyncio.wait_for(
+            proc.communicate(json.dumps(payload, ensure_ascii=False).encode()),
+            timeout=_HOOK_TIMEOUT,
+        )
+    except Exception:
+        return ""
+    if proc.returncode != 0:
+        return ""
+    return _extract_hook_additional_context(out.decode("utf-8", errors="replace"))
+
+
+async def _oag_user_prompt_context(cwd: "str | None", text: str) -> str:
+    if not _truthy_env(os.environ.get("CODEX_BRIDGE_RUN_OAG_HOOKS")):
+        return ""
+    if not cwd:
+        return ""
+    payload = {
+        "hook_event_name": "UserPromptSubmit",
+        "hookEventName": "UserPromptSubmit",
+        "prompt": text,
+        "ip_dir": cwd,
+        "stage": os.environ.get("OAG_STAGE") or "",
+        "intent": str(text or "")[:240] or "atlas codex bridge prompt",
+    }
+    blocks = []
+    for script in ("codex_context_inject.py", "codex_draft_pressure.py"):
+        block = await _run_oag_prompt_hook(cwd, script, payload)
+        if block:
+            blocks.append(block)
+    return "\n\n".join(blocks)
 
 
 def _item_started_text(item: dict) -> "str | None":
@@ -180,7 +399,7 @@ def _tool_only_fallback_text(tool_results: "list[tuple[str, str]]") -> str:
 
 
 def _thread_store_path() -> str:
-    home = CODEX_HOME or os.path.expanduser("~/.codex")
+    home = _runtime_codex_home_for_files()
     return os.path.join(home, "atlas_bridge_threads.json")
 
 
@@ -228,13 +447,17 @@ class _CodexConn:
         self._broken = False
 
     async def start(self) -> None:
+        _stage_dot_codex(self.cwd)
+        _ensure_thread_cwd_trusted(self.cwd)
+        proc_cwd = self.cwd if self.cwd else None
         self.proc = await asyncio.create_subprocess_exec(
-            *_app_server_cmd(),
+            *_app_server_cmd(self.cwd),
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
             limit=_STREAM_LIMIT,
-            env=_app_server_env(),
+            env=_app_server_env(self.cwd),
+            cwd=proc_cwd,
         )
         asyncio.create_task(self._read_loop())
         asyncio.create_task(self._drain_stderr())
@@ -390,10 +613,16 @@ class _CodexConn:
             self._on_note = on_note
             try:
                 emit("agent_state", running=True)
-                await self._call("turn/start", {
+                params: "dict[str, Any]" = {
                     "threadId": self.thread_id,
                     "input": [{"type": "text", "text": text}],
-                })
+                }
+                hook_context = await _oag_user_prompt_context(self.cwd, text)
+                if hook_context:
+                    params["additionalContext"] = {
+                        "oag": {"kind": "application", "value": hook_context}
+                    }
+                await self._call("turn/start", params)
                 try:
                     await asyncio.wait_for(done.wait(), timeout=_TURN_TIMEOUT)
                 except asyncio.TimeoutError:

@@ -1672,6 +1672,20 @@ requirements:
             observed_at: 81134977
           - test: "tests/test_codex_appserver_bridge.py::test_atlas_codex_mode_dispatches_to_app_server_bridge"
             observed_at: 81134977
+      - id: OBL_CODEX_APP_SERVER_CONFIGS_CANONICAL_OAG_ROOT
+        owned_by: platform.config
+        granularity: behavior
+        # Codex app-server mode keeps native ATLAS OAG_MODE=0, but it must still
+        # expose the operator's canonical ontology_ip_agent pack/root so Codex
+        # does not drift to plugin-cache or per-IP relative OAG scripts.
+        status: open
+      - id: OBL_CODEX_APP_SERVER_PASSES_EXTERNAL_OAG_ENV
+        owned_by: agent.codex-bridge
+        granularity: behavior
+        # The bridge subprocess environment carries the configured OAG_ROOT and
+        # common_ai_agent backend path as absolute paths while preserving the
+        # native OAG_MODE override.
+        status: open
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
