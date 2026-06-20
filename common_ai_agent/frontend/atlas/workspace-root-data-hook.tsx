@@ -610,6 +610,10 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   });
   const [interactiveWorkerStatus, setInteractiveWorkerStatus] = useState<any>(null);
   const [interactiveWorkerStatusError, setInteractiveWorkerStatusError] = useState('');
+  // codex /subagent lanes for the left workflow panel: keyed by codex thread id,
+  // ordered main-first. Fed by the `subagent` WS envelope from the codex bridge.
+  const [subagentLanes, setSubagentLanes] = useState<Map<string, any>>(() => new Map());
+  const [selectedSubagentId, setSelectedSubagentId] = useState<string>('');
   const respondingStartedAtRef = useRef<number>(0);
   const idleWorkerObservedAtRef = useRef<number>(0);
   const finishLiveRunRef = useRef<(() => void) | null>(null);
@@ -1270,6 +1274,31 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         const text = String((m && (m.text || m.content)) || '').trim();
         if (text) appendLiveFeedEntries({ kind: 'obs', text, tool: (m && m.tool) || '', createdAt: Date.now(), live: true });
       }));
+      // codex subagent activity -> left-rail lanes (one per spawned /subagent).
+      subs.push(w.backend.subscribe('subagent', (m: any) => {
+        if (!eventMatchesCurrentSession(m)) return;
+        const agentId = String((m && m.agent_id) || '');
+        if (!agentId) return;
+        const parentId = String((m && m.parent_id) || '');
+        const label = String((m && m.label) || '');
+        const status = String((m && m.status) || 'running');
+        const kind = String((m && m.kind) || 'status');
+        const text = String((m && m.text) || '');
+        setSubagentLanes((prev: Map<string, any>) => {
+          const next = new Map(prev);
+          // synthesize the Main row from the parent thread id (image: Main on top).
+          if (parentId && !next.has(parentId)) {
+            next.set(parentId, { agentId: parentId, label: 'Main', status: 'running', items: [], isMain: true });
+          }
+          const cur = next.get(agentId) || { agentId, label: '', status, items: [], isMain: false };
+          const lane = { ...cur, items: cur.items.slice() };
+          if (label) lane.label = label;
+          if (status) lane.status = status;
+          if (text) lane.items.push({ kind, text, ts: Date.now() });
+          next.set(agentId, lane);
+          return next;
+        });
+      }));
       subs.push(w.backend.subscribe('orchestrator_chat', (m: any) => {
         if (!atlasUiOrchestratorMode()) return;
         if (!eventMatchesCurrentSession(m, { requireSession: true })) return;
@@ -1874,6 +1903,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
       orchChatCursorRef.current = 0;
       orchChatSeenIdsRef.current = new Set();
       setFeed([]);
+      setSubagentLanes(new Map());
+      setSelectedSubagentId('');
     }
 
     let dead = false;
@@ -3825,7 +3856,16 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
     />
   );
 
+  // ordered for the left-rail picker: Main first, then subagents in arrival order.
+  const subagentLanesArr = useMemo(() => {
+    const arr = Array.from(subagentLanes.values());
+    arr.sort((a: any, b: any) => (a.isMain ? 0 : 1) - (b.isMain ? 0 : 1));
+    return arr;
+  }, [subagentLanes]);
+
   return {
+    // codex /subagent lanes (left workflow panel)
+    subagentLanes: subagentLanesArr, selectedSubagentId, setSelectedSubagentId,
     // telemetry / backend
     backendState, setBackendState,
     commandBusy, setCommandBusy,

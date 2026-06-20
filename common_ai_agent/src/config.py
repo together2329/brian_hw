@@ -1290,8 +1290,9 @@ MCP_CONFIG_PATH = os.getenv("MCP_CONFIG_PATH", ".mcp.json")
 # injection) and (2) exposes the native `oag` tool to drive the `.codex` OAG
 # tools/scripts directly — no MCP needed (this is our own custom agent).
 # Code fallback is OFF when no env/config file sets OAG_MODE. The checked-in
-# project .config currently keeps native OAG_MODE=0 because local codex mode
-# routes through the Codex app-server bridge; operators can still opt in with
+# project .config keeps native OAG_MODE=0; the default chat engine is the
+# built-in ReAct `main` engine, and the optional Codex app-server bridge
+# (opt-in: CODEX_BRIDGE=1) reads .codex itself. Operators can still opt in with
 # OAG_MODE=1. OAG_ROOT points at the project holding `.codex/` (default:
 # ATLAS_PROJECT_ROOT, then cwd).
 OAG_MODE = os.getenv("OAG_MODE", "false").lower() in ("true", "1", "yes", "on", "enable", "enabled")

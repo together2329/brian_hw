@@ -70,6 +70,108 @@ _conns_lock = asyncio.Lock()
 # item.type values that are NOT surfaced as tool activity
 _NON_TOOL_ITEMS = {"userMessage", "agentMessage", "reasoning"}
 
+# codex multi-agent (subagent) ThreadItem types. These are surfaced through a
+# dedicated `subagent` envelope (the atlas left-rail lanes) instead of generic
+# main-feed tool activity, so the user can watch each `/subagent` separately.
+_COLLAB_ITEM = "collabAgentToolCall"
+_SUBAGENT_ACTIVITY_ITEM = "subAgentActivity"
+_SUBAGENT_ITEMS = {_COLLAB_ITEM, _SUBAGENT_ACTIVITY_ITEM}
+
+# codex CollabAgentStatus / SubAgentActivityKind -> atlas lane status token.
+_COLLAB_STATUS = {
+    "pendinginit": "spawning", "running": "running", "interrupted": "closed",
+    "completed": "completed", "errored": "failed", "shutdown": "closed",
+    "notfound": "failed",
+}
+_SUBACTIVITY_STATUS = {
+    "started": "running", "interacted": "running", "interrupted": "closed",
+}
+
+# Optionally force codex into multi-agent mode so an explicit `/subagent`
+# spawns a sub-thread. DEFAULT OFF: the bridge only SURFACES whatever subagent
+# activity codex already emits (codex's own config/skills drive spawning), so
+# enabling here is unnecessary and would change the app-server process command
+# for every codex-mode user. Set CODEX_BRIDGE_MULTI_AGENT_MODE=explicitRequestOnly
+# (or proactive) to have the bridge force-enable it on builds that support it.
+_MULTI_AGENT_MODE = os.environ.get("CODEX_BRIDGE_MULTI_AGENT_MODE", "").strip()
+# Cap any single lane transcript chunk so a runaway child cannot flood the WS.
+_SUBAGENT_TEXT_LIMIT = int(os.environ.get("CODEX_BRIDGE_SUBAGENT_TEXT_LIMIT", "8000"))
+
+
+def _norm(value: "Any") -> str:
+    return str(value or "").strip().lower()
+
+
+def _multi_agent_enabled() -> bool:
+    return _norm(_MULTI_AGENT_MODE) not in {"", "off", "none", "0", "false", "disabled"}
+
+
+def _collab_agent_ids(item: dict) -> "list[str]":
+    """Lane keys for a collabAgentToolCall item: the receiver thread(s) (the
+    spawned/targeted agent), falling back to the sender thread."""
+    rids = item.get("receiverThreadIds") or []
+    if isinstance(rids, str):
+        rids = [rids]
+    ids = [str(r) for r in rids if r]
+    if ids:
+        return ids
+    sender = item.get("senderThreadId")
+    return [str(sender)] if sender else []
+
+
+def _subagent_lane_events(item: dict, started: bool, main_thread_id: str) -> "list[dict]":
+    """Map a codex subagent ThreadItem (collabAgentToolCall / subAgentActivity)
+    to zero or more `subagent` envelope payloads. Pure (no I/O) so it is unit
+    testable; on_note adds sticky labels."""
+    itype = item.get("type")
+    out: "list[dict]" = []
+    if itype == _SUBAGENT_ACTIVITY_ITEM:
+        tid = str(item.get("agentThreadId") or "")
+        if not tid or tid == main_thread_id:
+            return out
+        path = str(item.get("agentPath") or "")
+        kind = _norm(item.get("kind"))
+        out.append({
+            "agent_id": tid, "parent_id": main_thread_id,
+            "label": path or tid[:8],
+            "status": _SUBACTIVITY_STATUS.get(kind, "running"),
+            "kind": "status",
+            "text": (f"{kind} · {path}".strip(" ·") or "activity"),
+        })
+        return out
+    if itype == _COLLAB_ITEM:
+        tool = _norm(item.get("tool"))
+        prompt = str(item.get("prompt") or "")
+        states = item.get("agentsStates") or {}
+        for tid in _collab_agent_ids(item):
+            # The parent thread itself is not a subagent lane. During a spawn's
+            # `item/started` phase the child thread id is not assigned yet, so
+            # _collab_agent_ids falls back to the sender (= parent); skip it so
+            # we never create a lane keyed to main (which would pollute the
+            # synthesized Main row in the UI).
+            if not tid or tid == main_thread_id:
+                continue
+            st = _COLLAB_STATUS.get(_norm((states.get(tid) or {}).get("status")), "")
+            status = st or ("running" if started else "completed")
+            if "spawn" in tool:
+                kind, text = "spawn", (prompt or "(spawned agent)")
+            elif "send" in tool or "input" in tool:
+                kind, text = "message", prompt
+            elif "wait" in tool:
+                kind, text = "status", "waiting"
+            elif "close" in tool:
+                kind, text = "status", "closed"
+            elif "resume" in tool:
+                kind, text = "status", "resumed"
+            else:
+                kind, text = "status", (tool or "collab")
+            out.append({
+                "agent_id": tid, "parent_id": main_thread_id,
+                "label": "", "status": status, "kind": kind,
+                "text": text[:_SUBAGENT_TEXT_LIMIT],
+            })
+    return out
+
 
 def _toml_quoted_key(value: str) -> str:
     return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
@@ -85,6 +187,10 @@ def _app_server_cmd(cwd: "str | None" = None) -> list[str]:
         cmd.extend(["-c", f"projects.{_toml_quoted_key(trusted_cwd)}.trust_level=\"trusted\""])
     if _truthy_env(os.environ.get("CODEX_BRIDGE_ENABLE_HOOKS")):
         cmd.extend(["--enable", "hooks", "--enable", "plugin_hooks", "--enable", "plugins"])
+    if _multi_agent_enabled():
+        # process-level feature gate so the per-turn multiAgentMode selection is
+        # honored (subagent spawning + the items the bridge surfaces as lanes).
+        cmd.extend(["-c", "features.multi_agent_mode=true"])
     cmd.extend(["--listen", "stdio://"])
     return cmd
 
@@ -445,6 +551,10 @@ class _CodexConn:
         self._turn_lock = asyncio.Lock()
         self._on_note: "Callable[[str, dict], None] | None" = None
         self._broken = False
+        # subagent (multi-agent) turn state: the main turn id (to avoid a nested
+        # subagent turn ending the parent turn early) and sticky lane labels.
+        self._main_turn_id: "str | None" = None
+        self._sub_labels: "dict[str, str]" = {}
 
     async def start(self) -> None:
         _stage_dot_codex(self.cwd)
@@ -581,31 +691,126 @@ class _CodexConn:
             saw_error = False
             tool_results: "list[tuple[str, str]]" = []
 
+            def _sub_label(tid: str) -> str:
+                return self._sub_labels.get(tid) or (tid[:8] if tid else "subagent")
+
+            def _emit_sub(ev: dict) -> None:
+                # learn + stick the human label for a lane; back-fill it when a
+                # later event (e.g. a delta) arrives carrying no label of its own.
+                _tid = str(ev.get("agent_id") or "")
+                _lbl = str(ev.get("label") or "")
+                if _tid and _lbl:
+                    self._sub_labels[_tid] = _lbl
+                elif _tid and not _lbl:
+                    ev["label"] = _sub_label(_tid)
+                ev.setdefault("parent_id", self.thread_id or "")
+                emit("subagent", **ev)
+
             def on_note(method: str, params: dict) -> None:
                 nonlocal saw_agent_text, saw_error
+                tid = str(params.get("threadId") or "")
+                is_sub = bool(tid) and bool(self.thread_id) and tid != self.thread_id
+
+                if method == "thread/started":
+                    # A subagent thread announces itself with a parentThreadId +
+                    # human nickname/role; capture the nice label (e.g.
+                    # "RTL Implementation [oag-rtl-implementation-agent]") so the
+                    # lane shows it instead of a raw thread id.
+                    th = params.get("thread") or {}
+                    th_id = str(th.get("id") or "")
+                    if th_id and th.get("parentThreadId"):
+                        nick = str(th.get("agentNickname") or "")
+                        role = str(th.get("agentRole") or "")
+                        label = (f"{nick} [{role}]" if nick and role
+                                 else (nick or role or th_id[:8]))
+                        _emit_sub({"agent_id": th_id, "label": label,
+                                   "status": "spawning", "kind": "status",
+                                   "text": "spawned"})
+                    return
+
+                if method in ("item/started", "item/completed"):
+                    item = params.get("item") or {}
+                    if item.get("type") in _SUBAGENT_ITEMS:
+                        for ev in _subagent_lane_events(
+                                item, method == "item/started", self.thread_id or ""):
+                            _emit_sub(ev)
+                        return
+                    if is_sub:
+                        # the subagent's OWN tool activity -> its lane transcript
+                        if method == "item/started":
+                            lbl = _item_started_text(item)
+                            if lbl is not None:
+                                _emit_sub({"agent_id": tid, "status": "running",
+                                           "kind": "tool", "text": lbl})
+                        else:
+                            res = _item_result(item)
+                            if res is not None:
+                                _tl, _body = res
+                                _emit_sub({"agent_id": tid, "status": "running",
+                                           "kind": "tool_result",
+                                           "text": str(_body)[:_SUBAGENT_TEXT_LIMIT]})
+                        return
+                    # main-thread tool activity -> existing main chat feed
+                    if method == "item/started":
+                        label = _item_started_text(item)
+                        if label is not None:
+                            emit("tool", text=label)
+                    else:
+                        res = _item_result(item)
+                        if res is not None:
+                            tool_label, result_text = res
+                            result_body = str(result_text)[:_TOOL_ONLY_FALLBACK_LIMIT]
+                            if result_body.strip():
+                                tool_results.append((str(tool_label), result_body))
+                            emit("tool_result", text=result_body, tool=tool_label)
+                    return
+
                 if method == "item/agentMessage/delta":
                     delta = str(params.get("delta", ""))
+                    if is_sub:
+                        _emit_sub({"agent_id": tid, "status": "running",
+                                   "kind": "message",
+                                   "text": delta[:_SUBAGENT_TEXT_LIMIT]})
+                        return
                     if delta.strip():
                         saw_agent_text = True
                     emit("token", text=delta)
-                elif method in ("item/reasoning/textDelta",
-                                "item/reasoning/summaryTextDelta"):
-                    emit("reasoning", text=params.get("delta", ""))
-                elif method == "item/started":
-                    label = _item_started_text(params.get("item") or {})
-                    if label is not None:
-                        emit("tool", text=label)
-                elif method == "item/completed":
-                    res = _item_result(params.get("item") or {})
-                    if res is not None:
-                        tool_label, result_text = res
-                        result_body = str(result_text)[:_TOOL_ONLY_FALLBACK_LIMIT]
-                        if result_body.strip():
-                            tool_results.append((str(tool_label), result_body))
-                        emit("tool_result", text=result_body, tool=tool_label)
-                elif method == "turn/completed":
-                    done.set()
-                elif method == "error":
+                    return
+
+                if method in ("item/reasoning/textDelta",
+                              "item/reasoning/summaryTextDelta"):
+                    delta = str(params.get("delta", ""))
+                    if is_sub:
+                        _emit_sub({"agent_id": tid, "status": "running",
+                                   "kind": "reasoning",
+                                   "text": delta[:_SUBAGENT_TEXT_LIMIT]})
+                        return
+                    emit("reasoning", text=delta)
+                    return
+
+                if method == "turn/completed":
+                    # Only the MAIN turn ends the bridge turn. A subagent runs
+                    # nested inside the main turn, so its turn/completed must not
+                    # flush the parent early -- just close that lane.
+                    turn_id = str(params.get("turnId")
+                                  or (params.get("turn") or {}).get("id") or "")
+                    is_main = (
+                        (self._main_turn_id and turn_id == self._main_turn_id)
+                        or (not self._main_turn_id and not is_sub)
+                    )
+                    if is_main:
+                        done.set()
+                    elif tid:
+                        _emit_sub({"agent_id": tid, "status": "completed",
+                                   "kind": "status", "text": "turn completed"})
+                    return
+
+                if method == "error":
+                    if is_sub and tid:
+                        _emit_sub({"agent_id": tid, "status": "failed",
+                                   "kind": "status",
+                                   "text": json.dumps(params.get("error"))})
+                        return
                     saw_error = True
                     emit("error", message=json.dumps(params.get("error")))
                     done.set()
@@ -617,12 +822,30 @@ class _CodexConn:
                     "threadId": self.thread_id,
                     "input": [{"type": "text", "text": text}],
                 }
+                if _multi_agent_enabled():
+                    # opt codex into multi-agent mode so an explicit `/subagent`
+                    # spawns a sub-thread we surface as a left-rail lane.
+                    params["multiAgentMode"] = _MULTI_AGENT_MODE
                 hook_context = await _oag_user_prompt_context(self.cwd, text)
                 if hook_context:
                     params["additionalContext"] = {
                         "oag": {"kind": "application", "value": hook_context}
                     }
-                await self._call("turn/start", params)
+                self._main_turn_id = None
+                try:
+                    res = await self._call("turn/start", params)
+                except RuntimeError:
+                    # Older codex builds may reject the experimental
+                    # multiAgentMode param; retry once without it so the turn
+                    # still runs (lanes just won't populate).
+                    if "multiAgentMode" in params:
+                        params.pop("multiAgentMode", None)
+                        res = await self._call("turn/start", params)
+                    else:
+                        raise
+                self._main_turn_id = str(
+                    (res.get("turn") or {}).get("id")
+                    or res.get("turnId") or res.get("id") or "")
                 try:
                     await asyncio.wait_for(done.wait(), timeout=_TURN_TIMEOUT)
                 except asyncio.TimeoutError:

@@ -23,6 +23,7 @@ import { appendActiveSessionParam, isSsotYamlPath } from './workspace-session-ro
 import { ConvModeSelector } from './workspace-git-diff';
 import { ATLAS_WORKFLOW_LOCKED } from './app-helpers';
 import { atlasOagMode } from './runtime-flags';
+import { SubagentLanes } from './workspace-subagent-lanes';
 
 // `Kbd` is published on window by shared.tsx for not-yet-migrated consumers;
 // read it through window with a permissive cast + inline fallback so the
@@ -49,6 +50,7 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
     visibleFileTree,
     previewPath, setPreviewPath,
     setMainTab,
+    subagentLanes, selectedSubagentId, setSelectedSubagentId,
   } = ws;
   const workflowLocked = ATLAS_WORKFLOW_LOCKED && !atlasOagMode();
   return (
@@ -224,6 +226,17 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
           onReset={resetLeftWorkflowH}
           title="drag to resize Workflow/IP split · double-click to reset"
         />
+
+        {/* codex /subagent picker: Main on top, spawned subagents below; click
+            a subagent to watch its streamed transcript. Renders null until a
+            subagent is spawned. */}
+        <div style={{ flexShrink: 0, maxHeight: '38%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <SubagentLanes
+            lanes={subagentLanes || []}
+            selectedId={selectedSubagentId}
+            onSelect={setSelectedSubagentId}
+          />
+        </div>
 
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">
