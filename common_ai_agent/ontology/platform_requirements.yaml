@@ -1639,7 +1639,10 @@ requirements:
         # 코드 fallback은 OAG_MODE 미지정 시 off로 유지한다. checked-in .config는
         # Codex app-server bridge를 기본 엔진으로 쓰므로 OAG_MODE=0을 둔다.
         # native OAG 경로가 필요하면 operator가 OAG_MODE=1로 명시 opt-in 한다.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_codex_appserver_with_oag_mode_off"
+            observed_at: 81134977
 
   - id: REQ_PLAT_CODEX_APP_SERVER_ENGINE_20260620_001
     claim: "ATLAS codex mode는 legacy codex CLI/TUI 실행 경로 대신 `codex app-server --listen stdio://` bridge를 기본 에이전트 엔진으로 사용한다 — 이 경로에서는 native ATLAS OAG_MODE를 기본 OFF로 두어 Codex 자체의 AGENTS/skills/tool runtime과 중복 주입하지 않는다."
@@ -1651,14 +1654,24 @@ requirements:
         # operator decision 2026-06-20: codex mode should connect through the
         # app-server bridge and run with native ATLAS OAG_MODE=0, replacing the
         # prior checked-in local default that used OAG_MODE=1.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_codex_appserver_with_oag_mode_off"
+            observed_at: 81134977
+          - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_forces_oag_mode_off_by_default"
+            observed_at: 81134977
       - id: OBL_CODEX_MODE_CHAT_USES_APP_SERVER_BRIDGE
         owned_by: agent.codex-bridge
         granularity: behavior
         # CODEX_BRIDGE-backed chat turns must route through codex app-server
         # using the active session workspace cwd rather than falling back to
         # codex exec/TUI or the legacy Python ReAct queue.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_codex_appserver_bridge.py::test_app_server_cmd_uses_codex_app_server"
+            observed_at: 81134977
+          - test: "tests/test_codex_appserver_bridge.py::test_atlas_codex_mode_dispatches_to_app_server_bridge"
+            observed_at: 81134977
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
