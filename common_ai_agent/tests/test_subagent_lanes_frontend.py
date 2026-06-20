@@ -38,6 +38,17 @@ def test_data_hook_subscribes_subagent_and_builds_main_first_lanes():
     assert "isMain: true" in src
     assert "subagentLanes: subagentLanesArr" in src
     assert "selectedSubagentId" in src
+    # streamed message/reasoning deltas are coalesced (no one-word-per-line).
+    assert "kind === 'message' || kind === 'reasoning'" in src
+
+
+def test_subagent_click_renders_in_main_chat_pane():
+    """Clicking a subagent renders its transcript in the MAIN chat pane (not
+    inline): renderChatPane swaps the feed for the watched lane's mapped items."""
+    src = _read("workspace-root-data-hook.tsx")
+    assert "subagentLaneToFeed" in src           # lane.items -> chat feed entries
+    assert "const watched = selectedSubagentId" in src
+    assert "feed: paneFeed" in src               # main pane renders the subagent feed
 
 
 def test_left_rail_mounts_subagent_lanes():

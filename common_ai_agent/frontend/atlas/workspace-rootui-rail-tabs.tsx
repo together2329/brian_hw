@@ -220,23 +220,22 @@ export const renderWorkspaceLeftRail = (ws: any): ReactNode => {
           </div>
         </div>
 
+        {/* codex /subagent picker, directly under the WORKFLOW list: Main
+            (default) on top, spawned subagents indented below. Clicking a row
+            renders that agent's transcript in the MAIN chat pane (not inline).
+            Renders null until a subagent spawns. */}
+        <SubagentLanes
+          lanes={subagentLanes || []}
+          selectedId={selectedSubagentId}
+          onSelect={setSelectedSubagentId}
+        />
+
         <HorizontalSplitter
           height={leftWorkflowH}
           onResize={setLeftWorkflowH}
           onReset={resetLeftWorkflowH}
           title="drag to resize Workflow/IP split · double-click to reset"
         />
-
-        {/* codex /subagent picker: Main on top, spawned subagents below; click
-            a subagent to watch its streamed transcript. Renders null until a
-            subagent is spawned. */}
-        <div style={{ flexShrink: 0, maxHeight: '38%', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-          <SubagentLanes
-            lanes={subagentLanes || []}
-            selectedId={selectedSubagentId}
-            onSelect={setSelectedSubagentId}
-          />
-        </div>
 
         <div className="box" style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
           <div className="box-h">

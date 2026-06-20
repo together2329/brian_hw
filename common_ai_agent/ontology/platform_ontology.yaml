@@ -178,6 +178,7 @@ units:
       - frontend/atlas/__tests__/workspace-subagent-lanes.test.tsx
       - scripts/atlas_jsx_integration_test.js
       - scripts/verify_subagent_ui_e2e.mjs
+      - scripts/verify_subagent_ui_broad.mjs
 
   - id: ui.tui
     kind: ui
