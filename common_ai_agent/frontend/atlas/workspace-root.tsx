@@ -350,8 +350,22 @@ export const Workspace = ({
   const scmProvider: any = ws.scmProvider;
   const ScmTabComponent: any = ws.ScmTabComponent;
   const scmTabLabel: any = ws.scmTabLabel;
-  const liveRuntimeModel = cleanRuntimeLabel(liveLlmRuntime?.model);
-  const liveRuntimeEffort = cleanRuntimeLabel(liveLlmRuntime?.reasoningEffort);
+  const contextRuntime = (w && w.CONTEXT && typeof w.CONTEXT === 'object') ? w.CONTEXT : {};
+  const telemetryRuntime = (workspaceTelemetry && typeof workspaceTelemetry === 'object') ? workspaceTelemetry : {};
+  const liveRuntimeModel = cleanRuntimeLabel(liveLlmRuntime?.model)
+    || cleanRuntimeLabel(contextRuntime.model)
+    || cleanRuntimeLabel(contextRuntime.active_model)
+    || cleanRuntimeLabel(contextRuntime.activeModel)
+    || cleanRuntimeLabel(telemetryRuntime.model)
+    || cleanRuntimeLabel(telemetryRuntime.active_model)
+    || cleanRuntimeLabel(telemetryRuntime.activeModel);
+  const liveRuntimeEffort = cleanRuntimeLabel(liveLlmRuntime?.reasoningEffort)
+    || cleanRuntimeLabel(contextRuntime.reasoningEffort)
+    || cleanRuntimeLabel(contextRuntime.reasoning_effort)
+    || cleanRuntimeLabel(contextRuntime.effort)
+    || cleanRuntimeLabel(telemetryRuntime.reasoningEffort)
+    || cleanRuntimeLabel(telemetryRuntime.reasoning_effort)
+    || cleanRuntimeLabel(telemetryRuntime.effort);
   const footerModePrefix = intent === 'plan' ? '[plan] ' : '';
   // Live elapsed clock for the responding pill. Anchored to the streaming
   // rising edge; a 1Hz interval forces a re-render even during a long

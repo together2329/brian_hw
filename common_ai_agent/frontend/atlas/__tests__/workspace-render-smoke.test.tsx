@@ -74,7 +74,7 @@ function installWindowStubs() {
   w.Kbd = ({ children }: { children?: unknown }) => children ?? null;
 
   // Runtime ATLAS bridges the hooks/render path read off `window`.
-  w.CONTEXT = w.CONTEXT || {};
+  w.CONTEXT = {};
   w.ACTIVE_SESSION = '';
   w.ATLAS_UI_LANG = 'ko';
   w.ATLAS_USER = { username: 'alice' };
@@ -808,6 +808,26 @@ describe('Workspace render smoke (the behavioral gate)', () => {
 
     await waitFor(() => {
       expect(queryByText(/Agent responding.*sol-soc-gpt-5\.5.*xhigh/)).not.toBeNull();
+    });
+  });
+
+  it('falls back to context runtime metadata when agent_state has no model or effort', async () => {
+    const w = window as AnyWindow;
+    w.CONTEXT = {
+      ...(w.CONTEXT || {}),
+      model: 'ctx-gpt-5.5',
+      reasoningEffort: 'xhigh',
+    };
+    const { Workspace } = await import('../workspace.tsx');
+    const { queryByText } = render(<Workspace dir="/tmp/ws" uiLang="ko" />);
+    const backend = (window as AnyWindow).backend;
+
+    await act(async () => {
+      backend._emit('agent_state', { running: true });
+    });
+
+    await waitFor(() => {
+      expect(queryByText(/Agent responding.*ctx-gpt-5\.5.*xhigh/)).not.toBeNull();
     });
   });
 
