@@ -1716,9 +1716,9 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
           - test: "tests/test_oag_mode.py::test_codex_bridge_gate_honors_truthiness"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
 
   - id: REQ_PLAT_CODEX_SUBAGENT_LANES_20260620_001
     claim: "codex `/subagent`로 spawn된 subagent의 활동을 ATLAS 왼쪽 workflow 패널에 전용 레인으로 표시한다 — 브리지가 codex의 collabAgentToolCall(spawn)·subAgentActivity·자식-thread item을 단일 `subagent` 엔벨로프로 정규화하고(parent turn은 main turnId 게이팅으로 nested subagent turn에 조기 종료되지 않으며 main 토큰 피드가 오염되지 않는다), 프론트는 Main(default·current)을 맨 위에 두고 subagent 목록(nickname[role] + thread id)을 렌더하고 행 클릭 시 선택/transcript를 펼친다. codex가 subagent를 내지 않으면 패널은 표시되지 않는다."
@@ -1735,11 +1735,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_codex_appserver_bridge.py::test_subagent_lane_events_from_collab_spawn"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
           - test: "tests/test_codex_appserver_bridge.py::test_subagent_lane_events_from_activity"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
           - test: "tests/test_codex_appserver_bridge.py::test_run_turn_routes_subagent_thread_to_lane_not_main"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
       - id: OBL_CODEX_SUBAGENT_LEFT_RAIL_LANES
         owned_by: ui.workspace
         granularity: behavior
@@ -1751,11 +1751,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_subagent_lanes_frontend.py::test_subagent_lanes_component_renders_picker"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
           - test: "tests/test_subagent_lanes_frontend.py::test_data_hook_subscribes_subagent_and_builds_main_first_lanes"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
           - test: "tests/test_subagent_lanes_frontend.py::test_left_rail_mounts_subagent_lanes"
-            observed_at: 6157720e
+            observed_at: 6e96c6db
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
