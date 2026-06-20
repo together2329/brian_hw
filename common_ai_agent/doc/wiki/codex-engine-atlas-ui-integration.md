@@ -1,8 +1,12 @@
 # Codex Engine for Atlas UI Integration
 
-Status: implemented for the Atlas checked-in local codex mode as of 2026-06-20:
-`CODEX_BRIDGE=1`, `OAG_MODE=0`, and chat turns route through
-`codex app-server --listen stdio://`.
+Status: the Codex app-server bridge is implemented and **opt-in** as of
+2026-06-20. The default chat engine is `main` (the built-in Python ReAct
+engine); set `CODEX_BRIDGE=1` (with `OAG_MODE=0`) to route chat turns through
+`codex app-server --listen stdio://`. The gate honors truthiness, so the
+checked-in `.config` default `CODEX_BRIDGE=0` keeps the built-in `main` engine.
+When the bridge is enabled, codex native subagents (`/subagent`, multi-agent
+mode) surface as dedicated lanes in the Atlas left workflow panel.
 
 ## Decision Shape
 
@@ -213,3 +217,62 @@ Validator:
 ```
 
 That keeps Codex useful without making it the authority for truth or signoff.
+
+## Subagent Lanes (codex `/subagent` → Atlas left workflow panel)
+
+When the codex bridge is enabled (`CODEX_BRIDGE=1`) and the conversation uses
+codex multi-agent mode, the main codex agent can spawn **subagents** (the
+`/subagent` flow / `spawn_agent` collab tool). Codex surfaces that activity to
+the app-server client stream as dedicated `ThreadItem`s on the parent thread:
+
+```text
+collabToolCall   {id, tool, status, senderThreadId, receiverThreadId?,
+                  newThreadId?, prompt?, agentStatus?}
+                  tool ∈ spawn_agent | send_input | resume_agent | wait | close_agent
+subAgentActivity {kind, agent_thread_id}
+```
+
+Child-thread `item/*` notifications also carry a `threadId` distinct from the
+main thread id when the app-server forwards them.
+
+The bridge normalizes all of this into ONE new Atlas envelope event so the UI
+contract stays stable (same `session.emit(...)` channel the frontend already
+consumes):
+
+```text
+session.emit("subagent",
+  agent_id   = <child thread id | receiverThreadId>   # lane key (required)
+  parent_id  = <parent/main thread id>
+  label      = <agent nickname/role, else a derived label>
+  status     = spawning | running | waiting | completed | failed | closed
+  kind       = spawn | message | reasoning | tool | tool_result | status | result
+  text       = <prompt on spawn · delta on message/reasoning · label on tool ·
+                body on result>
+)
+```
+
+Mapping (bridge `on_note`):
+
+```text
+collabToolCall spawn_agent  -> subagent(kind=spawn,   status=spawning/running, text=prompt)
+collabToolCall wait/result  -> subagent(kind=result,  status=completed/failed, text=body)
+collabToolCall send_input   -> subagent(kind=message, text=prompt)
+subAgentActivity            -> subagent(kind=status,  status=<kind>)
+item/* with foreign threadId-> subagent(kind=message|reasoning|tool, text=delta)  # best-effort live transcript
+```
+
+Frontend: `workspace-root-data-hook.tsx` subscribes to `subagent` and keeps a
+`subagentLanes` map keyed by `agent_id`; `workspace-subagent-lanes.tsx` renders
+each lane (label + status) in the left workflow panel
+(`workspace-rootui-rail-tabs.tsx` `left-workflow-box`), expandable to show that
+subagent's running transcript. The main chat feed is unchanged — subagent chat
+lives in its own left-rail lanes, not inline.
+
+Enablement: by default the bridge only **surfaces** whatever subagent activity
+codex already emits (codex's own config/skills drive `/subagent` spawning), so
+no process/turn flags change out of the box. Set
+`CODEX_BRIDGE_MULTI_AGENT_MODE=explicitRequestOnly` (or `proactive`) to have the
+bridge force-enable multi-agent mode (adds `-c features.multi_agent_mode=true`
+to the app-server command and `multiAgentMode` to `turn/start`, with a
+retry-without-param fallback for older builds). If codex never spawns a
+subagent, no lanes appear (graceful).

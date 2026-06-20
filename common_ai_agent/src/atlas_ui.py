@@ -7406,7 +7406,7 @@ def create_app():
         # In codex mode the user owns structure via .codex (OAG scaffold), so atlas
         # creates only the neutral base IP dirs — NO legacy workflow-engine copy and
         # NO wiki scaffold/graph (the user drives those from .codex themselves).
-        _codex_mode = bool(os.environ.get("CODEX_BRIDGE"))
+        _codex_mode = _truthy_env(os.environ.get("CODEX_BRIDGE"))
         dirs = [
             "doc",
             "req",
@@ -11774,7 +11774,7 @@ def create_app():
                     # In codex mode the .codex extensions (AGENTS.md / skills / OAG
                     # MCP) own the requirement flow end-to-end, so atlas must NOT
                     # inject its locked-truth draft overlay into the user's prompt.
-                    if not os.environ.get("CODEX_BRIDGE"):
+                    if not _truthy_env(os.environ.get("CODEX_BRIDGE")):
                         _txt, _ = _apply_locked_truth_draft_overlay(
                             PROJECT_ROOT,
                             session.session_id,
@@ -11803,7 +11803,7 @@ def create_app():
                         # drives the entire domain flow from .codex (skills + OAG MCP),
                         # so every such slash falls through to the codex bridge as raw
                         # input. Only the UI mode pills (/plan, /mode) remain below.
-                        if not os.environ.get("CODEX_BRIDGE"):
+                        if not _truthy_env(os.environ.get("CODEX_BRIDGE")):
                             if _handle_new_ip_command(_txt, client_session=session):
                                 await _accept_handled("new_ip")
                                 continue
@@ -11896,7 +11896,7 @@ def create_app():
                             #     ever telling main.py to flip — desync.
                             await _accept_queued("mode")
                             continue
-                    if os.environ.get("CODEX_BRIDGE"):
+                    if _truthy_env(os.environ.get("CODEX_BRIDGE")):
                         # Route the conversational prompt through codex
                         # app-server instead of the built-in Python engine,
                         # scoped to the active IP's workspace dir so codex's

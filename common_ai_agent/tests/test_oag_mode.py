@@ -60,9 +60,17 @@ def test_oag_mode_default_off(monkeypatch):
     assert pb.oag_mode_enabled() is False
 
 
-def test_repo_config_defaults_codex_appserver_with_oag_mode_off():
+def test_repo_config_codex_bridge_opt_in_with_oag_mode_off():
+    """Default chat engine is `main` (the built-in Python ReAct engine): the
+    checked-in .config keeps the Codex app-server bridge OPT-IN (CODEX_BRIDGE=0)
+    while preserving the bridge's pack/OAG config for the opt-in path, with
+    native OAG_MODE=0. Operator decision reversed on 2026-06-20: codex is no
+    longer the default engine; flip CODEX_BRIDGE=1 to opt in."""
     values = _repo_config_values()
-    assert values["CODEX_BRIDGE"] == "1"
+    # Opt-in, not default: the gate honors truthiness so 0 keeps the built-in
+    # `main` engine (see atlas_ui CODEX_BRIDGE gate + .config comment).
+    assert values["CODEX_BRIDGE"] == "0"
+    # Opt-in path config stays present (inert while off) so enabling is one flip.
     assert values["CODEX_BRIDGE_HOME"] == "../../ontology_ip_agent/.codex"
     assert values["CODEX_BRIDGE_OAG_ROOT"] == "../../ontology_ip_agent"
     assert values["CODEX_BRIDGE_ENABLE_HOOKS"] == "1"
@@ -72,6 +80,18 @@ def test_repo_config_defaults_codex_appserver_with_oag_mode_off():
     assert values["CODEX_BRIDGE_BYPASS_HOOK_TRUST"] == "1"
     assert values["CODEX_BRIDGE_OAG_MODE"] == "0"
     assert values["OAG_MODE"] == "0"
+
+
+def test_codex_bridge_gate_honors_truthiness():
+    """The atlas chat-engine gate is truthiness-based, so CODEX_BRIDGE=0 (the
+    checked-in default) keeps the built-in `main` engine and only explicit
+    truthy values opt into the codex app-server bridge. Guards the original
+    presence-based footgun where CODEX_BRIDGE=0 still routed to codex."""
+    from atlas_ui import _truthy_env
+    for off in ("0", "", "false", "off", "no", None):
+        assert _truthy_env(off) is False, off
+    for on in ("1", "true", "on", "yes", "enable", "enabled"):
+        assert _truthy_env(on) is True, on
 
 
 def test_oag_mode_env_on(monkeypatch):

@@ -168,12 +168,16 @@ units:
       - frontend/atlas/workspace-rootdata-feed-completion.tsx
       - frontend/atlas/workspace-tool-detail-frame.tsx
       - frontend/atlas/workspace-tool-theme.tsx
+      - frontend/atlas/workspace-subagent-lanes.tsx
+      - frontend/atlas/workspace-rootui-rail-tabs.tsx
       # 나머지 frontend는 scope 밖 — e2e 증거로만 추적 (1차)
     e2e_evidence:
       - frontend/atlas/__tests__/workspace-render-smoke.test.tsx
       - frontend/atlas/__tests__/workspace-vcm-graph.test.tsx
       - frontend/atlas/__tests__/workspace-todo-graph.test.tsx
+      - frontend/atlas/__tests__/workspace-subagent-lanes.test.tsx
       - scripts/atlas_jsx_integration_test.js
+      - scripts/verify_subagent_ui_e2e.mjs
 
   - id: ui.tui
     kind: ui

@@ -281,7 +281,7 @@ def test_run_turn_passes_oag_hook_context(monkeypatch, tmp_path):
 def test_atlas_codex_mode_dispatches_to_app_server_bridge():
     src = (PROJECT_ROOT / "src" / "atlas_ui.py").read_text(encoding="utf-8")
 
-    assert 'if os.environ.get("CODEX_BRIDGE"):' in src
+    assert 'if _truthy_env(os.environ.get("CODEX_BRIDGE")):' in src
     assert "from core.codex_appserver_bridge import run_codex_turn" in src
     assert 'await _accept_handled("codex")' in src
     assert "run_codex_turn(" in src
@@ -354,3 +354,137 @@ def test_tool_only_turn_is_visible_and_persisted(tmp_path, monkeypatch):
     assert rows[-1]["role"] == "assistant"
     assert "Tool result (oag):" in rows[-1]["content"]
     assert "oag_tool_response.v1" in rows[-1]["content"]
+
+
+def test_subagent_lane_events_from_collab_spawn():
+    """A collabAgentToolCall spawn_agent item maps to one `spawn` lane event
+    keyed by the spawned (receiver) thread id, carrying the task prompt and the
+    target agent's running status."""
+    import core.codex_appserver_bridge as bridge
+
+    item = {
+        "type": "collabAgentToolCall",
+        "tool": "spawnAgent",
+        "senderThreadId": "main-thread",
+        "receiverThreadIds": ["sub-1"],
+        "prompt": "implement RTL for timer_ip",
+        "agentsStates": {"sub-1": {"status": "running"}},
+    }
+    evs = bridge._subagent_lane_events(item, True, "main-thread")
+    assert len(evs) == 1
+    ev = evs[0]
+    assert ev["agent_id"] == "sub-1"
+    assert ev["parent_id"] == "main-thread"
+    assert ev["kind"] == "spawn"
+    assert ev["status"] == "running"
+    assert "implement RTL for timer_ip" in ev["text"]
+
+
+def test_subagent_lane_events_from_activity():
+    """A subAgentActivity item maps to a lane status event keyed by the agent
+    thread id, labelled with the agent path."""
+    import core.codex_appserver_bridge as bridge
+
+    item = {
+        "type": "subAgentActivity",
+        "kind": "started",
+        "agentThreadId": "sub-2",
+        "agentPath": "oag-rtl-implementation-agent",
+    }
+    evs = bridge._subagent_lane_events(item, True, "main-thread")
+    assert len(evs) == 1
+    ev = evs[0]
+    assert ev["agent_id"] == "sub-2"
+    assert ev["label"] == "oag-rtl-implementation-agent"
+    assert ev["kind"] == "status"
+    assert ev["status"] == "running"
+
+
+def test_run_turn_routes_subagent_thread_to_lane_not_main(tmp_path, monkeypatch):
+    """A nested subagent thread is surfaced via `subagent` lane events: its
+    nickname is captured from thread/started, its streamed reply routes to the
+    lane (NOT the main token feed), and its nested turn/completed does NOT end
+    the parent turn — only the main thread's turn/completed does."""
+    import core.codex_appserver_bridge as bridge
+
+    # py3.9: an earlier asyncio.run() in the suite resets the event-loop policy
+    # to None, so _CodexConn()'s asyncio.Lock() (built outside a running loop)
+    # would raise "no current event loop". Install a fresh loop first.
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    conn = bridge._CodexConn(cwd=str(tmp_path))
+    conn.thread_id = "main-thread"
+
+    async def fake_call(method, params=None, timeout=bridge._CALL_TIMEOUT):
+        assert method == "turn/start"
+        # subagent thread announces itself with a human nickname + role
+        conn._on_note("thread/started", {"thread": {
+            "id": "sub-1", "parentThreadId": "main-thread",
+            "agentNickname": "RTL Implementation",
+            "agentRole": "oag-rtl-implementation-agent"}})
+        # subagent streams its own reply on its own thread id
+        conn._on_note("item/agentMessage/delta",
+                      {"threadId": "sub-1", "delta": "working on RTL"})
+        # subagent's nested turn ends -> must NOT flush the parent turn
+        conn._on_note("turn/completed",
+                      {"threadId": "sub-1", "turnId": "sub-turn"})
+        # main agent emits text + ends its turn
+        conn._on_note("item/agentMessage/delta",
+                      {"threadId": "main-thread", "delta": "all done"})
+        conn._on_note("turn/completed",
+                      {"threadId": "main-thread", "turnId": "main-turn"})
+        return {"turn": {"id": "main-turn"}}
+
+    async def fake_get_conn(session_id, cwd=None):
+        return conn
+
+    events = []
+
+    class Session:
+        session_id = "default"
+
+        def emit(self, msg_type, **payload):
+            events.append((msg_type, payload))
+
+    monkeypatch.setattr(conn, "_call", fake_call)
+    monkeypatch.setattr(bridge, "_get_conn", fake_get_conn)
+
+    asyncio.run(bridge.run_codex_turn(
+        Session(), "build timer", cwd=str(tmp_path), conn_key="k"))
+
+    sub = [p for t, p in events if t == "subagent"]
+    # nickname captured into the lane label
+    assert any(p["agent_id"] == "sub-1" and "RTL Implementation" in p["label"]
+               for p in sub)
+    # subagent reply routed to its lane as a message
+    assert any(p["kind"] == "message" and p["agent_id"] == "sub-1"
+               and "working on RTL" in p["text"] for p in sub)
+    # main token feed is NOT polluted by subagent text
+    main_tokens = "".join(p.get("text", "") for t, p in events if t == "token")
+    assert "working on RTL" not in main_tokens
+    assert "all done" in main_tokens
+    # the turn ended cleanly exactly once (driven by the MAIN thread)
+    assert events[-1] == ("done", {})
+    assert ("agent_state", {"running": False}) in events
+
+
+def test_subagent_lane_events_skip_parent_thread():
+    """A spawn's `item/started` phase has no child thread id yet, so
+    _collab_agent_ids falls back to the sender (= the parent). That must NOT
+    produce a lane keyed to main — otherwise it pollutes the synthesized Main
+    row in the UI (observed live against codex 0.141.0)."""
+    import core.codex_appserver_bridge as bridge
+
+    started_no_child = {
+        "type": "collabAgentToolCall",
+        "tool": "spawnAgent",
+        "senderThreadId": "main-thread",
+        "receiverThreadIds": [],   # child thread not assigned yet
+        "prompt": "do work",
+    }
+    assert bridge._subagent_lane_events(started_no_child, True, "main-thread") == []
+    # subAgentActivity keyed to the parent thread is likewise not a lane.
+    activity_on_main = {
+        "type": "subAgentActivity", "kind": "started",
+        "agentThreadId": "main-thread", "agentPath": "x",
+    }
+    assert bridge._subagent_lane_events(activity_on_main, True, "main-thread") == []
