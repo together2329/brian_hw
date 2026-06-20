@@ -48,6 +48,11 @@ def app_clients(tmp_path, monkeypatch):
     for ip in ("alpha", "beta"):
         (tmp_path / ip / "rtl").mkdir(parents=True)
         (tmp_path / ip / "rtl" / "top.sv").write_text(f"module {ip}; endmodule\n")
+    (tmp_path / "alice" / "default" / "gamma" / "rtl").mkdir(parents=True)
+    (tmp_path / "alice" / "default" / "gamma" / "rtl" / "top.sv").write_text(
+        "module gamma_workspace; endmodule\n",
+        encoding="utf-8",
+    )
 
     app = atlas_ui.create_app()
 
@@ -83,6 +88,26 @@ def test_cross_user_vcd_and_source_denied(app_clients):
     assert alice.get("/api/source", params={"path": "beta/rtl/top.sv"}).status_code == 403
     # own IP source is fine
     assert alice.get("/api/source", params={"path": "alpha/rtl/top.sv"}).status_code == 200
+
+
+def test_source_resolves_active_session_ip_relative_path(app_clients):
+    alice, _, _ = app_clients
+    session_id = "alice/default/gamma/sim_debug"
+
+    ip_relative = alice.get(
+        "/api/source",
+        params={"path": "gamma/rtl/top.sv", "session_id": session_id},
+    )
+    assert ip_relative.status_code == 200
+    assert ip_relative.json()["path"] == "alice/default/gamma/rtl/top.sv"
+    assert "module gamma_workspace" in ip_relative.json()["content"]
+
+    source_root_relative = alice.get(
+        "/api/source",
+        params={"path": "rtl/top.sv", "session_id": session_id},
+    )
+    assert source_root_relative.status_code == 200
+    assert source_root_relative.json()["path"] == "alice/default/gamma/rtl/top.sv"
 
 
 def test_listing_filtered_per_user(app_clients):

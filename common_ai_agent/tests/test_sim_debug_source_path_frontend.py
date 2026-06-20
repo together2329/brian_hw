@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HELPERS = ROOT / "frontend" / "atlas" / "sim-debug-helpers.tsx"
 SIM_DEBUG = ROOT / "frontend" / "atlas" / "sim-debug.tsx"
+SIM_DEBUG_API = ROOT / "src" / "atlas_api_sim_debug.py"
 INTENT_VITEST = ROOT / "frontend" / "atlas" / "__tests__" / "sim-debug-intent-hook.test.ts"
 CTRLW_VITEST = ROOT / "frontend" / "atlas" / "__tests__" / "sim-debug-ctrlw-add.test.tsx"
 
@@ -20,6 +21,23 @@ def test_workspace_absolute_source_paths_normalize_to_session_relative() -> None
         "apb_timer_pwm_irq_v1/rtl/timer_core.sv:12"
     ) in vitest_src
     assert "'brian_user_3/default/apb_timer_pwm_irq_v1/rtl/timer_core.sv'" in vitest_src
+
+
+def test_ip_relative_source_paths_normalize_to_active_session_workspace() -> None:
+    helper_src = HELPERS.read_text(encoding="utf-8")
+    vitest_src = INTENT_VITEST.read_text(encoding="utf-8")
+    api_src = SIM_DEBUG_API.read_text(encoding="utf-8")
+
+    assert "if (relRaw === activeIp || relRaw.startsWith(`${activeIp}/`))" in helper_src
+    assert "return `${ownerWorkspace}/${relRaw}`" in helper_src
+    assert "apb_timer_pwm_irq_v1/rtl/apb_timer_pwm_irq_v1.sv" in vitest_src
+    assert (
+        "'brian_user_3/default/apb_timer_pwm_irq_v1/rtl/apb_timer_pwm_irq_v1.sv'"
+        in vitest_src
+    )
+    assert "def _source_path_candidates(request: Request, path: str) -> list[str]:" in api_src
+    assert 'add(f"{owner_workspace}/{raw}")' in api_src
+    assert 'add(f"{owner_workspace}/{ip}/{raw}")' in api_src
 
 
 def test_sim_debug_source_fetch_carries_active_session_scope() -> None:

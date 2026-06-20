@@ -38,6 +38,39 @@ _SOURCE_EXTS: FrozenSet[str] = frozenset({
     ".xml",
 })
 _SOURCE_NO_EXT_NAMES: FrozenSet[str] = frozenset({"Makefile", "makefile", "Dockerfile"})
+_IP_LOCAL_SOURCE_ROOTS: FrozenSet[str] = frozenset({
+    "rtl", "tb", "sim", "list", "lint", "cov", "doc", "model", "req", "wiki", "yaml",
+})
+
+
+def _source_path_candidates(request: Request, path: str) -> list[str]:
+    raw = str(path or "").replace("\\", "/").lstrip("/")
+    candidates: list[str] = []
+
+    def add(candidate: str) -> None:
+        clean = str(candidate or "").replace("\\", "/").lstrip("/")
+        if clean and clean not in candidates:
+            candidates.append(clean)
+
+    add(raw)
+    session = str(
+        request.query_params.get("session_id")
+        or request.query_params.get("session")
+        or request.query_params.get("namespace")
+        or "",
+    ).replace("\\", "/").strip("/")
+    parts = [part for part in session.split("/") if part]
+    if len(parts) < 4:
+        return candidates
+    owner, workspace, ip = parts[:3]
+    owner_workspace = f"{owner}/{workspace}"
+    if not owner or not workspace or not ip or raw.startswith(f"{owner_workspace}/"):
+        return candidates
+    if raw == ip or raw.startswith(f"{ip}/"):
+        add(f"{owner_workspace}/{raw}")
+    elif (raw.split("/", 1)[0] or "") in _IP_LOCAL_SOURCE_ROOTS:
+        add(f"{owner_workspace}/{ip}/{raw}")
+    return candidates
 
 
 def register_source_route(
@@ -50,12 +83,24 @@ def register_source_route(
 
     @app.get("/api/source")
     async def api_source(request: Request, path: str):
-        if fs_authz is not None:
-            denied = fs_authz.path(request, path)
-            if denied is not None:
-                return denied
-        target = safe_path_fn(path)
+        target = None
+        resolved_path = path
+        for candidate in _source_path_candidates(request, path):
+            candidate_target = safe_path_fn(candidate)
+            if candidate_target is None or not candidate_target.is_file():
+                continue
+            if fs_authz is not None:
+                denied = fs_authz.path(request, candidate)
+                if denied is not None:
+                    return denied
+            target = candidate_target
+            resolved_path = candidate
+            break
         if target is None or not target.is_file():
+            if fs_authz is not None:
+                denied = fs_authz.path(request, path)
+                if denied is not None:
+                    return denied
             return JSONResponse({"error": "not found"}, status_code=404)
         suffix = target.suffix.lower()
         if suffix not in _SOURCE_EXTS and target.name not in _SOURCE_NO_EXT_NAMES:
@@ -69,7 +114,7 @@ def register_source_route(
         except OSError as e:
             return JSONResponse({"error": str(e)}, status_code=500)
         return JSONResponse({
-            "path": path, "size": len(content), "content": content,
+            "path": resolved_path, "size": len(content), "content": content,
             "lines": content.split("\n"),
         })
 

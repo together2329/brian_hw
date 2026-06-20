@@ -157,6 +157,7 @@ export interface VcdAnnotationAxis {
 
 export const normalizeProjectSourcePath = (rawPath: unknown): string => {
   const raw = String(rawPath || '').replace(/\\/g, '/').replace(/:\d+$/, '');
+  const relRaw = raw.replace(/^\/+/, '');
   const marker = '/common_ai_agent/';
   const idx = raw.indexOf(marker);
   if (idx >= 0) return raw.slice(idx + marker.length);
@@ -170,6 +171,15 @@ export const normalizeProjectSourcePath = (rawPath: unknown): string => {
     || (g.CONTEXT && (g.CONTEXT.active_ip || g.CONTEXT.activeIp))
     || (sessionParts.length >= 4 ? sessionParts[2] : (sessionParts.length >= 3 ? sessionParts[1] : '')),
   ).replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  const ownerWorkspace = sessionParts.length >= 4 ? sessionParts.slice(0, 2).join('/') : '';
+  if (ownerWorkspace && activeIp) {
+    if (relRaw.startsWith(`${ownerWorkspace}/${activeIp}/`)) return relRaw;
+    if (relRaw === activeIp || relRaw.startsWith(`${activeIp}/`)) return `${ownerWorkspace}/${relRaw}`;
+    const first = relRaw.split('/')[0] || '';
+    if (['rtl', 'tb', 'sim', 'list', 'lint', 'cov', 'doc', 'model', 'req', 'wiki', 'yaml'].includes(first)) {
+      return `${ownerWorkspace}/${activeIp}/${relRaw}`;
+    }
+  }
   const anchors = [
     sessionParts.length >= 4 ? sessionParts.slice(0, 3).join('/') : '',
     sessionParts.length >= 3 ? sessionParts.slice(0, 2).join('/') : '',
@@ -180,7 +190,7 @@ export const normalizeProjectSourcePath = (rawPath: unknown): string => {
     const pos = raw.indexOf(markerPath);
     if (pos >= 0) return raw.slice(pos + 1);
   }
-  return raw.replace(/^\/+/, '');
+  return relRaw;
 };
 
 export const normalizeAtlasEventSession = (session: unknown): string => {
