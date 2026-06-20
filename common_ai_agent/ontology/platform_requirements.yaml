@@ -1505,7 +1505,12 @@ requirements:
         # 절대경로를 'Users/...' 상대경로로 넘겨 /api/source authz가 no access to 'Users'를 반환.
         # 수정: active session의 owner/workspace/ip anchor로 절대 workspace 경로를 project-relative
         # owner/workspace/ip/...로 정규화하고 source fetch에 session_id를 같이 전달한다.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_sim_debug_source_path_frontend.py::test_workspace_absolute_source_paths_normalize_to_session_relative"
+            observed_at: 7c8a964d
+          - test: "tests/test_sim_debug_source_path_frontend.py::test_sim_debug_source_fetch_carries_active_session_scope"
+            observed_at: 7c8a964d
 
   - id: REQ_PLAT_LOCKED_TRUTH_DRAFT_TOGGLE_001
     claim: "atlas web 기본 에이전트는 평범한 채팅 에이전트로 동작한다 — locked-truth-draft 인터뷰 오버레이(/draft-req 강요)는 기본 OFF이고, ATLAS_LOCKED_TRUTH_DRAFT_MODE로만 opt-in 한다"
