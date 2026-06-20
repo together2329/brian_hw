@@ -63,6 +63,13 @@ def test_oag_mode_default_off(monkeypatch):
 def test_repo_config_defaults_codex_appserver_with_oag_mode_off():
     values = _repo_config_values()
     assert values["CODEX_BRIDGE"] == "1"
+    assert values["CODEX_BRIDGE_HOME"] == "../../ontology_ip_agent/.codex"
+    assert values["CODEX_BRIDGE_OAG_ROOT"] == "../../ontology_ip_agent"
+    assert values["CODEX_BRIDGE_ENABLE_HOOKS"] == "1"
+    assert values["CODEX_BRIDGE_RUN_OAG_HOOKS"] == "1"
+    assert values["CODEX_BRIDGE_STAGE_DOT_CODEX"] == "1"
+    assert values["CODEX_BRIDGE_TRUST_THREAD_CWD"] == "1"
+    assert values["CODEX_BRIDGE_BYPASS_HOOK_TRUST"] == "1"
     assert values["CODEX_BRIDGE_OAG_MODE"] == "0"
     assert values["OAG_MODE"] == "0"
 

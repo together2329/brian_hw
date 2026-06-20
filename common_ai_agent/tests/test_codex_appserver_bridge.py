@@ -10,10 +10,72 @@ def test_app_server_cmd_uses_codex_app_server(monkeypatch):
     import core.codex_appserver_bridge as bridge
 
     monkeypatch.setattr(bridge, "CODEX_BIN", "codex-test")
+    monkeypatch.delenv("CODEX_BRIDGE_ENABLE_HOOKS", raising=False)
+    monkeypatch.delenv("CODEX_BRIDGE_BYPASS_HOOK_TRUST", raising=False)
 
     assert bridge._app_server_cmd() == [
         "codex-test",
         "app-server",
+        "--listen",
+        "stdio://",
+    ]
+
+
+def test_app_server_cmd_can_enable_codex_hooks(monkeypatch):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setattr(bridge, "CODEX_BIN", "codex-test")
+    monkeypatch.setenv("CODEX_BRIDGE_ENABLE_HOOKS", "1")
+    monkeypatch.delenv("CODEX_BRIDGE_BYPASS_HOOK_TRUST", raising=False)
+
+    assert bridge._app_server_cmd() == [
+        "codex-test",
+        "app-server",
+        "--enable",
+        "hooks",
+        "--enable",
+        "plugin_hooks",
+        "--enable",
+        "plugins",
+        "--listen",
+        "stdio://",
+    ]
+
+
+def test_app_server_cmd_can_bypass_hook_trust_for_automation(monkeypatch):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setattr(bridge, "CODEX_BIN", "codex-test")
+    monkeypatch.setenv("CODEX_BRIDGE_ENABLE_HOOKS", "1")
+    monkeypatch.setenv("CODEX_BRIDGE_BYPASS_HOOK_TRUST", "1")
+
+    assert bridge._app_server_cmd() == [
+        "codex-test",
+        "--dangerously-bypass-hook-trust",
+        "app-server",
+        "--enable",
+        "hooks",
+        "--enable",
+        "plugin_hooks",
+        "--enable",
+        "plugins",
+        "--listen",
+        "stdio://",
+    ]
+
+
+def test_app_server_cmd_trusts_thread_cwd(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setattr(bridge, "CODEX_BIN", "codex-test")
+    monkeypatch.delenv("CODEX_BRIDGE_ENABLE_HOOKS", raising=False)
+    monkeypatch.delenv("CODEX_BRIDGE_BYPASS_HOOK_TRUST", raising=False)
+
+    assert bridge._app_server_cmd(str(tmp_path)) == [
+        "codex-test",
+        "app-server",
+        "-c",
+        f'projects."{tmp_path}".trust_level="trusted"',
         "--listen",
         "stdio://",
     ]
@@ -24,6 +86,11 @@ def test_app_server_env_forces_oag_mode_off_by_default(monkeypatch):
 
     monkeypatch.setenv("OAG_MODE", "1")
     monkeypatch.delenv("CODEX_BRIDGE_OAG_MODE", raising=False)
+    monkeypatch.delenv("CODEX_BRIDGE_HOME", raising=False)
+    monkeypatch.delenv("CODEX_BRIDGE_RUNTIME_HOME", raising=False)
+    monkeypatch.delenv("CODEX_HOME", raising=False)
+    monkeypatch.delenv("CODEX_BRIDGE_OAG_ROOT", raising=False)
+    monkeypatch.delenv("OAG_ROOT", raising=False)
 
     env = bridge._app_server_env()
 
@@ -39,6 +106,176 @@ def test_app_server_env_honors_explicit_bridge_oag_override(monkeypatch):
     env = bridge._app_server_env()
 
     assert env["OAG_MODE"] == "1"
+
+
+def test_app_server_env_uses_external_oag_pack_without_replacing_codex_home(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    pack = tmp_path / "ontology_ip_agent"
+    pack_home = pack / ".codex"
+    pack_home.mkdir(parents=True)
+    (pack_home / "mcp.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setenv("CODEX_BRIDGE_HOME", str(pack_home))
+    monkeypatch.setenv("CODEX_BRIDGE_OAG_ROOT", str(pack))
+    monkeypatch.setenv("OAG_MODE", "1")
+    monkeypatch.delenv("CODEX_BRIDGE_OAG_MODE", raising=False)
+    monkeypatch.delenv("CODEX_BRIDGE_RUNTIME_HOME", raising=False)
+    monkeypatch.delenv("CODEX_HOME", raising=False)
+
+    env = bridge._app_server_env(str(tmp_path / "ip"))
+
+    assert "CODEX_HOME" not in env
+    assert env["OAG_ROOT"] == str(pack)
+    assert env["OAG_IP_DIR"] == str(tmp_path / "ip")
+    assert env["MCP_CONFIG_PATH"] == str(pack_home / "mcp.json")
+    assert env["OAG_ACTOR_SURFACE"] == "codex-appserver"
+    assert env["OAG_MODE"] == "0"
+
+
+def test_app_server_env_can_override_runtime_codex_home(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    runtime_home = tmp_path / ".codex-runtime"
+    monkeypatch.setenv("CODEX_BRIDGE_RUNTIME_HOME", str(runtime_home))
+
+    env = bridge._app_server_env()
+
+    assert env["CODEX_HOME"] == str(runtime_home)
+
+
+def test_app_server_env_resolves_bridge_pack_home_relative_to_repo(monkeypatch):
+    import core.codex_appserver_bridge as bridge
+
+    monkeypatch.setenv("CODEX_BRIDGE_HOME", "../../ontology_ip_agent/.codex")
+    monkeypatch.setenv("CODEX_BRIDGE_OAG_ROOT", "../../ontology_ip_agent")
+    monkeypatch.delenv("CODEX_BRIDGE_RUNTIME_HOME", raising=False)
+    monkeypatch.delenv("CODEX_HOME", raising=False)
+    monkeypatch.delenv("OAG_ROOT", raising=False)
+
+    env = bridge._app_server_env()
+
+    assert "CODEX_HOME" not in env
+    assert env["MCP_CONFIG_PATH"] == str(
+        (PROJECT_ROOT / "../../ontology_ip_agent/.codex/mcp.json").resolve()
+    )
+    assert env["OAG_ROOT"] == str((PROJECT_ROOT / "../../ontology_ip_agent").resolve())
+
+
+def test_stage_dot_codex_copies_runtime_pack(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    pack = tmp_path / "ontology_ip_agent" / ".codex"
+    (pack / "hooks").mkdir(parents=True)
+    (pack / "scripts").mkdir(parents=True)
+    (pack / "skills" / "oag-ip-workflow").mkdir(parents=True)
+    (pack / "hooks.json").write_text("{}", encoding="utf-8")
+    (pack / "hooks" / "probe.py").write_text("print('hook')\n", encoding="utf-8")
+    (pack / "scripts" / "probe.py").write_text("print('script')\n", encoding="utf-8")
+    (pack / "skills" / "oag-ip-workflow" / "SKILL.md").write_text("skill\n", encoding="utf-8")
+    (pack / "assets").mkdir()
+    (pack / "assets" / "large.bin").write_text("not copied\n", encoding="utf-8")
+    cwd = tmp_path / "workspace" / "ip"
+    monkeypatch.setenv("CODEX_BRIDGE_HOME", str(pack))
+    monkeypatch.setenv("CODEX_BRIDGE_STAGE_DOT_CODEX", "1")
+
+    bridge._stage_dot_codex(str(cwd))
+
+    staged = cwd / ".codex"
+    assert not staged.is_symlink()
+    assert (staged / "hooks.json").read_text(encoding="utf-8") == "{}"
+    assert (staged / "hooks" / "probe.py").read_text(encoding="utf-8") == "print('hook')\n"
+    assert (staged / "skills" / "oag-ip-workflow" / "SKILL.md").read_text(encoding="utf-8") == "skill\n"
+    assert not (staged / "assets").exists()
+    assert (cwd / "scripts").is_symlink()
+    assert (cwd / "scripts" / "probe.py").read_text(encoding="utf-8") == "print('script')\n"
+    assert (staged / bridge._STAGED_DOT_CODEX_MARKER).read_text(encoding="utf-8") == str(pack)
+
+
+def test_stage_dot_codex_does_not_replace_existing(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    pack = tmp_path / "ontology_ip_agent" / ".codex"
+    pack.mkdir(parents=True)
+    (pack / "hooks.json").write_text("{}", encoding="utf-8")
+    cwd = tmp_path / "workspace"
+    existing = cwd / ".codex"
+    existing.mkdir(parents=True)
+    (existing / "local.txt").write_text("keep", encoding="utf-8")
+    monkeypatch.setenv("CODEX_BRIDGE_HOME", str(pack))
+    monkeypatch.setenv("CODEX_BRIDGE_STAGE_DOT_CODEX", "1")
+
+    bridge._stage_dot_codex(str(cwd))
+
+    assert not existing.is_symlink()
+    assert (existing / "local.txt").read_text(encoding="utf-8") == "keep"
+
+
+def test_ensure_thread_cwd_trusted_appends_project_config(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    codex_home = tmp_path / "home" / ".codex"
+    codex_home.mkdir(parents=True)
+    config = codex_home / "config.toml"
+    config.write_text('[mcp_servers.test]\ncommand = "true"\n', encoding="utf-8")
+    cwd = tmp_path / "workspace" / "ip"
+    monkeypatch.setenv("CODEX_BRIDGE_RUNTIME_HOME", str(codex_home))
+    monkeypatch.setenv("CODEX_BRIDGE_TRUST_THREAD_CWD", "1")
+
+    bridge._ensure_thread_cwd_trusted(str(cwd))
+    bridge._ensure_thread_cwd_trusted(str(cwd))
+
+    text = config.read_text(encoding="utf-8")
+    header = f'[projects."{cwd}"]'
+    assert text.count(header) == 1
+    assert f'{header}\ntrust_level = "trusted"' in text
+
+
+def test_extract_hook_additional_context_uses_codex_hook_contract():
+    import core.codex_appserver_bridge as bridge
+
+    raw = "\n".join(
+        [
+            '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"ctx one"}}',
+            "not json",
+            '{"hookSpecificOutput":{"additionalContext":"ctx two"}}',
+        ]
+    )
+
+    assert bridge._extract_hook_additional_context(raw) == "ctx one\n\nctx two"
+
+
+def test_run_turn_passes_oag_hook_context(monkeypatch, tmp_path):
+    import core.codex_appserver_bridge as bridge
+
+    conn = bridge._CodexConn(cwd=str(tmp_path))
+    conn.thread_id = "thread-test"
+
+    async def fake_hook_context(cwd, text):
+        assert cwd == str(tmp_path)
+        assert text == "review rtl"
+        return "OAG injected context"
+
+    async def fake_call(method, params=None, timeout=bridge._CALL_TIMEOUT):
+        assert method == "turn/start"
+        assert params == {
+            "threadId": "thread-test",
+            "input": [{"type": "text", "text": "review rtl"}],
+            "additionalContext": {
+                "oag": {"kind": "application", "value": "OAG injected context"}
+            },
+        }
+        conn._on_note("turn/completed", {})
+        return {}
+
+    events = []
+    monkeypatch.setattr(bridge, "_oag_user_prompt_context", fake_hook_context)
+    monkeypatch.setattr(conn, "_call", fake_call)
+
+    asyncio.run(conn.run_turn("review rtl", lambda typ, **payload: events.append((typ, payload))))
+
+    assert events[-3][0] == "flush"
+    assert events[-2] == ("agent_state", {"running": False})
+    assert events[-1] == ("done", {})
 
 
 def test_atlas_codex_mode_dispatches_to_app_server_bridge():
