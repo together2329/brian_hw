@@ -165,6 +165,36 @@ describe('applyIntent dispatch for chat waveform actions', () => {
     expect(d.setTopTab).toHaveBeenCalledWith('wave');
   });
 
+  it('source normalizes workspace absolute paths against the active session', () => {
+    const w = window as typeof window & {
+      ACTIVE_SESSION?: string;
+      ACTIVE_IP?: string;
+      CONTEXT?: { active_ip?: string };
+    };
+    const prevSession = w.ACTIVE_SESSION;
+    const prevIp = w.ACTIVE_IP;
+    const prevContext = w.CONTEXT;
+    try {
+      w.ACTIVE_SESSION = 'brian_user_3/default/apb_timer_pwm_irq_v1/sim_debug';
+      w.ACTIVE_IP = 'apb_timer_pwm_irq_v1';
+      w.CONTEXT = { active_ip: 'apb_timer_pwm_irq_v1' };
+      const d = makeDeps();
+      applyIntent(d, {
+        action: 'source',
+        path: '/Users/brian/Desktop/Project/NEW_WORKSPACE/brian_user_3/default/apb_timer_pwm_irq_v1/rtl/timer_core.sv:12',
+        line: 12,
+      });
+      expect(d.loadSourceFile).toHaveBeenCalledWith(
+        'brian_user_3/default/apb_timer_pwm_irq_v1/rtl/timer_core.sv',
+        12,
+      );
+    } finally {
+      w.ACTIVE_SESSION = prevSession;
+      w.ACTIVE_IP = prevIp;
+      w.CONTEXT = prevContext;
+    }
+  });
+
   it('rename changes a group name (old → new)', () => {
     const d = makeDeps();
     applyIntent(d, { action: 'rename', group: 'apb', to: 'apb_if' });

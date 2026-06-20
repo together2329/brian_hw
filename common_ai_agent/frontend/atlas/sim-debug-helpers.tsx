@@ -160,6 +160,26 @@ export const normalizeProjectSourcePath = (rawPath: unknown): string => {
   const marker = '/common_ai_agent/';
   const idx = raw.indexOf(marker);
   if (idx >= 0) return raw.slice(idx + marker.length);
+  const sessionParts = String(
+    g.ACTIVE_SESSION
+    || (g.CONTEXT && (g.CONTEXT.activeSession || g.CONTEXT.active_session))
+    || '',
+  ).replace(/\\/g, '/').replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+  const activeIp = String(
+    g.ACTIVE_IP
+    || (g.CONTEXT && (g.CONTEXT.active_ip || g.CONTEXT.activeIp))
+    || (sessionParts.length >= 4 ? sessionParts[2] : (sessionParts.length >= 3 ? sessionParts[1] : '')),
+  ).replace(/\\/g, '/').replace(/^\/+|\/+$/g, '');
+  const anchors = [
+    sessionParts.length >= 4 ? sessionParts.slice(0, 3).join('/') : '',
+    sessionParts.length >= 3 ? sessionParts.slice(0, 2).join('/') : '',
+    activeIp,
+  ].filter(Boolean);
+  for (const anchor of Array.from(new Set(anchors))) {
+    const markerPath = `/${anchor}/`;
+    const pos = raw.indexOf(markerPath);
+    if (pos >= 0) return raw.slice(pos + 1);
+  }
   return raw.replace(/^\/+/, '');
 };
 

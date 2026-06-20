@@ -906,7 +906,11 @@ export const SimDebug = ({ view = 'debug', initialTab = '', active = true, prelo
     if (!path) return;
     setSrcLoading(true);
     try {
-      const r = await fetch('/api/source?path=' + encodeURIComponent(path));
+      const params = appendActiveSessionParam(new URLSearchParams({ path }));
+      const r = await fetch('/api/source?' + params.toString(), {
+        cache: 'no-store',
+        credentials: 'include',
+      });
       const d = await r.json();
       if (d && Array.isArray(d.lines)) {
         setSrcLines(d.lines);

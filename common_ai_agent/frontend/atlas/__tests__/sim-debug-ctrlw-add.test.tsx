@@ -183,6 +183,20 @@ describe('SimDebug Ctrl+W signal add', () => {
     expect(container.textContent).not.toContain('Click a module in the hierarchy above to list its signals.');
   });
 
+  it('loads module source through the active session scope', async () => {
+    const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
+
+    await openModuleSignals(container);
+
+    const calls = (globalThis.fetch as unknown as { mock: { calls: unknown[][] } }).mock.calls;
+    expect(calls.some(([input]) => {
+      const url = String(input);
+      return url.startsWith('/api/source?')
+        && url.includes('path=demo_ip%2Frtl%2Fdemo_top.sv')
+        && url.includes('session_id=workspace%2Fdemo_ip%2Fsim_debug');
+    })).toBe(true);
+  });
+
   it('adds the focused RTL signal with its instance scope', async () => {
     const { container } = render(<SimDebug view="debug" initialTab="wave" active />);
 
