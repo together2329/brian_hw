@@ -1545,7 +1545,7 @@ requirements:
             observed_at: 610d2cb0
 
   - id: REQ_PLAT_OAG_MODE_001
-    claim: "OAG_MODE=1이면 default agent가 프로젝트 .codex OAG 팩에 1급으로 밀착된다 — AGENTS.md(+.codex/rules)를 static system prompt에 1회 rule로 주입(캐시; prompt_injection과 무관)하고, MCP 없이 네이티브 oag 도구로 .codex/scripts/oag_cli.py 게이트웨이를 직접 호출한다. 코드 fallback은 OFF지만 체크인된 로컬 .config는 OAG_MODE=1을 제품 기본값으로 켠다."
+    claim: "OAG_MODE=1이면 default agent가 프로젝트 .codex OAG 팩에 1급으로 밀착된다 — AGENTS.md(+.codex/rules)를 static system prompt에 1회 rule로 주입(캐시; prompt_injection과 무관)하고, MCP 없이 네이티브 oag 도구로 .codex/scripts/oag_cli.py 게이트웨이를 직접 호출한다. 코드 fallback은 OFF이며, checked-in local config가 Codex app-server mode를 기본으로 둘 때 native OAG는 opt-in으로 남는다."
     design_anchor: doc/wiki/oag-mode-integration.md
     obligations:
       - id: OBL_OAG_MODE_FLAG_DEFAULT_OFF
@@ -1633,16 +1633,32 @@ requirements:
         evidence:
           - test: "tests/test_core/test_react_loop.py::TestRunReactAgentImpl::test_native_tool_only_tail_is_visible"
             observed_at: c684c5c0
-      - id: OBL_OAG_REPO_CONFIG_DEFAULT_ON
+      - id: OBL_OAG_REPO_CONFIG_NATIVE_OAG_OPT_IN
         owned_by: platform.config
         granularity: behavior
-        # 코드 fallback은 OAG_MODE 미지정 시 off로 유지하되, 체크인된 .config는
-        # 로컬 ATLAS 기본 실행에서 OAG_MODE=1을 켜 사용자가 별도 env를 안 줘도
-        # native OAG 경로가 활성화되게 한다.
-        status: closed
-        evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_defaults_oag_mode_on"
-            observed_at: 709a105d
+        # 코드 fallback은 OAG_MODE 미지정 시 off로 유지한다. checked-in .config는
+        # Codex app-server bridge를 기본 엔진으로 쓰므로 OAG_MODE=0을 둔다.
+        # native OAG 경로가 필요하면 operator가 OAG_MODE=1로 명시 opt-in 한다.
+        status: open
+
+  - id: REQ_PLAT_CODEX_APP_SERVER_ENGINE_20260620_001
+    claim: "ATLAS codex mode는 legacy codex CLI/TUI 실행 경로 대신 `codex app-server --listen stdio://` bridge를 기본 에이전트 엔진으로 사용한다 — 이 경로에서는 native ATLAS OAG_MODE를 기본 OFF로 두어 Codex 자체의 AGENTS/skills/tool runtime과 중복 주입하지 않는다."
+    design_anchor: doc/wiki/codex-engine-atlas-ui-integration.md
+    obligations:
+      - id: OBL_CODEX_APP_SERVER_DEFAULTS_OAG_MODE_OFF
+        owned_by: platform.config
+        granularity: behavior
+        # operator decision 2026-06-20: codex mode should connect through the
+        # app-server bridge and run with native ATLAS OAG_MODE=0, replacing the
+        # prior checked-in local default that used OAG_MODE=1.
+        status: open
+      - id: OBL_CODEX_MODE_CHAT_USES_APP_SERVER_BRIDGE
+        owned_by: agent.codex-bridge
+        granularity: behavior
+        # CODEX_BRIDGE-backed chat turns must route through codex app-server
+        # using the active session workspace cwd rather than falling back to
+        # codex exec/TUI or the legacy Python ReAct queue.
+        status: open
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."

@@ -5,8 +5,8 @@ When OAG_MODE=1 the agent must (1) inject the project's AGENTS.md + .codex/rules
 into its prompt context (independent of prompt-injection) and (2) expose the
 native `oag` tool that drives the project's own .codex/scripts/oag_cli.py gateway
 directly — no MCP, because this is our own custom ReAct agent. Code fallback is
-OFF when OAG_MODE is unset; the checked-in repo .config enables local ATLAS by
-default.
+OFF when OAG_MODE is unset; the checked-in repo .config now keeps native OAG off
+because local codex mode routes through the Codex app-server bridge by default.
 """
 import sys
 from pathlib import Path
@@ -60,9 +60,11 @@ def test_oag_mode_default_off(monkeypatch):
     assert pb.oag_mode_enabled() is False
 
 
-def test_repo_config_defaults_oag_mode_on():
+def test_repo_config_defaults_codex_appserver_with_oag_mode_off():
     values = _repo_config_values()
-    assert values["OAG_MODE"] == "1"
+    assert values["CODEX_BRIDGE"] == "1"
+    assert values["CODEX_BRIDGE_OAG_MODE"] == "0"
+    assert values["OAG_MODE"] == "0"
 
 
 def test_oag_mode_env_on(monkeypatch):
