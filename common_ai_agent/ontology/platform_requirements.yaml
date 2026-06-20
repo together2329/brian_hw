@@ -1676,16 +1676,34 @@ requirements:
         owned_by: platform.config
         granularity: behavior
         # Codex app-server mode keeps native ATLAS OAG_MODE=0, but it must still
-        # expose the operator's canonical ontology_ip_agent pack/root so Codex
-        # does not drift to plugin-cache or per-IP relative OAG scripts.
-        status: open
+        # expose the operator's canonical ontology_ip_agent pack/root as the OAG
+        # pack source while preserving the user's normal Codex runtime home/auth.
+        status: closed
+        evidence:
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_codex_appserver_with_oag_mode_off"
+            observed_at: f1bb65e3
+          - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_resolves_bridge_pack_home_relative_to_repo"
+            observed_at: f1bb65e3
       - id: OBL_CODEX_APP_SERVER_PASSES_EXTERNAL_OAG_ENV
         owned_by: agent.codex-bridge
         granularity: behavior
-        # The bridge subprocess environment carries the configured OAG_ROOT and
-        # common_ai_agent backend path as absolute paths while preserving the
-        # native OAG_MODE override.
-        status: open
+        # The bridge stages the configured OAG pack into the thread cwd, exposes
+        # OAG_ROOT/OAG_IP_DIR, trusts the cwd for Codex app-server project-local
+        # reads, and injects OAG hook context through turn/start.additionalContext.
+        status: closed
+        evidence:
+          - test: "tests/test_codex_appserver_bridge.py::test_app_server_cmd_can_enable_codex_hooks"
+            observed_at: f1bb65e3
+          - test: "tests/test_codex_appserver_bridge.py::test_app_server_cmd_can_bypass_hook_trust_for_automation"
+            observed_at: f1bb65e3
+          - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_uses_external_oag_pack_without_replacing_codex_home"
+            observed_at: f1bb65e3
+          - test: "tests/test_codex_appserver_bridge.py::test_stage_dot_codex_copies_runtime_pack"
+            observed_at: f1bb65e3
+          - test: "tests/test_codex_appserver_bridge.py::test_ensure_thread_cwd_trusted_appends_project_config"
+            observed_at: f1bb65e3
+          - test: "tests/test_codex_appserver_bridge.py::test_run_turn_passes_oag_hook_context"
+            observed_at: f1bb65e3
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
