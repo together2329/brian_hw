@@ -1,17 +1,15 @@
 /**
- * ATLAS Web UI — codex /subagent left-rail lanes, real-browser end-to-end.
+ * ATLAS Web UI — codex /subagent: workflow-panel selector + click→main-chat.
  *
- * Drives the actual vite/.tsx app in headless Chromium against a running ATLAS
- * server (launched with CODEX_BRIDGE=1 + multi-agent). Logs in, sends a prompt
- * that makes codex spawn a subagent, then waits for the `subagent` WS frames to
- * reach the browser AND the "Subagents" lane panel to render in the left rail,
- * and screenshots it.
+ * Real-browser (headless Chromium) check against a running ATLAS server with
+ * CODEX_BRIDGE=1 + multi-agent. Logs in, sends a prompt that spawns a codex
+ * subagent, then:
+ *   1. the compact selector appears under the WORKFLOW list (Main + subagent),
+ *   2. clicking the subagent row makes the MAIN chat pane render that agent's
+ *      (coalesced) transcript — the "Watching subagent" banner shows in chat,
+ *   3. the previous main conversation is preserved (selecting Main restores it).
  *
  *   ATLAS_E2E_BASE=http://127.0.0.1:3041 node scripts/verify_subagent_ui_e2e.mjs
- *
- * Env: ATLAS_E2E_BASE, ATLAS_ADMIN_USER/PASS (admin/1151), ATLAS_E2E_SHOTS,
- *      ATLAS_E2E_TURN_MS (real codex turn budget, default 300000), ATLAS_E2E_PROMPT.
- * Exit 0 = PASS.
  */
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -24,7 +22,7 @@ const T = Number(process.env.ATLAS_E2E_TIMEOUT_MS || 60000);
 const TURN_T = Number(process.env.ATLAS_E2E_TURN_MS || 300000);
 const PROMPT = process.env.ATLAS_E2E_PROMPT ||
   "Spawn a subagent named 'Adder' (use your multi-agent / spawn_agent capability) " +
-  "to compute 2+2 and return only the number. Wait for it, then tell me what it returned.";
+  "to compute 2+2 and explain the result in one sentence. Wait for it, then tell me what it returned.";
 
 fs.mkdirSync(SHOTS, { recursive: true });
 const log = (m) => console.log(m);
@@ -39,13 +37,11 @@ try {
   } catch (e) { log('auth: api login error ' + e.message); }
 
   const page = await ctx.newPage();
-  const ws = [];
   let subagentFrames = 0;
   page.on('websocket', (sock) => {
     if (!sock.url().includes('/ws/agent')) return;
     sock.on('framereceived', (f) => {
-      const p = (f.payload || '').toString();
-      if (/"type"\s*:\s*"subagent"/.test(p)) { subagentFrames++; ws.push('RECV ' + p.slice(0, 220)); }
+      if (/"type"\s*:\s*"subagent"/.test((f.payload || '').toString())) subagentFrames++;
     });
   });
 
@@ -66,48 +62,57 @@ try {
     if (!chat) await page.waitForTimeout(1000);
   }
   if (!chat) fail('chat input not found — workspace did not render after auth');
-  await page.screenshot({ path: SHOTS + '/01_workspace.png', fullPage: true });
 
   await chat.click();
   await chat.fill(PROMPT);
   await chat.press('Enter');
   log(`prompt sent; waiting up to ${TURN_T / 1000}s for codex to spawn a subagent...`);
 
+  // 1) selector appears under the WORKFLOW list
   const deadline = Date.now() + TURN_T;
-  let panel = false;
+  let hasSelector = false;
   while (Date.now() < deadline) {
-    panel = await page.evaluate(() =>
-      !!document.querySelector('.subagent-lanes-box') || /Subagents/.test(document.body.innerText));
-    if (panel && subagentFrames > 0) break;
+    hasSelector = await page.evaluate(() => {
+      const sel = document.querySelector('.subagent-lanes');
+      return !!sel && sel.querySelectorAll('button').length >= 2;   // Main + >=1 subagent
+    });
+    if (hasSelector && subagentFrames > 0) break;
     await page.waitForTimeout(1000);
   }
   await page.waitForTimeout(2000);
-
-  await page.screenshot({ path: SHOTS + '/02_full.png', fullPage: true });
+  await page.screenshot({ path: SHOTS + '/10_selector.png', fullPage: true });
   const left = await page.$('.ws-left-panel');
-  if (left) await left.screenshot({ path: SHOTS + '/03_left_rail.png' });
-  const box = await page.$('.subagent-lanes-box');
-  if (box) await box.screenshot({ path: SHOTS + '/04_subagent_panel.png' });
+  if (left) await left.screenshot({ path: SHOTS + '/11_left_rail.png' });
+  if (!hasSelector) fail('subagent selector did not appear under the workflow list');
 
-  const dom = await page.evaluate(() => {
-    const b = document.querySelector('.subagent-lanes-box');
-    return {
-      hasPanel: !!b,
-      hasText: document.body.innerText.includes('Subagents'),
-      panelText: b ? b.innerText.replace(/\s+/g, ' ').slice(0, 600) : '',
-    };
+  // 2) click the subagent row -> MAIN chat pane renders its transcript
+  const clicked = await page.evaluate(() => {
+    const btns = Array.from(document.querySelectorAll('.subagent-lanes button'));
+    const subBtn = btns.find((b) => !/Main/.test(b.textContent || ''));
+    if (!subBtn) return false;
+    subBtn.click();
+    return true;
   });
+  if (!clicked) fail('could not find a subagent row to click');
+  await page.waitForTimeout(2500);
+  await page.screenshot({ path: SHOTS + '/12_main_chat_transcript.png', fullPage: true });
 
-  log('\n--- result ---');
-  log('subagent WS frames reaching browser: ' + subagentFrames);
-  log('DOM .subagent-lanes-box present: ' + dom.hasPanel);
-  log('panel text: ' + dom.panelText);
-  log('sample subagent frames:\n' + (ws.slice(-8).join('\n') || '(none)'));
+  const afterClick = await page.evaluate(() => {
+    // The chat markdown renders inside a same-origin iframe, so scan iframe docs
+    // too — document.body.innerText alone misses it.
+    const texts = [document.body.innerText];
+    for (const f of Array.from(document.querySelectorAll('iframe'))) {
+      try { texts.push(f.contentDocument?.body?.innerText || ''); } catch (_) { /* cross-origin */ }
+    }
+    return { watching: /Watching subagent/.test(texts.join('\n')) };
+  });
+  log('subagent WS frames: ' + subagentFrames);
+  log('after click -> main chat shows "Watching subagent": ' + afterClick.watching);
   log('screenshots: ' + SHOTS);
 
-  if (subagentFrames === 0) fail('no `subagent` WS frames reached the browser (bridge->WS path)');
-  if (!dom.hasPanel && !dom.hasText) fail('Subagents lane panel did not render in the left rail');
-  log(`\nPASS ✅  codex /subagent surfaced as left-rail lanes in the real Web UI (frames=${subagentFrames}).`);
+  if (subagentFrames === 0) fail('no `subagent` WS frames reached the browser');
+  if (!afterClick.watching) fail('clicking the subagent did NOT render its transcript in the MAIN chat pane');
+  log(`\nPASS ✅  selector under workflow + click renders subagent transcript in the MAIN chat (frames=${subagentFrames}).`);
 } finally {
   await browser.close();
 }

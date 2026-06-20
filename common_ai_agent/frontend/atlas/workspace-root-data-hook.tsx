@@ -508,6 +508,28 @@ const buildAskUserFlow = (message: any): any => {
   };
 };
 
+// Map a watched subagent lane's items into main-chat feed entries so the center
+// chat pane renders the subagent's (coalesced) transcript with the normal chat
+// cards: message/result -> agent bubble, reasoning -> thought, tool -> action,
+// tool_result -> obs, spawn/status -> dim status line.
+const subagentLaneToFeed = (lane: any): any[] => {
+  const head = {
+    kind: 'agent',
+    text: `👁 Watching subagent **${lane.label || lane.agentId}** · ${lane.status} — select Main to return.`,
+    createdAt: 0,
+  };
+  const rows = (lane.items || []).map((it: any, i: number) => {
+    const ts = it.ts || i + 1;
+    if (it.kind === 'reasoning') return { kind: 'thought', text: it.text, createdAt: ts };
+    if (it.kind === 'tool') return { kind: 'action', text: it.text, createdAt: ts };
+    if (it.kind === 'tool_result') return { kind: 'obs', text: it.text, createdAt: ts };
+    if (it.kind === 'spawn') return { kind: 'thought', text: '▶ ' + it.text, createdAt: ts };
+    if (it.kind === 'status') return { kind: 'thought', text: '· ' + it.text, createdAt: ts };
+    return { kind: 'agent', text: it.text, createdAt: ts };   // message, result
+  });
+  return [head, ...rows];
+};
+
 export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   const {
     dir,
@@ -1294,7 +1316,17 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
           const lane = { ...cur, items: cur.items.slice() };
           if (label) lane.label = label;
           if (status) lane.status = status;
-          if (text) lane.items.push({ kind, text, ts: Date.now() });
+          if (text) {
+            // coalesce consecutive streamed message/reasoning deltas into the
+            // last item so the transcript reads as sentences — codex streams one
+            // token per delta, which otherwise renders one word per line.
+            const last = lane.items[lane.items.length - 1];
+            if (last && last.kind === kind && (kind === 'message' || kind === 'reasoning')) {
+              lane.items[lane.items.length - 1] = { ...last, text: last.text + text };
+            } else {
+              lane.items.push({ kind, text, ts: Date.now() });
+            }
+          }
           next.set(agentId, lane);
           return next;
         });
@@ -3812,14 +3844,20 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
   // were extracted to workspace-root-render.tsx (WorkspaceChatPane /
   // WorkspacePromptRow); here we adapt them by closing over current state and
   // forwarding it as props — matching workspace.jsx L5745-L5750 / L5751-L6005.
-  const renderChatPane = (style: any = {}) => (
+  const renderChatPane = (style: any = {}) => {
+    // When a subagent lane is selected, the MAIN chat pane renders that
+    // subagent's transcript instead of the main feed (click Main to return).
+    const watched = selectedSubagentId ? subagentLanes.get(selectedSubagentId) : null;
+    const watching = !!(watched && !watched.isMain);
+    const paneFeed = watching ? subagentLaneToFeed(watched) : feed;
+    return (
     <WorkspaceChatPane
       feedRef={feedRef}
-      streamText={streamText}
+      streamText={watching ? '' : streamText}
       style={style}
       onScroll={updateFeedPinnedToBottom}
       feedEntriesProps={{
-        feed,
+        feed: paneFeed,
         qaState,
         chatFeedSummary,
         toggleOpt,
@@ -3828,7 +3866,8 @@ export const useWorkspaceData = (deps: WorkspaceDataDeps) => {
         dir,
       }}
     />
-  );
+    );
+  };
   const renderPromptRow = () => (
     <WorkspacePromptRow
       workflow={workflow}

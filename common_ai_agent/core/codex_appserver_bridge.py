@@ -102,6 +102,16 @@ def _norm(value: "Any") -> str:
     return str(value or "").strip().lower()
 
 
+def _short_tid(tid: "Any") -> str:
+    """A distinct short label for a codex thread id. codex thread ids are
+    time-ordered, so the first 8 chars collide across a spawn batch (a whole
+    team reads the same); include the 2nd uuid group to keep lanes distinct."""
+    parts = str(tid or "").split("-")
+    if len(parts) >= 2 and parts[1]:
+        return f"{parts[0][:8]}-{parts[1]}"
+    return str(tid or "")[:8]
+
+
 def _multi_agent_enabled() -> bool:
     return _norm(_MULTI_AGENT_MODE) not in {"", "off", "none", "0", "false", "disabled"}
 
@@ -133,7 +143,7 @@ def _subagent_lane_events(item: dict, started: bool, main_thread_id: str) -> "li
         kind = _norm(item.get("kind"))
         out.append({
             "agent_id": tid, "parent_id": main_thread_id,
-            "label": path or tid[:8],
+            "label": path or _short_tid(tid),
             "status": _SUBACTIVITY_STATUS.get(kind, "running"),
             "kind": "status",
             "text": (f"{kind} · {path}".strip(" ·") or "activity"),
@@ -692,7 +702,7 @@ class _CodexConn:
             tool_results: "list[tuple[str, str]]" = []
 
             def _sub_label(tid: str) -> str:
-                return self._sub_labels.get(tid) or (tid[:8] if tid else "subagent")
+                return self._sub_labels.get(tid) or (_short_tid(tid) if tid else "subagent")
 
             def _emit_sub(ev: dict) -> None:
                 # learn + stick the human label for a lane; back-fill it when a
@@ -722,7 +732,7 @@ class _CodexConn:
                         nick = str(th.get("agentNickname") or "")
                         role = str(th.get("agentRole") or "")
                         label = (f"{nick} [{role}]" if nick and role
-                                 else (nick or role or th_id[:8]))
+                                 else (nick or role or _short_tid(th_id)))
                         _emit_sub({"agent_id": th_id, "label": label,
                                    "status": "spawning", "kind": "status",
                                    "text": "spawned"})
