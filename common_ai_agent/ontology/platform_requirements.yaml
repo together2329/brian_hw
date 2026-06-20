@@ -1755,7 +1755,10 @@ requirements:
         # Live agent_state running events may arrive without model/effort
         # metadata. The responding footer must still show the already-known
         # /healthz/CONTEXT runtime so users can audit which model is running.
-        status: open
+        status: closed
+        evidence:
+          - test: "tests/test_frontend_responding_reconcile.py::test_frontend_responding_runtime_metadata_falls_back_to_context"
+            observed_at: e8bf2136
 
   - id: REQ_PLAT_CONTEXT_VERBOSE_SYSTEM_PROMPT_001
     claim: "/context -v는 ATLAS 워커에게 실제로 전달된 system prompt를 요약/은닉하지 않고 표시한다 — OAG_MODE가 AGENTS.md와 .codex/rules를 static system prompt에 주입할 때 사용자는 어떤 규칙 때문에 에이전트가 움직이는지 같은 화면에서 감사할 수 있어야 한다."
