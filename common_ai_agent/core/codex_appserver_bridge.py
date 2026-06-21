@@ -96,6 +96,11 @@ _SUBACTIVITY_STATUS = {
 _MULTI_AGENT_MODE = os.environ.get("CODEX_BRIDGE_MULTI_AGENT_MODE", "").strip()
 # Cap any single lane transcript chunk so a runaway child cannot flood the WS.
 _SUBAGENT_TEXT_LIMIT = int(os.environ.get("CODEX_BRIDGE_SUBAGENT_TEXT_LIMIT", "8000"))
+# Surface codex hook lifecycle (hook/completed) + skill-set load/changes as
+# visible activity lines in the atlas chat (e.g. "🪝 OAG: injecting IP context",
+# "📦 skill set loaded"). Default ON; set CODEX_BRIDGE_SHOW_HOOKS=0 to hide.
+_SHOW_HOOKS = str(os.environ.get("CODEX_BRIDGE_SHOW_HOOKS", "1")).strip().lower() in {
+    "1", "true", "yes", "on", "enable", "enabled"}
 
 
 def _norm(value: "Any") -> str:
@@ -736,6 +741,28 @@ class _CodexConn:
                         _emit_sub({"agent_id": th_id, "label": label,
                                    "status": "spawning", "kind": "status",
                                    "text": "spawned"})
+                    return
+
+                if _SHOW_HOOKS and method in ("hook/started", "hook/completed"):
+                    # surface codex hook lifecycle so the user can SEE the OAG
+                    # hooks fire (context-inject, draft-pressure, subagent-guard…).
+                    if method == "hook/started":
+                        return
+                    run = params.get("run") or {}
+                    smsg = str(run.get("statusMessage") or "").strip()
+                    name = str(run.get("eventName") or "hook").strip()
+                    status = str(run.get("status") or "").strip().lower()
+                    label = f"🪝 {smsg or name}"
+                    if status and status not in ("completed", "running"):
+                        label += f"  [{status}]"
+                    if is_sub:
+                        _emit_sub({"agent_id": tid, "status": "running",
+                                   "kind": "tool", "text": label})
+                    else:
+                        emit("tool", text=label)
+                    return
+                if _SHOW_HOOKS and method == "skills/changed":
+                    emit("tool", text="📦 skill set loaded/changed")
                     return
 
                 if method in ("item/started", "item/completed"):

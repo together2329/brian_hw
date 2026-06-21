@@ -488,3 +488,49 @@ def test_subagent_lane_events_skip_parent_thread():
         "agentThreadId": "main-thread", "agentPath": "x",
     }
     assert bridge._subagent_lane_events(activity_on_main, True, "main-thread") == []
+
+
+def test_run_turn_surfaces_hook_and_skill_activity(tmp_path, monkeypatch):
+    """codex hook lifecycle (hook/completed) and skill-set changes are surfaced
+    as visible chat activity so OAG hooks firing is observable in the UI: a
+    hook/completed -> "🪝 <statusMessage>" tool line; skills/changed -> "📦 …".
+    (Live against codex 0.141.0 the OAG hooks show as 🪝 OAG: injecting IP context
+    etc.)"""
+    import core.codex_appserver_bridge as bridge
+
+    # py3.9: install a fresh loop before building the Lock outside a running loop.
+    asyncio.set_event_loop(asyncio.new_event_loop())
+    conn = bridge._CodexConn(cwd=str(tmp_path))
+    conn.thread_id = "main-thread"
+
+    async def fake_call(method, params=None, timeout=bridge._CALL_TIMEOUT):
+        conn._on_note("skills/changed", {"threadId": "main-thread"})
+        conn._on_note("hook/started", {"threadId": "main-thread",
+                                       "run": {"eventName": "userPromptSubmit"}})
+        conn._on_note("hook/completed", {"threadId": "main-thread", "run": {
+            "eventName": "userPromptSubmit", "status": "completed",
+            "statusMessage": "OAG: injecting IP context"}})
+        conn._on_note("turn/completed", {"threadId": "main-thread", "turnId": "t"})
+        return {"turn": {"id": "t"}}
+
+    async def fake_get_conn(session_id, cwd=None):
+        return conn
+
+    events = []
+
+    class Session:
+        session_id = "default"
+
+        def emit(self, msg_type, **payload):
+            events.append((msg_type, payload))
+
+    monkeypatch.setattr(conn, "_call", fake_call)
+    monkeypatch.setattr(bridge, "_get_conn", fake_get_conn)
+
+    asyncio.run(bridge.run_codex_turn(Session(), "hi", cwd=str(tmp_path), conn_key="k"))
+
+    tools = [p.get("text", "") for t, p in events if t == "tool"]
+    assert any("🪝" in t and "injecting IP context" in t for t in tools), tools
+    assert any("📦" in t for t in tools), tools
+    # hook/started alone must not double-emit (only completion is surfaced).
+    assert sum(1 for t in tools if "injecting IP context" in t) == 1

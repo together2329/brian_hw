@@ -1756,6 +1756,16 @@ requirements:
             observed_at: 6e96c6db
           - test: "tests/test_subagent_lanes_frontend.py::test_left_rail_mounts_subagent_lanes"
             observed_at: 6e96c6db
+      - id: OBL_CODEX_HOOK_SKILL_ACTIVITY_VISIBLE
+        owned_by: agent.codex-bridge
+        granularity: behavior
+        # codex hook lifecycle(hook/completed)·skill-set 변경(skills/changed)을 가시
+        # 활동 줄(🪝 statusMessage / 📦)로 surface해 OAG 훅 발화·스킬 로드가 채팅에서
+        # 보이게 한다(hook/started는 중복 방지로 미표시; CODEX_BRIDGE_SHOW_HOOKS=0로 off).
+        status: closed
+        evidence:
+          - test: "tests/test_codex_appserver_bridge.py::test_run_turn_surfaces_hook_and_skill_activity"
+            observed_at: 6e96c6db
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."
