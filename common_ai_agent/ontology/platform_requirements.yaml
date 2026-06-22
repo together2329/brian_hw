@@ -1642,11 +1642,11 @@ requirements:
         # 필요하면 operator가 OAG_MODE=1로 명시 opt-in 한다.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
             observed_at: 81134977
 
   - id: REQ_PLAT_CODEX_APP_SERVER_ENGINE_20260620_001
-    claim: "ATLAS codex mode는 `codex app-server --listen stdio://` bridge를 opt-in 에이전트 엔진으로 제공한다 — 기본 chat 엔진은 built-in `main` ReAct 엔진이다. CODEX_BRIDGE=1로 켜면 chat 턴이 legacy codex CLI/TUI 대신 app-server bridge로 라우팅되고, 엔진 게이트는 truthiness를 따르므로 CODEX_BRIDGE=0(checked-in .config 기본)은 main 엔진을 유지한다. opt-in 경로에서는 native ATLAS OAG_MODE를 기본 OFF로 두어 Codex 자체의 AGENTS/skills/tool runtime과 중복 주입하지 않는다."
+    claim: "ATLAS codex mode는 `codex app-server --listen stdio://` bridge를 **기본** 에이전트 엔진으로 사용한다(checked-in .config CODEX_BRIDGE=1) — chat 턴이 legacy codex CLI/TUI 대신 app-server bridge로 vendored OAG 팩(ontology_ip_agent/.codex)에 대해 라우팅된다. 엔진 게이트는 truthiness를 따르므로 CODEX_BRIDGE=0으로 opt-out하면 built-in `main` ReAct 엔진으로 돌아간다. 이 경로에서는 native ATLAS OAG_MODE를 OFF로 두어 Codex 자체의 AGENTS/skills/tool runtime과 중복 주입하지 않는다."
     design_anchor: doc/wiki/codex-engine-atlas-ui-integration.md
     obligations:
       - id: OBL_CODEX_APP_SERVER_DEFAULTS_OAG_MODE_OFF
@@ -1657,7 +1657,7 @@ requirements:
         # prior checked-in local default that used OAG_MODE=1.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
             observed_at: 81134977
           - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_forces_oag_mode_off_by_default"
             observed_at: 81134977
@@ -1681,8 +1681,8 @@ requirements:
         # pack source while preserving the user's normal Codex runtime home/auth.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
-            observed_at: 6157720e
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
+            observed_at: 99a4fd08
           - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_resolves_bridge_pack_home_relative_to_repo"
             observed_at: 96566c1b
       - id: OBL_CODEX_APP_SERVER_PASSES_EXTERNAL_OAG_ENV
@@ -1705,20 +1705,19 @@ requirements:
             observed_at: 96566c1b
           - test: "tests/test_codex_appserver_bridge.py::test_run_turn_passes_oag_hook_context"
             observed_at: 96566c1b
-      - id: OBL_CODEX_BRIDGE_OPT_IN_DEFAULT_MAIN
+      - id: OBL_CODEX_BRIDGE_DEFAULT_CODEX_MODE
         owned_by: platform.config
         granularity: behavior
-        # 2026-06-20 operator decision reversal: codex app-server bridge는 더
-        # 이상 기본 엔진이 아니다. 기본 chat 엔진은 built-in main ReAct이고
-        # CODEX_BRIDGE는 opt-in이다. atlas_ui의 엔진 게이트는 _truthy_env로
-        # truthiness를 따르므로 CODEX_BRIDGE=0(checked-in .config 기본)이 main을
-        # 유지하고, 1/true/on 등 명시 truthy 값만 app-server bridge로 라우팅한다.
+        # 2026-06-22 operator decision: codex app-server bridge가 기본 chat 엔진
+        # (checked-in .config CODEX_BRIDGE=1, vendored OAG 팩 ontology_ip_agent/
+        # .codex 가리킴). atlas_ui 엔진 게이트는 _truthy_env로 truthiness를 따르므로
+        # CODEX_BRIDGE=0으로 opt-out하면 built-in main ReAct로 돌아간다.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
-            observed_at: 11ad4100
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
+            observed_at: 99a4fd08
           - test: "tests/test_oag_mode.py::test_codex_bridge_gate_honors_truthiness"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
 
   - id: REQ_PLAT_CODEX_SUBAGENT_LANES_20260620_001
     claim: "codex `/subagent`로 spawn된 subagent의 활동을 ATLAS 왼쪽 workflow 패널에 전용 레인으로 표시한다 — 브리지가 codex의 collabAgentToolCall(spawn)·subAgentActivity·자식-thread item을 단일 `subagent` 엔벨로프로 정규화하고(parent turn은 main turnId 게이팅으로 nested subagent turn에 조기 종료되지 않으며 main 토큰 피드가 오염되지 않는다), 프론트는 Main(default·current)을 맨 위에 두고 subagent 목록(nickname[role] + thread id)을 렌더하고 행 클릭 시 선택/transcript를 펼친다. codex가 subagent를 내지 않으면 패널은 표시되지 않는다."
@@ -1735,11 +1734,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_codex_appserver_bridge.py::test_subagent_lane_events_from_collab_spawn"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
           - test: "tests/test_codex_appserver_bridge.py::test_subagent_lane_events_from_activity"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
           - test: "tests/test_codex_appserver_bridge.py::test_run_turn_routes_subagent_thread_to_lane_not_main"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
       - id: OBL_CODEX_SUBAGENT_LEFT_RAIL_LANES
         owned_by: ui.workspace
         granularity: behavior
@@ -1751,11 +1750,11 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_subagent_lanes_frontend.py::test_subagent_lanes_component_renders_picker"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
           - test: "tests/test_subagent_lanes_frontend.py::test_data_hook_subscribes_subagent_and_builds_main_first_lanes"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
           - test: "tests/test_subagent_lanes_frontend.py::test_left_rail_mounts_subagent_lanes"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
       - id: OBL_CODEX_HOOK_SKILL_ACTIVITY_VISIBLE
         owned_by: agent.codex-bridge
         granularity: behavior
@@ -1765,7 +1764,7 @@ requirements:
         status: closed
         evidence:
           - test: "tests/test_codex_appserver_bridge.py::test_run_turn_surfaces_hook_and_skill_activity"
-            observed_at: 11ad4100
+            observed_at: 99a4fd08
 
   - id: REQ_PLAT_FRONTEND_ENTRY_NO_STORE_001
     claim: "웹 진입 문서(index.vite.html / lobby.vite.html)는 Cache-Control: no-store로 서빙된다 — content-hash 자산을 참조하므로 진입 HTML이 캐시되면 재방문 브라우저가 옛 해시(없는 파일)를 요청해 404→blank가 된다. no-store면 매 로드마다 현재 셸을 부팅(자산은 이미 _NoCacheStatic no-store)."

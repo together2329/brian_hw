@@ -60,19 +60,18 @@ def test_oag_mode_default_off(monkeypatch):
     assert pb.oag_mode_enabled() is False
 
 
-def test_repo_config_codex_bridge_opt_in_with_oag_mode_off():
-    """Default chat engine is `main` (the built-in Python ReAct engine): the
-    checked-in .config keeps the Codex app-server bridge OPT-IN (CODEX_BRIDGE=0)
-    while preserving the bridge's pack/OAG config for the opt-in path, with
-    native OAG_MODE=0. Operator decision reversed on 2026-06-20: codex is no
-    longer the default engine; flip CODEX_BRIDGE=1 to opt in."""
+def test_repo_config_defaults_to_codex_mode():
+    """Default chat engine is the Codex app-server bridge: the checked-in .config
+    sets CODEX_BRIDGE=1 (opt OUT with =0 to fall back to the built-in `main`
+    ReAct engine — the gate honors truthiness), points the bridge at the vendored
+    OAG pack (ontology_ip_agent/.codex), enables the hook flags, and keeps native
+    ATLAS OAG_MODE=0 (codex reads the pack's AGENTS/skills/hooks itself)."""
     values = _repo_config_values()
-    # Opt-in, not default: the gate honors truthiness so 0 keeps the built-in
-    # `main` engine (see atlas_ui CODEX_BRIDGE gate + .config comment).
-    assert values["CODEX_BRIDGE"] == "0"
-    # Opt-in path config stays present (inert while off) so enabling is one flip.
-    assert values["CODEX_BRIDGE_HOME"] == "../../ontology_ip_agent/.codex"
-    assert values["CODEX_BRIDGE_OAG_ROOT"] == "../../ontology_ip_agent"
+    assert values["CODEX_BRIDGE"] == "1"
+    # bridge points at the vendored, checked-in OAG pack (resolved relative to
+    # common_ai_agent by the bridge).
+    assert values["CODEX_BRIDGE_HOME"] == "ontology_ip_agent/.codex"
+    assert values["CODEX_BRIDGE_OAG_ROOT"] == "ontology_ip_agent"
     assert values["CODEX_BRIDGE_ENABLE_HOOKS"] == "1"
     assert values["CODEX_BRIDGE_RUN_OAG_HOOKS"] == "1"
     assert values["CODEX_BRIDGE_STAGE_DOT_CODEX"] == "1"
