@@ -1642,11 +1642,11 @@ requirements:
         # 필요하면 operator가 OAG_MODE=1로 명시 opt-in 한다.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
             observed_at: 81134977
 
   - id: REQ_PLAT_CODEX_APP_SERVER_ENGINE_20260620_001
-    claim: "ATLAS codex mode는 `codex app-server --listen stdio://` bridge를 opt-in 에이전트 엔진으로 제공한다 — 기본 chat 엔진은 built-in `main` ReAct 엔진이다. CODEX_BRIDGE=1로 켜면 chat 턴이 legacy codex CLI/TUI 대신 app-server bridge로 라우팅되고, 엔진 게이트는 truthiness를 따르므로 CODEX_BRIDGE=0(checked-in .config 기본)은 main 엔진을 유지한다. opt-in 경로에서는 native ATLAS OAG_MODE를 기본 OFF로 두어 Codex 자체의 AGENTS/skills/tool runtime과 중복 주입하지 않는다."
+    claim: "ATLAS codex mode는 `codex app-server --listen stdio://` bridge를 **기본** 에이전트 엔진으로 사용한다(checked-in .config CODEX_BRIDGE=1) — chat 턴이 legacy codex CLI/TUI 대신 app-server bridge로 vendored OAG 팩(ontology_ip_agent/.codex)에 대해 라우팅된다. 엔진 게이트는 truthiness를 따르므로 CODEX_BRIDGE=0으로 opt-out하면 built-in `main` ReAct 엔진으로 돌아간다. 이 경로에서는 native ATLAS OAG_MODE를 OFF로 두어 Codex 자체의 AGENTS/skills/tool runtime과 중복 주입하지 않는다."
     design_anchor: doc/wiki/codex-engine-atlas-ui-integration.md
     obligations:
       - id: OBL_CODEX_APP_SERVER_DEFAULTS_OAG_MODE_OFF
@@ -1657,7 +1657,7 @@ requirements:
         # prior checked-in local default that used OAG_MODE=1.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
             observed_at: 81134977
           - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_forces_oag_mode_off_by_default"
             observed_at: 81134977
@@ -1681,7 +1681,7 @@ requirements:
         # pack source while preserving the user's normal Codex runtime home/auth.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
             observed_at: f1bb65e3
           - test: "tests/test_codex_appserver_bridge.py::test_app_server_env_resolves_bridge_pack_home_relative_to_repo"
             observed_at: f1bb65e3
@@ -1705,17 +1705,16 @@ requirements:
             observed_at: f1bb65e3
           - test: "tests/test_codex_appserver_bridge.py::test_run_turn_passes_oag_hook_context"
             observed_at: f1bb65e3
-      - id: OBL_CODEX_BRIDGE_OPT_IN_DEFAULT_MAIN
+      - id: OBL_CODEX_BRIDGE_DEFAULT_CODEX_MODE
         owned_by: platform.config
         granularity: behavior
-        # 2026-06-20 operator decision reversal: codex app-server bridge는 더
-        # 이상 기본 엔진이 아니다. 기본 chat 엔진은 built-in main ReAct이고
-        # CODEX_BRIDGE는 opt-in이다. atlas_ui의 엔진 게이트는 _truthy_env로
-        # truthiness를 따르므로 CODEX_BRIDGE=0(checked-in .config 기본)이 main을
-        # 유지하고, 1/true/on 등 명시 truthy 값만 app-server bridge로 라우팅한다.
+        # 2026-06-22 operator decision: codex app-server bridge가 기본 chat 엔진
+        # (checked-in .config CODEX_BRIDGE=1, vendored OAG 팩 ontology_ip_agent/
+        # .codex 가리킴). atlas_ui 엔진 게이트는 _truthy_env로 truthiness를 따르므로
+        # CODEX_BRIDGE=0으로 opt-out하면 built-in main ReAct로 돌아간다.
         status: closed
         evidence:
-          - test: "tests/test_oag_mode.py::test_repo_config_codex_bridge_opt_in_with_oag_mode_off"
+          - test: "tests/test_oag_mode.py::test_repo_config_defaults_to_codex_mode"
             observed_at: 11ad4100
           - test: "tests/test_oag_mode.py::test_codex_bridge_gate_honors_truthiness"
             observed_at: 11ad4100
