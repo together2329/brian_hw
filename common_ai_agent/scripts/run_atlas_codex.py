@@ -61,7 +61,10 @@ def write_config(pack: Path, pack_root: Path) -> None:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--pack", default=os.path.expanduser("~/Desktop/Project/ip_dev"))
+    # Default to the vendored OAG pack checked in at common_ai_agent/ontology_ip_agent/.codex
+    # (self-contained). Pass --pack ~/Desktop/Project/ip_dev to run against that
+    # project's real IPs instead.
+    ap.add_argument("--pack", default=str(ROOT / "ontology_ip_agent"))
     ap.add_argument("--port", type=int, default=3041)
     ap.add_argument("--no-build", action="store_true")
     args = ap.parse_args()
